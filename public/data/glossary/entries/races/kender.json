@@ -1,0 +1,24 @@
+{
+    "id": "kender",
+    "title": "Kender",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "DSotDQ",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "[[size|Small]]"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "hand",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "kender", "humanoid", "dragonlance", "fearless"],
+    "aliases": [],
+    "seeAlso": ["humanoid", "halfling"],
+    "filePath": "/data/glossary/entries/races/kender.json"
+}

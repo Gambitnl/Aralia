@@ -24,6 +24,13 @@ export const AASIMAR_DATA: Race = {
     'Celestial Revelation (Lvl 3): When you reach 3rd level, choose one of the revelation options (Necrotic Shroud, Radiant Consumption, or Radiant Soul). Thereafter, you can use a bonus action to unleash the celestial energy within yourself. Your transformation lasts for 1 minute or until you end it as a bonus action. Once you transform, you can’t use it again until you finish a long rest.',
   ],
   imageUrl: 'https://i.ibb.co/Qvm7Vwg1/Aasimar.png',
+  visual: {
+    id: 'aasimar',
+    icon: '👼',
+    color: '#FFD700',
+    maleIllustrationPath: 'assets/images/races/aasimar_male.png',
+    femaleIllustrationPath: 'assets/images/races/aasimar_female.png',
+  },
   knownSpells: [
     { minLevel: 1, spellId: 'light' }
   ]

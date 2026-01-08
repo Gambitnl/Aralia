@@ -1,0 +1,24 @@
+{
+    "id": "half_elf_aquatic",
+    "title": "Half-Elf (Aquatic)",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "SCAG",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet, swim 30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "water",
+            "description": "TODO: Add trait descriptions - swim speed from aquatic elf ancestry"
+        }
+    ],
+    "tags": ["race", "half-elf", "aquatic", "humanoid", "swimmer"],
+    "aliases": [],
+    "seeAlso": ["half-elf", "elf", "humanoid"],
+    "filePath": "/data/glossary/entries/races/half_elf_variants/aquatic.json"
+}

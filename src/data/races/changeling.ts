@@ -18,4 +18,11 @@ export const CHANGELING_DATA: Race = {
     'Shapechanger: As an action, you can change your appearance and your voice. You determine the specifics of the changes, including your coloration, hair length, and sex. You can also adjust your height and weight and can change your size between Medium and Small. You can make yourself appear as a member of another race, though none of your game statistics change. You can’t duplicate the appearance of an individual you’ve never seen, and you must adopt a form that has the same basic arrangement of limbs that you have. Your clothing and equipment aren’t changed by this trait.',
   ],
   imageUrl: 'https://i.ibb.co/N28tRQfH/Changeling.png',
+  visual: {
+    id: 'changeling',
+    icon: '🎭',
+    color: '#E8E8E8',
+    maleIllustrationPath: 'assets/images/races/changeling_male.png',
+    femaleIllustrationPath: 'assets/images/races/changeling_female.png',
+  },
 };

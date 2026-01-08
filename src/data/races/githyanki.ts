@@ -19,6 +19,13 @@ export const GITHYANKI_DATA: Race = {
     'Githyanki Psionics: You know the mage hand cantrip, and the hand is invisible when you cast the cantrip with this trait. Starting at 3rd level, you can cast the jump spell with this trait. Starting at 5th level, you can also cast the misty step spell with it. Once you cast jump or misty step with this trait, you can’t cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).',
     'Psychic Resilience: You have resistance to psychic damage.',
   ],
+  visual: {
+    id: 'githyanki',
+    icon: '⚔️',
+    color: '#8B0000',
+    maleIllustrationPath: 'assets/images/races/githyanki_male.png',
+    femaleIllustrationPath: 'assets/images/races/githyanki_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Githyanki Psionics',
     traitDescription: 'Choose your spellcasting ability for Githyanki Psionics (Mage Hand, Jump, Misty Step).',

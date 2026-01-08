@@ -50,4 +50,11 @@ export const TIEFLING_DATA: Race = {
     'Otherworldly Presence: You know the Thaumaturgy cantrip. It uses the same spellcasting ability chosen for your Fiendish Legacy.',
   ],
   fiendishLegacies: FIENDISH_LEGACIES_DATA,
+  visual: {
+    id: 'tiefling',
+    icon: '😈',
+    color: '#8B0000',
+    maleIllustrationPath: 'assets/images/races/tiefling_male.png',
+    femaleIllustrationPath: 'assets/images/races/tiefling_female.png',
+  },
 };

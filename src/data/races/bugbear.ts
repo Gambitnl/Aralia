@@ -22,4 +22,11 @@ export const BUGBEAR_DATA: Race = {
     'Surprise Attack: If you hit a creature with an attack roll, the creature takes an extra 2d6 damage if it hasn’t taken a turn yet in the current combat.',
   ],
   imageUrl: 'https://i.ibb.co/VcWZkK7X/Bugbear.png',
+  visual: {
+    id: 'bugbear',
+    icon: '🐻',
+    color: '#8B4513',
+    maleIllustrationPath: 'assets/images/races/bugbear_male.png',
+    femaleIllustrationPath: 'assets/images/races/bugbear_female.png',
+  },
 };

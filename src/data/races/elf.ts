@@ -101,4 +101,11 @@ export const ELF_DATA: Race = {
   ],
   elvenLineages: ELVEN_LINEAGES_DATA,
   imageUrl: 'https://i.ibb.co/MDWPvKPr/Elf.png',
+  visual: {
+    id: 'elf',
+    icon: '🧝',
+    color: '#228B22',
+    maleIllustrationPath: 'assets/images/races/elf_male.png',
+    femaleIllustrationPath: 'assets/images/races/elf_female.png',
+  },
 };

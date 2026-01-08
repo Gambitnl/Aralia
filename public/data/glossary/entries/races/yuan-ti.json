@@ -1,0 +1,56 @@
+{
+    "id": "yuan-ti",
+    "title": "Yuan-Ti",
+    "category": "Character Races",
+    "entryLore": "Yuan-ti are people who possess serpentine features, ranging from scales and slitted pupils to more drastic snakelike traits. Tracing their origins to ancient empires that sought to transcend their humanity through draconic and serpentine rituals, they possess a keen intellect and a natural affinity for magic. They are often viewed with suspicion due to their past, but many yuan-ti navigate the world as shrewd diplomats, masters of intrigue, or guardians of forgotten lore.",
+    "imageUrl": "/assets/images/races/yuan_ti_female.png",
+    "source": "MPMM",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium or Small"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Magic Resistance",
+            "icon": "shield",
+            "description": "You have [[advantage|Advantage]] on [[saving_throw|saving throws]] against [[spells]]."
+        },
+        {
+            "name": "Poison Resilience",
+            "icon": "shield",
+            "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]], and you have [[advantage|Advantage]] on saving throws you make to avoid or end the [[poisoned_condition|Poisoned]] condition."
+        },
+        {
+            "name": "Serpentine Casting",
+            "icon": "magic",
+            "description": "You know the [[poison_spray|Poison Spray]] cantrip. Starting at 3rd level, you can cast [[animal_friendship|Animal Friendship]] an unlimited number of times with this trait, but you can target only snakes with it. Starting at 5th level, you can cast [[suggestion|Suggestion]] with this trait. Once you cast Suggestion with this trait, you can't do so again until you finish a [[long_rest|Long Rest]]. You can also cast these spells using any spell slots you have of the appropriate level."
+        }
+    ],
+    "tags": [
+        "race",
+        "yuan-ti",
+        "serpentine",
+        "magic resistance",
+        "poison"
+    ],
+    "aliases": [
+        "snake-folk"
+    ],
+    "seeAlso": [
+        "humanoid",
+        "magic_resistance",
+        "poison_damage",
+        "serpentine_casting"
+    ],
+    "filePath": "/data/glossary/entries/races/yuan-ti.json"
+}

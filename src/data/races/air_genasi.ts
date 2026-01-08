@@ -25,6 +25,13 @@ export const AIR_GENASI_DATA: Race = {
     'Mingle with the Wind: You know the Shocking Grasp cantrip. Starting at 3rd level, you can cast the Feather Fall spell with this trait, without requiring a material component. Starting at 5th level, you can also cast the Levitate spell with this trait, without requiring a material component. Once you cast Feather Fall or Levitate with this trait, you can’t cast that spell with it again until you finish a Long Rest. You can also cast either of those spells using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).',
   ],
   imageUrl: 'https://i.ibb.co/HT3Vq8DY/Air-Genasi.png',
+  visual: {
+    id: 'air_genasi',
+    icon: '💨',
+    color: '#87CEEB',
+    maleIllustrationPath: 'assets/images/races/air_genasi_male.png',
+    femaleIllustrationPath: 'assets/images/races/air_genasi_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Mingle with the Wind',
     traitDescription: 'Choose your spellcasting ability for Mingle with the Wind (Shocking Grasp, Feather Fall, Levitate).',

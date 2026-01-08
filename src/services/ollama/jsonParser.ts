@@ -32,6 +32,7 @@ export function parseJsonRobustly<T = any>(text: string): T | null {
 
     // 3. Try to find anything between { and }
     const braceMatch = text.match(/(\{[\s\S]*\})/);
+    // TODO: Add a final fallback strategy that locates the first '{' and last '}' in the entire string to extract the JSON object, handling cases where the model wraps the JSON in conversational text without markdown blocks.
     if (braceMatch?.[1]) {
         try {
             return JSON.parse(braceMatch[1].trim()) as T;

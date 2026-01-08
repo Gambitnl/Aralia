@@ -21,4 +21,11 @@ export const TABAXI_DATA: Race = {
     'Feline Agility: Your reflexes and agility allow you to move with a burst of speed. When you move on your turn in combat, you can double your speed until the end of the turn. Once you use this trait, you can’t use it again until you move 0 feet on one of your turns.',
   ],
   imageUrl: 'https://i.ibb.co/Placeholder/Tabaxi.png',
+  visual: {
+    id: 'tabaxi',
+    icon: '🐱',
+    color: '#D2691E',
+    maleIllustrationPath: 'assets/images/races/tabaxi_male.png',
+    femaleIllustrationPath: 'assets/images/races/tabaxi_female.png',
+  },
 };

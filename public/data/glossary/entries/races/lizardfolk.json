@@ -1,0 +1,59 @@
+{
+    "id": "lizardfolk",
+    "title": "Lizardfolk",
+    "category": "Character Races",
+    "entryLore": "Lizardfolk are ancient reptilian humanoids who primarily inhabit swamps and jungles. Often viewed as cold or indifferent by other races due to their focus on survival and practical logic, they possess a deep and ancestral connection to the natural world. They are superbly adapted for life in and around water, using their natural weapons and keen survival instincts to thrive in environments that would be fatal to many.",
+    "imageUrl": "/assets/images/races/lizardfolk_female.png",
+    "source": "MPMM",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet, Swim 30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Bite",
+            "icon": "sword",
+            "description": "You can use your maw to make unarmed strikes. When you hit with it, the strike deals 1d6 + your Strength modifier piercing damage, instead of the normal bludgeoning damage."
+        },
+        {
+            "name": "Hold Breath",
+            "icon": "water",
+            "description": "You can hold your breath for up to 15 minutes at a time."
+        },
+        {
+            "name": "Hungry Jaws",
+            "icon": "heart",
+            "description": "As a [[bonus_action|Bonus Action]], you can make a special attack with your Bite. If the attack hits, it deals its normal damage, and you gain [[temporary_hit_points|Temporary Hit Points]] equal to your [[proficiency_bonus|Proficiency Bonus]]. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+        },
+        {
+            "name": "Natural Armor",
+            "icon": "shield",
+            "description": "You have tough, scaly skin. When you aren't wearing armor, your base Armor Class is 13 + your [[dexterity|Dexterity]] modifier. You can use your natural armor to determine your AC if the armor you wear would leave you with a lower AC. A shield's benefits apply as normal while you use your natural armor."
+        }
+    ],
+    "tags": [
+        "race",
+        "lizardfolk",
+        "reptilian",
+        "swimmer",
+        "natural armor"
+    ],
+    "aliases": [],
+    "seeAlso": [
+        "humanoid",
+        "swim_speed",
+        "hungry_jaws",
+        "natural_armor"
+    ],
+    "filePath": "/data/glossary/entries/races/lizardfolk.json"
+}

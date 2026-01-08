@@ -20,4 +20,11 @@ export const CENTAUR_DATA: Race = {
     'Natural Affinity: Your fey connection to nature gives you an intuitive connection to the natural world and the animals within it. You therefore have proficiency in one of the following skills of your choice: Animal Handling, Medicine, Nature, or Survival.',
   ],
   imageUrl: 'https://i.ibb.co/pvc3Jkp0/Centaur.png',
+  visual: {
+    id: 'centaur',
+    icon: '🐴',
+    color: '#8B6914',
+    maleIllustrationPath: 'assets/images/races/centaur_male.png',
+    femaleIllustrationPath: 'assets/images/races/centaur_female.png',
+  },
 };

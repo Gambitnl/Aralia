@@ -58,4 +58,11 @@ export const GOLIATH_DATA: Race = {
   ],
   giantAncestryChoices: GIANT_ANCESTRY_BENEFITS_DATA,
   imageUrl: 'https://i.ibb.co/m5hCjLxW/Goliath.png',
+  visual: {
+    id: 'goliath',
+    icon: '🏔️',
+    color: '#708090',
+    maleIllustrationPath: 'assets/images/races/goliath_male.png',
+    femaleIllustrationPath: 'assets/images/races/goliath_female.png',
+  },
 };

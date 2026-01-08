@@ -1,21 +1,35 @@
 {
-  "id": "goliath_ancestry_storm",
-  "title": "Storm's Thunder (Storm Giant)",
+  "id": "storm_giant",
+  "title": "Storm Giant Ancestry",
   "category": "Character Races",
+  "entryLore": "As a goliath with Storm Giant ancestry, you possess the common traits of your people, enhanced by the crackling power of the tempest. This heritage allows you to strike back at those who dare harm you, manifesting your ancestral fury as a localized crackle of thunder and lightning.",
+  "imageUrl": "/assets/images/races/goliath_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Ancestry Boon",
+      "value": "Storm's Thunder (Reactive Damage)"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Storm's Thunder",
+      "icon": "wind",
+      "description": "When you take damage from a creature within 60 feet of you, you can use your [[reaction|Reaction]] to cause that creature to take 1d8 [[thunder_damage|Thunder damage]]. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], regaining all uses on a [[long_rest|Long Rest]]."
+    }
+  ],
   "tags": [
     "goliath",
-    "giant ancestry",
+    "giant",
     "storm giant",
     "thunder damage",
-    "reaction"
+    "lineage"
   ],
-  "excerpt": "A Giant Ancestry boon allowing you to deal reactive Thunder damage to an attacker.",
   "aliases": [],
   "seeAlso": [
     "goliath",
     "reaction",
     "thunder_damage"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json",
-  "markdown": "# Storm's Thunder (Storm Giant)\r\n\r\nAs a goliath with Storm Giant ancestry, you possess the common traits of your people and this unique boon.\r\n\r\n---\r\n## Goliath Traits (Storm Ancestry)\r\n\r\n<details>\r\n  <summary>Large Form (Common Goliath Trait)</summary>\r\n  <div>\r\n    <p>Starting at character level 5, you can change your size to <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Large</span> as a <span data-term-id=\"bonus_action\" class=\"glossary-term-link-from-markdown\">Bonus Action</span> if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no <span data-term-id=\"action\" class=\"glossary-term-link-from-markdown\">action</span> required). For that duration, you have <span data-term-id=\"advantage\" class=\"glossary-term-link-from-markdown\">Advantage</span> on <span data-term-id=\"strength_checks\" class=\"glossary-term-link-from-markdown\">Strength checks</span>, and your <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> increases by 10 feet. Once you use this trait, you can't use it again until you finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Powerful Build (Common Goliath Trait)</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"advantage\" class=\"glossary-term-link-from-markdown\">Advantage</span> on any <span data-term-id=\"ability_check\" class=\"glossary-term-link-from-markdown\">ability check</span> you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Giant Ancestry: Storm's Thunder</summary>\r\n  <div>\r\n    <p>When you take damage from a creature within 60 feet of you, you can take a <span data-term-id=\"reaction\" class=\"glossary-term-link-from-markdown\">Reaction</span> to deal 1d8 Thunder damage to that creature.</p>\r\n    <p>You can use this benefit a number of times equal to your <span data-term-id=\"proficiency_bonus\" class=\"glossary-term-link-from-markdown\">Proficiency Bonus</span>, and you regain all expended uses when you finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span>.</p>\r\n  </div>\r\n</details>\r\n"
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json"
 }

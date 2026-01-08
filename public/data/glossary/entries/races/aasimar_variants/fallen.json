@@ -1,0 +1,24 @@
+{
+    "id": "fallen_aasimar",
+    "title": "Fallen Aasimar",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium or Small"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "shadow",
+            "description": "TODO: Add trait descriptions - necrotic shroud with frightening presence"
+        }
+    ],
+    "tags": ["race", "aasimar", "fallen", "celestial", "humanoid"],
+    "aliases": [],
+    "seeAlso": ["aasimar", "humanoid"],
+    "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json"
+}

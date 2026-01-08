@@ -1,0 +1,24 @@
+{
+    "id": "giff",
+    "title": "Giff",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "AAG",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "strength",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "giff", "humanoid", "spelljammer", "beastfolk"],
+    "aliases": ["hippofolk"],
+    "seeAlso": ["humanoid"],
+    "filePath": "/data/glossary/entries/races/giff.json"
+}

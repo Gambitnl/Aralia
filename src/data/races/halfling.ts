@@ -22,4 +22,11 @@ export const HALFLING_DATA: Race = {
     'Naturally Stealthy: You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced).',
   ],
   imageUrl: 'https://i.ibb.co/whZmW9dC/Halfling.png',
+  visual: {
+    id: 'halfling',
+    icon: '🏠',
+    color: '#DAA520',
+    maleIllustrationPath: 'assets/images/races/halfling_male.png',
+    femaleIllustrationPath: 'assets/images/races/halfling_female.png',
+  },
 };

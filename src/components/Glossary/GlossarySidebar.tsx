@@ -65,8 +65,9 @@ const GlossaryEntryNode: React.FC<{
         const isExpanded = isParent && expandedParentEntries.has(entry.id);
         const indentClass = `pl-${level * 2}`;
         const hasContentToDisplay = (entry.category === 'Spells' && !isParent) || !!entry.filePath;
+        // Parents are no longer disabled - we want them to be clickable to toggle expansion
+        const disabled = !isParent && !hasContentToDisplay;
         const gate = entry.category === 'Spells' ? gateResults[entry.id] : undefined;
-        const disabled = (entry.category === 'Spells' && isParent) || (!hasContentToDisplay && !isParent);
         const gateLabel = gate?.reasons?.join('; ');
 
         const gateDot = gate ? (

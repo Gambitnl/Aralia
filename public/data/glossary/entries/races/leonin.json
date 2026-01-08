@@ -1,0 +1,24 @@
+{
+    "id": "leonin",
+    "title": "Leonin",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MOoT",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "35 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "lion",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "leonin", "humanoid", "theros", "beastfolk"],
+    "aliases": ["lionfolk"],
+    "seeAlso": ["humanoid"],
+    "filePath": "/data/glossary/entries/races/leonin.json"
+}

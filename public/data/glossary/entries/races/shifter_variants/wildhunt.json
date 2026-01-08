@@ -1,0 +1,24 @@
+{
+    "id": "wildhunt_shifter",
+    "title": "Wildhunt Shifter",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "eye",
+            "description": "TODO: Add trait descriptions - advantage on Wis checks, enemies can't have advantage"
+        }
+    ],
+    "tags": ["race", "shifter", "wildhunt", "humanoid", "lycanthrope"],
+    "aliases": [],
+    "seeAlso": ["shifter", "humanoid"],
+    "filePath": "/data/glossary/entries/races/shifter_variants/wildhunt.json"
+}

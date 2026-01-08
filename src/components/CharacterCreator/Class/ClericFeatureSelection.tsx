@@ -4,7 +4,7 @@
  * their Divine Order and their initial known cantrips and Level 1 spells.
  */
 import React, { useState } from 'react';
-import { DivineOrderOption, Spell, Class as CharClass } from '../../../types'; 
+import { DivineOrderOption, Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types'; 
 
 interface ClericFeatureSelectionProps {
   divineOrders: DivineOrderOption[];
@@ -39,6 +39,18 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
   const availableSpellsL1 = spellcastingInfo.spellList
     .map(id => allSpells[String(id)])
     .filter(spell => spell && spell.level === 1);
+
+  // Helper to extract damage information from spell effects for display
+  const getSpellDamageInfo = (spell: Spell): string | null => {
+    if (!spell.effects) return null;
+    // Find the first effect that deals damage
+    const damageEffect = spell.effects.find((e: SpellEffect) => e.type === 'DAMAGE') as DamageEffect | undefined;
+    if (damageEffect && damageEffect.damage) {
+      // Return formatted string like "1d10 Fire"
+      return `${damageEffect.damage.dice} ${damageEffect.damage.type}`;
+    }
+    return null;
+  };
 
   const toggleSelection = (id: string, currentSelection: Set<string>, setSelection: React.Dispatch<React.SetStateAction<Set<string>>>, limit: number) => {
     const newSelection = new Set(currentSelection);
@@ -88,16 +100,22 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
             <h3 className="text-xl text-amber-300 mb-2">Select {numCantripsToSelect} Cantrips</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {availableCantrips.map(spell => (
-              <label key={spell.id} className={`p-2 rounded-md cursor-pointer transition-colors ${selectedCantripIds.has(spell.id) ? 'bg-sky-600 ring-1 ring-sky-400' : 'bg-gray-700 hover:bg-gray-600'}`}>
-                <input 
-                  type="checkbox" 
-                  className="mr-2 form-checkbox text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500" 
-                  checked={selectedCantripIds.has(spell.id)} 
-                  onChange={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, numCantripsToSelect)} 
-                  disabled={!selectedCantripIds.has(spell.id) && selectedCantripIds.size >= numCantripsToSelect}
-                  aria-label={`Select cantrip ${spell.name}`}
-                />
-                {spell.name}
+              <label key={spell.id} className={`p-2 rounded-md cursor-pointer transition-colors flex flex-col ${selectedCantripIds.has(spell.id) ? 'bg-sky-600 ring-1 ring-sky-400' : 'bg-gray-700 hover:bg-gray-600'}`}>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    className="mr-2 form-checkbox text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500" 
+                    checked={selectedCantripIds.has(spell.id)} 
+                    onChange={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, numCantripsToSelect)} 
+                    disabled={!selectedCantripIds.has(spell.id) && selectedCantripIds.size >= numCantripsToSelect}
+                    aria-label={`Select cantrip ${spell.name}`}
+                  />
+                  {spell.name}
+                </div>
+                {/* Display damage info if available (e.g. "1d10 Fire") */}
+                {getSpellDamageInfo(spell) && (
+                  <span className="text-xs text-red-300 ml-6">{getSpellDamageInfo(spell)}</span>
+                )}
               </label>
             ))}
             </div>
@@ -108,16 +126,22 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
             <h3 className="text-xl text-amber-300 mb-2">Select {numSpellsL1ToSelect} Level 1 Spells</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {availableSpellsL1.map(spell => (
-              <label key={spell.id} className={`p-2 rounded-md cursor-pointer transition-colors ${selectedSpellL1Ids.has(spell.id) ? 'bg-sky-600 ring-1 ring-sky-400' : 'bg-gray-700 hover:bg-gray-600'}`}>
-                <input 
-                  type="checkbox" 
-                  className="mr-2 form-checkbox text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500" 
-                  checked={selectedSpellL1Ids.has(spell.id)} 
-                  onChange={() => toggleSelection(spell.id, selectedSpellL1Ids, setSelectedSpellL1Ids, numSpellsL1ToSelect)} 
-                  disabled={!selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= numSpellsL1ToSelect}
-                  aria-label={`Select level 1 spell ${spell.name}`}
-                />
-                {spell.name}
+              <label key={spell.id} className={`p-2 rounded-md cursor-pointer transition-colors flex flex-col ${selectedSpellL1Ids.has(spell.id) ? 'bg-sky-600 ring-1 ring-sky-400' : 'bg-gray-700 hover:bg-gray-600'}`}>
+                <div className="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    className="mr-2 form-checkbox text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500" 
+                    checked={selectedSpellL1Ids.has(spell.id)} 
+                    onChange={() => toggleSelection(spell.id, selectedSpellL1Ids, setSelectedSpellL1Ids, numSpellsL1ToSelect)} 
+                    disabled={!selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= numSpellsL1ToSelect}
+                    aria-label={`Select level 1 spell ${spell.name}`}
+                  />
+                  {spell.name}
+                </div>
+                {/* Display damage info if available (e.g. "3d8 Thunder") */}
+                {getSpellDamageInfo(spell) && (
+                  <span className="text-xs text-red-300 ml-6">{getSpellDamageInfo(spell)}</span>
+                )}
               </label>
             ))}
             </div>

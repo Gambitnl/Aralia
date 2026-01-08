@@ -12,13 +12,24 @@ import {
     // StatusConditionEffect // Not used yet but good for future
 } from '../../types/spells';
 
+/**
+ * Result of a saving throw roll.
+ * Includes the raw roll, total after modifiers, and whether it succeeded.
+ */
 export interface SavingThrowResult {
+    /** Whether the save was successful (total >= dc) */
     success: boolean;
+    /** The raw d20 roll before modifiers */
     roll: number;
+    /** Final total: roll + ability mod + proficiency + external modifiers */
     total: number;
+    /** The difficulty class that needed to be met or exceeded */
     dc: number;
+    /** True if the raw roll was 20 (auto-success in some contexts) */
     natural20: boolean;
+    /** True if the raw roll was 1 (auto-fail in some contexts) */
     natural1: boolean;
+    /** List of modifiers that were applied (e.g., Bless, Mind Sliver) */
     modifiersApplied?: { source: string; value: number }[];
 }
 
@@ -70,15 +81,18 @@ export function rollSavingThrow(
     dc: number,
     modifiers?: SavingThrowModifier[]
 ): SavingThrowResult {
+    // Step 1: Roll the d20
     const roll = rollDice('1d20');
 
-    // Get ability modifier
+    // Step 2: Calculate ability modifier from the relevant stat
+    // E.g., for a Dexterity save, look up target.stats.dexterity
     const abilityKey = ability.toString().toLowerCase() as keyof typeof target.stats;
     const score = (target.stats[abilityKey] ?? 10) as number;
     let mod = getAbilityModifierValue(score);
 
-    // Add proficiency if applicable
-    // Check if class or character has proficiency in this save
+    // Step 3: Add proficiency bonus if the character is proficient in this save
+    // Proficiency can come from class (e.g., Fighters are proficient in Str/Con)
+    // or from the character directly (e.g., Resilient feat grants proficiency)
     // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
@@ -95,33 +109,39 @@ export function rollSavingThrow(
         mod += calculateProficiencyBonus(target.level || 1);
     }
 
-    // Apply external modifiers (e.g., Mind Sliver's -1d4, Bless +1d4, Cover +2)
+    // Step 4: Apply external modifiers from active effects
+    // Examples:
+    //   - Bless: +1d4 (bonus)
+    //   - Mind Sliver: -1d4 (penalty, applied to next save)
+    //   - Cover: +2 flat bonus
+    // These are tracked for logging purposes
     const modifiersApplied: { source: string; value: number }[] = [];
     if (modifiers && modifiers.length > 0) {
         for (const modifier of modifiers) {
+            // Dice modifiers (e.g., "1d4" or "-1d4") are rolled and added
             if (modifier.dice) {
                 const diceRoll = rollDice(modifier.dice);
-                // Dice result is ADDED (positive string = bonus, negative string = penalty)
                 mod += diceRoll;
                 modifiersApplied.push({ source: modifier.source, value: diceRoll });
             }
+            // Flat modifiers (e.g., +2 from cover) are added directly
             if (modifier.flat !== undefined) {
-                // Flat modifiers are applied directly (already signed)
                 mod += modifier.flat;
                 modifiersApplied.push({ source: modifier.source, value: modifier.flat });
             }
         }
     }
 
+    // Step 5: Calculate final total and determine success
     const total = roll + mod;
 
     return {
-        success: total >= dc,
-        roll,
-        total,
-        dc,
-        natural20: roll === 20,
-        natural1: roll === 1,
+        success: total >= dc,  // Must meet or beat the DC
+        roll,                  // Raw d20 result
+        total,                 // Final modified result
+        dc,                    // The target DC
+        natural20: roll === 20, // For special auto-success rules
+        natural1: roll === 1,   // For special auto-fail rules
         modifiersApplied: modifiersApplied.length > 0 ? modifiersApplied : undefined
     };
 }
@@ -134,21 +154,28 @@ export function calculateSaveDamage(
     saveResult: SavingThrowResult,
     effectType: 'none' | 'half' | 'negates_condition' = 'half'
 ): number {
+    // Failed save = full damage always
     if (!saveResult.success) {
         return initialDamage;
     }
 
+    // --- SUCCESSFUL SAVE OUTCOMES ---
+
+    // 'half': Standard for most leveled spells (Fireball, Lightning Bolt, etc.)
+    // Successful save reduces damage to half (rounded down)
     if (effectType === 'half') {
         return Math.floor(initialDamage / 2);
     }
 
+    // 'negates_condition': Used for effects where a save completely avoids the effect
+    // For damage context, this means 0 damage on success.
+    // Examples: Sacred Flame (cantrip), Poison Spray (cantrip)
+    // Note: This is what CANTRIPS should use - NOT 'half'!
     if (effectType === 'negates_condition') {
-        // For damage, usually 'negates' implies 0 damage (like Evasion vs Dex saves, but that's a feature)
-        // Or for cantrips like Sacred Flame: "takes 1d8... Dex save negates."
-        // If usage is purely damage, 'negates' means 0.
         return 0;
     }
 
-    // effectType === 'none' means save doesn't reduce damage (rare for pure damage spells, maybe secondary effects)
+    // 'none': Save doesn't reduce damage at all (rare)
+    // Used for effects where the save only prevents secondary conditions, not the damage
     return initialDamage;
 }

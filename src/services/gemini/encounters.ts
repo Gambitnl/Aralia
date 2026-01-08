@@ -124,6 +124,11 @@ export async function generateEncounter(
   const initialModel = devModelOverride || adaptiveModel;
   const modelsToTry = [initialModel, ...GEMINI_TEXT_MODEL_FALLBACK_CHAIN.filter(m => m !== initialModel)];
 
+  // TODO: Unlike `generateText` in core.ts, this loop does NOT implement exponential backoff (sleep)
+  // between model fallback attempts. All models are tried in rapid succession, which may:
+  // 1. Trigger additional rate limits immediately.
+  // 2. Waste retries if the server is overloaded momentarily.
+  // Consider integrating the `calculateBackoffDelay` and `sleep` utilities from core.ts.
   for (const model of modelsToTry) {
     try {
       const useThinking = model.includes('gemini-2.5') || model.includes('gemini-3');
@@ -339,13 +344,13 @@ ${villageContextStr}`;
     const validated = SocialOutcomeSchema.parse(parsed);
     const safeGoalUpdate = validated.goalUpdate
       ? {
-          npcId: validated.goalUpdate.npcId ?? 'npc:unknown',
-          goalId: validated.goalUpdate.goalId ?? 'goal:unknown',
-          // TODO(2026-01-03 Codex-CLI): Confirm Gemini output matches GoalStatus enum; mapping Unknown by default preserves future intent.
-          newStatus:
-            GoalStatus[(validated.goalUpdate.newStatus as keyof typeof GoalStatus)] ??
-            GoalStatus.Unknown,
-        }
+        npcId: validated.goalUpdate.npcId ?? 'npc:unknown',
+        goalId: validated.goalUpdate.goalId ?? 'goal:unknown',
+        // TODO(2026-01-03 Codex-CLI): Confirm Gemini output matches GoalStatus enum; mapping Unknown by default preserves future intent.
+        newStatus:
+          GoalStatus[(validated.goalUpdate.newStatus as keyof typeof GoalStatus)] ??
+          GoalStatus.Unknown,
+      }
       : null;
 
     return {

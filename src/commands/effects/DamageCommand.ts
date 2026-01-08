@@ -13,6 +13,10 @@ import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
 
+/**
+ * Flavor verbs for combat log messages, keyed by damage type.
+ * A random verb is selected when logging damage to add variety.
+ */
 const DAMAGE_VERBS: Record<string, string[]> = {
   acid: ['melts', 'corrodes', 'dissolves', 'burns'],
   bludgeoning: ['batters', 'crushes', 'pummels', 'bludgeons'],
@@ -29,6 +33,7 @@ const DAMAGE_VERBS: Record<string, string[]> = {
   thunder: ['deafens', 'booms', 'blasts', 'shatters'],
 };
 
+/** Fallback verbs when damage type is unknown or not in DAMAGE_VERBS */
 const DEFAULT_VERBS = ['damages', 'hits', 'strikes', 'hurts'];
 
 /**
@@ -45,59 +50,78 @@ export class DamageCommand extends BaseEffectCommand {
     let currentState = state
     const caster = this.getCaster(currentState);
 
-    // Elemental Adept: Treat 1s as 2s
+    // --- FEAT: Elemental Adept ---
+    // If the caster has Elemental Adept for this damage type, treat 1s as 2s on damage dice.
+    // This prevents low rolls from being wasted.
     let minRoll = 1;
     const elementalAdeptChoice = caster.featChoices?.['elemental_adept']?.selectedDamageType;
     if (elementalAdeptChoice && elementalAdeptChoice.toLowerCase() === this.effect.damage.type.toLowerCase()) {
       minRoll = 2;
     }
 
-    // NEW: Get Planar Modifier
+    // --- PLANAR MECHANICS ---
+    // Some planes empower or impede certain spell schools.
+    // Positive modifiers (+1 damage) are applied via upcasting in SpellCommandFactory.
+    // Negative modifiers (impeded schools) are applied here to reduce damage.
     let planarModifier = 0;
     if (this.context.currentPlane && this.context.spellSchool) {
       planarModifier = getPlanarSpellModifier(this.context.spellSchool, this.context.currentPlane);
     }
 
+    // --- MAIN DAMAGE LOOP: Process each target ---
     for (const target of this.getTargets(currentState)) {
-      // 1. Calculate base damage
+      // Step 1: Roll base damage
+      // - Parses dice string (e.g., "2d6+3") and rolls
+      // - Doubles dice on critical hits
+      // - Applies minRoll floor from Elemental Adept
       const isCritical = this.context.isCritical || false;
       let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
-      // PLANESHIFTER: Apply Planar Impediment (Negative Modifier)
-      // Empowered (+1) is now handled by SpellCommandFactory via upcasting.
-      // We only apply negative modifiers here (e.g., Impeded schools).
+      // Step 2: Apply planar impediment (negative modifier only)
+      // Positive modifiers are handled upstream via upcasting.
       if (planarModifier < 0) {
         damageRoll += planarModifier; // Reduce damage
-        damageRoll = Math.max(0, damageRoll);
+        damageRoll = Math.max(0, damageRoll); // Damage cannot go below 0
       }
 
-      // 2. Handle Saving Throw (if applicable)
+      // --- Step 3: Handle Saving Throw ---
+      // If the effect requires a save (e.g., Dex save for Fireball), roll it here.
+      // saveEffect determines damage on success: 'half' (most spells), 'none' (cantrips), or 'negates_condition'
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
+        // Calculate the spell save DC: 8 + proficiency + spellcasting modifier
         let dc = calculateSpellDC(caster);
 
-        // Apply Planar Modifier to DC (Only negative)
+        // Impeded spell schools on certain planes reduce DC
         if (planarModifier < 0) {
           dc += planarModifier;
         }
 
+        // Gather any active save penalties (e.g., Mind Sliver's -1d4)
         const savePenaltySystem = new SavePenaltySystem();
         const saveModifiers = savePenaltySystem.getActivePenalties(target);
 
+        // Roll the save: 1d20 + ability mod + proficiency (if proficient) + modifiers
         const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
 
-        // Adjust damage based on save result
+        // Adjust damage based on save outcome:
+        // - Failed save: full damage
+        // - Successful save with 'half': half damage (most leveled spells)
+        // - Successful save with 'none': no damage reduction (rare)
+        // - Successful save with 'negates_condition': 0 damage (cantrips)
+        // NOTE: Default is 'half' which is WRONG for cantrips - spell data should specify 'none'
         damageRoll = calculateSaveDamage(
           damageRoll,
           saveResult,
           this.effect.condition.saveEffect || 'half'
         );
 
-        // Consume next_save penalties
+        // Consume one-time save penalties (e.g., Mind Sliver applies to "next save" only)
         currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
 
-        // Log save outcome
+        // Build and log the save outcome message
         let saveLogMessage = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
 
+        // Append modifier details if any were applied (e.g., "-3 [Mind Sliver]")
         if (saveResult.modifiersApplied && saveResult.modifiersApplied.length > 0) {
           const modDetails = saveResult.modifiersApplied.map(m => `${m.value >= 0 ? '+' : ''}${m.value} [${m.source}]`).join(', ');
           saveLogMessage += ` (Mods: ${modDetails})`;
@@ -110,7 +134,9 @@ export class DamageCommand extends BaseEffectCommand {
         });
       }
 
-      // 3. Apply Damage
+      // --- Step 4: Apply Resistances and Vulnerabilities ---
+      // Reduces damage by half if resistant, doubles if vulnerable, or 0 if immune.
+      // Also checks for bypasses (e.g., magical weapons bypassing non-magical resistance).
       const finalDamage = ResistanceCalculator.applyResistances(
         damageRoll,
         this.effect.damage.type,
@@ -118,6 +144,8 @@ export class DamageCommand extends BaseEffectCommand {
         caster
       );
 
+      // --- Step 5: Apply final damage to target's HP ---
+      // HP cannot go below 0 (death handling is elsewhere)
       const newHP = Math.max(0, target.currentHP - finalDamage);
       currentState = this.updateCharacter(currentState, target.id, {
         currentHP: newHP
@@ -131,11 +159,15 @@ export class DamageCommand extends BaseEffectCommand {
       // --- LOGGING ---
       currentState = this.logDamage(currentState, caster, target, finalDamage, planarModifier);
 
-      // 4. Check Concentration
+      // --- Step 6: Check Concentration ---
+      // If the target is concentrating on a spell and took damage,
+      // they must make a Constitution save (DC = 10 or half damage, whichever is higher).
+      // Failure breaks concentration and ends their maintained spell.
       if (target.concentratingOn && damageRoll > 0) {
         const check = checkConcentration(target, damageRoll);
 
         if (!check.success) {
+          // Concentration broken - execute command to clean up the spell's effects
           const breakCommand = new BreakConcentrationCommand({
             ...this.context,
             caster: target,
@@ -152,6 +184,7 @@ export class DamageCommand extends BaseEffectCommand {
             characterId: target.id
           });
         } else {
+          // Concentration maintained
           currentState = this.addLogEntry(currentState, {
             type: 'status',
             message: `${target.name} maintains concentration (${check.roll} vs DC ${check.dc})`,

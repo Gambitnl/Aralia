@@ -19,6 +19,13 @@ export const GITHZERAI_DATA: Race = {
     'Mental Discipline: You have advantage on saving throws you make to avoid or end the charmed and frightened conditions on yourself.',
     'Psychic Resilience: You have resistance to psychic damage.',
   ],
+  visual: {
+    id: 'githzerai',
+    icon: '🧘',
+    color: '#4682B4',
+    maleIllustrationPath: 'assets/images/races/githzerai_male.png',
+    femaleIllustrationPath: 'assets/images/races/githzerai_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Githzerai Psionics',
     traitDescription: 'Choose your spellcasting ability for Githzerai Psionics (Mage Hand, Shield, Detect Thoughts).',

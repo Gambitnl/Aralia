@@ -1,7 +1,50 @@
 {
   "id": "firbolg",
-  "title": "Firbolg (Race)",
+  "title": "Firbolg",
   "category": "Character Races",
+  "entryLore": "Firbolgs are distant cousins of giants who trace their origins to the primeval forests of the multiverse. They possess a deep connection to the wild, mastery over obscuring magic, and the ability to commune with nature. Often gentle and reclusive, they prefer to use their powers to remain unseen and protect the woodland realms from those who would exploit them.",
+  "imageUrl": "/assets/images/races/firbolg_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Life Span",
+      "value": "Up to 500 years"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Firbolg Magic",
+      "icon": "magic",
+      "description": "You can cast [[detect_magic|Detect Magic]] and [[disguise_self|Disguise Self]] once per long rest. When you use this version of Disguise Self, you can seem up to 3 feet shorter or taller and appear as a creature that is the same size category as you. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells."
+    },
+    {
+      "name": "Hidden Step",
+      "icon": "wind",
+      "description": "As a [[bonus_action|Bonus Action]], you can magically turn [[invisible_condition|Invisible]] until the start of your next turn or until you hit with an attack roll, make a damage roll, or force someone to make a saving throw. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], regaining all uses on a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Powerful Build",
+      "icon": "shield",
+      "description": "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+    },
+    {
+      "name": "Speech of Beast and Leaf",
+      "icon": "heart",
+      "description": "You have the ability to communicate in a limited manner with Beasts and Plants. They can understand the meaning of your words, though you have no special ability to understand them in return. You have [[advantage|Advantage]] on all Charisma checks you make to influence them."
+    }
+  ],
   "tags": [
     "race",
     "firbolg",
@@ -10,7 +53,6 @@
     "stealth",
     "nature"
   ],
-  "excerpt": "Distant cousins of giants, firbolgs are forest-dwellers with obscuring magic that allows them to turn invisible and speak with beasts and plants.",
   "aliases": [],
   "seeAlso": [
     "firbolg_magic",
@@ -18,6 +60,5 @@
     "powerful_build",
     "speech_of_beast_and_leaf"
   ],
-  "filePath": "/data/glossary/entries/races/firbolg.json",
-  "markdown": "# Firbolg\r\n\r\nDistant cousins of giants, the first firbolgs wandered the primeval forests of the multiverse, and the magic of those forests entwined itself with the firbolgs' souls. Centuries later, that magic still thrums inside a firbolg, even one who has never lived under the boughs of a great forest.\r\n\r\nA firbolg's magic is an obscuring sort, which allowed their ancestors to pass through a forest without disturbing it. So deep is the connection between a firbolg and the wild places of the world that they can communicate with flora and fauna. Firbolgs can live up to 500 years.\r\n\r\n---\r\n## Firbolg Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Medium</span>\r\n**Speed:** 30 feet\r\n\r\n<details>\r\n  <summary>Firbolg Magic</summary>\r\n  <div>\r\n    <p>You can cast the <span data-term-id=\"detect_magic\" class=\"glossary-term-link-from-markdown\">Detect Magic</span> and <span data-term-id=\"disguise_self\" class=\"glossary-term-link-from-markdown\">Disguise Self</span> spells with this trait. When you use this version of disguise self, you can seem up to 3 feet shorter or taller. Once you cast either of these spells with this trait, you can't cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Hidden Step</summary>\r\n  <div>\r\n    <p>As a <span data-term-id=\"bonus_action\" class=\"glossary-term-link-from-markdown\">bonus action</span>, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Powerful Build</summary>\r\n  <div>\r\n    <p>You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Speech of Beast and Leaf</summary>\r\n  <div>\r\n    <p>You have the ability to communicate in a limited manner with Beasts, Plants, and vegetation. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them.</p>\r\n  </div>\r\n</details>\r\n"
+  "filePath": "/data/glossary/entries/races/firbolg.json"
 }

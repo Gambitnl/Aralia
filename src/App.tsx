@@ -443,7 +443,7 @@ const App: React.FC = () => {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
     }
 
-    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_navel_dashboard' | 'toggle_trade_route_dashboard') {
+    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard') {
       case 'restart_dynamic_party':
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating new party..." } });
         try {
@@ -633,6 +633,8 @@ const App: React.FC = () => {
           latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
           isDevDummyActive={canUseDevTools()}
           onSkipCharacterCreator={handleSkipCharacterCreator}
+          // Handler to toggle the dev menu visibility when requested by the Main Menu
+          onOpenDevMenu={() => dispatch({ type: 'TOGGLE_DEV_MENU' })}
           onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
           canGoBack={canGoBack}
         />

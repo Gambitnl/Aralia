@@ -1,0 +1,24 @@
+{
+    "id": "kalashtar",
+    "title": "Kalashtar",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "ERLW",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "mind",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "kalashtar", "humanoid", "eberron", "psionic"],
+    "aliases": [],
+    "seeAlso": ["humanoid"],
+    "filePath": "/data/glossary/entries/races/kalashtar.json"
+}

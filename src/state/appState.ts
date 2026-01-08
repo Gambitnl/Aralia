@@ -93,7 +93,7 @@ const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, d
 export const initialGameState: GameState = {
     phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
     party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
-    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty().map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
+    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty().map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })) : null,
     inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
     gold: 10, // Default starting gold
     currentLocationId: STARTING_LOCATION_ID,
@@ -461,7 +461,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
             // Convert PlayerCharacters with Souls into Companions
             const newCompanions: Record<string, Companion> = {};
-            
+
             newParty.forEach(pc => {
                 if (pc.soul && pc.id) {
                     const soul = pc.soul as CompanionSoul;
@@ -476,7 +476,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                             sex: pc.visuals?.gender || 'Unknown',
                             age: pc.age || 'Unknown',
                             physicalDescription: soul.physicalDescription,
-                            avatarUrl: pc.portraitUrl 
+                            avatarUrl: pc.portraitUrl
                         },
                         personality: {
                             openness: 50, // Default mid-values for Big 5 if not in soul
@@ -503,7 +503,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         memories: [],
                         discoveredFacts: [],
                         reactionRules: getReactionRulesForStyle(soul.reactionStyle),
-                        progression: [] 
+                        progression: []
                     };
                 }
             });
@@ -512,7 +512,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const finalCompanions = Object.keys(newCompanions).length > 0 ? newCompanions : state.companions;
 
             const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
-            
+
             // Reset NPC memory for a fresh start
             const freshNpcMemory = Object.keys(NPCS).reduce((acc, npcId) => {
                 const npcData = NPCS[npcId];
@@ -528,18 +528,18 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...initialGameState,
                 phase: GamePhase.PLAYING,
-                worldSeed: state.worldSeed, 
+                worldSeed: state.worldSeed,
                 party: newParty,
-                tempParty: newParty.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })),
-                inventory: [], 
-                gold: 50,      
+                tempParty: newParty.map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })),
+                inventory: [],
+                gold: 50,
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
                 messages: [
                     { id: Date.now(), text: `A new party of adventurers emerges!`, sender: 'system', timestamp: new Date() },
                     { id: Date.now() + 1, text: initialLocation.baseDescription, sender: 'system', timestamp: new Date() }
                 ],
-                mapData: state.mapData, 
+                mapData: state.mapData,
                 dynamicLocationItemIds: state.dynamicLocationItemIds,
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
                 isLoading: false,
@@ -583,7 +583,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.PLAYING,
                 worldSeed: worldSeed,
                 party: generatedParty,
-                tempParty: generatedParty.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })),
+                tempParty: generatedParty.map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })),
                 inventory: [...initialInventoryForDummyCharacter],
                 gold: 100, // Dummy gets some spending money
                 currentLocationId: STARTING_LOCATION_ID,
@@ -603,6 +603,46 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 factions: allFactions,
                 playerFactionStandings: factionStandings,
                 dynamicLocations: {},
+                // Grant a mock ship for dev testing
+                // TODO: Refactor to usage of MOCK_SHIP_SLOOP from src/data/dev/mockShips.ts
+                // Duplicate mock data definition. Should use the recently created centralized mock object to ensure consistency between Dev Mode auto-injection and "Dummy Game" start.
+                naval: {
+                    playerShips: [{
+                        id: 'mock_ship_1',
+                        name: 'The Rusty Tub',
+                        type: 'Sloop',
+                        size: 'Small',
+                        description: 'A weathered but reliable sloop.',
+                        stats: {
+                            hullPoints: 100,
+                            maxHullPoints: 100,
+                            speed: 40,
+                            maneuverability: 60,
+                            armorClass: 12,
+                            cargoCapacity: 50,
+                            crewMin: 2,
+                            crewMax: 10
+                        },
+                        cargo: {
+                            items: [],
+                            totalWeight: 0,
+                            capacityUsed: 0,
+                            supplies: { food: 10, water: 10 }
+                        },
+                        crew: {
+                            members: [],
+                            averageMorale: 80,
+                            unrest: 0,
+                            quality: 'Average'
+                        },
+                        modifications: [],
+                        weapons: [],
+                        flags: {}
+                    }],
+                    activeShipId: 'mock_ship_1',
+                    currentVoyage: null,
+                    knownPorts: []
+                }
             };
         }
 

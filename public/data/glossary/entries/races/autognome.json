@@ -1,0 +1,24 @@
+{
+    "id": "autognome",
+    "title": "Autognome",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "AAG",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[construct]]"},
+        {"label": "Size", "value": "[[size|Small]]"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "cog",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "autognome", "construct", "spelljammer"],
+    "aliases": [],
+    "seeAlso": ["construct"],
+    "filePath": "/data/glossary/entries/races/autognome.json"
+}

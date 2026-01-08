@@ -1,0 +1,50 @@
+{
+    "id": "shifter",
+    "title": "Shifter",
+    "category": "Character Races",
+    "entryLore": "Shifters are sometimes called weretouched, as they are descendants of humans and lycanthropes. Although they cannot fully change their shape, they can take on animalistic features in a process known as shifting. Drawing on their bestial heritage, they are survivors who can adapt to the most brutal environments, manifesting the physical prowess of the animals that run through their bloodlines.",
+    "imageUrl": "/assets/images/races/shifter_female.png",
+    "source": "MPMM",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Bestial Instincts",
+            "icon": "eye",
+            "description": "You have [[proficiency|proficiency]] in one of the following skills of your choice: [[acrobatics|Acrobatics]], [[athletics|Athletics]], [[intimidation|Intimidation]], or [[survival|Survival]]."
+        },
+        {
+            "name": "Shifting",
+            "icon": "magic",
+            "description": "As a [[bonus_action|Bonus Action]], you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain [[temporary_hit_points|Temporary Hit Points]] equal to 2 × your [[proficiency_bonus|Proficiency Bonus]]. You also gain a benefit based on your shifter sub-option: **Beasthide** (+1 AC and more temp HP), **Longtooth** (bonus action bite), **Swiftstride** (+10 speed and reactive movement), or **Wildhunt** (advantage on Wis checks and enemies can't have advantage against you). You can shift a number of times equal to your Proficiency Bonus, regaining all uses on a [[long_rest|Long Rest]]."
+        }
+    ],
+    "tags": [
+        "race",
+        "shifter",
+        "lycanthrope",
+        "humanoid",
+        "bestial"
+    ],
+    "aliases": [
+        "weretouched"
+    ],
+    "seeAlso": [
+        "humanoid",
+        "darkvision",
+        "shifting"
+    ],
+    "filePath": "/data/glossary/entries/races/shifter.json"
+}

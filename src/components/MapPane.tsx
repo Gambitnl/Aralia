@@ -276,7 +276,6 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
       title="World Map"
       onClose={onClose}
       storageKey="world-map-window"
-      initialMaximized={true}
     >
       <div
         className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"

@@ -263,6 +263,4 @@ export const initialGameState: GameState = {
     isNavalDashboardVisible: false,
     isNobleHouseListVisible: false,
     isTradeRouteDashboardVisible: false,
-
-    archivedBanters: [],
 };

@@ -1,0 +1,56 @@
+{
+    "id": "tabaxi",
+    "title": "Tabaxi",
+    "category": "Character Races",
+    "entryLore": "Curious and agile catlike humanoids, tabaxi are driven by a desire to uncover secrets and collect stories. Moving with bursts of speed and natural grace, they hail from distant, exotic lands, rarely staying in one place for long as they search for rare artifacts and the next great tale to tell.",
+    "imageUrl": "/assets/images/races/tabaxi_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium or Small"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet, Climb 30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Cat's Claws",
+            "icon": "sword",
+            "description": "You have a [[speed_climb|Climbing Speed]] equal to your walking speed. In addition, you can use your claws to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier slashing damage, instead of the normal bludgeoning damage."
+        },
+        {
+            "name": "Cat's Talent",
+            "icon": "eye",
+            "description": "You have [[proficiency|proficiency]] in the [[perception|Perception]] and [[stealth|Stealth]] skills."
+        },
+        {
+            "name": "Feline Agility",
+            "icon": "wind",
+            "description": "When you move on your turn in combat, you can double your speed until the end of the turn. Once you use this trait, you can't use it again until you move 0 feet on one of your turns."
+        }
+    ],
+    "tags": [
+        "race",
+        "tabaxi",
+        "feline",
+        "agility",
+        "climb",
+        "humanoid"
+    ],
+    "aliases": [],
+    "seeAlso": [
+        "humanoid",
+        "darkvision",
+        "climb_speed",
+        "perception",
+        "stealth"
+    ],
+    "filePath": "/data/glossary/entries/races/tabaxi.json"
+}

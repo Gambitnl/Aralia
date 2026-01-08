@@ -1,7 +1,42 @@
 {
   "id": "dragonborn",
-  "title": "Dragonborn (Race)",
+  "title": "Dragonborn",
   "category": "Character Races",
+  "entryLore": "Dragonborn are proud humanoids whose lineage traces back to draconic progenitors. Whether blessed by dragon gods or created by dragons themselves, they carry the elemental power of their ancestors in their breath and spirit. They are known for their honorable culture and their striking physical appearance—tall, strong, and covered in scales that match the hue of their draconic kin.",
+  "imageUrl": "/assets/images/races/dragonborn_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Breath Weapon",
+      "icon": "magic",
+      "description": "When you take the [[attack_action|Attack]] action on your turn, you can replace one of your attacks with an exhalation of magical energy. The damage type and shape of this exhalation are determined by your [[draconic_ancestry|Draconic Ancestry]]. Each creature in that area must make a [[saving_throw|Saving Throw]] (DC = 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]). On a failed save, a creature takes 1d10 damage of the associated type, or half as much damage on a successful one. This damage increases by 1d10 at 5th, 11th, and 17th level."
+    },
+    {
+      "name": "Draconic Resistance",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to the damage type associated with your [[draconic_ancestry|Draconic Ancestry]]."
+    },
+    {
+      "name": "Draconic Flight",
+      "icon": "wind",
+      "description": "Starting at 5th level, you can use a [[bonus_action|Bonus Action]] to manifest spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]] or you dismiss them as a bonus action. While the wings are present, you have a [[speed_fly|Flying Speed]] equal to your walking speed. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "markdown": "\n### Draconic Ancestries\nYour draconic heritage determines the type of elemental power you command. Choose one of the following ancestries:\n\n*   [[black_dragonborn|Black (Acid)]]\n*   [[blue_dragonborn|Blue (Lightning)]]\n*   [[brass_dragonborn|Brass (Fire)]]\n*   [[bronze_dragonborn|Bronze (Lightning)]]\n*   [[copper_dragonborn|Copper (Acid)]]\n*   [[gold_dragonborn|Gold (Fire)]]\n*   [[green_dragonborn|Green (Poison)]]\n*   [[red_dragonborn|Red (Fire)]]\n*   [[silver_dragonborn|Silver (Cold)]]\n*   [[white_dragonborn|White (Cold)]]\n",
   "tags": [
     "race",
     "dragonborn",
@@ -10,7 +45,6 @@
     "breath weapon",
     "humanoid"
   ],
-  "excerpt": "Dragonborn are proud, honorable humanoids descended from dragons, known for their draconic ancestry which grants them a breath weapon and damage resistance.",
   "aliases": [
     "dragon-kin",
     "scaled ones"
@@ -21,6 +55,5 @@
     "damage_resistance",
     "darkvision"
   ],
-  "filePath": "/data/glossary/entries/races/dragonborn.json",
-  "markdown": "# Dragonborn\r\n\r\nThe ancestors of dragonborn hatched from the eggs of chromatic and metallic dragons. One story holds that these eggs were blessed by the dragon gods Bahamut and Tiamat, who wanted to populate the multiverse with people created in their image. Another story claims that dragons created the first dragonborn without the gods' blessings. Whatever their origin, dragonborn have made homes for themselves on the <span data-term-id=\"material_plane\" class=\"glossary-term-link-from-markdown\">Material Plane</span>.\r\n\r\nDragonborn look like wingless, bipedal dragons- scaly, bright-eyed, and thick-boned with horns on their heads-and their coloration and other features are reminiscent of their draconic ancestors.\r\n\r\n---\r\n## Dragonborn Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Medium</span> (about 5-7 feet tall)\r\n**Speed:** 30 feet\r\n\r\nAs a Dragonborn, you have these special traits.\r\n\r\n<details id=\"dragonborn-trait-draconic-ancestry\">\r\n  <summary>Draconic Ancestry</summary>\r\n  <div>\r\n    <p>Your lineage stems from a dragon progenitor. Choose the kind of dragon from the Draconic Ancestors table. Your choice affects your <span data-term-id=\"breath_weapon\" class=\"glossary-term-link-from-markdown\">Breath Weapon</span> and <span data-term-id=\"damage_resistance\" class=\"glossary-term-link-from-markdown\">Damage Resistance</span> traits as well as your appearance.</p>\r\n    <h4 class=\"text-lg font-semibold text-sky-200 mt-3 mb-1\">Draconic Ancestors</h4>\r\n    | Dragon | Damage Type                                                                          |\r\n    |--------|--------------------------------------------------------------------------------------|\r\n    | Black  | <span data-term-id=\"acid_damage\" class=\"glossary-term-link-from-markdown\">Acid</span>         |\r\n    | Blue   | <span data-term-id=\"lightning_damage\" class=\"glossary-term-link-from-markdown\">Lightning</span>  |\r\n    | Brass  | <span data-term-id=\"fire_damage\" class=\"glossary-term-link-from-markdown\">Fire</span>         |\r\n    | Bronze | <span data-term-id=\"lightning_damage\" class=\"glossary-term-link-from-markdown\">Lightning</span>  |\r\n    | Copper | <span data-term-id=\"acid_damage\" class=\"glossary-term-link-from-markdown\">Acid</span>         |\r\n    | Gold   | <span data-term-id=\"fire_damage\" class=\"glossary-term-link-from-markdown\">Fire</span>         |\r\n    | Green  | <span data-term-id=\"poison_damage\" class=\"glossary-term-link-from-markdown\">Poison</span>       |\r\n    | Red    | <span data-term-id=\"fire_damage\" class=\"glossary-term-link-from-markdown\">Fire</span>         |\r\n    | Silver | <span data-term-id=\"cold_damage\" class=\"glossary-term-link-from-markdown\">Cold</span>         |\r\n    | White  | <span data-term-id=\"cold_damage\" class=\"glossary-term-link-from-markdown\">Cold</span>         |\r\n  </div>\r\n</details>\r\n\r\n<details id=\"dragonborn-trait-breath-weapon\">\r\n  <summary>Breath Weapon</summary>\r\n  <div>\r\n    <p>When you take the <span data-term-id=\"attack_action\" class=\"glossary-term-link-from-markdown\">Attack action</span> on your turn, you can replace one of your <span data-term-id=\"attack_action\" class=\"glossary-term-link-from-markdown\">attacks</span> with an exhalation of magical energy in either a 15-foot <span data-term-id=\"cone_area\" class=\"glossary-term-link-from-markdown\">Cone</span> or a 30-foot <span data-term-id=\"line_area\" class=\"glossary-term-link-from-markdown\">Line</span> that is 5 feet wide (choose the shape each time). Each creature in that area must make a <span data-term-id=\"dexterity_saving_throw\" class=\"glossary-term-link-from-markdown\">Dexterity saving throw</span> (DC 8 plus your <span data-term-id=\"constitution\" class=\"glossary-term-link-from-markdown\">Constitution</span> modifier and <span data-term-id=\"proficiency_bonus\" class=\"glossary-term-link-from-markdown\">Proficiency Bonus</span>). On a failed save, a creature takes 1d10 damage of the type determined by your <span data-term-id=\"draconic_ancestry\" class=\"glossary-term-link-from-markdown\">Draconic Ancestry</span> trait. On a successful save, a creature takes half as much damage. This damage increases by 1d10 when you reach character levels 5 (2d10), 11 (3d10), and 17 (4d10).</p>\r\n    <p>You can use this <span data-term-id=\"breath_weapon\" class=\"glossary-term-link-from-markdown\">Breath Weapon</span> a number of times equal to your <span data-term-id=\"proficiency_bonus\" class=\"glossary-term-link-from-markdown\">Proficiency Bonus</span>, and you regain all expended uses when you finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"dragonborn-trait-damage-resistance\">\r\n  <summary>Damage Resistance</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"resistance\" class=\"glossary-term-link-from-markdown\">Resistance</span> to the damage type determined by your <span data-term-id=\"draconic_ancestry\" class=\"glossary-term-link-from-markdown\">Draconic Ancestry</span> trait.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"dragonborn-trait-darkvision\">\r\n  <summary>Darkvision</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"darkvision\" class=\"glossary-term-link-from-markdown\">Darkvision</span> with a range of 60 feet.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"dragonborn-trait-draconic-flight\">\r\n  <summary>Draconic Flight</summary>\r\n  <div>\r\n    <p>When you reach character level 5, you can channel draconic magic to give yourself temporary flight. As a <span data-term-id=\"bonus_action\" class=\"glossary-term-link-from-markdown\">Bonus Action</span>, you sprout spectral wings on your back that last for 10 minutes or until you retract the wings (no <span data-term-id=\"action\" class=\"glossary-term-link-from-markdown\">action</span> required) or have the <span data-term-id=\"incapacitated_condition\" class=\"glossary-term-link-from-markdown\">Incapacitated condition</span>. During that time, you have a <span data-term-id=\"fly_speed\" class=\"glossary-term-link-from-markdown\">Fly Speed</span> equal to your <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span>. Your wings appear to be made of the same energy as your <span data-term-id=\"breath_weapon\" class=\"glossary-term-link-from-markdown\">Breath Weapon</span>. Once you use this trait, you can't use it again until you finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n---\r\n*Source: Player's Handbook, pg. 187 (adapted)*\r\n"
+  "filePath": "/data/glossary/entries/races/dragonborn.json"
 }

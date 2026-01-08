@@ -1,0 +1,48 @@
+{
+    "id": "chthonic_tiefling",
+    "title": "Chthonic Legacy",
+    "category": "Character Races",
+    "entryLore": "Linked to the gloom of Hades and Gehenna, this legacy grants resistance to necrotic energy and spectral magic. Those with the Chthonic Legacy find their roots in the Gloom Wrought or the gray wastes of Hades, often possessing a deathly pallor or cold, dark eyes that reflect the somber power of their neutral evil heritage.",
+    "imageUrl": "/assets/images/races/tiefling_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Legacy Type",
+            "value": "Fiendish (Chthonic)"
+        },
+        {
+            "label": "Origin",
+            "value": "Hades / Gehenna"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Chthonic Resistance",
+            "icon": "shield",
+            "description": "You have [[resistance|Resistance]] to [[necrotic_damage|Necrotic damage]]."
+        },
+        {
+            "name": "Chthonic Magic",
+            "icon": "magic",
+            "description": "You know the [[chill_touch|Chill Touch]] cantrip. Starting at 3rd level, you can cast [[false_life|False Life]] once per long rest. Starting at 5th level, you can cast [[ray_of_enfeeblement|Ray of Enfeeblement]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+        }
+    ],
+    "tags": [
+        "tiefling",
+        "legacy",
+        "chthonic",
+        "neutral evil",
+        "necrotic"
+    ],
+    "aliases": [
+        "chthonic legacy"
+    ],
+    "seeAlso": [
+        "tiefling",
+        "necrotic_damage",
+        "chill_touch",
+        "false_life",
+        "ray_of_enfeeblement"
+    ],
+    "filePath": "/data/glossary/entries/races/tiefling_legacies/chthonic.json"
+}

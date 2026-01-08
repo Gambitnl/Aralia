@@ -20,6 +20,13 @@ export const ELADRIN_DATA: Race = {
     'Keen Senses: You have proficiency in the Perception skill.',
     'Trance: You don’t need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don’t have, each one with a weapon or a tool of your choice.',
   ],
+  visual: {
+    id: 'eladrin',
+    icon: '🍂',
+    color: '#DA70D6',
+    maleIllustrationPath: 'assets/images/races/eladrin_male.png',
+    femaleIllustrationPath: 'assets/images/races/eladrin_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Fey Step',
     traitDescription: 'Choose the spellcasting ability for the save DC of your Fey Step’s additional effects.',

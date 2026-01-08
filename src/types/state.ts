@@ -8,7 +8,7 @@ import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime';
 import { UnderdarkState } from './underdark';
 import { EconomyState } from './economy';
 import { Action, GroundingChunk } from './actions';
-import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC } from './world';
+import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world';
 import { Quest } from './quests';
 import { RitualState } from './rituals';
 import { WorldHistory } from './history';
@@ -219,6 +219,8 @@ export interface GameState {
 
   dynamicLocations: Record<string, Location>;
   dynamicNPCs?: Record<string, NPC>;
+  /** Registry of procedurally generated NPCs, keyed by their ID. */
+  generatedNpcs: Record<string, RichNPC>;
   playerIdentity?: PlayerIdentityState;
 
   legacy?: PlayerLegacy;

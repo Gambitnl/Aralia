@@ -1,0 +1,24 @@
+{
+    "id": "lightfoot_halfling",
+    "title": "Lightfoot Halfling",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "PHB2014",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "[[size|Small]]"},
+        {"label": "Speed", "value": "25 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "stealth",
+            "description": "TODO: Add trait descriptions - naturally stealthy"
+        }
+    ],
+    "tags": ["race", "halfling", "lightfoot", "humanoid", "stealth"],
+    "aliases": [],
+    "seeAlso": ["halfling", "humanoid"],
+    "filePath": "/data/glossary/entries/races/halfling_subraces/lightfoot.json"
+}

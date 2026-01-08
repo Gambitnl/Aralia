@@ -22,6 +22,13 @@ export const AARAKOCRA_DATA: Race = {
     'Wind Caller: Starting at 3rd level, you can cast the gust of wind spell with this trait, without requiring a material component. Once you cast the spell with this trait, you can’t do so again until you finish a long rest. You can also cast the spell using any spell slots you have of 2nd level or higher. Intelligence, Wisdom, or Charisma is your spellcasting ability for it when you cast gust of wind with this trait (choose when you select this race).',
   ],
   imageUrl: 'https://i.ibb.co/jPRJmQwb/Aarakocra.png',
+  visual: {
+    id: 'aarakocra',
+    icon: '🦅',
+    color: '#8B7355',
+    maleIllustrationPath: 'assets/images/races/aarakocra_male.png',
+    femaleIllustrationPath: 'assets/images/races/aarakocra_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Wind Caller',
     traitDescription: 'Choose the spellcasting ability for your Wind Caller trait (Gust of Wind).',

@@ -1,0 +1,53 @@
+{
+    "id": "minotaur",
+    "title": "Minotaur",
+    "category": "Character Races",
+    "entryLore": "Minotaur are powerful, bull-headed humanoids known for their immense strength and martial prowess. Often associated with the winding corridors of vast labyrinths, they possess a keen spatial awareness and a fierce spirit. Whether they serve as guardians of ancient secrets or as formidable warriors on the battlefield, their presence is always commanding, and their charge is as relentless as it is devastating.",
+    "imageUrl": "/assets/images/races/minotaur_female.png",
+    "source": "MPMM",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Horns",
+            "icon": "sword",
+            "description": "You have horns that you can use to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier piercing damage, instead of the normal bludgeoning damage."
+        },
+        {
+            "name": "Goring Rush",
+            "icon": "wind",
+            "description": "Immediately after you take the [[dash_action|Dash]] action on your turn and move at least 20 feet, you can make one melee attack with your horns as a [[bonus_action|Bonus Action]]."
+        },
+        {
+            "name": "Hammering Horns",
+            "icon": "sword",
+            "description": "Immediately after you hit a creature with a melee attack as part of the [[attack_action|Attack]] action on your turn, you can use a [[bonus_action|Bonus Action]] to attempt to shove that target with your horns. The target must be no more than one size larger than you and within 5 feet of you. Unless it succeeds on a Strength [[saving_throw|Saving Throw]] (DC = 8 + your Strength modifier + your [[proficiency_bonus|Proficiency Bonus]]), you push it up to 10 feet away from you."
+        }
+    ],
+    "tags": [
+        "race",
+        "minotaur",
+        "monstrous",
+        "strength",
+        "horns"
+    ],
+    "aliases": [],
+    "seeAlso": [
+        "humanoid",
+        "goring_rush",
+        "hammering_horns"
+    ],
+    "filePath": "/data/glossary/entries/races/minotaur.json"
+}

@@ -1,0 +1,48 @@
+{
+    "id": "infernal_tiefling",
+    "title": "Infernal Legacy",
+    "category": "Character Races",
+    "entryLore": "The structured hierarchy of the Nine Hells is the source of the Infernal Legacy. Tieflings of this bloodline often possess classic diabolic features—cloven hooves, tails, or pointed horns. They are gifted with magic that burns and binds, reflecting the lawful and punishing nature of their diabolic ancestors.",
+    "imageUrl": "/assets/images/races/tiefling_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Legacy Type",
+            "value": "Fiendish (Infernal)"
+        },
+        {
+            "label": "Origin",
+            "value": "The Nine Hells / Diabolic"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Infernal Resistance",
+            "icon": "shield",
+            "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
+        },
+        {
+            "name": "Infernal Magic",
+            "icon": "magic",
+            "description": "You know the [[fire_bolt|Fire Bolt]] cantrip. Starting at 3rd level, you can cast [[hellish_rebuke|Hellish Rebuke]] once per long rest. Starting at 5th level, you can cast [[darkness|Darkness]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+        }
+    ],
+    "tags": [
+        "tiefling",
+        "legacy",
+        "infernal",
+        "devil",
+        "fire"
+    ],
+    "aliases": [
+        "infernal legacy"
+    ],
+    "seeAlso": [
+        "tiefling",
+        "fire_damage",
+        "fire_bolt",
+        "hellish_rebuke",
+        "darkness"
+    ],
+    "filePath": "/data/glossary/entries/races/tiefling_legacies/infernal.json"
+}

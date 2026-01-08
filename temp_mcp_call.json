@@ -1,1 +1,0 @@
-{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "generate_image_custom", "arguments": {"prompt": "A powerful male orc warrior with green skin, prominent tusks, and rugged leather armor, fantasy RPG character portrait style, detailed digital art.", "model": "gemini-2.5-flash-image", "outputPath": "public/assets/images/characters/orc_male.png"}}}

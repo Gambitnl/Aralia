@@ -1,0 +1,24 @@
+{
+    "id": "astral_elf",
+    "title": "Astral Elf",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "AAG",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "star",
+            "description": "TODO: Add trait descriptions - astral fire, starlight step"
+        }
+    ],
+    "tags": ["race", "elf", "astral_elf", "humanoid", "spelljammer"],
+    "aliases": [],
+    "seeAlso": ["elf", "humanoid"],
+    "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json"
+}

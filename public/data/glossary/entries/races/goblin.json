@@ -1,7 +1,41 @@
 {
   "id": "goblin",
-  "title": "Goblin (Race)",
+  "title": "Goblin",
   "category": "Character Races",
+  "entryLore": "Goblins are small humanoids with distant fey origins. Once servants of the Queen of Air and Darkness, they possess a supernatural knack for finding weak spots in larger foes and a remarkable ability to escape from danger. They are subterranean folk who use their cleverness and agility to survive and thrive in environments where larger creatures would struggle.",
+  "imageUrl": "/assets/images/races/goblin_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]] and [[goblinoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Fey Ancestry",
+      "icon": "shield",
+      "description": "You have [[advantage|Advantage]] on [[saving_throw|saving throws]] you make to avoid or end the [[charmed_condition|Charmed]] condition."
+    },
+    {
+      "name": "Fury of the Small",
+      "icon": "sword",
+      "description": "When you damage a creature with an attack or a spell and the creature's size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your [[proficiency_bonus|Proficiency Bonus]]. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Nimble Escape",
+      "icon": "wind",
+      "description": "You can take the [[disengage_action|Disengage]] or [[hide_action|Hide]] action as a [[bonus_action|Bonus Action]] on each of your turns."
+    }
+  ],
   "tags": [
     "race",
     "goblin",
@@ -10,7 +44,6 @@
     "stealth",
     "nimble escape"
   ],
-  "excerpt": "A subterranean folk with fey origins, goblins use their supernatural knack for finding weak spots and their Nimble Escape to survive and thrive.",
   "aliases": [],
   "seeAlso": [
     "goblinoid",
@@ -19,6 +52,5 @@
     "fury_of_the_small",
     "nimble_escape"
   ],
-  "filePath": "/data/glossary/entries/races/goblin.json",
-  "markdown": "# Goblin\r\n\r\nA subterranean folk, goblins can be found in every corner of the multiverse, often beside their bugbear and hobgoblin kin. Long before the god Maglubiyet conquered them, early goblins served in the court of the Queen of Air and Darkness, one of the Feywild's archfey. Goblins thrived in her dangerous domain thanks to a special boon from her-a supernatural knack for finding the weak spots in foes larger than themselves and for getting out of trouble. Goblins brought this fey boon with them to worlds across the Material Plane, even if they don't remember the fey realm they inhabited before Maglubiyet's rise.\r\n\r\n---\r\n## Goblin Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span> and <span data-term-id=\"goblinoid\" class=\"glossary-term-link-from-markdown\">Goblinoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Small</span>\r\n**Speed:** 30 feet\r\n\r\n<details>\r\n  <summary>Darkvision</summary>\r\n  <div>\r\n    <p>You can see in dim light within 60 feet of you as if it were bright light and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Fey Ancestry</summary>\r\n  <div>\r\n    <p>You have advantage on saving throws you make to avoid or end the charmed condition on yourself.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Fury of the Small</summary>\r\n  <div>\r\n    <p>When you damage a creature with an attack or a spell and the creature's size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your proficiency bonus.</p>\r\n    <p>You can use this trait a number of times equal to your proficiency bonus, regaining all expended uses when you finish a long rest, and you can use it no more than once per turn.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Nimble Escape</summary>\r\n  <div>\r\n    <p>You can take the <span data-term-id=\"disengage_action\" class=\"glossary-term-link-from-markdown\">Disengage</span> or <span data-term-id=\"hide_action\" class=\"glossary-term-link-from-markdown\">Hide</span> action as a <span data-term-id=\"bonus_action\" class=\"glossary-term-link-from-markdown\">bonus action</span> on each of your turns.</p>\r\n  </div>\r\n</details>\r\n"
+  "filePath": "/data/glossary/entries/races/goblin.json"
 }

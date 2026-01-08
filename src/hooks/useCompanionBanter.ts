@@ -325,6 +325,8 @@ export const useCompanionBanter = (
   const playerInterrupt = useCallback((playerMessage: string) => {
     if (!isBanterActive || !contextRef.current) return;
 
+    // TODO: Implement an AbortController for the in-flight Ollama request to cancel the AI generation if the player interrupts. This prevents race conditions where an old AI response overwrites the player's new context.
+
     // Cancel pending timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);

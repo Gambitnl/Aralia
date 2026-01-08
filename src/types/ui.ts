@@ -22,6 +22,13 @@ export interface GlossaryEntry {
   seeAlso?: string[];
   filePath?: string | null;
   subEntries?: GlossaryEntry[];
+
+  // Data-First Architecture Fields
+  entryLore?: string;
+  imageUrl?: string;
+  source?: string;
+  characteristics?: { label: string; value: string }[];
+  traits?: { name: string; icon: string; description: string }[];
 }
 
 export interface SeededFeatureConfig {

@@ -76,6 +76,8 @@ const transformRaceData = (race: Race): RaceDetailData => {
     id: race.id,
     name: race.name,
     image: race.imageUrl,
+    maleImage: race.visual?.maleIllustrationPath,
+    femaleImage: race.visual?.femaleIllustrationPath,
     description: race.description,
     baseTraits,
     feats,

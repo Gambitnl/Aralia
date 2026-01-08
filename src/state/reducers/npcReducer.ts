@@ -186,6 +186,30 @@ export function npcReducer(state: GameState, action: AppAction): Partial<GameSta
       };
     }
 
+    case 'REGISTER_GENERATED_NPC': {
+      const { npc } = action.payload;
+      
+      // Add to generated NPCs registry
+      const newGeneratedNpcs = {
+        ...state.generatedNpcs,
+        [npc.id]: npc
+      };
+
+      // Initialize memory if needed (RichNPC comes with default memory, we should merge/use it)
+      let newNpcMemory = state.npcMemory;
+      if (!newNpcMemory[npc.id] && npc.memory) {
+        newNpcMemory = {
+          ...state.npcMemory,
+          [npc.id]: npc.memory
+        };
+      }
+
+      return {
+        generatedNpcs: newGeneratedNpcs,
+        npcMemory: newNpcMemory
+      };
+    }
+
     default:
       return {};
   }

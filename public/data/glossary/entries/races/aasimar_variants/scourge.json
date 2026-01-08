@@ -1,0 +1,24 @@
+{
+    "id": "scourge_aasimar",
+    "title": "Scourge Aasimar",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium or Small"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "fire",
+            "description": "TODO: Add trait descriptions - radiant consumption damaging aura"
+        }
+    ],
+    "tags": ["race", "aasimar", "scourge", "celestial", "humanoid"],
+    "aliases": [],
+    "seeAlso": ["aasimar", "humanoid"],
+    "filePath": "/data/glossary/entries/races/aasimar_variants/scourge.json"
+}

@@ -32,13 +32,32 @@ const getApiKey = () => {
 };
 
 const getImageApiKey = () => {
+  // --- IMAGE GENERATION API KEY RESOLUTION PATH ---
+  // The application resolves the Image Gen API Key in the following order:
+  // 1. VITE_IMAGE_API_KEY (Vite .env or System Env) - Highest priority, specific to images.
+  // 2. IMAGE_API_KEY / GEMINI_IMAGE_API_KEY (Process Env) - Legacy/System fallback for specific image key.
+  // 3. API_KEY (General Fallback) - If no specific image key is found, we reuse the general Gemini API Key.
+  //
+  // This value is eventually exposed as `ENV.IMAGE_API_KEY`.
+  // Consumers (like `src/services/PortraitService.ts` or `src/scripts/gemini-image-mcp.ts`) import `ENV`
+  // and use `ENV.IMAGE_API_KEY` to authenticate requests to the Gemini Imagen 3 model.
+
+  // 1. Check for modern Vite-injected environment variable (specific to images)
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_IMAGE_API_KEY) {
     return import.meta.env.VITE_IMAGE_API_KEY;
   }
+
+  // 2. Check for legacy node-style process.env variables (specific to images)
+  // This often catches System Environment Variables named 'IMAGE_API_KEY' or 'GEMINI_IMAGE_API_KEY'
   if (typeof process !== 'undefined' && process.env) {
-    return process.env.IMAGE_API_KEY || process.env.GEMINI_IMAGE_API_KEY || '';
+    const specificKey = process.env.IMAGE_API_KEY || process.env.GEMINI_IMAGE_API_KEY;
+    if (specificKey) return specificKey;
   }
-  return '';
+
+  // 3. Fallback to the general API Key
+  // If no image-specific key is provided, we assume the main GEMINI_API_KEY (e.g. from System Env)
+  // is authorized for both text and image generation.
+  return getApiKey();
 };
 
 const RAW_ENV = {

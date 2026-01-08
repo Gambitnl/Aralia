@@ -1,0 +1,24 @@
+{
+    "id": "half_elf_high",
+    "title": "Half-Elf (High)",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "SCAG",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "magic",
+            "description": "TODO: Add trait descriptions - cantrip from high elf ancestry"
+        }
+    ],
+    "tags": ["race", "half-elf", "high", "humanoid", "arcane"],
+    "aliases": [],
+    "seeAlso": ["half-elf", "high_elf", "humanoid"],
+    "filePath": "/data/glossary/entries/races/half_elf_variants/high.json"
+}

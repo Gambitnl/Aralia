@@ -1,0 +1,24 @@
+{
+    "id": "warforged",
+    "title": "Warforged",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "ERLW",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "cog",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "warforged", "humanoid", "eberron", "construct-like"],
+    "aliases": ["living construct"],
+    "seeAlso": ["humanoid"],
+    "filePath": "/data/glossary/entries/races/warforged.json"
+}

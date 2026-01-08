@@ -2,7 +2,7 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, PlayerCharacter } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC } from '../types';
 import { RitualState } from '../types/rituals';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -124,6 +124,7 @@ export type AppAction =
   | { type: 'ADD_NPC_KNOWN_FACT'; payload: { npcId: string; fact: KnownFact } }
   | { type: 'UPDATE_NPC_SUSPICION'; payload: { npcId: string; newLevel: SuspicionLevel } }
   | { type: 'UPDATE_NPC_GOAL_STATUS'; payload: { npcId: string; goalId: string; newStatus: GoalStatus } }
+  | { type: 'REGISTER_GENERATED_NPC'; payload: { npc: RichNPC } }
   | { type: 'PROCESS_GOSSIP_UPDATES'; payload: GossipUpdatePayload }
   | { type: 'UPDATE_NPC_INTERACTION_TIMESTAMP'; payload: { npcId: string; timestamp: number } }
   | { type: 'BATCH_UPDATE_NPC_MEMORY'; payload: GameState['npcMemory'] }

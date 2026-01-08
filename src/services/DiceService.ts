@@ -91,9 +91,9 @@ class DiceServiceClass {
                 container: containerId,
                 assetPath: `${import.meta.env.BASE_URL}assets/dice-box/`, // Trailing slash required for path concatenation
                 theme: 'default', // Use built-in theme (custom themes need specific setup)
-                scale: 24,
-                gravity: 4,
-                throwForce: 14,
+                scale: 13.5,
+                gravity: 3,
+                throwForce: 11,
                 offscreen: true,
                 onRollComplete: (results: any) => {
                     if (results.length > 0 && this.pendingResolve) {

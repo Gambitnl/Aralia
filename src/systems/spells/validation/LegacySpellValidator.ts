@@ -56,7 +56,9 @@ export class LegacySpellValidator {
       const validTargets = targeting.validTargets || [];
       const filter = targeting.filter;
 
-      const explicitlyHumanoid = validTargets.includes('humanoids') ||
+      // TODO: Fix TS2345 - 'humanoids' is not a valid member of TargetFilter. 
+      // This check handles legacy data that might still use it.
+      const explicitlyHumanoid = (validTargets as string[]).includes('humanoids') ||
                                  filter?.creatureTypes?.includes('Humanoid');
 
       if (!explicitlyHumanoid) {

@@ -493,6 +493,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       townState: null,
       townEntryDirection: null,
 
+      // TODO: Fix TS2322 - missing or incompatible archivedBanters
+      archivedBanters: [],
+
       ...overrides
     };
   } catch (error) {
@@ -595,6 +598,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       strongholds: {},
       activeRitual: null,
       banterCooldowns: {},
+      // TODO: Fix TS2741 - missing archivedBanters in fallback
+      archivedBanters: [],
+      banterDebugLog: [],
       isLockpickingModalVisible: false,
       activeLock: null,
       isDiceRollerVisible: false,
@@ -603,8 +609,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isQuestLogVisible: false,
       townState: null,
       townEntryDirection: null
-      // TODO(2026-01-03 pass 4 Codex-CLI): banter debug log placeholder in fallback factory.
-      , banterDebugLog: []
     };
   }
 }

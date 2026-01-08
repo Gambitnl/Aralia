@@ -13,8 +13,6 @@ import { Location, Action, NPC, Item } from '../../types';
 import { ActionButton } from './ActionButton';
 import { useActionGeneration } from './useActionGeneration';
 import { SystemMenu } from './SystemMenu';
-import { ShipPane } from '../Naval/ShipPane';
-import { useOptionalGameState } from '../../state/GameContext';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -50,10 +48,6 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   const oracleInputRef = useRef<HTMLInputElement | null>(null);
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
   const [oracleQuery, setOracleQuery] = useState('');
-
-  const gameContext = useOptionalGameState();
-  const shipState = gameContext?.state?.ship;
-  const [showShipPane, setShowShipPane] = useState(false);
 
   const { generalActions } = useActionGeneration({
     currentLocation,
@@ -169,15 +163,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         hasNewRateLimitError={hasNewRateLimitError}
         isDevDummyActive={isDevDummyActive}
         isDevModeEnabled={isDevModeEnabled}
-        onOpenShip={() => setShowShipPane(true)}
       />
-
-      {/* Naval Pane Modal */}
-      <AnimatePresence>
-        {showShipPane && shipState ? (
-          <ShipPane ship={shipState} onClose={() => setShowShipPane(false)} />
-        ) : null}
-      </AnimatePresence>
 
     </div>
   );

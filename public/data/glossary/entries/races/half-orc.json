@@ -1,0 +1,45 @@
+{
+    "id": "half-orc",
+    "title": "Half-Orc",
+    "category": "Character Races",
+    "entryLore": "Half-orcs are individuals who carry the resilient and powerful heritage of orcs combined with the versatility of humans. In the 2024 rules, they are categorized under 'Children of Different Kindreds,' allowing players to determine their appearance through a blend of both lineages while adopting the mechanical traits of one parent. They are often known for their great endurance and the fierce determination that allows them to thrive in the face of adversity.",
+    "imageUrl": "/assets/images/races/half_orc_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Different Kindreds",
+            "icon": "heart",
+            "description": "As a child of different kindreds, you choose whether to inherit the traits of your [[human|Human]] parent or your [[orc|Orc]] parent. Regardless of your choice, you can manifest physical features of both lineages, such as a sturdy, muscled build or more pronounced facial features characteristic of your orcish heritage."
+        }
+    ],
+    "tags": [
+        "race",
+        "half-orc",
+        "human",
+        "orc",
+        "humanoid"
+    ],
+    "aliases": [
+        "kindred"
+    ],
+    "seeAlso": [
+        "human",
+        "orc",
+        "humanoid"
+    ],
+    "filePath": "/data/glossary/entries/races/half-orc.json"
+}

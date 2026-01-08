@@ -5,6 +5,7 @@
  */
 import { GameState, GamePhase, Notification } from '../../types';
 import { AppAction } from '../actionTypes';
+import { MOCK_SHIP_SLOOP } from '../../data/dev/mockShips';
 
 export function uiReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -129,12 +130,45 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         isOllamaLogViewerVisible: false
       };
 
-    case 'TOGGLE_NAVAL_DASHBOARD':
+    case 'TOGGLE_NAVAL_DASHBOARD': {
+      const nextVisible = !state.isNavalDashboardVisible;
+      let activeShip = state.naval?.activeShipId
+        ? state.naval.playerShips.find(s => s.id === state.naval.activeShipId)
+        : undefined;
+
+      let nextNavalState = state.naval;
+
+      // Auto-inject mock ship if in Dev Mode and no ship exists
+      // TODO: Extract this auto-injection logic into a helper function (e.g., ensureDevShipState) or a dedicated thunk/saga.
+      // Complex object creation and state traversal inside a reducer case makes the reducer bloated and harder to test.
+      if (nextVisible && state.isDevModeEnabled && !activeShip) {
+        activeShip = MOCK_SHIP_SLOOP;
+        // Ensure we don't duplicate if it somehow exists but wasn't active
+        const existingShip = state.naval?.playerShips?.find(s => s.id === MOCK_SHIP_SLOOP.id);
+        const newPlayerShips = state.naval?.playerShips ?
+          (existingShip ? state.naval.playerShips : [...state.naval.playerShips, MOCK_SHIP_SLOOP]) :
+          [MOCK_SHIP_SLOOP];
+
+        nextNavalState = {
+          ...(state.naval || {
+            playerShips: [],
+            activeShipId: null,
+            currentVoyage: null,
+            knownPorts: []
+          }),
+          playerShips: newPlayerShips,
+          activeShipId: MOCK_SHIP_SLOOP.id
+        };
+      }
+
       return {
-        isNavalDashboardVisible: !state.isNavalDashboardVisible,
+        isNavalDashboardVisible: nextVisible,
+        ship: activeShip,
+        naval: nextNavalState,
         isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false
       };
+    }
 
     case 'TOGGLE_NOBLE_HOUSE_LIST':
       return {

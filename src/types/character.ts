@@ -432,6 +432,7 @@ export interface PlayerCharacter {
 
 export interface TempPartyMember {
   id: string;
+  name: string;
   level: number;
   classId: string;
 }

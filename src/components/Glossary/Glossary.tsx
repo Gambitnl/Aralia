@@ -86,8 +86,18 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   // Entry selection handler
   const handleEntrySelect = useCallback((entry: GlossaryEntry) => {
-    setSelectedEntry(entry);
-    if (entry.subEntries && entry.subEntries.length > 0) {
+    const isParent = entry.subEntries && entry.subEntries.length > 0;
+    const hasFilePath = !!entry.filePath;
+    // For spells, we consider them potentially selectable even without a filePath if they are children
+    const isSpellChild = entry.category === 'Spells' && !isParent;
+
+    // Only set as selected entry if it has content (file path or is a spell child)
+    if (hasFilePath || isSpellChild) {
+      setSelectedEntry(entry);
+    }
+
+    // Toggle expansion for parent entries
+    if (isParent) {
       toggleParentEntry(entry.id);
     }
   }, [toggleParentEntry]);
@@ -311,7 +321,6 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       onClose={onClose}
       headerActions={headerActions}
       storageKey="glossary-modal-size"
-      initialMaximized={false}
     >
       <div className="flex flex-col h-full p-6 bg-gray-900 text-gray-200">
         {/* Header with search bar */}

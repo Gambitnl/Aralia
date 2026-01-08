@@ -261,7 +261,6 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       title="Create Your Adventurer"
       onClose={onExitToMainMenu}
       storageKey="character-creator-window"
-      initialMaximized={true}
       headerActions={
         <button
           type="button"

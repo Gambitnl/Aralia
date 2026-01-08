@@ -1,0 +1,24 @@
+{
+    "id": "swiftstride_shifter",
+    "title": "Swiftstride Shifter",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "speed",
+            "description": "TODO: Add trait descriptions - +10 speed, reactive movement"
+        }
+    ],
+    "tags": ["race", "shifter", "swiftstride", "humanoid", "lycanthrope"],
+    "aliases": [],
+    "seeAlso": ["shifter", "humanoid"],
+    "filePath": "/data/glossary/entries/races/shifter_variants/swiftstride.json"
+}

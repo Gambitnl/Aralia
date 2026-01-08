@@ -23,6 +23,13 @@ export const DUERGAR_DATA: Race = {
     'Psionic Fortitude: You have advantage on saving throws you make to avoid or end the charmed or stunned condition on yourself.',
   ],
   imageUrl: 'assets/images/races/duergar.png',
+  visual: {
+    id: 'duergar',
+    icon: '⛏️',
+    color: '#696969',
+    maleIllustrationPath: 'assets/images/races/duergar_male.png',
+    femaleIllustrationPath: 'assets/images/races/duergar_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Duergar Magic',
     traitDescription: 'Choose your spellcasting ability for Duergar Magic (Enlarge/Reduce, Invisibility).',

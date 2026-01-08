@@ -1,0 +1,24 @@
+{
+    "id": "hadozee",
+    "title": "Hadozee",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "AAG",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium or Small"},
+        {"label": "Speed", "value": "30 feet, climb 30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "wind",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "hadozee", "humanoid", "spelljammer", "beastfolk", "glide"],
+    "aliases": ["deck ape"],
+    "seeAlso": ["humanoid"],
+    "filePath": "/data/glossary/entries/races/hadozee.json"
+}

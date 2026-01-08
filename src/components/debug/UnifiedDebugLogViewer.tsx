@@ -79,7 +79,6 @@ export const UnifiedDebugLogViewer: React.FC<UnifiedDebugLogViewerProps> = ({
             onClose={onClose}
             headerActions={headerActions}
             storageKey="unified-log-viewer"
-            initialMaximized={false}
         >
             <div className="flex flex-col h-full bg-gray-900 text-gray-200 text-sm">
                 {/* Tabs */}

@@ -19,6 +19,13 @@ export const FIRE_GENASI_DATA: Race = {
     'Fire Resistance: You have resistance to fire damage.',
     'Reach to the Blaze: You know the produce flame cantrip. Starting at 3rd level, you can cast the burning hands spell with this trait. Starting at 5th level, you can also cast the flame blade spell with this trait, without requiring a material component. Once you cast burning hands or flame blade with this trait, you can’t cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).',
   ],
+  visual: {
+    id: 'fire_genasi',
+    icon: '🔥',
+    color: '#FF4500',
+    maleIllustrationPath: 'assets/images/races/fire_genasi_male.png',
+    femaleIllustrationPath: 'assets/images/races/fire_genasi_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Reach to the Blaze',
     traitDescription: 'Choose your spellcasting ability for Reach to the Blaze (Produce Flame, Burning Hands, Flame Blade).',

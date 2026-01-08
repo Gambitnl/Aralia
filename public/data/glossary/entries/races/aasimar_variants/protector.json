@@ -1,0 +1,24 @@
+{
+    "id": "protector_aasimar",
+    "title": "Protector Aasimar",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium or Small"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "wings",
+            "description": "TODO: Add trait descriptions - radiant soul with spectral wings"
+        }
+    ],
+    "tags": ["race", "aasimar", "protector", "celestial", "humanoid"],
+    "aliases": [],
+    "seeAlso": ["aasimar", "humanoid"],
+    "filePath": "/data/glossary/entries/races/aasimar_variants/protector.json"
+}

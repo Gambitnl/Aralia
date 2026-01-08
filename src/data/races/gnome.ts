@@ -72,4 +72,11 @@ export const GNOME_DATA: Race = {
   ],
   gnomeSubraces: GNOME_SUBRACES_DATA,
   imageUrl: 'https://i.ibb.co/93BfZpSY/Gnome.png',
+  visual: {
+    id: 'gnome',
+    icon: '🔧',
+    color: '#DEB887',
+    maleIllustrationPath: 'assets/images/races/gnome_male.png',
+    femaleIllustrationPath: 'assets/images/races/gnome_female.png',
+  },
 };

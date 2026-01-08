@@ -19,6 +19,13 @@ export const EARTH_GENASI_DATA: Race = {
     'Earth Walk: You can move across difficult terrain without expending extra movement if you are using your walking speed on the ground or a floor.',
     'Merge with Stone: You know the blade ward cantrip. You can cast it as normal, and you can also cast it as a bonus action a number of times equal to your proficiency bonus, regaining all expended uses when you finish a long rest. Starting at 5th level, you can cast the pass without trace spell with this trait, without requiring a material component. Once you cast that spell with this trait, you can’t do so again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).',
   ],
+  visual: {
+    id: 'earth_genasi',
+    icon: '🪨',
+    color: '#8B7355',
+    maleIllustrationPath: 'assets/images/races/earth_genasi_male.png',
+    femaleIllustrationPath: 'assets/images/races/earth_genasi_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Merge with Stone',
     traitDescription: 'Choose your spellcasting ability for Merge with Stone (Blade Ward, Pass without Trace).',

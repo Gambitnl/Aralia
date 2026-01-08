@@ -1,19 +1,57 @@
 {
   "id": "elf",
-  "title": "Elf (Race)",
+  "title": "Elf",
   "category": "Character Races",
+  "entryLore": "Created by the god Corellon, elves are a magical people of otherworldly grace. While they lost the ability to shape-shift at will long ago, they retain a deep connection to the Feywild and its primal magic. Elves don't sleep but instead enter a Trance when they need to rest, remaining aware of their surroundings while immersing themselves in memories and meditations.",
+  "imageUrl": "/assets/images/races/elf_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium (about 5-6 feet tall)"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Life Span",
+      "value": "Around 750 years"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You have [[darkvision|Darkvision]] with a range of 60 feet."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "magic",
+      "description": "You have [[advantage|Advantage]] on [[saving_throw|saving throws]] you make to avoid or end the [[charmed_condition|Charmed condition]]."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "eye",
+      "description": "You have [[proficiency|proficiency]] in the [[insight|Insight]], [[perception|Perception]], or [[survival|Survival]] skill (choose one)."
+    },
+    {
+      "name": "Trance",
+      "icon": "clock",
+      "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a [[long_rest|Long Rest]] in 4 hours if you spend those hours in a trancelike meditation."
+    }
+  ],
+  "markdown": "\n### Elven Lineages\nAll elves belong to a specific magical lineage. Choose one of the following lineages to gain additional traits and spells:\n\n*   [[drow|Drow (Underdark)]]\n*   [[high_elf|High Elf (Arcane)]]\n*   [[wood_elf|Wood Elf (Wild)]]\n*   [[eladrin|Eladrin (Feywild)]]\n",
   "tags": [
     "race",
     "elf",
     "fey",
-    "darkvision",
-    "trance",
-    "elven lineage",
-    "humanoid",
-    "corellon",
-    "lolth"
+    "humanoid"
   ],
-  "excerpt": "A magical people of otherworldly grace, elves live long lives, possess keen senses, and have a deep connection to the Feywild. They are known for their distinct lineages: Drow, High Elf, and Wood Elf.",
   "aliases": [
     "elfkind",
     "firstborn",
@@ -21,23 +59,13 @@
   ],
   "seeAlso": [
     "darkvision",
-    "elven_lineage",
     "fey_ancestry",
     "trance",
     "keen_senses",
     "drow_lineage",
     "high_elf_lineage",
     "wood_elf_lineage",
-    "dancing_lights",
-    "faerie_fire",
-    "darkness",
-    "prestidigitation",
-    "detect_magic",
-    "misty_step",
-    "druidcraft",
-    "longstrider",
-    "pass_without_trace"
+    "eladrin"
   ],
-  "filePath": "/data/glossary/entries/races/elf.json",
-  "markdown": "# Elf\r\n\r\nCreated by the god Corellon, the first elves could change their forms at will. They lost this ability when Corellon cursed them for plotting with the deity Lolth, who tried and failed to usurp Corellon's dominion. When Lolth was cast into the Abyss, most elves renounced her and earned Corellon's forgiveness, but that which Corellon had taken from them was lost forever.\r\n\r\nNo longer able to shape-shift at will, the elves retreated to the <span data-term-id=\"feywild\" class=\"glossary-term-link-from-markdown\">Feywild</span>, where their sorrow was deepened by that plane's influence. Over time, curiosity led many of them to explore other planes of existence, including worlds in the <span data-term-id=\"material_plane\" class=\"glossary-term-link-from-markdown\">Material Plane</span>.\r\n\r\nElves have pointed ears and lack facial and body hair. They live for around 750 years, and they don't sleep but instead enter a <span data-term-id=\"trance\" class=\"glossary-term-link-from-markdown\">Trance</span> when they need to rest. In that state, they remain aware of their surroundings while immersing themselves in memories and meditations.\r\n\r\n---\r\n## Elf Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** Medium (about 5-6 feet tall)\r\n**Speed:** 30 feet\r\n\r\nAs an Elf, you have these special traits.\r\n\r\n<details id=\"elf-trait-darkvision\">\r\n  <summary>Darkvision</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"darkvision\" class=\"glossary-term-link-from-markdown\">Darkvision</span> with a range of 60 feet.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"elf-trait-elven-lineage\" markdown=\"1\">\r\n  <summary>Elven Lineage</summary>\r\n  <div>\r\n    <p>You are part of a lineage that grants you supernatural abilities. Choose one of the lineages from the entries below this one in the glossary. You gain the level 1 benefit of that lineage, and when you reach character levels 3 and 5, you learn the higher-level spell for your chosen lineage. <span data-term-id=\"intelligence\" class=\"glossary-term-link-from-markdown\">Intelligence</span>, <span data-term-id=\"wisdom\" class=\"glossary-term-link-from-markdown\">Wisdom</span>, or <span data-term-id=\"charisma\" class=\"glossary-term-link-from-markdown\">Charisma</span> is your <span data-term-id=\"spellcasting_ability\" class=\"glossary-term-link-from-markdown\">spellcasting ability</span> for the <span data-term-id=\"spells_chapter\" class=\"glossary-term-link-from-markdown\">spells</span> you cast with this trait (choose the ability when you select the lineage).</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"elf-trait-fey-ancestry\">\r\n  <summary>Fey Ancestry</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"advantage\" class=\"glossary-term-link-from-markdown\">Advantage</span> on <span data-term-id=\"saving_throw\" class=\"glossary-term-link-from-markdown\">saving throws</span> you make to avoid or end the <span data-term-id=\"charmed_condition\" class=\"glossary-term-link-from-markdown\">Charmed condition</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"elf-trait-keen-senses\">\r\n  <summary>Keen Senses</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"proficiency\" class=\"glossary-term-link-from-markdown\">proficiency</span> in the <span data-term-id=\"insight\" class=\"glossary-term-link-from-markdown\">Insight</span>, <span data-term-id=\"perception\" class=\"glossary-term-link-from-markdown\">Perception</span>, or <span data-term-id=\"survival\" class=\"glossary-term-link-from-markdown\">Survival</span> <span data-term-id=\"skills_list\" class=\"glossary-term-link-from-markdown\">skill</span> (choose one).</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"elf-trait-trance\">\r\n  <summary>Trance</summary>\r\n  <div>\r\n    <p>You don't need to sleep, and magic can't put you to sleep. You can finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span> in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.</p>\r\n  </div>\r\n</details>\r\n\r\n---\r\n*Source: Player's Handbook, pg. 189 (adapted)*\r\n"
+  "filePath": "/data/glossary/entries/races/elf.json"
 }

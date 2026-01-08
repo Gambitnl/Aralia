@@ -13,7 +13,6 @@ interface SystemMenuProps {
   hasNewRateLimitError: boolean;
   isDevDummyActive: boolean; // Retained prop for completeness, though specific usage might be implicitly handled by permissions
   isDevModeEnabled: boolean;
-  onOpenShip?: () => void;
 }
 
 export const SystemMenu: React.FC<SystemMenuProps> = ({
@@ -22,8 +21,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   unreadDiscoveryCount,
   hasNewRateLimitError,
   isDevDummyActive: _isDevDummyActive,
-  isDevModeEnabled,
-  onOpenShip
+  isDevModeEnabled
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -47,6 +45,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       { action: { type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Glossary' } },
       { action: { type: 'toggle_party_overlay', label: 'Party' } },
       { action: { type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' } },
+
       { action: { type: 'save_game', label: 'Save Game' } },
       { action: { type: 'go_to_main_menu', label: 'Main Menu' } },
 
@@ -142,7 +141,10 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
                 <ActionButton
                   className="w-full text-left"
                   action={action}
-                  onClick={(a) => { onAction(a); handleCloseMenu(); }}
+                  onClick={(a) => {
+                    onAction(a);
+                    handleCloseMenu();
+                  }}
                   disabled={disabled}
                   badgeCount={badgeCount}
                   hasNotification={hasNotification}

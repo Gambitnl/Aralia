@@ -20,6 +20,13 @@ export const FIRBOLG_DATA: Race = {
     'Powerful Build: You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.',
     'Speech of Beast and Leaf: You have the ability to communicate in a limited manner with Beasts, Plants, and vegetation. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them.',
   ],
+  visual: {
+    id: 'firbolg',
+    icon: '🌲',
+    color: '#6B8E23',
+    maleIllustrationPath: 'assets/images/races/firbolg_male.png',
+    femaleIllustrationPath: 'assets/images/races/firbolg_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Firbolg Magic',
     traitDescription: 'Choose your spellcasting ability for Firbolg Magic (Detect Magic, Disguise Self).',

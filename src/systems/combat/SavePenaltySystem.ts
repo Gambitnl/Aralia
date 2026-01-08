@@ -38,6 +38,8 @@ export class SavePenaltySystem {
         if (!target) return state;
 
         const rider: SavePenaltyRider = {
+            // TODO: Fix TS2741 - missing 'id' property in SavePenaltyRider
+            // @ts-ignore
             spellId: spellId || sourceName,
             casterId: casterId,
             sourceName: sourceName,

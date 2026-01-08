@@ -8,24 +8,17 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from "fs";
 import path from "path";
 
-// Simplified env loading
-const envPath = path.resolve(process.cwd(), ".env");
-if (fs.existsSync(envPath)) {
-  const content = fs.readFileSync(envPath, "utf-8");
-  content.split("\n").forEach(line => {
-    const [key, ...valueParts] = line.split("=");
-    if (key && valueParts.length > 0) {
-      process.env[key.trim()] = valueParts.join("=").trim();
-    }
-  });
-}
-
-const API_KEY = process.env.GEMINI_API_KEY;
+// Resolve API Key from system environment variables
+// This respects the hierarchy defined in src/config/env.ts but relies on process.env
+const API_KEY = process.env.VITE_IMAGE_API_KEY || 
+                process.env.IMAGE_API_KEY || 
+                process.env.VITE_GEMINI_API_KEY || 
+                process.env.GEMINI_API_KEY;
 
 const server = new Server(
   {
     name: "gemini-custom-image-server",
-    version: "1.4.0",
+    version: "1.5.0",
   },
   {
     capabilities: {
@@ -42,7 +35,7 @@ function log(message: string) {
   process.stderr.write(entry);
 }
 
-log("Starting MCP Server initialization (Multimodal Edition)...");
+log("Starting MCP Server initialization...");
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -54,11 +47,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           type: "object",
           properties: {
             prompt: { type: "string", description: "Image prompt" },
-                        model: { 
-                          type: "string", 
-                          enum: ["gemini-2.5-flash-image", "gemini-2.5-flash-image-preview", "imagen-3.0-generate-002", "imagen-4.0-generate-001"],
-                          default: "gemini-2.5-flash-image"
-                        },            outputPath: { type: "string", description: "Path to save file" }
+            model: {
+              type: "string",
+              enum: ["gemini-2.5-flash-image", "gemini-3-flash"],
+              default: "gemini-2.5-flash-image"
+            },
+            outputPath: { type: "string", description: "Path to save file" }
           },
           required: ["prompt", "outputPath"]
         }
@@ -72,14 +66,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   log(`Received CallToolRequest: ${name}`);
   
   if (name === "generate_image_custom") {
-    const { prompt, model = "gemini-3-pro-image-preview", outputPath } = args as any;
+    const { prompt, model = "gemini-2.5-flash-image", outputPath } = args as any;
     
     try {
-      if (!API_KEY) throw new Error("GEMINI_API_KEY is missing from .env");
+      if (!API_KEY) throw new Error("API Key is missing from environment variables.");
       const genAI = new GoogleGenerativeAI(API_KEY);
       const imageModel = genAI.getGenerativeModel({ model: model });
       
-      log(`Calling model ${model} with prompt: ${prompt}`);
+      log(`Calling model ${model} with prompt length: ${prompt.length}`);
       const result = await imageModel.generateContent(prompt);
       const response = await result.response;
       
@@ -94,8 +88,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
       
       if (!imageBuffer) {
-        log("Error: No image data returned. Full response: " + JSON.stringify(response));
-        throw new Error("Model did not return an image. It might have returned text or an error instead.");
+        throw new Error("Model did not return an image.");
       }
       
       const absolutePath = path.resolve(process.cwd(), outputPath);

@@ -36,7 +36,13 @@ This is the most critical part, ensuring the race works mechanically.
         'Dwarven Toughness: Your Hit Point maximum increases by 1...',
         // Add all other racial traits as descriptive strings.
       ],
-      imageUrl: '/assets/images/races/hill_dwarf.png', 
+      visual: {
+        id: 'hill_dwarf',
+        icon: '⛰️',
+        color: '#8B4513',
+        maleIllustrationPath: 'assets/images/races/hill_dwarf_male.png',
+        femaleIllustrationPath: 'assets/images/races/hill_dwarf_female.png',
+      },
     };
     ```
 
@@ -57,23 +63,30 @@ Race descriptions must be **setting-agnostic** since Aralia uses procedurally ge
 **Good Example** (generic):
 > "Hill dwarves possess keen senses, deep intuition, and remarkable resilience. More connected to the surface world than their subterranean kin, they often build settlements into hillsides and rolling highlands."
 
-#### Creating the Race Image
+#### Creating the Race Images
 
-Each race requires a custom illustration saved to `public/assets/images/races/[race_id].png`. Use the image generator or source appropriate artwork following these guidelines:
+Each race requires **two separate character illustrations** saved to `public/assets/images/races/`:
+- `[race_id]_male.png` - Male character
+- `[race_id]_female.png` - Female character
 
-1.  **Show Both Genders**: Include a male and female of the race, shown as separate individuals (not a couple).
-2.  **Everyday Attire**: Depict them in common, practical clothing appropriate for their culture - not armor or adventuring gear.
-3.  **Typical Environment**: Place them in a setting that matches their typical dwelling:
+Use the image generator or source appropriate artwork following these guidelines:
+
+1.  **Separate Images**: Create individual images for male and female characters (not combined).
+2.  **Middle-Aged Characters**: Depict characters at a mature but not elderly age.
+3.  **Everyday Attire**: Show them in common, practical clothing appropriate for their culture - not armor or adventuring gear.
+4.  **Engaged in Activity**: Characters should be actively doing something related to their culture (forging, cooking, reading, crafting), not just standing idle.
+5.  **Typical Environment**: Place them in a setting that matches their typical dwelling:
     - Hill Dwarves → Hillside settlements
     - Mountain Dwarves → Underground forges
     - Wood Elves → Forest clearings
     - High Elves → Elegant towers
     - Halflings → Pastoral villages
-4.  **Different Activities/Tools**: Give each individual distinct tools or activities to show cultural variety (e.g., blacksmith + brewer, farmer + weaver).
-5.  **Fantasy RPG Style**: Use warm, detailed fantasy illustration style suitable for a character selection screen.
+6.  **Fantasy RPG Style**: Use warm, detailed painterly digital art style suitable for a character selection screen.
 
-**Example Prompt**:
-> "Two Hill Dwarf individuals, a male and a female, shown side by side but as separate individuals. The male wears a blacksmith's leather apron holding a hammer. The female wears a brewer's outfit holding a wooden mug. They stand in a hillside dwarven village with stone-and-turf buildings built into green hills. Fantasy RPG character illustration, warm earthy tones, detailed."
+**Example Prompts**:
+> Male: "A middle-aged male Hill Dwarf blacksmith hammering at an anvil in a hillside dwarven village. Stone-and-turf buildings built into green hills visible in background. Practical work clothes, leather apron. Painterly digital art, fantasy RPG style, warm earthy tones."
+
+> Female: "A middle-aged female Hill Dwarf examining gemstones at a wooden workbench in a cozy hillside workshop. Stone walls, warm lantern light. Practical artisan clothing. Painterly digital art, fantasy RPG style, warm earthy tones."
 
 ### Step 2: Register the Race
 

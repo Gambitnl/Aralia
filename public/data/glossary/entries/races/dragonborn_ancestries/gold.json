@@ -1,0 +1,45 @@
+{
+    "id": "gold_dragonborn",
+    "title": "Gold Dragonborn",
+    "category": "Character Races",
+    "entryLore": "Descended from the noble and wise gold dragons of the sun-drenched peaks, these dragonborn command the power of fire. They often possess a strong sense of justice and a love for wisdom, reflecting the majestic and often solitary nature of their draconic kin.",
+    "imageUrl": "/assets/images/races/dragonborn_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Ancestry Type",
+            "value": "Draconic (Gold)"
+        },
+        {
+            "label": "Damage Type",
+            "value": "[[fire_damage|Fire]]"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Fire Breath (Gold)",
+            "icon": "flame",
+            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[fire_damage|Fire damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+        },
+        {
+            "name": "Fire Resistance (Gold)",
+            "icon": "shield",
+            "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
+        }
+    ],
+    "tags": [
+        "dragonborn",
+        "ancestry",
+        "gold",
+        "fire"
+    ],
+    "aliases": [
+        "gold ancestry"
+    ],
+    "seeAlso": [
+        "dragonborn",
+        "fire_damage",
+        "breath_weapon"
+    ],
+    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/gold.json"
+}

@@ -1,41 +1,59 @@
 {
   "id": "gnome",
-  "title": "Gnome (Race)",
+  "title": "Gnome",
   "category": "Character Races",
+  "entryLore": "Gnomes are clever and inventive folk, petite in size but grand in curiosity. Often living in hidden burrows or forest enclaves, they protect their communities with masterful illusions and labyrinthine architecture. They are famously known for their sharp minds and a natural resistance to magical influence.",
+  "imageUrl": "/assets/images/races/gnome_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size_small|Small]] (about 3-4 feet tall)"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Life Span",
+      "value": "Around 425 years"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You have [[darkvision|Darkvision]] with a range of 60 feet."
+    },
+    {
+      "name": "Gnomish Cunning",
+      "icon": "brain",
+      "description": "You have [[advantage|Advantage]] on Intelligence, Wisdom, and Charisma [[saving_throw|saving throws]]."
+    }
+  ],
+  "markdown": "\n### Gnomish Lineages\nGnomes inherit a magical lineage that determines their specialized skills and magic. Choose one from the following:\n\n*   [[forest_gnome|Forest Gnome (Illusionist)]]\n*   [[rock_gnome|Rock Gnome (Tinker)]]\n*   [[deep_gnome|Deep Gnome (Underdark)]]\n",
   "tags": [
     "race",
     "gnome",
     "fey-touched",
-    "illusion",
-    "invention",
-    "darkvision",
     "humanoid",
-    "garl glittergold",
-    "small",
-    "svirfneblin"
+    "small"
   ],
-  "excerpt": "Magical folk known for their cleverness, illusions, and invention. Gnomes have distinct lineages: Forest Gnome and Rock Gnome, granting unique abilities.",
   "aliases": [
     "gnomes",
     "rock gnome",
-    "forest gnome",
-    "svirfneblin"
+    "forest gnome"
   ],
   "seeAlso": [
     "darkvision",
     "gnomish_cunning",
-    "gnomish_lineage",
-    "forest_gnome_lineage",
-    "rock_gnome_lineage",
-    "deep_gnome_lineage",
-    "minor_illusion",
-    "speak_with_animals",
-    "mending",
-    "prestidigitation",
-    "humanoid",
-    "small_size",
-    "nondetection"
+    "forest_gnome",
+    "rock_gnome",
+    "deep_gnome"
   ],
-  "filePath": "/data/glossary/entries/races/gnome.json",
-  "markdown": "# Gnome\r\n\r\nGnomes are magical folk created by gods of invention, illusions, and life underground. The earliest gnomes were seldom seen by other folk due to the gnomes' secretive nature and their propensity for living in forests and burrows. What they lacked in size, they made up for in cleverness. They confounded predators with traps and labyrinthine tunnels. They also learned magic from gods like Garl Glittergold, Baervan Wildwanderer, and Baravar Cloakshadow, who visited them in disguise. That magic eventually created the lineages of forest gnomes and rock gnomes.\r\n\r\nGnomes are petite folk with big eyes and pointed ears, who live around 425 years. Many gnomes like the feeling of a roof over their head, even if that "roof" is nothing more than a hat.\r\n\r\n---\r\n## Gnome Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Small</span> (about 3-4 feet tall)\r\n**Speed:** 30 feet\r\n\r\nAs a Gnome, you have these special traits.\r\n\r\n<details id=\"gnome-trait-darkvision\">\r\n  <summary>Darkvision</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"darkvision\" class=\"glossary-term-link-from-markdown\">Darkvision</span> with a range of 60 feet.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"gnome-trait-gnomish-cunning\">\r\n  <summary>Gnomish Cunning</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"advantage\" class=\"glossary-term-link-from-markdown\">Advantage</span> on <span data-term-id=\"intelligence_saving_throw\" class=\"glossary-term-link-from-markdown\">Intelligence</span>, <span data-term-id=\"wisdom_saving_throw\" class=\"glossary-term-link-from-markdown\">Wisdom</span>, and <span data-term-id=\"charisma_saving_throw\" class=\"glossary-term-link-from-markdown\">Charisma saving throws</span> against magic.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"gnome-trait-gnomish-lineage\" markdown=\"1\">\r\n  <summary>Gnomish Lineage</summary>\r\n  <div>\r\n    <p>You are part of a lineage that grants you supernatural abilities. Choose one of the subraces from the entries below this one in the glossary for your Gnomish Lineage. <span data-term-id=\"intelligence\" class=\"glossary-term-link-from-markdown\">Intelligence</span>, <span data-term-id=\"wisdom\" class=\"glossary-term-link-from-markdown\">Wisdom</span>, or <span data-term-id=\"charisma\" class=\"glossary-term-link-from-markdown\">Charisma</span> is your <span data-term-id=\"spellcasting_ability\" class=\"glossary-term-link-from-markdown\">spellcasting ability</span> for the <span data-term-id=\"spells_chapter\" class=\"glossary-term-link-from-markdown\">spells</span> you cast with this trait (choose the ability when you select the lineage).</p>\r\n  </div>\r\n</details>\r\n\r\n---\r\n*Source: Player's Handbook, pg. 191 (adapted)*"
+  "filePath": "/data/glossary/entries/races/gnome.json"
 }

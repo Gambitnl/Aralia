@@ -1,0 +1,58 @@
+{
+    "id": "satyr",
+    "title": "Satyr",
+    "category": "Character Races",
+    "entryLore": "Satyrs are fey beings who embody the revelry and wild spirit of the Feywild. Known for their goat-like lower bodies and pointed horns, they are often seen as carefree merrymakers, musicians, and performers. However, their mirth hides a connection to the fundamental magic of nature, and their ability to shrug off magical influence makes them more than just simple entertainers.",
+    "imageUrl": "/assets/images/races/satyr_female.png",
+    "source": "MPMM",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[fey]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium"
+        },
+        {
+            "label": "Speed",
+            "value": "35 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Ram",
+            "icon": "sword",
+            "description": "You can use your head and horns to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier bludgeoning damage, instead of the normal bludgeoning damage."
+        },
+        {
+            "name": "Magic Resistance",
+            "icon": "shield",
+            "description": "You have [[advantage|Advantage]] on [[saving_throw|saving throws]] against [[spells]]."
+        },
+        {
+            "name": "Mirthful Leaps",
+            "icon": "wind",
+            "description": "Whenever you make a long jump or a high jump, you can roll a d8 and add the number rolled to the number of feet you cover, even when making a standing jump. This extra distance costs movement as normal."
+        },
+        {
+            "name": "Reveler",
+            "icon": "heart",
+            "description": "As a personification of revelry, you have [[proficiency|proficiency]] in the [[performance|Performance]] and [[persuasion|Persuasion]] skills, and you have proficiency with one musical instrument of your choice."
+        }
+    ],
+    "tags": [
+        "race",
+        "satyr",
+        "fey",
+        "revelry",
+        "magic resistance"
+    ],
+    "aliases": [],
+    "seeAlso": [
+        "fey",
+        "magic_resistance",
+        "mirthful_leaps"
+    ],
+    "filePath": "/data/glossary/entries/races/satyr.json"
+}

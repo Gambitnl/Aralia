@@ -21,6 +21,8 @@ interface MainMenuProps {
   latestSaveTimestamp: number | null;
   isDevDummyActive: boolean; // New prop
   onSkipCharacterCreator: () => void; // New prop
+  // Callback to trigger the developer menu from the main menu phase
+  onOpenDevMenu?: () => void;
   onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
   onGoBack?: () => void; // New prop for back navigation
   canGoBack?: boolean; // Whether there's a previous screen to go back to
@@ -43,6 +45,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
   // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
   isDevDummyActive: _isDevDummyActive,
   onSkipCharacterCreator,
+  onOpenDevMenu,
   onSaveGame,
   onGoBack,
   canGoBack = false,
@@ -148,13 +151,25 @@ const MainMenu: React.FC<MainMenuProps> = ({
           </button>
           {/* TODO: Also gate this dev skip button on isDevDummyActive/onSkipCharacterCreator so it only appears when the dummy flow is enabled, matching the test expectation. */}
           {canUseDevTools() && (
-            <button
-              onClick={onSkipCharacterCreator}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
-              aria-label={t('main_menu.skip_character_creator')}
-            >
-              {t('main_menu.skip_character_creator')}
-            </button>
+            <>
+              <button
+                onClick={onSkipCharacterCreator}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
+                aria-label={t('main_menu.skip_character_creator')}
+              >
+                {t('main_menu.skip_character_creator')}
+              </button>
+              {/* Render the Dev Menu button if development tools are available and the handler is provided */}
+              {onOpenDevMenu && (
+                <button
+                  onClick={onOpenDevMenu}
+                  className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                  aria-label="Open Developer Menu"
+                >
+                  Dev Menu
+                </button>
+              )}
+            </>
           )}
           <button
             onClick={() => setIsLoadModalOpen(true)}

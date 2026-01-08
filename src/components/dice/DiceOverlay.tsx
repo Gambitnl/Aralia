@@ -37,7 +37,7 @@ export const DiceOverlay: React.FC = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-[90] pointer-events-none"
+                    className="fixed inset-0 z-[80] pointer-events-none"
                     aria-hidden={!isOverlayVisible}
                 >
                     {/* Semi-transparent backdrop - only clickable when not rolling */}

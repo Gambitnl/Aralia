@@ -5,6 +5,7 @@ import { ThievesGuildSystem } from '../../../systems/crime/ThievesGuildSystem';
 import { GuildJob, GuildMembership, GuildService } from '../../../types/crime';
 import { LOCATIONS } from '../../../constants';
 import FenceInterface from './FenceInterface';
+import { WindowFrame } from '../../ui/WindowFrame';
 
 const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { state, dispatch } = useGameState();
@@ -29,7 +30,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
         let jobs = guild.availableJobs;
 
         if (!jobs || jobs.length === 0) {
-             jobs = ThievesGuildSystem.generateJobs(
+            jobs = ThievesGuildSystem.generateJobs(
                 guild.guildId,
                 guild.rank,
                 Object.values(LOCATIONS),
@@ -119,141 +120,91 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
         );
     }
 
+    // Helper variables for the new UI
+    const guildRank = getRankName(guild.rank);
+    const reputationLevel = guild.rank; // Assuming rank is used for reputation level display
+    const guildReputation = guild.reputation;
+
     return (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 border border-purple-900 rounded-lg max-w-4xl w-full h-[80vh] flex flex-col shadow-2xl overflow-hidden">
-                {/* Header */}
-                <div className="bg-gray-800 p-4 border-b border-purple-900 flex justify-between items-center">
+        <WindowFrame
+            title="Shadow Hands Guild"
+            onClose={onClose}
+            storageKey="thieves-guild-window"
+        >
+            <div className="flex flex-col h-full bg-gray-900 text-gray-200 font-sans">
+                {/* Header Section */}
+                <div className="bg-gray-800 p-6 border-b border-purple-900/50 flex justify-between items-center shadow-lg shrink-0">
                     <div>
-                        <h2 className="text-2xl font-bold text-purple-400">Shadow Hands Guild</h2>
-                        <div className="flex gap-4 text-sm text-gray-400 mt-1">
-                            <span>Rank: <span className="text-white">{getRankName(guild.rank)}</span></span>
-                            <span>Reputation: <span className="text-white">{guild.reputation}</span></span>
-                        </div>
+                        <div className="text-xl font-bold text-purple-400">{guildRank}</div>
+                        <div className="text-sm text-gray-400">Rank {guild.rank} • Reputation {guildReputation}</div>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">&times;</button>
+                    <div className="flex space-x-2">
+                        <button onClick={() => setActiveTab('jobs')} className={`px-4 py-2 rounded ${activeTab === 'jobs' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Jobs</button>
+                        <button onClick={() => setActiveTab('active')} className={`px-4 py-2 rounded ${activeTab === 'active' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Active</button>
+                        <button onClick={() => setActiveTab('services')} className={`px-4 py-2 rounded ${activeTab === 'services' ? 'bg-purple-900 text-white' : 'bg-gray-700 text-gray-400'}`}>Services</button>
+                    </div>
                 </div>
 
-                {/* Navigation */}
-                <div className="flex border-b border-gray-700">
-                    <button
-                        className={`flex-1 py-3 text-center transition-colors ${activeTab === 'jobs' ? 'bg-purple-900/30 text-purple-300 border-b-2 border-purple-500' : 'text-gray-400 hover:bg-gray-800'}`}
-                        onClick={() => setActiveTab('jobs')}
-                    >
-                        Available Contracts
-                    </button>
-                    <button
-                        className={`flex-1 py-3 text-center transition-colors ${activeTab === 'active' ? 'bg-purple-900/30 text-purple-300 border-b-2 border-purple-500' : 'text-gray-400 hover:bg-gray-800'}`}
-                        onClick={() => setActiveTab('active')}
-                    >
-                        Active Jobs ({guild.activeJobs.length})
-                    </button>
-                    <button
-                        className={`flex-1 py-3 text-center transition-colors ${activeTab === 'services' ? 'bg-purple-900/30 text-purple-300 border-b-2 border-purple-500' : 'text-gray-400 hover:bg-gray-800'}`}
-                        onClick={() => setActiveTab('services')}
-                    >
-                        Services
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-900/90">
+                {/* Content Section */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {activeTab === 'jobs' && (
-                        <div className="space-y-4">
-                            {availableJobs.length === 0 ? (
-                                <p className="text-gray-500 text-center italic">No contracts available at this time. Come back later.</p>
-                            ) : (
-                                availableJobs.map(job => (
-                                    <div key={job.id} className="bg-gray-800 border border-gray-700 p-4 rounded hover:border-purple-700 transition-colors">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="text-lg font-bold text-gray-200">{job.title}</h3>
-                                            <span className={`px-2 py-1 text-xs rounded ${getDifficultyColor(job.difficulty)}`}>Diff: {job.difficulty}</span>
-                                        </div>
-                                        <p className="text-gray-400 text-sm mb-3">{job.description}</p>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-yellow-500">Reward: {job.rewardGold} gp</span>
-                                            {guild.rank >= job.requiredRank ? (
-                                                <button
-                                                    onClick={() => handleAcceptJob(job)}
-                                                    className="px-3 py-1 bg-purple-700 hover:bg-purple-600 text-white rounded text-sm transition-colors"
-                                                >
-                                                    Accept Contract
-                                                </button>
-                                            ) : (
-                                                <span className="text-red-500">Requires Rank {job.requiredRank}</span>
-                                            )}
-                                        </div>
+                        <div className="grid gap-4">
+                            {availableJobs.map(job => (
+                                <div key={job.id} className="bg-gray-800 p-4 rounded border border-gray-700 flex justify-between items-center">
+                                    <div>
+                                        <h3 className="font-bold text-white">{job.description}</h3>
+                                        <div className={`text-xs inline-block px-2 py-1 rounded mt-1 ${getDifficultyColor(job.difficulty)}`}>Difficulty: {job.difficulty}</div>
+                                        <div className="text-sm text-yellow-500 mt-1">Reward: {job.rewardGold}g • {job.rewardReputation} Rep</div>
                                     </div>
-                                ))
-                            )}
+                                    <button onClick={() => handleAcceptJob(job)} className="bg-purple-700 hover:bg-purple-600 px-3 py-1 rounded text-white text-sm">Accept</button>
+                                </div>
+                            ))}
+                            {availableJobs.length === 0 && <p className="text-gray-500 text-center italic">No new jobs available right now.</p>}
                         </div>
                     )}
 
                     {activeTab === 'active' && (
-                        <div className="space-y-4">
-                             {guild.activeJobs.length === 0 ? (
-                                <p className="text-gray-500 text-center italic">You have no active jobs.</p>
-                            ) : (
-                                guild.activeJobs.map(job => (
-                                    <div key={job.id} className="bg-gray-800 border border-purple-500/50 p-4 rounded">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="text-lg font-bold text-purple-300">{job.title}</h3>
-                                            <span className="text-xs text-gray-500 uppercase tracking-wide">{job.type}</span>
-                                        </div>
-                                        <p className="text-gray-300 text-sm mb-4">{job.description}</p>
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                onClick={() => handleAbandonJob(job)}
-                                                className="px-3 py-1 border border-red-800 text-red-500 hover:bg-red-900/20 rounded text-sm transition-colors"
-                                            >
-                                                Abandon
-                                            </button>
-                                            <button
-                                                onClick={() => handleCompleteJob(job)}
-                                                className="px-3 py-1 bg-green-700 hover:bg-green-600 text-white rounded text-sm transition-colors"
-                                            >
-                                                Complete (Simulated)
-                                            </button>
-                                        </div>
+                        <div className="grid gap-4">
+                            {guild.activeJobs.map(job => (
+                                <div key={job.id} className="bg-gray-800 p-4 rounded border border-gray-700 flex justify-between items-center">
+                                    <div>
+                                        <h3 className="font-bold text-white">{job.description}</h3>
+                                        <div className="text-sm text-yellow-500">Reward: {job.rewardGold}g</div>
                                     </div>
-                                ))
-                            )}
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleCompleteJob(job)} className="bg-green-700 hover:bg-green-600 px-3 py-1 rounded text-white text-sm">Complete</button>
+                                        <button onClick={() => handleAbandonJob(job)} className="bg-red-900 hover:bg-red-800 px-3 py-1 rounded text-white text-sm">Abandon</button>
+                                    </div>
+                                </div>
+                            ))}
+                            {guild.activeJobs.length === 0 && <p className="text-gray-500 text-center italic">You have no active jobs.</p>}
                         </div>
                     )}
 
                     {activeTab === 'services' && (
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             {availableServices.map(service => (
-                                <div key={service.id} className="bg-gray-800 border border-gray-700 p-4 rounded flex flex-col">
-                                    <h3 className="text-lg font-bold text-gray-200 mb-1">{service.name}</h3>
-                                    <p className="text-gray-400 text-sm flex-1 mb-3">{service.description}</p>
-                                    <div className="flex justify-between items-center text-sm border-t border-gray-700 pt-3 mb-2">
-                                        <span className="text-gray-500">{service.type}</span>
-                                        <span className="text-yellow-500">{service.costGold > 0 ? `${service.costGold} gp` : 'Free'}</span>
+                                <div key={service.id} className="bg-gray-800 p-4 rounded border border-gray-700">
+                                    <h3 className="font-bold text-white">{service.name}</h3>
+                                    <p className="text-sm text-gray-400 my-2">{service.description}</p>
+                                    <div className="flex justify-between items-center mt-4">
+                                        <span className="text-yellow-500">{service.costGold}g</span>
+                                        <button onClick={() => handleUseService(service)} className="bg-purple-700 hover:bg-purple-600 px-3 py-1 rounded text-white text-sm">Use</button>
                                     </div>
-                                    <button
-                                        onClick={() => handleUseService(service)}
-                                        className={`w-full py-1.5 rounded text-sm transition-colors ${state.gold >= service.costGold ? 'bg-purple-900 hover:bg-purple-800 text-purple-100' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
-                                        disabled={state.gold < service.costGold}
-                                    >
-                                        {state.gold >= service.costGold ? 'Purchase Service' : 'Not Enough Gold'}
-                                    </button>
                                 </div>
                             ))}
-                            {availableServices.length === 0 && (
-                                <p className="col-span-2 text-gray-500 text-center italic">No services available at your rank.</p>
-                            )}
+                            {availableServices.length === 0 && <p className="col-span-2 text-gray-500 text-center italic">No services available at your rank.</p>}
                         </div>
                     )}
                 </div>
             </div>
-        </div>
+        </WindowFrame>
     );
 };
 
 // Helpers
 function getRankName(rank: number): string {
-    switch(rank) {
+    switch (rank) {
         case 0: return 'Outsider';
         case 1: return 'Associate';
         case 2: return 'Footpad';

@@ -69,6 +69,10 @@ NPC Context: ${npcContext}
 
 Respond in-character in 1-2 sentences.`;
 
+  // TODO: This function hardcodes FAST_MODEL. Previous session work intended to use adaptive selection
+  // via `chooseModelForComplexity`. Was this reverted intentionally? If adaptive logic is still desired,
+  // refactor to: `const model = chooseModelForComplexity(COMPLEX_MODEL, playerAction);`
+  // Otherwise, document why FAST_MODEL is always used here.
   return await generateText(prompt, systemInstruction, false, 'generateNPCResponse', devModelOverride, FAST_MODEL);
 }
 
@@ -160,6 +164,9 @@ export async function generateGuideResponse(
 }
 
 // Internal facades
+// TODO: These imports are duplicates of the aliases on lines 7-8 (using different naming).
+// This creates confusion: e.g., `implGenerateEncounter` (L7) vs `generateEncounterFacade` (L167-168).
+// Consolidate into a single import block for clarity. This is a housekeeping refactor.
 import {
   generateOracleResponse as generateOracleResponseFacade,
   generateCharacterName as generateCharacterNameFacade,

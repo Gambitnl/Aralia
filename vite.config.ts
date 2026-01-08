@@ -15,6 +15,14 @@ export default defineConfig(({ mode }) => {
           target: 'http://localhost:11434/api',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/ollama/, ''),
+        },
+        '/api/gemini-image': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+        },
+        '/generated': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
         }
       }
     },

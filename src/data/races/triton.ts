@@ -22,4 +22,11 @@ export const TRITON_DATA: Race = {
     'Guardian of the Depths: Adapted to the frigid ocean depths, you have resistance to cold damage.',
   ],
   imageUrl: 'https://i.ibb.co/Placeholder/Triton.png',
+  visual: {
+    id: 'triton',
+    icon: '🔱',
+    color: '#20B2AA',
+    maleIllustrationPath: 'assets/images/races/triton_male.png',
+    femaleIllustrationPath: 'assets/images/races/triton_female.png',
+  },
 };

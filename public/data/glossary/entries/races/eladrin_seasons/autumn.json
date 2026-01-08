@@ -1,0 +1,24 @@
+{
+    "id": "autumn_eladrin",
+    "title": "Autumn Eladrin",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "leaf",
+            "description": "TODO: Add trait descriptions - fey step with calm emotions effect"
+        }
+    ],
+    "tags": ["race", "eladrin", "autumn", "elf", "fey", "feywild"],
+    "aliases": [],
+    "seeAlso": ["eladrin", "elf", "fey"],
+    "filePath": "/data/glossary/entries/races/eladrin_seasons/autumn.json"
+}

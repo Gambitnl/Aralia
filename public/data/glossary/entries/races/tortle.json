@@ -1,0 +1,58 @@
+{
+    "id": "tortle",
+    "title": "Tortle",
+    "category": "Character Races",
+    "entryLore": "Tortles are turtle-like humanoids who lead a simple and often nomadic life. Carrying their homes on their backs, they are exceptionally resilient and possess a calm, stoic nature. They are naturally adapted to both land and water, and their thick shells provide them with immediate and formidable protection from predators and foes alike.",
+    "imageUrl": "/assets/images/races/tortle_female.png",
+    "source": "MPMM",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium or Small"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Claws",
+            "icon": "sword",
+            "description": "You can use your claws to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier slashing damage, instead of the normal bludgeoning damage."
+        },
+        {
+            "name": "Hold Breath",
+            "icon": "water",
+            "description": "You can hold your breath for up to 1 hour at a time."
+        },
+        {
+            "name": "Natural Armor (Tortle)",
+            "icon": "shield",
+            "description": "Your shell provides you with a base Armor Class of 17. You can gain no benefit from wearing armor, but if you are using a [[shield|Shield]], you can apply its bonus as normal."
+        },
+        {
+            "name": "Shell Defense",
+            "icon": "shield",
+            "description": "As an [[action|Action]], you can withdraw into your shell. Until you emerge, you gain a +4 bonus to your AC, and you have [[advantage|Advantage]] on Strength and Wisdom [[saving_throw|Saving Throws]]. While in your shell, you are [[prone_condition|Prone]], your speed is 0 and can't increase, you have [[disadvantage|Disadvantage]] on Dexterity saving throws, you can't take [[reaction|Reactions]], and the only action you can take is a [[bonus_action|Bonus Action]] to emerge."
+        }
+    ],
+    "tags": [
+        "race",
+        "tortle",
+        "reptilian",
+        "defensive",
+        "natural armor"
+    ],
+    "aliases": [],
+    "seeAlso": [
+        "humanoid",
+        "natural_armor",
+        "shell_defense"
+    ],
+    "filePath": "/data/glossary/entries/races/tortle.json"
+}

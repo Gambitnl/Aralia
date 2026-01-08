@@ -1,0 +1,24 @@
+{
+    "id": "simic_hybrid",
+    "title": "Simic Hybrid",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "GGtR",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "dna",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "simic_hybrid", "humanoid", "ravnica", "mutant"],
+    "aliases": [],
+    "seeAlso": ["humanoid"],
+    "filePath": "/data/glossary/entries/races/simic_hybrid.json"
+}

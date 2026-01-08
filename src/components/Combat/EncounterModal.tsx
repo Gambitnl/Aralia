@@ -7,6 +7,7 @@ import React, { useEffect, useRef } from 'react';
 import { Monster, GroundingChunk, Action, TempPartyMember } from '../../types';
 import { CLASSES_DATA } from '../../constants'; // To get class names
 import { t } from '../../utils/i18n';
+import { WindowFrame } from '../ui/WindowFrame';
 
 interface EncounterModalProps {
   isOpen: boolean;
@@ -32,22 +33,11 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
-      // Don't focus immediately if still loading
-      if (!isLoading) {
-        firstFocusableElementRef.current?.focus();
-      }
+    // Don't focus immediately if still loading
+    if (isOpen && !isLoading) {
+      // firstFocusableElementRef.current?.focus(); // Removed ref usage as WindowFrame doesn't support passing ref easily to children for focus, and standardized windows don't usually auto-focus internal buttons
     }
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [isOpen, onClose, isLoading]);
+  }, [isOpen, isLoading]);
 
   if (!isOpen) {
     return null;
@@ -126,27 +116,12 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
   const canSimulate = !isLoading && !error && encounter && encounter.length > 0;
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4"
-      aria-modal="true"
-      role="dialog"
-      aria-labelledby="encounter-modal-title"
+    <WindowFrame
+      title={t('encounter_modal.title')}
+      onClose={onClose}
+      storageKey="encounter-gen-window"
     >
-      <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 id="encounter-modal-title" className="text-2xl font-bold text-amber-400 font-cinzel">
-            {t('encounter_modal.title')}
-          </h2>
-          <button
-            ref={firstFocusableElementRef}
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-3xl"
-            aria-label={t('encounter_modal.close_aria')}
-          >
-            &times;
-          </button>
-        </div>
-
+      <div className="flex flex-col h-full bg-gray-800 p-6">
         <div className="overflow-y-auto scrollable-content flex-grow p-1 pr-2">
           {renderContent()}
         </div>
@@ -167,7 +142,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

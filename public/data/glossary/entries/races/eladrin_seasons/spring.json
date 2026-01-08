@@ -1,0 +1,24 @@
+{
+    "id": "spring_eladrin",
+    "title": "Spring Eladrin",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "flower",
+            "description": "TODO: Add trait descriptions - fey step with charm effect"
+        }
+    ],
+    "tags": ["race", "eladrin", "spring", "elf", "fey", "feywild"],
+    "aliases": [],
+    "seeAlso": ["eladrin", "elf", "fey"],
+    "filePath": "/data/glossary/entries/races/eladrin_seasons/spring.json"
+}

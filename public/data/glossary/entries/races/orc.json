@@ -1,0 +1,56 @@
+{
+    "id": "orc",
+    "title": "Orc",
+    "category": "Character Races",
+    "entryLore": "Orcs trace their creation to Gruumsh, a god who wandered the wild spaces of the Material Plane. This heritage grants them incredible endurance and a fierce determination that shines brightest when the odds are stacked against them.",
+    "imageUrl": "/assets/images/races/orc_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium (about 6-7 feet tall)"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Adrenaline Rush",
+            "icon": "wind",
+            "description": "Take the [[dash_action|Dash]] action as a [[bonus_action|Bonus Action]]. Gain PB [[temporary_hit_points|Temporary Hit Points]]. PB uses per Short/Long Rest."
+        },
+        {
+            "name": "Darkvision",
+            "icon": "eye",
+            "description": "You have [[darkvision|Darkvision]] with a range of 120 feet."
+        },
+        {
+            "name": "Relentless Endurance",
+            "icon": "heart",
+            "description": "When reduced to 0 HP but not killed, drop to 1 HP instead. Once per Long Rest."
+        }
+    ],
+    "tags": [
+        "race",
+        "orc",
+        "relentless",
+        "adrenaline",
+        "humanoid",
+        "gruumsh"
+    ],
+    "aliases": [],
+    "seeAlso": [
+        "humanoid",
+        "darkvision",
+        "temporary_hit_points",
+        "dash_action",
+        "relentless_endurance"
+    ],
+    "filePath": "/data/glossary/entries/races/orc.json"
+}

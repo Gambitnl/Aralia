@@ -21,4 +21,11 @@ export const KENKU_DATA: Race = {
     'Mimicry: You can mimic sounds you have heard, including voices. A creature that hears the sounds you make can tell they are imitations with a successful Wisdom (Insight) check opposed by your Charisma (Deception) check.',
   ],
   imageUrl: 'https://i.ibb.co/Placeholder/Kenku.png',
+  visual: {
+    id: 'kenku',
+    icon: '🐦',
+    color: '#2F4F4F',
+    maleIllustrationPath: 'assets/images/races/kenku_male.png',
+    femaleIllustrationPath: 'assets/images/races/kenku_female.png',
+  },
 };

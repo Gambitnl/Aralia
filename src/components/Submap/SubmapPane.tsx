@@ -383,7 +383,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
             title={`Local Area Scan - ${currentLocation.name}`}
             onClose={onClose}
             storageKey="submap-window"
-            initialMaximized={true}
         >
             <div className="flex flex-col h-full w-full bg-gray-800 p-1 md:p-2">
                 {isInspecting && inspectionMessage && (

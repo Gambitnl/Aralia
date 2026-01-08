@@ -19,4 +19,11 @@ export const GOBLIN_DATA: Race = {
     'Fury of the Small: When you damage a creature with an attack or a spell and the creature’s size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your proficiency bonus. You can use this trait a number of times equal to your proficiency bonus, regaining all expended uses when you finish a long rest.',
     'Nimble Escape: You can take the Disengage or Hide action as a bonus action on each of your turns.',
   ],
+  visual: {
+    id: 'goblin',
+    icon: '👺',
+    color: '#556B2F',
+    maleIllustrationPath: 'assets/images/races/goblin_male.png',
+    femaleIllustrationPath: 'assets/images/races/goblin_female.png',
+  },
 };

@@ -24,4 +24,11 @@ export const HILL_DWARF_DATA: Race = {
         'Dwarven Toughness: Your hit point maximum increases by 1, and it increases by 1 every time you gain a level.',
     ],
     imageUrl: 'assets/images/races/hill_dwarf.png',
+    visual: {
+        id: 'hill_dwarf',
+        icon: '⛰️',
+        color: '#8B4513',
+        maleIllustrationPath: 'assets/images/races/hill_dwarf_male.png',
+        femaleIllustrationPath: 'assets/images/races/hill_dwarf_female.png',
+    },
 };

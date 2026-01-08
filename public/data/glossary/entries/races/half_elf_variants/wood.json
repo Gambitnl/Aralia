@@ -1,0 +1,24 @@
+{
+    "id": "half_elf_wood",
+    "title": "Half-Elf (Wood)",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "SCAG",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "35 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "tree",
+            "description": "TODO: Add trait descriptions - fleet of foot, mask of the wild from wood elf ancestry"
+        }
+    ],
+    "tags": ["race", "half-elf", "wood", "humanoid", "nature"],
+    "aliases": [],
+    "seeAlso": ["half-elf", "wood_elf", "humanoid"],
+    "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
+}

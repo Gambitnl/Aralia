@@ -184,6 +184,12 @@ export interface RaceVisualSpec {
   /** Path to the main illustration (formerly imageUrl). */
   illustrationPath?: string;
 
+  /** Path to male character illustration for race selection. */
+  maleIllustrationPath?: string;
+
+  /** Path to female character illustration for race selection. */
+  femaleIllustrationPath?: string;
+
   /** Path to a top-down token for map representation. */
   tokenPath?: string;
 

@@ -3,7 +3,9 @@
  * Dashboard modal for viewing trade routes and their market impact.
  */
 import React, { useState } from 'react';
-import { TradeRoute, MarketEvent } from '../../types/economy';
+import { TradeRouteManager } from '../../utils/trade/TradeRouteManager';
+import { TradeRoute, MarketEvent } from '../../types/trade';
+import { WindowFrame } from '../ui/WindowFrame';
 import RouteCard from './RouteCard';
 import MarketEventCard from './MarketEventCard';
 
@@ -33,8 +35,8 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
         <button
             onClick={() => setActiveTab(tabId)}
             className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tabId
-                    ? 'border-amber-500 text-amber-500 bg-gray-700/50'
-                    : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'
+                ? 'border-amber-500 text-amber-500 bg-gray-700/50'
+                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'
                 }`}
         >
             {children}
@@ -42,100 +44,56 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-            <div className="bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl flex flex-col border border-gray-700">
-                {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800 rounded-t-xl">
-                    <h1 className="text-2xl font-bold text-white tracking-wider flex items-center gap-2">
-                        🛤️ Trade Route Monitor
-                    </h1>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors text-2xl"
-                        aria-label="Close"
-                    >
-                        &times;
-                    </button>
+        <WindowFrame
+            title="Trade Route Monitor"
+            onClose={onClose}
+            storageKey="trade-route-dashboard"
+        >
+            <div className="flex flex-col h-full bg-gray-900">
+                {/* Stats Overview */}
+                <div className="bg-gray-800 p-4 border-b border-gray-700 grid grid-cols-4 gap-4 text-center shrink-0">
+                    <div className="p-2 bg-gray-700/50 rounded">
+                        <div className="text-xs text-gray-400 uppercase">Active</div>
+                        <div className="text-xl font-bold text-green-400">{activeRoutes}</div>
+                    </div>
+                    <div className="p-2 bg-gray-700/50 rounded">
+                        <div className="text-xs text-gray-400 uppercase">Booming</div>
+                        <div className="text-xl font-bold text-amber-400">{boomingRoutes}</div>
+                    </div>
+                    <div className="p-2 bg-gray-700/50 rounded">
+                        <div className="text-xs text-gray-400 uppercase">Blocked</div>
+                        <div className="text-xl font-bold text-red-400">{blockedRoutes}</div>
+                    </div>
+                    <div className="p-2 bg-gray-700/50 rounded">
+                        <div className="text-xs text-gray-400 uppercase">Events</div>
+                        <div className="text-xl font-bold text-purple-400">{marketEvents.length}</div>
+                    </div>
                 </div>
 
                 {/* Navigation */}
-                <div className="flex border-b border-gray-700 bg-gray-800">
+                <div className="flex border-b border-gray-700 bg-gray-800/50 shrink-0">
                     <NavButton tabId="overview">Overview</NavButton>
                     <NavButton tabId="routes">Routes ({tradeRoutes.length})</NavButton>
                     <NavButton tabId="events">Market Events ({marketEvents.length})</NavButton>
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-4 bg-gray-900">
+                <div className="flex-1 overflow-y-auto p-4">
                     {activeTab === 'overview' && (
                         <div className="space-y-6">
-                            {/* Route Status Summary */}
-                            <div>
-                                <h2 className="text-lg font-semibold text-white mb-3">Route Status</h2>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 text-center">
-                                        <div className="text-3xl font-bold text-green-400">{activeRoutes}</div>
-                                        <div className="text-sm text-green-300">Active</div>
+                            <section>
+                                <h3 className="text-lg font-bold text-white mb-2">Market Status</h3>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="bg-gray-800 p-4 rounded border border-gray-700">
+                                        <h4 className="text-red-400 font-bold mb-1">Shortages ({shortages})</h4>
+                                        <p className="text-sm text-gray-400">High demand goods. Prices +20-50%.</p>
                                     </div>
-                                    <div className="bg-amber-900/30 border border-amber-700 rounded-lg p-4 text-center">
-                                        <div className="text-3xl font-bold text-amber-400">{boomingRoutes}</div>
-                                        <div className="text-sm text-amber-300">Booming</div>
-                                    </div>
-                                    <div className="bg-red-900/30 border border-red-700 rounded-lg p-4 text-center">
-                                        <div className="text-3xl font-bold text-red-400">{blockedRoutes}</div>
-                                        <div className="text-sm text-red-300">Blocked</div>
+                                    <div className="bg-gray-800 p-4 rounded border border-gray-700">
+                                        <h4 className="text-green-400 font-bold mb-1">Surpluses ({surpluses})</h4>
+                                        <p className="text-sm text-gray-400">Excess supply. Prices -10-30%.</p>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Market Impact Summary */}
-                            <div>
-                                <h2 className="text-lg font-semibold text-white mb-3">Market Impact</h2>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-xl">📉</span>
-                                            <span className="text-red-300 font-medium">Shortages ({shortages})</span>
-                                        </div>
-                                        <div className="text-sm text-gray-400">
-                                            {shortages > 0
-                                                ? 'Some goods are scarce. Prices will be higher.'
-                                                : 'No active shortages. Markets are stable.'}
-                                        </div>
-                                    </div>
-                                    <div className="bg-green-900/20 border border-green-800 rounded-lg p-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-xl">📈</span>
-                                            <span className="text-green-300 font-medium">Surpluses ({surpluses})</span>
-                                        </div>
-                                        <div className="text-sm text-gray-400">
-                                            {surpluses > 0
-                                                ? 'Goods are plentiful. Expect lower prices.'
-                                                : 'No active surpluses. Normal pricing.'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Recent Activity */}
-                            {marketEvents.length > 0 && (
-                                <div>
-                                    <h2 className="text-lg font-semibold text-white mb-3">Recent Activity</h2>
-                                    <div className="space-y-2">
-                                        {marketEvents.slice(0, 3).map(event => (
-                                            <MarketEventCard key={event.id} event={event} />
-                                        ))}
-                                        {marketEvents.length > 3 && (
-                                            <button
-                                                onClick={() => setActiveTab('events')}
-                                                className="text-sm text-amber-400 hover:text-amber-300 transition-colors"
-                                            >
-                                                View all {marketEvents.length} events →
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                            </section>
                         </div>
                     )}
 
@@ -166,7 +124,7 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
                     )}
                 </div>
             </div>
-        </div>
+        </WindowFrame>
     );
 };
 

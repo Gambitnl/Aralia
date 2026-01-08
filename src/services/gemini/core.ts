@@ -9,6 +9,11 @@ import { ExtendedGenerationConfig, GeminiTextData, StandardizedResult } from "./
 const API_TIMEOUT_MS = 20000; // 20 seconds
 
 // --- Adaptive Rate Limiting State ---
+// TODO: The `lastRequestTimestamp` is the single source of truth for adaptive throttling.
+// However, `generateEncounter` in encounters.ts does NOT update this timestamp after its API calls.
+// This can cause drift: encounter generation doesn't reset the timer, so subsequent calls (e.g., NPC chat)
+// might incorrectly think enough time has passed. Consider refactoring to ensure ALL API calls
+// funnel through a single timestamp-updating pathway, or have encounters.ts call a shared updater.
 let lastRequestTimestamp = 0;
 let globalCooldownUntil = 0; // Timestamp when cooldown ends (0 = no cooldown)
 
@@ -42,6 +47,10 @@ function activateGlobalCooldown(): void {
 
 /**
  * Resets rate limit tracking after a successful request.
+ * TODO: This function is a no-op stub. If it was intended to reset state after successful requests,
+ * it should be implemented or removed to avoid confusion. Consider:
+ * 1. Resetting `globalCooldownUntil` here, OR
+ * 2. Removing the call at L212 if no reset is truly needed.
  */
 function resetRateLimitTracking(): void {
 }

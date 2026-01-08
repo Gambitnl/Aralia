@@ -28,5 +28,12 @@ export const WATER_GENASI_DATA: Race = {
     { minLevel: 1, spellId: 'acid-splash' },
     { minLevel: 3, spellId: 'create-or-destroy-water' },
     { minLevel: 5, spellId: 'water-walk' }
-  ]
+  ],
+  visual: {
+    id: 'water_genasi',
+    icon: '💧',
+    color: '#4682B4',
+    maleIllustrationPath: 'assets/images/races/water_genasi_male.png',
+    femaleIllustrationPath: 'assets/images/races/water_genasi_female.png',
+  },
 };

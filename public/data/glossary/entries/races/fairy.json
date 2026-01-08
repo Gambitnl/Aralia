@@ -1,7 +1,36 @@
 {
   "id": "fairy",
-  "title": "Fairy (Race)",
+  "title": "Fairy",
   "category": "Character Races",
+  "entryLore": "Fairies are a wee folk from the Feywild, infused with its primal magic. Distinguishable by their shimmering insectile wings and unique physical traits, they are mischievous and magical denizens of the multiverse. They often manifest bizarre or whimsical characteristics, such as colorful skin, sparkling dust, or an aura of soft music.",
+  "imageUrl": "/assets/images/races/fairy_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[fey]]"
+    },
+    {
+      "label": "Size",
+      "value": "Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet, Fly 30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Fairy Magic",
+      "icon": "magic",
+      "description": "You know the [[druidcraft|Druidcraft]] cantrip. Starting at 3rd level, you can cast [[faerie_fire|Faerie Fire]] once per long rest. Starting at 5th level, you can cast [[enlarge_reduce|Enlarge/Reduce]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+    },
+    {
+      "name": "Flight (Fairy)",
+      "icon": "wind",
+      "description": "Because of your wings, you have a [[speed_fly|Flying Speed]] equal to your walking speed. You can't use this flying speed if you're wearing medium or heavy armor."
+    }
+  ],
   "tags": [
     "race",
     "fairy",
@@ -9,13 +38,11 @@
     "flight",
     "small"
   ],
-  "excerpt": "A wee folk from the Feywild, fairies are infused with its magic, granting them insectile wings for flight and innate magical abilities.",
   "aliases": [],
   "seeAlso": [
     "fey",
     "fairy_magic",
     "flight"
   ],
-  "filePath": "/data/glossary/entries/races/fairy.json",
-  "markdown": "# Fairy\r\n\r\nThe Feywild is home to many fantastic peoples, including fairies. Fairies are a wee folk, but not nearly as much so as their pixie and sprite friends. The first fairies spoke Elvish, Goblin, or Sylvan, and encounters with human visitors prompted many of them to learn Common as well.\r\n\r\nInfused with the magic of the Feywild, most fairies look like Small elves with insectile wings, but each fairy has a special physical characteristic that sets them apart.\r\n\r\n---\r\n## Fairy Traits\r\n**Creature Type:** <span data-term-id=\"fey\" class=\"glossary-term-link-from-markdown\">Fey</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Small</span>\r\n**Speed:** 30 feet\r\n\r\n<details>\r\n  <summary>Fairy Magic</summary>\r\n  <div>\r\n    <p>You know the <span data-term-id=\"druidcraft\" class=\"glossary-term-link-from-markdown\">Druidcraft</span> cantrip.</p>\r\n    <p>Starting at 3rd level, you can cast the <span data-term-id=\"faerie_fire\" class=\"glossary-term-link-from-markdown\">Faerie Fire</span> spell with this trait. Starting at 5th level, you can also cast the <span data-term-id=\"enlarge_reduce\" class=\"glossary-term-link-from-markdown\">Enlarge/Reduce</span> spell with this trait. Once you cast faerie fire or enlarge/reduce with this trait, you can't cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Flight</summary>\r\n  <div>\r\n    <p>Because of your wings, you have a flying speed equal to your walking speed. You can't use this flying speed if you're wearing medium or heavy armor.</p>\r\n  </div>\r\n</details>\r\n"
+  "filePath": "/data/glossary/entries/races/fairy.json"
 }

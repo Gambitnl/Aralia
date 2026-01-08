@@ -1,0 +1,24 @@
+{
+    "id": "sea_elf",
+    "title": "Sea Elf",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "MPMM",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "30 feet, swim 30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "water",
+            "description": "TODO: Add trait descriptions - child of the sea, friend of the sea"
+        }
+    ],
+    "tags": ["race", "elf", "sea_elf", "humanoid", "aquatic"],
+    "aliases": [],
+    "seeAlso": ["elf", "humanoid"],
+    "filePath": "/data/glossary/entries/races/elf_lineages/sea_elf.json"
+}

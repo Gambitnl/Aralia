@@ -1,0 +1,45 @@
+{
+    "id": "blue_dragonborn",
+    "title": "Blue Dragonborn",
+    "category": "Character Races",
+    "entryLore": "Descended from the regal and manipulative blue dragons of the deserts, these dragonborn command the power of lightning. They often value order and hierarchy, reflecting the structured social lives of their draconic ancestors who rule over the shifting sands.",
+    "imageUrl": "/assets/images/races/dragonborn_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Ancestry Type",
+            "value": "Draconic (Blue)"
+        },
+        {
+            "label": "Damage Type",
+            "value": "[[lightning_damage|Lightning]]"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Lightning Breath",
+            "icon": "magic",
+            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[lightning_damage|Lightning damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+        },
+        {
+            "name": "Lightning Resistance",
+            "icon": "shield",
+            "description": "You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]]."
+        }
+    ],
+    "tags": [
+        "dragonborn",
+        "ancestry",
+        "blue",
+        "lightning"
+    ],
+    "aliases": [
+        "blue ancestry"
+    ],
+    "seeAlso": [
+        "dragonborn",
+        "lightning_damage",
+        "breath_weapon"
+    ],
+    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/blue.json"
+}

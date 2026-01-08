@@ -1,7 +1,41 @@
 {
   "id": "githzerai",
-  "title": "Githzerai (Race)",
+  "title": "Githzerai",
   "category": "Character Races",
+  "entryLore": "Githzerai are disciplined dwellers of the Everchanging Chaos of Limbo. Utilizing their potent psionic powers, they stabilize the chaotic environment around them and maintain a sharp mental focus that wards off external influence. They are often monks and philosophers, dedicated to a life of mental discipline and the pursuit of inner peace amidst the roiling chaos of their home plane.",
+  "imageUrl": "/assets/images/races/githzerai_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Githzerai Psionics",
+      "icon": "magic",
+      "description": "You know the [[mage_hand|Mage Hand]] cantrip, and the hand is [[invisible_condition|Invisible]] when you cast the cantrip with this trait. Starting at 3rd level, you can cast [[shield|Shield]] once per long rest. Starting at 5th level, you can cast [[detect_thoughts|Detect Thoughts]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+    },
+    {
+      "name": "Mental Discipline",
+      "icon": "shield",
+      "description": "You have [[advantage|Advantage]] on [[saving_throw|saving throws]] you make to avoid or end the [[charmed_condition|Charmed]] and [[frightened_condition|Frightened]] conditions."
+    },
+    {
+      "name": "Psychic Resilience",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[psychic_damage|Psychic damage]]."
+    }
+  ],
   "tags": [
     "race",
     "githzerai",
@@ -10,13 +44,11 @@
     "humanoid",
     "monk"
   ],
-  "excerpt": "Disciplined monks who carved a home from the chaos of Limbo, Githzerai use their potent psionic power to protect themselves and probe the minds of others.",
   "aliases": [],
   "seeAlso": [
     "githzerai_psionics",
     "mental_discipline",
     "psychic_resilience"
   ],
-  "filePath": "/data/glossary/entries/races/githzerai.json",
-  "markdown": "# Githzerai\r\n\r\nGithzerai migrated to the Everchanging Chaos of Limbo after the ancient schism that split their ancestors from their cousins, githyanki. Limbo is a roiling maelstrom of matter and energy, collapsing and reforming without purpose or direction, until a creature exerts deliberate will to stabilize it. Through their potent psionic power, githzerai carved a home for themselves amid the chaos.\r\n\r\nGithzerai are generally slender, with speckled skin in shades of yellow, green, or brown. Eons of cultivating their mental powers within the endless chaos of Limbo have imbued githzerai with the ability to shape psionic energy to protect themselves and probe minds.\r\n\r\n---\r\n## Githzerai Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Medium</span>\r\n**Speed:** 30 feet\r\n\r\n<details>\r\n  <summary>Githzerai Psionics</summary>\r\n  <div>\r\n    <p>You know the <span data-term-id=\"mage_hand\" class=\"glossary-term-link-from-markdown\">Mage Hand</span> cantrip, and the hand is invisible when you cast the cantrip with this trait.</p>\r\n    <p>Starting at 3rd level, you can cast the <span data-term-id=\"shield\" class=\"glossary-term-link-from-markdown\">Shield</span> spell with this trait. Starting at 5th level, you can also cast the <span data-term-id=\"detect_thoughts\" class=\"glossary-term-link-from-markdown\">Detect Thoughts</span> spell with it. Once you cast shield or detect thoughts with this trait, you can't cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Mental Discipline</summary>\r\n  <div>\r\n    <p>Your innate psychic defenses grant you advantage on saving throws you make to avoid or end the charmed and frightened conditions on yourself.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Psychic Resilience</summary>\r\n  <div>\r\n    <p>You have resistance to psychic damage.</p>\r\n  </div>\r\n</details>\r\n"
+  "filePath": "/data/glossary/entries/races/githzerai.json"
 }

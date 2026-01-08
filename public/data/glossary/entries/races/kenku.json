@@ -1,0 +1,55 @@
+{
+    "id": "kenku",
+    "title": "Kenku",
+    "category": "Character Races",
+    "entryLore": "Kenku are feathered folk whose roots trace back to the shadow of the raven. Though they have lost the gift of flight, they have been blessed with supernaturally accurate memories and an uncanny ability to mimic any sound or voice they hear. They often serve as legendary scribes, observers, and spies, flourishing in the urban centers where their unique talents are most valued.",
+    "imageUrl": "/assets/images/races/kenku_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Creature Type",
+            "value": "[[humanoid]]"
+        },
+        {
+            "label": "Size",
+            "value": "Medium or Small"
+        },
+        {
+            "label": "Speed",
+            "value": "30 feet"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Expert Duplication",
+            "icon": "sword",
+            "description": "You have [[advantage|Advantage]] on ability checks you make to produce an exact duplicate of writing or any other craftwork, including [[documents]] and [[art]]."
+        },
+        {
+            "name": "Kenku Recall",
+            "icon": "eye",
+            "description": "You have [[proficiency|proficiency]] in two skills of your choice. Furthermore, when you make an ability check using any skill in which you have proficiency, you can give yourself [[advantage|Advantage]] on the check. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], regaining all uses on a [[long_rest|Long Rest]]."
+        },
+        {
+            "name": "Mimicry",
+            "icon": "magic",
+            "description": "You can mimic sounds you have heard, including voices. A creature that hears the sounds can tell they are imitations with a successful Wisdom ([[insight|Insight]]) check against a DC equal to 8 + your Charisma modifier + your Proficiency Bonus."
+        }
+    ],
+    "tags": [
+        "race",
+        "kenku",
+        "mimicry",
+        "recall",
+        "humanoid",
+        "raven"
+    ],
+    "aliases": [],
+    "seeAlso": [
+        "humanoid",
+        "deception",
+        "insight",
+        "skill_proficiencies"
+    ],
+    "filePath": "/data/glossary/entries/races/kenku.json"
+}

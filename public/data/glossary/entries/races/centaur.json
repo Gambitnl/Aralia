@@ -1,7 +1,46 @@
 {
   "id": "centaur",
-  "title": "Centaur (Race)",
+  "title": "Centaur",
   "category": "Character Races",
+  "entryLore": "Centaurs hail from the Feywild, mystically resonating with the natural world. Combining the upper body of an elf with the lower body of a horse, they are swift and powerful wanderers of the wild realms. They often travel in herds, protecting the ancient forests and meadows they call home with a fierce and noble spirit.",
+  "imageUrl": "/assets/images/races/centaur_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[fey]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "40 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Charge",
+      "icon": "sword",
+      "description": "If you move at least 30 feet straight toward a target and then hit it with a melee attack on the same turn, you can immediately make one attack with your hooves against that target as a [[bonus_action|Bonus Action]]."
+    },
+    {
+      "name": "Equine Build",
+      "icon": "shield",
+      "description": "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. In addition, any climb that requires an ability check costs you 4 extra feet of movement for every 1 foot you move."
+    },
+    {
+      "name": "Hooves",
+      "icon": "sword",
+      "description": "You can use your hooves to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier bludgeoning damage, instead of the normal bludgeoning damage."
+    },
+    {
+      "name": "Natural Affinity",
+      "icon": "heart",
+      "description": "You have [[proficiency|proficiency]] in one of the following skills of your choice: [[animal_handling|Animal Handling]], [[medicine|Medicine]], [[nature|Nature]], or [[survival|Survival]]."
+    }
+  ],
   "tags": [
     "race",
     "centaur",
@@ -10,7 +49,6 @@
     "charge",
     "hooves"
   ],
-  "excerpt": "Hailing from the Feywild, centaurs have the upper body of an elf and the lower body of a horse, combining natural speed with a mystical connection to the wild.",
   "aliases": [],
   "seeAlso": [
     "fey",
@@ -18,6 +56,5 @@
     "hooves",
     "natural_affinity"
   ],
-  "filePath": "/data/glossary/entries/races/centaur.json",
-  "markdown": "# Centaur\r\n\r\nCentaurs gallop throughout the multiverse and trace their origins to many different realms. The centaurs presented here hail from the Feywild and mystically resonate with the natural world. From the waist up, they resemble elves, displaying all the elf varieties of skin tone. From the waist down, they have the bodies of horses.\r\n\r\n---\r\n## Centaur Traits\r\n**Creature Type:** <span data-term-id=\"fey\" class=\"glossary-term-link-from-markdown\">Fey</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Medium</span>\r\n**Speed:** 40 feet\r\n\r\n<details>\r\n  <summary>Charge</summary>\r\n  <div>\r\n    <p>If you move at least 30 feet straight toward a target and then hit it with a melee weapon attack on the same turn, you can immediately follow that attack with a <span data-term-id=\"bonus_action\" class=\"glossary-term-link-from-markdown\">bonus action</span>, making one attack against the target with your hooves.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Equine Build</summary>\r\n  <div>\r\n    <p>You count as one size larger when determining your carrying capacity and the weight you can push or drag.</p>\r\n    <p>In addition, any climb that requires hands and feet is especially difficult for you because of your equine legs. When you make such a climb, each foot of movement costs you 4 extra feet instead of the normal 1 extra foot.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Hooves</summary>\r\n  <div>\r\n    <p>You have hooves that you can use to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier bludgeoning damage, instead of the bludgeoning damage normal for an unarmed strike.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Natural Affinity</summary>\r\n  <div>\r\n    <p>Your fey connection to nature gives you an intuitive connection to the natural world and the animals within it. You therefore have proficiency in one of the following skills of your choice: <span data-term-id=\"animal_handling\" class=\"glossary-term-link-from-markdown\">Animal Handling</span>, <span data-term-id=\"medicine\" class=\"glossary-term-link-from-markdown\">Medicine</span>, <span data-term-id=\"nature\" class=\"glossary-term-link-from-markdown\">Nature</span>, or <span data-term-id=\"survival\" class=\"glossary-term-link-from-markdown\">Survival</span>.</p>\r\n  </div>\r\n</details>\r\n"
+  "filePath": "/data/glossary/entries/races/centaur.json"
 }

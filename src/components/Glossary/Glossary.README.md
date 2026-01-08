@@ -55,9 +55,16 @@ The `Glossary.tsx` component displays an extensive, expandable D&D Basic Rules g
 *   The close button has an `aria-label`.
 *   `<details>` and `<summary>` elements are inherently keyboard accessible. Users can navigate between summaries using Tab and toggle them open/closed using Enter or Space.
 
-## Data Dependencies
+## Data Dependencies (Updated 2026-01-08)
 
-The content of the glossary is currently hardcoded within the JSX of the `Glossary.tsx` component, based on the structure provided by the user. It does not fetch data from external files or props for its content.
+The content of the glossary is dynamic and driven by JSON data files located in `/public/data/glossary/entries/`. 
+
+1.  **JSON Entries**: Each term is a JSON file containing metadata (id, category, tags) and content (markdown).
+2.  **Automated Index**: A central index system (`/public/data/glossary/index/main.json`) points to category-specific indices.
+3.  **Index Generation**: The index files are maintained by the `scripts/generateGlossaryIndex.js` script, which scans the entries directory and regenerates the catalogs.
+4.  **Context Loading**: `GlossaryContext.tsx` fetches these indices on application mount to provide efficient search and navigation without loading all entry content upfront.
+
+For a detailed guide on adding new content, see the [Glossary Contributor Guide](file:///c:/Users/gambi/Documents/Git/AraliaV4/Aralia/docs/guides/@GLOSSARY-CONTRIBUTOR-GUIDE.md).
 
 ## Usage
 

@@ -1,16 +1,47 @@
 {
-  "id": "wood_elf_lineage",
+  "id": "wood_elf",
   "title": "Wood Elf Lineage",
   "category": "Character Races",
+  "entryLore": "Embodying the spirit of primeval forests, wood elves are swift, perceptive, and have a primal connection to nature. This lineage is known for its incredible speed and the ability to vanish into the natural world, often serving as guardians and scouts of the deep wilds.",
+  "imageUrl": "/assets/images/races/elf_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Lineage Type",
+      "value": "Wildlife"
+    },
+    {
+      "label": "Speed",
+      "value": "35 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Fleet of Foot",
+      "icon": "wind",
+      "description": "Your base walking [[speed|Speed]] is 35 feet, rather than the standard 30 feet for elves."
+    },
+    {
+      "name": "Mask of the Wild",
+      "icon": "eye",
+      "description": "You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena."
+    },
+    {
+      "name": "Wood Elf Magic",
+      "icon": "magic",
+      "description": "You know the [[druidcraft|Druidcraft]] cantrip. You can cast [[longstrider|Longstrider]] (level 3) and [[pass_without_trace|Pass without Trace]] (level 5) once each per Long Rest without components."
+    }
+  ],
   "tags": [
     "elf",
     "wood elf",
-    "lineage",
-    "subrace",
-    "speed",
-    "stealth"
+    "nature",
+    "lineage"
   ],
-  "excerpt": "Embodying the spirit of primeval forests, wood elves are swift, perceptive, and have a primal connection to nature.",
   "aliases": [
     "wild elf",
     "green elf"
@@ -20,9 +51,7 @@
     "druidcraft",
     "longstrider",
     "pass_without_trace",
-    "speed",
-    "spellcasting_ability"
+    "speed"
   ],
-  "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json",
-  "markdown": "# Wood Elf Lineage\r\n\r\nAs an elf with Wood Elf lineage, you have a primal connection to nature. You possess the common traits of Elves, plus several unique benefits.\r\n\r\n---\r\n## Wood Elf Traits\r\n\r\nAs a Wood Elf, you have the following racial traits.\r\n\r\n<details>\r\n  <summary>Darkvision (Common Elf Trait)</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"darkvision\" class=\"glossary-term-link-from-markdown\">Darkvision</span> with a range of 60 feet.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Fey Ancestry (Common Elf Trait)</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"advantage\" class=\"glossary-term-link-from-markdown\">Advantage</span> on <span data-term-id=\"saving_throw\" class=\"glossary-term-link-from-markdown\">saving throws</span> you make to avoid or end the <span data-term-id=\"charmed_condition\" class=\"glossary-term-link-from-markdown\">Charmed condition</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Keen Senses (Common Elf Trait)</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"proficiency\" class=\"glossary-term-link-from-markdown\">proficiency</span> in the <span data-term-id=\"perception\" class=\"glossary-term-link-from-markdown\">Perception</span> <span data-term-id=\"skills_list\" class=\"glossary-term-link-from-markdown\">skill</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Trance (Common Elf Trait)</summary>\r\n  <div>\r\n    <p>You don't need to sleep, and magic can't put you to sleep. You can finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span> in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Fleet of Foot (Wood Elf Trait)</summary>\r\n  <div>\r\n    <p>Your base walking <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> increases to 35 feet.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Mask of the Wild (Wood Elf Trait)</summary>\r\n  <div>\r\n    <p>You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Wood Elf Magic (Wood Elf Trait)</summary>\r\n  <div>\r\n    <p>You know the <span data-term-id=\"druidcraft\" class=\"glossary-term-link-from-markdown\">Druidcraft</span> <span data-term-id=\"cantrip\" class=\"glossary-term-link-from-markdown\">cantrip</span>. When you reach 3rd level, you learn the <span data-term-id=\"longstrider\" class=\"glossary-term-link-from-markdown\">Longstrider</span> <span data-term-id=\"spells_chapter\" class=\"glossary-term-link-from-markdown\">spell</span>. When you reach 5th level, you learn the <span data-term-id=\"pass_without_trace\" class=\"glossary-term-link-from-markdown\">Pass without Trace</span> <span data-term-id=\"spells_chapter\" class=\"glossary-term-link-from-markdown\">spell</span>. You always have these <span data-term-id=\"spells_chapter\" class=\"glossary-term-link-from-markdown\">spells</span> prepared, and you can cast them once per <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span> without a <span data-term-id=\"spell_level_slots\" class=\"glossary-term-link-from-markdown\">spell slot</span>, or by using <span data-term-id=\"spell_level_slots\" class=\"glossary-term-link-from-markdown\">spell slots</span> of the appropriate level. Your <span data-term-id=\"spellcasting_ability\" class=\"glossary-term-link-from-markdown\">spellcasting ability</span> for these is your choice of Intelligence, Wisdom, or Charisma.</p>\r\n  </div>\r\n</details>\r\n\r\n---\r\n*Source: Player's Handbook (adapted)*"
+  "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json"
 }

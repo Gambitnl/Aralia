@@ -18,6 +18,13 @@ export const FAIRY_DATA: Race = {
     'Fairy Magic: You know the druidcraft cantrip. Starting at 3rd level, you can cast the faerie fire spell with this trait. Starting at 5th level, you can also cast the enlarge/reduce spell with this trait. Once you cast faerie fire or enlarge/reduce with this trait, you can’t cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).',
     'Flight: Because of your wings, you have a flying speed equal to your walking speed. You can’t use this flying speed if you’re wearing medium or heavy armor.',
   ],
+  visual: {
+    id: 'fairy',
+    icon: '🧚',
+    color: '#FF69B4',
+    maleIllustrationPath: 'assets/images/races/fairy_male.png',
+    femaleIllustrationPath: 'assets/images/races/fairy_female.png',
+  },
   racialSpellChoice: {
     traitName: 'Fairy Magic',
     traitDescription: 'Choose your spellcasting ability for Fairy Magic (Druidcraft, Faerie Fire, Enlarge/Reduce).',

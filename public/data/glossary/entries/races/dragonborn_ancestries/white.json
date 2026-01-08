@@ -1,0 +1,45 @@
+{
+    "id": "white_dragonborn",
+    "title": "White Dragonborn",
+    "category": "Character Races",
+    "entryLore": "Descended from the feral and bestial white dragons of the ice-capped mountains, these dragonborn command the power of cold. They often possess a powerful instinct for survival and a predatory elegance, reflecting the primal and often solitary nature of their draconic kin.",
+    "imageUrl": "/assets/images/races/dragonborn_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Ancestry Type",
+            "value": "Draconic (White)"
+        },
+        {
+            "label": "Damage Type",
+            "value": "[[cold_damage|Cold]]"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Cold Breath (White)",
+            "icon": "magic",
+            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[cold_damage|Cold damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+        },
+        {
+            "name": "Cold Resistance (White)",
+            "icon": "shield",
+            "description": "You have [[resistance|Resistance]] to [[cold_damage|Cold damage]]."
+        }
+    ],
+    "tags": [
+        "dragonborn",
+        "ancestry",
+        "white",
+        "cold"
+    ],
+    "aliases": [
+        "white ancestry"
+    ],
+    "seeAlso": [
+        "dragonborn",
+        "cold_damage",
+        "breath_weapon"
+    ],
+    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/white.json"
+}

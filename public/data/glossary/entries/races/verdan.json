@@ -1,0 +1,24 @@
+{
+    "id": "verdan",
+    "title": "Verdan",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "AI",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "Small, becoming Medium"},
+        {"label": "Speed", "value": "30 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "growth",
+            "description": "TODO: Add trait descriptions"
+        }
+    ],
+    "tags": ["race", "verdan", "humanoid", "goblinoid"],
+    "aliases": [],
+    "seeAlso": ["humanoid", "goblin"],
+    "filePath": "/data/glossary/entries/races/verdan.json"
+}

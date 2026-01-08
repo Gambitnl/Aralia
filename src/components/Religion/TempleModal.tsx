@@ -14,6 +14,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import _Tooltip from '../ui/Tooltip';
 import { DEITIES } from '../../data/deities';
 import { getDivineStanding } from '../../utils/religionUtils';
+import { WindowFrame } from '../ui/WindowFrame';
 
 interface TempleModalProps {
     isOpen: boolean;
@@ -31,7 +32,6 @@ const TempleModal: React.FC<TempleModalProps> = ({
     onAction
 }) => {
     const { state } = useGameState();
-    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
     const [lastActionMessage, setLastActionMessage] = useState<string | null>(null);
 
     const deity = useMemo(() => DEITIES.find(d => d.id === temple.deityId), [temple.deityId]);
@@ -69,41 +69,20 @@ const TempleModal: React.FC<TempleModalProps> = ({
     if (!isOpen || !deity) return null;
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-50 p-4"
-            onClick={onClose}
+        <WindowFrame
+            title={temple.name}
+            onClose={onClose}
+            storageKey="temple-window"
         >
-            <motion.div
-                ref={modalRef}
-                role="dialog"
-                aria-modal="true"
-                aria-label={temple.name}
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="bg-gray-900 border border-amber-700/50 rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col focus:outline-none overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-                tabIndex={-1}
-            >
-                {/* Header */}
-                <div className="relative p-6 bg-gradient-to-b from-gray-800 to-gray-900 border-b border-amber-800">
-                    <div className="absolute top-0 right-0 p-4">
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-white text-3xl transition-colors"
-                            aria-label="Close temple"
-                        >&times;</button>
-                    </div>
-
+            <div className="flex flex-col h-full bg-gray-900 rounded-b-xl overflow-hidden">
+                {/* Header Info - Moved inside content since WindowFrame has its own title bar */}
+                <div className="relative p-6 bg-gradient-to-b from-gray-800 to-gray-900 border-b border-amber-800 shrink-0">
                     <div className="flex items-start gap-6">
                         <div className="w-16 h-16 bg-amber-900/30 rounded-full flex items-center justify-center border-2 border-amber-600/50 text-3xl shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                             {/* Placeholder for deity symbol */}
                             <span>☀️</span>
                         </div>
                         <div>
-                            <h2 className="text-3xl font-cinzel text-amber-100">{temple.name}</h2>
                             <p className="text-amber-400/80 italic font-serif">{deity.titles[0]}</p>
                             <div className="mt-2 flex items-center gap-3 text-sm">
                                 <span className="bg-amber-900/40 px-2 py-0.5 rounded text-amber-200 border border-amber-800/50">
@@ -247,7 +226,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 bg-gray-900 border-t border-gray-800 flex justify-between items-center text-xs text-gray-500">
+                <div className="p-4 bg-gray-900 border-t border-gray-800 flex justify-between items-center text-xs text-gray-500 shrink-0">
                     <div className="flex items-center gap-2">
                         <span>Your Coin Purse:</span>
                         <span className="text-amber-200 font-bold text-base">{formatGpAsCoins(playerGold)}</span>
@@ -256,8 +235,8 @@ const TempleModal: React.FC<TempleModalProps> = ({
                         The gods are watching.
                     </div>
                 </div>
-            </motion.div>
-        </motion.div>
+            </div>
+        </WindowFrame>
     );
 };
 

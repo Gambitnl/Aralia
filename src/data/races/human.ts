@@ -22,4 +22,11 @@ export const HUMAN_DATA: Race = {
     'Skillful: You gain proficiency in one skill of your choice (chosen during character creation).',
     'Versatile: You gain an Origin feat of your choice.',
   ],
+  visual: {
+    id: 'human',
+    icon: '👤',
+    color: '#D2B48C',
+    maleIllustrationPath: 'assets/images/races/human_male.png',
+    femaleIllustrationPath: 'assets/images/races/human_female.png',
+  },
 };

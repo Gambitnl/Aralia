@@ -1,11 +1,49 @@
 {
   "id": "air_genasi",
-  "title": "Air Genasi",
+  "title": "Air Genasi Lineage",
   "category": "Character Races",
-  "tags": [],
-  "excerpt": "No excerpt available.",
+  "entryLore": "Air genasi are descended from djinn, the genies of the Elemental Plane of Air. They embody the airy traits of their otherworldly ancestors, from cloud-like hair to an innate connection with the winds, allowing them to remain calm and light in the face of any storm.",
+  "imageUrl": "/assets/images/races/air_genasi_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Lineage Type",
+      "value": "Elemental (Air)"
+    },
+    {
+      "label": "Speed",
+      "value": "35 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Unending Breath",
+      "icon": "wind",
+      "description": "You can hold your breath indefinitely while you are not [[incapacitated_condition|Incapacitated]]."
+    },
+    {
+      "name": "Lightning Resistance",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]]."
+    },
+    {
+      "name": "Mingle with the Wind",
+      "icon": "magic",
+      "description": "You know the [[shocking_grasp|Shocking Grasp]] cantrip. You can cast [[levitate|Levitate]] (level 3) once per Long Rest without components."
+    }
+  ],
+  "tags": [
+    "genasi",
+    "air genasi",
+    "air",
+    "lightning",
+    "lineage"
+  ],
   "aliases": [],
-  "seeAlso": [],
-  "filePath": "/data/glossary/entries/races/air_genasi.json",
-  "markdown": "<!-- FILE RELATED TO AIR GENASI -->\r\n---\r\nid: \"air_genasi\"\r\ntitle: \"Air Genasi\"\r\ncategory: \"Character Races\"\r\ntags: [\"race\", \"genasi\", \"air\", \"djinn\", \"lightning resistance\"]\r\nexcerpt: \"Descended from djinn, Air Genasi embody the airy traits of their ancestors, with an affinity for wind and lightning.\"\r\nseeAlso: [\"genasi\", \"unending_breath\", \"lightning_resistance\", \"mingle_with_the_wind\", \"shocking_grasp\", \"feather_fall\", \"levitate\"]\r\nfilePath: \"/data/glossary/entries/races/air_genasi.md\"\r\n---\r\n# Air Genasi\r\n\r\nAir genasi are descended from djinn, the genies of the Elemental Plane of Air. Embodying many of the airy traits of their otherworldly ancestors, air genasi can draw upon their connection to the winds.\r\n\r\nAir genasi's skin tones include many shades of blue, along with the full range of human skin tones, with bluish or ashen casts. Sometimes their skin is marked by lines that seem like cracks with bluish-white energy spilling out. An air genasi's hair might blow in a phantom wind or be made entirely of clouds or vapor.\r\n\r\n---\r\n## Air Genasi Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Medium</span> or <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Small</span>\r\n**Speed:** 35 feet\r\n\r\n<details id=\"air-genasi-trait-darkvision\">\r\n  <summary>Darkvision</summary>\r\n  <div>\r\n    <p>You can see in dim light within 60 feet of you as if it were bright light and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"air-genasi-trait-unending-breath\">\r\n  <summary>Unending Breath</summary>\r\n  <div>\r\n    <p>You can hold your breath indefinitely while you're not incapacitated.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"air-genasi-trait-lightning-resistance\">\r\n  <summary>Lightning Resistance</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"resistance\" class=\"glossary-term-link-from-markdown\">resistance</span> to lightning damage.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"air-genasi-trait-mingle-with-the-wind\">\r\n  <summary>Mingle with the Wind</summary>\r\n  <div>\r\n    <p>You can channel the power of the wind, granting you the following abilities:</p>\r\n    <div class=\"not-prose my-4\">\r\n        <table class=\"min-w-full divide-y divide-gray-600 border border-gray-600 rounded-lg shadow-md\">\r\n            <thead class=\"bg-gray-700/50\">\r\n                <tr>\r\n                    <th scope=\"col\" class=\"px-4 py-3 text-left text-xs font-medium text-sky-300 uppercase tracking-wider border-b border-gray-600\">Level</th>\r\n                    <th scope=\"col\" class=\"px-4 py-3 text-left text-xs font-medium text-sky-300 uppercase tracking-wider border-b border-gray-600\">Spell/Ability</th>\r\n                    <th scope=\"col\" class=\"px-4 py-3 text-left text-xs font-medium text-sky-300 uppercase tracking-wider border-b border-gray-600\">Usage</th>\r\n                </tr>\r\n            </thead>\r\n            <tbody class=\"bg-gray-800/50 divide-y divide-gray-700\">\r\n                <tr class=\"hover:bg-gray-700/40 transition-colors duration-150\">\r\n                    <td class=\"px-4 py-3 text-sm font-medium text-amber-300 align-top\">1st</td>\r\n                    <td class=\"px-4 py-3 text-sm text-gray-300 align-top\"><span data-term-id=\"shocking_grasp\" class=\"glossary-term-link-from-markdown\">Shocking Grasp</span></td>\r\n                    <td class=\"px-4 py-3 text-sm text-gray-300 align-top\">Cantrip</td>\r\n                </tr>\r\n                <tr class=\"hover:bg-gray-700/40 transition-colors duration-150\">\r\n                    <td class=\"px-4 py-3 text-sm font-medium text-amber-300 align-top\">3rd</td>\r\n                    <td class=\"px-4 py-3 text-sm text-gray-300 align-top\"><span data-term-id=\"feather_fall\" class=\"glossary-term-link-from-markdown\">Feather Fall</span></td>\r\n                    <td class=\"px-4 py-3 text-sm text-gray-300 align-top\">1 per Long Rest or Spell Slot</td>\r\n                </tr>\r\n                <tr class=\"hover:bg-gray-700/40 transition-colors duration-150\">\r\n                    <td class=\"px-4 py-3 text-sm font-medium text-amber-300 align-top\">5th</td>\r\n                    <td class=\"px-4 py-3 text-sm text-gray-300 align-top\"><span data-term-id=\"levitate\" class=\"glossary-term-link-from-markdown\">Levitate</span></td>\r\n                    <td class=\"px-4 py-3 text-sm text-gray-300 align-top\">1 per Long Rest or Spell Slot</td>\r\n                </tr>\r\n            </tbody>\r\n        </table>\r\n    </div>\r\n    <p class=\"text-sm italic\">Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).</p>\r\n  </div>\r\n</details>"
+  "seeAlso": [
+    "genasi",
+    "lightning_resistance",
+    "levitate"
+  ],
+  "filePath": "/data/glossary/entries/races/air_genasi.json"
 }

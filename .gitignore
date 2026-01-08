@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.env
 node_modules
 dist
 dist-ssr
@@ -80,3 +81,9 @@ vitest-results.json
 
 .gemini/
 gha-creds-*.json
+
+# Generated folder
+generated/
+
+# Chrome profile for Gemini automation
+.chrome-gemini-profile/

@@ -52,4 +52,11 @@ export const DRAGONBORN_DATA: Race = {
     'Draconic Flight (Level 5): You sprout wings and gain a flying speed equal to your walking speed.', // Fizban's/2024 Variant option, kept as placeholder for progression.
   ],
   imageUrl: 'https://i.ibb.co/mrxb2Hwz/Dragonborn.png',
+  visual: {
+    id: 'dragonborn',
+    icon: '🐉',
+    color: '#C9A227',
+    maleIllustrationPath: 'assets/images/races/dragonborn_male.png',
+    femaleIllustrationPath: 'assets/images/races/dragonborn_female.png',
+  },
 };

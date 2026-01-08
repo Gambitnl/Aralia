@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { GeminiLogEntry } from '../../types';
+import { WindowFrame } from '../ui/WindowFrame';
 
 interface GeminiLogViewerProps {
   isOpen: boolean;
@@ -16,24 +17,15 @@ const GeminiLogViewer: React.FC<GeminiLogViewerProps> = ({ isOpen, onClose, logE
   const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
     if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
       firstFocusableElementRef.current?.focus();
       logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
-        logEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      logEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [isOpen, logEntries]);
 
@@ -43,27 +35,12 @@ const GeminiLogViewer: React.FC<GeminiLogViewerProps> = ({ isOpen, onClose, logE
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[70] p-4" // Higher z-index than DevMenu
-      aria-modal="true"
-      role="dialog"
-      aria-labelledby="gemini-log-viewer-title"
+    <WindowFrame
+      title="Gemini API Interaction Log"
+      onClose={onClose}
+      storageKey="gemini-log-window"
     >
-      <div className="bg-gray-900 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-3xl max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 id="gemini-log-viewer-title" className="text-2xl font-bold text-sky-300 font-cinzel">
-            Gemini API Interaction Log
-          </h2>
-          <button
-            ref={firstFocusableElementRef}
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-3xl"
-            aria-label="Close Gemini log viewer"
-          >
-            &times;
-          </button>
-        </div>
-
+      <div className="flex flex-col h-full bg-gray-900 p-6">
         <div className="overflow-y-auto scrollable-content flex-grow bg-black/30 p-3 rounded-md border border-gray-700">
           {logEntries.length === 0 ? (
             <p className="text-gray-500 text-center italic py-10">No Gemini interactions logged yet.</p>
@@ -71,7 +48,7 @@ const GeminiLogViewer: React.FC<GeminiLogViewerProps> = ({ isOpen, onClose, logE
             logEntries.map((entry, index) => (
               <div key={index} className="mb-4 p-3 border border-gray-600 rounded-md bg-gray-800/50">
                 <p className="text-xs text-gray-500 mb-1">
-                  <span className="font-semibold text-sky-400">Timestamp:</span> {entry.timestamp.toLocaleString()} | 
+                  <span className="font-semibold text-sky-400">Timestamp:</span> {entry.timestamp.toLocaleString()} |
                   <span className="font-semibold text-sky-400 ml-2">Function:</span> {entry.functionName}
                 </p>
                 <details className="text-xs">
@@ -101,7 +78,7 @@ const GeminiLogViewer: React.FC<GeminiLogViewerProps> = ({ isOpen, onClose, logE
           Close Log Viewer
         </button>
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

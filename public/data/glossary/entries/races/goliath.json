@@ -1,28 +1,50 @@
 {
   "id": "goliath",
-  "title": "Goliath (Race)",
+  "title": "Goliath",
   "category": "Character Races",
+  "entryLore": "Towering over most folk, goliaths are distant descendants of giants. Each goliath bears the favors of the first giants—supernatural boons that manifest as incredible strength or elemental powers. They are known for their physical prowess and their ability to momentarily manifest their ancestral size, becoming truly titanic on the battlefield.",
+  "imageUrl": "/assets/images/races/goliath_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Medium]] (about 7-8 feet tall)"
+    },
+    {
+      "label": "Speed",
+      "value": "35 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Powerful Build",
+      "icon": "shield",
+      "description": "You have [[advantage|Advantage]] on [[saving_throw|saving throws]] you make to end the [[grappled_condition|Grappled]] condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+    },
+    {
+      "name": "Large Form",
+      "icon": "sword",
+      "description": "Starting at 5th level, you can change your size to [[size_large|Large]] as a [[bonus_action|Bonus Action]]. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have [[advantage|Advantage]] on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "markdown": "\n### Giant Ancestries\nGoliaths bear a supernatural boon from their giant kin. Choose one from the following ancestries to gain a unique benefit:\n\n*   [[cloud_giant|Cloud Giant (Teleportation)]]\n*   [[fire_giant|Fire Giant (Extra Damage)]]\n*   [[frost_giant|Frost Giant (Slow)][\n*   [[hill_giant|Hill Giant (Knock Prone)]]\n*   [[stone_giant|Stone Giant (Damage Reduction)]]\n*   [[storm_giant|Storm Giant (Reaction Damage)]]\n",
   "tags": [
     "race",
     "goliath",
     "giant",
-    "humanoid",
-    "strength",
-    "powerful build"
+    "humanoid"
   ],
-  "excerpt": "Distant descendants of giants, goliaths are towering humanoids who can manifest supernatural boons from their giant ancestry and temporarily grow to Large size.",
   "aliases": [
     "giant-kin"
   ],
   "seeAlso": [
     "giant_ancestry",
     "large_form",
-    "powerful_build",
-    "humanoid",
-    "proficiency_bonus",
-    "bonus_action",
-    "reaction"
+    "powerful_build"
   ],
-  "filePath": "/data/glossary/entries/races/goliath.json",
-  "markdown": "# Goliath\r\n\r\nTowering over most folk, goliaths are distant descendants of giants. Each goliath bears the favors of the first giants-favors that manifest in various supernatural boons, including the ability to quickly grow and temporarily approach the height of goliaths' gigantic kin.\r\n\r\nGoliaths have physical characteristics that are reminiscent of the giants in their family lines. For example, some goliaths look like stone giants, while others resemble fire giants. Whatever giants they count as kin, goliaths have forged their own path in the multiverse-unencumbered by the internecine conflicts that have ravaged giantkind for ages-and seek heights above those reached by their ancestors.\r\n\r\n---\r\n## Goliath Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Medium</span> (about 7-8 feet tall)\r\n**Speed:** 35 feet\r\n\r\nAs a goliath, you have these special traits.\r\n\r\n<details id=\"goliath-trait-giant-ancestry-main\" markdown=\"1\">\r\n  <summary>Giant Ancestry</summary>\r\n  <div>\r\n    <p>You are descended from Giants. Choose one supernatural boon from your ancestry, which are detailed in the entries below this one in the glossary. You can use the chosen benefit a number of times equal to your <span data-term-id=\"proficiency_bonus\" class=\"glossary-term-link-from-markdown\">Proficiency Bonus</span>, and you regain all expended uses when you finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"goliath-trait-large-form\">\r\n  <summary>Large Form</summary>\r\n  <div>\r\n    <p>Starting at character level 5, you can change your size to <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Large</span> as a <span data-term-id=\"bonus_action\" class=\"glossary-term-link-from-markdown\">Bonus Action</span> if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no <span data-term-id=\"action\" class=\"glossary-term-link-from-markdown\">action</span> required). For that duration, you have <span data-term-id=\"advantage\" class=\"glossary-term-link-from-markdown\">Advantage</span> on <span data-term-id=\"strength_checks\" class=\"glossary-term-link-from-markdown\">Strength checks</span>, and your <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> increases by 10 feet. Once you use this trait, you can't use it again until you finish a <span data-term-id=\"long_rest\" class=\"glossary-term-link-from-markdown\">Long Rest</span>.</p>\r\n  </div>\r\n</details>\r\n\r\n<details id=\"goliath-trait-powerful-build\">\r\n  <summary>Powerful Build</summary>\r\n  <div>\r\n    <p>You have <span data-term-id=\"advantage\" class=\"glossary-term-link-from-markdown\">Advantage</span> on any <span data-term-id=\"ability_check\" class=\"glossary-term-link-from-markdown\">ability check</span> you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.</p>\r\n  </div>\r\n</details>\r\n\r\n---\r\n*Source: Player's Handbook (adapted)*"
+  "filePath": "/data/glossary/entries/races/goliath.json"
 }

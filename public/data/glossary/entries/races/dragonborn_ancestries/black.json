@@ -1,0 +1,45 @@
+{
+    "id": "black_dragonborn",
+    "title": "Black Dragonborn",
+    "category": "Character Races",
+    "entryLore": "Descended from the cruel and predatory black dragons of the swamps, these dragonborn carry the power of acid in their breath. They often possess a grim determination and a resilience refined by the harsh environments their ancestors call home.",
+    "imageUrl": "/assets/images/races/dragonborn_female.png",
+    "source": "PHB 2024",
+    "characteristics": [
+        {
+            "label": "Ancestry Type",
+            "value": "Draconic (Black)"
+        },
+        {
+            "label": "Damage Type",
+            "value": "[[acid_damage|Acid]]"
+        }
+    ],
+    "traits": [
+        {
+            "name": "Acid Breath",
+            "icon": "magic",
+            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[acid_damage|Acid damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+        },
+        {
+            "name": "Acid Resistance",
+            "icon": "shield",
+            "description": "You have [[resistance|Resistance]] to [[acid_damage|Acid damage]]."
+        }
+    ],
+    "tags": [
+        "dragonborn",
+        "ancestry",
+        "black",
+        "acid"
+    ],
+    "aliases": [
+        "black ancestry"
+    ],
+    "seeAlso": [
+        "dragonborn",
+        "acid_damage",
+        "breath_weapon"
+    ],
+    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/black.json"
+}

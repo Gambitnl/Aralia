@@ -23,6 +23,8 @@ import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 
 import ErrorBoundary from '../ui/ErrorBoundary';
 
+// TODO: Define a centralized Z-Index registry (e.g., in theme/constants) to manage the stacking order of modals, overlays (DiceRoller, PartyOverlay), and the WindowFrame, replacing magic numbers like z-[100].
+
 // Lazy load heavy/conditional components to improve initial bundle size
 const MapPane = lazy(() => import('../MapPane'));
 const QuestLog = lazy(() => import('../QuestLog'));
@@ -34,8 +36,9 @@ const PartyEditorModal = lazy(() => import('../Party/PartyEditorModal'));
 const GeminiLogViewer = lazy(() => import('../debug/GeminiLogViewer'));
 const UnifiedDebugLogViewer = lazy(() => import('../debug/UnifiedDebugLogViewer').then(module => ({ default: module.UnifiedDebugLogViewer })));
 const NpcInteractionTestModal = lazy(() => import('../debug/NpcInteractionTestModal'));
-const DossierPane = lazy(() => import('../Glossary/DossierPane'));
-const DiscoveryLogPane = lazy(() => import('../Glossary/DiscoveryLogPane'));
+// Relocated from Glossary folder for better architectural separation
+const DossierPane = lazy(() => import('../Logbook/DossierPane'));
+const DiscoveryLogPane = lazy(() => import('../Logbook/DiscoveryLogPane'));
 // Glossary exports a named component from its index barrel
 const Glossary = lazy(() => import('../Glossary').then(module => ({ default: module.Glossary })));
 const EncounterModal = lazy(() => import('../Combat/EncounterModal'));
@@ -441,16 +444,33 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Naval Dashboard */}
-            {gameState.isNavalDashboardVisible && gameState.ship ? (
-                <Suspense fallback={<LoadingSpinner />}>
-                    <ErrorBoundary fallbackMessage="Error in Captain's Dashboard.">
-                        <ShipPane
-                            ship={gameState.ship}
-                            onClose={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
-                        />
-                    </ErrorBoundary>
-                </Suspense>
-            ) : null}
+            {gameState.isNavalDashboardVisible && (
+                gameState.ship ? (
+                    <Suspense fallback={<LoadingSpinner />}>
+                        <ErrorBoundary fallbackMessage="Error in Captain's Dashboard.">
+                            <ShipPane
+                                ship={gameState.ship}
+                                onClose={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
+                            />
+                        </ErrorBoundary>
+                    </Suspense>
+                ) : (
+                    // TODO: Extract this inline "No Data" error UI into a reusable <ModalErrorState message="" /> component.
+                    // Similar error states (missing data, loading failures) will likely be needed for other dashboards (Treasure, Trade, etc.) as we expand.
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                        <div className="bg-gray-800 p-6 rounded border border-red-500 text-center shadow-xl max-w-md">
+                            <h2 className="text-xl font-bold text-red-500 mb-2">No Active Ship</h2>
+                            <p className="text-gray-300 mb-4">You do not have an active ship to display.</p>
+                            <button
+                                onClick={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                )
+            )}
 
             {/* Lockpicking Modal (Dev Tool / Puzzle System) */}
             {gameState.isLockpickingModalVisible && gameState.activeLock && gameState.party[0] && (

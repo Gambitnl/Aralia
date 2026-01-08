@@ -2,12 +2,47 @@ import type { NPCVisualSpec } from './visuals';
 import type { NPCKnowledgeProfile } from './dialogue';
 import type { Position as CombatPosition } from './combat';
 import type { NPCMemory } from './memory'; // Added because NPC now carries optional memory.
+import type { AbilityScores, EquipmentSlotType, Item } from './character';
 
 export type Position = CombatPosition;
 
 // -----------------------------------------------------------------------------
 // World and NPC types
 // -----------------------------------------------------------------------------
+
+export interface FamilyMember {
+  id: string;
+  name: string;
+  relation: 'parent' | 'spouse' | 'child' | 'sibling' | 'grandparent' | 'grandchild';
+  age: number;
+  isAlive: boolean;
+  occupation?: string;
+}
+
+/**
+ * Extended NPC interface that includes detailed biographical and mechanical data.
+ * Used by the generator to provide a complete character profile.
+ */
+export interface RichNPC extends NPC {
+  biography: {
+    age: number;
+    backgroundId: string;
+    classId: string;
+    level: number;
+    family: FamilyMember[];
+    abilityScores: AbilityScores;
+  }
+  stats: {
+    hp: number;
+    maxHp: number;
+    armorClass: number;
+    speed: number;
+    initiativeBonus: number;
+    passivePerception: number;
+    proficiencyBonus: number;
+  }
+  equippedItems: Partial<Record<EquipmentSlotType, Item>>;
+}
 
 export interface LocationDynamicNpcConfig {
   possibleNpcIds: string[];

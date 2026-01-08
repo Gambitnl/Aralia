@@ -22,7 +22,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     onClose,
     storageKey = 'generic-window',
     headerActions,
-    initialMaximized = false
+    initialMaximized = true
 }) => {
     const windowRef = useRef<HTMLDivElement>(null);
     const {
@@ -51,7 +51,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 pointer-events-none z-50">
+        <div className="fixed inset-0 pointer-events-none z-[100]">
             {/* Window Container */}
             <div
                 ref={windowRef}

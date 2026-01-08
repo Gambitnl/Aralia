@@ -1,0 +1,24 @@
+{
+    "id": "stout_halfling",
+    "title": "Stout Halfling",
+    "category": "Character Races",
+    "entryLore": "TODO: Add lore description",
+    "imageUrl": null,
+    "source": "PHB2014",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid]]"},
+        {"label": "Size", "value": "[[size|Small]]"},
+        {"label": "Speed", "value": "25 feet"}
+    ],
+    "traits": [
+        {
+            "name": "TODO",
+            "icon": "shield",
+            "description": "TODO: Add trait descriptions - stout resilience, poison resistance"
+        }
+    ],
+    "tags": ["race", "halfling", "stout", "humanoid", "resilient"],
+    "aliases": [],
+    "seeAlso": ["halfling", "humanoid"],
+    "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
+}

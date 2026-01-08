@@ -8,6 +8,7 @@
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { WindowFrame } from '../ui/WindowFrame';
 import { Lock, Key, Hammer, AlertTriangle, CheckCircle, XCircle, Eye, Shield } from 'lucide-react';
 import { Lock as LockType, LockpickResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from '../../systems/puzzles/types';
 import { attemptLockpick, attemptBreak, hasTool, hasToolProficiency, detectTrap, disarmTrap } from '../../systems/puzzles/lockSystem';
@@ -244,217 +245,129 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
     const canBreak = (lockState.breakDC || lockState.breakHP) && lockState.isLocked;
 
     return (
-        <AnimatePresence>
-            <div
-                className="fixed inset-0 bg-black/75 flex items-center justify-center z-[70] p-4"
-                aria-modal="true"
-                role="dialog"
-                aria-labelledby="lockpicking-modal-title"
-                aria-describedby="lockpicking-modal-desc"
-            >
-                <motion.div
-                    ref={focusTrapRef}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md"
-                >
-                    {/* Header */}
-                    <div className="flex justify-between items-center p-4 border-b border-gray-700">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-900/50 rounded-lg">
-                                {lockState.isLocked ? (
-                                    <Lock className="w-6 h-6 text-amber-400" />
-                                ) : lockState.isBroken ? (
-                                    <Hammer className="w-6 h-6 text-gray-400" />
-                                ) : (
-                                    <Key className="w-6 h-6 text-green-400" />
-                                )}
-                            </div>
-                            <div>
-                                <h2 id="lockpicking-modal-title" className="text-xl font-bold text-amber-400 font-cinzel">
-                                    {lockState.isLocked ? 'Locked' : lockState.isBroken ? 'Broken' : 'Unlocked'}
-                                </h2>
-                                <p id="lockpicking-modal-desc" className="text-sm text-gray-400">
-                                    {lockState.isLocked ? 'Attempt to open this lock' : 'The lock is open'}
-                                </p>
-                            </div>
+        <WindowFrame
+            title="Lockpicking"
+            onClose={onClose}
+            storageKey="lockpicking-window"
+        >
+            <div className="flex flex-col h-full bg-gray-900 text-gray-200">
+                {/* Header / Info Bar */}
+                <div className="px-6 py-4 bg-gray-800 border-b border-gray-700 flex justify-between items-center shrink-0">
+                    <div className="flex items-center space-x-4">
+                        <div className={`px-3 py-1 rounded text-sm font-bold ${difficulty.colorClass}`}>
+                            {difficulty.label} (DC {lockState.dc})
                         </div>
-                        <button
-                            onClick={handleCloseModal}
-                            className="text-gray-400 hover:text-gray-200 text-3xl leading-none p-1"
-                            aria-label="Close lockpicking modal"
-                        >
-                            ×
-                        </button>
-                    </div>
-
-                    {/* Lock Info */}
-                    <div className="p-4 space-y-4">
-                        {/* Difficulty & Status */}
-                        <div className="flex flex-wrap gap-2">
-                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${difficulty.colorClass}`}>
-                                DC {lockState.dc} ({difficulty.label})
+                        <div className="h-6 w-px bg-gray-700"></div>
+                        <div className="flex items-center gap-2">
+                            {lockState.isLocked ? <Lock className="w-4 h-4 text-amber-500" /> : <Key className="w-4 h-4 text-green-500" />}
+                            <span className={lockState.isLocked ? "text-amber-500" : "text-green-500"}>
+                                {lockState.isLocked ? "Locked" : "Open"}
                             </span>
-                            {lockState.breakDC && (
-                                <span className="px-3 py-1 rounded-full text-sm font-semibold text-blue-400 bg-blue-900/50">
-                                    Break DC {lockState.breakDC}
-                                </span>
-                            )}
-                            {lockState.isTrapped && trapDetected === true && (
-                                <span className="px-3 py-1 rounded-full text-sm font-semibold text-red-400 bg-red-900/50 flex items-center gap-1">
-                                    <AlertTriangle className="w-4 h-4" /> Trapped
-                                </span>
-                            )}
                         </div>
-
-                        {/* Tool & Proficiency Status */}
-                        <div className="bg-gray-900/50 rounded-lg p-3 space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-400">Thieves' Tools:</span>
-                                <span className={hasThievesTools ? 'text-green-400' : 'text-red-400'}>
-                                    {hasThievesTools ? '✓ In inventory' : '✗ Not found'}
-                                </span>
+                        {lockState.isBroken && (
+                            <span className="text-red-500 font-bold ml-2">BROKEN</span>
+                        )}
+                        {trapDetected && (
+                            <div className="flex items-center gap-1 text-red-400 font-bold animate-pulse">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span>TRAP!</span>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-400">Proficiency:</span>
-                                <span className={isProficient ? 'text-green-400' : 'text-gray-500'}>
-                                    {isProficient ? '✓ Proficient' : '— Not proficient'}
-                                </span>
+                        )}
+                        {trapDisarmed && (
+                            <div className="flex items-center gap-1 text-green-400 font-bold">
+                                <CheckCircle className="w-4 h-4" />
+                                <span>Disarmed</span>
                             </div>
-                        </div>
-
-                        {/* Result Display */}
-                        {result && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={`p-3 rounded-lg flex items-start gap-3 ${result.success
-                                    ? 'bg-green-900/30 border border-green-700'
-                                    : result.trapTriggered
-                                        ? 'bg-red-900/30 border border-red-700'
-                                        : 'bg-yellow-900/30 border border-yellow-700'
-                                    }`}
-                                role="alert"
-                                aria-live="polite"
-                            >
-                                {result.success ? (
-                                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                                ) : result.trapTriggered ? (
-                                    <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                                ) : (
-                                    <XCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                                )}
-                                <div>
-                                    <p className={`font-semibold ${result.success ? 'text-green-300' : result.trapTriggered ? 'text-red-300' : 'text-yellow-300'
-                                        }`}>
-                                        {result.message}
-                                    </p>
-                                    {result.details && (
-                                        <p className="text-sm text-gray-400 mt-1">{result.details}</p>
-                                    )}
-                                </div>
-                            </motion.div>
                         )}
                     </div>
+                </div>
 
-                    {/* Actions */}
-                    <div className="p-4 border-t border-gray-700 space-y-3">
-                        {lockState.isLocked && (
-                            <>
-                                {/* Detect Trap Button */}
-                                <button
-                                    ref={firstFocusableRef}
-                                    onClick={handleDetectTrap}
-                                    disabled={trapDetected !== null}
-                                    title={trapDetected !== null ? 'You have already searched for traps' : undefined}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-700 hover:bg-purple-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
-                                    aria-describedby="detect-trap-hint"
-                                >
-                                    <Eye className="w-5 h-5" />
-                                    {trapDetected === null ? 'Search for Traps' : trapDetected ? 'Trap Found!' : 'Searched'}
-                                </button>
-                                <p id="detect-trap-hint" className="sr-only">
-                                    Uses Wisdom or Intelligence to detect hidden traps on the lock
-                                </p>
+                {/* Main Content Area */}
+                <div className="flex-grow flex flex-col items-center justify-center p-8 space-y-6 bg-gray-900">
 
-                                {/* Disarm Trap Button - only shows after trap detected */}
-                                {trapDetected && !trapDisarmed && lockState.trap && (
-                                    <>
-                                        <button
-                                            onClick={handleDisarmTrap}
-                                            disabled={isRolling || (!isMagicalTrap && !hasThievesTools)}
-                                            title={
-                                                isRolling ? 'Rolling dice...'
-                                                    : isMagicalTrap ? undefined
-                                                        : !hasThievesTools ? "Requires Thieves' Tools in your inventory"
-                                                            : undefined
-                                            }
-                                            className={`w-full flex items-center justify-center gap-2 px-4 py-3 ${isMagicalTrap
-                                                    ? 'bg-indigo-700 hover:bg-indigo-600'
-                                                    : 'bg-cyan-700 hover:bg-cyan-600'
-                                                } disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors`}
-                                            aria-describedby="disarm-trap-hint"
-                                        >
-                                            <Shield className="w-5 h-5" />
-                                            {isRolling ? 'Rolling...' : isMagicalTrap ? 'Dispel Glyph (Arcana)' : 'Disarm Trap'}
-                                        </button>
-                                        <p id="disarm-trap-hint" className="sr-only">
-                                            {isMagicalTrap
-                                                ? 'Attempt to dispel the magical ward using Intelligence (Arcana)'
-                                                : "Attempt to disarm the trap using Dexterity and Thieves' Tools"}
-                                        </p>
-                                    </>
-                                )}
-
-                                {/* Pick Lock Button */}
-                                <button
-                                    onClick={handlePickLock}
-                                    disabled={!canPickLock || isRolling}
-                                    title={!hasThievesTools ? "Requires Thieves' Tools in your inventory" : isRolling ? 'Rolling dice...' : !lockState.isLocked ? 'Lock is already open' : lockState.isBroken ? 'Lock is broken' : undefined}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
-                                    aria-describedby="pick-lock-hint"
-                                >
-                                    <Key className="w-5 h-5" />
-                                    {isRolling ? 'Rolling...' : 'Pick Lock'}
-                                </button>
-                                <p id="pick-lock-hint" className="sr-only">
-                                    {canPickLock
-                                        ? 'Attempt to pick the lock using Dexterity and Thieves\' Tools'
-                                        : 'Requires Thieves\' Tools in your inventory'}
-                                </p>
-
-                                {/* Break Lock Button */}
-                                {canBreak && (
-                                    <>
-                                        <button
-                                            onClick={handleBreakLock}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-700 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
-                                            aria-describedby="break-lock-hint"
-                                        >
-                                            <Hammer className="w-5 h-5" />
-                                            Force Open (Strength)
-                                        </button>
-                                        <p id="break-lock-hint" className="sr-only">
-                                            Use brute force to break the lock. Requires a Strength check.
-                                        </p>
-                                    </>
-                                )}
-                            </>
-                        )}
-
-                        {/* Close / Done Button */}
-                        <button
-                            onClick={handleCloseModal}
-                            className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold rounded-lg transition-colors"
+                    {/* Result Display */}
+                    {result && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`p-4 rounded-lg border max-w-md w-full text-center ${result.success
+                                    ? 'bg-green-900/30 border-green-500/50 text-green-100'
+                                    : 'bg-red-900/30 border-red-500/50 text-red-100'
+                                }`}
                         >
-                            {lockState.isLocked ? 'Leave It' : 'Done'}
+                            <h3 className="font-bold text-lg mb-1">{result.message}</h3>
+                            <p className="text-sm opacity-90">{result.details}</p>
+                        </motion.div>
+                    )}
+
+                    {!lockState.isLocked && !result?.success && (
+                        <div className="text-green-400 text-xl font-bold flex items-center gap-2">
+                            <CheckCircle className="w-8 h-8" />
+                            The way is open.
+                        </div>
+                    )}
+
+                    {/* Actions Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
+                        {/* 1. Detect Traps */}
+                        <button
+                            onClick={handleDetectTrap}
+                            disabled={isRolling || !lockState.isLocked || trapDetected !== null}
+                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${trapDetected !== null
+                                    ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-default'
+                                    : 'bg-indigo-900/40 border-indigo-700 hover:bg-indigo-900/60 hover:border-indigo-500'
+                                }`}
+                        >
+                            <Eye className="w-6 h-6 mb-2" />
+                            <span className="font-bold">Inspect</span>
+                            <span className="text-xs mt-1">Check for Traps</span>
+                        </button>
+
+                        {/* 2. Disarm Trap (conditional) */}
+                        <button
+                            onClick={handleDisarmTrap}
+                            disabled={isRolling || !trapDetected || trapDisarmed}
+                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${!trapDetected || trapDisarmed
+                                    ? 'bg-gray-800 border-gray-700 text-gray-500 opacity-50 cursor-not-allowed'
+                                    : 'bg-cyan-900/40 border-cyan-700 hover:bg-cyan-900/60 hover:border-cyan-500'
+                                }`}
+                        >
+                            <Shield className="w-6 h-6 mb-2" />
+                            <span className="font-bold">Disarm</span>
+                            <span className="text-xs mt-1">Make Safe</span>
+                        </button>
+
+                        {/* 3. Pick Lock */}
+                        <button
+                            onClick={handlePickLock}
+                            disabled={!canPickLock || isRolling}
+                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${!canPickLock || isRolling
+                                    ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
+                                    : 'bg-amber-900/40 border-amber-700 hover:bg-amber-900/60 hover:border-amber-500'
+                                }`}
+                        >
+                            <Key className="w-6 h-6 mb-2" />
+                            <span className="font-bold">Pick Lock</span>
+                            <span className="text-xs mt-1">Dexterity Check</span>
+                        </button>
+
+                        {/* 4. Force Open */}
+                        <button
+                            onClick={handleBreakLock}
+                            disabled={!canBreak || isRolling}
+                            className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${!canBreak || isRolling
+                                    ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed'
+                                    : 'bg-red-900/40 border-red-700 hover:bg-red-900/60 hover:border-red-500'
+                                }`}
+                        >
+                            <Hammer className="w-6 h-6 mb-2" />
+                            <span className="font-bold">Break</span>
+                            <span className="text-xs mt-1">Strength Check</span>
                         </button>
                     </div>
-                </motion.div>
+                </div>
             </div>
-        </AnimatePresence>
+        </WindowFrame>
     );
 };
 

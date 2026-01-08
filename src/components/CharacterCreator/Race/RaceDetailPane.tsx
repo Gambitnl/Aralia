@@ -20,7 +20,12 @@ const resolveImageUrl = (url: string | undefined): string | undefined => {
 export interface RaceDetailData {
     id: string;
     name: string;
+    /** @deprecated Use maleImage/femaleImage instead */
     image?: string;
+    /** Path to male character illustration */
+    maleImage?: string;
+    /** Path to female character illustration */
+    femaleImage?: string;
     description: string;
     baseTraits: {
         type?: string;
@@ -212,31 +217,87 @@ interface RaceDetailPaneProps {
 
 
 export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }) => {
-    const [isImageExpanded, setIsImageExpanded] = useState(false);
+    const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
     const [infoSpellId, setInfoSpellId] = useState<string | null>(null);
+
+    // Check if we have male/female images or just a single legacy image
+    const hasDualImages = race.maleImage || race.femaleImage;
+    const hasLegacyImage = race.image && !hasDualImages;
 
     return (
         <>
             <div className="flex flex-col h-full">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row gap-6 mb-6">
-                    {/* Image (Left on Desktop, Top on Mobile) */}
-                    <div className="flex-shrink-0 mx-auto md:mx-0 w-48 md:w-40 lg:w-48">
-                        {race.image ? (
-                            <button
-                                type="button"
-                                className="relative group cursor-zoom-in w-full"
-                                onClick={() => setIsImageExpanded(true)}
-                                aria-label={`Expand ${race.name} image`}
-                            >
-                                <img
-                                    src={resolveImageUrl(race.image)}
-                                    alt={`${race.name} illustration`}
-                                    className="w-full h-auto rounded-lg shadow-lg border border-gray-600 group-hover:border-sky-500 transition-colors"
-                                />
-                            </button>
+                    {/* Images Section */}
+                    <div className="flex-shrink-0 mx-auto md:mx-0">
+                        {hasDualImages ? (
+                            /* Male/Female dual image layout */
+                            <div className="flex gap-3">
+                                {/* Male Image */}
+                                <div className="w-36 md:w-32 lg:w-36">
+                                    {race.maleImage ? (
+                                        <button
+                                            type="button"
+                                            className="relative group cursor-zoom-in w-full"
+                                            onClick={() => setExpandedImage({ src: resolveImageUrl(race.maleImage)!, alt: `${race.name} male` })}
+                                            aria-label={`Expand ${race.name} male image`}
+                                        >
+                                            <img
+                                                src={resolveImageUrl(race.maleImage)}
+                                                alt={`${race.name} male`}
+                                                className="w-full h-auto rounded-lg shadow-lg border border-gray-600 group-hover:border-sky-500 transition-colors"
+                                            />
+                                            <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-2 py-0.5 rounded text-gray-300">Male</span>
+                                        </button>
+                                    ) : (
+                                        <div className="w-full aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 border border-gray-600 text-sm">
+                                            Male
+                                        </div>
+                                    )}
+                                </div>
+                                {/* Female Image */}
+                                <div className="w-36 md:w-32 lg:w-36">
+                                    {race.femaleImage ? (
+                                        <button
+                                            type="button"
+                                            className="relative group cursor-zoom-in w-full"
+                                            onClick={() => setExpandedImage({ src: resolveImageUrl(race.femaleImage)!, alt: `${race.name} female` })}
+                                            aria-label={`Expand ${race.name} female image`}
+                                        >
+                                            <img
+                                                src={resolveImageUrl(race.femaleImage)}
+                                                alt={`${race.name} female`}
+                                                className="w-full h-auto rounded-lg shadow-lg border border-gray-600 group-hover:border-sky-500 transition-colors"
+                                            />
+                                            <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-2 py-0.5 rounded text-gray-300">Female</span>
+                                        </button>
+                                    ) : (
+                                        <div className="w-full aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 border border-gray-600 text-sm">
+                                            Female
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : hasLegacyImage ? (
+                            /* Legacy single image layout */
+                            <div className="w-48 md:w-40 lg:w-48">
+                                <button
+                                    type="button"
+                                    className="relative group cursor-zoom-in w-full"
+                                    onClick={() => setExpandedImage({ src: resolveImageUrl(race.image)!, alt: `${race.name} illustration` })}
+                                    aria-label={`Expand ${race.name} image`}
+                                >
+                                    <img
+                                        src={resolveImageUrl(race.image)}
+                                        alt={`${race.name} illustration`}
+                                        className="w-full h-auto rounded-lg shadow-lg border border-gray-600 group-hover:border-sky-500 transition-colors"
+                                    />
+                                </button>
+                            </div>
                         ) : (
-                            <div className="w-full aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 border border-gray-600">
+                            /* No images placeholder */
+                            <div className="w-48 md:w-40 lg:w-48 aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 border border-gray-600">
                                 No Image
                             </div>
                         )}
@@ -293,8 +354,8 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }
             </div>
 
             {/* Modals */}
-            {isImageExpanded && race.image && (
-                <ImageModal src={resolveImageUrl(race.image)!} alt={`${race.name} illustration`} onClose={() => setIsImageExpanded(false)} />
+            {expandedImage && (
+                <ImageModal src={expandedImage.src} alt={expandedImage.alt} onClose={() => setExpandedImage(null)} />
             )}
             <SingleGlossaryEntryModal
                 isOpen={!!infoSpellId}
