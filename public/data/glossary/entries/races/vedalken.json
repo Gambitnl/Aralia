@@ -1,24 +1,53 @@
 {
-    "id": "vedalken",
-    "title": "Vedalken",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "GGtR",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "brain",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "vedalken", "humanoid", "ravnica", "perfectionist"],
-    "aliases": [],
-    "seeAlso": ["humanoid"],
-    "filePath": "/data/glossary/entries/races/vedalken.json"
+  "id": "vedalken",
+  "title": "Vedalken",
+  "category": "Character Races",
+  "entryLore": "Vedalken are tall, blue-skinned humanoids characterized by their relentless pursuit of knowledge and self-improvement. They are driven by an insatiable curiosity and a belief that nothing is perfect—therefore, everything can be improved. Vedalken tend to be methodical, patient, and analytical, approaching problems with logic rather than emotion. They are native to the plane of Ravnica, where many serve in the Azorius Senate or the Simic Combine. Their drive for perfection extends to their own minds and bodies, and they are known to modify themselves with magical enhancements in pursuit of their ideals.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "GGtR",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Vedalken Dispassion",
+      "icon": "mind",
+      "description": "You have [[advantage]] on all Intelligence, Wisdom, and Charisma saving throws."
+    },
+    {
+      "name": "Tireless Precision",
+      "icon": "tools",
+      "description": "You are proficient in one of the following skills of your choice: [[arcana|Arcana]], [[history|History]], [[investigation|Investigation]], [[medicine|Medicine]], [[performance|Performance]], or [[sleight_of_hand|Sleight of Hand]]. You are also proficient with one tool of your choice. Whenever you make an ability check with the chosen skill or tool, roll a d4 and add the number rolled to the check's total."
+    },
+    {
+      "name": "Partially Amphibious",
+      "icon": "water",
+      "description": "By absorbing oxygen through your skin, you can breathe underwater for up to 1 hour. Once you've reached that limit, you can't use this trait again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "vedalken",
+    "humanoid",
+    "ravnica",
+    "perfectionist",
+    "analytical"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "simic_hybrid"
+  ],
+  "filePath": "/data/glossary/entries/races/vedalken.json"
 }

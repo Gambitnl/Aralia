@@ -1,24 +1,77 @@
 {
-    "id": "summer_eladrin",
-    "title": "Summer Eladrin",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "sun",
-            "description": "TODO: Add trait descriptions - fey step with fire damage"
-        }
-    ],
-    "tags": ["race", "eladrin", "summer", "elf", "fey", "feywild"],
-    "aliases": [],
-    "seeAlso": ["eladrin", "elf", "fey"],
-    "filePath": "/data/glossary/entries/races/eladrin_seasons/summer.json"
+  "id": "summer_eladrin",
+  "title": "Summer Eladrin",
+  "category": "Character Races",
+  "entryLore": "When an eladrin is in the summer season, they burn with aggressive energy and fierce determination. Summer eladrin are bold, brash, and filled with righteous fury. Their appearance reflects the season's intensity—fiery hair that seems to flicker like flames, skin bronzed like sun-baked earth, and eyes that smolder with inner fire. A summer eladrin's passion can be overwhelming, their presence commanding attention and respect. Their Fey Step channels this fierce energy, erupting in a burst of flames that sears nearby enemies.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "eladrin",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws you make to avoid or end the [[charmed]] condition on yourself."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "perception",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Trance",
+      "icon": "moon",
+      "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a [[long_rest|Long Rest]] in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+    },
+    {
+      "name": "Fey Step",
+      "icon": "teleport",
+      "description": "As a [[bonus_action|Bonus Action]], you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Immediately after you teleport, each creature of your choice that you can see within 5 feet of you takes [[fire_damage|fire damage]] equal to your [[proficiency_bonus|Proficiency Bonus]]."
+    },
+    {
+      "name": "Season Association",
+      "icon": "sun",
+      "description": "Summer represents boldness and aggression, a filtered fury of the burning sun. You can change your season during a long rest, which changes your Fey Step effect."
+    }
+  ],
+  "tags": [
+    "race",
+    "eladrin",
+    "summer",
+    "elf",
+    "fey",
+    "feywild",
+    "fierce"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "eladrin",
+    "elf",
+    "fey",
+    "charmed",
+    "fire_damage"
+  ],
+  "filePath": "/data/glossary/entries/races/eladrin_seasons/summer.json"
 }

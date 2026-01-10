@@ -1,73 +1,55 @@
 /**
  * @file index.ts
- * Aggregates all race data exports for centralized access.
- * New races should be imported here and added to ALL_RACES_DATA.
+ * Aggregates all race data exports for centralized access using import.meta.glob.
+ * Race files are automatically discovered - no manual imports needed!
+ *
+ * To add a new race:
+ * 1. Create a new .ts file in src/data/races/ (e.g., kobold.ts)
+ * 2. Export a constant named <RACE_ID>_DATA (e.g., KOBOLD_DATA)
+ * 3. That's it! The race will be automatically included.
  */
 import { Race } from '../../types';
 
-import { HUMAN_DATA } from './human';
-import { ELF_DATA } from './elf';
-import { DWARF_DATA } from './dwarf';
-import { HILL_DWARF_DATA } from './hill_dwarf';
-import { HALFLING_DATA } from './halfling';
-import { DRAGONBORN_DATA, DRAGONBORN_ANCESTRIES_DATA } from './dragonborn';
-import { GNOME_DATA } from './gnome';
-import { TIEFLING_DATA, FIENDISH_LEGACIES_DATA } from './tiefling';
-import { ORC_DATA } from './orc';
-import { GOLIATH_DATA, GIANT_ANCESTRY_BENEFITS_DATA } from './goliath';
-import { AASIMAR_DATA } from './aasimar';
-import { FIRBOLG_DATA } from './firbolg';
-import { GOBLIN_DATA } from './goblin';
-import { BUGBEAR_DATA } from './bugbear';
-import { AARAKOCRA_DATA } from './aarakocra';
-import { CHANGELING_DATA } from './changeling';
-import { AIR_GENASI_DATA } from './air_genasi';
-import { EARTH_GENASI_DATA } from './earth_genasi';
-import { FIRE_GENASI_DATA } from './fire_genasi';
-import { WATER_GENASI_DATA } from './water_genasi';
-import { CENTAUR_DATA } from './centaur';
-import { FAIRY_DATA } from './fairy';
-import { ELADRIN_DATA } from './eladrin';
-import { GITHYANKI_DATA } from './githyanki';
-import { GITHZERAI_DATA } from './githzerai';
-import { TABAXI_DATA } from './tabaxi';
-import { DUERGAR_DATA } from './duergar';
-import { TRITON_DATA } from './triton';
-import { KENKU_DATA } from './kenku';
+// Auto-import all race files using Vite's import.meta.glob
+// This scans for all .ts files in the current directory, excluding index.ts and raceGroups.ts
+const raceModules = import.meta.glob<{ [key: string]: Race | any }>('./*.ts', { eager: true });
 
+// Build the races data map dynamically
+const racesData: Record<string, Race> = {};
 
-// Aggregated data map
-export const ALL_RACES_DATA: Record<string, Race> = {
-  human: HUMAN_DATA,
-  elf: ELF_DATA,
-  dwarf: DWARF_DATA,
-  hill_dwarf: HILL_DWARF_DATA,
-  halfling: HALFLING_DATA,
-  dragonborn: DRAGONBORN_DATA,
-  gnome: GNOME_DATA,
-  tiefling: TIEFLING_DATA,
-  orc: ORC_DATA,
-  goliath: GOLIATH_DATA,
-  aasimar: AASIMAR_DATA,
-  firbolg: FIRBOLG_DATA,
-  goblin: GOBLIN_DATA,
-  bugbear: BUGBEAR_DATA,
-  aarakocra: AARAKOCRA_DATA,
-  changeling: CHANGELING_DATA,
-  air_genasi: AIR_GENASI_DATA,
-  earth_genasi: EARTH_GENASI_DATA,
-  fire_genasi: FIRE_GENASI_DATA,
-  water_genasi: WATER_GENASI_DATA,
-  centaur: CENTAUR_DATA,
-  fairy: FAIRY_DATA,
-  eladrin: ELADRIN_DATA,
-  githyanki: GITHYANKI_DATA,
-  githzerai: GITHZERAI_DATA,
-  tabaxi: TABAXI_DATA,
-  duergar: DUERGAR_DATA,
-  triton: TRITON_DATA,
-  kenku: KENKU_DATA,
-};
+for (const path in raceModules) {
+  // Skip index.ts and raceGroups.ts
+  if (path === './index.ts' || path === './raceGroups.ts') continue;
+
+  const module = raceModules[path];
+
+  // Find exports that match the pattern *_DATA and are Race objects
+  for (const exportName in module) {
+    const exportValue = module[exportName];
+
+    // Check if this export is a Race object (has id, name, description, traits)
+    if (
+      exportValue &&
+      typeof exportValue === 'object' &&
+      'id' in exportValue &&
+      'name' in exportValue &&
+      'description' in exportValue &&
+      'traits' in exportValue
+    ) {
+      // Use the race's id as the key
+      racesData[exportValue.id] = exportValue as Race;
+    }
+  }
+}
+
+// Aggregated data map (auto-populated from race files)
+export const ALL_RACES_DATA: Record<string, Race> = racesData;
+
+// Import legacy data bundles that are still used by deprecated systems
+// TODO: These can be removed once deprecated race selection components are cleaned up
+import { DRAGONBORN_ANCESTRIES_DATA } from './dragonborn';
+import { GIANT_ANCESTRY_BENEFITS_DATA } from './goliath';
+import { FIENDISH_LEGACIES_DATA } from './tiefling';
 
 // Bundled exports for subraces/legacies that need to be accessed by constants.ts
 // This prevents circular dependencies or missing exports
@@ -75,6 +57,7 @@ export const RACE_DATA_BUNDLE = {
   dragonbornAncestries: DRAGONBORN_ANCESTRIES_DATA,
   goliathGiantAncestries: GIANT_ANCESTRY_BENEFITS_DATA,
   tieflingLegacies: FIENDISH_LEGACIES_DATA,
+  gnomeSubraces: [] as any[], // Deprecated - will be removed
 };
 
 // Array for iteration (e.g., character creator list)

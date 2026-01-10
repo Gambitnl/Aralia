@@ -1,24 +1,71 @@
 {
-    "id": "half_elf_aquatic",
-    "title": "Half-Elf (Aquatic)",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "SCAG",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet, swim 30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "water",
-            "description": "TODO: Add trait descriptions - swim speed from aquatic elf ancestry"
-        }
-    ],
-    "tags": ["race", "half-elf", "aquatic", "humanoid", "swimmer"],
-    "aliases": [],
-    "seeAlso": ["half-elf", "elf", "humanoid"],
-    "filePath": "/data/glossary/entries/races/half_elf_variants/aquatic.json"
+  "id": "half_elf_aquatic",
+  "title": "Half-Elf (Aquatic)",
+  "category": "Character Races",
+  "entryLore": "Half-elves of aquatic elf heritage are rare, as aquatic elves seldom interact with surface-dwelling peoples. Those who do exist often feel torn between two worlds—the depths of the ocean and the lands above. They typically have webbed fingers and toes, skin tinted with blues or greens, and an affinity for water that sets them apart from other half-elves. Many become sailors, fishermen, or adventurers who explore both the depths and the shores.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "SCAG",
+  "baseRace": "half_elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Swim Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "Thanks to your elf blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws against being [[charmed]], and magic can't put you to sleep."
+    },
+    {
+      "name": "Skill Versatility",
+      "icon": "tools",
+      "description": "You gain proficiency in one skill of your choice."
+    },
+    {
+      "name": "Swim Speed",
+      "icon": "water",
+      "description": "Your aquatic elf heritage grants you a swimming speed of 30 feet. (Replaces Skill Versatility's second skill proficiency)"
+    }
+  ],
+  "tags": [
+    "race",
+    "half-elf",
+    "aquatic",
+    "humanoid",
+    "swimmer",
+    "coastal"
+  ],
+  "aliases": [
+    "half-sea elf"
+  ],
+  "seeAlso": [
+    "half-elf",
+    "sea_elf",
+    "humanoid",
+    "charmed"
+  ],
+  "filePath": "/data/glossary/entries/races/half_elf_variants/aquatic.json"
 }

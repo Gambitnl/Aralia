@@ -3,7 +3,6 @@
   "title": "Water Genasi Lineage",
   "category": "Character Races",
   "entryLore": "Water genasi descend from marids, aquatic genies from the Elemental Plane of Water. Perfectly suited for underwater life, they carry the power of the waves and can breathe as easily beneath the surface as they do above it. They are often found in coastal regions or deep beneath the ocean in coral cities.",
-  "imageUrl": "/assets/images/races/water_genasi_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -46,5 +45,7 @@
     "amphibious",
     "create_or_destroy_water"
   ],
-  "filePath": "/data/glossary/entries/races/water_genasi.json"
+  "filePath": "/data/glossary/entries/races/water_genasi.json",
+  "maleImageUrl": "/assets/images/races/water_genasi_male.png",
+  "femaleImageUrl": "/assets/images/races/water_genasi_female.png"
 }

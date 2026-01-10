@@ -20,6 +20,14 @@ export interface DrawOptions {
     isMoving?: boolean;
     /** Visual customization for the player character */
     playerVisuals?: CharacterVisualConfig;
+    /** Ambient NPCs to render */
+    npcs?: Array<{
+        x: number;
+        y: number;
+        facing: TownDirection;
+        isMoving: boolean;
+        colors: { skin: string; hair: string; clothing: string };
+    }>;
 }
 
 export class AssetPainter {
@@ -72,6 +80,21 @@ export class AssetPainter {
                     this.doodadPainter.drawDoodad(tiles[x][y], x, y, biome);
                 }
             }
+        }
+
+        if (options.npcs) {
+            options.npcs.forEach(npc => {
+                const px = npc.x * TILE_SIZE;
+                const py = npc.y * TILE_SIZE;
+                this.playerPainter.drawPlayer(
+                    px,
+                    py,
+                    npc.facing,
+                    npc.isMoving,
+                    undefined,
+                    npc.colors
+                );
+            });
         }
 
         if (options.playerPosition) {

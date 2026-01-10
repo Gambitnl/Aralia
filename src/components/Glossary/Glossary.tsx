@@ -25,10 +25,8 @@ import { assetUrl } from '../../config/env';
 import { WindowFrame } from '../ui/WindowFrame';
 
 // Sub-components
-import { GlossaryHeader } from './GlossaryHeader';
 import { GlossarySidebar } from './GlossarySidebar';
 import { GlossaryEntryPanel } from './GlossaryEntryPanel';
-import { GlossaryFooter } from './GlossaryFooter';
 import { GlossaryResizeHandles } from './GlossaryResizeHandles';
 
 // Hooks
@@ -52,7 +50,6 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   // State
   const [selectedEntry, setSelectedEntry] = useState<GlossaryEntry | null>(null);
   const [error, _setError] = useState<string | null>(null);
-  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
   const [spellJsonData, setSpellJsonData] = useState<SpellData | null>(null);
   const [spellJsonLoading, setSpellJsonLoading] = useState(false);
 
@@ -149,6 +146,10 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   // Navigate to a specific glossary entry
   const handleNavigateToGlossary = useCallback((termId: string) => {
+    // Guard: If termId is not a string (e.g., a React SyntheticEvent passed by an onClick
+    // handler that didn't wrap the call), silently bail out to prevent "[object Object]" errors.
+    if (typeof termId !== 'string') return;
+
     if (glossaryIndex) {
       const { entry: targetEntry, path: entryPath } = findGlossaryEntryAndPath(termId, glossaryIndex);
 
@@ -211,30 +212,6 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       });
     }
   }, [selectedEntry]);
-
-  // Fetch lastGenerated timestamp
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const controller = new AbortController();
-
-    fetchWithTimeout<{ lastGenerated?: string }>(
-      assetUrl('data/glossary/index/main.json'),
-      { signal: controller.signal }
-    )
-      .then(data => {
-        if (data?.lastGenerated) {
-          setLastGenerated(data.lastGenerated);
-        }
-      })
-      .catch((fetchError) => {
-        if (fetchError.name !== 'AbortError') {
-          setLastGenerated(null);
-        }
-      });
-
-    return () => controller.abort();
-  }, [isOpen]);
 
   // Fetch spell JSON when a spell is selected
   useEffect(() => {
@@ -323,12 +300,6 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       storageKey="glossary-modal-size"
     >
       <div className="flex flex-col h-full p-6 bg-gray-900 text-gray-200">
-        {/* Header with search bar */}
-        <GlossaryHeader
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
-
         {/* Main content area */}
         <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0 glossary-main-container">
           {/* Sidebar with categories and entries */}
@@ -342,6 +313,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
             selectedEntry={selectedEntry}
             onEntrySelect={handleEntrySelect}
             searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
             hasError={!!error}
             gateResults={gateResults}
             entryRefs={entryRefs}
@@ -372,9 +344,6 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
             isColumnResizing={columnResizeState.isResizing}
           />
         </div>
-
-        {/* Footer with timestamp and keyboard hints */}
-        <GlossaryFooter lastGenerated={lastGenerated} onClose={onClose} />
       </div>
     </WindowFrame>
   );

@@ -1,0 +1,64 @@
+{
+  "id": "mark_of_handling_human",
+  "title": "Mark of Handling Human",
+  "category": "Character Races",
+  "entryLore": "The Mark of Handling grants the ability to calm and control animals. House Vadalis carries this mark, breeding magebred animals and providing animal training services. Humans with the Mark of Handling have an innate connection to beasts, able to soothe savage creatures and forge bonds with animals that others cannot match.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "ERLW",
+  "baseRace": "human",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Wild Intuition",
+      "icon": "paw",
+      "description": "When you make a Wisdom ([[animal_handling|Animal Handling]]) or Intelligence ([[nature|Nature]]) check, you can roll a d4 and add the number rolled to the ability check."
+    },
+    {
+      "name": "Primal Connection",
+      "icon": "magic",
+      "description": "You can cast the [[animal_friendship|Animal Friendship]] and [[speak_with_animals|Speak with Animals]] spells with this trait, requiring no material component. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a [[short_rest|Short Rest]] or [[long_rest|Long Rest]]. Wisdom is your spellcasting ability for these spells."
+    },
+    {
+      "name": "The Bigger They Are",
+      "icon": "beast",
+      "description": "Starting at 3rd level, you can target a beast or monstrosity when you cast [[animal_friendship|Animal Friendship]] or [[speak_with_animals|Speak with Animals]], provided the creature's Intelligence score is 3 or lower."
+    },
+    {
+      "name": "Spells of the Mark",
+      "icon": "scroll",
+      "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Handling Spells table are added to the spell list of your spellcasting class."
+    }
+  ],
+  "tags": [
+    "race",
+    "human",
+    "dragonmark",
+    "mark of handling",
+    "humanoid",
+    "eberron",
+    "house vadalis"
+  ],
+  "aliases": [
+    "handling human",
+    "vadalis"
+  ],
+  "seeAlso": [
+    "human",
+    "humanoid",
+    "animal_friendship"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_handling.json"
+}

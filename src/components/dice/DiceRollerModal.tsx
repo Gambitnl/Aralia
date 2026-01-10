@@ -4,10 +4,11 @@
  *
  * @file DiceRollerModal.tsx
  * 3D dice roller modal using @3d-dice/dice-box for visual dice rolling.
+ * Features dice pool builder with count badges and +/- controls.
  */
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Dice6, RefreshCcw } from 'lucide-react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { Dice6, RefreshCcw, Minus, Plus } from 'lucide-react';
 import { useDiceBox } from '../../hooks/useDiceBox';
 import { WindowFrame } from '../ui/WindowFrame';
 import { DiceScaleSlider } from './DiceScaleSlider';
@@ -20,15 +21,14 @@ interface DiceRollerModalProps {
     onRollComplete?: (total: number, rolls: Array<{ die: string; value: number }>) => void;
 }
 
-const PRESET_ROLLS = [
-    { label: 'd4', notation: '1d4' },
-    { label: 'd6', notation: '1d6' },
-    { label: 'd8', notation: '1d8' },
-    { label: 'd10', notation: '1d10' },
-    { label: 'd12', notation: '1d12' },
-    { label: 'd20', notation: '1d20' },
-    { label: 'd100', notation: '1d100' },
-];
+// Die types in order
+const DIE_TYPES = ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'] as const;
+type DieType = typeof DIE_TYPES[number];
+
+// Initial empty pool
+const EMPTY_POOL: Record<DieType, number> = {
+    d4: 0, d6: 0, d8: 0, d10: 0, d12: 0, d20: 0, d100: 0
+};
 
 export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
     isOpen,
@@ -37,13 +37,43 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
     onRollComplete,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [notation, setNotation] = useState(initialNotation);
+    const [dicePool, setDicePool] = useState<Record<DieType, number>>({ ...EMPTY_POOL });
     const [modifier, setModifier] = useState(0);
     const [diceScale, setDiceScale] = useState(10);
 
     const { isReady, isRolling, lastResult, error, roll, clear, resize, updateScale } = useDiceBox({
         containerId: '#dice-roller-canvas',
     });
+
+    // Generate notation from dice pool
+    const poolNotation = useMemo(() => {
+        return DIE_TYPES
+            .filter(die => dicePool[die] > 0)
+            .map(die => `${dicePool[die]}${die}`)
+            .join(', ');
+    }, [dicePool]);
+
+    // Check if pool has any dice
+    const hasPoolDice = useMemo(() => {
+        return DIE_TYPES.some(die => dicePool[die] > 0);
+    }, [dicePool]);
+
+    // Add a die to the pool
+    const addDie = useCallback((die: DieType) => {
+        setDicePool(prev => ({ ...prev, [die]: prev[die] + 1 }));
+    }, []);
+
+    // Remove a die from the pool
+    const removeDie = useCallback((die: DieType, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent triggering addDie
+        setDicePool(prev => ({ ...prev, [die]: Math.max(0, prev[die] - 1) }));
+    }, []);
+
+    // Clear the pool
+    const clearPool = useCallback(() => {
+        setDicePool({ ...EMPTY_POOL });
+        clear();
+    }, [clear]);
 
     // Sync scale changes to DiceBox
     const handleScaleChange = useCallback((newScale: number) => {
@@ -63,11 +93,6 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
         return () => observer.disconnect();
     }, [isReady, resize]);
 
-    // Update notation when initialNotation prop changes
-    useEffect(() => {
-        setNotation(initialNotation);
-    }, [initialNotation]);
-
     // Notify parent of roll completion
     useEffect(() => {
         if (lastResult && onRollComplete) {
@@ -76,24 +101,22 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
     }, [lastResult, modifier, onRollComplete]);
 
     const handleRoll = useCallback(async () => {
-        if (!isReady || isRolling) return;
-        await roll(notation);
-    }, [isReady, isRolling, notation, roll]);
-
-    const handleQuickRoll = useCallback(async (quickNotation: string) => {
-        setNotation(quickNotation);
-        if (isReady && !isRolling) {
-            await roll(quickNotation);
-        }
-    }, [isReady, isRolling, roll]);
+        if (!isReady || isRolling || !hasPoolDice) return;
+        // Create array of roll notations for each die type with count > 0
+        const rollArray = DIE_TYPES
+            .filter(die => dicePool[die] > 0)
+            .map(die => `${dicePool[die]}${die}`);
+        // Pass array to roll - dice-box accepts array of notations
+        await roll(rollArray);
+    }, [isReady, isRolling, hasPoolDice, dicePool, roll]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Escape') {
             onClose();
-        } else if (e.key === 'Enter' && isReady && !isRolling) {
+        } else if (e.key === 'Enter' && isReady && !isRolling && hasPoolDice) {
             handleRoll();
         }
-    }, [onClose, isReady, isRolling, handleRoll]);
+    }, [onClose, isReady, isRolling, hasPoolDice, handleRoll]);
 
     if (!isOpen) return null;
 
@@ -101,15 +124,15 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
 
     return (
         <>
-            {/* TODO: Refactor the inline <style> block into a dedicated CSS file (e.g., src/components/dice/DiceRollerModal.css) or use a styled-component to keep the render function clean and avoid specificity wars. */}
+            {/* TODO: Refactor the inline <style> block into a dedicated CSS file */}
             <style>
                 {`
-                        .dice-box-canvas, 
-                        #dice-roller-canvas canvas {                        pointer-events: none !important;
+                    .dice-box-canvas, 
+                    #dice-roller-canvas canvas {
+                        pointer-events: none !important;
                     }
                 `}
             </style>
-            {/* AnimatePresence enables exit animations for the modal */}
             <AnimatePresence>
                 <WindowFrame
                     key="dice-roller-window"
@@ -145,7 +168,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                             )}
                         </div>
 
-                        {/* Controls - Single Row: Troll Slider | Dice Buttons | Inputs/Actions */}
+                        {/* Controls - Single Row: Scale Slider | Dice Pool | Roll Controls */}
                         <div className="p-3 border-t border-gray-700 bg-gray-800/80 flex-shrink-0 relative z-10">
                             <div className="flex gap-3 items-center">
                                 {/* Scale Slider */}
@@ -158,36 +181,74 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                     />
                                 </div>
 
-                                {/* Dice Buttons - 50% larger */}
+                                {/* Dice Pool Buttons */}
                                 <div className="flex gap-1 flex-shrink-0">
-                                    {PRESET_ROLLS.map(({ label, notation: presetNotation }) => (
-                                        <button
-                                            key={presetNotation}
-                                            onClick={() => handleQuickRoll(presetNotation)}
-                                            disabled={!isReady || isRolling}
-                                            className="flex flex-col items-center p-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-200 rounded-lg transition-colors border border-gray-600"
-                                            title={`Roll ${presetNotation}`}
-                                        >
-                                            <DiceSVG die={label} className="w-14 h-14" />
-                                            <span className="text-[10px] text-gray-400">{label}</span>
-                                        </button>
-                                    ))}
+                                    {DIE_TYPES.map((die) => {
+                                        const count = dicePool[die];
+                                        return (
+                                            <div
+                                                key={die}
+                                                className="relative group"
+                                            >
+                                                {/* Main die button - click anywhere adds */}
+                                                <button
+                                                    onClick={() => addDie(die)}
+                                                    disabled={!isReady || isRolling}
+                                                    className={`relative flex flex-col items-center p-1 rounded-lg transition-all border ${count > 0
+                                                        ? 'bg-amber-900/50 border-amber-500 ring-1 ring-amber-400/30'
+                                                        : 'bg-gray-700 hover:bg-gray-600 border-gray-600'
+                                                        } disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-200`}
+                                                    title={`Add ${die} to pool`}
+                                                >
+                                                    <DiceSVG die={die} className="w-12 h-12" />
+                                                    <span className="text-[10px] text-gray-400">{die}</span>
+
+                                                    {/* Count badge */}
+                                                    {count > 0 && (
+                                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 text-gray-900 rounded-full flex items-center justify-center text-xs font-bold shadow-lg">
+                                                            {count}
+                                                        </div>
+                                                    )}
+                                                </button>
+
+                                                {/* Minus button - left side, only visible when count > 0 */}
+                                                {count > 0 && (
+                                                    <button
+                                                        onClick={(e) => removeDie(die, e)}
+                                                        className="absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title={`Remove ${die}`}
+                                                    >
+                                                        <Minus className="w-3 h-3" />
+                                                    </button>
+                                                )}
+
+                                                {/* Plus button - right side, always visible on hover */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        addDie(die);
+                                                    }}
+                                                    disabled={!isReady || isRolling}
+                                                    className="absolute -right-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title={`Add ${die}`}
+                                                >
+                                                    <Plus className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Separator */}
                                 <div className="w-px h-16 bg-gray-600 flex-shrink-0" />
 
-                                {/* Notation + Mod + Roll + Result + Clear */}
+                                {/* Notation (read-only from pool) + Mod + Roll + Result + Clear */}
                                 <div className="flex gap-2 items-center flex-1">
-                                    <div className="relative w-20">
-                                        <input
-                                            type="text"
-                                            value={notation}
-                                            onChange={(e) => setNotation(e.target.value)}
-                                            placeholder="2d6+3"
-                                            className="w-full px-2 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                                        />
-                                        <span className="absolute -top-2 left-1 bg-gray-800 px-1 text-[9px] text-gray-400 uppercase font-bold">Notation</span>
+                                    <div className="relative flex-1 min-w-[80px]">
+                                        <div className="w-full px-2 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-center text-sm min-h-[38px] flex items-center justify-center">
+                                            {poolNotation || <span className="text-gray-500 italic">Click dice to add</span>}
+                                        </div>
+                                        <span className="absolute -top-2 left-1 bg-gray-800 px-1 text-[9px] text-gray-400 uppercase font-bold">Pool</span>
                                     </div>
                                     <div className="relative w-14">
                                         <input
@@ -201,7 +262,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                     </div>
                                     <button
                                         onClick={handleRoll}
-                                        disabled={!isReady || isRolling}
+                                        disabled={!isReady || isRolling || !hasPoolDice}
                                         className="flex items-center justify-center gap-1 px-3 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg transition-all active:scale-95"
                                     >
                                         <Dice6 className="w-5 h-5" />
@@ -210,23 +271,23 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
 
                                     {/* Inline Result Display */}
                                     {lastResult && (
-                                        <div className="flex items-center gap-1 px-2 py-1 bg-gray-900 rounded-lg border border-amber-600/50">
-                                            <span className="text-xl font-bold text-amber-400">{lastResult.total}</span>
+                                        <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 rounded-lg border border-amber-600/50 min-w-[80px] justify-center">
+                                            <span className="text-2xl font-bold text-amber-400">{lastResult.total}</span>
                                             {modifier !== 0 && (
                                                 <>
-                                                    <span className="text-sm text-gray-500">{modifier > 0 ? '+' : ''}{modifier}</span>
-                                                    <span className="text-sm text-gray-500">=</span>
-                                                    <span className="text-xl font-bold text-green-400">{finalTotal}</span>
+                                                    <span className="text-base text-gray-500">{modifier > 0 ? '+' : ''}{modifier}</span>
+                                                    <span className="text-base text-gray-500">=</span>
+                                                    <span className="text-2xl font-bold text-green-400">{finalTotal}</span>
                                                 </>
                                             )}
                                         </div>
                                     )}
 
                                     <button
-                                        onClick={clear}
+                                        onClick={clearPool}
                                         disabled={!isReady}
                                         className="px-2 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-gray-200 rounded-lg transition-colors border border-gray-600"
-                                        title="Clear dice"
+                                        title="Clear pool and dice"
                                     >
                                         <RefreshCcw className="w-4 h-4" />
                                     </button>

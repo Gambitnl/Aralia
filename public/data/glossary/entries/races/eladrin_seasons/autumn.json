@@ -1,24 +1,76 @@
 {
-    "id": "autumn_eladrin",
-    "title": "Autumn Eladrin",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "leaf",
-            "description": "TODO: Add trait descriptions - fey step with calm emotions effect"
-        }
-    ],
-    "tags": ["race", "eladrin", "autumn", "elf", "fey", "feywild"],
-    "aliases": [],
-    "seeAlso": ["eladrin", "elf", "fey"],
-    "filePath": "/data/glossary/entries/races/eladrin_seasons/autumn.json"
+  "id": "autumn_eladrin",
+  "title": "Autumn Eladrin",
+  "category": "Character Races",
+  "entryLore": "When an eladrin is in the autumn season, they embody peace and goodwill, sharing freely with others and spreading kindness wherever they go. Autumn eladrin are contemplative and generous, often serving as mediators and peacemakers. Their appearance reflects the season's gentle warmth—hair in shades of red, orange, and gold like falling leaves, skin with earthy undertones, and eyes that radiate calm wisdom. An autumn eladrin's presence can soothe troubled minds and ease tensions. Their Fey Step carries the peace of the harvest season, calming those nearby.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "eladrin",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws you make to avoid or end the [[charmed]] condition on yourself."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "perception",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Trance",
+      "icon": "moon",
+      "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a [[long_rest|Long Rest]] in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+    },
+    {
+      "name": "Fey Step",
+      "icon": "teleport",
+      "description": "As a [[bonus_action|Bonus Action]], you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Immediately after you teleport, up to two creatures of your choice that you can see within 10 feet of you must succeed on a Wisdom saving throw (DC 8 + your [[proficiency_bonus|Proficiency Bonus]] + your Intelligence, Wisdom, or Charisma modifier) or be [[charmed]] by you for 1 minute, or until you or your companions deal any damage to the target."
+    },
+    {
+      "name": "Season Association",
+      "icon": "leaf",
+      "description": "Autumn represents peace and goodwill, with a desire to share and give. You can change your season during a long rest, which changes your Fey Step effect."
+    }
+  ],
+  "tags": [
+    "race",
+    "eladrin",
+    "autumn",
+    "elf",
+    "fey",
+    "feywild",
+    "peaceful"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "eladrin",
+    "elf",
+    "fey",
+    "charmed"
+  ],
+  "filePath": "/data/glossary/entries/races/eladrin_seasons/autumn.json"
 }

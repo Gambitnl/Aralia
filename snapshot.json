@@ -1,0 +1,361 @@
+uid=1_0 RootWebArea "D&D Beyond Character Sheet" url="https://www.dndbeyond.com/characters"
+  uid=1_1 ignored
+    uid=1_2 generic
+      uid=1_3 generic
+        uid=1_4 banner
+          uid=1_5 ignored
+            uid=1_6 generic
+              uid=1_7 ignored
+                uid=1_8 ignored
+                  uid=1_9 link url="https://www.dndbeyond.com/"
+                    uid=1_10 image
+                  uid=1_11 ignored
+                    uid=1_12 generic
+                      uid=1_13 image
+                      uid=1_14 combobox expandable haspopup="listbox"
+                        uid=1_15 textbox "Search Everything..." autocomplete="list"
+                          uid=1_16 ignored
+                          uid=1_17 generic
+                        uid=1_18 listbox orientation="vertical"
+                  uid=1_19 list
+                    uid=1_20 listitem level="1"
+                      uid=1_21 link "D&D Beyond Discord" url="https://dndbeyond.com/discord"
+                        uid=1_22 image
+                    uid=1_23 listitem level="1"
+                      uid=1_24 link "D&D Beyond Instagram" url="https://www.instagram.com/dndbeyond"
+                        uid=1_25 image
+                    uid=1_26 listitem level="1"
+                      uid=1_27 link "D&D Beyond Facebook" url="https://www.facebook.com/dndbeyond"
+                        uid=1_28 image
+                    uid=1_29 listitem level="1"
+                      uid=1_30 link "D&D Beyond Twitch" url="https://www.twitch.tv/dndbeyond"
+                        uid=1_31 image
+                    uid=1_32 listitem level="1"
+                      uid=1_33 link "D&D Beyond X" url="https://x.com/dndbeyond"
+                        uid=1_34 image
+                    uid=1_35 listitem level="1"
+                      uid=1_36 link "D&D Beyond Youtube" url="https://www.youtube.com/channel/UCPy-338BEVgDkQade0qJmkw"
+                        uid=1_37 image
+                    uid=1_38 listitem level="1"
+                      uid=1_39 link "D&D Beyond Tiktok" url="https://www.tiktok.com/@dnd_beyond"
+                        uid=1_40 image
+                  uid=1_41 ignored
+                    uid=1_42 link "Sign In" url="https://www.dndbeyond.com/login?returnUrl=/characters"
+                      uid=1_43 StaticText "Sign In"
+                        uid=1_44 InlineTextBox "Sign In"
+                    uid=1_45 link "Sign Up" url="https://www.dndbeyond.com/register?returnUrl=/characters"
+                      uid=1_46 StaticText "Sign Up"
+                        uid=1_47 InlineTextBox "Sign Up"
+          uid=1_48 ignored
+            uid=1_49 generic
+              uid=1_50 generic
+                uid=1_51 list
+                  uid=1_52 listitem level="1"
+                    uid=1_53 ignored
+                      uid=1_54 button "Collections"
+                        uid=1_55 StaticText "Collections"
+                          uid=1_56 InlineTextBox "Collections"
+                        uid=1_57 image
+                  uid=1_58 listitem level="1"
+                    uid=1_59 ignored
+                      uid=1_60 button "Game Rules"
+                        uid=1_61 StaticText "Game Rules"
+                          uid=1_62 InlineTextBox "Game Rules"
+                        uid=1_63 image
+                  uid=1_64 listitem level="1"
+                    uid=1_65 ignored
+                      uid=1_66 button "Library"
+                        uid=1_67 StaticText "Library"
+                          uid=1_68 InlineTextBox "Library"
+                        uid=1_69 image
+                  uid=1_70 listitem level="1"
+                    uid=1_71 ignored
+                      uid=1_72 button "Tools"
+                        uid=1_73 StaticText "Tools"
+                          uid=1_74 InlineTextBox "Tools"
+                        uid=1_75 image
+                  uid=1_76 listitem level="1"
+                    uid=1_77 ignored
+                      uid=1_78 button "Media"
+                        uid=1_79 StaticText "Media"
+                          uid=1_80 InlineTextBox "Media"
+                        uid=1_81 image
+                  uid=1_82 listitem level="1"
+                    uid=1_83 link "Forums" url="https://www.dndbeyond.com/forums"
+                      uid=1_84 StaticText "Forums"
+                        uid=1_85 InlineTextBox "Forums"
+                  uid=1_86 listitem level="1"
+                    uid=1_87 link "Learn to Play" url="https://www.dndbeyond.com/essentials"
+                      uid=1_88 StaticText "Learn to Play"
+                        uid=1_89 InlineTextBox "Learn to Play"
+                  uid=1_90 listitem level="1"
+                    uid=1_91 link "Subscribe" url="https://marketplace.dndbeyond.com/subscribe"
+                      uid=1_92 StaticText "Subscribe"
+                        uid=1_93 InlineTextBox "Subscribe"
+                  uid=1_94 listitem level="1"
+                    uid=1_95 link "Marketplace" url="https://marketplace.dndbeyond.com/"
+                      uid=1_96 StaticText "Marketplace"
+                        uid=1_97 InlineTextBox "Marketplace"
+                  uid=1_98 generic
+                    uid=1_99 button "Click to enable party time! (flashing color warning)" description="Click to enable party time! (flashing color warning)"
+          uid=1_100 ignored
+          uid=1_101 ignored
+        uid=1_102 main
+          uid=1_103 main
+            uid=1_104 image
+            uid=1_105 generic
+              uid=1_106 contentinfo "Startn building your best D&D encounter ever!"
+                uid=1_107 ignored
+                  uid=1_108 ignored
+                    uid=1_109 heading "D&D BEYOND CHARACTER SHEET Free D&D Character Creation Tool" level="1"
+                      uid=1_110 ignored
+                        uid=1_111 StaticText "D&D BEYOND CHARACTER SHEET"
+                          uid=1_112 InlineTextBox "D&D BEYOND CHARACTER SHEET"
+                      uid=1_113 StaticText "Free D&D Character Creation Tool"
+                        uid=1_114 InlineTextBox "Free D&D Character "
+                        uid=1_115 InlineTextBox "Creation Tool"
+                    uid=1_116 paragraph
+                      uid=1_117 StaticText "Character creation can take forever. D&D Beyond’s free character builder makes it quick and easy. Create a D&D character in minutes and jump into the action with your digital character sheet. Roll dice right from your sheet, track your spells, inventory, hit points, and more."
+                        uid=1_118 InlineTextBox "Character creation can take forever. D&D Beyond’s "
+                        uid=1_119 InlineTextBox "free character builder makes it quick and easy. "
+                        uid=1_120 InlineTextBox "Create a D&D character in minutes and jump into "
+                        uid=1_121 InlineTextBox "the action with your digital character sheet. Roll "
+                        uid=1_122 InlineTextBox "dice right from your sheet, track your spells, "
+                        uid=1_123 InlineTextBox "inventory, hit points, and more."
+                    uid=1_124 generic
+                      uid=1_125 link "GET STARTED FOR FREE" url="https://www.dndbeyond.com/create-account?returnUrl=/characters/builder"
+                        uid=1_126 StaticText "GET STARTED FOR FREE"
+                          uid=1_127 InlineTextBox "GET STARTED FOR FREE"
+                    uid=1_128 generic
+                      uid=1_129 link "Download a blank character sheet PDF " url="https://media.dndbeyond.com/compendium-images/phb/downloads/DnD_2024_Character-Sheet.pdf"
+                        uid=1_130 StaticText "Download a blank character sheet PDF "
+                          uid=1_131 InlineTextBox "Download a blank character sheet PDF "
+                        uid=1_132 image
+                uid=1_133 ignored
+                  uid=1_134 ignored
+                    uid=1_135 ignored
+                      uid=1_136 generic
+                        uid=1_137 image "Character creation on a computer and on a phone" url="https://www.dndbeyond.com/app/images/feature-pages/cs/fullwidth_image.png"
+              uid=1_138 contentinfo "How we can help start a faster encounter"
+                uid=1_139 heading "Play From Your Browser or Your Phone" level="2"
+                  uid=1_140 StaticText "Play From Your Browser or Your Phone"
+                    uid=1_141 InlineTextBox "Play From Your Browser or Your Phone"
+                uid=1_142 ignored
+                  uid=1_143 generic
+                    uid=1_144 generic
+                      uid=1_145 image
+                        uid=1_146 ignored
+                    uid=1_147 heading "Roll Digital Dice" level="3"
+                      uid=1_148 StaticText "Roll Digital Dice"
+                        uid=1_149 InlineTextBox "Roll Digital Dice"
+                    uid=1_150 paragraph
+                      uid=1_151 StaticText "Forgot your dice? No problem. Just click or tap on your character sheet and watch dice roll across your screen. We’ll do the math for you!"
+                        uid=1_152 InlineTextBox "Forgot your dice? No problem. Just "
+                        uid=1_153 InlineTextBox "click or tap on your character sheet "
+                        uid=1_154 InlineTextBox "and watch dice roll across your "
+                        uid=1_155 InlineTextBox "screen. We’ll do the math for you!"
+                  uid=1_156 generic
+                    uid=1_157 generic
+                      uid=1_158 image
+                        uid=1_159 ignored
+                    uid=1_160 heading "Manage Your Character" level="3"
+                      uid=1_161 StaticText "Manage Your Character"
+                        uid=1_162 InlineTextBox "Manage Your "
+                        uid=1_163 InlineTextBox "Character"
+                    uid=1_164 paragraph
+                      uid=1_165 StaticText "Track your hit points, spells, equipment, notes, and more all in one place. Level up in seconds—or even completely change your race and class on the fly. Add animal companions and familiars to your character sheet for easier tracking."
+                        uid=1_166 InlineTextBox "Track your hit points, spells, "
+                        uid=1_167 InlineTextBox "equipment, notes, and more all in "
+                        uid=1_168 InlineTextBox "one place. Level up in seconds—or "
+                        uid=1_169 InlineTextBox "even completely change your race "
+                        uid=1_170 InlineTextBox "and class on the fly. Add animal "
+                        uid=1_171 InlineTextBox "companions and familiars to your "
+                        uid=1_172 InlineTextBox "character sheet for easier tracking."
+                  uid=1_173 generic
+                    uid=1_174 generic
+                      uid=1_175 image
+                        uid=1_176 ignored
+                    uid=1_177 heading "Customize Your Sheet" level="3"
+                      uid=1_178 StaticText "Customize Your Sheet"
+                        uid=1_179 InlineTextBox "Customize Your "
+                        uid=1_180 InlineTextBox "Sheet"
+                    uid=1_181 paragraph
+                      uid=1_182 StaticText "Personalize your play experience by using homebrew content, changing the name of spells, and adding in custom equipment and attacks. You can even customize your D&D character sheet with portraits, backdrops, and themes."
+                        uid=1_183 InlineTextBox "Personalize your play experience by "
+                        uid=1_184 InlineTextBox "using homebrew content, changing "
+                        uid=1_185 InlineTextBox "the name of spells, and adding in "
+                        uid=1_186 InlineTextBox "custom equipment and attacks. You "
+                        uid=1_187 InlineTextBox "can even customize your D&D "
+                        uid=1_188 InlineTextBox "character sheet with portraits, "
+                        uid=1_189 InlineTextBox "backdrops, and themes."
+            uid=1_190 generic
+              uid=1_191 contentinfo "Prepare and track your battles"
+                uid=1_192 ignored
+                  uid=1_193 ignored
+                    uid=1_194 heading "Follow the Action With Ease" level="2"
+                      uid=1_195 StaticText "Follow the Action With Ease"
+                        uid=1_196 InlineTextBox "Follow the Action With "
+                        uid=1_197 InlineTextBox "Ease"
+                    uid=1_198 paragraph
+                      uid=1_199 StaticText "Combat is easy with D&D Beyond’s free character sheet. Your Armor Class, hit points, actions, and spells are right at your fingertips. Roll attacks, saving throws, and ability checks from your sheet—and we’ll handle the math!"
+                        uid=1_200 InlineTextBox "Combat is easy with D&D Beyond’s free character sheet. "
+                        uid=1_201 InlineTextBox "Your Armor Class, hit points, actions, and spells are right "
+                        uid=1_202 InlineTextBox "at your fingertips. Roll attacks, saving throws, and ability "
+                        uid=1_203 InlineTextBox "checks from your sheet—and we’ll handle the math!"
+                  uid=1_204 ignored
+                    uid=1_205 heading "Take Your Sheet on the Go" level="2"
+                      uid=1_206 StaticText "Take Your Sheet on the Go"
+                        uid=1_207 InlineTextBox "Take Your Sheet on the "
+                        uid=1_208 InlineTextBox "Go"
+                    uid=1_209 paragraph
+                      uid=1_210 StaticText "Jump into D&D Beyond from your computer or mobile device’s browser to build a D&D character anywhere- and never misplace your dice and character sheet ever again! Or, download the free "
+                        uid=1_211 InlineTextBox "Jump into D&D Beyond from your computer or mobile "
+                        uid=1_212 InlineTextBox "device’s browser to build a D&D character anywhere- and "
+                        uid=1_213 InlineTextBox "never misplace your dice and character sheet ever again! "
+                        uid=1_214 InlineTextBox "Or, download the free "
+                      uid=1_215 link "D&D Beyond App" url="https://www.dndbeyond.com/player-app"
+                        uid=1_216 StaticText "D&D Beyond App"
+                          uid=1_217 InlineTextBox "D&D Beyond App"
+                      uid=1_218 StaticText " to access your character sheet, purchased books, and more to keep the adventure going wherever you are."
+                        uid=1_219 InlineTextBox " to access your "
+                        uid=1_220 InlineTextBox "character sheet, purchased books, and more to keep the "
+                        uid=1_221 InlineTextBox "adventure going wherever you are."
+              uid=1_222 contentinfo "Begin your adventure"
+                uid=1_223 ignored
+                  uid=1_224 heading "Create Up to 6 D&D Characters for Free" level="2"
+                    uid=1_225 StaticText "Create Up to 6 D&D Characters for Free"
+                      uid=1_226 InlineTextBox "Create Up to 6 D&D Characters for Free"
+                  uid=1_227 paragraph
+                    uid=1_228 StaticText "Whether you’re a veteran of the game or just learning how to create a D&D character, D&D Beyond’s character builder tool and digital character sheets make it easier than ever to play the game!"
+                      uid=1_229 InlineTextBox "Whether you’re a veteran of the game or just learning "
+                      uid=1_230 InlineTextBox "how to create a D&D character, D&D Beyond’s "
+                      uid=1_231 InlineTextBox "character builder tool and digital character sheets "
+                      uid=1_232 InlineTextBox "make it easier than ever to play the game!"
+                  uid=1_233 generic
+                    uid=1_234 link "START PLAYING FOR FREE" url="https://www.dndbeyond.com/create-account?returnUrl=/characters/builder"
+                      uid=1_235 StaticText "START PLAYING FOR FREE"
+                        uid=1_236 InlineTextBox "START PLAYING FOR FREE"
+      uid=1_237 contentinfo
+        uid=1_238 ignored
+          uid=1_239 paragraph
+            uid=1_240 StaticText "Our Terms of Service and Privacy Notice have recently been updated to provide greater clarity as to how disputes are handled and transparency regarding the collection and use of personal data. Please review them here: "
+              uid=1_241 InlineTextBox "Our Terms of Service and Privacy Notice have recently been updated to provide greater clarity as to how disputes are handled and transparency regarding the collection and use of personal data. Please review them here: "
+            uid=1_242 link "Terms of Service" url="https://www.dndbeyond.com/en/terms-conditions"
+              uid=1_243 StaticText "Terms of Service"
+                uid=1_244 InlineTextBox "Terms of Service"
+            uid=1_245 StaticText ", "
+              uid=1_246 InlineTextBox ", "
+            uid=1_247 link "Privacy Notice" url="https://www.dndbeyond.com/en/privacy-policy"
+              uid=1_248 StaticText "Privacy Notice"
+                uid=1_249 InlineTextBox "Privacy Notice"
+            uid=1_250 StaticText ". By continuing to use the services, you agree to the new Terms."
+              uid=1_251 InlineTextBox ". By continuing to "
+              uid=1_252 InlineTextBox "use the services, you agree to the new Terms."
+        uid=1_253 ignored
+          uid=1_254 ignored
+            uid=1_255 generic
+              uid=1_256 link "D&D Beyond" url="https://www.dndbeyond.com/"
+                uid=1_257 image "D&D Beyond" url="https://h7ktnb-us-east-1-dndbeyond-live-media.s3.amazonaws.com/footer-images/logo-178.png"
+            uid=1_258 ignored
+              uid=1_259 heading "SUPPORT" level="5"
+                uid=1_260 StaticText "SUPPORT"
+                  uid=1_261 InlineTextBox "SUPPORT"
+              uid=1_262 list
+                uid=1_263 listitem level="1"
+                  uid=1_264 link "Help Portal" url="https://dndbeyond-support.wizards.com/"
+                    uid=1_265 StaticText "Help Portal"
+                      uid=1_266 InlineTextBox "Help Portal"
+                uid=1_267 listitem level="1"
+                  uid=1_268 link "Support Forum" url="https://www.dndbeyond.com/forums/d-d-beyond-general/bugs-support"
+                    uid=1_269 StaticText "Support Forum"
+                      uid=1_270 InlineTextBox "Support Forum"
+                uid=1_271 listitem level="1"
+                  uid=1_272 link "Do Not Sell or Share My Personal Information" url="https://www.dndbeyond.com/characters#"
+                    uid=1_273 StaticText "Do Not Sell or Share My Personal Information"
+                      uid=1_274 InlineTextBox "Do Not Sell or Share My Personal Information"
+                uid=1_275 listitem level="1"
+                  uid=1_276 link "Your Privacy Choices" url="https://www.dndbeyond.com/characters#"
+                    uid=1_277 StaticText "Your Privacy Choices"
+                      uid=1_278 InlineTextBox "Your Privacy Choices"
+                uid=1_279 listitem level="1"
+                  uid=1_280 link "Cookie Notice" url="https://www.dndbeyond.com/cookies"
+                    uid=1_281 StaticText "Cookie Notice"
+                      uid=1_282 InlineTextBox "Cookie Notice"
+                uid=1_283 listitem level="1"
+                  uid=1_284 link "System Reference Document (SRD)" url="https://www.dndbeyond.com/srd"
+                    uid=1_285 StaticText "System Reference Document (SRD)"
+                      uid=1_286 InlineTextBox "System Reference Document (SRD)"
+            uid=1_287 ignored
+              uid=1_288 heading "ABOUT" level="5"
+                uid=1_289 StaticText "ABOUT"
+                  uid=1_290 InlineTextBox "ABOUT"
+              uid=1_291 list
+                uid=1_292 listitem level="1"
+                  uid=1_293 link "Contact Us" url="https://dndbeyond-support.wizards.com/hc/en-us"
+                    uid=1_294 StaticText "Contact Us"
+                      uid=1_295 InlineTextBox "Contact Us"
+                uid=1_296 listitem level="1"
+                  uid=1_297 link "Careers" url="https://company.wizards.com/en/careers"
+                    uid=1_298 StaticText "Careers"
+                      uid=1_299 InlineTextBox "Careers"
+                uid=1_300 listitem level="1"
+                  uid=1_301 link "Wizards of the Coast" url="https://company.wizards.com/"
+                    uid=1_302 StaticText "Wizards of the Coast"
+                      uid=1_303 InlineTextBox "Wizards of the Coast"
+            uid=1_304 ignored
+              uid=1_305 heading "FIND US ON SOCIAL MEDIA" level="5"
+                uid=1_306 StaticText "FIND US ON SOCIAL MEDIA"
+                  uid=1_307 InlineTextBox "FIND US ON SOCIAL MEDIA"
+              uid=1_308 list
+                uid=1_309 listitem level="1"
+                  uid=1_310 link "D&D Discord" url="https://dndbeyond.com/discord"
+                    uid=1_311 image "D&D Discord" url="https://www.dndbeyond.com/app/images/icons/discord.svg"
+                uid=1_312 listitem level="1"
+                  uid=1_313 link "D&D Beyond Instagram" url="https://www.instagram.com/DnDBeyond/"
+                    uid=1_314 image "D&D Beyond Instagram" url="https://www.dndbeyond.com/app/images/icons/instagram.svg"
+                uid=1_315 listitem level="1"
+                  uid=1_316 link "D&D Beyond Facebook" url="https://www.facebook.com/dndbeyond"
+                    uid=1_317 image "D&D Beyond Facebook" url="https://www.dndbeyond.com/app/images/icons/square-facebook.svg"
+                uid=1_318 listitem level="1"
+                  uid=1_319 link "D&D Beyond Twitch" url="https://www.twitch.tv/dndbeyond"
+                    uid=1_320 image "D&D Beyond Twitch" url="https://www.dndbeyond.com/app/images/icons/twitch.svg"
+                uid=1_321 listitem level="1"
+                  uid=1_322 link "D&D Beyond X" url="https://twitter.com/dndbeyond"
+                    uid=1_323 image "D&D Beyond X" url="https://www.dndbeyond.com/app/images/icons/x-twitter.svg"
+                uid=1_324 listitem level="1"
+                  uid=1_325 link "D&D Beyond YouTube" url="https://www.youtube.com/channel/UCPy-338BEVgDkQade0qJmkw"
+                    uid=1_326 image "D&D Beyond YouTube" url="https://www.dndbeyond.com/app/images/icons/youtube.svg"
+                uid=1_327 listitem level="1"
+                  uid=1_328 link "D&D Beyond TikTok" url="https://www.tiktok.com/@dnd_beyond"
+                    uid=1_329 image "D&D Beyond TikTok" url="https://www.dndbeyond.com/app/images/icons/tiktok.svg"
+            uid=1_330 ignored
+              uid=1_331 heading "DOWNLOAD THE D&D BEYOND APP" level="5"
+                uid=1_332 StaticText "DOWNLOAD THE D&D BEYOND APP"
+                  uid=1_333 InlineTextBox "DOWNLOAD THE D&D BEYOND APP"
+              uid=1_334 list
+                uid=1_335 listitem level="1"
+                  uid=1_336 link "Google Play" url="https://play.google.com/store/apps/details?id=com.fandom.playercompanion"
+                    uid=1_337 image "Google Play" url="https://www.dndbeyond.com/app/images/icons/google-play-badge.svg"
+                uid=1_338 listitem level="1"
+                  uid=1_339 link "App Store" url="https://apps.apple.com/us/app/d-d-beyond/id1501810129"
+                    uid=1_340 image "App Store" url="https://www.dndbeyond.com/app/images/icons/apple-app-store-badge.svg"
+        uid=1_341 ignored
+          uid=1_342 ignored
+            uid=1_343 generic
+              uid=1_344 StaticText "© 2017-2026 WIZARDS OF THE COAST LLC | ALL RIGHTS RESERVED"
+                uid=1_345 InlineTextBox "© 2017-2026 WIZARDS OF THE COAST LLC | ALL RIGHTS RESERVED"
+            uid=1_346 generic
+              uid=1_347 StaticText "Dungeons & Dragons, D&D Beyond, D&D, Wizards of the Coast, the dragon ampersand, and all other Wizards of the Coast product names, campaign settings, their respective logos, and The World's Greatest Roleplaying Game are © and trademark Wizards of the Coast in the U.S.A. and other countries. © 2026 Wizards."
+                uid=1_348 InlineTextBox "Dungeons & Dragons, D&D Beyond, D&D, Wizards of the Coast, the dragon ampersand, and all other Wizards of the Coast product names, campaign settings, their "
+                uid=1_349 InlineTextBox "respective logos, and The World's Greatest Roleplaying Game are © and trademark Wizards of the Coast in the U.S.A. and other countries. © 2026 Wizards."
+          uid=1_350 generic
+            uid=1_351 link "PRIVACY POLICY" url="https://www.dndbeyond.com/en/privacy-policy"
+              uid=1_352 StaticText "PRIVACY POLICY"
+                uid=1_353 InlineTextBox "PRIVACY POLICY"
+          uid=1_354 generic
+            uid=1_355 link "TERMS OF SERVICE" url="https://www.dndbeyond.com/en/terms-conditions"
+              uid=1_356 StaticText "TERMS OF SERVICE"
+                uid=1_357 InlineTextBox "TERMS OF SERVICE"
+          uid=1_358 generic
+            uid=1_359 link "ESRB" url="https://www.esrb.org/EPCConfirm/916/"
+              uid=1_360 image "ESRB" url="https://h7ktnb-us-east-1-dndbeyond-live-media.s3.amazonaws.com/footer-images/esrb.png"

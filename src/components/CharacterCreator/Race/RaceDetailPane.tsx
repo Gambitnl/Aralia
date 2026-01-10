@@ -43,6 +43,11 @@ export interface RaceDetailData {
         darkvision?: number;
         keyTraits: string[];
     }>;
+    /** Racial spell choice configuration (if race requires spellcasting ability selection) */
+    racialSpellChoice?: {
+        traitName: string;
+        traitDescription: string;
+    };
 }
 
 
@@ -93,26 +98,15 @@ const parseSpellProgression = (description: string): { spells: SpellProgression[
     return { spells, remainingDescription };
 };
 
-const CollapsibleTrait: React.FC<{ name: string; description: string, onSpellClick: (spellId: string) => void; }> = ({ name, description, onSpellClick }) => {
-    const [isOpen, setIsOpen] = useState(true);
-    const { spells, remainingDescription } = useMemo(() => parseSpellProgression(description), [description]);
-
+const TraitRow: React.FC<{ trait: { name: string; description: string }, onSpellClick: (id: string) => void }> = ({ trait, onSpellClick }) => {
+    const { spells, remainingDescription } = useMemo(() => parseSpellProgression(trait.description), [trait.description]);
     const toKebabCase = (str: string) => str.toLowerCase().replace(/[\s/]+/g, '-');
 
     return (
-        <div className="bg-gray-900/40 border border-gray-700 rounded-lg overflow-hidden">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex justify-between items-center p-3 text-lg font-semibold text-sky-300 hover:bg-sky-900/20 transition-colors"
-                aria-expanded={isOpen}
-            >
-                {name}
-                <svg className={`w-5 h-5 transform transition-transform ${isOpen ? '' : '-rotate-90'}`} fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-            </button>
-            {isOpen && (
-                <div className="p-4 pt-0 text-sm text-gray-400 border-t border-gray-700/50">
+        <tr className="hover:bg-gray-800/50 transition-colors border-b border-gray-700/50 last:border-0">
+            <td className="px-5 py-4 text-sm align-top">
+                <div className="font-bold text-sky-300 text-base mb-2">{trait.name}</div>
+                <div className="text-gray-300 text-sm leading-relaxed">
                     {spells.length > 0 ? (
                         <>
                             <table className="w-full text-left text-xs my-2 prose-sm prose-invert bg-black/20 rounded">
@@ -137,22 +131,41 @@ const CollapsibleTrait: React.FC<{ name: string; description: string, onSpellCli
                                     ))}
                                 </tbody>
                             </table>
-                            {remainingDescription && <p className="mt-2 text-xs italic">{remainingDescription}</p>}
+                            {remainingDescription && <p className="mt-2 italic">{remainingDescription}</p>}
                         </>
                     ) : (
-                        <p className="whitespace-pre-wrap leading-relaxed">{description}</p>
+                        <p className="whitespace-pre-wrap">{trait.description}</p>
                     )}
                 </div>
-            )}
+            </td>
+        </tr>
+    );
+};
+
+const TraitsTable: React.FC<{ traits: { name: string; description: string }[], onSpellClick: (id: string) => void }> = ({ traits, onSpellClick }) => {
+    return (
+        <div className="overflow-hidden rounded-lg border border-gray-600 shadow-lg bg-gray-900/40">
+            <table className="min-w-full divide-y divide-gray-600 border-collapse">
+                <tbody className="divide-y divide-gray-700">
+                    {traits.map((trait, index) => (
+                        <TraitRow key={index} trait={trait} onSpellClick={onSpellClick} />
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 };
 
-// Collapsible comparison table for race variants
+// Collapsible comparison table for race variants (transposed: traits as rows, variants as columns)
 const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['siblingVariants']>; currentId: string }> = ({ variants, currentId }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     if (variants.length < 2) return null;
+
+    // Collect all unique key traits across all variants
+    const allKeyTraits = Array.from(
+        new Set(variants.flatMap(v => v.keyTraits))
+    );
 
     return (
         <div className="bg-gray-900/40 border border-gray-700 rounded-lg overflow-hidden mt-4">
@@ -176,30 +189,61 @@ const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['s
                     <table className="w-full text-xs mt-2">
                         <thead>
                             <tr className="border-b border-gray-700">
-                                <th className="py-2 px-2 text-left text-gray-500 font-semibold uppercase tracking-wider">Variant</th>
-                                <th className="py-2 px-2 text-center text-gray-500 font-semibold uppercase tracking-wider">Speed</th>
-                                <th className="py-2 px-2 text-center text-gray-500 font-semibold uppercase tracking-wider">Darkvision</th>
-                                <th className="py-2 px-2 text-left text-gray-500 font-semibold uppercase tracking-wider">Key Traits</th>
+                                <th className="py-2 px-2 text-left text-gray-500 font-semibold uppercase tracking-wider sticky left-0 bg-gray-900/90">Trait</th>
+                                {variants.map((v) => (
+                                    <th
+                                        key={v.id}
+                                        className={`py-2 px-2 text-center text-gray-500 font-semibold uppercase tracking-wider ${v.id === currentId ? 'text-amber-400 bg-amber-900/20' : ''}`}
+                                    >
+                                        <div className="flex flex-col items-center">
+                                            <span className={v.id === currentId ? 'text-amber-400' : 'text-gray-400'}>{v.name}</span>
+                                            {v.id === currentId && <span className="text-[9px] text-amber-500">(viewing)</span>}
+                                        </div>
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
-                            {variants.map((v) => (
-                                <tr key={v.id} className={`border-b border-gray-800 last:border-0 ${v.id === currentId ? 'bg-amber-900/20' : ''}`}>
-                                    <td className={`py-2 px-2 font-medium ${v.id === currentId ? 'text-amber-400' : 'text-gray-300'}`}>
-                                        {v.name}
-                                        {v.id === currentId && <span className="ml-1 text-[9px] text-amber-500">(viewing)</span>}
+                            {/* Speed Row */}
+                            <tr className="border-b border-gray-800">
+                                <td className="py-2 px-2 font-medium text-gray-300 sticky left-0 bg-gray-900/90">Speed</td>
+                                {variants.map((v) => (
+                                    <td
+                                        key={v.id}
+                                        className={`py-2 px-2 text-center text-gray-400 ${v.id === currentId ? 'bg-amber-900/10' : ''}`}
+                                    >
+                                        {v.speed ?? 30} ft.
                                     </td>
-                                    <td className="py-2 px-2 text-center text-gray-400">{v.speed ?? 30} ft.</td>
-                                    <td className="py-2 px-2 text-center text-gray-400">{v.darkvision ?? 0} ft.</td>
-                                    <td className="py-2 px-2 text-gray-400">
-                                        <div className="flex flex-wrap gap-1">
-                                            {v.keyTraits.map((t, i) => (
-                                                <span key={i} className="px-1.5 py-0.5 bg-gray-800 rounded text-[10px] border border-gray-700">
-                                                    {t}
-                                                </span>
-                                            ))}
-                                        </div>
+                                ))}
+                            </tr>
+                            {/* Darkvision Row */}
+                            <tr className="border-b border-gray-800">
+                                <td className="py-2 px-2 font-medium text-gray-300 sticky left-0 bg-gray-900/90">Darkvision</td>
+                                {variants.map((v) => (
+                                    <td
+                                        key={v.id}
+                                        className={`py-2 px-2 text-center text-gray-400 ${v.id === currentId ? 'bg-amber-900/10' : ''}`}
+                                    >
+                                        {v.darkvision ?? 0} ft.
                                     </td>
+                                ))}
+                            </tr>
+                            {/* Key Traits Rows */}
+                            {allKeyTraits.map((trait, idx) => (
+                                <tr key={trait} className={`border-b border-gray-800 ${idx === allKeyTraits.length - 1 ? 'last:border-0' : ''}`}>
+                                    <td className="py-2 px-2 font-medium text-gray-300 sticky left-0 bg-gray-900/90">{trait}</td>
+                                    {variants.map((v) => (
+                                        <td
+                                            key={v.id}
+                                            className={`py-2 px-2 text-center text-gray-400 ${v.id === currentId ? 'bg-amber-900/10' : ''}`}
+                                        >
+                                            {v.keyTraits.includes(trait) ? (
+                                                <span className="text-emerald-400">✓</span>
+                                            ) : (
+                                                <span className="text-gray-600">—</span>
+                                            )}
+                                        </td>
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>
@@ -210,13 +254,26 @@ const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['s
     );
 };
 
+type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
+
+export interface RacialChoiceData {
+    spellAbility?: AbilityScoreName;
+}
+
 interface RaceDetailPaneProps {
     race: RaceDetailData;
-    onSelect: (raceId: string) => void;
+    onSelect: (raceId: string, choices?: RacialChoiceData) => void;
+    selectedSpellAbility?: AbilityScoreName | null;
+    onSpellAbilityChange?: (ability: AbilityScoreName) => void;
 }
 
 
-export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }) => {
+export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({
+    race,
+    onSelect,
+    selectedSpellAbility = null,
+    onSpellAbilityChange
+}) => {
     const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
     const [infoSpellId, setInfoSpellId] = useState<string | null>(null);
 
@@ -303,17 +360,11 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }
                         )}
                     </div>
 
-                    {/* Title & Base Stats */}
+                    {/* Title & Description */}
                     <div className="flex-grow">
                         <h2 className="text-3xl font-bold text-amber-400 font-cinzel mb-3 border-b border-gray-700 pb-2">
                             {race.name}
                         </h2>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                            {race.baseTraits.type && <div><span className="text-gray-500 uppercase text-xs font-bold">Type:</span> <span className="text-sky-300">{race.baseTraits.type}</span></div>}
-                            {race.baseTraits.size && <div><span className="text-gray-500 uppercase text-xs font-bold">Size:</span> <span className="text-gray-300">{race.baseTraits.size}</span></div>}
-                            {race.baseTraits.speed !== undefined && <div><span className="text-gray-500 uppercase text-xs font-bold">Speed:</span> <span className="text-gray-300">{race.baseTraits.speed} ft.</span></div>}
-                            {race.baseTraits.darkvision !== undefined && <div><span className="text-gray-500 uppercase text-xs font-bold">Vision:</span> <span className="text-gray-300">{race.baseTraits.darkvision > 0 ? `Darkvision (${race.baseTraits.darkvision} ft.)` : 'Normal'}</span></div>}
-                        </div>
                         <div className="mt-4">
                             <p className="text-gray-300 text-sm leading-relaxed">{race.description}</p>
                         </div>
@@ -323,14 +374,55 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }
                 {/* Traits List */}
                 <div className="space-y-3 flex-grow">
                     <h3 className="text-lg font-cinzel text-sky-400 border-b border-gray-700 pb-1 mb-2">Racial Traits</h3>
-                    {race.feats.map(feat => (
-                        <CollapsibleTrait key={feat.name} name={feat.name} description={feat.description} onSpellClick={setInfoSpellId} />
-                    ))}
+                    <TraitsTable
+                        traits={[
+                            // Add base traits first
+                            ...(race.baseTraits.type ? [{ name: 'Creature Type', description: race.baseTraits.type }] : []),
+                            ...(race.baseTraits.size ? [{ name: 'Size', description: race.baseTraits.size }] : []),
+                            ...(race.baseTraits.speed !== undefined ? [{ name: 'Speed', description: `${race.baseTraits.speed} feet` }] : []),
+                            ...(race.baseTraits.darkvision !== undefined && race.baseTraits.darkvision > 0 ? [{ name: 'Darkvision', description: `You can see in dim light within ${race.baseTraits.darkvision} feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray.` }] : []),
+                            // Then add all other traits
+                            ...race.feats
+                        ]}
+                        onSpellClick={setInfoSpellId}
+                    />
 
                     {race.furtherChoicesNote && (
                         <div className="mt-4 p-3 bg-sky-900/20 border border-sky-700/50 rounded-lg flex gap-3 items-start">
                             <span className="text-sky-400 text-xl">ℹ️</span>
                             <p className="text-sm text-sky-200/80">{race.furtherChoicesNote}</p>
+                        </div>
+                    )}
+
+                    {/* Racial Spell Ability Choice */}
+                    {race.racialSpellChoice && (
+                        <div className="mt-4 bg-purple-900/20 border border-purple-700/50 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-purple-700/50">
+                                <h4 className="text-sm font-semibold text-purple-300 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                    </svg>
+                                    {race.racialSpellChoice.traitName} - Choose Spellcasting Ability
+                                </h4>
+                            </div>
+                            <div className="p-3">
+                                <p className="text-xs text-gray-400 mb-3">{race.racialSpellChoice.traitDescription}</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(['Intelligence', 'Wisdom', 'Charisma'] as AbilityScoreName[]).map((ability) => (
+                                        <button
+                                            key={ability}
+                                            onClick={() => onSpellAbilityChange?.(ability)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                                selectedSpellAbility === ability
+                                                    ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-2 border-gray-700 hover:border-purple-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {ability}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -340,16 +432,6 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }
                     )}
                 </div>
 
-
-                {/* Action Footer (Sticky at bottom of pane or just at end) */}
-                <div className="mt-8 pt-6 border-t border-gray-700 flex justify-end sticky bottom-0 bg-gray-800 pb-2">
-                    <button
-                        onClick={() => onSelect(race.id)}
-                        className={`${BTN_PRIMARY} px-8 py-3 text-lg rounded-xl shadow-lg`}
-                    >
-                        Confirm {race.name}
-                    </button>
-                </div>
 
             </div>
 

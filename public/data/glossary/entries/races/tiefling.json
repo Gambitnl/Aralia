@@ -1,53 +1,54 @@
 {
-    "id": "tiefling",
-    "title": "Tiefling",
-    "category": "Character Races",
-    "entryLore": "Tieflings are mortals with a touch of the fiendish in their bloodline. Tracing their ancestry to the Lower Planes, they possess unique physical traits and supernatural abilities granted by their Fiendish Legacy—a connection they can choose to embrace or define themselves against. They are often marked by horns, tails, or unusual skin colors, reflecting their otherworldly heritage.",
-    "imageUrl": "/assets/images/races/tiefling_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Creature Type",
-            "value": "[[humanoid]]"
-        },
-        {
-            "label": "Size",
-            "value": "Medium or Small"
-        },
-        {
-            "label": "Speed",
-            "value": "30 feet"
-        },
-        {
-            "label": "Life Span",
-            "value": "About 80 years"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Darkvision",
-            "icon": "eye",
-            "description": "You have [[darkvision|Darkvision]] with a range of 60 feet."
-        },
-        {
-            "name": "Otherworldly Presence",
-            "icon": "magic",
-            "description": "You know the [[thaumaturgy|Thaumaturgy]] cantrip."
-        }
-    ],
-    "markdown": "\n### Fiendish Legacies\nYour tiefling bloodline is tied to one of the Lower Planes. Choose one of the following legacies to gain specific magical benefits:\n\n*   [[abyssal_tiefling|Abyssal (Chaotic)]]\n*   [[chthonic_tiefling|Chthonic (Neutral)]]\n*   [[infernal_tiefling|Infernal (Lawful)]]\n",
-    "tags": [
-        "race",
-        "tiefling",
-        "fiend",
-        "humanoid"
-    ],
-    "aliases": [],
-    "seeAlso": [
-        "humanoid",
-        "darkvision",
-        "thaumaturgy",
-        "fiendish_legacy"
-    ],
-    "filePath": "/data/glossary/entries/races/tiefling.json"
+  "id": "tiefling",
+  "title": "Tiefling",
+  "category": "Character Races",
+  "entryLore": "Tieflings are mortals with a touch of the fiendish in their bloodline. Tracing their ancestry to the Lower Planes, they possess unique physical traits and supernatural abilities granted by their Fiendish Legacy—a connection they can choose to embrace or define themselves against. They are often marked by horns, tails, or unusual skin colors, reflecting their otherworldly heritage.",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Life Span",
+      "value": "About 80 years"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You have [[darkvision|Darkvision]] with a range of 60 feet."
+    },
+    {
+      "name": "Otherworldly Presence",
+      "icon": "magic",
+      "description": "You know the [[thaumaturgy|Thaumaturgy]] cantrip."
+    }
+  ],
+  "markdown": "\n### Fiendish Legacies\nYour tiefling bloodline is tied to one of the Lower Planes. Choose one of the following legacies to gain specific magical benefits:\n\n*   [[abyssal_tiefling|Abyssal (Chaotic)]]\n*   [[chthonic_tiefling|Chthonic (Neutral)]]\n*   [[infernal_tiefling|Infernal (Lawful)]]\n",
+  "tags": [
+    "race",
+    "tiefling",
+    "fiend",
+    "humanoid"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "darkvision",
+    "thaumaturgy",
+    "fiendish_legacy"
+  ],
+  "filePath": "/data/glossary/entries/races/tiefling.json",
+  "maleImageUrl": "/assets/images/races/tiefling_male.png",
+  "femaleImageUrl": "/assets/images/races/tiefling_female.png"
 }

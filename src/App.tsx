@@ -628,7 +628,8 @@ const App: React.FC = () => {
         <MainMenu
           onNewGame={handleNewGame}
           onLoadGame={handleLoadGameFlow}
-          onShowCompendium={handleOpenGlossary}
+          // Arrow function wrapper prevents React's onClick event from being passed as initialTermId
+          onShowCompendium={() => handleOpenGlossary()}
           hasSaveGame={SaveLoadService.hasSaveGame()}
           latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
           isDevDummyActive={canUseDevTools()}

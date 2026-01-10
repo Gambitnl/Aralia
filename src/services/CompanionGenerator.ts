@@ -10,6 +10,7 @@ import { generateCharacterFromConfig, CharacterGenerationConfig } from './charac
 import { OllamaClient } from './ollama/client';
 import { parseJsonRobustly } from './ollama/jsonParser';
 import { CompanionSoulSchema, CompanionSoul } from '../types/companion';
+import { generateNPC, NPCGenerationConfig } from './npcGenerator';
 
 /**
  * Configuration for generating a companion's skeleton.
@@ -19,20 +20,22 @@ export interface CompanionSkeletonConfig {
   level: number; // For now, we'll stick to level 1
   classId: string;
   raceId: string;
+  /** Optional gender for consistent name/description generation */
+  gender?: 'male' | 'female';
 }
 
 /**
  * Generates the "skeleton" of a companion.
  * This function is responsible for creating a mechanically valid PlayerCharacter
  * with all the necessary stats, skills, and equipment, but with placeholder
- * narrative details.
+ * narrative details. Also generates rich NPC data for biography/family info.
  *
  * @param config The configuration for the skeleton.
  * @returns A PlayerCharacter object or null if generation fails.
  */
 export function generateSkeleton(config: CompanionSkeletonConfig): PlayerCharacter | null {
   const characterConfig: CharacterGenerationConfig = {
-    name: "Generated Character", // Placeholder name
+    name: "Generated Character", // Placeholder name, will be overwritten by soul
     raceId: config.raceId,
     classId: config.classId,
   };
@@ -40,8 +43,27 @@ export function generateSkeleton(config: CompanionSkeletonConfig): PlayerCharact
   const skeleton = generateCharacterFromConfig(characterConfig);
 
   if (skeleton) {
-    // We can add any additional post-processing here if needed.
-    // For now, the characterGenerator does a good job.
+    // Generate rich NPC data for biography, family, and physical description
+    const npcConfig: NPCGenerationConfig = {
+      role: 'unique',
+      raceId: config.raceId,
+      classId: config.classId,
+      level: config.level,
+      gender: config.gender,
+    };
+    const richNpc = generateNPC(npcConfig);
+
+    // Attach rich NPC data to the skeleton
+    skeleton.richNpcData = {
+      age: richNpc.biography.age,
+      family: richNpc.biography.family,
+      physicalDescription: richNpc.baseDescription,
+      backgroundId: richNpc.biography.backgroundId,
+    };
+
+    // Also set the age on the skeleton directly for convenience
+    skeleton.age = richNpc.biography.age;
+    skeleton.background = richNpc.biography.backgroundId;
   }
 
   return skeleton;
@@ -79,9 +101,9 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
     [CLASS]: ${skeleton.class.name}
     [BACKGROUND]: Criminal
 
-    Return ONLY valid JSON matching this structure:
+    Return ONLY valid JSON matching this structure exactly:
     {
-      "name": "String (Name)",
+      "name": "String (Fantasy Name)",
       "physicalDescription": "String (2 sentences visual description)",
       "personality": {
         "values": ["String", "String", "String"],
@@ -92,8 +114,10 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
         { "description": "String (Public Goal)", "isSecret": false },
         { "description": "String (Secret Goal/Debt/Shame)", "isSecret": true }
       ],
-      "reactionStyle": "cynical | hopeful | aggressive | religious"
+      "reactionStyle": "PICK_ONE"
     }
+
+    IMPORTANT: For "reactionStyle", you MUST pick exactly ONE of these values: "cynical", "hopeful", "aggressive", "religious", "pragmatic", or "idealistic". Do NOT use pipe characters or combine values.
   `;
 
   for (let i = 0; i < 3; i++) { // Retry logic
@@ -106,7 +130,7 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
     if (result.ok) {
       console.log(`[CompanionGenerator] Attempt ${i + 1} Raw Output:`, result.data.response);
       const parsed = parseJsonRobustly<CompanionSoul>(result.data.response);
-      
+
       if (!parsed) {
         console.error(`[CompanionGenerator] Attempt ${i + 1} JSON Parsing Failed.`);
         window.alert(`Generation Attempt ${i + 1} Failed: JSON Parsing`);

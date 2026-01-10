@@ -1,0 +1,79 @@
+{
+  "id": "pallid_elf",
+  "title": "Pallid Elf",
+  "category": "Character Races",
+  "entryLore": "Pallid elves are a subrace of elves unique to Exandria, dwelling in the shadowed recesses of the Pallid Grove in the Greying Wildlands. They have adapted to a life without sunlight, developing pale, almost luminescent skin and an affinity for the mysteries of the Luxon. Their connection to light and darkness gives them unique magical abilities, and their society values knowledge, introspection, and the secrets hidden in shadow.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "EGtW",
+  "baseRace": "elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws against being [[charmed]], and magic can't put you to sleep."
+    },
+    {
+      "name": "Trance",
+      "icon": "moon",
+      "description": "You don't need to sleep. Instead, you meditate deeply for 4 hours a day. After resting in this way, you gain the same benefit that a human does from 8 hours of sleep."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "perception",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Incisive Sense",
+      "icon": "brain",
+      "description": "You have [[advantage]] on Intelligence ([[investigation|Investigation]]) and Wisdom ([[insight|Insight]]) checks."
+    },
+    {
+      "name": "Blessing of the Moon Weaver",
+      "icon": "magic",
+      "description": "You know the [[light|Light]] cantrip. When you reach 3rd level, you can cast the [[sleep|Sleep]] spell once with this trait and regain the ability to do so when you finish a [[long_rest|Long Rest]]. When you reach 5th level, you can cast the [[invisibility|Invisibility]] spell (targeting yourself only) once with this trait and regain the ability to do so when you finish a Long Rest. Casting these spells with this trait doesn't require material components. Wisdom is your spellcasting ability for these spells."
+    }
+  ],
+  "tags": [
+    "race",
+    "elf",
+    "pallid elf",
+    "humanoid",
+    "wildemount",
+    "critical role",
+    "exandria"
+  ],
+  "aliases": [
+    "pallid"
+  ],
+  "seeAlso": [
+    "elf",
+    "humanoid",
+    "light",
+    "sleep",
+    "invisibility"
+  ],
+  "filePath": "/data/glossary/entries/races/elf_lineages/pallid_elf.json"
+}

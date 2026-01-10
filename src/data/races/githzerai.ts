@@ -8,6 +8,7 @@ import { Race } from '../../types';
 export const GITHZERAI_DATA: Race = {
   id: 'githzerai',
   name: 'Githzerai',
+  baseRace: 'gith',
   description:
     'Githzerai migrated to the Everchanging Chaos of Limbo after the ancient schism that split their ancestors from their cousins, githyanki. Limbo is a roiling maelstrom of matter and energy, collapsing and reforming without purpose or direction, until a creature exerts deliberate will to stabilize it. Through their potent psionic power, githzerai carved a home for themselves amid the chaos.',
   abilityBonuses: [],

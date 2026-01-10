@@ -1,24 +1,70 @@
 {
-    "id": "half_elf_wood",
-    "title": "Half-Elf (Wood)",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "SCAG",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "35 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "tree",
-            "description": "TODO: Add trait descriptions - fleet of foot, mask of the wild from wood elf ancestry"
-        }
-    ],
-    "tags": ["race", "half-elf", "wood", "humanoid", "nature"],
-    "aliases": [],
-    "seeAlso": ["half-elf", "wood_elf", "humanoid"],
-    "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
+  "id": "half_elf_wood",
+  "title": "Half-Elf (Wood)",
+  "category": "Character Races",
+  "entryLore": "Half-elves with wood elf heritage inherit their elven parent's affinity for nature and their swift, graceful movements. They often have tanned skin and hair that ranges from blonde to deep brown, sometimes with hints of green. These half-elves feel most at home in forests and wild places, possessing an instinctive ability to blend into natural surroundings. Many become rangers, druids, or scouts, putting their enhanced speed and natural camouflage to good use.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "SCAG",
+  "baseRace": "half_elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "35 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "Thanks to your elf blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws against being [[charmed]], and magic can't put you to sleep."
+    },
+    {
+      "name": "Skill Versatility",
+      "icon": "tools",
+      "description": "You gain proficiency in one skill of your choice."
+    },
+    {
+      "name": "Fleet of Foot",
+      "icon": "speed",
+      "description": "Your base walking speed increases to 35 feet. (Replaces Skill Versatility's second skill proficiency)"
+    },
+    {
+      "name": "Mask of the Wild",
+      "icon": "tree",
+      "description": "You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena. (Alternative option replacing Fleet of Foot)"
+    }
+  ],
+  "tags": [
+    "race",
+    "half-elf",
+    "wood",
+    "humanoid",
+    "nature",
+    "swift"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "half-elf",
+    "wood_elf",
+    "humanoid",
+    "charmed"
+  ],
+  "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
 }

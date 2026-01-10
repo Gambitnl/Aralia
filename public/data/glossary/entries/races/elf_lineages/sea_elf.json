@@ -1,24 +1,80 @@
 {
-    "id": "sea_elf",
-    "title": "Sea Elf",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet, swim 30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "water",
-            "description": "TODO: Add trait descriptions - child of the sea, friend of the sea"
-        }
-    ],
-    "tags": ["race", "elf", "sea_elf", "humanoid", "aquatic"],
-    "aliases": [],
-    "seeAlso": ["elf", "humanoid"],
-    "filePath": "/data/glossary/entries/races/elf_lineages/sea_elf.json"
+  "id": "sea_elf",
+  "title": "Sea Elf",
+  "category": "Character Races",
+  "entryLore": "Sea elves fell in love with the wild beauty of the ocean in the earliest days of the multiverse. While other elves traveled from realm to realm, the sea elves navigated the deepest currents and explored the waters across a hundred worlds. Today, they live in small, hidden communities in the ocean shallows and on the Elemental Plane of Water. They have developed gills and webbed hands and feet, adapting perfectly to life beneath the waves. Sea elves maintain cordial relationships with their land-dwelling kin, though they may go decades without encountering them.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Swim Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws you make to avoid or end the [[charmed]] condition on yourself."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "perception",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Trance",
+      "icon": "moon",
+      "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a [[long_rest|Long Rest]] in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+    },
+    {
+      "name": "Child of the Sea",
+      "icon": "water",
+      "description": "You can breathe air and water, and you have a swimming speed equal to your walking speed."
+    },
+    {
+      "name": "Friend of the Sea",
+      "icon": "fish",
+      "description": "Aquatic animals have an extraordinary affinity with your people. You can communicate simple ideas to any Beast that has a swimming speed. It can understand your words, though you have no special ability to understand it in return."
+    }
+  ],
+  "tags": [
+    "race",
+    "elf",
+    "sea_elf",
+    "humanoid",
+    "aquatic",
+    "underwater"
+  ],
+  "aliases": [
+    "aquatic elf"
+  ],
+  "seeAlso": [
+    "elf",
+    "humanoid",
+    "charmed"
+  ],
+  "filePath": "/data/glossary/entries/races/elf_lineages/sea_elf.json"
 }

@@ -1,24 +1,71 @@
 {
-    "id": "autognome",
-    "title": "Autognome",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "AAG",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[construct]]"},
-        {"label": "Size", "value": "[[size|Small]]"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "cog",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "autognome", "construct", "spelljammer"],
-    "aliases": [],
-    "seeAlso": ["construct"],
-    "filePath": "/data/glossary/entries/races/autognome.json"
+  "id": "autognome",
+  "title": "Autognome",
+  "category": "Character Races",
+  "entryLore": "Autognomes are mechanical beings built by rock gnomes in their image, usually with a specific purpose in mind. Programmed with loyalty and a desire to please, each autognome is essentially a construct with a soul. They are capable of independent thought and can develop their own personalities over time. Many autognomes serve as helpers, guardians, or companions, though some break free of their original programming to seek their own destiny among the stars.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "AAG",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[construct|Construct]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Armored Casing",
+      "icon": "shield",
+      "description": "You are encased in thin metal or some other durable material. While you aren't wearing armor, your base [[armor_class|Armor Class]] is 13 + your Dexterity modifier."
+    },
+    {
+      "name": "Built for Success",
+      "icon": "dice",
+      "description": "You can add a d4 to one attack roll, ability check, or saving throw you make, and you can do so after seeing the d20 roll but before the effects of the roll are resolved. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Healing Machine",
+      "icon": "wrench",
+      "description": "If the [[mending]] spell is cast on you, you can spend a Hit Die, roll it, and regain a number of hit points equal to the roll plus your Constitution modifier (minimum of 1 hit point). In addition, your creator designed you to benefit from several spells that preserve life but that normally don't affect Constructs: [[cure_wounds]], [[healing_word]], [[mass_cure_wounds]], [[mass_healing_word]], and [[spare_the_dying]]."
+    },
+    {
+      "name": "Mechanical Nature",
+      "icon": "cog",
+      "description": "You have resistance to [[poison_damage|poison damage]] and immunity to disease, and you have [[advantage]] on saving throws against being [[paralyzed]] or [[poisoned]]. You don't need to eat, drink, or breathe."
+    },
+    {
+      "name": "Sentry's Rest",
+      "icon": "eye",
+      "description": "When you take a [[long_rest|Long Rest]], you spend at least 6 hours in an inactive, motionless state, instead of sleeping. In this state, you appear inert, but you remain conscious."
+    },
+    {
+      "name": "Specialized Design",
+      "icon": "tools",
+      "description": "You gain two tool proficiencies of your choice, selected from any tools."
+    }
+  ],
+  "tags": [
+    "race",
+    "autognome",
+    "construct",
+    "spelljammer",
+    "mechanical"
+  ],
+  "aliases": [
+    "mechanical gnome",
+    "clockwork gnome"
+  ],
+  "seeAlso": [
+    "construct",
+    "gnome",
+    "mending"
+  ],
+  "filePath": "/data/glossary/entries/races/autognome.json"
 }

@@ -3,7 +3,6 @@
   "title": "Dragonborn",
   "category": "Character Races",
   "entryLore": "Dragonborn are proud humanoids whose lineage traces back to draconic progenitors. Whether blessed by dragon gods or created by dragons themselves, they carry the elemental power of their ancestors in their breath and spirit. They are known for their honorable culture and their striking physical appearance—tall, strong, and covered in scales that match the hue of their draconic kin.",
-  "imageUrl": "/assets/images/races/dragonborn_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -55,5 +54,7 @@
     "damage_resistance",
     "darkvision"
   ],
-  "filePath": "/data/glossary/entries/races/dragonborn.json"
+  "filePath": "/data/glossary/entries/races/dragonborn.json",
+  "maleImageUrl": "/assets/images/races/dragonborn_male.png",
+  "femaleImageUrl": "/assets/images/races/dragonborn_female.png"
 }

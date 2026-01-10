@@ -46,9 +46,9 @@ function getRandomElement<T>(arr: T[]): T {
  * @returns A generated name string.
  */
 function generateName(raceId: string, gender: 'male' | 'female'): string {
-    const raceData = RACE_NAMES[raceId] || RACE_NAMES.human;
-    const names = gender === 'male' ? raceData.male : raceData.female;
-    return getRandomElement(names);
+  const raceData = RACE_NAMES[raceId] || RACE_NAMES.human;
+  const names = gender === 'male' ? raceData.male : raceData.female;
+  return getRandomElement(names);
 }
 
 /**
@@ -57,8 +57,8 @@ function generateName(raceId: string, gender: 'male' | 'female'): string {
  * @returns A generated surname string.
  */
 function generateSurname(raceId: string): string {
-    const raceData = RACE_NAMES[raceId] || RACE_NAMES.human;
-    return getRandomElement(raceData.surnames);
+  const raceData = RACE_NAMES[raceId] || RACE_NAMES.human;
+  return getRandomElement(raceData.surnames);
 }
 
 /**
@@ -68,20 +68,20 @@ function generateSurname(raceId: string): string {
  * @returns An AbilityScores object.
  */
 function generateAbilityScores(classId: string): AbilityScores {
-    const standardArray = [15, 14, 13, 12, 10, 8];
-    const priorities = CLASSES_DATA[classId]?.recommendedPointBuyPriorities || ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
-    
-    const scores: AbilityScores = {
-        Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
-    };
+  const standardArray = [15, 14, 13, 12, 10, 8];
+  const priorities = CLASSES_DATA[classId]?.recommendedPointBuyPriorities || ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
 
-    priorities.forEach((ability, index) => {
-        if (index < standardArray.length) {
-            scores[ability] = standardArray[index];
-        }
-    });
+  const scores: AbilityScores = {
+    Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
+  };
 
-    return scores;
+  priorities.forEach((ability, index) => {
+    if (index < standardArray.length) {
+      scores[ability] = standardArray[index];
+    }
+  });
+
+  return scores;
 }
 
 /**
@@ -92,61 +92,61 @@ function generateAbilityScores(classId: string): AbilityScores {
  * @returns A map of equipped items.
  */
 function generateEquipment(classId: string, level: number): Partial<Record<EquipmentSlotType, Item>> {
-    const equipped: Partial<Record<EquipmentSlotType, Item>> = {};
-    
-    // Helper to add item
-    const equip = (itemId: string, slot: EquipmentSlotType) => {
-        const item = ALL_ITEMS[itemId];
-        if (item) equipped[slot] = item;
-    };
+  const equipped: Partial<Record<EquipmentSlotType, Item>> = {};
 
-    // Armor Logic
-    // Level scaling: 1-3 Basic, 4-7 Improved, 8+ Best
-    if (['fighter', 'paladin'].includes(classId)) {
-        if (level >= 8) equip('plate_armor', 'Torso');
-        else if (level >= 4) equip('splint_armor', 'Torso');
-        else equip('chain_mail', 'Torso');
-        
-        equip('shield_std', 'OffHand'); // Assume sword & board for tankiness default
-    } else if (['cleric'].includes(classId)) {
-        if (level >= 5) equip('half_plate_armor', 'Torso');
-        else equip('chain_shirt', 'Torso');
-        equip('shield_std', 'OffHand');
-    } else if (['ranger', 'druid'].includes(classId)) {
-        if (level >= 4) equip('studded_leather_armor', 'Torso');
-        else equip('leather_armor', 'Torso');
-    } else if (['rogue', 'warlock'].includes(classId)) {
-        equip('leather_armor', 'Torso');
-    } else if (['barbarian', 'monk', 'wizard', 'sorcerer'].includes(classId)) {
-        // Unarmored or robes (not armor items generally)
+  // Helper to add item
+  const equip = (itemId: string, slot: EquipmentSlotType) => {
+    const item = ALL_ITEMS[itemId];
+    if (item) equipped[slot] = item;
+  };
+
+  // Armor Logic
+  // Level scaling: 1-3 Basic, 4-7 Improved, 8+ Best
+  if (['fighter', 'paladin'].includes(classId)) {
+    if (level >= 8) equip('plate_armor', 'Torso');
+    else if (level >= 4) equip('splint_armor', 'Torso');
+    else equip('chain_mail', 'Torso');
+
+    equip('shield_std', 'OffHand'); // Assume sword & board for tankiness default
+  } else if (['cleric'].includes(classId)) {
+    if (level >= 5) equip('half_plate_armor', 'Torso');
+    else equip('chain_shirt', 'Torso');
+    equip('shield_std', 'OffHand');
+  } else if (['ranger', 'druid'].includes(classId)) {
+    if (level >= 4) equip('studded_leather_armor', 'Torso');
+    else equip('leather_armor', 'Torso');
+  } else if (['rogue', 'warlock'].includes(classId)) {
+    equip('leather_armor', 'Torso');
+  } else if (['barbarian', 'monk', 'wizard', 'sorcerer'].includes(classId)) {
+    // Unarmored or robes (not armor items generally)
+  }
+
+  // Weapon Logic
+  if (['fighter', 'paladin', 'barbarian'].includes(classId)) {
+    if (equipped.OffHand) {
+      equip('longsword', 'MainHand');
+    } else {
+      equip('greataxe', 'MainHand'); // Barbarian fallback or if no shield
     }
-
-    // Weapon Logic
-    if (['fighter', 'paladin', 'barbarian'].includes(classId)) {
-        if (equipped.OffHand) {
-            equip('longsword', 'MainHand');
-        } else {
-            equip('greataxe', 'MainHand'); // Barbarian fallback or if no shield
-        }
-    } else if (['rogue'].includes(classId)) {
-        equip('shortsword', 'MainHand');
-        equip('dagger', 'OffHand');
-    } else if (['ranger'].includes(classId)) {
-        equip('longbow', 'MainHand'); // Two-handed, clears OffHand if set?
-        // Note: Slot logic is simple here. If Two-Handed, logic should ideally clear OffHand.
-        if (ALL_ITEMS['longbow'].properties?.includes('Two-Handed')) {
-            delete equipped.OffHand;
-        }
-    } else if (['cleric', 'druid'].includes(classId)) {
-        equip('mace', 'MainHand');
-    } else if (['monk'].includes(classId)) {
-        // Unarmed mostly, maybe Quarterstaff
-        equip('quarterstaff', 'MainHand');
-    } else if (['wizard', 'sorcerer', 'warlock'].includes(classId)) {
-        equip('quarterstaff', 'MainHand');
+  } else if (['rogue'].includes(classId)) {
+    equip('shortsword', 'MainHand');
+    equip('dagger', 'OffHand');
+  } else if (['ranger'].includes(classId)) {
+    equip('longbow', 'MainHand'); // Two-handed, clears OffHand if set?
+    // Note: Slot logic is simple here. If Two-Handed, logic should ideally clear OffHand.
+    if (ALL_ITEMS['longbow'].properties?.includes('Two-Handed')) {
+      delete equipped.OffHand;
     }
+  } else if (['cleric', 'druid'].includes(classId)) {
+    equip('mace', 'MainHand');
+  } else if (['monk'].includes(classId)) {
+    // Unarmed mostly, maybe Quarterstaff
+    equip('quarterstaff', 'MainHand');
+  } else if (['wizard', 'sorcerer', 'warlock'].includes(classId)) {
+    equip('quarterstaff', 'MainHand');
+  }
 
-    return equipped;
+  return equipped;
 }
 
 /**
@@ -177,6 +177,8 @@ export interface NPCGenerationConfig {
   level?: number;
   /** Optional background ID. If not provided, one is random. */
   backgroundId?: string;
+  /** Optional gender override. If not provided, randomly determined. */
+  gender?: 'male' | 'female';
 }
 
 // Fallback data banks for generation if race not found
@@ -229,13 +231,13 @@ const DEFAULT_VOICES: TTSVoiceOption[] = [
  */
 export function generateNPC(config: NPCGenerationConfig): RichNPC {
   // --- 1. Identity & Race ---
-  const isFemale = Math.random() > 0.5;
+  const isFemale = config.gender ? config.gender === 'female' : Math.random() > 0.5;
   const genderString = isFemale ? 'female' : 'male';
   const raceId = (config.raceId || 'human').toLowerCase();
   const raceNameData = RACE_NAMES[raceId] || RACE_NAMES.human;
   const racePhysicalData = RACE_PHYSICAL_TRAITS[raceId] || FALLBACK_TRAITS;
   const raceData = ALL_RACES_DATA[raceId] || ALL_RACES_DATA['human'];
-  
+
   const maleNames = raceNameData.male;
   const femaleNames = raceNameData.female;
   const surnames = raceNameData.surnames;
@@ -249,37 +251,37 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
   // Height and weight use dice strings to ensure variety within logical race bounds.
   const heightInches = racePhysicalData.heightBaseInches + rollDiceString(racePhysicalData.heightModifierDice);
   const heightStr = formatHeight(heightInches);
-  const weightLb = racePhysicalData.weightBaseLb + (rollDiceString(racePhysicalData.heightModifierDice) * rollDiceString(racePhysicalData.weightModifierDice)); 
-  
+  const weightLb = racePhysicalData.weightBaseLb + (rollDiceString(racePhysicalData.heightModifierDice) * rollDiceString(racePhysicalData.weightModifierDice));
+
   const hairStyle = getRandomElement(racePhysicalData.hairStyles);
   const hairColor = getRandomElement(racePhysicalData.hairColors);
   const eyeColor = getRandomElement(racePhysicalData.eyeColors);
   const skinTone = getRandomElement(racePhysicalData.skinTones);
   const bodyType = getRandomElement(racePhysicalData.bodyTypes);
-  
+
   let facialHair = '';
   if (!isFemale && racePhysicalData.facialHair) {
-     const style = getRandomElement(racePhysicalData.facialHair);
-     if (style !== 'None') facialHair = `, sporting a ${style.toLowerCase()}`;
+    const style = getRandomElement(racePhysicalData.facialHair);
+    if (style !== 'None') facialHair = `, sporting a ${style.toLowerCase()}`;
   }
 
   // Random chance for flavor traits like scars or tattoos.
   const scarChance = 0.2;
   const distinctiveFeature = Math.random() < scarChance ? getRandomElement(SCARS_AND_MARKS) : undefined;
-  
+
   // --- 3. Role & Personality ---
   const template = ROLE_TEMPLATES[config.role] || ROLE_TEMPLATES['civilian'];
   const occupationString = config.occupation || config.role;
-  
+
   let physicalDesc = `A ${bodyType} ${genderString} ${raceId} ${occupationString} (${heightStr}, ${weightLb} lbs) with ${hairStyle.toLowerCase()} ${hairColor.toLowerCase()} hair and ${eyeColor.toLowerCase()} eyes${facialHair}.`;
-  
+
   if (distinctiveFeature) {
     physicalDesc += ` ${distinctiveFeature.includes('A ') ? 'She has ' + distinctiveFeature.toLowerCase().replace('a ', '') : 'Has ' + distinctiveFeature.toLowerCase()}.`.replace('She has', isFemale ? 'She has' : 'He has').replace('Has', isFemale ? 'She has' : 'He has');
   } else {
     physicalDesc += ` ${skinTone} skin adds to their appearance.`;
   }
 
-  const fullDescription = `${physicalDesc} ${isFemale? 'She' : 'He'} is ${template.baseDescription}`;
+  const fullDescription = `${physicalDesc} ${isFemale ? 'She' : 'He'} is ${template.baseDescription}`;
   const jobTitle = config.occupation || config.role;
   const personality = `You are ${finalName}, a ${jobTitle}. ${template.personalityPrompt}`;
 
@@ -288,7 +290,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
     description: fullDescription,
     portraitPrompt: `A fantasy portrait of ${finalName}, a ${raceId} ${occupationString}. ${physicalDesc} ${template.baseDescription}`,
     style: 'oil painting',
-    themeColor: '#cccccc', 
+    themeColor: '#cccccc',
     distinguishingFeatures: distinctiveFeature ? [distinctiveFeature] : [],
     ...config.visual
   };
@@ -310,97 +312,97 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
   const conMod = getAbilityModifierValue(abilityScores.Constitution);
   const dexMod = getAbilityModifierValue(abilityScores.Dexterity);
   const wisMod = getAbilityModifierValue(abilityScores.Wisdom);
-  
+
   // HP: Base die at level 1 + averages for subsequent levels.
   const hpBase = classData.hitDie + conMod;
   const hpPerLevel = Math.floor(classData.hitDie / 2) + 1 + conMod;
   const maxHp = hpBase + (hpPerLevel * (level - 1));
-  
+
   // Construct a mock PlayerCharacter to use existing AC logic (which handles armor/shields/unarmored).
   const mockPC = {
-      race: raceData,
-      class: classData,
-      finalAbilityScores: abilityScores,
-      equippedItems: equippedItems,
-      activeEffects: [],
-      proficiencyBonus,
-      level
+    race: raceData,
+    class: classData,
+    finalAbilityScores: abilityScores,
+    equippedItems: equippedItems,
+    activeEffects: [],
+    proficiencyBonus,
+    level
   } as unknown as PlayerCharacter;
 
   const armorClass = calculateArmorClass(mockPC);
   const initiativeBonus = dexMod;
-  
+
   // Parse speed from race traits (defaults to 30).
   let speed = 30;
   const speedTrait = raceData.traits.find(t => t.toLowerCase().includes('speed:'));
   if (speedTrait) {
-      const match = speedTrait.match(/(\d+)/);
-      if (match) speed = parseInt(match[1], 10);
+    const match = speedTrait.match(/(\d+)/);
+    if (match) speed = parseInt(match[1], 10);
   }
 
-  const passivePerception = calculatePassiveScore(wisMod, 0); 
+  const passivePerception = calculatePassiveScore(wisMod, 0);
 
   // --- 7. Family Tree Generation ---
   const family: FamilyMember[] = [];
-  
+
   // Parents: Logic assumes parents are 20-50 years older than the NPC.
   // Mortality is calculated based on current age vs race maximum.
   const parentAgeBase = age + racePhysicalData.ageMaturity + Math.floor(Math.random() * 30);
   const parentDeadChance = parentAgeBase > racePhysicalData.ageMax ? 1 : (parentAgeBase / racePhysicalData.ageMax) * 0.8;
-  
+
   ['Father', 'Mother'].forEach(rel => {
-     const isAlive = Math.random() > parentDeadChance;
-     family.push({
-        id: crypto.randomUUID(),
-        name: `${generateName(raceId, rel === 'Father' ? 'male' : 'female')} ${surname}`,
-        relation: 'parent',
-        age: parentAgeBase,
-        isAlive
-     });
+    const isAlive = Math.random() > parentDeadChance;
+    family.push({
+      id: crypto.randomUUID(),
+      name: `${generateName(raceId, rel === 'Father' ? 'male' : 'female')} ${surname}`,
+      relation: 'parent',
+      age: parentAgeBase,
+      isAlive
+    });
   });
 
   // Spouse & Children: Only generated if the NPC is an adult.
   if (age > racePhysicalData.ageMaturity + 5 && Math.random() > 0.3) {
-      const spouseAge = age + Math.floor(Math.random() * 10) - 5;
-      family.push({
-          id: crypto.randomUUID(),
-          name: `${generateName(raceId, isFemale ? 'male' : 'female')} ${surname}`, 
-          relation: 'spouse',
-          age: spouseAge,
-          isAlive: true
-      });
-      
-      const fertilityStart = racePhysicalData.ageMaturity;
-      const potentialChildYears = age - fertilityStart;
-      if (potentialChildYears > 0) {
-          const numKids = Math.floor(Math.random() * 4); 
-          for (let i=0; i<numKids; i++) {
-              const childAge = Math.floor(Math.random() * potentialChildYears);
-              const childGender = Math.random() > 0.5 ? 'male' : 'female';
-              family.push({
-                  id: crypto.randomUUID(),
-                  name: `${generateName(raceId, childGender)} ${surname}`,
-                  relation: 'child',
-                  age: childAge,
-                  isAlive: true
-              });
+    const spouseAge = age + Math.floor(Math.random() * 10) - 5;
+    family.push({
+      id: crypto.randomUUID(),
+      name: `${generateName(raceId, isFemale ? 'male' : 'female')} ${surname}`,
+      relation: 'spouse',
+      age: spouseAge,
+      isAlive: true
+    });
 
-              // Grandchildren: Generated if a child is old enough to be a parent.
-              if (childAge > fertilityStart) {
-                   const numGrandKids = Math.floor(Math.random() * 3);
-                   for(let j=0; j<numGrandKids; j++) {
-                       const gcAge = Math.floor(Math.random() * (childAge - fertilityStart));
-                       family.push({
-                           id: crypto.randomUUID(),
-                           name: `${generateName(raceId, Math.random() > 0.5 ? 'male' : 'female')} ${surname}`,
-                           relation: 'grandchild',
-                           age: gcAge,
-                           isAlive: true
-                       });
-                   }
-              }
+    const fertilityStart = racePhysicalData.ageMaturity;
+    const potentialChildYears = age - fertilityStart;
+    if (potentialChildYears > 0) {
+      const numKids = Math.floor(Math.random() * 4);
+      for (let i = 0; i < numKids; i++) {
+        const childAge = Math.floor(Math.random() * potentialChildYears);
+        const childGender = Math.random() > 0.5 ? 'male' : 'female';
+        family.push({
+          id: crypto.randomUUID(),
+          name: `${generateName(raceId, childGender)} ${surname}`,
+          relation: 'child',
+          age: childAge,
+          isAlive: true
+        });
+
+        // Grandchildren: Generated if a child is old enough to be a parent.
+        if (childAge > fertilityStart) {
+          const numGrandKids = Math.floor(Math.random() * 3);
+          for (let j = 0; j < numGrandKids; j++) {
+            const gcAge = Math.floor(Math.random() * (childAge - fertilityStart));
+            family.push({
+              id: crypto.randomUUID(),
+              name: `${generateName(raceId, Math.random() > 0.5 ? 'male' : 'female')} ${surname}`,
+              relation: 'grandchild',
+              age: gcAge,
+              isAlive: true
+            });
           }
+        }
       }
+    }
   }
 
   // --- 8. Final Assembly ---
@@ -435,21 +437,21 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
     visual,
     memory: initialMemory,
     biography: {
-        age,
-        classId: charClassId,
-        backgroundId,
-        level,
-        family,
-        abilityScores
+      age,
+      classId: charClassId,
+      backgroundId,
+      level,
+      family,
+      abilityScores
     },
     stats: {
-        hp: maxHp,
-        maxHp,
-        armorClass,
-        speed,
-        initiativeBonus,
-        passivePerception,
-        proficiencyBonus
+      hp: maxHp,
+      maxHp,
+      armorClass,
+      speed,
+      initiativeBonus,
+      passivePerception,
+      proficiencyBonus
     },
     equippedItems
   };

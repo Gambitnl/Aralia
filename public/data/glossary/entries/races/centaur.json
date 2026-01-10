@@ -3,7 +3,6 @@
   "title": "Centaur",
   "category": "Character Races",
   "entryLore": "Centaurs hail from the Feywild, mystically resonating with the natural world. Combining the upper body of an elf with the lower body of a horse, they are swift and powerful wanderers of the wild realms. They often travel in herds, protecting the ancient forests and meadows they call home with a fierce and noble spirit.",
-  "imageUrl": "/assets/images/races/centaur_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -56,5 +55,7 @@
     "hooves",
     "natural_affinity"
   ],
-  "filePath": "/data/glossary/entries/races/centaur.json"
+  "filePath": "/data/glossary/entries/races/centaur.json",
+  "maleImageUrl": "/assets/images/races/centaur_male.png",
+  "femaleImageUrl": "/assets/images/races/centaur_female.png"
 }

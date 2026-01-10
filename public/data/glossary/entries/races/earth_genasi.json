@@ -3,7 +3,6 @@
   "title": "Earth Genasi Lineage",
   "category": "Character Races",
   "entryLore": "Earth genasi trace their ancestry to dao, the genies of the Elemental Plane of Earth. They inherit a steadfast strength and a mystical control over the ground beneath their feet, allowing them to traverse even the most broken terrain with ease or magically harden their skin to resist harm.",
-  "imageUrl": "/assets/images/races/earth_genasi_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -37,5 +36,7 @@
     "blade_ward",
     "pass_without_trace"
   ],
-  "filePath": "/data/glossary/entries/races/earth_genasi.json"
+  "filePath": "/data/glossary/entries/races/earth_genasi.json",
+  "maleImageUrl": "/assets/images/races/earth_genasi_male.png",
+  "femaleImageUrl": "/assets/images/races/earth_genasi_female.png"
 }

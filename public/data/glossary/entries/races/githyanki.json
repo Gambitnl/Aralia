@@ -3,7 +3,6 @@
   "title": "Githyanki",
   "category": "Character Races",
   "entryLore": "Hailing from the Astral Plane, githyanki are psionic warriors who escaped eons of servitude to mind flayers. They have honed their mental powers and physical skills to survive the silver void and protect their independence. They are often stoic and martial, carrying the weight of their ancestral struggle with a fierce and disciplined pride.",
-  "imageUrl": "/assets/images/races/githyanki_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -49,5 +48,7 @@
     "githyanki_psionics",
     "psychic_resilience"
   ],
-  "filePath": "/data/glossary/entries/races/githyanki.json"
+  "filePath": "/data/glossary/entries/races/githyanki.json",
+  "maleImageUrl": "/assets/images/races/githyanki_male.png",
+  "femaleImageUrl": "/assets/images/races/githyanki_female.png"
 }

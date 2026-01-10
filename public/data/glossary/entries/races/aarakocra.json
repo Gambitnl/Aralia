@@ -3,7 +3,6 @@
   "title": "Aarakocra",
   "category": "Character Races",
   "entryLore": "A winged people originating from the Elemental Plane of Air, aarakocra soar through the sky with grace. Their ancestry ties them to the Wind Dukes of Aaqa, granting them a natural command over the elements and the ability to traverse vast distances from high above the world.",
-  "imageUrl": "/assets/images/races/aarakocra_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -51,5 +50,7 @@
     "flight",
     "gust_of_wind"
   ],
-  "filePath": "/data/glossary/entries/races/aarakocra.json"
+  "filePath": "/data/glossary/entries/races/aarakocra.json",
+  "maleImageUrl": "/assets/images/races/aarakocra_male.png",
+  "femaleImageUrl": "/assets/images/races/aarakocra_female.png"
 }

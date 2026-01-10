@@ -7,14 +7,6 @@
     "filePath": null,
     "subEntries": [
       {
-        "id": "aasimar",
-        "title": "Aasimar (Race Traits)",
-        "category": "Character Races",
-        "tags": ["race", "aasimar", "celestial", "humanoid"],
-        "excerpt": "Base traits for the Aasimar race (2024 PHB).",
-        "filePath": "/data/glossary/entries/races/aasimar.json"
-      },
-      {
         "id": "protector_aasimar",
         "title": "Protector Aasimar",
         "category": "Character Races",
@@ -185,7 +177,7 @@
     "excerpt": "Fey beings who can supernaturally adopt any face they like.",
     "filePath": "/data/glossary/entries/races/changeling.json"
   },
-  {
+    {
     "id": "group_dragonborn",
     "title": "Dragonborn",
     "category": "Character Races",
@@ -320,6 +312,14 @@
         "tags": ["race", "duergar", "dwarf", "underdark"],
         "excerpt": "Dwarves transformed by centuries in the Underdark.",
         "filePath": "/data/glossary/entries/races/duergar.json"
+      },
+      {
+        "id": "mark_of_warding_dwarf",
+        "title": "Mark of Warding Dwarf",
+        "category": "Character Races",
+        "tags": ["dragonmark", "dwarf", "warding", "warding"],
+        "excerpt": "Protective sigil granting mastery over wards and locks.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_warding.json"
       }
     ]
   },
@@ -434,6 +434,22 @@
         "tags": ["elf", "astral_elf", "spelljammer"],
         "excerpt": "Elves who dwell among the stars.",
         "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json"
+      },
+      {
+        "id": "pallid_elf",
+        "title": "Pallid Elf",
+        "category": "Character Races",
+        "tags": ["elf", "pallid_elf", "wildemount", "critical role"],
+        "excerpt": "Pale elves with insight and lunar magic from the Pallid Grove.",
+        "filePath": "/data/glossary/entries/races/elf_lineages/pallid_elf.json"
+      },
+      {
+        "id": "mark_of_shadow_elf",
+        "title": "Mark of Shadow Elf",
+        "category": "Character Races",
+        "tags": ["dragonmark", "elf", "shadow", "shadow"],
+        "excerpt": "Shadow sigil granting mastery over illusion and stealth.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_shadow.json"
       }
     ]
   },
@@ -565,6 +581,14 @@
         "tags": ["race", "gnome", "deep gnome", "svirfneblin"],
         "excerpt": "Natives of the Underdark, suffused with subterranean magic.",
         "filePath": "/data/glossary/entries/races/deep_gnome.json"
+      },
+      {
+        "id": "mark_of_scribing_gnome",
+        "title": "Mark of Scribing Gnome",
+        "category": "Character Races",
+        "tags": ["dragonmark", "gnome", "scribing", "scribing"],
+        "excerpt": "Shifting sigil granting mastery over language and communication.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_scribing.json"
       }
     ]
   },
@@ -704,16 +728,49 @@
         "tags": ["half-elf", "wood", "nature"],
         "excerpt": "Fleet of foot from wood elf ancestry.",
         "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
+      },
+      {
+        "id": "mark_of_detection_half_elf",
+        "title": "Mark of Detection Half-Elf",
+        "category": "Character Races",
+        "tags": ["dragonmark", "half-elf", "detection", "detection"],
+        "excerpt": "Arcane sigil granting enhanced observation and insight.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_detection.json"
+      },
+      {
+        "id": "mark_of_storm_half_elf",
+        "title": "Mark of Storm Half-Elf",
+        "category": "Character Races",
+        "tags": ["dragonmark", "half-elf", "storm", "storm"],
+        "excerpt": "Crackling sigil granting command over wind and weather.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_storm.json"
       }
     ]
   },
   {
-    "id": "half-orc",
+    "id": "group_half_orc",
     "title": "Half-Orc",
     "category": "Character Races",
-    "tags": ["race", "half-orc", "human", "orc"],
     "excerpt": "Children of different kindreds combining orc resilience with human versatility.",
-    "filePath": "/data/glossary/entries/races/half-orc.json"
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "half-orc",
+        "title": "Half-Orc (Race Traits)",
+        "category": "Character Races",
+        "tags": ["race", "half-orc", "human", "orc"],
+        "excerpt": "Base traits for the Half-Orc race.",
+        "filePath": "/data/glossary/entries/races/half-orc.json"
+      },
+      {
+        "id": "mark_of_finding_half_orc",
+        "title": "Mark of Finding Half-Orc",
+        "category": "Character Races",
+        "tags": ["dragonmark", "half-orc", "finding", "finding"],
+        "excerpt": "Compass sigil granting supernatural tracking abilities.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_finding.json"
+      }
+    ]
   },
   {
     "id": "group_halfling",
@@ -745,16 +802,81 @@
         "tags": ["halfling", "stout", "resilient"],
         "excerpt": "Stout resilience with poison resistance (2014).",
         "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
+      },
+      {
+        "id": "lotusden_halfling",
+        "title": "Lotusden Halfling",
+        "category": "Character Races",
+        "tags": ["halfling", "lotusden", "nature", "wildemount", "critical role"],
+        "excerpt": "Forest halflings with druidic magic from the Lotusden Greenwood.",
+        "filePath": "/data/glossary/entries/races/halfling_subraces/lotusden_halfling.json"
+      },
+      {
+        "id": "mark_of_healing_halfling",
+        "title": "Mark of Healing Halfling",
+        "category": "Character Races",
+        "tags": ["dragonmark", "halfling", "healing"],
+        "excerpt": "Luminous sigil granting restorative healing magic.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_healing.json"
+      },
+      {
+        "id": "mark_of_hospitality_halfling",
+        "title": "Mark of Hospitality Halfling",
+        "category": "Character Races",
+        "tags": ["dragonmark", "halfling", "hospitality"],
+        "excerpt": "Warm sigil granting hospitality and comfort magic.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_hospitality.json"
       }
     ]
   },
   {
-    "id": "human",
+    "id": "group_human",
     "title": "Human",
     "category": "Character Races",
-    "tags": ["race", "human", "versatile"],
     "excerpt": "Ambitious and adaptable, known for resourcefulness.",
-    "filePath": "/data/glossary/entries/races/human.json"
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "human",
+        "title": "Human (Race Traits)",
+        "category": "Character Races",
+        "tags": ["race", "human", "versatile"],
+        "excerpt": "Base traits for the Human race.",
+        "filePath": "/data/glossary/entries/races/human.json"
+      },
+      {
+        "id": "mark_of_handling_human",
+        "title": "Mark of Handling Human",
+        "category": "Character Races",
+        "tags": ["dragonmark", "human", "handling", "handling"],
+        "excerpt": "Beast-track sigil granting connection with animals.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_handling.json"
+      },
+      {
+        "id": "mark_of_making_human",
+        "title": "Mark of Making Human",
+        "category": "Character Races",
+        "tags": ["dragonmark", "human", "making", "making"],
+        "excerpt": "Glowing sigil granting exceptional crafting ability.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_making.json"
+      },
+      {
+        "id": "mark_of_passage_human",
+        "title": "Mark of Passage Human",
+        "category": "Character Races",
+        "tags": ["dragonmark", "human", "passage", "passage"],
+        "excerpt": "Flowing sigil granting supernatural speed and teleportation.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_passage.json"
+      },
+      {
+        "id": "mark_of_sentinel_human",
+        "title": "Mark of Sentinel Human",
+        "category": "Character Races",
+        "tags": ["dragonmark", "human", "sentinel", "sentinel"],
+        "excerpt": "Shield sigil granting protective vigilance and defense.",
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_sentinel.json"
+      }
+    ]
   },
   {
     "id": "kalashtar",

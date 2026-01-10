@@ -1,54 +1,55 @@
 {
-    "id": "hill_dwarf",
-    "title": "Hill Dwarf",
-    "category": "Character Races",
-    "entryLore": "Hill dwarves possess keen senses, deep intuition, and remarkable resilience. More connected to the surface world than their subterranean kin, they often build settlements into highlands. Their culture emphasizes wisdom and endurance, following the standard ancestral traditions of all dwarves.",
-    "imageUrl": "/assets/images/races/hill_dwarf_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Creature Type",
-            "value": "[[humanoid]] and [[dwarf]]"
-        },
-        {
-            "label": "Size",
-            "value": "[[size|Medium]]"
-        },
-        {
-            "label": "Speed",
-            "value": "30 feet"
-        },
-        {
-            "label": "Darkvision",
-            "value": "120 feet"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Dwarven Toughness",
-            "icon": "heart",
-            "description": "Your [[hit_points|Hit Point]] maximum increases by 1, and it increases by 1 again whenever you gain a level."
-        },
-        {
-            "name": "Dwarven Resilience",
-            "icon": "shield",
-            "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]] and [[advantage|Advantage]] on saves against the [[poisoned_condition|Poisoned condition]]."
-        }
-    ],
-    "tags": [
-        "race",
-        "dwarf",
-        "hill dwarf",
-        "humanoid"
-    ],
-    "aliases": [
-        "hillfolk",
-        "surface dwarf"
-    ],
-    "seeAlso": [
-        "dwarf",
-        "darkvision",
-        "duergar"
-    ],
-    "filePath": "/data/glossary/entries/races/hill_dwarf.json"
+  "id": "hill_dwarf",
+  "title": "Hill Dwarf",
+  "category": "Character Races",
+  "entryLore": "Hill dwarves possess keen senses, deep intuition, and remarkable resilience. More connected to the surface world than their subterranean kin, they often build settlements into highlands. Their culture emphasizes wisdom and endurance, following the standard ancestral traditions of all dwarves.",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]] and [[dwarf]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Medium]]"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "120 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Dwarven Toughness",
+      "icon": "heart",
+      "description": "Your [[hit_points|Hit Point]] maximum increases by 1, and it increases by 1 again whenever you gain a level."
+    },
+    {
+      "name": "Dwarven Resilience",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]] and [[advantage|Advantage]] on saves against the [[poisoned_condition|Poisoned condition]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "dwarf",
+    "hill dwarf",
+    "humanoid"
+  ],
+  "aliases": [
+    "hillfolk",
+    "surface dwarf"
+  ],
+  "seeAlso": [
+    "dwarf",
+    "darkvision",
+    "duergar"
+  ],
+  "filePath": "/data/glossary/entries/races/hill_dwarf.json",
+  "maleImageUrl": "/assets/images/races/hill_dwarf_male.png",
+  "femaleImageUrl": "/assets/images/races/hill_dwarf_female.png"
 }

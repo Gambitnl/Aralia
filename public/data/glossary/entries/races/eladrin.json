@@ -3,7 +3,6 @@
   "title": "Eladrin",
   "category": "Character Races",
   "entryLore": "Elves of the Feywild, eladrin resonate with the emotions of the seasons, shifting their appearance and abilities to match the natural cycles of their home plane. This lineage possesses a mercurial nature, tied deeply to the mercurial magic of the Feywild.",
-  "imageUrl": "/assets/images/races/eladrin_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -41,5 +40,7 @@
     "keen_senses",
     "trance"
   ],
-  "filePath": "/data/glossary/entries/races/eladrin.json"
+  "filePath": "/data/glossary/entries/races/eladrin.json",
+  "maleImageUrl": "/assets/images/races/eladrin_male.png",
+  "femaleImageUrl": "/assets/images/races/eladrin_female.png"
 }

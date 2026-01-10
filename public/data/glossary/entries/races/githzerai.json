@@ -3,7 +3,6 @@
   "title": "Githzerai",
   "category": "Character Races",
   "entryLore": "Githzerai are disciplined dwellers of the Everchanging Chaos of Limbo. Utilizing their potent psionic powers, they stabilize the chaotic environment around them and maintain a sharp mental focus that wards off external influence. They are often monks and philosophers, dedicated to a life of mental discipline and the pursuit of inner peace amidst the roiling chaos of their home plane.",
-  "imageUrl": "/assets/images/races/githzerai_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -50,5 +49,7 @@
     "mental_discipline",
     "psychic_resilience"
   ],
-  "filePath": "/data/glossary/entries/races/githzerai.json"
+  "filePath": "/data/glossary/entries/races/githzerai.json",
+  "maleImageUrl": "/assets/images/races/githzerai_male.png",
+  "femaleImageUrl": "/assets/images/races/githzerai_female.png"
 }

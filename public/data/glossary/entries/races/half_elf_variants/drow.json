@@ -1,24 +1,67 @@
 {
-    "id": "half_elf_drow",
-    "title": "Half-Elf (Drow)",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "SCAG",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "magic",
-            "description": "TODO: Add trait descriptions - drow magic from drow ancestry"
-        }
-    ],
-    "tags": ["race", "half-elf", "drow", "humanoid", "underdark"],
-    "aliases": ["half-drow"],
-    "seeAlso": ["half-elf", "drow", "humanoid"],
-    "filePath": "/data/glossary/entries/races/half_elf_variants/drow.json"
+  "id": "half_elf_drow",
+  "title": "Half-Elf (Drow)",
+  "category": "Character Races",
+  "entryLore": "Half-elves of drow heritage are often the result of forbidden unions or raids upon the surface world. Many face prejudice from both sides of their ancestry—mistrusted by surface dwellers for their dark elf blood and scorned by drow for their human taint. Despite these hardships, half-drow often develop strong wills and a determination to forge their own path. They may inherit the drow's affinity for shadow magic, manifesting as an ability to conjure dancing lights, darkness, and other supernatural effects.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "SCAG",
+  "baseRace": "half_elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "Thanks to your elf blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws against being [[charmed]], and magic can't put you to sleep."
+    },
+    {
+      "name": "Skill Versatility",
+      "icon": "tools",
+      "description": "You gain proficiency in one skill of your choice."
+    },
+    {
+      "name": "Drow Magic",
+      "icon": "magic",
+      "description": "You know the [[dancing_lights]] cantrip. When you reach 3rd level, you can cast the [[faerie_fire]] spell once with this trait, and you regain the ability to do so when you finish a [[long_rest|Long Rest]]. When you reach 5th level, you can cast the [[darkness]] spell once with this trait, and you regain the ability to do so when you finish a Long Rest. Charisma is your spellcasting ability for these spells. (Replaces Skill Versatility's second skill proficiency)"
+    }
+  ],
+  "tags": [
+    "race",
+    "half-elf",
+    "drow",
+    "humanoid",
+    "underdark",
+    "magic"
+  ],
+  "aliases": [
+    "half-drow"
+  ],
+  "seeAlso": [
+    "half-elf",
+    "drow",
+    "humanoid",
+    "charmed"
+  ],
+  "filePath": "/data/glossary/entries/races/half_elf_variants/drow.json"
 }

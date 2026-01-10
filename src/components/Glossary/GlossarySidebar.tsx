@@ -2,8 +2,13 @@
  * @file GlossarySidebar.tsx
  * Sidebar component showing categories and entry tree for glossary navigation.
  * Extracted from Glossary.tsx for better modularity.
+ * 
+ * MODIFICATIONS:
+ * - Added pinned "Search" entry at the top of the sidebar (above categories)
+ * - Search expands/collapses on click to reveal the search input
+ * - Added onSearchChange prop to handle search term updates
  */
-import React, { MutableRefObject } from 'react';
+import React, { MutableRefObject, useState } from 'react';
 import { GlossaryEntry } from '../../types';
 import { GateResult } from '../../hooks/useSpellGateChecks';
 import { getCategoryIcon, highlightSearchTerm, getCategoryColor } from './glossaryUIUtils';
@@ -27,6 +32,8 @@ interface GlossarySidebarProps {
     onEntrySelect: (entry: GlossaryEntry) => void;
     /** Current search term for highlighting */
     searchTerm: string;
+    /** Handler for search term changes */
+    onSearchChange: (term: string) => void;
     /** Whether there's an error */
     hasError: boolean;
     /** Spell gate check results for showing status dots */
@@ -146,11 +153,18 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
     selectedEntry,
     onEntrySelect,
     searchTerm,
+    onSearchChange,
     hasError,
     gateResults,
     entryRefs,
     isColumnResizing,
 }) => {
+    /**
+     * Controls whether the search input field is visible.
+     * When true, the search input expands below the "Search" button.
+     * This keeps the search functionality accessible without taking constant header space.
+     */
+    const [isSearchExpanded, setIsSearchExpanded] = useState(false);
     const hasNoResults = Object.keys(groupedEntries).length === 0;
 
     return (
@@ -158,6 +172,37 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
             className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content flex-shrink-0 glossary-list-container"
             style={{ transition: isColumnResizing ? 'none' : 'width 0.2s ease' }}
         >
+            {/* Pinned Search Entry */}
+            <div className="mb-2">
+                <button
+                    type="button"
+                    onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+                    className={`w-full p-2 font-semibold cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg flex justify-between items-center ${searchTerm ? 'text-sky-400' : 'text-purple-400'}`}
+                >
+                    <span className="flex items-center">
+                        <span className="mr-2">🔍</span>
+                        Search{searchTerm && <span className="ml-2 text-sm font-normal text-gray-400">"{searchTerm}"</span>}
+                    </span>
+                    <span className={`ml-2 transform transition-transform duration-150 ${isSearchExpanded ? 'rotate-90' : ''}`}>▶</span>
+                </button>
+                {isSearchExpanded && (
+                    <div className="mt-1 px-2">
+                        <input
+                            type="search"
+                            placeholder="Search glossary..."
+                            value={searchTerm}
+                            onChange={(e) => onSearchChange(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-gray-200 text-sm focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
+                            aria-label="Search glossary terms"
+                            autoFocus
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Separator line between search and category list */}
+            <div className="border-b border-gray-700 mb-2" />
+
             {hasNoResults && !hasError && (
                 <p className="text-gray-500 italic text-center py-4">No terms match your search.</p>
             )}
@@ -200,3 +245,4 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
 };
 
 export default GlossarySidebar;
+

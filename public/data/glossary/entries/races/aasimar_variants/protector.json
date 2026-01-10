@@ -1,24 +1,70 @@
 {
-    "id": "protector_aasimar",
-    "title": "Protector Aasimar",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium or Small"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "wings",
-            "description": "TODO: Add trait descriptions - radiant soul with spectral wings"
-        }
-    ],
-    "tags": ["race", "aasimar", "protector", "celestial", "humanoid"],
-    "aliases": [],
-    "seeAlso": ["aasimar", "humanoid"],
-    "filePath": "/data/glossary/entries/races/aasimar_variants/protector.json"
+  "id": "protector_aasimar",
+  "title": "Protector Aasimar",
+  "category": "Character Races",
+  "entryLore": "Protector aasimar are charged by the powers of good to guard the weak, strike at evil wherever it arises, and stand vigilant against the darkness. From a young age, a protector aasimar receives advice and directives that urge them to stand against evil. Their celestial guide speaks in dreams, visions, and feelings, guiding them toward righteousness. When they transform, spectral wings sprout from their back, a manifestation of their celestial nature that allows them to soar above their enemies while radiating divine light.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "aasimar",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Celestial Resistance",
+      "icon": "shield",
+      "description": "You have resistance to [[necrotic_damage|necrotic damage]] and [[radiant_damage|radiant damage]]."
+    },
+    {
+      "name": "Healing Hands",
+      "icon": "heal",
+      "description": "As an action, you can touch a creature and roll a number of d4s equal to your [[proficiency_bonus|Proficiency Bonus]]. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Light Bearer",
+      "icon": "light",
+      "description": "You know the [[light]] cantrip. Charisma is your spellcasting ability for it."
+    },
+    {
+      "name": "Radiant Soul",
+      "icon": "wings",
+      "description": "Starting at 3rd level, you can use a [[bonus_action|Bonus Action]] to unleash the divine energy within yourself, causing your eyes to glimmer and two luminous, incorporeal wings to sprout from your back. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you have a flying speed equal to your walking speed, and once on each of your turns, you can deal extra [[radiant_damage|radiant damage]] to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your [[proficiency_bonus|Proficiency Bonus]]. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "aasimar",
+    "protector",
+    "celestial",
+    "humanoid",
+    "flight"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "aasimar",
+    "humanoid",
+    "radiant_damage",
+    "necrotic_damage"
+  ],
+  "filePath": "/data/glossary/entries/races/aasimar_variants/protector.json"
 }

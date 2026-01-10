@@ -1,24 +1,59 @@
 {
-    "id": "wildhunt_shifter",
-    "title": "Wildhunt Shifter",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "eye",
-            "description": "TODO: Add trait descriptions - advantage on Wis checks, enemies can't have advantage"
-        }
-    ],
-    "tags": ["race", "shifter", "wildhunt", "humanoid", "lycanthrope"],
-    "aliases": [],
-    "seeAlso": ["shifter", "humanoid"],
-    "filePath": "/data/glossary/entries/races/shifter_variants/wildhunt.json"
+  "id": "wildhunt_shifter",
+  "title": "Wildhunt Shifter",
+  "category": "Character Races",
+  "entryLore": "Wildhunt shifters are the most in tune with their animal nature, their lycanthropic heritage tied to creatures known for their keen senses and tracking ability like wolves and bloodhounds. Sharp-eyed and perceptive, these shifters make excellent trackers and hunters. When they shift, their senses sharpen to supernatural levels, allowing them to detect hidden foes and react to threats before they manifest. Wildhunt shifters often serve as scouts, rangers, and sentries, their enhanced awareness making them nearly impossible to ambush or deceive.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "shifter",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Shifting",
+      "icon": "transform",
+      "description": "As a [[bonus_action|Bonus Action]], you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to 2 x your [[proficiency_bonus|Proficiency Bonus]]. You can shift a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Whenever you shift, you also gain an additional benefit based on your subrace (see Mark the Scent)."
+    },
+    {
+      "name": "Mark the Scent",
+      "icon": "nose",
+      "description": "While shifted, you have [[advantage]] on Wisdom checks, and no creature within 30 feet of you can make an attack roll with advantage against you unless you're [[incapacitated]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "shifter",
+    "wildhunt",
+    "humanoid",
+    "lycanthrope",
+    "tracker"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "shifter",
+    "humanoid",
+    "incapacitated"
+  ],
+  "filePath": "/data/glossary/entries/races/shifter_variants/wildhunt.json"
 }

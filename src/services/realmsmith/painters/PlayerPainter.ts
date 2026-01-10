@@ -10,7 +10,8 @@ export class PlayerPainter {
         y: number,
         facing: TownDirection,
         isMoving: boolean,
-        visuals?: CharacterVisualConfig
+        visuals?: CharacterVisualConfig,
+        colors?: { skin: string; hair: string; clothing: string }
     ) {
         this.ctx.save();
 
@@ -38,7 +39,7 @@ export class PlayerPainter {
         if (visuals) {
             await this.drawLayeredCharacter(centerX, centerY + walkOffset, visuals);
         } else {
-            this.drawCharacterSprite(centerX, centerY + walkOffset, baseDirection, isMoving);
+            this.drawCharacterSprite(centerX, centerY + walkOffset, baseDirection, isMoving, colors);
         }
 
         this.ctx.restore();
@@ -63,15 +64,16 @@ export class PlayerPainter {
         }
     }
 
-    private drawCharacterSprite(cx: number, cy: number, facing: TownDirection, isMoving: boolean) {
+    private drawCharacterSprite(cx: number, cy: number, facing: TownDirection, isMoving: boolean, colors?: { skin: string; hair: string; clothing: string }) {
         const legSpread = isMoving ? Math.abs(Math.sin(Date.now() * 0.015)) * 4 : 0;
 
-        const skinColor = '#d4a574';
-        const cloakColor = '#374151';
-        const cloakHighlight = '#4b5563';
+        const skinColor = colors?.skin || '#d4a574';
+        const cloakColor = colors?.clothing || '#374151';
+        // Simple highlight logic: lighten or darken slightly
+        const cloakHighlight = colors?.clothing ? '#ffffff33' : '#4b5563'; 
         const accentColor = '#f59e0b';
         const bootColor = '#1f2937';
-        const hairColor = '#451a03';
+        const hairColor = colors?.hair || '#451a03';
 
         const bodyWidth = 10;
         const bodyHeight = 12;

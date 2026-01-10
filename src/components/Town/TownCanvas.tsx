@@ -10,6 +10,7 @@ import { TownDevControls } from './TownDevControls';
 import { RefreshCw, ZoomIn, ZoomOut, Maximize, Moon, Sun, Grid, Settings, X, User } from 'lucide-react';
 import { useTownController } from '../../hooks/useTownController';
 import { CharacterVisualConfig } from '../../services/CharacterAssetService';
+import { useAmbientLife } from '../../hooks/useAmbientLife';
 
 const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
     [BuildingType.HOUSE_SMALL]: { name: 'Small House', desc: 'A modest residence for common folk.' },
@@ -36,6 +37,17 @@ const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }
     [BuildingType.TAILOR]: { name: 'Tailor', desc: 'Fine clothes and fabrics are sold here.' },
     [BuildingType.JEWELER]: { name: 'Jeweler', desc: 'A secure shop selling precious gems and metals.' },
 };
+
+const COMMERCIAL_BUILDING_TYPES = new Set([
+    BuildingType.TAVERN,
+    BuildingType.BLACKSMITH,
+    BuildingType.MARKET_STALL,
+    BuildingType.ALCHEMIST,
+    BuildingType.BAKERY,
+    BuildingType.TAILOR,
+    BuildingType.JEWELER,
+    BuildingType.GUILD_HALL, // Maybe?
+]);
 
 interface TownCanvasProps {
     worldSeed: number;
@@ -170,6 +182,9 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
     // Use external playerPosition if provided, otherwise use local state
     const effectivePlayerPosition = playerPosition ?? localPlayerPosition;
+
+    // Ambient Life (NPCs)
+    const ambientNpcs = useAmbientLife(mapData, townSeed);
 
     // Animation state
     const [animatedPosition, setAnimatedPosition] = useState<TownPosition | null>(null);
@@ -330,6 +345,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 playerFacing,
                 isMoving: isAnimating,
                 playerVisuals: resolvePlayerVisuals(playerCharacter?.visuals),
+                npcs: ambientNpcs
             });
         } catch (err) {
             console.error("AssetPainter failed:", err);
@@ -405,6 +421,29 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         return mapData.buildings.find(b => b.id === tile.buildingId) ?? null;
     }, [mapData]);
 
+    const getNpcAtClientPos = useCallback((clientX: number, clientY: number): string | null => {
+        if (!canvasRef.current || !ambientNpcs) return null;
+        const rect = canvasRef.current.getBoundingClientRect();
+
+        const scaleX = canvasRef.current.width / rect.width;
+        const scaleY = canvasRef.current.height / rect.height;
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+
+        // Check if click is near any NPC (within half a tile)
+        const TILE_SIZE_PX = 32;
+        for (const npc of ambientNpcs) {
+            const npcPxX = npc.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+            const npcPxY = npc.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+            
+            const dist = Math.sqrt(Math.pow(canvasX - npcPxX, 2) + Math.pow(canvasY - npcPxY, 2));
+            if (dist < TILE_SIZE_PX / 2) {
+                return npc.id;
+            }
+        }
+        return null;
+    }, [ambientNpcs]);
+
     useEffect(() => {
         const el = mainRef.current;
         if (!el) return;
@@ -458,6 +497,17 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             return;
         }
 
+        // Hover Logic (NPCs prioritize over buildings)
+        const npcId = getNpcAtClientPos(e.clientX, e.clientY);
+        if (npcId) {
+            // TODO: Set hovered NPC state for tooltip
+            setHoveredBuilding(null);
+            document.body.style.cursor = 'pointer'; // Feedback
+            return;
+        } else {
+            document.body.style.cursor = 'default';
+        }
+
         // Hover (Building Detection)
         const building = getBuildingAtClientPos(e.clientX, e.clientY);
         if (building && building !== hoveredBuilding) {
@@ -484,15 +534,42 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     };
 
     const openBuilding = useCallback((building: Building) => {
-        onAction({
-            type: 'OPEN_DYNAMIC_MERCHANT',
-            label: `Visit ${BUILDING_DESCRIPTIONS[building.type]?.name}`,
-            payload: {
-                merchantType: building.type,
-                buildingId: building.id
-            }
-        });
-    }, [onAction]);
+        const isCommercial = COMMERCIAL_BUILDING_TYPES.has(building.type);
+        const buildingName = BUILDING_DESCRIPTIONS[building.type]?.name || 'Unknown Building';
+
+        if (isCommercial) {
+            onAction({
+                type: 'OPEN_DYNAMIC_MERCHANT',
+                label: `Visit ${buildingName}`,
+                payload: {
+                    merchantType: building.type,
+                    buildingId: building.id
+                }
+            });
+        } else {
+            // Non-commercial interaction (Flavor text / Description)
+            onAction({
+                type: 'custom',
+                label: `Examine ${buildingName}`,
+                payload: {
+                    villageContext: {
+                        worldX,
+                        worldY,
+                        biomeId: biome, // Note: biome is string here, mapped from araliaBiome
+                        buildingId: building.id,
+                        buildingType: building.type,
+                        description: `You stand before the ${buildingName}. ${BUILDING_DESCRIPTIONS[building.type]?.desc}`,
+                        // Stub integration fields for now, as TownCanvas doesn't have full VillageLayout context
+                        integrationProfileId: 'generic',
+                        integrationPrompt: '',
+                        integrationTagline: '',
+                        culturalSignature: '',
+                        encounterHooks: []
+                    }
+                }
+            });
+        }
+    }, [onAction, worldX, worldY, biome]);
 
     const handleBuildingClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement | null;
@@ -501,6 +578,18 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             didDragRef.current = false;
             return;
         }
+
+        // Check for NPC click first
+        const npcId = getNpcAtClientPos(e.clientX, e.clientY);
+        if (npcId) {
+            onAction({
+                type: 'START_DIALOGUE_SESSION',
+                label: 'Talk to Villager',
+                payload: { npcId }
+            });
+            return;
+        }
+
         const building = getBuildingAtClientPos(e.clientX, e.clientY);
         if (!building) return;
 

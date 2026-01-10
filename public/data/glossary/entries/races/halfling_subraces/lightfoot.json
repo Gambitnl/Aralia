@@ -1,24 +1,60 @@
 {
-    "id": "lightfoot_halfling",
-    "title": "Lightfoot Halfling",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "PHB2014",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "[[size|Small]]"},
-        {"label": "Speed", "value": "25 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "stealth",
-            "description": "TODO: Add trait descriptions - naturally stealthy"
-        }
-    ],
-    "tags": ["race", "halfling", "lightfoot", "humanoid", "stealth"],
-    "aliases": [],
-    "seeAlso": ["halfling", "humanoid"],
-    "filePath": "/data/glossary/entries/races/halfling_subraces/lightfoot.json"
+  "id": "lightfoot_halfling",
+  "title": "Lightfoot Halfling",
+  "category": "Character Races",
+  "entryLore": "As a lightfoot halfling, you can easily hide from notice, even using other people as cover. You're inclined to be affable and get along well with others. Lightfoots are more prone to wanderlust than other halflings, and often dwell alongside other races or take up a nomadic life. In the Forgotten Realms, lightfoot halflings have spread the farthest and thus are the most common variety. They are the most social of halflings, often traveling with companions of other races or settling in mixed communities.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "PHB2014",
+  "baseRace": "halfling",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "25 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Lucky",
+      "icon": "dice",
+      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
+    },
+    {
+      "name": "Brave",
+      "icon": "heart",
+      "description": "You have [[advantage]] on saving throws against being [[frightened]]."
+    },
+    {
+      "name": "Halfling Nimbleness",
+      "icon": "dodge",
+      "description": "You can move through the space of any creature that is of a size larger than yours."
+    },
+    {
+      "name": "Naturally Stealthy",
+      "icon": "stealth",
+      "description": "You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you."
+    }
+  ],
+  "tags": [
+    "race",
+    "halfling",
+    "lightfoot",
+    "humanoid",
+    "stealth",
+    "social"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "halfling",
+    "humanoid",
+    "frightened"
+  ],
+  "filePath": "/data/glossary/entries/races/halfling_subraces/lightfoot.json"
 }

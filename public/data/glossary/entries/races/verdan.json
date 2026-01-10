@@ -1,24 +1,59 @@
 {
-    "id": "verdan",
-    "title": "Verdan",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "AI",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Small, becoming Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "growth",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "verdan", "humanoid", "goblinoid"],
-    "aliases": [],
-    "seeAlso": ["humanoid", "goblin"],
-    "filePath": "/data/glossary/entries/races/verdan.json"
+  "id": "verdan",
+  "title": "Verdan",
+  "category": "Character Races",
+  "entryLore": "The verdan are a people in transition. Created by the chaotic energies unleashed when a powerful hag named Granny Nightshade was slain, the verdan were once goblins and hobgoblins who were transformed into something entirely new. They continue to change and evolve, literally growing taller as they age. Verdan are curious about their place in the world, seeking to understand themselves and their purpose. They have a natural affinity for reading others, a remnant of their goblinoid heritage adapted into something more subtle. Most verdan try to be open-minded and welcoming, hoping to build the communities and connections they were denied in their previous lives.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "AI",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Small, becoming Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Black Blood Healing",
+      "icon": "heal",
+      "description": "When you roll a 1 or 2 on any Hit Die you spend at the end of a [[short_rest|Short Rest]], you can reroll the die and must use the new roll."
+    },
+    {
+      "name": "Limited Telepathy",
+      "icon": "telepathy",
+      "description": "You can telepathically speak to any creature you can see within 30 feet of you. You don't need to share a language with the creature for it to understand your telepathic messages, but the creature must be able to understand at least one language or be telepathic itself. This trait doesn't grant the creature the ability to respond telepathically."
+    },
+    {
+      "name": "Persuasive",
+      "icon": "speech",
+      "description": "Your people's lack of history makes you skilled at finding common ground with others. You have proficiency in the [[persuasion|Persuasion]] skill."
+    },
+    {
+      "name": "Telepathic Insight",
+      "icon": "mind",
+      "description": "You have [[advantage]] on all Wisdom and Charisma saving throws."
+    }
+  ],
+  "tags": [
+    "race",
+    "verdan",
+    "humanoid",
+    "goblinoid",
+    "transformed",
+    "evolving"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "goblin",
+    "hobgoblin"
+  ],
+  "filePath": "/data/glossary/entries/races/verdan.json"
 }

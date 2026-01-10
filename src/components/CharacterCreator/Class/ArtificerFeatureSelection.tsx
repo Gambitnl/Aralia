@@ -90,6 +90,9 @@ const ArtificerFeatureSelection: React.FC<ArtificerFeatureSelectionProps> = ({
               <div className="flex items-center">
                 <input type="checkbox" className="mr-2 form-checkbox text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500"
                   checked={selectedCantripIds.has(spell.id)}
+                  onChange={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, spellcastingInfo.knownCantrips)}
+                  disabled={!selectedCantripIds.has(spell.id) && selectedCantripIds.size >= spellcastingInfo.knownCantrips}
+                  aria-label={`Select cantrip ${spell.name}`}
                 />
                 {spell.name}
               </div>

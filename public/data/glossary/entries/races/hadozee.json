@@ -1,24 +1,55 @@
 {
-    "id": "hadozee",
-    "title": "Hadozee",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "AAG",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium or Small"},
-        {"label": "Speed", "value": "30 feet, climb 30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "wind",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "hadozee", "humanoid", "spelljammer", "beastfolk", "glide"],
-    "aliases": ["deck ape"],
-    "seeAlso": ["humanoid"],
-    "filePath": "/data/glossary/entries/races/hadozee.json"
+  "id": "hadozee",
+  "title": "Hadozee",
+  "category": "Character Races",
+  "entryLore": "Hadozee are simian humanoids with wing-like flaps of skin that extend from their arms to their legs, allowing them to glide through the air. Originally from a world with towering forests, they adapted to life among the branches before taking to the stars. Hadozee are known for their adventurous spirits, quick reflexes, and adaptability. They make excellent sailors and explorers, equally at home swinging through rigging as they are navigating the void of Wildspace.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "AAG",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet, climb 30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Dexterous Feet",
+      "icon": "hand",
+      "description": "As a [[bonus_action|Bonus Action]], you can use your feet to manipulate an object, open or close a door or container, or pick up or set down a Tiny object."
+    },
+    {
+      "name": "Glide",
+      "icon": "wind",
+      "description": "When you fall at least 10 feet above the ground, you can use your [[reaction]] to extend your skin membranes to glide horizontally a number of feet equal to your walking speed, and you take 0 damage from the fall. You determine the direction of the glide."
+    },
+    {
+      "name": "Hadozee Resilience",
+      "icon": "shield",
+      "description": "The magic that runs in your veins heightens your natural defenses. When you take damage, you can use your [[reaction]] to roll a d6. Add your [[proficiency_bonus|Proficiency Bonus]] to the number rolled, and reduce the damage you take by an amount equal to that total (minimum of 0 damage). You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "hadozee",
+    "humanoid",
+    "spelljammer",
+    "beastfolk",
+    "glide"
+  ],
+  "aliases": [
+    "deck ape",
+    "gliding monkey"
+  ],
+  "seeAlso": [
+    "humanoid"
+  ],
+  "filePath": "/data/glossary/entries/races/hadozee.json"
 }

@@ -1,0 +1,74 @@
+{
+  "id": "mark_of_hospitality_halfling",
+  "title": "Mark of Hospitality Halfling",
+  "category": "Character Races",
+  "entryLore": "The Mark of Hospitality grants abilities related to food, shelter, and comfort. House Ghallanda carries this mark, running the finest inns, taverns, and restaurants across Khorvaire. Halflings with the Mark of Hospitality have an innate talent for making others feel welcome, their establishments renowned for excellent service and warm atmospheres.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "ERLW",
+  "baseRace": "halfling",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Small"
+    },
+    {
+      "label": "Speed",
+      "value": "25 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Lucky",
+      "icon": "clover",
+      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
+    },
+    {
+      "name": "Brave",
+      "icon": "shield",
+      "description": "You have [[advantage]] on saving throws against being [[frightened]]."
+    },
+    {
+      "name": "Halfling Nimbleness",
+      "icon": "footprints",
+      "description": "You can move through the space of any creature that is of a size larger than yours."
+    },
+    {
+      "name": "Ever Hospitable",
+      "icon": "home",
+      "description": "When you make a Charisma ([[persuasion|Persuasion]]) check or an ability check involving brewer's supplies or cook's utensils, you can roll a d4 and add the number rolled to the ability check."
+    },
+    {
+      "name": "Innkeeper's Magic",
+      "icon": "magic",
+      "description": "You know the [[prestidigitation|Prestidigitation]] cantrip. You can also cast the [[purify_food_and_drink|Purify Food and Drink]] and [[unseen_servant|Unseen Servant]] spells with this trait. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a [[long_rest|Long Rest]]. Charisma is your spellcasting ability for these spells."
+    },
+    {
+      "name": "Spells of the Mark",
+      "icon": "scroll",
+      "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Hospitality Spells table are added to the spell list of your spellcasting class."
+    }
+  ],
+  "tags": [
+    "race",
+    "halfling",
+    "dragonmark",
+    "mark of hospitality",
+    "humanoid",
+    "eberron",
+    "house ghallanda"
+  ],
+  "aliases": [
+    "hospitality halfling",
+    "ghallanda"
+  ],
+  "seeAlso": [
+    "halfling",
+    "humanoid",
+    "prestidigitation"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_hospitality.json"
+}

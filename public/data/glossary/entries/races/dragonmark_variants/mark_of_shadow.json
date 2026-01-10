@@ -1,0 +1,85 @@
+{
+  "id": "mark_of_shadow_elf",
+  "title": "Mark of Shadow Elf",
+  "category": "Character Races",
+  "entryLore": "The Mark of Shadow grants power over illusion and darkness. House Phiarlan and House Thuranni both carry this mark, though the houses split centuries ago. Originally entertainers and artists, the houses now also provide espionage services. Elves with the Mark of Shadow are masters of deception, able to weave illusions and slip through shadows unseen.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "ERLW",
+  "baseRace": "elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws against being [[charmed]], and magic can't put you to sleep."
+    },
+    {
+      "name": "Trance",
+      "icon": "moon",
+      "description": "You don't need to sleep. Instead, you meditate deeply for 4 hours a day. After resting in this way, you gain the same benefit that a human does from 8 hours of sleep."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "perception",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Cunning Intuition",
+      "icon": "mask",
+      "description": "When you make a Charisma ([[performance|Performance]]) or Dexterity ([[stealth|Stealth]]) check, you can roll a d4 and add the number rolled to the ability check."
+    },
+    {
+      "name": "Shape Shadows",
+      "icon": "magic",
+      "description": "You know the [[minor_illusion|Minor Illusion]] cantrip. Starting at 3rd level, you can cast the [[invisibility|Invisibility]] spell once with this trait, and you regain the ability to cast it when you finish a [[long_rest|Long Rest]]. Charisma is your spellcasting ability for these spells."
+    },
+    {
+      "name": "Spells of the Mark",
+      "icon": "scroll",
+      "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Shadow Spells table are added to the spell list of your spellcasting class."
+    }
+  ],
+  "tags": [
+    "race",
+    "elf",
+    "dragonmark",
+    "mark of shadow",
+    "humanoid",
+    "eberron",
+    "house phiarlan",
+    "house thuranni"
+  ],
+  "aliases": [
+    "shadow elf",
+    "phiarlan",
+    "thuranni"
+  ],
+  "seeAlso": [
+    "elf",
+    "humanoid",
+    "invisibility"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_shadow.json"
+}

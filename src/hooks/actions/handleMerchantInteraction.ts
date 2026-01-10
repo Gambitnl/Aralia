@@ -9,6 +9,7 @@ import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { calculatePrice } from '../../utils/economy/economyUtils';
+import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 
 /**
  * Validates a merchant transaction (buy/sell) before dispatching to the reducer.
@@ -69,6 +70,39 @@ export async function handleOpenDynamicMerchant({
 
   dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: `Entering ${merchantType}...` } });
 
+  // --- NPC Population Logic ---
+  // If we have a stable buildingId, we check if an NPC lives here.
+  // If not, we generate one and persist them.
+  let merchantName = merchantType; // Default fallback
+  const resolvedBuildingId = (typeof buildingId === 'string' && buildingId) || 
+                             (typeof (villageContext as VillageActionContext)?.buildingId === 'string' ? (villageContext as VillageActionContext).buildingId : undefined);
+
+  if (resolvedBuildingId) {
+    // Check registry
+    let npc = gameState.generatedNpcs?.[resolvedBuildingId];
+
+    if (!npc) {
+      // Generate new Merchant NPC
+      const config: NPCGenerationConfig = {
+        id: resolvedBuildingId, // Use building ID as NPC ID for simple 1-to-1 mapping
+        role: 'merchant',
+        occupation: merchantType.replace('shop_', '').replace('_', ' '), // e.g. shop_blacksmith -> blacksmith
+        // TODO: In future, derive race/level from Town data (wealth/biome)
+      };
+      
+      npc = generateNPC(config);
+      
+      // Persist to state
+      dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc } });
+      addMessage(`A new face greets you: ${npc.name}, the ${npc.biography.age}-year-old ${npc.biography.classId}.`, 'system');
+    } else {
+      addMessage(`You recognize ${npc.name}.`, 'system');
+    }
+    
+    // Use the generated name for the UI
+    merchantName = `${npc.name} (${merchantType})`;
+  }
+
   // 1. Generate inventory using Gemini
   const contextForPrompt = villageContext as VillageActionContext | undefined;
   if (contextForPrompt) {
@@ -81,10 +115,7 @@ export async function handleOpenDynamicMerchant({
   // TownCanvas interactions often provide `buildingId` but not a full VillageActionContext.
   // We still want deterministic fallback inventories per-building (when AI is off / fails),
   // so we pass a stable seed hint through to the generator.
-  const resolvedSeedKey =
-    (typeof seedKey === 'string' && seedKey) ||
-    (typeof buildingId === 'string' && buildingId) ||
-    (typeof (villageContext as VillageActionContext)?.buildingId === 'string' ? (villageContext as VillageActionContext).buildingId : undefined);
+  const resolvedSeedKey = (typeof seedKey === 'string' && seedKey) || resolvedBuildingId;
 
   const inventoryResult = await GeminiService.generateMerchantInventory(
     merchantType,
@@ -126,7 +157,7 @@ export async function handleOpenDynamicMerchant({
       dispatch({ 
           type: 'OPEN_MERCHANT', 
           payload: { 
-              merchantName: merchantType, 
+              merchantName: merchantName, 
               inventory: inventory,
               economy: gameState.economy // Prioritize global world state
           } 

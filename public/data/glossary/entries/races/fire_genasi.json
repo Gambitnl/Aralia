@@ -3,7 +3,6 @@
   "title": "Fire Genasi Lineage",
   "category": "Character Races",
   "entryLore": "Descended from efreet, the genies of the Elemental Plane of Fire, fire genasi channel the flamboyant and often destructive nature of flame. Their skin often glows with embers or crackles with internal heat, and their hair can plume like threads of fire when they are angered or excited.",
-  "imageUrl": "/assets/images/races/fire_genasi_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -37,5 +36,7 @@
     "burning_hands",
     "flame_blade"
   ],
-  "filePath": "/data/glossary/entries/races/fire_genasi.json"
+  "filePath": "/data/glossary/entries/races/fire_genasi.json",
+  "maleImageUrl": "/assets/images/races/fire_genasi_male.png",
+  "femaleImageUrl": "/assets/images/races/fire_genasi_female.png"
 }

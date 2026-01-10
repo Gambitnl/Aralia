@@ -8,8 +8,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Race } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
-import { RaceDetailPane, RaceDetailData } from './RaceDetailPane';
+import { RaceDetailPane, RaceDetailData, RacialChoiceData } from './RaceDetailPane';
 import { RACE_GROUPS, getRaceGroupById } from '../../../data/races/raceGroups';
+import { BTN_PRIMARY } from '../../../styles/buttonStyles';
 
 // Helper to transform raw Race data into the detail pane format
 const transformRaceData = (race: Race): RaceDetailData => {
@@ -68,7 +69,7 @@ const transformRaceData = (race: Race): RaceDetailData => {
     }
   }
 
-  const furtherChoicesNote = (race.elvenLineages || race.gnomeSubraces || race.giantAncestryChoices || race.fiendishLegacies || race.racialSpellChoice)
+  const furtherChoicesNote = (race.elvenLineages || race.gnomeSubraces || race.giantAncestryChoices || race.fiendishLegacies)
     ? "Your choice of this race will unlock additional options in the next steps of character creation."
     : undefined;
 
@@ -82,6 +83,7 @@ const transformRaceData = (race: Race): RaceDetailData => {
     baseTraits,
     feats,
     furtherChoicesNote,
+    racialSpellChoice: race.racialSpellChoice,
   };
 };
 
@@ -94,12 +96,15 @@ interface RaceGroup {
 
 interface RaceSelectionProps {
   races: Race[];
-  onRaceSelect: (raceId: string) => void;
+  onRaceSelect: (raceId: string, choices?: RacialChoiceData) => void;
 }
+
+type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
 
 const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) => {
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
+  const [selectedSpellAbility, setSelectedSpellAbility] = useState<AbilityScoreName | null>(null);
 
   // Group races by baseRace
   const raceGroups = useMemo(() => {
@@ -139,6 +144,11 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
       }
     }
   }, [raceGroups, selectedRaceId]);
+
+  // Reset spell ability when race changes
+  useEffect(() => {
+    setSelectedSpellAbility(null);
+  }, [selectedRaceId]);
 
   const selectedRace = races.find(r => r.id === selectedRaceId);
 
@@ -194,8 +204,29 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
     setSelectedRaceId(raceId);
   };
 
+  const raceConfirmButton = selectedRace ? (
+    <button
+      onClick={() => {
+        const choices: RacialChoiceData = {};
+        if (selectedSpellAbility) {
+          choices.spellAbility = selectedSpellAbility;
+        }
+        onRaceSelect(selectedRace.id, choices);
+      }}
+      className={`px-6 py-2 text-sm rounded-lg shadow-md transition-all ${
+        selectedRace.racialSpellChoice && !selectedSpellAbility
+          ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+          : BTN_PRIMARY
+      }`}
+      disabled={!!(selectedRace.racialSpellChoice && !selectedSpellAbility)}
+      title={selectedRace.racialSpellChoice && !selectedSpellAbility ? 'Please select a spellcasting ability first' : `Confirm ${selectedRace.name}`}
+    >
+      Confirm {selectedRace.name}
+    </button>
+  ) : null;
+
   return (
-    <CreationStepLayout title="Choose Your Race">
+    <CreationStepLayout title="Choose Your Race" raceConfirmButton={raceConfirmButton}>
       <SplitPaneLayout
         controls={
           <div className="space-y-1">
@@ -301,7 +332,12 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
               transition={{ duration: 0.2 }}
               className="h-full"
             >
-              <RaceDetailPane race={detailData} onSelect={onRaceSelect} />
+              <RaceDetailPane
+                race={detailData}
+                onSelect={onRaceSelect}
+                selectedSpellAbility={selectedSpellAbility}
+                onSpellAbilityChange={setSelectedSpellAbility}
+              />
             </motion.div>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500 italic">

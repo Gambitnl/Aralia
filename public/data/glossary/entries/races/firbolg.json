@@ -3,7 +3,6 @@
   "title": "Firbolg",
   "category": "Character Races",
   "entryLore": "Firbolgs are distant cousins of giants who trace their origins to the primeval forests of the multiverse. They possess a deep connection to the wild, mastery over obscuring magic, and the ability to commune with nature. Often gentle and reclusive, they prefer to use their powers to remain unseen and protect the woodland realms from those who would exploit them.",
-  "imageUrl": "/assets/images/races/firbolg_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -60,5 +59,7 @@
     "powerful_build",
     "speech_of_beast_and_leaf"
   ],
-  "filePath": "/data/glossary/entries/races/firbolg.json"
+  "filePath": "/data/glossary/entries/races/firbolg.json",
+  "maleImageUrl": "/assets/images/races/firbolg_male.png",
+  "femaleImageUrl": "/assets/images/races/firbolg_female.png"
 }

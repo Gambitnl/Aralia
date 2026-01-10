@@ -10,16 +10,13 @@ import React, { useCallback } from 'react';
 import { GameState as _GameState, GamePhase, PlayerCharacter, MapData, Location as _Location, Item, StartGameSuccessPayload } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { STARTING_LOCATION_ID, LOCATIONS, BIOMES } from '../constants';
-// TODO(lint-intent): 'initialInventoryForDummyCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { getDummyParty, initialInventoryForDummyCharacter as _initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
+import { getDummyParty } from '../data/dev/dummyCharacter';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { generateMap } from '../services/mapService';
 import * as SaveLoadService from '../services/saveLoadService';
-import * as GeminiService from '../services/geminiService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 import { SeededRandom } from '../utils/seededRandom';
+import { generateCompanion } from '../services/CompanionGenerator';
 
 type AddMessageFn = (text: string, sender?: 'system' | 'player' | 'npc') => void;
 
@@ -39,55 +36,57 @@ export function useGameInitialization({
     const newWorldSeed = new SeededRandom(Date.now()).next() * 1000000;
     const initialDynamicItems: Record<string, string[]> = {};
     Object.values(LOCATIONS).forEach(loc => {
-        initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
+      initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
     });
     const newMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, newWorldSeed);
     dispatch({ type: 'START_NEW_GAME_SETUP', payload: { mapData: newMapData, dynamicLocationItemIds: initialDynamicItems, worldSeed: newWorldSeed } });
   }, [dispatch]);
 
   const handleSkipCharacterCreator = useCallback(async () => {
-    dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating adventurous names..." } });
+    dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating party with full backstories..." } });
 
     const newWorldSeed = new SeededRandom(Date.now()).next() * 1000000;
-    const dummyParty = getDummyParty();
-    const baseFighter = dummyParty.find(c => c.class.id === 'fighter');
-    const baseCleric = dummyParty.find(c => c.class.id === 'cleric');
 
-    if (!baseFighter || !baseCleric) {
-        dispatch({ type: 'SET_ERROR', payload: "Dummy character data is missing." });
-        return;
-    }
+    // Define party composition - each member will get full NPC-style details
+    const partyConfigs = [
+      { level: 1, classId: 'fighter', raceId: 'human', gender: 'male' as const },
+      { level: 1, classId: 'cleric', raceId: 'dwarf', gender: 'female' as const },
+      { level: 1, classId: 'rogue', raceId: 'tiefling', gender: 'male' as const },
+    ];
 
     try {
-        const [fighterNameResult, clericNameResult] = await Promise.all([
-            GeminiService.generateCharacterName(baseFighter.race.name, baseFighter.class.name, 'Male', 'Dragonlance', null),
-            GeminiService.generateCharacterName(baseCleric.race.name, baseCleric.class.name, 'Female', 'Forgotten Realms', null)
-        ]);
-        
-        if (fighterNameResult.data?.rateLimitHit || clericNameResult.data?.rateLimitHit) {
-            dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
-        }
+      const generatedParty: PlayerCharacter[] = [];
 
-        const fighterName = fighterNameResult.data?.name || "Valerius";
-        const clericName = clericNameResult.data?.name || "Helga Stonebraid";
-        
-        const generatedParty = dummyParty.map(p => {
-            if (p.class.id === 'fighter') return { ...p, name: fighterName };
-            if (p.class.id === 'cleric') return { ...p, name: clericName };
-            return p;
-        });
-        
-        const initialDynamicItems: Record<string, string[]> = {};
-        Object.values(LOCATIONS).forEach(loc => {
-            initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
-        });
-        const newMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, newWorldSeed);
-        dispatch({ type: 'START_GAME_FOR_DUMMY', payload: { mapData: newMapData, dynamicLocationItemIds: initialDynamicItems, generatedParty, worldSeed: newWorldSeed }});
+      for (const config of partyConfigs) {
+        const companion = await generateCompanion(config);
+        if (companion) {
+          // Mark the first member as the player
+          if (generatedParty.length === 0) {
+            companion.id = 'player';
+          } else {
+            companion.id = companion.id || crypto.randomUUID();
+          }
+          generatedParty.push(companion);
+        }
+      }
+
+      if (generatedParty.length !== partyConfigs.length) {
+        throw new Error(`Failed to generate all party members. Generated ${generatedParty.length}/${partyConfigs.length}.`);
+      }
+
+      const initialDynamicItems: Record<string, string[]> = {};
+      Object.values(LOCATIONS).forEach(loc => {
+        initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
+      });
+      const newMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, newWorldSeed);
+      dispatch({ type: 'START_GAME_FOR_DUMMY', payload: { mapData: newMapData, dynamicLocationItemIds: initialDynamicItems, generatedParty, worldSeed: newWorldSeed } });
 
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error("Failed to generate character names:", error);
-        dispatch({ type: 'SET_ERROR', payload: `Failed to generate character names: ${errorMessage}` });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Failed to generate party:", error);
+      dispatch({ type: 'SET_ERROR', payload: `Failed to generate party: ${errorMessage}` });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
     }
   }, [dispatch]);
 
@@ -95,13 +94,13 @@ export function useGameInitialization({
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true } });
     const result = await SaveLoadService.loadGame();
     if (result.success && result.data) {
-        dispatch({ type: 'LOAD_GAME_SUCCESS', payload: result.data });
-        addMessage("Game loaded successfully.", "system");
-        dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: result.message || "Game loaded successfully." } });
+      dispatch({ type: 'LOAD_GAME_SUCCESS', payload: result.data });
+      addMessage("Game loaded successfully.", "system");
+      dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: result.message || "Game loaded successfully." } });
     } else {
-        addMessage(result.message || "Failed to load game.", "system");
-        dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: result.message || "Failed to load game." } });
-        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
+      addMessage(result.message || "Failed to load game.", "system");
+      dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: result.message || "Failed to load game." } });
+      dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
     }
     dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
   }, [addMessage, dispatch]);
@@ -111,20 +110,20 @@ export function useGameInitialization({
       const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
       const initialDynamicItems: Record<string, string[]> = {};
       Object.values(LOCATIONS).forEach(loc => {
-          initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
+        initialDynamicItems[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
       });
       const mapDataToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
       const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
       const initialActiveDynamicNpcs = determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS);
 
       const payload: StartGameSuccessPayload = {
-          character,
-          startingInventory,
-          mapData: mapDataToUse,
-          dynamicLocationItemIds: initialDynamicItems,
-          initialLocationDescription: initialLocation.baseDescription,
-          initialSubMapCoordinates: initialSubMapCoords,
-          initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
+        character,
+        startingInventory,
+        mapData: mapDataToUse,
+        dynamicLocationItemIds: initialDynamicItems,
+        initialLocationDescription: initialLocation.baseDescription,
+        initialSubMapCoordinates: initialSubMapCoords,
+        initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
       };
 
       dispatch({
@@ -136,26 +135,26 @@ export function useGameInitialization({
   );
 
   const initializeDummyPlayerState = useCallback(() => {
-      const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
-      const worldSeed = Date.now(); // Generate a seed for the dummy start
-      const mapToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
-      const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
-      const initialActiveDynamicNpcs = determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS);
+    const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
+    const worldSeed = Date.now(); // Generate a seed for the dummy start
+    const mapToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
+    const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
+    const initialActiveDynamicNpcs = determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS);
 
-      const dynamicItemsToUse: Record<string, string[]> = {};
-      Object.values(LOCATIONS).forEach(loc => {
-          dynamicItemsToUse[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
-      });
-      dispatch({
-        type: 'INITIALIZE_DUMMY_PLAYER_STATE',
-        payload: {
-            mapData: mapToUse,
-            dynamicLocationItemIds: dynamicItemsToUse,
-            initialLocationDescription: initialLocation.baseDescription,
-            initialSubMapCoordinates: initialSubMapCoords,
-            initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
-        }
-      });
+    const dynamicItemsToUse: Record<string, string[]> = {};
+    Object.values(LOCATIONS).forEach(loc => {
+      dynamicItemsToUse[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
+    });
+    dispatch({
+      type: 'INITIALIZE_DUMMY_PLAYER_STATE',
+      payload: {
+        mapData: mapToUse,
+        dynamicLocationItemIds: dynamicItemsToUse,
+        initialLocationDescription: initialLocation.baseDescription,
+        initialSubMapCoordinates: initialSubMapCoords,
+        initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
+      }
+    });
   }, [currentMapData, dispatch]);
 
   return {

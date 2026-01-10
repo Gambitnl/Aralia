@@ -3,7 +3,6 @@
   "title": "Elf",
   "category": "Character Races",
   "entryLore": "Created by the god Corellon, elves are a magical people of otherworldly grace. While they lost the ability to shape-shift at will long ago, they retain a deep connection to the Feywild and its primal magic. Elves don't sleep but instead enter a Trance when they need to rest, remaining aware of their surroundings while immersing themselves in memories and meditations.",
-  "imageUrl": "/assets/images/races/elf_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -67,5 +66,7 @@
     "wood_elf_lineage",
     "eladrin"
   ],
-  "filePath": "/data/glossary/entries/races/elf.json"
+  "filePath": "/data/glossary/entries/races/elf.json",
+  "maleImageUrl": "/assets/images/races/elf_male.png",
+  "femaleImageUrl": "/assets/images/races/elf_female.png"
 }

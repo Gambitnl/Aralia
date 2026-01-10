@@ -2,7 +2,7 @@
 
 > **Status**: Planning
 > **Created**: 2026-01-08
-> **Last Updated**: 2026-01-08
+> **Last Updated**: 2026-01-09
 
 This document defines the complete race structure for the Aralia character creator, including parent groups, subchoices, and standalone races.
 
@@ -67,6 +67,7 @@ src/data/races/
     hill_dwarf.ts        # 2014 PHB
     mountain_dwarf.ts    # 2014 PHB
     duergar.ts           # Grey Dwarf
+    mark_of_warding_dwarf.ts # Eberron Dragonmark
 
   eladrin/
     spring_eladrin.ts
@@ -82,6 +83,7 @@ src/data/races/
     shadar_kai.ts        # MotM
     astral_elf.ts        # Spelljammer
     pallid_elf.ts        # CR: Pallid Elf (renamed)
+    mark_of_shadow_elf.ts # Eberron Dragonmark
 
   genasi/
     air_genasi.ts
@@ -98,6 +100,7 @@ src/data/races/
     forest_gnome.ts      # 2014 PHB
     rock_gnome.ts        # 2014 PHB
     deep_gnome.ts        # Svirfneblin
+    mark_of_scribing_gnome.ts # Eberron Dragonmark
 
   goliath/
     cloud_goliath.ts     # Cloud Giant ancestry
@@ -109,24 +112,33 @@ src/data/races/
 
   half_elf/
     half_elf.ts          # Base 2014
-    half_elf_aquatic.ts  # Aquatic Elf Descent
-    half_elf_drow.ts     # Drow Descent
-    half_elf_high.ts     # High Elf Descent
-    half_elf_wood.ts     # Wood Elf Descent
+    half_elf_aquatic.ts  # Aquatic Elf
+    half_elf_drow.ts     # Drow
+    half_elf_high.ts     # High Elf
+    half_elf_wood.ts     # Wood Elf
+    mark_of_detection_half_elf.ts # Eberron Dragonmark
+    mark_of_storm_half_elf.ts     # Eberron Dragonmark
 
   half_orc/
     half_orc.ts          # Base 2014
     exandrian_half_orc.ts # CR: Orc of Exandria (renamed)
+    mark_of_finding_half_orc.ts # Eberron Dragonmark
 
   halfling/
     halfling.ts          # 2024 PHB version
     lightfoot_halfling.ts # 2014 PHB
     stout_halfling.ts    # 2014 PHB
     lotusden_halfling.ts # CR: Lotusden (renamed)
+    mark_of_healing_halfling.ts # Eberron Dragonmark
+    mark_of_hospitality_halfling.ts # Eberron Dragonmark
 
   human/
     human.ts             # 2024 PHB version
     human_diverse.ts     # 2014 PHB version (creative name TBD)
+    mark_of_handling_human.ts  # Eberron Dragonmark
+    mark_of_making_human.ts    # Eberron Dragonmark
+    mark_of_passage_human.ts   # Eberron Dragonmark
+    mark_of_sentinel_human.ts  # Eberron Dragonmark
 
   shifter/
     beasthide_shifter.ts
@@ -206,23 +218,23 @@ src/data/races/
 | **Aasimar** | Aasimar (2024), Protector, Scourge, Fallen | 4 |
 | **Beastfolk** | Aarakocra, Giff, Hadozee, Harengon, Kenku, Leonin, Lizardfolk, Loxodon, Minotaur, Tabaxi, Thri-kreen, Tortle, Yuan-ti | 13 |
 | **Dragonborn** | Black, Blue, Brass, Bronze, Copper, Gold, Green, Red, Silver, White, Draconblood*, Ravenite* | 12 |
-| **Dwarf** | Dwarf (2024), Hill Dwarf, Mountain Dwarf, Duergar | 4 |
+| **Dwarf** | Dwarf (2024), Hill Dwarf, Mountain Dwarf, Duergar, Mark of Warding | 5 |
 | **Eladrin** | Spring, Summer, Autumn, Winter | 4 |
-| **Elf** | High Elf, Wood Elf, Drow, Sea Elf, Shadar-kai, Astral Elf, Pallid Elf* | 7 |
+| **Elf** | High Elf, Wood Elf, Drow, Sea Elf, Shadar-kai, Astral Elf, Pallid Elf*, Mark of Shadow | 8 |
 | **Genasi** | Air, Earth, Fire, Water | 4 |
 | **Gith** | Githyanki, Githzerai | 2 |
-| **Gnome** | Gnome (2024), Forest Gnome, Rock Gnome, Deep Gnome | 4 |
+| **Gnome** | Gnome (2024), Forest Gnome, Rock Gnome, Deep Gnome, Mark of Scribing | 5 |
 | **Goliath** | Cloud, Fire, Frost, Hill, Stone, Storm | 6 |
-| **Half-Elf** | Half-Elf, Aquatic Descent, Drow Descent, High Elf Descent, Wood Elf Descent | 5 |
-| **Half-Orc** | Half-Orc, Exandrian* | 2 |
-| **Halfling** | Halfling (2024), Lightfoot, Stout, Lotusden* | 4 |
-| **Human** | Human (2024), Human (2014 - name TBD) | 2 |
+| **Half-Elf** | Half-Elf, Aquatic, Drow, High Elf, Wood Elf, Mark of Detection, Mark of Storm | 7 |
+| **Half-Orc** | Half-Orc, Exandrian*, Mark of Finding | 3 |
+| **Halfling** | Halfling (2024), Lightfoot, Stout, Lotusden*, Mark of Healing, Mark of Hospitality | 6 |
+| **Human** | Human (2024), Human (2014 - name TBD), Mark of Handling, Mark of Making, Mark of Passage, Mark of Sentinel | 6 |
 | **Shifter** | Beasthide, Longtooth, Swiftstride, Wildhunt | 4 |
 | **Tiefling** | Abyssal, Chthonic, Infernal | 3 |
 
-*\* = Critical Role origin, will be renamed*
+*\* = Critical Role origin, renamed*
 
-**Grouped subtotal: 80 variants**
+**Grouped subtotal: 92 variants**
 
 ### Standalone Races (Single-Item Accordions)
 
@@ -255,9 +267,9 @@ src/data/races/
 
 | Category | Count |
 |----------|-------|
-| Grouped variants | 80 |
+| Grouped variants | 92 |
 | Standalone races | 18 |
-| **Total race entries** | **98** |
+| **Total race entries** | **110** |
 | Parent groups (accordions) | 34 |
 
 ---
@@ -324,7 +336,6 @@ Per project requirements, the following are NOT included:
 - Variant Human (2014)
 - Variant Aasimar (DMG 2014)
 - Custom Lineage (Tasha's)
-- All Dragonmark races (Eberron)
 
 ---
 
@@ -346,11 +357,24 @@ Decided during implementation. Examples:
 
 ---
 
+## Architecture Notes
+
+### Dragonborn Grouping
+The Dragonborn group could potentially be subdivided into:
+- **Chromatic Dragonborn**: Black, Blue, Green, Red, White
+- **Metallic Dragonborn**: Brass, Bronze, Copper, Gold, Silver
+- **Critical Role Variants**: Draconblood, Ravenite
+
+This subdivision is not yet implemented but could be considered for the UI if the single accordion becomes too large.
+
+### Half-Elf Naming
+Half-Elf variants are named without "Descent" suffix (e.g., "Half-Elf (Aquatic)" not "Aquatic Descent").
+
 ## Open Questions
 
-1. **Critical Role race names** - Decide during implementation
-2. **Human (2014) name** - Decide during implementation
-3. **Comparison table edge cases** - How to handle races with 10+ traits vs races with 3?
+1. **Human (2014) name** - Decide during implementation
+2. **Comparison table edge cases** - How to handle races with 10+ traits vs races with 3?
+3. **Dragonborn subdivision** - Should chromatic/metallic be separate accordions?
 
 ---
 

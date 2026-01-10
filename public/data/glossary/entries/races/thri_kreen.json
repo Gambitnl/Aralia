@@ -1,24 +1,71 @@
 {
-    "id": "thri_kreen",
-    "title": "Thri-kreen",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "AAG",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[monstrosity]]"},
-        {"label": "Size", "value": "Medium or Small"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "bug",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "thri_kreen", "monstrosity", "spelljammer", "beastfolk", "insectoid"],
-    "aliases": ["mantis warrior"],
-    "seeAlso": ["monstrosity"],
-    "filePath": "/data/glossary/entries/races/thri_kreen.json"
+  "id": "thri_kreen",
+  "title": "Thri-kreen",
+  "category": "Character Races",
+  "entryLore": "Thri-kreen are insectoid humanoids who originated on the deserts of the world Athas but can be found in Wildspace and the Astral Plane. They have six limbs, with four serving as arms and two as legs. Their hard exoskeletons provide natural protection, and their large compound eyes give them excellent vision. Thri-kreen don't require sleep and can remain alert at all times, which makes them excellent sentinels. They communicate using a combination of clicks, chattering mandibles, and limited telepathy. Many other races find thri-kreen difficult to understand, as their alien psychology and lack of need for sleep makes them seem strange and distant.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "AAG",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[monstrosity|Monstrosity]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of yourself as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Chameleon Carapace",
+      "icon": "stealth",
+      "description": "While you aren't wearing armor, your carapace gives you a base AC of 13 + your Dexterity modifier. As an action, you can change the color of your carapace to match the color and texture of your surroundings, giving you [[advantage]] on Dexterity ([[stealth|Stealth]]) checks made to hide in those surroundings."
+    },
+    {
+      "name": "Secondary Arms",
+      "icon": "arms",
+      "description": "You have two slightly smaller secondary arms below your primary pair of arms. The secondary arms can manipulate an object, open or close a door or container, pick up or set down a Tiny object, or wield a weapon that has the light property."
+    },
+    {
+      "name": "Sleepless",
+      "icon": "moon",
+      "description": "You do not require sleep and can remain conscious during a [[long_rest|Long Rest]], though you must still refrain from strenuous activity to gain the rest's benefits."
+    },
+    {
+      "name": "Thri-kreen Telepathy",
+      "icon": "telepathy",
+      "description": "Without the need for words, you can communicate telepathically with any creature within 120 feet of you. The creature understands you only if the two of you share a language. You can speak to creatures one at a time or all of them at the same time. To use this ability, the creature must be able to see you."
+    }
+  ],
+  "tags": [
+    "race",
+    "thri_kreen",
+    "monstrosity",
+    "spelljammer",
+    "beastfolk",
+    "insectoid",
+    "mantis"
+  ],
+  "aliases": [
+    "mantis warrior",
+    "mantis folk"
+  ],
+  "seeAlso": [
+    "monstrosity",
+    "long_rest"
+  ],
+  "filePath": "/data/glossary/entries/races/thri_kreen.json"
 }

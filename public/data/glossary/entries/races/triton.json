@@ -1,62 +1,63 @@
 {
-    "id": "triton",
-    "title": "Triton",
-    "category": "Character Races",
-    "entryLore": "Originally from the Elemental Plane of Water, tritons serve as vigilant guardians across the world's oceans. Perfectly adapted for life in the crushing depths, they establish majestic undersea settlements and protect the surface from the terrors that lurk below. They are often stoic and dutiful, carrying the weight of their aquatic guardianship with pride.",
-    "imageUrl": "/assets/images/races/triton_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Creature Type",
-            "value": "[[humanoid]]"
-        },
-        {
-            "label": "Size",
-            "value": "Medium"
-        },
-        {
-            "label": "Speed",
-            "value": "30 feet, Swim 30 feet"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Amphibious",
-            "icon": "water",
-            "description": "You can breathe air and water."
-        },
-        {
-            "name": "Control Air and Water",
-            "icon": "magic",
-            "description": "You know the [[fog_cloud|Fog Cloud]] spell. Starting at 3rd level, you can cast [[gust_of_wind|Gust of Wind]] once per long rest. Starting at 5th level, you can cast [[water_walk|Water Walk]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
-        },
-        {
-            "name": "Guardian of the Depths",
-            "icon": "shield",
-            "description": "Adapted to even the most frigid ocean depths, you have [[resistance|Resistance]] to [[cold_damage|Cold damage]]."
-        },
-        {
-            "name": "Emissary of the Sea",
-            "icon": "heart",
-            "description": "You can communicate simple ideas to any Beast, Elemental, or Monstrosity that has a swimming speed. They can understand your words, though you have no special ability to understand them in return."
-        }
-    ],
-    "tags": [
-        "race",
-        "triton",
-        "aquatic",
-        "amphibious",
-        "cold resistance",
-        "humanoid"
-    ],
-    "aliases": [],
-    "seeAlso": [
-        "humanoid",
-        "darkvision",
-        "cold_resistance",
-        "fog_cloud",
-        "gust_of_wind",
-        "water_walk"
-    ],
-    "filePath": "/data/glossary/entries/races/triton.json"
+  "id": "triton",
+  "title": "Triton",
+  "category": "Character Races",
+  "entryLore": "Originally from the Elemental Plane of Water, tritons serve as vigilant guardians across the world's oceans. Perfectly adapted for life in the crushing depths, they establish majestic undersea settlements and protect the surface from the terrors that lurk below. They are often stoic and dutiful, carrying the weight of their aquatic guardianship with pride.",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet, Swim 30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Amphibious",
+      "icon": "water",
+      "description": "You can breathe air and water."
+    },
+    {
+      "name": "Control Air and Water",
+      "icon": "magic",
+      "description": "You know the [[fog_cloud|Fog Cloud]] spell. Starting at 3rd level, you can cast [[gust_of_wind|Gust of Wind]] once per long rest. Starting at 5th level, you can cast [[water_walk|Water Walk]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+    },
+    {
+      "name": "Guardian of the Depths",
+      "icon": "shield",
+      "description": "Adapted to even the most frigid ocean depths, you have [[resistance|Resistance]] to [[cold_damage|Cold damage]]."
+    },
+    {
+      "name": "Emissary of the Sea",
+      "icon": "heart",
+      "description": "You can communicate simple ideas to any Beast, Elemental, or Monstrosity that has a swimming speed. They can understand your words, though you have no special ability to understand them in return."
+    }
+  ],
+  "tags": [
+    "race",
+    "triton",
+    "aquatic",
+    "amphibious",
+    "cold resistance",
+    "humanoid"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "darkvision",
+    "cold_resistance",
+    "fog_cloud",
+    "gust_of_wind",
+    "water_walk"
+  ],
+  "filePath": "/data/glossary/entries/races/triton.json",
+  "maleImageUrl": "/assets/images/races/triton_male.png",
+  "femaleImageUrl": "/assets/images/races/triton_female.png"
 }

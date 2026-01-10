@@ -1,24 +1,77 @@
 {
-    "id": "shadar_kai",
-    "title": "Shadar-kai",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "shadow",
-            "description": "TODO: Add trait descriptions - blessing of the raven queen"
-        }
-    ],
-    "tags": ["race", "elf", "shadar_kai", "humanoid", "shadowfell"],
-    "aliases": [],
-    "seeAlso": ["elf", "humanoid"],
-    "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json"
+  "id": "shadar_kai",
+  "title": "Shadar-kai",
+  "category": "Character Races",
+  "entryLore": "Shadar-kai are the elves of the Shadowfell, a bleak and haunted realm where emotion itself feels muted. They were once drawn to the Shadowfell by the Raven Queen, and over the centuries, some of them have been transformed by it, gaining supernatural abilities. Their skin ranges from alabaster to deep ebony, and many adorn themselves with elaborate tattoos, piercings, and scars. The shadar-kai serve the Raven Queen and act as her agents in the multiverse. They are grim but not without emotion—they simply express it differently, valuing passion and intensity in all things as a way to feel truly alive.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws you make to avoid or end the [[charmed]] condition on yourself."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "perception",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Trance",
+      "icon": "moon",
+      "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a [[long_rest|Long Rest]] in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+    },
+    {
+      "name": "Blessing of the Raven Queen",
+      "icon": "shadow",
+      "description": "As a [[bonus_action|Bonus Action]], you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Starting at 3rd level, you also gain resistance to all damage when you teleport using this trait. The resistance lasts until the start of your next turn. During that time, you appear ghostly and translucent."
+    },
+    {
+      "name": "Necrotic Resistance",
+      "icon": "shield",
+      "description": "You have resistance to [[necrotic_damage|necrotic damage]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "elf",
+    "shadar_kai",
+    "humanoid",
+    "shadowfell",
+    "raven queen"
+  ],
+  "aliases": [
+    "shadow elf"
+  ],
+  "seeAlso": [
+    "elf",
+    "humanoid",
+    "charmed",
+    "necrotic_damage"
+  ],
+  "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json"
 }

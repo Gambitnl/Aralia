@@ -11,6 +11,7 @@ import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
 import { NPCS } from '../../constants';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
+import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 
 interface HandleTalkProps {
   action: Action;
@@ -21,6 +22,54 @@ interface HandleTalkProps {
   playPcmAudio: PlayPcmAudioFn;
   playerContext: string;
   generalActionContext: string;
+}
+
+export async function handleStartDialogue({
+  action,
+  gameState,
+  dispatch,
+  addMessage
+}: HandleTalkProps): Promise<void> {
+  const { npcId } = action.payload || {};
+  if (!npcId) return;
+
+  // Check if NPC exists in static or generated registries
+  let npc = NPCS[npcId] || gameState.generatedNpcs?.[npcId];
+
+  // If not found, and ID looks like an ambient one (or we treat unknown as generative opportunity)
+  if (!npc) {
+    addMessage("Approaching a villager...", "system");
+    
+    // Generate new NPC
+    const config: NPCGenerationConfig = {
+      id: npcId,
+      role: 'civilian',
+      // In future, pull town wealth/biome from gameState to influence race/clothing
+    };
+    
+    npc = generateNPC(config);
+    
+    // Register them permanently
+    dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc } });
+    
+    // Add "Met" fact immediately so they remember you
+    const metFact: KnownFact = {
+        id: crypto.randomUUID(),
+        text: `Met the adventurer.`,
+        source: 'direct',
+        isPublic: true,
+        timestamp: gameState.gameTime.getTime(),
+        strength: 3,
+        lifespan: 999,
+    };
+    dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: npc.id, fact: metFact } });
+    dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
+    
+    addMessage(`You greet ${npc.name}, a ${npc.biography.age}-year-old ${npc.biography.classId}.`, "system");
+  }
+
+  // Now dispatch the actual session start with the guaranteed valid ID
+  dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId } });
 }
 
 export async function handleTalk({

@@ -3,7 +3,6 @@
   "title": "Goblin",
   "category": "Character Races",
   "entryLore": "Goblins are small humanoids with distant fey origins. Once servants of the Queen of Air and Darkness, they possess a supernatural knack for finding weak spots in larger foes and a remarkable ability to escape from danger. They are subterranean folk who use their cleverness and agility to survive and thrive in environments where larger creatures would struggle.",
-  "imageUrl": "/assets/images/races/goblin_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -52,5 +51,7 @@
     "fury_of_the_small",
     "nimble_escape"
   ],
-  "filePath": "/data/glossary/entries/races/goblin.json"
+  "filePath": "/data/glossary/entries/races/goblin.json",
+  "maleImageUrl": "/assets/images/races/goblin_male.png",
+  "femaleImageUrl": "/assets/images/races/goblin_female.png"
 }

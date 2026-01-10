@@ -11,12 +11,7 @@ import {
   Spell,
   FightingStyle,
   AbilityScoreName,
-  ElvenLineageType,
-  GnomeSubraceType,
-  GiantAncestryType,
-  FiendishLegacyType,
   Item,
-  DraconicAncestorType,
 } from '../../types';
 import {
   RACES_DATA,
@@ -43,14 +38,11 @@ import DruidFeatureSelection from './Class/DruidFeatureSelection';
 import WarlockFeatureSelection from './Class/WarlockFeatureSelection';
 import WeaponMasterySelection from './WeaponMasterySelection';
 import FeatSelection from './FeatSelection';
-import DragonbornAncestrySelection from './Race/DragonbornAncestrySelection';
-import ElfLineageSelection from './Race/ElvenLineageSelection';
-import GnomeSubraceSelection from './Race/GnomeSubraceSelection';
-import GiantAncestrySelection from './Race/GiantAncestrySelection';
-import TieflingLegacySelection from './Race/TieflingLegacySelection';
+// Deprecated: DragonbornAncestrySelection, ElfLineageSelection, GnomeSubraceSelection,
+// GiantAncestrySelection, TieflingLegacySelection, RacialSpellAbilitySelection
+// These have been replaced by inline race variant selection in RaceDetailPane
 import CentaurNaturalAffinitySkillSelection from './Race/CentaurNaturalAffinitySkillSelection';
 import ChangelingInstinctsSelection from './Race/ChangelingInstinctsSelection';
-import RacialSpellAbilitySelection from './Race/RacialSpellAbilitySelection';
 import VisualsSelection from './VisualsSelection';
 import NameAndReview from './NameAndReview';
 import CreationSidebar from './CreationSidebar';
@@ -120,13 +112,13 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const hasEligibleFeats = useMemo(() => featOptions.some(option => option.isEligible), [featOptions]);
 
   // Handlers (kept same as before)
-  const handleRaceSelect = useCallback((raceId: string) => dispatch({ type: 'SELECT_RACE', payload: RACES_DATA[raceId] }), [dispatch]);
-  const handleDragonbornAncestrySelect = useCallback((ancestry: DraconicAncestorType) => dispatch({ type: 'SELECT_DRAGONBORN_ANCESTRY', payload: ancestry }), [dispatch]);
-  const handleElvenLineageSelect = useCallback((lineageId: ElvenLineageType, spellAbility: AbilityScoreName) => dispatch({ type: 'SELECT_ELVEN_LINEAGE', payload: { lineageId, spellAbility } }), [dispatch]);
-  const handleGnomeSubraceSelect = useCallback((subraceId: GnomeSubraceType, spellAbility: AbilityScoreName) => dispatch({ type: 'SELECT_GNOME_SUBRACE', payload: { subraceId, spellAbility } }), [dispatch]);
-  const handleGiantAncestrySelect = useCallback((benefitId: GiantAncestryType) => dispatch({ type: 'SELECT_GIANT_ANCESTRY', payload: benefitId }), [dispatch]);
-  const handleTieflingLegacySelect = useCallback((legacyId: FiendishLegacyType, spellAbility: AbilityScoreName) => dispatch({ type: 'SELECT_TIEFLING_LEGACY', payload: { legacyId, spellAbility } }), [dispatch]);
-  const handleRacialSpellAbilitySelect = useCallback((ability: AbilityScoreName) => dispatch({ type: 'SELECT_RACIAL_SPELL_ABILITY', payload: ability }), [dispatch]);
+  const handleRaceSelect = useCallback((raceId: string, choices?: { spellAbility?: 'Intelligence' | 'Wisdom' | 'Charisma' }) => {
+    dispatch({ type: 'SELECT_RACE', payload: RACES_DATA[raceId] });
+    // Spell ability choices are now handled inline within the SELECT_RACE action via racialSelections
+  }, [dispatch]);
+  // Deprecated handlers removed: handleDragonbornAncestrySelect, handleElvenLineageSelect,
+  // handleGnomeSubraceSelect, handleGiantAncestrySelect, handleTieflingLegacySelect, handleRacialSpellAbilitySelect
+  // These are now handled inline via handleRaceSelect with RacialChoiceData
   const handleCentaurNaturalAffinitySkillSelect = useCallback((skillId: string) => dispatch({ type: 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL', payload: skillId }), [dispatch]);
   const handleChangelingInstinctsSelect = useCallback((skillIds: string[]) => dispatch({ type: 'SELECT_CHANGELING_INSTINCTS', payload: skillIds }), [dispatch]);
   const handleClassSelect = useCallback((classId: string) => dispatch({ type: 'SELECT_CLASS', payload: CLASSES_DATA[classId] }), [dispatch]);
@@ -186,27 +178,13 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         return <BackgroundSelection selectedRace={selectedRace} characterAge={state.characterAge} currentBackground={state.selectedBackground} onBackgroundChange={(backgroundId) => dispatch({ type: 'SELECT_BACKGROUND', payload: backgroundId })} onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state) })} onBack={goBack} />;
       case CreationStep.Visuals:
         return <VisualsSelection visuals={state.visuals} onVisualsChange={handleVisualsChange} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Class })} onBack={goBack} />;
-      case CreationStep.DragonbornAncestry:
-        return <DragonbornAncestrySelection onAncestrySelect={handleDragonbornAncestrySelect} onBack={goBack} />;
-      case CreationStep.ElvenLineage:
-        if (!selectedRace?.elvenLineages) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
-        return <ElfLineageSelection lineages={selectedRace.elvenLineages} onLineageSelect={handleElvenLineageSelect} onBack={goBack} />;
-      case CreationStep.GnomeSubrace:
-        if (!selectedRace?.gnomeSubraces) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
-        return <GnomeSubraceSelection subraces={selectedRace.gnomeSubraces} onSubraceSelect={handleGnomeSubraceSelect} onBack={goBack} />;
-      case CreationStep.GiantAncestry:
-        if (!selectedRace?.giantAncestryChoices) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
-        return <GiantAncestrySelection onAncestrySelect={handleGiantAncestrySelect} onBack={goBack} />;
-      case CreationStep.TieflingLegacy:
-        if (!selectedRace?.fiendishLegacies) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
-        return <TieflingLegacySelection onLegacySelect={handleTieflingLegacySelect} onBack={goBack} />;
+      // Deprecated steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace, GiantAncestry, TieflingLegacy
+      // These are now handled inline in RaceDetailPane
       case CreationStep.CentaurNaturalAffinitySkill:
         return <CentaurNaturalAffinitySkillSelection onSkillSelect={handleCentaurNaturalAffinitySkillSelect} onBack={goBack} />;
       case CreationStep.ChangelingInstincts:
         return <ChangelingInstinctsSelection onSkillsSelect={handleChangelingInstinctsSelect} onBack={goBack} />;
-      case CreationStep.RacialSpellAbilityChoice:
-        if (!racialSpellChoiceContext || !finalAbilityScores || !selectedClass) { dispatch({ type: 'SET_STEP', payload: CreationStep.AbilityScores }); return null; }
-        return <RacialSpellAbilitySelection raceName={racialSpellChoiceContext.raceName} traitName={racialSpellChoiceContext.traitName} traitDescription={racialSpellChoiceContext.traitDescription} onAbilitySelect={handleRacialSpellAbilitySelect} onBack={goBack} abilityScores={finalAbilityScores} selectedClass={selectedClass} />;
+      // Deprecated step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
       case CreationStep.Class:
         return <ClassSelection classes={Object.values(CLASSES_DATA)} onClassSelect={handleClassSelect} onBack={goBack} />;
       case CreationStep.AbilityScores:

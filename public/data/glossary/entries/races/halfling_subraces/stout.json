@@ -1,24 +1,63 @@
 {
-    "id": "stout_halfling",
-    "title": "Stout Halfling",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "PHB2014",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "[[size|Small]]"},
-        {"label": "Speed", "value": "25 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "shield",
-            "description": "TODO: Add trait descriptions - stout resilience, poison resistance"
-        }
-    ],
-    "tags": ["race", "halfling", "stout", "humanoid", "resilient"],
-    "aliases": [],
-    "seeAlso": ["halfling", "humanoid"],
-    "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
+  "id": "stout_halfling",
+  "title": "Stout Halfling",
+  "category": "Character Races",
+  "entryLore": "As a stout halfling, you're hardier than average and have some resistance to poison. Some say that stouts have dwarven blood. In the Forgotten Realms, these halflings are called stronghearts, and they're most common in the south. Stout halflings are a bit tougher and more robust than their lightfoot cousins. They tend to be bolder and more adventurous, though they still value home and hearth. Their rumored dwarven ancestry is reflected in their resilience and determination.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "PHB2014",
+  "baseRace": "halfling",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "25 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Lucky",
+      "icon": "dice",
+      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
+    },
+    {
+      "name": "Brave",
+      "icon": "heart",
+      "description": "You have [[advantage]] on saving throws against being [[frightened]]."
+    },
+    {
+      "name": "Halfling Nimbleness",
+      "icon": "dodge",
+      "description": "You can move through the space of any creature that is of a size larger than yours."
+    },
+    {
+      "name": "Stout Resilience",
+      "icon": "shield",
+      "description": "You have [[advantage]] on saving throws against [[poison]], and you have resistance to [[poison_damage|poison damage]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "halfling",
+    "stout",
+    "humanoid",
+    "resilient",
+    "tough"
+  ],
+  "aliases": [
+    "strongheart halfling"
+  ],
+  "seeAlso": [
+    "halfling",
+    "humanoid",
+    "frightened",
+    "poison"
+  ],
+  "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
 }

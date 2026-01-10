@@ -3,7 +3,6 @@
   "title": "Gnome",
   "category": "Character Races",
   "entryLore": "Gnomes are clever and inventive folk, petite in size but grand in curiosity. Often living in hidden burrows or forest enclaves, they protect their communities with masterful illusions and labyrinthine architecture. They are famously known for their sharp minds and a natural resistance to magical influence.",
-  "imageUrl": "/assets/images/races/gnome_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -55,5 +54,7 @@
     "rock_gnome",
     "deep_gnome"
   ],
-  "filePath": "/data/glossary/entries/races/gnome.json"
+  "filePath": "/data/glossary/entries/races/gnome.json",
+  "maleImageUrl": "/assets/images/races/gnome_male.png",
+  "femaleImageUrl": "/assets/images/races/gnome_female.png"
 }

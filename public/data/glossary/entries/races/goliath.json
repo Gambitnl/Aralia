@@ -3,7 +3,6 @@
   "title": "Goliath",
   "category": "Character Races",
   "entryLore": "Towering over most folk, goliaths are distant descendants of giants. Each goliath bears the favors of the first giants—supernatural boons that manifest as incredible strength or elemental powers. They are known for their physical prowess and their ability to momentarily manifest their ancestral size, becoming truly titanic on the battlefield.",
-  "imageUrl": "/assets/images/races/goliath_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -46,5 +45,7 @@
     "large_form",
     "powerful_build"
   ],
-  "filePath": "/data/glossary/entries/races/goliath.json"
+  "filePath": "/data/glossary/entries/races/goliath.json",
+  "maleImageUrl": "/assets/images/races/goliath_male.png",
+  "femaleImageUrl": "/assets/images/races/goliath_female.png"
 }

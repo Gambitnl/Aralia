@@ -44,7 +44,7 @@ import { handleMovement, handleQuickTravel, handleApproachSettlement, handleObse
 // Observation handlers are implemented in src/hooks/actions/handleObservation.ts.
 import { handleLookAround, handleInspectSubmapTile, handleAnalyzeSituation } from './handleObservation';
 // NPC interaction handlers are implemented in src/hooks/actions/handleNpcInteraction.ts.
-import { handleTalk } from './handleNpcInteraction';
+import { handleTalk, handleStartDialogue } from './handleNpcInteraction';
 // Item interaction handlers are implemented in src/hooks/actions/handleItemInteraction.ts.
 import { handleTakeItem, handleEquipItem, handleUnequipItem, handleUseItem, handleDropItem, handleHarvestResource } from './handleItemInteraction';
 // Oracle/Gemini handlers are implemented in src/hooks/actions/handleOracle.ts and handleGeminiCustom.ts.
@@ -380,8 +380,8 @@ export function buildActionHandlers({
     REGISTER_DYNAMIC_ENTITY: (action) => {
       dispatch({ type: 'REGISTER_DYNAMIC_ENTITY', payload: action.payload as any });
     },
-    START_DIALOGUE_SESSION: (action) => {
-      dispatch({ type: 'START_DIALOGUE_SESSION', payload: action.payload as any });
+    START_DIALOGUE_SESSION: async (action) => {
+      await handleStartDialogue({ action, gameState, dispatch, addMessage, addGeminiLog, playPcmAudio, playerContext, generalActionContext });
     },
     UPDATE_DIALOGUE_SESSION: (action) => {
       dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: action.payload as any });

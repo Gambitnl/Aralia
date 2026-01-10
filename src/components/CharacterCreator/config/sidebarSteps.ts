@@ -33,22 +33,13 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
     case CreationStep.Visuals:
       return true; // Visuals are always "complete" as they have defaults, or we could check if user interacts
 
-    case CreationStep.DragonbornAncestry:
-      return !!state.racialSelections['dragonborn']?.choiceId;
-    case CreationStep.ElvenLineage:
-      return !!state.racialSelections['elf']?.choiceId;
-    case CreationStep.GnomeSubrace:
-      return !!state.racialSelections['gnome']?.choiceId;
-    case CreationStep.GiantAncestry:
-      return !!state.racialSelections['goliath']?.choiceId;
-    case CreationStep.TieflingLegacy:
-      return !!state.racialSelections['tiefling']?.choiceId;
+    // Deprecated steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace, GiantAncestry, TieflingLegacy
+    // These are now handled inline in RaceDetailPane
     case CreationStep.CentaurNaturalAffinitySkill:
       return !!state.racialSelections['centaur']?.skillIds?.length;
     case CreationStep.ChangelingInstincts:
       return !!state.racialSelections['changeling']?.skillIds?.length;
-    case CreationStep.RacialSpellAbilityChoice:
-      return state.selectedRace ? !!state.racialSelections[state.selectedRace.id]?.spellAbility : false;
+    // Deprecated step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
     case CreationStep.Class:
       return state.selectedClass !== null;
     case CreationStep.AbilityScores:
@@ -97,61 +88,8 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     getSelectionSummary: (state) => state.selectedRace?.name ?? null,
     isVisible: () => true,
   },
-  {
-    step: CreationStep.DragonbornAncestry,
-    label: 'Draconic Ancestry',
-    group: 'origin',
-    parentStep: CreationStep.Race,
-    getSelectionSummary: (state) => {
-      const choice = state.racialSelections['dragonborn']?.choiceId;
-      return choice ? String(choice).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
-    },
-    isVisible: (state) => state.selectedRace?.id === 'dragonborn',
-  },
-  {
-    step: CreationStep.ElvenLineage,
-    label: 'Elven Lineage',
-    group: 'origin',
-    parentStep: CreationStep.Race,
-    getSelectionSummary: (state) => {
-      const choice = state.racialSelections['elf']?.choiceId;
-      return choice ? String(choice).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
-    },
-    isVisible: (state) => state.selectedRace?.id === 'elf',
-  },
-  {
-    step: CreationStep.GnomeSubrace,
-    label: 'Gnome Subrace',
-    group: 'origin',
-    parentStep: CreationStep.Race,
-    getSelectionSummary: (state) => {
-      const choice = state.racialSelections['gnome']?.choiceId;
-      return choice ? String(choice).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
-    },
-    isVisible: (state) => state.selectedRace?.id === 'gnome',
-  },
-  {
-    step: CreationStep.GiantAncestry,
-    label: 'Giant Ancestry',
-    group: 'origin',
-    parentStep: CreationStep.Race,
-    getSelectionSummary: (state) => {
-      const choice = state.racialSelections['goliath']?.choiceId;
-      return choice ? String(choice).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
-    },
-    isVisible: (state) => state.selectedRace?.id === 'goliath',
-  },
-  {
-    step: CreationStep.TieflingLegacy,
-    label: 'Fiendish Legacy',
-    group: 'origin',
-    parentStep: CreationStep.Race,
-    getSelectionSummary: (state) => {
-      const choice = state.racialSelections['tiefling']?.choiceId;
-      return choice ? String(choice).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
-    },
-    isVisible: (state) => state.selectedRace?.id === 'tiefling',
-  },
+  // Deprecated sidebar steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace,
+  // GiantAncestry, TieflingLegacy - now handled inline in RaceDetailPane
   {
     step: CreationStep.CentaurNaturalAffinitySkill,
     label: 'Natural Affinity',
@@ -240,17 +178,7 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     },
     isVisible: () => true,
   },
-  {
-    step: CreationStep.RacialSpellAbilityChoice,
-    label: 'Spellcasting Ability',
-    group: 'abilities',
-    getSelectionSummary: (state) => {
-      if (!state.selectedRace) return null;
-      const ability = state.racialSelections[state.selectedRace.id]?.spellAbility;
-      return ability ?? null;
-    },
-    isVisible: (state) => state.racialSpellChoiceContext !== null,
-  },
+  // Deprecated sidebar step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
   {
     step: CreationStep.HumanSkillChoice,
     label: 'Versatile Skill',

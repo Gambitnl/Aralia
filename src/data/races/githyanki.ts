@@ -8,6 +8,7 @@ import { Race } from '../../types';
 export const GITHYANKI_DATA: Race = {
   id: 'githyanki',
   name: 'Githyanki',
+  baseRace: 'gith',
   description:
     'Once members of a people who escaped servitude to mind flayers, githyanki split from their cousins, githzerai, and fled to the Astral Plane. In that timeless, silvery realm, githyanki honed their psionic powers and built a great city called Tu’narath. They have since spread throughout the multiverse, starting in outposts outside the Astral Plane, called creches, where time passes and their children can reach adulthood.',
   abilityBonuses: [],

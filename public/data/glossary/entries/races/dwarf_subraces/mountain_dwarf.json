@@ -1,0 +1,51 @@
+{
+    "id": "mountain_dwarf",
+    "title": "Mountain Dwarf",
+    "category": "Character Races",
+    "entryLore": "Mountain dwarves are strong and hardy, accustomed to a difficult life in rugged terrain. They're probably on the tall side for a dwarf and tend toward lighter coloration. Mountain dwarves are known for their skill at warfare and their superior craftsmanship in armor and weapons. Their kingdoms, carved from the hearts of mountains, are renowned throughout the world. Mountain dwarves pride themselves on their martial traditions, with many clans maintaining elite military orders that have protected their holds for countless generations.",
+    "imageUrl": null,
+    "source": "PHB2014",
+    "baseRace": "dwarf",
+    "characteristics": [
+        {"label": "Creature Type", "value": "[[humanoid|Humanoid]]"},
+        {"label": "Size", "value": "Medium"},
+        {"label": "Speed", "value": "25 feet"},
+        {"label": "Darkvision", "value": "60 feet"}
+    ],
+    "traits": [
+        {
+            "name": "Darkvision",
+            "icon": "eye",
+            "description": "Accustomed to life underground, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+        },
+        {
+            "name": "Dwarven Resilience",
+            "icon": "shield",
+            "description": "You have [[advantage]] on saving throws against [[poison]], and you have resistance to [[poison_damage|poison damage]]."
+        },
+        {
+            "name": "Dwarven Combat Training",
+            "icon": "axe",
+            "description": "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer."
+        },
+        {
+            "name": "Tool Proficiency",
+            "icon": "tools",
+            "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools."
+        },
+        {
+            "name": "Stonecunning",
+            "icon": "stone",
+            "description": "Whenever you make an Intelligence ([[history|History]]) check related to the origin of stonework, you are considered proficient in the History skill and add double your [[proficiency_bonus|Proficiency Bonus]] to the check, instead of your normal proficiency bonus."
+        },
+        {
+            "name": "Dwarven Armor Training",
+            "icon": "armor",
+            "description": "You have proficiency with light and medium armor."
+        }
+    ],
+    "tags": ["race", "dwarf", "mountain_dwarf", "humanoid", "armored", "warrior"],
+    "aliases": [],
+    "seeAlso": ["dwarf", "hill_dwarf", "humanoid", "poison"],
+    "filePath": "/data/glossary/entries/races/dwarf_subraces/mountain_dwarf.json"
+}

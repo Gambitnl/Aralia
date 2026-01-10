@@ -1,24 +1,79 @@
 {
-    "id": "astral_elf",
-    "title": "Astral Elf",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "AAG",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "star",
-            "description": "TODO: Add trait descriptions - astral fire, starlight step"
-        }
-    ],
-    "tags": ["race", "elf", "astral_elf", "humanoid", "spelljammer"],
-    "aliases": [],
-    "seeAlso": ["elf", "humanoid"],
-    "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json"
+  "id": "astral_elf",
+  "title": "Astral Elf",
+  "category": "Character Races",
+  "entryLore": "Long ago, groups of elves ventured from the Feywild to the Astral Plane to be closer to their gods. Life in the Silver Void has imbued their souls with a spark of divine light. That light manifests as a starry gleam in an astral elf's eyes. Because nothing ages in the Astral Plane, astral elves who inhabit that plane can be very old, and their longevity gives them an unusual perspective on the flow of time. Some are prone to melancholy, while others display an uncharacteristic elven brightness. Many seek to return to the Material Plane to experience life as other mortals do, finding the passage of time strangely exhilarating.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "AAG",
+  "baseRace": "elf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws you make to avoid or end the [[charmed]] condition on yourself."
+    },
+    {
+      "name": "Keen Senses",
+      "icon": "perception",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Trance",
+      "icon": "moon",
+      "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a [[long_rest|Long Rest]] in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+    },
+    {
+      "name": "Astral Fire",
+      "icon": "star",
+      "description": "You know one of the following cantrips of your choice: [[dancing_lights]], [[light]], or [[sacred_flame]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this race)."
+    },
+    {
+      "name": "Starlight Step",
+      "icon": "teleport",
+      "description": "As a [[bonus_action|Bonus Action]], you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Astral Trance",
+      "icon": "vision",
+      "description": "When you take a [[long_rest|Long Rest]], you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player's Handbook. These proficiencies last until the end of your next long rest."
+    }
+  ],
+  "tags": [
+    "race",
+    "elf",
+    "astral_elf",
+    "humanoid",
+    "spelljammer",
+    "astral plane"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "elf",
+    "humanoid",
+    "charmed"
+  ],
+  "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json"
 }

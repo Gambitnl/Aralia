@@ -1,24 +1,53 @@
 {
-    "id": "kender",
-    "title": "Kender",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "DSotDQ",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "[[size|Small]]"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "hand",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "kender", "humanoid", "dragonlance", "fearless"],
-    "aliases": [],
-    "seeAlso": ["humanoid", "halfling"],
-    "filePath": "/data/glossary/entries/races/kender.json"
+  "id": "kender",
+  "title": "Kender",
+  "category": "Character Races",
+  "entryLore": "Kender are small humanoids native to the world of Krynn, known for their insatiable curiosity, fearlessness, and tendency to 'find' things that belong to others. They are not truly thieves—they simply have a different understanding of personal property and often forget how items came to be in their pouches. Kender are immune to fear and often charge headlong into danger without a second thought, much to the consternation of their companions. Their boundless optimism and cheerful demeanor can be both endearing and exasperating.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "DSotDQ",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Fearless",
+      "icon": "heart",
+      "description": "You have [[advantage]] on saving throws you make to avoid or end the [[frightened]] condition on yourself. When you fail such a saving throw, you can choose to succeed instead. Once you succeed on a saving throw in this way, you can't do so again until you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Kender Curiosity",
+      "icon": "eye",
+      "description": "You gain proficiency with one of the following skills of your choice: [[insight|Insight]], [[investigation|Investigation]], [[sleight_of_hand|Sleight of Hand]], [[stealth|Stealth]], or [[survival|Survival]]."
+    },
+    {
+      "name": "Taunt",
+      "icon": "speech",
+      "description": "As a [[bonus_action|Bonus Action]], you can unleash a string of provoking words at a creature within 60 feet of you that can hear and understand you. The target must succeed on a Wisdom saving throw, or it has [[disadvantage]] on attack rolls against targets other than you until the start of your next turn. The DC equals 8 + your [[proficiency_bonus|Proficiency Bonus]] + your Intelligence, Wisdom, or Charisma modifier (choose when you select this race). You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "kender",
+    "humanoid",
+    "dragonlance",
+    "fearless",
+    "curious"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "halfling"
+  ],
+  "filePath": "/data/glossary/entries/races/kender.json"
 }

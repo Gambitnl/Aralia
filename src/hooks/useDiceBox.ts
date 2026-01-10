@@ -105,7 +105,7 @@ interface UseDiceBoxReturn {
     /** Error message if initialization failed, null otherwise */
     error: string | null;
     /** Function to roll dice with a given notation (e.g., "1d20", "2d6+3") */
-    roll: (notation: string) => Promise<DiceResult | null>;
+    roll: (notation: string | string[]) => Promise<DiceResult | null>;
     /** Function to clear all dice from the canvas */
     clear: () => void;
     /** Function to resize the 3D world to match container dimensions */
@@ -320,16 +320,25 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
                     // Callback fired when dice animation completes
                     onRollComplete: (results: any) => {
                         if (mounted && results.length > 0) {
-                            // Extract the first result (we typically roll one notation at a time)
-                            const firstResult = results[0];
+                            // Sum all dice results (for multi-type rolls like 2d4 + 1d6)
+                            const totalValue = results.reduce((sum: number, r: any) => sum + r.value, 0);
+
+                            // Combine all individual rolls from all dice types
+                            const allRolls = results.flatMap((r: any) =>
+                                r.rolls?.map((roll: any) => ({
+                                    die: roll.die,
+                                    value: roll.value,
+                                    sides: roll.sides,
+                                })) || []
+                            );
+
+                            // Combine notations for display
+                            const combinedNotation = results.map((r: any) => r.notation).join(' + ');
+
                             setLastResult({
-                                notation: firstResult.notation,
-                                total: firstResult.value,
-                                rolls: firstResult.rolls?.map((r: any) => ({
-                                    die: r.die,
-                                    value: r.value,
-                                    sides: r.sides,
-                                })) || [],
+                                notation: combinedNotation,
+                                total: totalValue,
+                                rolls: allRolls,
                             });
                             setIsRolling(false);
                         }
@@ -419,7 +428,7 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
     /**
      * Rolls dice using the provided notation.
      * 
-     * @param notation Standard dice notation (e.g., "1d20", "2d6+3", "4d8-2")
+     * @param notation Standard dice notation (e.g., "1d20", "2d6+3") or array of notations
      * @returns Promise resolving to the roll result, or null if not ready
      * 
      * @example
@@ -429,7 +438,7 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
      * await roll('4d6kh3');    // Roll 4d6, keep highest 3 (if supported)
      * ```
      */
-    const roll = useCallback(async (notation: string): Promise<DiceResult | null> => {
+    const roll = useCallback(async (notation: string | string[]): Promise<DiceResult | null> => {
         if (!diceBoxRef.current || !isReady) {
             console.warn('[DiceBox] Cannot roll: not ready');
             return null;
@@ -439,8 +448,7 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
         setLastResult(null);
 
         try {
-            // DiceBox.roll() starts the animation and returns a promise
-            // The actual result comes through the onRollComplete callback
+            // DiceBox.roll() accepts string or array of notations
             const result = await diceBoxRef.current.roll(notation);
             return result;
         } catch (err) {

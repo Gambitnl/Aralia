@@ -3,7 +3,6 @@
   "title": "Duergar",
   "category": "Character Races",
   "entryLore": "Duergar are dwarves whose ancestors were transformed by centuries living in the deepest places of the Underdark. This harsh environment, saturated with strange magic and influenced by alien experiments, left the duergar with formidable psionic powers. While they share the hardiness of their surface-dwelling kin, they possess a grim outlook and a natural affinity for the shadows.",
-  "imageUrl": "/assets/images/races/duergar_male.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -55,5 +54,7 @@
     "duergar_magic",
     "psionic_fortitude"
   ],
-  "filePath": "/data/glossary/entries/races/duergar.json"
+  "filePath": "/data/glossary/entries/races/duergar.json",
+  "maleImageUrl": "/assets/images/races/duergar_male.png",
+  "femaleImageUrl": "/assets/images/races/duergar_female.png"
 }

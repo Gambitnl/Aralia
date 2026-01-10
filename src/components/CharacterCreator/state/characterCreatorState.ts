@@ -10,11 +10,6 @@ import {
   Spell,
   FightingStyle,
   AbilityScoreName,
-  ElvenLineageType,
-  GnomeSubraceType,
-  GiantAncestryType,
-  FiendishLegacyType,
-  DraconicAncestorType,
   RacialSelectionData,
 } from '../../../types';
 import { CharacterVisualConfig } from '../../../services/CharacterAssetService';
@@ -26,14 +21,8 @@ export enum CreationStep {
   Race,
   AgeSelection,
   BackgroundSelection,
-  DragonbornAncestry,
-  ElvenLineage,
-  GnomeSubrace,
-  GiantAncestry,
-  TieflingLegacy,
   CentaurNaturalAffinitySkill,
   ChangelingInstincts,
-  RacialSpellAbilityChoice, // Consolidated Step
   Class,
   AbilityScores,
   HumanSkillChoice,
@@ -105,14 +94,8 @@ export type ClassFeatureFinalSelectionAction =
 export type CharacterCreatorAction =
   | { type: 'SET_STEP'; payload: CreationStep }
   | { type: 'SELECT_RACE'; payload: Race }
-  | { type: 'SELECT_DRAGONBORN_ANCESTRY'; payload: DraconicAncestorType }
-  | { type: 'SELECT_ELVEN_LINEAGE'; payload: { lineageId: ElvenLineageType; spellAbility: AbilityScoreName } }
-  | { type: 'SELECT_GNOME_SUBRACE'; payload: { subraceId: GnomeSubraceType; spellAbility: AbilityScoreName } }
-  | { type: 'SELECT_GIANT_ANCESTRY'; payload: GiantAncestryType }
-  | { type: 'SELECT_TIEFLING_LEGACY'; payload: { legacyId: FiendishLegacyType; spellAbility: AbilityScoreName } }
   | { type: 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL'; payload: string }
   | { type: 'SELECT_CHANGELING_INSTINCTS'; payload: string[] }
-  | { type: 'SELECT_RACIAL_SPELL_ABILITY'; payload: AbilityScoreName }
   | { type: 'SELECT_VISUALS'; payload: Partial<CharacterVisualConfig> }
   | { type: 'SELECT_CLASS'; payload: CharClass }
   | { type: 'SET_ABILITY_SCORES'; payload: { baseScores: AbilityScores } }
@@ -228,18 +211,8 @@ const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: Cre
   };
 
   switch (exitedStep) {
-    case CreationStep.DragonbornAncestry: pruneRacialSelection('dragonborn'); break;
-    case CreationStep.ElvenLineage: pruneRacialSelection('elf'); break;
-    case CreationStep.GnomeSubrace: pruneRacialSelection('gnome'); break;
-    case CreationStep.GiantAncestry: pruneRacialSelection('goliath'); break;
-    case CreationStep.TieflingLegacy: pruneRacialSelection('tiefling'); break;
     case CreationStep.CentaurNaturalAffinitySkill: pruneRacialSelection('centaur'); break;
     case CreationStep.ChangelingInstincts: pruneRacialSelection('changeling'); break;
-    case CreationStep.RacialSpellAbilityChoice:
-      // Clearing the spell ability ensures the dropdown re-validates against updated ability scores when the user revisits
-      // the step (for example after adjusting point-buy totals) instead of silently reusing stale data.
-      if (state.selectedRace) { pruneRacialSelection(state.selectedRace.id); }
-      break;
     case CreationStep.Class:
       resetFields.selectedClass = null;
       break;
@@ -290,19 +263,13 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.AgeSelection]: { previousStep: () => CreationStep.Race },
   [CreationStep.BackgroundSelection]: { previousStep: () => CreationStep.AgeSelection },
   [CreationStep.Visuals]: { previousStep: () => CreationStep.BackgroundSelection },
-  [CreationStep.DragonbornAncestry]: { previousStep: () => CreationStep.Race },
-  [CreationStep.ElvenLineage]: { previousStep: () => CreationStep.Race },
-  [CreationStep.GnomeSubrace]: { previousStep: () => CreationStep.Race },
-  [CreationStep.GiantAncestry]: { previousStep: () => CreationStep.Race },
-  [CreationStep.TieflingLegacy]: { previousStep: () => CreationStep.Race },
   [CreationStep.CentaurNaturalAffinitySkill]: { previousStep: () => CreationStep.Race },
   [CreationStep.ChangelingInstincts]: { previousStep: () => CreationStep.Race },
-  [CreationStep.RacialSpellAbilityChoice]: { previousStep: () => CreationStep.AbilityScores },
   [CreationStep.AbilityScores]: { previousStep: () => CreationStep.Class },
   [CreationStep.Class]: { previousStep: () => CreationStep.Visuals },
-  [CreationStep.HumanSkillChoice]: { previousStep: (state) => state.racialSpellChoiceContext ? CreationStep.RacialSpellAbilityChoice : CreationStep.AbilityScores },
+  [CreationStep.HumanSkillChoice]: { previousStep: () => CreationStep.AbilityScores },
   [CreationStep.Skills]: {
-    previousStep: (state) => (state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : (state.racialSpellChoiceContext ? CreationStep.RacialSpellAbilityChoice : CreationStep.AbilityScores))
+    previousStep: (state) => (state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.AbilityScores)
   },
   [CreationStep.ClassFeatures]: { previousStep: () => CreationStep.Skills },
   [CreationStep.WeaponMastery]: { previousStep: (state) => (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills) },
@@ -400,31 +367,8 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         step: nextStep,
       };
     }
-    case 'SELECT_DRAGONBORN_ANCESTRY': return { ...state, racialSelections: { ...state.racialSelections, dragonborn: { choiceId: action.payload } }, step: CreationStep.AgeSelection };
-    case 'SELECT_ELVEN_LINEAGE': return { ...state, racialSelections: { ...state.racialSelections, elf: { choiceId: action.payload.lineageId, spellAbility: action.payload.spellAbility } }, step: CreationStep.AgeSelection };
-    case 'SELECT_GNOME_SUBRACE': return { ...state, racialSelections: { ...state.racialSelections, gnome: { choiceId: action.payload.subraceId, spellAbility: action.payload.spellAbility } }, step: CreationStep.AgeSelection };
-    case 'SELECT_GIANT_ANCESTRY': return { ...state, racialSelections: { ...state.racialSelections, goliath: { choiceId: action.payload } }, step: CreationStep.AgeSelection };
-    case 'SELECT_TIEFLING_LEGACY': return { ...state, racialSelections: { ...state.racialSelections, tiefling: { choiceId: action.payload.legacyId, spellAbility: action.payload.spellAbility } }, step: CreationStep.AgeSelection };
     case 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL': return { ...state, racialSelections: { ...state.racialSelections, centaur: { skillIds: [action.payload] } }, step: CreationStep.AgeSelection };
     case 'SELECT_CHANGELING_INSTINCTS': return { ...state, racialSelections: { ...state.racialSelections, changeling: { skillIds: action.payload } }, step: CreationStep.AgeSelection };
-    case 'SELECT_RACIAL_SPELL_ABILITY': {
-      if (!state.racialSpellChoiceContext || !state.selectedRace) return state;
-      const raceId = state.selectedRace.id;
-      const ability = action.payload;
-      const nextStep = state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.Skills;
-
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          [raceId]: {
-            ...state.racialSelections[raceId],
-            spellAbility: ability
-          }
-        },
-        step: nextStep,
-      };
-    }
     case 'SELECT_VISUALS':
       return { ...state, visuals: { ...state.visuals, ...action.payload } };
     case 'SELECT_CLASS':
@@ -433,14 +377,7 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const { baseScores } = action.payload;
       const finalScores = calculateFixedRacialBonuses(baseScores, state.selectedRace);
 
-      let nextStep: CreationStep;
-      if (state.racialSpellChoiceContext) {
-        nextStep = CreationStep.RacialSpellAbilityChoice;
-      } else if (state.selectedRace?.id === 'human') {
-        nextStep = CreationStep.HumanSkillChoice;
-      } else {
-        nextStep = CreationStep.Skills;
-      }
+      const nextStep = state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.Skills;
 
       return { ...state, baseAbilityScores: baseScores, finalAbilityScores: finalScores, step: nextStep };
     }

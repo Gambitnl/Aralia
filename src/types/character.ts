@@ -3,6 +3,7 @@ import type { ActiveEffect, StatusEffect } from './effects';
 import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core';
 import type { EquipmentSlotType, Item } from './items';
 import type { RaceVisualSpec } from './visuals';
+import type { FamilyMember } from './world';
 
 export type { AbilityScores, AbilityScoreName } from './core';
 
@@ -427,6 +428,17 @@ export interface PlayerCharacter {
     clothingStyle?: string;
     pantsStyle?: string;
     bootsStyle?: string;
+  };
+  /** Rich NPC data from the NPC generator for party members with full biography details */
+  richNpcData?: {
+    /** Character age based on race-appropriate ranges */
+    age: number;
+    /** Family members generated for the character */
+    family: FamilyMember[];
+    /** Full physical description text from NPC generator */
+    physicalDescription: string;
+    /** Background ID for the character */
+    backgroundId: string;
   };
 }
 

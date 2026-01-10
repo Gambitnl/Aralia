@@ -1,24 +1,58 @@
 {
-    "id": "beasthide_shifter",
-    "title": "Beasthide Shifter",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "shield",
-            "description": "TODO: Add trait descriptions - tough hide, extra temp HP, +1 AC"
-        }
-    ],
-    "tags": ["race", "shifter", "beasthide", "humanoid", "lycanthrope"],
-    "aliases": [],
-    "seeAlso": ["shifter", "humanoid"],
-    "filePath": "/data/glossary/entries/races/shifter_variants/beasthide.json"
+  "id": "beasthide_shifter",
+  "title": "Beasthide Shifter",
+  "category": "Character Races",
+  "entryLore": "Beasthide shifters are typically tied to the bear or the boar, animals known for their tough hides and ferocious strength when cornered. These shifters are among the most resilient of their kind, able to shrug off blows that would fell lesser warriors. When they shift, their skin thickens and their features become more bestial, granting them remarkable durability. Beasthide shifters often find roles as front-line fighters, bodyguards, and protectors, using their enhanced endurance to shield their allies from harm.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "shifter",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Shifting",
+      "icon": "transform",
+      "description": "As a [[bonus_action|Bonus Action]], you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to 2 x your [[proficiency_bonus|Proficiency Bonus]]. You can shift a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Whenever you shift, you also gain an additional benefit based on your subrace (see Bestial Durability)."
+    },
+    {
+      "name": "Bestial Durability",
+      "icon": "shield",
+      "description": "Whenever you shift, you gain 1d6 additional temporary hit points. While shifted, you also have a +1 bonus to your Armor Class."
+    }
+  ],
+  "tags": [
+    "race",
+    "shifter",
+    "beasthide",
+    "humanoid",
+    "lycanthrope",
+    "tough"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "shifter",
+    "humanoid"
+  ],
+  "filePath": "/data/glossary/entries/races/shifter_variants/beasthide.json"
 }

@@ -1,7 +1,7 @@
 
 /**
  * @file air_genasi.ts
- * Defines the data for the Air Genasi race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 16.
+ * Defines the data for the Air Genasi race in the Aralia RPG, based on PHB 2024.
  * This includes their ID, name, description, and unique traits.
  * ASIs are handled flexibly during character creation, not as fixed racial bonuses.
  */
@@ -11,34 +11,31 @@ import { Race } from '../../types'; // Path relative to src/data/races/
 export const AIR_GENASI_DATA: Race = {
   id: 'air_genasi',
   name: 'Air Genasi',
+  baseRace: 'genasi',
   description:
-    "Air genasi are descended from djinn, the genies of the Elemental Plane of Air. Embodying many of the airy traits of their otherworldly ancestors, air genasi can draw upon their connection to the winds. Their skin tones include many shades of blue, along with the full range of human skin tones, with bluish or ashen casts. Sometimes their skin is marked by lines that seem like cracks with bluish-white energy spilling out. An air genasi’s hair might blow in a phantom wind or be made entirely of clouds or vapor. A typical genasi has a life span of 120 years.",
-  abilityBonuses: [], // Flexible ASIs: "increase one score by 2 and increase a different score by 1, or increase three different scores by 1." - handled in AbilityScoreAllocation step.
+    'Air genasi are descended from djinn, the genies of the Elemental Plane of Air. They embody the airy traits of their otherworldly ancestors, from cloud-like hair to an innate connection with the winds, allowing them to remain calm and light in the face of any storm.',
+  abilityBonuses: [],
   traits: [
     'Creature Type: Humanoid',
-    'Size: Medium or Small (You choose when you select this race; defaults to Medium for now).',
+    'Size: Medium',
     'Speed: 35 feet',
-    'Darkvision: 60 feet',
-    'Unending Breath: You can hold your breath indefinitely while you’re not incapacitated.',
-    'Lightning Resistance: You have resistance to lightning damage.',
-    // The string for this trait is parsed by RaceDetailModal.tsx to create a spell progression table.
-    'Mingle with the Wind: You know the Shocking Grasp cantrip. Starting at 3rd level, you can cast the Feather Fall spell with this trait, without requiring a material component. Starting at 5th level, you can also cast the Levitate spell with this trait, without requiring a material component. Once you cast Feather Fall or Levitate with this trait, you can’t cast that spell with it again until you finish a Long Rest. You can also cast either of those spells using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).',
+    'Unending Breath: You can hold your breath indefinitely while you are not Incapacitated.',
+    'Lightning Resistance: You have Resistance to Lightning damage.',
+    'Mingle with the Wind: You know the Shocking Grasp cantrip. You can cast Levitate (level 3) once per Long Rest without components.',
   ],
-  imageUrl: 'https://i.ibb.co/HT3Vq8DY/Air-Genasi.png',
   visual: {
     id: 'air_genasi',
     icon: '💨',
-    color: '#87CEEB',
+    color: '#E0FFFF',
     maleIllustrationPath: 'assets/images/races/air_genasi_male.png',
     femaleIllustrationPath: 'assets/images/races/air_genasi_female.png',
   },
   racialSpellChoice: {
     traitName: 'Mingle with the Wind',
-    traitDescription: 'Choose your spellcasting ability for Mingle with the Wind (Shocking Grasp, Feather Fall, Levitate).',
+    traitDescription: 'Choose your spellcasting ability for these spells: Intelligence, Wisdom, or Charisma.',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'shocking-grasp' },
-    { minLevel: 3, spellId: 'feather-fall' },
-    { minLevel: 5, spellId: 'levitate' }
+    { minLevel: 3, spellId: 'levitate' }
   ]
 };

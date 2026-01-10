@@ -1,24 +1,58 @@
 {
-    "id": "longtooth_shifter",
-    "title": "Longtooth Shifter",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "fangs",
-            "description": "TODO: Add trait descriptions - bonus action bite attack"
-        }
-    ],
-    "tags": ["race", "shifter", "longtooth", "humanoid", "lycanthrope"],
-    "aliases": [],
-    "seeAlso": ["shifter", "humanoid"],
-    "filePath": "/data/glossary/entries/races/shifter_variants/longtooth.json"
+  "id": "longtooth_shifter",
+  "title": "Longtooth Shifter",
+  "category": "Character Races",
+  "entryLore": "Longtooth shifters are fierce and aggressive, their lycanthropic heritage tied to fierce predators like wolves and tigers. When they shift, they grow elongated fangs capable of tearing through flesh with ease. These shifters embody the hunter's fury, channeling their bestial nature into devastating attacks. Longtooth shifters are often drawn to martial pursuits, their natural aggression making them formidable warriors who revel in close combat where they can put their fangs to use.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "shifter",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Shifting",
+      "icon": "transform",
+      "description": "As a [[bonus_action|Bonus Action]], you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to 2 x your [[proficiency_bonus|Proficiency Bonus]]. You can shift a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Whenever you shift, you also gain an additional benefit based on your subrace (see Fangs)."
+    },
+    {
+      "name": "Fangs",
+      "icon": "fangs",
+      "description": "While shifted, you can use your elongated fangs to make an unarmed strike as a [[bonus_action|Bonus Action]]. If you hit with your fangs, you deal piercing damage equal to 1d6 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+    }
+  ],
+  "tags": [
+    "race",
+    "shifter",
+    "longtooth",
+    "humanoid",
+    "lycanthrope",
+    "predator"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "shifter",
+    "humanoid"
+  ],
+  "filePath": "/data/glossary/entries/races/shifter_variants/longtooth.json"
 }

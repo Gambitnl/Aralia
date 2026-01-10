@@ -1,0 +1,70 @@
+{
+  "id": "lotusden_halfling",
+  "title": "Lotusden Halfling",
+  "category": "Character Races",
+  "entryLore": "Lotusden halflings are native to the Lotusden Greenwood of Exandria, where they have developed a deep connection to the natural world and druidic magic. Living in harmony with the forest, they possess innate abilities to communicate with nature and call upon plant life for protection. Their communities are well-hidden among the trees, and they serve as guardians of the woodland realms.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "EGtW",
+  "baseRace": "halfling",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Small"
+    },
+    {
+      "label": "Speed",
+      "value": "25 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Lucky",
+      "icon": "clover",
+      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
+    },
+    {
+      "name": "Brave",
+      "icon": "shield",
+      "description": "You have [[advantage]] on saving throws against being [[frightened]]."
+    },
+    {
+      "name": "Halfling Nimbleness",
+      "icon": "footprints",
+      "description": "You can move through the space of any creature that is of a size larger than yours."
+    },
+    {
+      "name": "Child of the Wood",
+      "icon": "tree",
+      "description": "You know the [[druidcraft|Druidcraft]] cantrip. When you reach 3rd level, you can cast the [[entangle|Entangle]] spell once with this trait and regain the ability to do so when you finish a [[long_rest|Long Rest]]. When you reach 5th level, you can cast the [[spike_growth|Spike Growth]] spell once with this trait and regain the ability to do so when you finish a Long Rest. Casting these spells with this trait doesn't require material components. Wisdom is your spellcasting ability for these spells."
+    },
+    {
+      "name": "Timberwalk",
+      "icon": "nature",
+      "description": "Ability checks made to track you have [[disadvantage]], and you can move across difficult terrain made of nonmagical plants and undergrowth without expending extra movement."
+    }
+  ],
+  "tags": [
+    "race",
+    "halfling",
+    "lotusden",
+    "humanoid",
+    "wildemount",
+    "critical role",
+    "exandria",
+    "nature"
+  ],
+  "aliases": [
+    "lotusden"
+  ],
+  "seeAlso": [
+    "halfling",
+    "humanoid",
+    "druidcraft",
+    "entangle"
+  ],
+  "filePath": "/data/glossary/entries/races/halfling_subraces/lotusden_halfling.json"
+}

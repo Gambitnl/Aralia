@@ -1,24 +1,64 @@
 {
-    "id": "leonin",
-    "title": "Leonin",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MOoT",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "35 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "lion",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "leonin", "humanoid", "theros", "beastfolk"],
-    "aliases": ["lionfolk"],
-    "seeAlso": ["humanoid"],
-    "filePath": "/data/glossary/entries/races/leonin.json"
+  "id": "leonin",
+  "title": "Leonin",
+  "category": "Character Races",
+  "entryLore": "Leonin are fierce, lion-like humanoids who dwell in the golden savannas of Theros. They are proud hunters and warriors who value strength, courage, and family bonds above all else. Leonin society revolves around prides, tight-knit family groups led by experienced hunters. They are deeply suspicious of the gods, believing that mortals should rely on their own strength rather than divine intervention. This skepticism stems from ancient betrayals, and most leonin take pride in their self-reliance and the power of their roar.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MOoT",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "35 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Claws",
+      "icon": "claw",
+      "description": "You have retractable claws that you can use to make unarmed strikes. When you hit with them, you deal slashing damage equal to 1d6 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike."
+    },
+    {
+      "name": "Hunter's Instincts",
+      "icon": "paw",
+      "description": "You have proficiency in one of the following skills of your choice: [[athletics|Athletics]], [[intimidation|Intimidation]], [[perception|Perception]], or [[survival|Survival]]."
+    },
+    {
+      "name": "Daunting Roar",
+      "icon": "sound",
+      "description": "As a [[bonus_action|Bonus Action]], you can let out an especially menacing roar. Creatures of your choice within 10 feet of you that can hear you must succeed on a Wisdom saving throw or become [[frightened]] of you until the end of your next turn. The DC of the save equals 8 + your [[proficiency_bonus|Proficiency Bonus]] + your Constitution modifier. Once you use this trait, you can't use it again until you finish a [[short_rest|Short Rest]] or [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "leonin",
+    "humanoid",
+    "theros",
+    "beastfolk",
+    "lion"
+  ],
+  "aliases": [
+    "lionfolk"
+  ],
+  "seeAlso": [
+    "humanoid",
+    "frightened"
+  ],
+  "filePath": "/data/glossary/entries/races/leonin.json"
 }

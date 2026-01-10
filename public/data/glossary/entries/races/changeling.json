@@ -3,7 +3,6 @@
   "title": "Changeling",
   "category": "Character Races",
   "entryLore": "Changelings are masters of disguise, capable of supernaturally altering their appearance and voice. Born of the Feywild, they use their gifts to navigate society, sometimes as undetected observers and other times as multifaceted performers. With ever-changing appearances, they can adopt any face they like, channeling either the peril or the joy of their fey origins.",
-  "imageUrl": "/assets/images/races/changeling_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -44,5 +43,7 @@
     "changeling_instincts",
     "shapechanger"
   ],
-  "filePath": "/data/glossary/entries/races/changeling.json"
+  "filePath": "/data/glossary/entries/races/changeling.json",
+  "maleImageUrl": "/assets/images/races/changeling_male.png",
+  "femaleImageUrl": "/assets/images/races/changeling_female.png"
 }

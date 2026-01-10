@@ -1,24 +1,70 @@
 {
-    "id": "scourge_aasimar",
-    "title": "Scourge Aasimar",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium or Small"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "fire",
-            "description": "TODO: Add trait descriptions - radiant consumption damaging aura"
-        }
-    ],
-    "tags": ["race", "aasimar", "scourge", "celestial", "humanoid"],
-    "aliases": [],
-    "seeAlso": ["aasimar", "humanoid"],
-    "filePath": "/data/glossary/entries/races/aasimar_variants/scourge.json"
+  "id": "scourge_aasimar",
+  "title": "Scourge Aasimar",
+  "category": "Character Races",
+  "entryLore": "Scourge aasimar are imbued with a divine energy that blazes intensely within them. It feeds a powerful desire to destroy evil—a desire that is, at its best, parsing and exacting, but at its worst, all-consuming. Many scourge aasimar wear masks to block out the world and focus on containing this power, unmasking only in battle. When they transform, their divine energy erupts in a searing radiance that burns all around them, friend and foe alike—a price they willingly pay to purge evil from the world.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "aasimar",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Celestial Resistance",
+      "icon": "shield",
+      "description": "You have resistance to [[necrotic_damage|necrotic damage]] and [[radiant_damage|radiant damage]]."
+    },
+    {
+      "name": "Healing Hands",
+      "icon": "heal",
+      "description": "As an action, you can touch a creature and roll a number of d4s equal to your [[proficiency_bonus|Proficiency Bonus]]. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Light Bearer",
+      "icon": "light",
+      "description": "You know the [[light]] cantrip. Charisma is your spellcasting ability for it."
+    },
+    {
+      "name": "Radiant Consumption",
+      "icon": "fire",
+      "description": "Starting at 3rd level, you can use a [[bonus_action|Bonus Action]] to unleash the divine energy within yourself, causing searing light to radiate from you, pour out of your eyes and mouth, and threaten to char you. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you shed bright light in a 10-foot radius and dim light for an additional 10 feet, and at the end of each of your turns, each creature within 10 feet of you takes [[radiant_damage|radiant damage]] equal to your [[proficiency_bonus|Proficiency Bonus]]. Until the transformation ends, once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your Proficiency Bonus. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "aasimar",
+    "scourge",
+    "celestial",
+    "humanoid",
+    "radiant aura"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "aasimar",
+    "humanoid",
+    "radiant_damage",
+    "necrotic_damage"
+  ],
+  "filePath": "/data/glossary/entries/races/aasimar_variants/scourge.json"
 }

@@ -3,7 +3,6 @@
   "title": "Dwarf",
   "category": "Character Races",
   "entryLore": "Dwarves are a stout and resilient people, forged in the depths of mountains and tempered by centuries of toil. Their oldest tales speak of valorous battles against giants and subterranean horrors, inspiring a culture that celebrates the little overcoming the mighty. Dwarves are known for their masterful craftsmanship, their stubbornness, and their unyielding loyalty to clan and kin.",
-  "imageUrl": "/assets/images/races/dwarf_male.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -68,5 +67,7 @@
     "hill_dwarf",
     "duergar"
   ],
-  "filePath": "/data/glossary/entries/races/dwarf.json"
+  "filePath": "/data/glossary/entries/races/dwarf.json",
+  "maleImageUrl": "/assets/images/races/dwarf_male.png",
+  "femaleImageUrl": "/assets/images/races/dwarf_female.png"
 }

@@ -1,24 +1,71 @@
 {
-    "id": "fallen_aasimar",
-    "title": "Fallen Aasimar",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium or Small"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "shadow",
-            "description": "TODO: Add trait descriptions - necrotic shroud with frightening presence"
-        }
-    ],
-    "tags": ["race", "aasimar", "fallen", "celestial", "humanoid"],
-    "aliases": [],
-    "seeAlso": ["aasimar", "humanoid"],
-    "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json"
+  "id": "fallen_aasimar",
+  "title": "Fallen Aasimar",
+  "category": "Character Races",
+  "entryLore": "Fallen aasimar are those touched by dark powers as a youth or who have turned to evil in early adulthood. An aasimar who was touched by dark powers as a youth might turn thoroughly evil, while others find redemption late in life after years of wrongdoing. Some fallen aasimar heard whispers from an evil entity in their dreams and took those dark suggestions to heart. Whatever the cause, fallen aasimar manifest their transformation through skeletal, flightless wings and an aura of dread that frightens all who witness it.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "baseRace": "aasimar",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Celestial Resistance",
+      "icon": "shield",
+      "description": "You have resistance to [[necrotic_damage|necrotic damage]] and [[radiant_damage|radiant damage]]."
+    },
+    {
+      "name": "Healing Hands",
+      "icon": "heal",
+      "description": "As an action, you can touch a creature and roll a number of d4s equal to your [[proficiency_bonus|Proficiency Bonus]]. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Light Bearer",
+      "icon": "light",
+      "description": "You know the [[light]] cantrip. Charisma is your spellcasting ability for it."
+    },
+    {
+      "name": "Necrotic Shroud",
+      "icon": "shadow",
+      "description": "Starting at 3rd level, you can use a [[bonus_action|Bonus Action]] to unleash the divine energy within yourself, causing your eyes to turn into pools of darkness and two skeletal, ghostly, flightless wings to sprout from your back. The instant you transform, other creatures within 10 feet of you that can see you must succeed on a Charisma saving throw (DC 8 + your [[proficiency_bonus|Proficiency Bonus]] + your Charisma modifier) or become [[frightened]] of you until the end of your next turn. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, once on each of your turns, you can deal extra [[necrotic_damage|necrotic damage]] to one target when you deal damage to it with an attack or a spell. The extra necrotic damage equals your Proficiency Bonus. Once you use this trait, you can't use it again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "aasimar",
+    "fallen",
+    "celestial",
+    "humanoid",
+    "fear"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "aasimar",
+    "humanoid",
+    "radiant_damage",
+    "necrotic_damage",
+    "frightened"
+  ],
+  "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json"
 }

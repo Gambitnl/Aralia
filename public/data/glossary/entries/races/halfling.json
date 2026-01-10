@@ -1,64 +1,65 @@
 {
-    "id": "halfling",
-    "title": "Halfling",
-    "category": "Character Races",
-    "entryLore": "Halflings are a practical and lighthearted people who value home and community above all. Despite their small stature, they possess a legendary resilience and a uncanny knack for avoiding misfortune when things look most dire.",
-    "imageUrl": "/assets/images/races/halfling_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Creature Type",
-            "value": "[[humanoid]]"
-        },
-        {
-            "label": "Size",
-            "value": "[[size_small|Small]] (about 3 feet)"
-        },
-        {
-            "label": "Speed",
-            "value": "30 feet"
-        },
-        {
-            "label": "Life Span",
-            "value": "Up to 150 years"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Brave",
-            "icon": "heart",
-            "description": "[[advantage|Advantage]] on saves to avoid or end the [[frightened_condition|Frightened]] condition."
-        },
-        {
-            "name": "Halfling Nimbleness",
-            "icon": "wind",
-            "description": "Move through the space of any creature that is a size larger than you."
-        },
-        {
-            "name": "Luck",
-            "icon": "stars",
-            "description": "When you roll a 1 on the d20 for a [[d20_test|D20 Test]], you can reroll it and must use the new roll."
-        },
-        {
-            "name": "Naturally Stealthy",
-            "icon": "eye",
-            "description": "You can hide even when obscured only by a creature at least one size larger than you."
-        }
-    ],
-    "tags": [
-        "race",
-        "halfling",
-        "humanoid",
-        "small"
-    ],
-    "aliases": [
-        "hin"
-    ],
-    "seeAlso": [
-        "humanoid",
-        "brave_trait",
-        "halfling_luck",
-        "nimbleness"
-    ],
-    "filePath": "/data/glossary/entries/races/halfling.json"
+  "id": "halfling",
+  "title": "Halfling",
+  "category": "Character Races",
+  "entryLore": "Halflings are a practical and lighthearted people who value home and community above all. Despite their small stature, they possess a legendary resilience and a uncanny knack for avoiding misfortune when things look most dire.",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size_small|Small]] (about 3 feet)"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Life Span",
+      "value": "Up to 150 years"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Brave",
+      "icon": "heart",
+      "description": "[[advantage|Advantage]] on saves to avoid or end the [[frightened_condition|Frightened]] condition."
+    },
+    {
+      "name": "Halfling Nimbleness",
+      "icon": "wind",
+      "description": "Move through the space of any creature that is a size larger than you."
+    },
+    {
+      "name": "Luck",
+      "icon": "stars",
+      "description": "When you roll a 1 on the d20 for a [[d20_test|D20 Test]], you can reroll it and must use the new roll."
+    },
+    {
+      "name": "Naturally Stealthy",
+      "icon": "eye",
+      "description": "You can hide even when obscured only by a creature at least one size larger than you."
+    }
+  ],
+  "tags": [
+    "race",
+    "halfling",
+    "humanoid",
+    "small"
+  ],
+  "aliases": [
+    "hin"
+  ],
+  "seeAlso": [
+    "humanoid",
+    "brave_trait",
+    "halfling_luck",
+    "nimbleness"
+  ],
+  "filePath": "/data/glossary/entries/races/halfling.json",
+  "maleImageUrl": "/assets/images/races/halfling_male.png",
+  "femaleImageUrl": "/assets/images/races/halfling_female.png"
 }

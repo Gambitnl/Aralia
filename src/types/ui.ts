@@ -23,12 +23,30 @@ export interface GlossaryEntry {
   filePath?: string | null;
   subEntries?: GlossaryEntry[];
 
-  // Data-First Architecture Fields
+  /**
+   * Data-First Architecture Fields
+   * These fields support structured glossary entries (especially for races)
+   * that can be rendered without relying on markdown files.
+   */
   entryLore?: string;
+  /** @deprecated Use maleImageUrl/femaleImageUrl instead for race entries. Single image fallback for legacy entries. */
   imageUrl?: string;
+  /** 
+   * Path to male character illustration for race entries.
+   * Used by GlossaryEntryTemplate to render clickable dual-image gallery.
+   * Example: "/assets/images/races/dwarf_male.png"
+   */
+  maleImageUrl?: string;
+  /** 
+   * Path to female character illustration for race entries.
+   * Used by GlossaryEntryTemplate to render clickable dual-image gallery.
+   * Example: "/assets/images/races/dwarf_female.png"
+   */
+  femaleImageUrl?: string;
   source?: string;
   characteristics?: { label: string; value: string }[];
   traits?: { name: string; icon: string; description: string }[];
+  spellsOfTheMark?: { minLevel: number; spells: string[] }[];
 }
 
 export interface SeededFeatureConfig {

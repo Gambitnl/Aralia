@@ -1,24 +1,64 @@
 {
-    "id": "hobgoblin",
-    "title": "Hobgoblin",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "sword",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "hobgoblin", "humanoid", "goblinoid", "fey"],
-    "aliases": [],
-    "seeAlso": ["humanoid", "goblin", "bugbear"],
-    "filePath": "/data/glossary/entries/races/hobgoblin.json"
+  "id": "hobgoblin",
+  "title": "Hobgoblin",
+  "category": "Character Races",
+  "entryLore": "Hobgoblins are disciplined and militant humanoids with a strong sense of hierarchy and honor. Like their goblin and bugbear kin, hobgoblins trace their origins to the Feywild, where they were first created by the god Maglubiyet. They are known for their tactical minds, martial prowess, and unwavering loyalty to their legions. Hobgoblins value strength, discipline, and cunning, and they respect those who demonstrate these qualities regardless of their origin. Their fey heritage grants them a supernatural ability to bolster their allies in times of need.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray."
+    },
+    {
+      "name": "Fey Ancestry",
+      "icon": "sparkle",
+      "description": "You have [[advantage]] on saving throws you make to avoid or end the [[charmed]] condition on yourself."
+    },
+    {
+      "name": "Fey Gift",
+      "icon": "gift",
+      "description": "You can use this trait to take the [[help_action|Help action]] as a [[bonus_action|Bonus Action]], and you can do so a number of times equal to your [[proficiency_bonus|Proficiency Bonus]]. You regain all expended uses when you finish a [[long_rest|Long Rest]]. When you use this version of Help, the creature who receives the help also gains a benefit based on the emotion you choose: **Hospitality** (you and the target each gain temporary hit points equal to 1d6 + your proficiency bonus), **Passage** (you and the target each increase your walking speeds by 10 feet until the start of your next turn), or **Spite** (the target can add 1d6 to the damage roll of the first attack it makes before the start of your next turn)."
+    },
+    {
+      "name": "Fortune from the Many",
+      "icon": "dice",
+      "description": "If you miss with an attack roll or fail an ability check or a saving throw, you can draw on your bonds of reciprocity to gain a bonus to the roll equal to the number of allies you can see within 30 feet of you (maximum bonus of +3). You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "hobgoblin",
+    "humanoid",
+    "goblinoid",
+    "fey",
+    "military"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "goblin",
+    "bugbear",
+    "fey_ancestry"
+  ],
+  "filePath": "/data/glossary/entries/races/hobgoblin.json"
 }

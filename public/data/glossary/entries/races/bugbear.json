@@ -3,7 +3,6 @@
   "title": "Bugbear",
   "category": "Character Races",
   "entryLore": "Bugbears are the hulking cousins of goblins and hobgoblins. Rooted in the Feywild, they possess a mystical ability to hide in shadowed spaces and move with surprising silence despite their formidable build. They are often quiet skulkers, driven by a fey gift for lurking and a predatory patience that makes them lethal ambushers.",
-  "imageUrl": "/assets/images/races/bugbear_female.png",
   "source": "PHB 2024",
   "characteristics": [
     {
@@ -62,5 +61,7 @@
     "powerful_build",
     "stealth"
   ],
-  "filePath": "/data/glossary/entries/races/bugbear.json"
+  "filePath": "/data/glossary/entries/races/bugbear.json",
+  "maleImageUrl": "/assets/images/races/bugbear_male.png",
+  "femaleImageUrl": "/assets/images/races/bugbear_female.png"
 }

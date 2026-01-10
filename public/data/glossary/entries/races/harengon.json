@@ -1,24 +1,62 @@
 {
-    "id": "harengon",
-    "title": "Harengon",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "MPMM",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium or Small"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "rabbit",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "harengon", "humanoid", "beastfolk", "fey"],
-    "aliases": ["rabbitfolk"],
-    "seeAlso": ["humanoid", "fey"],
-    "filePath": "/data/glossary/entries/races/harengon.json"
+  "id": "harengon",
+  "title": "Harengon",
+  "category": "Character Races",
+  "entryLore": "Harengon are rabbit-folk native to the Feywild, though many have migrated to other planes. They are known for their luck, quick reflexes, and boundless energy. Harengon embody the spirit of freedom and adventure, often finding themselves unable to stay in one place for long. Their large feet allow them to make impressive leaps, and their keen senses and natural agility make them excellent scouts and explorers. Many harengon carry a touch of fey magic that manifests as uncanny luck.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "MPMM",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Hare-Trigger",
+      "icon": "lightning",
+      "description": "You can add your [[proficiency_bonus|Proficiency Bonus]] to your [[initiative]] rolls."
+    },
+    {
+      "name": "Leporine Senses",
+      "icon": "eye",
+      "description": "You have proficiency in the [[perception|Perception]] skill."
+    },
+    {
+      "name": "Lucky Footwork",
+      "icon": "dice",
+      "description": "When you fail a Dexterity saving throw, you can use your [[reaction]] to roll a d4 and add it to the save, potentially turning the failure into a success. You can't use this reaction if you're [[prone]] or your speed is 0."
+    },
+    {
+      "name": "Rabbit Hop",
+      "icon": "jump",
+      "description": "As a [[bonus_action|Bonus Action]], you can jump a number of feet equal to five times your [[proficiency_bonus|Proficiency Bonus]], without provoking [[opportunity_attack|opportunity attacks]]. You can use this trait only if your speed is greater than 0. You can use it a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "harengon",
+    "humanoid",
+    "beastfolk",
+    "fey",
+    "rabbit"
+  ],
+  "aliases": [
+    "rabbitfolk",
+    "harefolk"
+  ],
+  "seeAlso": [
+    "humanoid",
+    "fey",
+    "feywild"
+  ],
+  "filePath": "/data/glossary/entries/races/harengon.json"
 }

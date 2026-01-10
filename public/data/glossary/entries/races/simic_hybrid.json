@@ -1,24 +1,60 @@
 {
-    "id": "simic_hybrid",
-    "title": "Simic Hybrid",
-    "category": "Character Races",
-    "entryLore": "TODO: Add lore description",
-    "imageUrl": null,
-    "source": "GGtR",
-    "characteristics": [
-        {"label": "Creature Type", "value": "[[humanoid]]"},
-        {"label": "Size", "value": "Medium"},
-        {"label": "Speed", "value": "30 feet"}
-    ],
-    "traits": [
-        {
-            "name": "TODO",
-            "icon": "dna",
-            "description": "TODO: Add trait descriptions"
-        }
-    ],
-    "tags": ["race", "simic_hybrid", "humanoid", "ravnica", "mutant"],
-    "aliases": [],
-    "seeAlso": ["humanoid"],
-    "filePath": "/data/glossary/entries/races/simic_hybrid.json"
+  "id": "simic_hybrid",
+  "title": "Simic Hybrid",
+  "category": "Character Races",
+  "entryLore": "The Simic Combine uses a magical process to create hybrids of multiple organisms, sometimes including humans, elves, and vedalken. These hybrids are called Simic hybrids, though they sometimes refer to themselves as guardians. A hybrid's biological enhancements can change their appearance dramatically, though most hybrids retain their humanoid forms. The combination of magic and science that creates a hybrid involves a process of 'adapting' their bodies to incorporate characteristics of other creatures. These adaptations are carefully designed to serve a specific purpose, whether that's exploring the depths of the ocean, defending the guild's laboratories, or simply gathering knowledge.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "GGtR",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Animal Enhancement (1st Level)",
+      "icon": "dna",
+      "description": "Your body has been altered to incorporate certain animal characteristics. You choose one animal enhancement now and a second enhancement at 5th level. At 1st level, choose one of the following options: **Manta Glide** (you have ray-like fins that you can use as wings to slow your fall or allow you to glide; when you fall and aren't [[incapacitated]], you can subtract up to 100 feet from the fall when calculating falling damage, and you can move up to 2 feet horizontally for every 1 foot you descend), **Nimble Climber** (you have a climbing speed equal to your walking speed), or **Underwater Adaptation** (you can breathe air and water, and you have a swimming speed equal to your walking speed)."
+    },
+    {
+      "name": "Animal Enhancement (5th Level)",
+      "icon": "evolution",
+      "description": "At 5th level, your body evolves further and you gain one more animal enhancement. Choose one of the options you didn't take at 1st level, or one of the following options: **Grappling Appendages** (you have two special appendages growing alongside your arms; each of these appendages is a natural weapon, which you can use to make unarmed strikes, dealing 1d6 + your Strength modifier bludgeoning damage; immediately after hitting, you can try to grapple the target as a bonus action; these appendages can't precisely manipulate anything and can't wield weapons, magic items, or other specialized equipment), **Carapace** (your skin in places is covered by a thick shell, giving you a +1 bonus to AC when you're not wearing heavy armor), or **Acid Spit** (as an action, you can spray acid from glands in your mouth at one creature you can see within 30 feet; the target must make a Dexterity saving throw against a DC equal to 8 + your Constitution modifier + your proficiency bonus, taking 2d10 acid damage on a failure or half as much on a success; this damage increases by 1d10 when you reach 11th level (3d10) and 17th level (4d10); you can use this trait a number of times equal to your Constitution modifier (minimum of once), and you regain all expended uses when you finish a long rest)."
+    }
+  ],
+  "tags": [
+    "race",
+    "simic_hybrid",
+    "humanoid",
+    "ravnica",
+    "mutant",
+    "enhanced"
+  ],
+  "aliases": [
+    "guardian",
+    "simic guardian"
+  ],
+  "seeAlso": [
+    "humanoid",
+    "vedalken"
+  ],
+  "filePath": "/data/glossary/entries/races/simic_hybrid.json"
 }

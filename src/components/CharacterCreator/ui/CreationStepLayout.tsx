@@ -11,6 +11,8 @@ export interface CreationStepLayoutProps {
   nextLabel?: string;
   backLabel?: string;
   className?: string;
+  /** Optional custom confirm button (e.g., for Race selection) */
+  raceConfirmButton?: React.ReactNode;
 }
 
 /**
@@ -26,24 +28,32 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
   nextLabel = 'Next',
   backLabel = 'Back',
   className = '',
+  raceConfirmButton,
 }) => {
   return (
-    <div className={`flex flex-col h-full w-full max-w-7xl mx-auto ${className}`}>
+    <div className={`flex flex-col h-full w-full ${className}`}>
       {/* Header */}
-      <div className="flex-shrink-0 p-4 sm:p-6 pb-2 text-center">
-        <h2 className="text-2xl sm:text-3xl text-sky-300 font-cinzel font-bold tracking-wide drop-shadow-sm">
-          {title}
-        </h2>
-        <div className="h-0.5 w-24 sm:w-32 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent mx-auto mt-2" />
+      <div className="flex-shrink-0 p-4 sm:p-6 pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex-1" /> {/* Spacer for centering */}
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl text-sky-300 font-cinzel font-bold tracking-wide drop-shadow-sm">
+              {title}
+            </h2>
+            <div className="h-0.5 w-24 sm:w-32 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent mx-auto mt-2" />
+          </div>
+          <div className="flex-1 flex justify-end">
+            {raceConfirmButton}
+          </div>
+        </div>
       </div>
 
       {/* Scrollable Body */}
-      <div className="flex-grow overflow-y-auto px-4 sm:px-6 py-4 scrollable-content">
+      <div className="flex-grow overflow-y-auto px-4 sm:px-6 py-4 scrollable-content border border-gray-700 rounded-xl">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="h-full"
         >
           {children}
         </motion.div>

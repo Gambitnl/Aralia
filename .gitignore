@@ -87,3 +87,5 @@ generated/
 
 # Chrome profile for Gemini automation
 .chrome-gemini-profile/
+
+.mcp.json

@@ -31,7 +31,7 @@ const GNOME_SUBRACES_DATA: GnomeSubrace[] = [
     id: 'rock_gnome',
     name: 'Rock Gnome',
     description:
-      "As a rock gnome, you have a natural inventiveness and hardiness. Rock gnomes are the most common type of gnome, known as inventors and tinkerers. They are friendly, boisterous, and aren't afraid to experiment.",
+      "As a rock gnome, you have a natural inventiveness and hardiness. Rock gnomes are the most common type of gnome, known as inventors and tinkerers. They are friendly, boisterous, and aren\'t afraid to experiment.",
     traits: [
       "Artificer's Lore: Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply. (Trait for flavor/future mechanics).",
       "Tinker: You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless repaired), or when you dismantle it. You can have up to three such devices. Options: Clockwork Toy, Fire Starter, Music Box. (Trait for flavor/future mechanics).",
