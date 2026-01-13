@@ -140,9 +140,11 @@ export async function generateBanter(
     contextData: BanterContext,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<BanterDefinition>> {
-    const model = await client.getModel();
-    if (!model) {
-        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
+    // Use leeplenty/ellaria specifically for banter (better at creative dialogue)
+    const model = 'leeplenty/ellaria';
+    const isAvailable = await client.isAvailable();
+    if (!isAvailable) {
+        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
     }
 
     const prompt = buildBanterPrompt(participants, contextData);
@@ -201,9 +203,11 @@ export async function generateBanterLine(
     onPending?: (id: string, prompt: string, model: string) => void,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<BanterLineData>> {
-    const model = await client.getModel();
-    if (!model) {
-        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
+    // Use leeplenty/ellaria specifically for banter (better at creative dialogue)
+    const model = 'leeplenty/ellaria';
+    const isAvailable = await client.isAvailable();
+    if (!isAvailable) {
+        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
     }
 
     const interactionId = Math.random().toString(36).substring(2, 15);

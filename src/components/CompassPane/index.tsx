@@ -205,6 +205,20 @@ const CompassPane: React.FC<CompassPaneProps> = ({
                 </motion.button>
               </Tooltip>
             )}
+            {!isSubmapContext && (
+              <Tooltip content="Enter 3D World">
+                <motion.button
+                  onClick={() => onAction({ type: 'toggle_three_d', label: 'Enter 3D' })}
+                  disabled={disabled}
+                  whileTap={!disabled ? { scale: 0.9 } : undefined}
+                  whileHover={!disabled ? { scale: 1.1 } : undefined}
+                  className="p-2 rounded-full bg-sky-700 hover:bg-sky-600 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 transition-colors text-xl"
+                  aria-label="Enter 3D World"
+                >
+                  🎥
+                </motion.button>
+              </Tooltip>
+            )}
             <Tooltip content="Gather Herbs & Resources">
               <motion.button
                 onClick={() => setIsGatheringPanelOpen(true)}

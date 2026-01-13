@@ -26,6 +26,7 @@ export type AppAction =
   | { type: 'TOGGLE_MAP_VISIBILITY' }
   | { type: 'TOGGLE_MINIMAP_VISIBILITY' }
   | { type: 'TOGGLE_SUBMAP_VISIBILITY' }
+  | { type: 'TOGGLE_THREE_D_VISIBILITY' }
   | { type: 'SET_MAP_DATA'; payload: MapData }
   | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null } }
   | { type: 'SET_GEMINI_ACTIONS'; payload: Action[] | null }

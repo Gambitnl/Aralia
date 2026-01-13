@@ -120,6 +120,7 @@ export interface GameState {
   mapData: MapData | null;
   isMapVisible: boolean;
   isSubmapVisible: boolean;
+  isThreeDVisible?: boolean;
   isPartyOverlayVisible: boolean;
   isNpcTestModalVisible: boolean;
   isLogbookVisible: boolean;

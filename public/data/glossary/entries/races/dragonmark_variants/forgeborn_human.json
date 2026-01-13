@@ -1,0 +1,100 @@
+{
+  "id": "forgeborn_human",
+  "title": "Forgeborn Human",
+  "category": "Character Races",
+  "entryLore": "The Mark of Making grants the ability to create and repair. House Cannith carries this mark, the architects of the warforged and the lightning rail. Though diminished after the destruction of their creation forges in the Mourning, House Cannith remains the premier guild for manufacturing and artifice. Humans with the Mark of Making are natural craftspeople, able to mend broken items and create wonders.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "ERLW",
+  "baseRace": "human",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Artisan's Intuition",
+      "icon": "hammer",
+      "description": "When you make an [[arcana|Arcana]] check or an ability check involving artisan's tools, you can roll a d4 and add the number rolled to the ability check."
+    },
+    {
+      "name": "Maker's Gift",
+      "icon": "tools",
+      "description": "You gain proficiency with one type of artisan's tools of your choice."
+    },
+    {
+      "name": "Spellsmith",
+      "icon": "magic",
+      "description": "You know the [[mending|Mending]] cantrip. You can also cast [[magic_weapon|Magic Weapon]] with this trait. When you do so, the spell lasts for 1 hour and doesn't require concentration. Once you cast this spell with this trait, you can't do so again until you finish a [[long_rest|Long Rest]]. Intelligence is your spellcasting ability for these spells."
+    },
+    {
+      "name": "Spells of the Mark",
+      "icon": "scroll",
+      "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Making Spells table are added to the spell list of your spellcasting class."
+    }
+  ],
+  "tags": [
+    "race",
+    "human",
+    "dragonmark",
+    "mark of making",
+    "humanoid",
+    "eberron",
+    "house cannith"
+  ],
+  "aliases": [
+    "making human",
+    "cannith"
+  ],
+  "seeAlso": [
+    "human",
+    "humanoid",
+    "mending"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonmark_variants/forgeborn_human.json",
+  "spellsOfTheMark": [
+    {
+      "minLevel": 1,
+      "spells": [
+        "[[identify]]",
+        "[[floating_disk]]"
+      ]
+    },
+    {
+      "minLevel": 2,
+      "spells": [
+        "[[continuous_flame]]",
+        "[[magic_weapon]]"
+      ]
+    },
+    {
+      "minLevel": 3,
+      "spells": [
+        "[[conjure_barrage]]",
+        "[[elemental_weapon]]"
+      ]
+    },
+    {
+      "minLevel": 4,
+      "spells": [
+        "[[fabricate]]",
+        "[[stone_shape]]"
+      ]
+    },
+    {
+      "minLevel": 5,
+      "spells": [
+        "[[creation]]"
+      ]
+    }
+  ]
+}

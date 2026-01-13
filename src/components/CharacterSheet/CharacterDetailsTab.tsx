@@ -12,8 +12,20 @@ interface CharacterDetailsTabProps {
 }
 
 const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, companion }) => {
-    const personality = companion?.personality;
-    const identity = companion?.identity;
+    // Read personality from companion (runtime state) OR from character.soul (generated at creation)
+    const soulData = character.soul;
+    const personality = companion?.personality || soulData?.personality;
+    const richData = character.richNpcData;
+
+    // Build identity from companion OR from soul/richNpcData
+    const identity = companion?.identity || (soulData || richData ? {
+        name: soulData?.name || character.name,
+        physicalDescription: soulData?.physicalDescription || richData?.physicalDescription,
+        age: richData?.age || character.age,
+        race: character.race?.name,
+        class: character.class?.name,
+    } : null);
+
     const goals = companion?.goals?.filter(g => !g.isSecret && g.status === 'active');
 
     return (
@@ -133,27 +145,27 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                         </div>
                     )}
 
-                    {/* Trait Spectrum */}
-                    {personality && (
+                    {/* Reaction Style */}
+                    {soulData?.reactionStyle && (
                         <div className="mt-4 bg-black/30 rounded-lg p-4 border border-gray-700/50">
-                            <label className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3 block">Trait Spectrum</label>
-                            <div className="space-y-2.5">
-                                {[
-                                    { name: 'Openness', value: personality.openness, low: 'Traditional', high: 'Adventurous' },
-                                    { name: 'Conscientiousness', value: personality.conscientiousness, low: 'Impulsive', high: 'Disciplined' },
-                                    { name: 'Extraversion', value: personality.extraversion, low: 'Reserved', high: 'Outgoing' },
-                                    { name: 'Agreeableness', value: personality.agreeableness, low: 'Competitive', high: 'Cooperative' },
-                                    { name: 'Neuroticism', value: personality.neuroticism, low: 'Confident', high: 'Sensitive' },
-                                ].map(trait => (
-                                    <div key={trait.name} className="flex items-center text-xs">
-                                        <span className="w-20 text-gray-500 text-right pr-2 flex-shrink-0">{trait.low}</span>
-                                        <div className="flex-grow h-2 bg-gray-700 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all"
-                                                style={{ width: `${trait.value}%` }}
-                                            />
-                                        </div>
-                                        <span className="w-20 text-gray-500 text-left pl-2 flex-shrink-0">{trait.high}</span>
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2 block">Reaction Style</label>
+                            <div className="flex items-center gap-2">
+                                <span className="px-3 py-1.5 bg-purple-900/40 text-purple-300 text-sm rounded-lg border border-purple-700/50 capitalize font-medium">
+                                    {soulData.reactionStyle}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Goals from Soul */}
+                    {soulData?.goals && soulData.goals.length > 0 && (
+                        <div className="mt-4 bg-black/30 rounded-lg p-4 border border-gray-700/50">
+                            <label className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3 block">Aspirations</label>
+                            <div className="space-y-2">
+                                {soulData.goals.filter(g => !g.isSecret).map((goal, i) => (
+                                    <div key={i} className="flex items-start gap-2">
+                                        <span className="text-amber-400 flex-shrink-0">★</span>
+                                        <p className="text-gray-300 text-sm">{goal.description}</p>
                                     </div>
                                 ))}
                             </div>

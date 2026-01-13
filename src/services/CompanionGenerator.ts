@@ -87,10 +87,13 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
   }
 
   const client = new OllamaClient();
-  const model = await client.getModel();
 
-  if (!model) {
-    console.error("No Ollama model available.");
+  // Use mistral:instruct specifically for character generation (better at structured JSON output)
+  const model = 'mistral:instruct';
+  const isAvailable = await client.isAvailable();
+
+  if (!isAvailable) {
+    console.error("Ollama service not available.");
     return null;
   }
 
@@ -125,6 +128,7 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
       model,
       prompt,
       format: 'json',
+      numPredict: 1024, // Ensure enough tokens for complete JSON output
     });
 
     if (result.ok) {
@@ -135,6 +139,11 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
         console.error(`[CompanionGenerator] Attempt ${i + 1} JSON Parsing Failed.`);
         window.alert(`Generation Attempt ${i + 1} Failed: JSON Parsing`);
       } else {
+        // Normalize reactionStyle to lowercase for consistency
+        if (parsed.reactionStyle && typeof parsed.reactionStyle === 'string') {
+          parsed.reactionStyle = parsed.reactionStyle.toLowerCase();
+        }
+
         const validation = CompanionSoulSchema.safeParse(parsed);
         if (validation.success) {
           soulCache.set(cacheKey, validation.data);
@@ -172,6 +181,22 @@ export async function generateCompanion(config: CompanionSkeletonConfig): Promis
   if (!soul) {
     console.error("Failed to generate soul.");
     return null;
+  }
+
+  // Extract surname from soul's name and update family members to match
+  const soulNameParts = soul.name.split(' ');
+  const soulSurname = soulNameParts.length > 1 ? soulNameParts[soulNameParts.length - 1] : null;
+
+  if (soulSurname && skeleton.richNpcData?.family) {
+    skeleton.richNpcData.family = skeleton.richNpcData.family.map(member => {
+      // Replace the family member's surname with the soul's surname
+      const memberNameParts = member.name.split(' ');
+      if (memberNameParts.length > 1) {
+        memberNameParts[memberNameParts.length - 1] = soulSurname;
+        return { ...member, name: memberNameParts.join(' ') };
+      }
+      return member;
+    });
   }
 
   // Assemble the full character

@@ -24,10 +24,24 @@ export function generateMap(
 ): MapData {
   const tiles: MapTile[][] = [];
   const random = new SeededRandom(worldSeed);
-  const passableBiomeIds = Object.values(biomes).filter(b => b.passable).map(b => b.id);
-  if (passableBiomeIds.length === 0) {
+  const passableBiomes = Object.values(biomes).filter(b => b.passable);
+  const totalWeight = passableBiomes.reduce((sum, b) => sum + (b.spawnWeight ?? 1), 0);
+  if (passableBiomes.length === 0 || totalWeight <= 0) {
     throw new Error("No passable biomes defined for map generation.");
   }
+
+  const pickPassableBiomeId = () => {
+    const roll = random.next() * totalWeight;
+    let acc = 0;
+    for (const biome of passableBiomes) {
+      acc += biome.spawnWeight ?? 1;
+      if (roll <= acc) {
+        return biome.id;
+      }
+    }
+    // Fallback to first passable biome (should never hit)
+    return passableBiomes[0].id;
+  };
 
   // Initialize all tiles
   for (let r = 0; r < rows; r++) {
@@ -36,7 +50,7 @@ export function generateMap(
       tiles[r][c] = {
         x: c,
         y: r,
-        biomeId: passableBiomeIds[Math.floor(random.next() * passableBiomeIds.length)], // Initial random assignment
+        biomeId: pickPassableBiomeId(), // Initial weighted assignment
         discovered: false,
         isPlayerCurrent: false,
       };
@@ -103,7 +117,7 @@ export function generateMap(
         if (dominantNeighborBiome && biomes[dominantNeighborBiome]?.passable && random.next() < 0.5) {
           tiles[r][c].biomeId = dominantNeighborBiome;
         } else if (!biomes[tiles[r][c].biomeId]?.passable) { // Ensure non-location tiles are passable
-           tiles[r][c].biomeId = passableBiomeIds[Math.floor(random.next() * passableBiomeIds.length)];
+           tiles[r][c].biomeId = pickPassableBiomeId();
         }
       }
     }

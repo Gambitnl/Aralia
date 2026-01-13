@@ -73,6 +73,7 @@ export const initialGameState: GameState = {
     mapData: null,
     isMapVisible: false,
     isSubmapVisible: false,
+    isThreeDVisible: false,
     isPartyOverlayVisible: false,
     isNpcTestModalVisible: false,
     isLogbookVisible: false,

@@ -24,7 +24,7 @@ export const CompanionSoulSchema = z.object({
   physicalDescription: z.string().min(20, "Description must be at least 20 characters."),
   personality: PersonalitySchema,
   goals: z.array(GoalSchema).min(2, "Must have at least 2 goals (one public, one secret)."),
-  reactionStyle: z.enum(["cynical", "hopeful", "aggressive", "religious", "pragmatic", "idealistic"]),
+  reactionStyle: z.string().min(3, "Reaction style must be at least 3 characters."),
 });
 
 // Define a TypeScript type from the schema for easy use

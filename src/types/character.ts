@@ -136,6 +136,7 @@ export interface Race {
     traitName: string;
     traitDescription: string;
   };
+  spellsOfTheMark?: { minLevel: number; spells: string[] }[];
   knownSpells?: RacialSpell[];
   // TODO(Taxonomist): Add languages: Language[] to Race interface once usage is confirmed
 }

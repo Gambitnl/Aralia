@@ -18,6 +18,7 @@ export type ActionType =
   | 'ask_oracle'
   | 'toggle_map'
   | 'toggle_submap_visibility'
+  | 'toggle_three_d'
   | 'gemini_custom_action'
   | 'save_game'
   | 'go_to_main_menu'

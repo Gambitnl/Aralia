@@ -2,15 +2,15 @@
 
 **Purpose**: Master index of all numbered documentation files in the project.
 
-**Last Updated**: December 4, 2025
+**Last Updated**: Jan 13, 2026
 
 ---
 
 ## Quick Stats
 
-- **Total Active**: 17 documents (9 spell-system, 6 doc-cleanup, 2 spell-completeness)
+- **Total Active**: 18 documents (9 spell-system, 6 doc-cleanup, 2 spell-completeness, 1 3d-exploration)
 - **Total Retired**: 4 documents
-- **Active Projects**: 3
+- **Active Projects**: 4
 
 ---
 
@@ -82,6 +82,20 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 **Tags**: `spell-completeness`, `audit`, `reference-extraction`
 
 **Next available number**: `2C`
+
+---
+
+### Project: 3D Exploration & Combat
+
+**Location**: `docs/tasks/3d-exploration/`
+
+| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
+|--------|----------|--------|----------|----------|--------------|--------------|
+| [1A](./tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md) | 3D Exploration Roadmap | Active | 0% (Phase 0) | High | - | Jan 13, 2026 |
+
+**Tags**: `3d`, `exploration`, `combat`, `r3f`, `procedural`
+
+**Next available number**: `1B`
 
 ---
 
@@ -202,6 +216,7 @@ Example: @WORKFLOW-GUIDE.md
 
 | Date | Change | Project | Details |
 |------|--------|---------|---------|
+| Jan 13, 2026 | Created 1A | 3D Exploration | Added 3D exploration/combat roadmap |
 | Dec 4, 2025 | Documentation merge | Spell System | Merged COMPONENT_DEPENDENCIES.md into SPELL_INTEGRATION_CHECKLIST.md; archived to docs/archive/spell-docs-2025-12/ |
 | Dec 4, 2025 | Documentation review | Spell System | Reviewed SPELL_INTEGRATION_CHECKLIST.md and SPELL_SYSTEM_ARCHITECTURE.md; verified all component paths |
 | Dec 2, 2025 | Completed 1D | Documentation Cleanup | No consolidation required - documentation system healthy |

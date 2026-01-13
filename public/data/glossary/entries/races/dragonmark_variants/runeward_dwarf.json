@@ -1,0 +1,109 @@
+{
+  "id": "runeward_dwarf",
+  "title": "Runeward Dwarf",
+  "category": "Character Races",
+  "entryLore": "The Mark of Warding grants power over protection and security. House Kundarak carries this mark, operating the banking system of Khorvaire and providing security services. Their vaults are legendary, protected by magical wards that only those bearing the mark can fully control. Dwarves with the Mark of Warding are masters of locks, traps, and protective magic.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "ERLW",
+  "baseRace": "dwarf",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "25 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Dwarven Resilience",
+      "icon": "shield",
+      "description": "You have [[advantage]] on saving throws against [[poison]], and you have resistance to [[poison_damage|poison damage]]."
+    },
+    {
+      "name": "Warder's Intuition",
+      "icon": "lock",
+      "description": "When you make an Intelligence ([[investigation|Investigation]]) check or an ability check using thieves' tools, you can roll a d4 and add the number rolled to the ability check."
+    },
+    {
+      "name": "Wards and Seals",
+      "icon": "magic",
+      "description": "You can cast the [[alarm|Alarm]] and [[mage_armor|Mage Armor]] spells with this trait. Starting at 3rd level, you can also cast the [[arcane_lock|Arcane Lock]] spell with it. Once you cast any of these spells with this trait, you can't cast that spell with it again until you finish a [[long_rest|Long Rest]]. Intelligence is your spellcasting ability for these spells, and you don't need material components for them."
+    },
+    {
+      "name": "Spells of the Mark",
+      "icon": "scroll",
+      "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Warding Spells table are added to the spell list of your spellcasting class."
+    }
+  ],
+  "tags": [
+    "race",
+    "dwarf",
+    "dragonmark",
+    "mark of warding",
+    "humanoid",
+    "eberron",
+    "house kundarak"
+  ],
+  "aliases": [
+    "warding dwarf",
+    "kundarak"
+  ],
+  "seeAlso": [
+    "dwarf",
+    "humanoid",
+    "alarm"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonmark_variants/runeward_dwarf.json",
+  "spellsOfTheMark": [
+    {
+      "minLevel": 1,
+      "spells": [
+        "[[alarm]]",
+        "[[armor_of_agathys]]"
+      ]
+    },
+    {
+      "minLevel": 2,
+      "spells": [
+        "[[arcane_lock]]",
+        "[[knock]]"
+      ]
+    },
+    {
+      "minLevel": 3,
+      "spells": [
+        "[[glyph_of_warding]]",
+        "[[magic_circle]]"
+      ]
+    },
+    {
+      "minLevel": 4,
+      "spells": [
+        "[[secret_chest]]",
+        "[[faithful_hound]]"
+      ]
+    },
+    {
+      "minLevel": 5,
+      "spells": [
+        "[[antilife_shell]]"
+      ]
+    }
+  ]
+}

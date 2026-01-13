@@ -1,6 +1,7 @@
 import { resolveVillageIntegrationProfile } from '../data/villagePersonalityProfiles';
 import { villageBuildingVisuals } from '../config/submapVisualsConfig';
 import { createSeededRandom } from '../utils/submapUtils';
+import { BIOMES } from '../constants';
 export type { VillagePersonality, VillageIntegrationProfile };
 
 /**
@@ -156,10 +157,20 @@ const pickColor = (type: VillageTileType, rng: () => number): { fill: string; ac
 };
 
 const inferBiomeStyle = (biomeId: string): VillagePersonality['biomeStyle'] => {
-  if (biomeId === 'desert') return 'arid';
-  if (biomeId === 'ocean') return 'coastal';
-  if (biomeId === 'swamp') return 'swampy';
-  return 'temperate';
+  const biome = BIOMES[biomeId];
+  const family = biome?.family || biomeId;
+  switch (family) {
+    case 'desert': return 'arid';
+    case 'coastal': return 'coastal';
+    case 'wetland': return 'swampy';
+    case 'jungle': return 'jungle';
+    case 'tundra': return 'tundra';
+    case 'volcanic': return 'volcanic';
+    case 'blight': return 'blighted';
+    case 'mountain':
+    case 'highland': return 'highland';
+    default: return 'temperate';
+  }
 };
 
 const inferArchitecturalStyle = (biomeId: string, dominantRace?: string): VillagePersonality['architecturalStyle'] => {
@@ -177,12 +188,24 @@ const inferArchitecturalStyle = (biomeId: string, dominantRace?: string): Villag
   }
 
   // Fallback to biome-based styles
-  switch (biomeId) {
+  const biome = BIOMES[biomeId];
+  const family = biome?.family || biomeId;
+
+  if (!dominantRace && biome?.magic && biome.magic !== 'mundane') {
+    return 'magical';
+  }
+
+  switch (family) {
     case 'forest': return 'magical';
-    case 'mountain': return 'industrial';
+    case 'mountain':
+    case 'highland': return 'industrial';
     case 'desert': return 'nomadic';
-    case 'ocean': return 'aquatic';
-    case 'swamp': return 'tribal';
+    case 'coastal': return 'aquatic';
+    case 'wetland': return 'tribal';
+    case 'jungle': return 'tribal';
+    case 'tundra': return 'colonial';
+    case 'volcanic': return 'industrial';
+    case 'blight': return 'magical';
     default: return 'medieval';
   }
 };
@@ -681,4 +704,3 @@ export const describeBuilding = (building: VillageBuildingFootprint, personality
 
   return `${typeName[building.type] ?? 'Structure'} with ${cultureFlavor[personality.culture]}; the settlement feels ${wealthFlavor}.`;
 };
-

@@ -84,6 +84,7 @@ const transformRaceData = (race: Race): RaceDetailData => {
     feats,
     furtherChoicesNote,
     racialSpellChoice: race.racialSpellChoice,
+    spellsOfTheMark: race.spellsOfTheMark,
   };
 };
 

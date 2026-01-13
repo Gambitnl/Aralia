@@ -3,7 +3,7 @@
   "title": "Autognome",
   "category": "Character Races",
   "entryLore": "Autognomes are mechanical beings built by rock gnomes in their image, usually with a specific purpose in mind. Programmed with loyalty and a desire to please, each autognome is essentially a construct with a soul. They are capable of independent thought and can develop their own personalities over time. Many autognomes serve as helpers, guardians, or companions, though some break free of their original programming to seek their own destiny among the stars.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
+  "imageUrl": "/assets/images/races/autognome.png",
   "source": "AAG",
   "characteristics": [
     {

@@ -1,0 +1,100 @@
+{
+  "id": "guardian_human",
+  "title": "Guardian Human",
+  "category": "Character Races",
+  "entryLore": "The Mark of Sentinel grants power to protect and defend. House Deneith carries this mark, providing mercenary services and bodyguards to those who can afford their fees. Humans with the Mark of Sentinel are natural protectors, able to sense danger and shield others from harm.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "ERLW",
+  "baseRace": "human",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Sentinel's Intuition",
+      "icon": "eye",
+      "description": "When you make a Wisdom ([[insight|Insight]]) or Wisdom ([[perception|Perception]]) check, you can roll a d4 and add the number rolled to the ability check."
+    },
+    {
+      "name": "Guardian's Shield",
+      "icon": "shield",
+      "description": "You can cast the [[shield|Shield]] spell once with this trait, and you regain the ability to cast it when you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Vigilant Guardian",
+      "icon": "protect",
+      "description": "When a creature you can see within 5 feet of you is hit by an attack roll, you can use your reaction to swap places with that creature, and you are hit by the attack instead. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Spells of the Mark",
+      "icon": "scroll",
+      "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Sentinel Spells table are added to the spell list of your spellcasting class."
+    }
+  ],
+  "tags": [
+    "race",
+    "human",
+    "dragonmark",
+    "mark of sentinel",
+    "humanoid",
+    "eberron",
+    "house deneith"
+  ],
+  "aliases": [
+    "sentinel human",
+    "deneith"
+  ],
+  "seeAlso": [
+    "human",
+    "humanoid",
+    "shield"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonmark_variants/guardian_human.json",
+  "spellsOfTheMark": [
+    {
+      "minLevel": 1,
+      "spells": [
+        "[[compelled_duel]]",
+        "[[shield_of_faith]]"
+      ]
+    },
+    {
+      "minLevel": 2,
+      "spells": [
+        "[[warding_bond]]",
+        "[[zone_of_truth]]"
+      ]
+    },
+    {
+      "minLevel": 3,
+      "spells": [
+        "[[counterspell]]",
+        "[[protection_from_energy]]"
+      ]
+    },
+    {
+      "minLevel": 4,
+      "spells": [
+        "[[death_ward]]",
+        "[[guardian_of_faith]]"
+      ]
+    },
+    {
+      "minLevel": 5,
+      "spells": [
+        "[[arcane_hand]]"
+      ]
+    }
+  ]
+}

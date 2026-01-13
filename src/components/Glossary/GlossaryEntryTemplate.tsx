@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GlossaryTraitTable } from './GlossaryTraitTable';
+import { GlossarySpellsOfTheMarkTable } from './GlossarySpellsOfTheMarkTable';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
 import ImageModal from '../ImageModal';
 import { GlossaryEntry } from '../../types';
@@ -154,6 +155,12 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                                 characteristics={entry.characteristics}
                                 onNavigate={onNavigate}
                             />
+                            {entry.spellsOfTheMark && (
+                                <GlossarySpellsOfTheMarkTable
+                                    spells={entry.spellsOfTheMark}
+                                    onNavigate={onNavigate}
+                                />
+                            )}
                         </div>
                     )}
 

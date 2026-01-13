@@ -1,0 +1,122 @@
+# Race Image Generation TODO List
+Total Unique Races: 149
+Missing Images: 116
+
+## Missing Images
+
+- [ ] **Abyssal Tiefling** (abyssal_tiefling) - Missing: Male, Female
+- [ ] **Astral Elf** (astral_elf) - Missing: Male, Female
+- [ ] **Autumn Eladrin** (autumn_eladrin) - Missing: Male, Female
+- [ ] **Beastborn Human** (beastborn_human) - Missing: Male, Female
+- [ ] **Beasthide Shifter** (beasthide_shifter) - Missing: Male, Female
+- [ ] **Black Dragonborn** (black_dragonborn) - Missing: Male, Female
+- [ ] **Blue Dragonborn** (blue_dragonborn) - Missing: Male, Female
+- [ ] **Brass Dragonborn** (brass_dragonborn) - Missing: Male, Female
+- [ ] **Bronze Dragonborn** (bronze_dragonborn) - Missing: Male, Female
+- [ ] **Chthonic Tiefling** (chthonic_tiefling) - Missing: Male, Female
+- [ ] **Cloud Giant Goliath** (cloud_giant_goliath) - Missing: Male, Female
+- [ ] **Copper Dragonborn** (copper_dragonborn) - Missing: Male, Female
+- [ ] **Deep Gnome (Svirfneblin)** (deep_gnome) - Missing: Male, Female
+- [ ] **Draconblood Dragonborn** (draconblood_dragonborn) - Missing: Male, Female
+- [ ] **Fallen Aasimar** (fallen_aasimar) - Missing: Male, Female
+- [ ] **Fire Giant Goliath** (fire_giant_goliath) - Missing: Male, Female
+- [ ] **Forgeborn Human** (forgeborn_human) - Missing: Male, Female
+- [ ] **Frost Giant Goliath** (frost_giant_goliath) - Missing: Male, Female
+- [ ] **Gold Dragonborn** (gold_dragonborn) - Missing: Male, Female
+- [ ] **Green Dragonborn** (green_dragonborn) - Missing: Male, Female
+- [ ] **Guardian Human** (guardian_human) - Missing: Male, Female
+- [ ] **Half-Elf** (half_elf) - Missing: Male, Female
+- [ ] **Half-Elf (Aquatic)** (half_elf_aquatic) - Missing: Male, Female
+- [ ] **Half-Elf (Drow)** (half_elf_drow) - Missing: Male, Female
+- [ ] **Half-Elf (High)** (half_elf_high) - Missing: Male, Female
+- [ ] **Half-Elf (Wood)** (half_elf_wood) - Missing: Male, Female
+- [ ] **Hearthkeeper Halfling** (hearthkeeper_halfling) - Missing: Male, Female
+- [ ] **High Elf** (high_elf) - Missing: Male, Female
+- [ ] **Hill Giant Goliath** (hill_giant_goliath) - Missing: Male, Female
+- [ ] **Infernal Tiefling** (infernal_tiefling) - Missing: Male, Female
+- [ ] **Lightfoot Halfling** (lightfoot_halfling) - Missing: Male, Female
+- [ ] **Longtooth Shifter** (longtooth_shifter) - Missing: Male, Female
+- [ ] **Lotusden Halfling** (lotusden_halfling) - Missing: Male, Female
+- [ ] **Mender Halfling** (mender_halfling) - Missing: Male, Female
+- [ ] **Mountain Dwarf** (mountain_dwarf) - Missing: Male, Female
+- [ ] **Pallid Elf** (pallid_elf) - Missing: Male, Female
+- [ ] **Pathfinder Half-Orc** (pathfinder_half_orc) - Missing: Male, Female
+- [ ] **Protector Aasimar** (protector_aasimar) - Missing: Male, Female
+- [ ] **Ravenite Dragonborn** (ravenite_dragonborn) - Missing: Male, Female
+- [ ] **Red Dragonborn** (red_dragonborn) - Missing: Male, Female
+- [ ] **Rock Gnome** (rock_gnome) - Missing: Male, Female
+- [ ] **Runeward Dwarf** (runeward_dwarf) - Missing: Male, Female
+- [ ] **Scourge Aasimar** (scourge_aasimar) - Missing: Male, Female
+- [ ] **Sea Elf** (sea_elf) - Missing: Male, Female
+- [ ] **Seersight Half-Elf** (seersight_half_elf) - Missing: Male, Female
+- [ ] **Shadar-kai** (shadar_kai) - Missing: Male, Female
+- [ ] **Shadowveil Elf** (shadowveil_elf) - Missing: Male, Female
+- [ ] **Silver Dragonborn** (silver_dragonborn) - Missing: Male, Female
+- [ ] **Spring Eladrin** (spring_eladrin) - Missing: Male, Female
+- [ ] **Stone Giant Goliath** (stone_giant_goliath) - Missing: Male, Female
+- [ ] **Stormborn Half-Elf** (stormborn_half_elf) - Missing: Male, Female
+- [ ] **Storm Giant Goliath** (storm_giant_goliath) - Missing: Male, Female
+- [ ] **Stout Halfling** (stout_halfling) - Missing: Male, Female
+- [ ] **Summer Eladrin** (summer_eladrin) - Missing: Male, Female
+- [ ] **Swiftstride Shifter** (swiftstride_shifter) - Missing: Male, Female
+- [ ] **Warforged** (warforged) - Missing: Male, Female
+- [ ] **Wayfarer Human** (wayfarer_human) - Missing: Male, Female
+- [ ] **White Dragonborn** (white_dragonborn) - Missing: Male, Female
+- [ ] **Wildhunt Shifter** (wildhunt_shifter) - Missing: Male, Female
+- [ ] **Winter Eladrin** (winter_eladrin) - Missing: Male, Female
+- [ ] **Wood Elf** (wood_elf) - Missing: Male, Female
+- [ ] **Wordweaver Gnome** (wordweaver_gnome) - Missing: Male, Female
+- [ ] **Aasimar** (group_aasimar) - Missing: Male, Female
+- [ ] **Autognome** (autognome) - Missing: Male, Female
+- [ ] **Beastfolk** (group_beastfolk) - Missing: Male, Female
+- [ ] **Hadozee** (hadozee) - Missing: Male, Female
+- [ ] **Harengon** (harengon) - Missing: Male, Female
+- [ ] **Leonin** (leonin) - Missing: Male, Female
+- [ ] **Lizardfolk** (lizardfolk) - Missing: Male, Female
+- [ ] **Loxodon** (loxodon) - Missing: Male, Female
+- [ ] **Minotaur** (minotaur) - Missing: Male, Female
+- [ ] **Thri-kreen** (thri_kreen) - Missing: Male, Female
+- [ ] **Tortle** (tortle) - Missing: Male, Female
+- [ ] **Yuan-Ti** (yuan-ti) - Missing: Male, Female
+- [ ] **Dragonborn** (group_dragonborn) - Missing: Male, Female
+- [ ] **Dwarf** (group_dwarf) - Missing: Male, Female
+- [ ] **Eladrin** (group_eladrin) - Missing: Male, Female
+- [ ] **Elf** (group_elf) - Missing: Male, Female
+- [ ] **Drow** (drow_lineage) - Missing: Male, Female
+- [ ] **High Elf** (high_elf_lineage) - Missing: Male, Female
+- [ ] **Wood Elf** (wood_elf_lineage) - Missing: Male, Female
+- [ ] **Genasi** (group_genasi) - Missing: Male, Female
+- [ ] **Genasi (Race Traits)** (genasi) - Missing: Male, Female
+- [ ] **Gith** (group_gith) - Missing: Male, Female
+- [ ] **Gnome** (group_gnome) - Missing: Male, Female
+- [ ] **Forest Gnome** (forest_gnome_lineage) - Missing: Male, Female
+- [ ] **Rock Gnome** (rock_gnome_lineage) - Missing: Male, Female
+- [ ] **Goblinoid** (group_goblinoid) - Missing: Male, Female
+- [ ] **Hobgoblin** (hobgoblin) - Missing: Male, Female
+- [ ] **Goliath** (group_goliath) - Missing: Male, Female
+- [ ] **Cloud Giant Goliath** (goliath_ancestry_cloud) - Missing: Male, Female
+- [ ] **Fire Giant Goliath** (goliath_ancestry_fire) - Missing: Male, Female
+- [ ] **Frost Giant Goliath** (goliath_ancestry_frost) - Missing: Male, Female
+- [ ] **Hill Giant Goliath** (goliath_ancestry_hill) - Missing: Male, Female
+- [ ] **Stone Giant Goliath** (goliath_ancestry_stone) - Missing: Male, Female
+- [ ] **Storm Giant Goliath** (goliath_ancestry_storm) - Missing: Male, Female
+- [ ] **Half-Elf** (group_half_elf) - Missing: Male, Female
+- [ ] **Half-Elf** (half-elf) - Missing: Male, Female
+- [ ] **Half-Orc** (group_half_orc) - Missing: Male, Female
+- [ ] **Half-Orc (Race Traits)** (half-orc) - Missing: Male, Female
+- [ ] **Halfling** (group_halfling) - Missing: Male, Female
+- [ ] **Human** (group_human) - Missing: Male, Female
+- [ ] **Kalashtar** (kalashtar) - Missing: Male, Female
+- [ ] **Kender** (kender) - Missing: Male, Female
+- [ ] **Kobold** (kobold) - Missing: Male, Female
+- [ ] **Plasmoid** (plasmoid) - Missing: Male, Female
+- [ ] **Satyr** (satyr) - Missing: Male, Female
+- [ ] **Shifter** (group_shifter) - Missing: Male, Female
+- [ ] **Shifter (Race Traits)** (shifter) - Missing: Male, Female
+- [ ] **Simic Hybrid** (simic_hybrid) - Missing: Male, Female
+- [ ] **Tiefling** (group_tiefling) - Missing: Male, Female
+- [ ] **Abyssal Tiefling** (abyssal_legacy) - Missing: Male, Female
+- [ ] **Chthonic Tiefling** (chthonic_legacy) - Missing: Male, Female
+- [ ] **Infernal Tiefling** (infernal_legacy) - Missing: Male, Female
+- [ ] **Vedalken** (vedalken) - Missing: Male, Female
+- [ ] **Verdan** (verdan) - Missing: Male, Female

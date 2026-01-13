@@ -44,6 +44,7 @@ export function useSubmapProceduralData({
 }: UseSubmapProceduralDataProps): UseSubmapProceduralDataOutput {
   const worldBiome = BIOMES[currentWorldBiomeId];
   const biomeSeedText = worldBiome ? worldBiome.id + worldBiome.name : 'default_seed';
+  const biomeFamily = worldBiome?.family || currentWorldBiomeId;
 
   const simpleHash = useCallback((submapX: number, submapY: number, seedSuffix: string): number => {
     let h = 0;
@@ -85,18 +86,18 @@ export function useSubmapProceduralData({
   const wfcGrid = useMemo(() => {
     // WFC is used for above-ground biomes to prototype naturalistic clustering without the perf hit of full CA.
     if (caGrid) return undefined; // CA already handles cavernous spaces.
-    const supportedBiomes = ['plains', 'forest', 'mountain', 'swamp'];
-    if (!supportedBiomes.includes(currentWorldBiomeId)) return undefined;
+    const supportedFamilies = new Set(['plains', 'forest', 'wetland', 'jungle', 'mountain', 'tundra', 'desert', 'coastal', 'blight', 'volcanic', 'highland']);
+    if (!supportedFamilies.has(biomeFamily)) return undefined;
     const seed = simpleHash(parentWorldMapCoords.x, parentWorldMapCoords.y, 'wfc_seed_v1');
-    const rulesetId = currentWorldBiomeId === 'mountain' ? 'cavern' : 'temperate';
+    const rulesetId = biomeFamily === 'mountain' ? 'cavern' : 'temperate';
     return generateWfcGrid({
       rows: submapDimensions.rows,
       cols: submapDimensions.cols,
       rulesetId,
       seed,
-      biomeContext: currentWorldBiomeId,
+      biomeContext: biomeFamily,
     });
-  }, [caGrid, currentWorldBiomeId, parentWorldMapCoords, simpleHash, submapDimensions]);
+  }, [caGrid, biomeFamily, parentWorldMapCoords, simpleHash, submapDimensions]);
 
 
   // 1. Calculate Path Details (Skipped for CA-driven biomes; WFC can still overlay paths)

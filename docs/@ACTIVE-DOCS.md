@@ -1,6 +1,6 @@
 # 🔥 Active Documentation
 
-**Last Updated**: December 4, 2025
+**Last Updated**: Jan 13, 2026
 
 **Purpose**: Quick reference to documents currently being worked on.
 
@@ -8,9 +8,9 @@
 
 ## Overview
 
-**Active Projects**: 3
-**Total Active Docs**: 17
-**Current Focus**: Spell System Migration (Phase 0) and Spell Completeness Audit (Phase 2 prep)
+**Active Projects**: 4
+**Total Active Docs**: 18
+**Current Focus**: Spell System Migration (Phase 0), Spell Completeness Audit (Phase 2 prep), 3D Exploration planning
 
 ---
 
@@ -109,6 +109,20 @@
 | [1D-CONSOLIDATE-DUPLICATE-CONTENT](./tasks/documentation-cleanup/1D-CONSOLIDATE-DUPLICATE-CONTENT.md) | Merge duplicate content | ⏸️ Pending | 1A |
 | [1E-VERIFY-DOC-LINKS](./tasks/documentation-cleanup/1E-VERIFY-DOC-LINKS.md) | Check all documentation links | ⏸️ Pending | 1B, 1C, 1D |
 | [1F-CREATE-SYSTEM-STATUS-REPORT](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md) | Generate final status report | ⏸️ Pending | 1E |
+
+---
+
+## Project 4: 3D Exploration & Combat
+
+**Status**: 🟢 Active - Phase 0 (Foundations)
+**Location**: `docs/tasks/3d-exploration/`
+**Priority**: High
+
+### Master Document
+
+| Doc | Description | Status |
+|-----|-------------|--------|
+| [1A-3D-EXPLORATION-ROADMAP](./tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md) | Multi-phase plan for 3D exploration/combat via R3F | 🟢 Active |
 
 ---
 

@@ -38,6 +38,8 @@ interface GlossarySidebarProps {
     hasError: boolean;
     /** Spell gate check results for showing status dots */
     gateResults: Record<string, GateResult>;
+    /** Counts of entries in each category (recursive) */
+    categoryCounts: Record<string, number>;
     /** Refs for entry elements for scroll-into-view */
     entryRefs: MutableRefObject<Record<string, HTMLLIElement | HTMLButtonElement | null>>;
     /** Whether column resize is in progress */
@@ -156,6 +158,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
     onSearchChange,
     hasError,
     gateResults,
+    categoryCounts,
     entryRefs,
     isColumnResizing,
 }) => {
@@ -215,7 +218,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                     >
                         <span className="flex items-center">
                             {getCategoryIcon(category)}
-                            {category} ({groupedEntries[category]?.length || 0})
+                            {category} ({categoryCounts[category] || 0})
                         </span>
                         <span className={`ml-2 transform transition-transform duration-150 ${expandedCategories.has(category) ? 'rotate-90' : ''}`}>▶</span>
                     </summary>

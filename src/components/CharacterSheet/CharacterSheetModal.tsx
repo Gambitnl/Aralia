@@ -15,6 +15,7 @@ import SkillDetailDisplay from './SkillDetailDisplay';
 import SpellbookOverlay from './SpellbookOverlay'; // Import the new SpellbookOverlay component
 import CharacterOverview from './CharacterOverview'; // Import the extracted component
 import CharacterDetailsTab from './CharacterDetailsTab';
+import FamilyTreeTab from './FamilyTreeTab';
 import { Companion } from '../../types/companions';
 // Glossary modal is nested under the Glossary folder to keep related UI together
 
@@ -30,7 +31,7 @@ interface CharacterSheetModalProps {
   onNavigateToGlossary?: (termId: string) => void; // For glossary navigation
 }
 
-type SheetTab = 'overview' | 'details';
+type SheetTab = 'overview' | 'details' | 'family';
 
 const overlayMotion: MotionProps = {
   initial: { opacity: 0 },
@@ -137,6 +138,16 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                 >
                   Details
                 </button>
+                {character.richNpcData?.family && character.richNpcData.family.length > 0 && (
+                  <button
+                    onClick={() => setActiveTab('family')}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'family' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+                    role="tab"
+                    aria-selected={activeTab === 'family'}
+                  >
+                    Family
+                  </button>
+                )}
                 {hasSpells && (
                   <button
                     onClick={() => setIsSpellbookOpen(true)}
@@ -199,6 +210,9 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
             )}
             {activeTab === 'details' && (
               <CharacterDetailsTab character={character} companion={companion} />
+            )}
+            {activeTab === 'family' && (
+              <FamilyTreeTab character={character} />
             )}
           </div>
         </motion.div>

@@ -10,7 +10,12 @@
         "id": "protector_aasimar",
         "title": "Protector Aasimar",
         "category": "Character Races",
-        "tags": ["race", "aasimar", "protector", "celestial"],
+        "tags": [
+          "race",
+          "aasimar",
+          "protector",
+          "celestial"
+        ],
         "excerpt": "Radiant soul with spectral wings.",
         "filePath": "/data/glossary/entries/races/aasimar_variants/protector.json"
       },
@@ -18,7 +23,12 @@
         "id": "scourge_aasimar",
         "title": "Scourge Aasimar",
         "category": "Character Races",
-        "tags": ["race", "aasimar", "scourge", "celestial"],
+        "tags": [
+          "race",
+          "aasimar",
+          "scourge",
+          "celestial"
+        ],
         "excerpt": "Radiant consumption with damaging aura.",
         "filePath": "/data/glossary/entries/races/aasimar_variants/scourge.json"
       },
@@ -26,7 +36,12 @@
         "id": "fallen_aasimar",
         "title": "Fallen Aasimar",
         "category": "Character Races",
-        "tags": ["race", "aasimar", "fallen", "celestial"],
+        "tags": [
+          "race",
+          "aasimar",
+          "fallen",
+          "celestial"
+        ],
         "excerpt": "Necrotic shroud with frightening presence.",
         "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json"
       }
@@ -36,7 +51,12 @@
     "id": "autognome",
     "title": "Autognome",
     "category": "Character Races",
-    "tags": ["race", "autognome", "construct", "spelljammer"],
+    "tags": [
+      "race",
+      "autognome",
+      "construct",
+      "spelljammer"
+    ],
     "excerpt": "Mechanical beings created by rock gnomes, possessing construct traits.",
     "filePath": "/data/glossary/entries/races/autognome.json"
   },
@@ -51,7 +71,12 @@
         "id": "aarakocra",
         "title": "Aarakocra",
         "category": "Character Races",
-        "tags": ["race", "aarakocra", "birdfolk", "flight"],
+        "tags": [
+          "race",
+          "aarakocra",
+          "birdfolk",
+          "flight"
+        ],
         "excerpt": "Winged people from the Elemental Plane of Air.",
         "filePath": "/data/glossary/entries/races/aarakocra.json"
       },
@@ -59,7 +84,12 @@
         "id": "giff",
         "title": "Giff",
         "category": "Character Races",
-        "tags": ["race", "giff", "hippofolk", "spelljammer"],
+        "tags": [
+          "race",
+          "giff",
+          "hippofolk",
+          "spelljammer"
+        ],
         "excerpt": "Hulking hippo-headed warriors from Wildspace.",
         "filePath": "/data/glossary/entries/races/giff.json"
       },
@@ -67,7 +97,12 @@
         "id": "hadozee",
         "title": "Hadozee",
         "category": "Character Races",
-        "tags": ["race", "hadozee", "glide", "spelljammer"],
+        "tags": [
+          "race",
+          "hadozee",
+          "glide",
+          "spelljammer"
+        ],
         "excerpt": "Simian folk with wing-like membranes for gliding.",
         "filePath": "/data/glossary/entries/races/hadozee.json"
       },
@@ -75,7 +110,12 @@
         "id": "harengon",
         "title": "Harengon",
         "category": "Character Races",
-        "tags": ["race", "harengon", "rabbitfolk", "fey"],
+        "tags": [
+          "race",
+          "harengon",
+          "rabbitfolk",
+          "fey"
+        ],
         "excerpt": "Rabbit-folk from the Feywild with lucky hops.",
         "filePath": "/data/glossary/entries/races/harengon.json"
       },
@@ -83,7 +123,12 @@
         "id": "kenku",
         "title": "Kenku",
         "category": "Character Races",
-        "tags": ["race", "kenku", "mimicry", "humanoid"],
+        "tags": [
+          "race",
+          "kenku",
+          "mimicry",
+          "humanoid"
+        ],
         "excerpt": "Feathered folk with accurate memories and mimicry.",
         "filePath": "/data/glossary/entries/races/kenku.json"
       },
@@ -91,7 +136,12 @@
         "id": "leonin",
         "title": "Leonin",
         "category": "Character Races",
-        "tags": ["race", "leonin", "lionfolk", "theros"],
+        "tags": [
+          "race",
+          "leonin",
+          "lionfolk",
+          "theros"
+        ],
         "excerpt": "Noble lion-headed hunters from Theros.",
         "filePath": "/data/glossary/entries/races/leonin.json"
       },
@@ -99,7 +149,11 @@
         "id": "lizardfolk",
         "title": "Lizardfolk",
         "category": "Character Races",
-        "tags": ["race", "lizardfolk", "reptilian"],
+        "tags": [
+          "race",
+          "lizardfolk",
+          "reptilian"
+        ],
         "excerpt": "Ancient reptilian humanoids with practical mindsets.",
         "filePath": "/data/glossary/entries/races/lizardfolk.json"
       },
@@ -107,7 +161,12 @@
         "id": "loxodon",
         "title": "Loxodon",
         "category": "Character Races",
-        "tags": ["race", "loxodon", "elephantfolk", "ravnica"],
+        "tags": [
+          "race",
+          "loxodon",
+          "elephantfolk",
+          "ravnica"
+        ],
         "excerpt": "Elephant-headed people known for serenity and memory.",
         "filePath": "/data/glossary/entries/races/loxodon.json"
       },
@@ -115,7 +174,11 @@
         "id": "minotaur",
         "title": "Minotaur",
         "category": "Character Races",
-        "tags": ["race", "minotaur", "horns"],
+        "tags": [
+          "race",
+          "minotaur",
+          "horns"
+        ],
         "excerpt": "Powerful bull-headed warriors with goring horns.",
         "filePath": "/data/glossary/entries/races/minotaur.json"
       },
@@ -123,7 +186,12 @@
         "id": "tabaxi",
         "title": "Tabaxi",
         "category": "Character Races",
-        "tags": ["race", "tabaxi", "feline", "agility"],
+        "tags": [
+          "race",
+          "tabaxi",
+          "feline",
+          "agility"
+        ],
         "excerpt": "Curious catlike humanoids driven by wanderlust.",
         "filePath": "/data/glossary/entries/races/tabaxi.json"
       },
@@ -131,7 +199,12 @@
         "id": "thri_kreen",
         "title": "Thri-kreen",
         "category": "Character Races",
-        "tags": ["race", "thri_kreen", "insectoid", "spelljammer"],
+        "tags": [
+          "race",
+          "thri_kreen",
+          "insectoid",
+          "spelljammer"
+        ],
         "excerpt": "Mantis-like warriors from the deserts and Wildspace.",
         "filePath": "/data/glossary/entries/races/thri_kreen.json"
       },
@@ -139,7 +212,12 @@
         "id": "tortle",
         "title": "Tortle",
         "category": "Character Races",
-        "tags": ["race", "tortle", "reptilian", "natural armor"],
+        "tags": [
+          "race",
+          "tortle",
+          "reptilian",
+          "natural armor"
+        ],
         "excerpt": "Nomadic turtle-folk who carry their homes on their backs.",
         "filePath": "/data/glossary/entries/races/tortle.json"
       },
@@ -147,7 +225,12 @@
         "id": "yuan-ti",
         "title": "Yuan-Ti",
         "category": "Character Races",
-        "tags": ["race", "yuan-ti", "serpentine", "magic resistance"],
+        "tags": [
+          "race",
+          "yuan-ti",
+          "serpentine",
+          "magic resistance"
+        ],
         "excerpt": "Serpentine folk with innate magical resistance.",
         "filePath": "/data/glossary/entries/races/yuan-ti.json"
       }
@@ -157,7 +240,12 @@
     "id": "bugbear",
     "title": "Bugbear",
     "category": "Character Races",
-    "tags": ["race", "bugbear", "goblinoid", "fey"],
+    "tags": [
+      "race",
+      "bugbear",
+      "goblinoid",
+      "fey"
+    ],
     "excerpt": "Hulking cousins of goblins with fey gift for lurking.",
     "filePath": "/data/glossary/entries/races/bugbear.json"
   },
@@ -165,7 +253,12 @@
     "id": "centaur",
     "title": "Centaur",
     "category": "Character Races",
-    "tags": ["race", "centaur", "fey", "equine"],
+    "tags": [
+      "race",
+      "centaur",
+      "fey",
+      "equine"
+    ],
     "excerpt": "Fey creatures with upper body of an elf and lower body of a horse.",
     "filePath": "/data/glossary/entries/races/centaur.json"
   },
@@ -173,11 +266,16 @@
     "id": "changeling",
     "title": "Changeling",
     "category": "Character Races",
-    "tags": ["race", "changeling", "fey", "shapechanger"],
+    "tags": [
+      "race",
+      "changeling",
+      "fey",
+      "shapechanger"
+    ],
     "excerpt": "Fey beings who can supernaturally adopt any face they like.",
     "filePath": "/data/glossary/entries/races/changeling.json"
   },
-    {
+  {
     "id": "group_dragonborn",
     "title": "Dragonborn",
     "category": "Character Races",
@@ -188,7 +286,11 @@
         "id": "dragonborn",
         "title": "Dragonborn (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "dragonborn", "draconic"],
+        "tags": [
+          "race",
+          "dragonborn",
+          "draconic"
+        ],
         "excerpt": "Base traits for the Dragonborn race.",
         "filePath": "/data/glossary/entries/races/dragonborn.json"
       },
@@ -196,7 +298,12 @@
         "id": "black_dragonborn",
         "title": "Black Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "black", "acid"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "black",
+          "acid"
+        ],
         "excerpt": "Acidic breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/black.json"
       },
@@ -204,7 +311,12 @@
         "id": "blue_dragonborn",
         "title": "Blue Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "blue", "lightning"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "blue",
+          "lightning"
+        ],
         "excerpt": "Lightning breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/blue.json"
       },
@@ -212,7 +324,12 @@
         "id": "brass_dragonborn",
         "title": "Brass Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "brass", "fire"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "brass",
+          "fire"
+        ],
         "excerpt": "Fire breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/brass.json"
       },
@@ -220,7 +337,12 @@
         "id": "bronze_dragonborn",
         "title": "Bronze Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "bronze", "lightning"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "bronze",
+          "lightning"
+        ],
         "excerpt": "Lightning breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/bronze.json"
       },
@@ -228,7 +350,12 @@
         "id": "copper_dragonborn",
         "title": "Copper Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "copper", "acid"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "copper",
+          "acid"
+        ],
         "excerpt": "Acidic breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/copper.json"
       },
@@ -236,7 +363,12 @@
         "id": "gold_dragonborn",
         "title": "Gold Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "gold", "fire"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "gold",
+          "fire"
+        ],
         "excerpt": "Fire breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/gold.json"
       },
@@ -244,7 +376,12 @@
         "id": "green_dragonborn",
         "title": "Green Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "green", "poison"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "green",
+          "poison"
+        ],
         "excerpt": "Poison breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/green.json"
       },
@@ -252,7 +389,12 @@
         "id": "red_dragonborn",
         "title": "Red Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "red", "fire"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "red",
+          "fire"
+        ],
         "excerpt": "Fire breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/red.json"
       },
@@ -260,7 +402,12 @@
         "id": "silver_dragonborn",
         "title": "Silver Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "silver", "cold"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "silver",
+          "cold"
+        ],
         "excerpt": "Cold breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/silver.json"
       },
@@ -268,7 +415,12 @@
         "id": "white_dragonborn",
         "title": "White Dragonborn",
         "category": "Character Races",
-        "tags": ["dragonborn", "ancestry", "white", "cold"],
+        "tags": [
+          "dragonborn",
+          "ancestry",
+          "white",
+          "cold"
+        ],
         "excerpt": "Cold breath and resistance.",
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/white.json"
       }
@@ -285,7 +437,11 @@
         "id": "dwarf",
         "title": "Dwarf (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "dwarf", "humanoid"],
+        "tags": [
+          "race",
+          "dwarf",
+          "humanoid"
+        ],
         "excerpt": "Base traits for the Dwarf race (2024 PHB).",
         "filePath": "/data/glossary/entries/races/dwarf.json"
       },
@@ -293,7 +449,11 @@
         "id": "hill_dwarf",
         "title": "Hill Dwarf",
         "category": "Character Races",
-        "tags": ["race", "dwarf", "hill dwarf"],
+        "tags": [
+          "race",
+          "dwarf",
+          "hill dwarf"
+        ],
         "excerpt": "Keen senses and deep intuition (2014).",
         "filePath": "/data/glossary/entries/races/hill_dwarf.json"
       },
@@ -301,7 +461,11 @@
         "id": "mountain_dwarf",
         "title": "Mountain Dwarf",
         "category": "Character Races",
-        "tags": ["race", "dwarf", "mountain_dwarf"],
+        "tags": [
+          "race",
+          "dwarf",
+          "mountain_dwarf"
+        ],
         "excerpt": "Dwarven armor training (2014).",
         "filePath": "/data/glossary/entries/races/mountain_dwarf.json"
       },
@@ -309,17 +473,27 @@
         "id": "duergar",
         "title": "Duergar",
         "category": "Character Races",
-        "tags": ["race", "duergar", "dwarf", "underdark"],
+        "tags": [
+          "race",
+          "duergar",
+          "dwarf",
+          "underdark"
+        ],
         "excerpt": "Dwarves transformed by centuries in the Underdark.",
         "filePath": "/data/glossary/entries/races/duergar.json"
       },
       {
-        "id": "mark_of_warding_dwarf",
-        "title": "Mark of Warding Dwarf",
+        "id": "runeward_dwarf",
+        "title": "Runeward Dwarf",
         "category": "Character Races",
-        "tags": ["dragonmark", "dwarf", "warding", "warding"],
+        "tags": [
+          "dragonmark",
+          "dwarf",
+          "warding",
+          "warding"
+        ],
         "excerpt": "Protective sigil granting mastery over wards and locks.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_warding.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/runeward_dwarf.json"
       }
     ]
   },
@@ -334,7 +508,12 @@
         "id": "eladrin",
         "title": "Eladrin (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "eladrin", "elf", "fey"],
+        "tags": [
+          "race",
+          "eladrin",
+          "elf",
+          "fey"
+        ],
         "excerpt": "Base traits for Eladrin.",
         "filePath": "/data/glossary/entries/races/eladrin.json"
       },
@@ -342,7 +521,11 @@
         "id": "spring_eladrin",
         "title": "Spring Eladrin",
         "category": "Character Races",
-        "tags": ["eladrin", "spring", "charm"],
+        "tags": [
+          "eladrin",
+          "spring",
+          "charm"
+        ],
         "excerpt": "Fey step with charm effect.",
         "filePath": "/data/glossary/entries/races/eladrin_seasons/spring.json"
       },
@@ -350,7 +533,11 @@
         "id": "summer_eladrin",
         "title": "Summer Eladrin",
         "category": "Character Races",
-        "tags": ["eladrin", "summer", "fire"],
+        "tags": [
+          "eladrin",
+          "summer",
+          "fire"
+        ],
         "excerpt": "Fey step with fire damage.",
         "filePath": "/data/glossary/entries/races/eladrin_seasons/summer.json"
       },
@@ -358,7 +545,11 @@
         "id": "autumn_eladrin",
         "title": "Autumn Eladrin",
         "category": "Character Races",
-        "tags": ["eladrin", "autumn", "calm"],
+        "tags": [
+          "eladrin",
+          "autumn",
+          "calm"
+        ],
         "excerpt": "Fey step with calm emotions.",
         "filePath": "/data/glossary/entries/races/eladrin_seasons/autumn.json"
       },
@@ -366,7 +557,11 @@
         "id": "winter_eladrin",
         "title": "Winter Eladrin",
         "category": "Character Races",
-        "tags": ["eladrin", "winter", "frighten"],
+        "tags": [
+          "eladrin",
+          "winter",
+          "frighten"
+        ],
         "excerpt": "Fey step with frightened effect.",
         "filePath": "/data/glossary/entries/races/eladrin_seasons/winter.json"
       }
@@ -383,7 +578,12 @@
         "id": "elf",
         "title": "Elf (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "elf", "fey", "humanoid"],
+        "tags": [
+          "race",
+          "elf",
+          "fey",
+          "humanoid"
+        ],
         "excerpt": "Base traits for the Elf race.",
         "filePath": "/data/glossary/entries/races/elf.json"
       },
@@ -391,7 +591,12 @@
         "id": "drow_lineage",
         "title": "Drow",
         "category": "Character Races",
-        "tags": ["elf", "drow", "lineage", "underdark"],
+        "tags": [
+          "elf",
+          "drow",
+          "lineage",
+          "underdark"
+        ],
         "excerpt": "Descended from elves of the Underdark.",
         "filePath": "/data/glossary/entries/races/elf_lineages/drow.json"
       },
@@ -399,7 +604,12 @@
         "id": "high_elf_lineage",
         "title": "High Elf",
         "category": "Character Races",
-        "tags": ["elf", "high elf", "lineage", "arcane"],
+        "tags": [
+          "elf",
+          "high elf",
+          "lineage",
+          "arcane"
+        ],
         "excerpt": "Naturally adept at arcane arts.",
         "filePath": "/data/glossary/entries/races/elf_lineages/high_elf.json"
       },
@@ -407,7 +617,12 @@
         "id": "wood_elf_lineage",
         "title": "Wood Elf",
         "category": "Character Races",
-        "tags": ["elf", "wood elf", "lineage", "stealth"],
+        "tags": [
+          "elf",
+          "wood elf",
+          "lineage",
+          "stealth"
+        ],
         "excerpt": "Swift, perceptive elves with primal connection.",
         "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json"
       },
@@ -415,7 +630,11 @@
         "id": "sea_elf",
         "title": "Sea Elf",
         "category": "Character Races",
-        "tags": ["elf", "sea_elf", "aquatic"],
+        "tags": [
+          "elf",
+          "sea_elf",
+          "aquatic"
+        ],
         "excerpt": "Aquatic elves with swim speed.",
         "filePath": "/data/glossary/entries/races/elf_lineages/sea_elf.json"
       },
@@ -423,7 +642,11 @@
         "id": "shadar_kai",
         "title": "Shadar-kai",
         "category": "Character Races",
-        "tags": ["elf", "shadar_kai", "shadowfell"],
+        "tags": [
+          "elf",
+          "shadar_kai",
+          "shadowfell"
+        ],
         "excerpt": "Elves bound to the Shadowfell and Raven Queen.",
         "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json"
       },
@@ -431,7 +654,11 @@
         "id": "astral_elf",
         "title": "Astral Elf",
         "category": "Character Races",
-        "tags": ["elf", "astral_elf", "spelljammer"],
+        "tags": [
+          "elf",
+          "astral_elf",
+          "spelljammer"
+        ],
         "excerpt": "Elves who dwell among the stars.",
         "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json"
       },
@@ -439,17 +666,27 @@
         "id": "pallid_elf",
         "title": "Pallid Elf",
         "category": "Character Races",
-        "tags": ["elf", "pallid_elf", "wildemount", "critical role"],
+        "tags": [
+          "elf",
+          "pallid_elf",
+          "wildemount",
+          "critical role"
+        ],
         "excerpt": "Pale elves with insight and lunar magic from the Pallid Grove.",
         "filePath": "/data/glossary/entries/races/elf_lineages/pallid_elf.json"
       },
       {
-        "id": "mark_of_shadow_elf",
-        "title": "Mark of Shadow Elf",
+        "id": "shadowveil_elf",
+        "title": "Shadowveil Elf",
         "category": "Character Races",
-        "tags": ["dragonmark", "elf", "shadow", "shadow"],
+        "tags": [
+          "dragonmark",
+          "elf",
+          "shadow",
+          "shadow"
+        ],
         "excerpt": "Shadow sigil granting mastery over illusion and stealth.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_shadow.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/shadowveil_elf.json"
       }
     ]
   },
@@ -457,7 +694,13 @@
     "id": "fairy",
     "title": "Fairy",
     "category": "Character Races",
-    "tags": ["race", "fairy", "fey", "flight", "small"],
+    "tags": [
+      "race",
+      "fairy",
+      "fey",
+      "flight",
+      "small"
+    ],
     "excerpt": "Wee folk from the Feywild, infused with its magic.",
     "filePath": "/data/glossary/entries/races/fairy.json"
   },
@@ -465,7 +708,12 @@
     "id": "firbolg",
     "title": "Firbolg",
     "category": "Character Races",
-    "tags": ["race", "firbolg", "giant-kin", "fey"],
+    "tags": [
+      "race",
+      "firbolg",
+      "giant-kin",
+      "fey"
+    ],
     "excerpt": "Forest-dwelling cousins of giants with obscuring magic.",
     "filePath": "/data/glossary/entries/races/firbolg.json"
   },
@@ -480,7 +728,11 @@
         "id": "genasi",
         "title": "Genasi (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "genasi", "elemental"],
+        "tags": [
+          "race",
+          "genasi",
+          "elemental"
+        ],
         "excerpt": "Base traits for the Genasi race.",
         "filePath": "/data/glossary/entries/races/genasi.json"
       },
@@ -488,7 +740,11 @@
         "id": "air_genasi",
         "title": "Air Genasi",
         "category": "Character Races",
-        "tags": ["race", "genasi", "air"],
+        "tags": [
+          "race",
+          "genasi",
+          "air"
+        ],
         "excerpt": "Commanding the air.",
         "filePath": "/data/glossary/entries/races/air_genasi.json"
       },
@@ -496,7 +752,11 @@
         "id": "earth_genasi",
         "title": "Earth Genasi",
         "category": "Character Races",
-        "tags": ["race", "genasi", "earth"],
+        "tags": [
+          "race",
+          "genasi",
+          "earth"
+        ],
         "excerpt": "Commanding the earth.",
         "filePath": "/data/glossary/entries/races/earth_genasi.json"
       },
@@ -504,7 +764,11 @@
         "id": "fire_genasi",
         "title": "Fire Genasi",
         "category": "Character Races",
-        "tags": ["race", "genasi", "fire"],
+        "tags": [
+          "race",
+          "genasi",
+          "fire"
+        ],
         "excerpt": "Commanding the flame.",
         "filePath": "/data/glossary/entries/races/fire_genasi.json"
       },
@@ -512,7 +776,11 @@
         "id": "water_genasi",
         "title": "Water Genasi",
         "category": "Character Races",
-        "tags": ["race", "genasi", "water"],
+        "tags": [
+          "race",
+          "genasi",
+          "water"
+        ],
         "excerpt": "Commanding the waves.",
         "filePath": "/data/glossary/entries/races/water_genasi.json"
       }
@@ -529,7 +797,12 @@
         "id": "githyanki",
         "title": "Githyanki",
         "category": "Character Races",
-        "tags": ["race", "githyanki", "astral plane", "psionic"],
+        "tags": [
+          "race",
+          "githyanki",
+          "astral plane",
+          "psionic"
+        ],
         "excerpt": "Psionic warriors from the Astral Plane.",
         "filePath": "/data/glossary/entries/races/githyanki.json"
       },
@@ -537,7 +810,12 @@
         "id": "githzerai",
         "title": "Githzerai",
         "category": "Character Races",
-        "tags": ["race", "githzerai", "limbo", "psionic"],
+        "tags": [
+          "race",
+          "githzerai",
+          "limbo",
+          "psionic"
+        ],
         "excerpt": "Disciplined monks from the chaos of Limbo.",
         "filePath": "/data/glossary/entries/races/githzerai.json"
       }
@@ -554,7 +832,11 @@
         "id": "gnome",
         "title": "Gnome (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "gnome", "fey-touched"],
+        "tags": [
+          "race",
+          "gnome",
+          "fey-touched"
+        ],
         "excerpt": "Base traits for the Gnome race (2024 PHB).",
         "filePath": "/data/glossary/entries/races/gnome.json"
       },
@@ -562,7 +844,11 @@
         "id": "forest_gnome_lineage",
         "title": "Forest Gnome",
         "category": "Character Races",
-        "tags": ["gnome", "forest gnome", "illusion"],
+        "tags": [
+          "gnome",
+          "forest gnome",
+          "illusion"
+        ],
         "excerpt": "Natural knack for illusion (2014).",
         "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.json"
       },
@@ -570,7 +856,11 @@
         "id": "rock_gnome_lineage",
         "title": "Rock Gnome",
         "category": "Character Races",
-        "tags": ["gnome", "rock gnome", "tinker"],
+        "tags": [
+          "gnome",
+          "rock gnome",
+          "tinker"
+        ],
         "excerpt": "Natural inventiveness and tinkering (2014).",
         "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome.json"
       },
@@ -578,17 +868,27 @@
         "id": "deep_gnome",
         "title": "Deep Gnome",
         "category": "Character Races",
-        "tags": ["race", "gnome", "deep gnome", "svirfneblin"],
+        "tags": [
+          "race",
+          "gnome",
+          "deep gnome",
+          "svirfneblin"
+        ],
         "excerpt": "Natives of the Underdark, suffused with subterranean magic.",
         "filePath": "/data/glossary/entries/races/deep_gnome.json"
       },
       {
-        "id": "mark_of_scribing_gnome",
-        "title": "Mark of Scribing Gnome",
+        "id": "wordweaver_gnome",
+        "title": "Wordweaver Gnome",
         "category": "Character Races",
-        "tags": ["dragonmark", "gnome", "scribing", "scribing"],
+        "tags": [
+          "dragonmark",
+          "gnome",
+          "scribing",
+          "scribing"
+        ],
         "excerpt": "Shifting sigil granting mastery over language and communication.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_scribing.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/wordweaver_gnome.json"
       }
     ]
   },
@@ -603,7 +903,12 @@
         "id": "goblin",
         "title": "Goblin",
         "category": "Character Races",
-        "tags": ["race", "goblin", "goblinoid", "fey"],
+        "tags": [
+          "race",
+          "goblin",
+          "goblinoid",
+          "fey"
+        ],
         "excerpt": "Expert survivors with fey origins.",
         "filePath": "/data/glossary/entries/races/goblin.json"
       },
@@ -611,7 +916,12 @@
         "id": "hobgoblin",
         "title": "Hobgoblin",
         "category": "Character Races",
-        "tags": ["race", "hobgoblin", "goblinoid", "fey"],
+        "tags": [
+          "race",
+          "hobgoblin",
+          "goblinoid",
+          "fey"
+        ],
         "excerpt": "Disciplined warriors with fey heritage.",
         "filePath": "/data/glossary/entries/races/hobgoblin.json"
       }
@@ -628,7 +938,11 @@
         "id": "goliath",
         "title": "Goliath (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "goliath", "giant"],
+        "tags": [
+          "race",
+          "goliath",
+          "giant"
+        ],
         "excerpt": "Base traits for the Goliath race.",
         "filePath": "/data/glossary/entries/races/goliath.json"
       },
@@ -636,7 +950,11 @@
         "id": "goliath_ancestry_cloud",
         "title": "Cloud Giant Goliath",
         "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "cloud giant"],
+        "tags": [
+          "goliath",
+          "giant ancestry",
+          "cloud giant"
+        ],
         "excerpt": "Teleportation as a Bonus Action.",
         "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.json"
       },
@@ -644,7 +962,11 @@
         "id": "goliath_ancestry_fire",
         "title": "Fire Giant Goliath",
         "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "fire giant"],
+        "tags": [
+          "goliath",
+          "giant ancestry",
+          "fire giant"
+        ],
         "excerpt": "Extra Fire damage on attacks.",
         "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.json"
       },
@@ -652,7 +974,11 @@
         "id": "goliath_ancestry_frost",
         "title": "Frost Giant Goliath",
         "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "frost giant"],
+        "tags": [
+          "goliath",
+          "giant ancestry",
+          "frost giant"
+        ],
         "excerpt": "Extra Cold damage and slowing.",
         "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.json"
       },
@@ -660,7 +986,11 @@
         "id": "goliath_ancestry_hill",
         "title": "Hill Giant Goliath",
         "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "hill giant"],
+        "tags": [
+          "goliath",
+          "giant ancestry",
+          "hill giant"
+        ],
         "excerpt": "Knock enemies Prone on attacks.",
         "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant.json"
       },
@@ -668,7 +998,11 @@
         "id": "goliath_ancestry_stone",
         "title": "Stone Giant Goliath",
         "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "stone giant"],
+        "tags": [
+          "goliath",
+          "giant ancestry",
+          "stone giant"
+        ],
         "excerpt": "Reduce incoming damage.",
         "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.json"
       },
@@ -676,7 +1010,11 @@
         "id": "goliath_ancestry_storm",
         "title": "Storm Giant Goliath",
         "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "storm giant"],
+        "tags": [
+          "goliath",
+          "giant ancestry",
+          "storm giant"
+        ],
         "excerpt": "Reactive Thunder damage.",
         "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json"
       }
@@ -693,7 +1031,12 @@
         "id": "half-elf",
         "title": "Half-Elf",
         "category": "Character Races",
-        "tags": ["race", "half-elf", "human", "elf"],
+        "tags": [
+          "race",
+          "half-elf",
+          "human",
+          "elf"
+        ],
         "excerpt": "Base Half-Elf traits.",
         "filePath": "/data/glossary/entries/races/half-elf.json"
       },
@@ -701,7 +1044,11 @@
         "id": "half_elf_aquatic",
         "title": "Half-Elf (Aquatic)",
         "category": "Character Races",
-        "tags": ["half-elf", "aquatic", "swimmer"],
+        "tags": [
+          "half-elf",
+          "aquatic",
+          "swimmer"
+        ],
         "excerpt": "Swim speed from aquatic elf ancestry.",
         "filePath": "/data/glossary/entries/races/half_elf_variants/aquatic.json"
       },
@@ -709,7 +1056,11 @@
         "id": "half_elf_drow",
         "title": "Half-Elf (Drow)",
         "category": "Character Races",
-        "tags": ["half-elf", "drow", "underdark"],
+        "tags": [
+          "half-elf",
+          "drow",
+          "underdark"
+        ],
         "excerpt": "Drow magic from drow ancestry.",
         "filePath": "/data/glossary/entries/races/half_elf_variants/drow.json"
       },
@@ -717,7 +1068,11 @@
         "id": "half_elf_high",
         "title": "Half-Elf (High)",
         "category": "Character Races",
-        "tags": ["half-elf", "high", "arcane"],
+        "tags": [
+          "half-elf",
+          "high",
+          "arcane"
+        ],
         "excerpt": "Cantrip from high elf ancestry.",
         "filePath": "/data/glossary/entries/races/half_elf_variants/high.json"
       },
@@ -725,25 +1080,39 @@
         "id": "half_elf_wood",
         "title": "Half-Elf (Wood)",
         "category": "Character Races",
-        "tags": ["half-elf", "wood", "nature"],
+        "tags": [
+          "half-elf",
+          "wood",
+          "nature"
+        ],
         "excerpt": "Fleet of foot from wood elf ancestry.",
         "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
       },
       {
-        "id": "mark_of_detection_half_elf",
-        "title": "Mark of Detection Half-Elf",
+        "id": "seersight_half_elf",
+        "title": "Seersight Half-Elf",
         "category": "Character Races",
-        "tags": ["dragonmark", "half-elf", "detection", "detection"],
+        "tags": [
+          "dragonmark",
+          "half-elf",
+          "detection",
+          "detection"
+        ],
         "excerpt": "Arcane sigil granting enhanced observation and insight.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_detection.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/seersight_half_elf.json"
       },
       {
-        "id": "mark_of_storm_half_elf",
-        "title": "Mark of Storm Half-Elf",
+        "id": "stormborn_half_elf",
+        "title": "Stormborn Half-Elf",
         "category": "Character Races",
-        "tags": ["dragonmark", "half-elf", "storm", "storm"],
+        "tags": [
+          "dragonmark",
+          "half-elf",
+          "storm",
+          "storm"
+        ],
         "excerpt": "Crackling sigil granting command over wind and weather.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_storm.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/stormborn_half_elf.json"
       }
     ]
   },
@@ -758,17 +1127,27 @@
         "id": "half-orc",
         "title": "Half-Orc (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "half-orc", "human", "orc"],
+        "tags": [
+          "race",
+          "half-orc",
+          "human",
+          "orc"
+        ],
         "excerpt": "Base traits for the Half-Orc race.",
         "filePath": "/data/glossary/entries/races/half-orc.json"
       },
       {
-        "id": "mark_of_finding_half_orc",
-        "title": "Mark of Finding Half-Orc",
+        "id": "pathfinder_half_orc",
+        "title": "Pathfinder Half-Orc",
         "category": "Character Races",
-        "tags": ["dragonmark", "half-orc", "finding", "finding"],
+        "tags": [
+          "dragonmark",
+          "half-orc",
+          "finding",
+          "finding"
+        ],
         "excerpt": "Compass sigil granting supernatural tracking abilities.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_finding.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/pathfinder_half_orc.json"
       }
     ]
   },
@@ -783,7 +1162,11 @@
         "id": "halfling",
         "title": "Halfling (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "halfling", "lucky"],
+        "tags": [
+          "race",
+          "halfling",
+          "lucky"
+        ],
         "excerpt": "Base traits for the Halfling race (2024 PHB).",
         "filePath": "/data/glossary/entries/races/halfling.json"
       },
@@ -791,7 +1174,11 @@
         "id": "lightfoot_halfling",
         "title": "Lightfoot Halfling",
         "category": "Character Races",
-        "tags": ["halfling", "lightfoot", "stealth"],
+        "tags": [
+          "halfling",
+          "lightfoot",
+          "stealth"
+        ],
         "excerpt": "Naturally stealthy (2014).",
         "filePath": "/data/glossary/entries/races/halfling_subraces/lightfoot.json"
       },
@@ -799,7 +1186,11 @@
         "id": "stout_halfling",
         "title": "Stout Halfling",
         "category": "Character Races",
-        "tags": ["halfling", "stout", "resilient"],
+        "tags": [
+          "halfling",
+          "stout",
+          "resilient"
+        ],
         "excerpt": "Stout resilience with poison resistance (2014).",
         "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
       },
@@ -807,25 +1198,39 @@
         "id": "lotusden_halfling",
         "title": "Lotusden Halfling",
         "category": "Character Races",
-        "tags": ["halfling", "lotusden", "nature", "wildemount", "critical role"],
+        "tags": [
+          "halfling",
+          "lotusden",
+          "nature",
+          "wildemount",
+          "critical role"
+        ],
         "excerpt": "Forest halflings with druidic magic from the Lotusden Greenwood.",
         "filePath": "/data/glossary/entries/races/halfling_subraces/lotusden_halfling.json"
       },
       {
-        "id": "mark_of_healing_halfling",
-        "title": "Mark of Healing Halfling",
+        "id": "mender_halfling",
+        "title": "Mender Halfling",
         "category": "Character Races",
-        "tags": ["dragonmark", "halfling", "healing"],
+        "tags": [
+          "dragonmark",
+          "halfling",
+          "healing"
+        ],
         "excerpt": "Luminous sigil granting restorative healing magic.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_healing.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/mender_halfling.json"
       },
       {
-        "id": "mark_of_hospitality_halfling",
-        "title": "Mark of Hospitality Halfling",
+        "id": "hearthkeeper_halfling",
+        "title": "Hearthkeeper Halfling",
         "category": "Character Races",
-        "tags": ["dragonmark", "halfling", "hospitality"],
+        "tags": [
+          "dragonmark",
+          "halfling",
+          "hospitality"
+        ],
         "excerpt": "Warm sigil granting hospitality and comfort magic.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_hospitality.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/hearthkeeper_halfling.json"
       }
     ]
   },
@@ -840,41 +1245,65 @@
         "id": "human",
         "title": "Human (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "human", "versatile"],
+        "tags": [
+          "race",
+          "human",
+          "versatile"
+        ],
         "excerpt": "Base traits for the Human race.",
         "filePath": "/data/glossary/entries/races/human.json"
       },
       {
-        "id": "mark_of_handling_human",
-        "title": "Mark of Handling Human",
+        "id": "beastborn_human",
+        "title": "Beastborn Human",
         "category": "Character Races",
-        "tags": ["dragonmark", "human", "handling", "handling"],
+        "tags": [
+          "dragonmark",
+          "human",
+          "handling",
+          "handling"
+        ],
         "excerpt": "Beast-track sigil granting connection with animals.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_handling.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/beastborn_human.json"
       },
       {
-        "id": "mark_of_making_human",
-        "title": "Mark of Making Human",
+        "id": "forgeborn_human",
+        "title": "Forgeborn Human",
         "category": "Character Races",
-        "tags": ["dragonmark", "human", "making", "making"],
+        "tags": [
+          "dragonmark",
+          "human",
+          "making",
+          "making"
+        ],
         "excerpt": "Glowing sigil granting exceptional crafting ability.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_making.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/forgeborn_human.json"
       },
       {
-        "id": "mark_of_passage_human",
-        "title": "Mark of Passage Human",
+        "id": "wayfarer_human",
+        "title": "Wayfarer Human",
         "category": "Character Races",
-        "tags": ["dragonmark", "human", "passage", "passage"],
+        "tags": [
+          "dragonmark",
+          "human",
+          "passage",
+          "passage"
+        ],
         "excerpt": "Flowing sigil granting supernatural speed and teleportation.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_passage.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/wayfarer_human.json"
       },
       {
-        "id": "mark_of_sentinel_human",
-        "title": "Mark of Sentinel Human",
+        "id": "guardian_human",
+        "title": "Guardian Human",
         "category": "Character Races",
-        "tags": ["dragonmark", "human", "sentinel", "sentinel"],
+        "tags": [
+          "dragonmark",
+          "human",
+          "sentinel",
+          "sentinel"
+        ],
         "excerpt": "Shield sigil granting protective vigilance and defense.",
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/mark_of_sentinel.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/guardian_human.json"
       }
     ]
   },
@@ -882,7 +1311,12 @@
     "id": "kalashtar",
     "title": "Kalashtar",
     "category": "Character Races",
-    "tags": ["race", "kalashtar", "psionic", "eberron"],
+    "tags": [
+      "race",
+      "kalashtar",
+      "psionic",
+      "eberron"
+    ],
     "excerpt": "Humans bound to spirits from the plane of dreams.",
     "filePath": "/data/glossary/entries/races/kalashtar.json"
   },
@@ -890,7 +1324,12 @@
     "id": "kender",
     "title": "Kender",
     "category": "Character Races",
-    "tags": ["race", "kender", "fearless", "dragonlance"],
+    "tags": [
+      "race",
+      "kender",
+      "fearless",
+      "dragonlance"
+    ],
     "excerpt": "Fearless little folk from Krynn.",
     "filePath": "/data/glossary/entries/races/kender.json"
   },
@@ -898,7 +1337,12 @@
     "id": "kobold",
     "title": "Kobold",
     "category": "Character Races",
-    "tags": ["race", "kobold", "draconic", "small"],
+    "tags": [
+      "race",
+      "kobold",
+      "draconic",
+      "small"
+    ],
     "excerpt": "Small and clever distant kin of dragons.",
     "filePath": "/data/glossary/entries/races/kobold.json"
   },
@@ -906,7 +1350,11 @@
     "id": "orc",
     "title": "Orc",
     "category": "Character Races",
-    "tags": ["race", "orc", "relentless"],
+    "tags": [
+      "race",
+      "orc",
+      "relentless"
+    ],
     "excerpt": "Enduring and determined people of Gruumsh.",
     "filePath": "/data/glossary/entries/races/orc.json"
   },
@@ -914,7 +1362,12 @@
     "id": "plasmoid",
     "title": "Plasmoid",
     "category": "Character Races",
-    "tags": ["race", "plasmoid", "ooze", "spelljammer"],
+    "tags": [
+      "race",
+      "plasmoid",
+      "ooze",
+      "spelljammer"
+    ],
     "excerpt": "Amorphous beings who can shape their bodies.",
     "filePath": "/data/glossary/entries/races/plasmoid.json"
   },
@@ -922,7 +1375,12 @@
     "id": "satyr",
     "title": "Satyr",
     "category": "Character Races",
-    "tags": ["race", "satyr", "fey", "revelry"],
+    "tags": [
+      "race",
+      "satyr",
+      "fey",
+      "revelry"
+    ],
     "excerpt": "Merry feyfolk with magic resistance.",
     "filePath": "/data/glossary/entries/races/satyr.json"
   },
@@ -937,7 +1395,11 @@
         "id": "shifter",
         "title": "Shifter (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "shifter", "lycanthrope"],
+        "tags": [
+          "race",
+          "shifter",
+          "lycanthrope"
+        ],
         "excerpt": "Base traits for the Shifter race.",
         "filePath": "/data/glossary/entries/races/shifter.json"
       },
@@ -945,7 +1407,11 @@
         "id": "beasthide_shifter",
         "title": "Beasthide Shifter",
         "category": "Character Races",
-        "tags": ["shifter", "beasthide", "tough"],
+        "tags": [
+          "shifter",
+          "beasthide",
+          "tough"
+        ],
         "excerpt": "Extra temp HP and +1 AC while shifting.",
         "filePath": "/data/glossary/entries/races/shifter_variants/beasthide.json"
       },
@@ -953,7 +1419,11 @@
         "id": "longtooth_shifter",
         "title": "Longtooth Shifter",
         "category": "Character Races",
-        "tags": ["shifter", "longtooth", "bite"],
+        "tags": [
+          "shifter",
+          "longtooth",
+          "bite"
+        ],
         "excerpt": "Bonus action bite attack while shifting.",
         "filePath": "/data/glossary/entries/races/shifter_variants/longtooth.json"
       },
@@ -961,7 +1431,11 @@
         "id": "swiftstride_shifter",
         "title": "Swiftstride Shifter",
         "category": "Character Races",
-        "tags": ["shifter", "swiftstride", "speed"],
+        "tags": [
+          "shifter",
+          "swiftstride",
+          "speed"
+        ],
         "excerpt": "+10 speed and reactive movement while shifting.",
         "filePath": "/data/glossary/entries/races/shifter_variants/swiftstride.json"
       },
@@ -969,7 +1443,11 @@
         "id": "wildhunt_shifter",
         "title": "Wildhunt Shifter",
         "category": "Character Races",
-        "tags": ["shifter", "wildhunt", "perception"],
+        "tags": [
+          "shifter",
+          "wildhunt",
+          "perception"
+        ],
         "excerpt": "Advantage on Wisdom checks while shifting.",
         "filePath": "/data/glossary/entries/races/shifter_variants/wildhunt.json"
       }
@@ -979,7 +1457,12 @@
     "id": "simic_hybrid",
     "title": "Simic Hybrid",
     "category": "Character Races",
-    "tags": ["race", "simic_hybrid", "mutant", "ravnica"],
+    "tags": [
+      "race",
+      "simic_hybrid",
+      "mutant",
+      "ravnica"
+    ],
     "excerpt": "Magically enhanced beings with animal adaptations.",
     "filePath": "/data/glossary/entries/races/simic_hybrid.json"
   },
@@ -994,7 +1477,11 @@
         "id": "tiefling",
         "title": "Tiefling (Race Traits)",
         "category": "Character Races",
-        "tags": ["race", "tiefling", "fiend"],
+        "tags": [
+          "race",
+          "tiefling",
+          "fiend"
+        ],
         "excerpt": "Base traits for the Tiefling race.",
         "filePath": "/data/glossary/entries/races/tiefling.json"
       },
@@ -1002,7 +1489,11 @@
         "id": "abyssal_legacy",
         "title": "Abyssal Tiefling",
         "category": "Character Races",
-        "tags": ["tiefling", "legacy", "abyssal"],
+        "tags": [
+          "tiefling",
+          "legacy",
+          "abyssal"
+        ],
         "excerpt": "Legacy of the Abyss with poison resistance.",
         "filePath": "/data/glossary/entries/races/tiefling_legacies/abyssal.json"
       },
@@ -1010,7 +1501,11 @@
         "id": "chthonic_legacy",
         "title": "Chthonic Tiefling",
         "category": "Character Races",
-        "tags": ["tiefling", "legacy", "chthonic"],
+        "tags": [
+          "tiefling",
+          "legacy",
+          "chthonic"
+        ],
         "excerpt": "Legacy of Hades/Gehenna with necrotic resistance.",
         "filePath": "/data/glossary/entries/races/tiefling_legacies/chthonic.json"
       },
@@ -1018,7 +1513,11 @@
         "id": "infernal_legacy",
         "title": "Infernal Tiefling",
         "category": "Character Races",
-        "tags": ["tiefling", "legacy", "infernal"],
+        "tags": [
+          "tiefling",
+          "legacy",
+          "infernal"
+        ],
         "excerpt": "Legacy of Nine Hells with fire resistance.",
         "filePath": "/data/glossary/entries/races/tiefling_legacies/infernal.json"
       }
@@ -1028,7 +1527,11 @@
     "id": "triton",
     "title": "Triton",
     "category": "Character Races",
-    "tags": ["race", "triton", "aquatic"],
+    "tags": [
+      "race",
+      "triton",
+      "aquatic"
+    ],
     "excerpt": "Guardians of the deep oceans.",
     "filePath": "/data/glossary/entries/races/triton.json"
   },
@@ -1036,7 +1539,12 @@
     "id": "vedalken",
     "title": "Vedalken",
     "category": "Character Races",
-    "tags": ["race", "vedalken", "perfectionist", "ravnica"],
+    "tags": [
+      "race",
+      "vedalken",
+      "perfectionist",
+      "ravnica"
+    ],
     "excerpt": "Blue-skinned perfectionists seeking improvement.",
     "filePath": "/data/glossary/entries/races/vedalken.json"
   },
@@ -1044,7 +1552,11 @@
     "id": "verdan",
     "title": "Verdan",
     "category": "Character Races",
-    "tags": ["race", "verdan", "goblinoid"],
+    "tags": [
+      "race",
+      "verdan",
+      "goblinoid"
+    ],
     "excerpt": "Goblinoids transformed by chaotic magic.",
     "filePath": "/data/glossary/entries/races/verdan.json"
   },
@@ -1052,7 +1564,12 @@
     "id": "warforged",
     "title": "Warforged",
     "category": "Character Races",
-    "tags": ["race", "warforged", "construct-like", "eberron"],
+    "tags": [
+      "race",
+      "warforged",
+      "construct-like",
+      "eberron"
+    ],
     "excerpt": "Living constructs built for war.",
     "filePath": "/data/glossary/entries/races/warforged.json"
   }

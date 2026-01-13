@@ -23,6 +23,7 @@ export interface UseGlossarySearchResult {
     setSearchTerm: (term: string) => void;
     filteredGlossaryIndex: GlossaryEntry[];
     groupedEntries: Record<string, GlossaryEntry[]>;
+    categoryCounts: Record<string, number>;
     sortedCategories: string[];
     expandedCategories: Set<string>;
     setExpandedCategories: React.Dispatch<React.SetStateAction<Set<string>>>;
@@ -31,6 +32,26 @@ export interface UseGlossarySearchResult {
     toggleCategory: (category: string) => void;
     toggleParentEntry: (entryId: string) => void;
 }
+
+/**
+ * Recursively counts entries that have content (file path or are spell leaves).
+ */
+const countRecursiveEntries = (entries: GlossaryEntry[]): number => {
+    let count = 0;
+    entries.forEach(entry => {
+        const isParent = entry.subEntries && entry.subEntries.length > 0;
+        const hasContent = !!entry.filePath || (entry.category === 'Spells' && !isParent);
+
+        if (hasContent) {
+            count += 1;
+        }
+
+        if (isParent) {
+            count += countRecursiveEntries(entry.subEntries!);
+        }
+    });
+    return count;
+};
 
 /**
  * Hook to manage search filtering and expansion state for glossary entries.
@@ -118,6 +139,15 @@ export function useGlossarySearch(
         return acc;
     }, {} as Record<string, GlossaryEntry[]>), [filteredGlossaryIndex]);
 
+    // Compute recursive counts for each category
+    const categoryCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        Object.entries(groupedEntries).forEach(([category, entries]) => {
+            counts[category] = countRecursiveEntries(entries);
+        });
+        return counts;
+    }, [groupedEntries]);
+
     // Sorted category names
     const sortedCategories = useMemo(() => Object.keys(groupedEntries).sort(), [groupedEntries]);
 
@@ -152,6 +182,7 @@ export function useGlossarySearch(
         setSearchTerm,
         filteredGlossaryIndex,
         groupedEntries,
+        categoryCounts,
         sortedCategories,
         expandedCategories,
         setExpandedCategories,

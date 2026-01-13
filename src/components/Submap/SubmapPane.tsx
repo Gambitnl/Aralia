@@ -38,6 +38,7 @@ import { useSubmapGrid } from './useSubmapGrid';
 import { usePathfindingGrid, useQuickTravelData } from './useQuickTravel';
 import { useInspectableTiles } from './useInspectableTiles';
 import { getDayNightOverlayClass } from './useDayNightOverlay';
+import ThreeDModal from '../ThreeDModal/ThreeDModal';
 
 interface SubmapPaneProps {
     currentLocation: Location;
@@ -52,6 +53,7 @@ interface SubmapPaneProps {
     mapData: MapData | null;
     gameTime: Date;
     playerCharacter: PlayerCharacter;
+    partyMembers: PlayerCharacter[];
     worldSeed: number;
     npcsInLocation: NPC[];
     itemsInLocation: Item[];
@@ -75,6 +77,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     mapData,
     gameTime,
     playerCharacter,
+    partyMembers,
     worldSeed,
     npcsInLocation,
     itemsInLocation,
@@ -98,6 +101,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     // TODO[PIXI-PREFERENCE]: Persist usePixiRenderer to localStorage so users don't re-enable each session.
     const [usePixiRenderer, setUsePixiRenderer] = useState(false);
     const [renderMetrics, setRenderMetrics] = useState<{ lastMs: number; fpsEstimate: number } | null>(null);
+    const [isThreeDOpen, setIsThreeDOpen] = useState(false);
 
     const currentBiome = BIOMES[currentWorldBiomeId] || null;
     const visualsConfig = (currentBiome && biomeVisualsConfig[currentBiome.id]) || defaultBiomeVisuals;
@@ -167,7 +171,8 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                if (isQuickTravelMode) setIsQuickTravelMode(false);
+                if (isThreeDOpen) setIsThreeDOpen(false);
+                else if (isQuickTravelMode) setIsQuickTravelMode(false);
                 else if (isGlossaryOpen) setIsGlossaryOpen(false);
                 else if (isInspecting) {
                     setIsInspecting(false);
@@ -184,7 +189,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
             }
         }
         return () => window.removeEventListener('keydown', handleEsc);
-    }, [isOpen, onClose, isGlossaryOpen, isInspecting, isQuickTravelMode]);
+    }, [isOpen, onClose, isGlossaryOpen, isInspecting, isQuickTravelMode, isThreeDOpen]);
 
     // Central visual resolver: driven by biome visuals config + procedural data (paths, CA, WFC).
     const getTileVisuals = useCallback((rowIndex: number, colIndex: number): VisualLayerOutput => {
@@ -362,6 +367,14 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         setIsInspecting(false);
         setInspectionMessage(null);
         setIsQuickTravelMode(!isQuickTravelMode);
+    };
+
+    const handleThreeDClick = () => {
+        if (disabled) return;
+        setIsInspecting(false);
+        setInspectionMessage(null);
+        setIsQuickTravelMode(false);
+        setIsThreeDOpen(true);
     };
 
     // Legend items are generated from the visuals config so React + Pixi share the same glossary.
@@ -552,6 +565,13 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                 {isInspecting ? 'Cancel' : 'Inspect'}
                             </button>
                             <button
+                                onClick={handleThreeDClick}
+                                disabled={disabled}
+                                className="px-2 py-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-md shadow-sm transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
+                            >
+                                Enter 3D
+                            </button>
+                            <button
                                 onClick={toggleGlossary}
                                 disabled={disabled}
                                 className="px-2 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md shadow-sm transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
@@ -623,6 +643,17 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                         )}
                     </div>
                 )}
+                <ThreeDModal
+                    isOpen={isThreeDOpen}
+                    onClose={() => setIsThreeDOpen(false)}
+                    worldSeed={worldSeed}
+                    biomeId={currentWorldBiomeId}
+                    gameTime={gameTime}
+                    playerSpeed={playerCharacter.speed}
+                    partyMembers={partyMembers}
+                    parentWorldMapCoords={parentWorldMapCoords}
+                    playerSubmapCoords={playerSubmapCoords}
+                />
             </div>
         </WindowFrame>
     );

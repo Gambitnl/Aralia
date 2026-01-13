@@ -69,11 +69,11 @@ describe('Glossary', () => {
 
     expect(screen.getByText('Game Glossary')).toBeInTheDocument();
     expect(screen.getByText('Alpha (1)')).toBeInTheDocument();
-    expect(screen.getByText('Beta (1)')).toBeInTheDocument();
+    expect(screen.getByText('Beta (2)')).toBeInTheDocument();
 
     expect(screen.getByTestId('full-entry')).toHaveTextContent('Entry A');
 
-    fireEvent.click(screen.getByText('Beta (1)'));
+    fireEvent.click(screen.getByText('Beta (2)'));
     fireEvent.click(screen.getByText('Entry B'));
 
     // Wait for any potential effects to settle
@@ -84,6 +84,9 @@ describe('Glossary', () => {
 
   it('filters entries by search term and shows empty state when no match', () => {
     renderGlossary();
+
+    // The search bar is now collapsible in the sidebar
+    fireEvent.click(screen.getByText(/Search/));
 
     fireEvent.change(screen.getByLabelText('Search glossary terms'), { target: { value: 'zzzz' } });
     expect(screen.getByText('No terms match your search.')).toBeInTheDocument();
@@ -96,10 +99,10 @@ describe('Glossary', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
 
-    const closeButtons = screen.getAllByLabelText('Close glossary');
+    // WindowFrame close button has aria-label="Close"
+    const closeButtons = screen.getAllByLabelText('Close');
     fireEvent.click(closeButtons[0]);
-    fireEvent.click(closeButtons[1]);
-    expect(onClose).toHaveBeenCalledTimes(3);
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 
   it('renders nothing when closed', () => {

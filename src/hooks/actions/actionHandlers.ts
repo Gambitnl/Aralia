@@ -240,6 +240,9 @@ export function buildActionHandlers({
     toggle_submap_visibility: () => {
       handleToggleSubmap(dispatch);
     },
+    toggle_three_d: () => {
+      dispatch({ type: 'TOGGLE_THREE_D_VISIBILITY' });
+    },
     TOGGLE_DISCOVERY_LOG: () => {
       handleToggleDiscoveryLog(dispatch);
     },

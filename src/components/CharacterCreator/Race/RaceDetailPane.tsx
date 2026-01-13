@@ -5,6 +5,8 @@
 import React, { useState, useMemo } from 'react';
 import ImageModal from '../../ImageModal';
 import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
+import { GlossarySpellsOfTheMarkTable } from '../../Glossary/GlossarySpellsOfTheMarkTable';
+import { CharacterCreatorTraitsTable } from '../shared/CharacterCreatorTraitsTable';
 import { BTN_PRIMARY } from '../../../styles/buttonStyles';
 
 // Helper to resolve image URLs - prepends BASE_URL for local assets
@@ -48,113 +50,10 @@ export interface RaceDetailData {
         traitName: string;
         traitDescription: string;
     };
+    spellsOfTheMark?: { minLevel: number; spells: string[] }[];
 }
 
 
-interface SpellProgression {
-    level: string;
-    name: string;
-    usage: string;
-}
-
-const parseSpellProgression = (description: string): { spells: SpellProgression[], remainingDescription: string } => {
-    const spells: SpellProgression[] = [];
-    let remainingDescription = description;
-
-    const cantripRegex = /you know the (.*?) cantrip\./i;
-    const leveledSpellRegex = /starting at (\d+)(?:st|nd|rd|th) level, you can (?:also )?cast the (.*?) spell/gi;
-
-    const cantripMatch = remainingDescription.match(cantripRegex);
-    if (cantripMatch && cantripMatch[1]) {
-        spells.push({ level: '1st', name: cantripMatch[1].trim(), usage: 'Cantrip' });
-        remainingDescription = remainingDescription.replace(cantripRegex, '').trim();
-    }
-
-    let match;
-    while ((match = leveledSpellRegex.exec(description)) !== null) {
-        const level = match[1];
-        const spellName = match[2].trim();
-        let usage = '1 per Long Rest';
-        if (description.toLowerCase().includes('or using any spell slots')) {
-            usage += ' or Spell Slot';
-        }
-        spells.push({ level: `${level}${level === '1' ? 'st' : level === '2' ? 'nd' : level === '3' ? 'rd' : 'th'}`, name: spellName, usage });
-        const sentenceRegex = new RegExp(`Starting at ${level}(?:st|nd|rd|th) level, you can also? cast the ${spellName} spell with this trait, without requiring a material component.`, 'i');
-        remainingDescription = remainingDescription.replace(sentenceRegex, '').trim();
-    }
-
-    remainingDescription = remainingDescription.replace(/Once you cast.*?Long Rest\./gi, '').trim();
-    remainingDescription = remainingDescription.replace(/You can also cast.*?level\./gi, '').trim();
-    const spellAbilityRegex = /Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait \(choose when you select this race\)\./i;
-    const spellcastingAbilityInfo = description.match(spellAbilityRegex);
-
-    remainingDescription = remainingDescription.replace(spellAbilityRegex, '').trim();
-    remainingDescription = remainingDescription.replace(/\s{2,}/g, ' ');
-
-    if (spells.length > 0 && spellcastingAbilityInfo) {
-        remainingDescription = `${spellcastingAbilityInfo[0]}`.trim();
-    }
-
-    return { spells, remainingDescription };
-};
-
-const TraitRow: React.FC<{ trait: { name: string; description: string }, onSpellClick: (id: string) => void }> = ({ trait, onSpellClick }) => {
-    const { spells, remainingDescription } = useMemo(() => parseSpellProgression(trait.description), [trait.description]);
-    const toKebabCase = (str: string) => str.toLowerCase().replace(/[\s/]+/g, '-');
-
-    return (
-        <tr className="hover:bg-gray-800/50 transition-colors border-b border-gray-700/50 last:border-0">
-            <td className="px-5 py-4 text-sm align-top">
-                <div className="font-bold text-sky-300 text-base mb-2">{trait.name}</div>
-                <div className="text-gray-300 text-sm leading-relaxed">
-                    {spells.length > 0 ? (
-                        <>
-                            <table className="w-full text-left text-xs my-2 prose-sm prose-invert bg-black/20 rounded">
-                                <thead>
-                                    <tr className="border-b border-gray-600">
-                                        <th className="py-2 px-3 font-semibold text-amber-300">LEVEL</th>
-                                        <th className="py-2 px-3 font-semibold text-amber-300">SPELL/ABILITY</th>
-                                        <th className="py-2 px-3 font-semibold text-amber-300">USAGE</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {spells.map((spell, index) => (
-                                        <tr key={index} className="border-b border-gray-700/30 last:border-0">
-                                            <td className="py-2 px-3 text-amber-400">{spell.level}</td>
-                                            <td className="py-2 px-3">
-                                                <button onClick={() => onSpellClick(toKebabCase(spell.name))} className="text-sky-400 hover:text-sky-200 underline transition-colors">
-                                                    {spell.name}
-                                                </button>
-                                            </td>
-                                            <td className="py-2 px-3">{spell.usage}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {remainingDescription && <p className="mt-2 italic">{remainingDescription}</p>}
-                        </>
-                    ) : (
-                        <p className="whitespace-pre-wrap">{trait.description}</p>
-                    )}
-                </div>
-            </td>
-        </tr>
-    );
-};
-
-const TraitsTable: React.FC<{ traits: { name: string; description: string }[], onSpellClick: (id: string) => void }> = ({ traits, onSpellClick }) => {
-    return (
-        <div className="overflow-hidden rounded-lg border border-gray-600 shadow-lg bg-gray-900/40">
-            <table className="min-w-full divide-y divide-gray-600 border-collapse">
-                <tbody className="divide-y divide-gray-700">
-                    {traits.map((trait, index) => (
-                        <TraitRow key={index} trait={trait} onSpellClick={onSpellClick} />
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-};
 
 // Collapsible comparison table for race variants (transposed: traits as rows, variants as columns)
 const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['siblingVariants']>; currentId: string }> = ({ variants, currentId }) => {
@@ -268,11 +167,12 @@ interface RaceDetailPaneProps {
 }
 
 
-export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({
+export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.ReactNode }> = ({
     race,
     onSelect,
     selectedSpellAbility = null,
-    onSpellAbilityChange
+    onSpellAbilityChange,
+    children
 }) => {
     const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
     const [infoSpellId, setInfoSpellId] = useState<string | null>(null);
@@ -374,17 +274,11 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({
                 {/* Traits List */}
                 <div className="space-y-3 flex-grow">
                     <h3 className="text-lg font-cinzel text-sky-400 border-b border-gray-700 pb-1 mb-2">Racial Traits</h3>
-                    <TraitsTable
-                        traits={[
-                            // Add base traits first
-                            ...(race.baseTraits.type ? [{ name: 'Creature Type', description: race.baseTraits.type }] : []),
-                            ...(race.baseTraits.size ? [{ name: 'Size', description: race.baseTraits.size }] : []),
-                            ...(race.baseTraits.speed !== undefined ? [{ name: 'Speed', description: `${race.baseTraits.speed} feet` }] : []),
-                            ...(race.baseTraits.darkvision !== undefined && race.baseTraits.darkvision > 0 ? [{ name: 'Darkvision', description: `You can see in dim light within ${race.baseTraits.darkvision} feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray.` }] : []),
-                            // Then add all other traits
-                            ...race.feats
-                        ]}
+                    <CharacterCreatorTraitsTable
+                        baseTraits={race.baseTraits}
+                        traits={race.feats}
                         onSpellClick={setInfoSpellId}
+                        spellsOfTheMark={race.spellsOfTheMark}
                     />
 
                     {race.furtherChoicesNote && (

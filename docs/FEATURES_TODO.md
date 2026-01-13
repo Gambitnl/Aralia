@@ -65,6 +65,16 @@ TODOs remain in this file when:
 - [ ] Add NPC routines and faction schedules to world events. (`src/hooks/actions/handleWorldEvents.ts:15`)
 - [ ] Extend season/time modifiers beyond travel cost and surface them in UI. (`src/utils/timeUtils.ts:131`)
 
+### 3D Exploration & Combat (R3F)
+- [ ] See roadmap for full scope and phases. (`docs/tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md`)
+- [x] Add 3D exploration modal scaffold with R3F canvas, WASD input, and third-person follow/orbit camera. (`src/components/ThreeDModal/ThreeDModal.tsx`, `src/components/ThreeDModal/CameraRig.tsx`, `src/components/ThreeDModal/PlayerController.tsx`)
+- [ ] Implement scene controller + event bridge for React UI actions (spells, combat state, LOS/range queries). (new: `src/components/ThreeDModal/SceneController.ts`, `src/components/ThreeDModal/SceneEvents.ts`)
+- [ ] Build outdoor tile generator: 1 unit = 1 ft, ~9000 ft footprint, chunked LOD/instancing, biome-driven terrain/props, atmospheric fog (no hard clip). (PARTIAL: heightfield terrain + instanced props + shader grid live.) (`src/components/ThreeDModal/Terrain.tsx`, `src/components/ThreeDModal/PropsLayer.tsx`, `src/components/ThreeDModal/terrainUtils.ts`)
+- [ ] Add time-of-day lighting/fog updates driven by the game clock with throttled lerp. (new: `src/components/ThreeDModal/LightingController.ts`)
+- [ ] Combat overlays: 5 ft grid, range shapes (cone/cube/radius/emanation), ruler, and movement distance enforcement. (new: `src/components/ThreeDModal/CombatOverlay.tsx`)
+- [ ] Dungeon scene path: CA/WFC-driven layouts, instanced props, and multiple level variants. (new: `src/components/ThreeDModal/DungeonGenerator.ts`)
+- [ ] Cache generated tile scenes by seed and add entry toggle from submap/world UI. (new: `src/components/ThreeDModal/SceneCache.ts`, updates to `src/components/Submap/SubmapPane.tsx`)
+
 ### AI & Storytelling
 - [ ] Improve Gemini storyteller consistency with shared prompt scaffolds. (`src/services/geminiService.ts:64`)
 

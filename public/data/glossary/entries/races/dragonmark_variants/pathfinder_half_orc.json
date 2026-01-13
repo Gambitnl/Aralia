@@ -1,0 +1,104 @@
+{
+  "id": "pathfinder_half_orc",
+  "title": "Pathfinder Half-Orc",
+  "category": "Character Races",
+  "entryLore": "The Mark of Finding grants abilities related to locating people and objects. House Tharashk carries this mark, providing inquisitive services, bounty hunting, and prospecting operations. Half-orcs with the Mark of Finding have an uncanny ability to track quarry across any terrain and locate hidden treasures in the depths of Eberron.",
+  "imageUrl": "/assets/images/Placeholder.jpg",
+  "source": "ERLW",
+  "baseRace": "half_orc",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Darkvision",
+      "value": "60 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Hunter's Intuition",
+      "icon": "target",
+      "description": "When you make a Wisdom ([[perception|Perception]]) or Wisdom ([[survival|Survival]]) check, you can roll a d4 and add the number rolled to the ability check."
+    },
+    {
+      "name": "Finder's Magic",
+      "icon": "magic",
+      "description": "You can cast the [[hunter's_mark|Hunter's Mark]] spell with this trait. Starting at 3rd level, you can also cast the [[locate_object|Locate Object]] spell with it. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a [[long_rest|Long Rest]]. Wisdom is your spellcasting ability for these spells."
+    },
+    {
+      "name": "Spells of the Mark",
+      "icon": "scroll",
+      "description": "If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Finding Spells table are added to the spell list of your spellcasting class."
+    }
+  ],
+  "tags": [
+    "race",
+    "half-orc",
+    "dragonmark",
+    "mark of finding",
+    "humanoid",
+    "eberron",
+    "house tharashk"
+  ],
+  "aliases": [
+    "finding half-orc",
+    "tharashk"
+  ],
+  "seeAlso": [
+    "half-orc",
+    "humanoid",
+    "hunter's_mark"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonmark_variants/pathfinder_half_orc.json",
+  "spellsOfTheMark": [
+    {
+      "minLevel": 1,
+      "spells": [
+        "[[faerie_fire]]",
+        "[[longstrider]]"
+      ]
+    },
+    {
+      "minLevel": 2,
+      "spells": [
+        "[[locate_animals_or_plants]]",
+        "[[locate_object]]"
+      ]
+    },
+    {
+      "minLevel": 3,
+      "spells": [
+        "[[clairvoyance]]",
+        "[[speak_with_plants]]"
+      ]
+    },
+    {
+      "minLevel": 4,
+      "spells": [
+        "[[divination]]",
+        "[[locate_creature]]"
+      ]
+    },
+    {
+      "minLevel": 5,
+      "spells": [
+        "[[commune_with_nature]]"
+      ]
+    }
+  ]
+}

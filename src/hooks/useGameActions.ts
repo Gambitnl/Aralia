@@ -72,7 +72,7 @@ export function useGameActions({
   const processAction = useCallback(
     async (action: Action) => {
       // TODO: Derive this UI-toggle list from the action registry/shared enum to avoid drift; see docs/QOL_TODO.md (update that entry if this block is moved).
-      const isUiToggle = ['toggle_map', 'toggle_submap_visibility', 'toggle_dev_menu', 'toggle_gemini_log_viewer', 'TOGGLE_DISCOVERY_LOG', 'TOGGLE_GLOSSARY_VISIBILITY', 'HIDE_ENCOUNTER_MODAL', 'SHOW_ENCOUNTER_MODAL', 'toggle_party_editor', 'toggle_party_overlay', 'CLOSE_CHARACTER_SHEET', 'TOGGLE_NPC_TEST_MODAL', 'TOGGLE_LOGBOOK', 'CLOSE_MERCHANT', 'BUY_ITEM', 'SELL_ITEM', 'TOGGLE_GAME_GUIDE', 'TOGGLE_QUEST_LOG', 'SET_DEV_MODE_ENABLED'].includes(action.type);
+      const isUiToggle = ['toggle_map', 'toggle_submap_visibility', 'toggle_three_d', 'toggle_dev_menu', 'toggle_gemini_log_viewer', 'TOGGLE_DISCOVERY_LOG', 'TOGGLE_GLOSSARY_VISIBILITY', 'HIDE_ENCOUNTER_MODAL', 'SHOW_ENCOUNTER_MODAL', 'toggle_party_editor', 'toggle_party_overlay', 'CLOSE_CHARACTER_SHEET', 'TOGGLE_NPC_TEST_MODAL', 'TOGGLE_LOGBOOK', 'CLOSE_MERCHANT', 'BUY_ITEM', 'SELL_ITEM', 'TOGGLE_GAME_GUIDE', 'TOGGLE_QUEST_LOG', 'SET_DEV_MODE_ENABLED'].includes(action.type);
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }

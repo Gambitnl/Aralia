@@ -187,6 +187,33 @@ export interface Biome {
   description: string;
   passable: boolean;
   impassableReason?: string;
+  // World-gen metadata (optional, non-breaking)
+  family?: string; // e.g., forest, plains, wetland, jungle, coastal, desert, mountain, tundra, volcanic, blight
+  variant?: string; // e.g., temperate, boreal, ancient, haunted
+  climate?: 'tropical' | 'temperate' | 'arid' | 'polar' | 'subtropical';
+  moisture?: 'arid' | 'dry' | 'temperate' | 'wet' | 'saturated';
+  elevation?: 'low' | 'mid' | 'high' | 'subterranean' | 'aquatic';
+  magic?: 'mundane' | 'fey' | 'arcane' | 'necrotic' | 'elemental' | 'wild';
+  waterFrequency?: 'none' | 'rare' | 'low' | 'medium' | 'high';
+  spawnWeight?: number; // bias for world-map sampling
+  tags?: string[];
+  movementModifiers?: {
+    speedMultiplier?: number;
+    difficultTerrain?: boolean;
+    requiresClimb?: boolean;
+    requiresSwim?: boolean;
+  };
+  visibilityModifiers?: {
+    fog?: 'light' | 'medium' | 'heavy';
+    haze?: boolean;
+    canopyShade?: boolean;
+    snowBlindness?: boolean;
+    darkness?: boolean;
+  };
+  hazards?: string[]; // hazard ids (quicksand, thin-ice, lava, toxic-vent, cursed-ground, etc.)
+  elementalInteractions?: string[]; // fire-spreads-fast, ice-cracks, lightning-conductive, water-freezes-night
+  encounterWeights?: Record<string, number>; // e.g., { beasts: 3, undead: 1 }
+  resourceWeights?: Record<string, number>; // e.g., { wood: 3, ore: 2, fish: 1 }
 }
 
 export interface MapTile {

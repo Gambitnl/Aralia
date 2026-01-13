@@ -22,6 +22,7 @@ import * as _GeminiService from '../../services/geminiService';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 
 import ErrorBoundary from '../ui/ErrorBoundary';
+import ThreeDModal from '../ThreeDModal/ThreeDModal';
 
 // TODO: Define a centralized Z-Index registry (e.g., in theme/constants) to manage the stacking order of modals, overlays (DiceRoller, PartyOverlay), and the WindowFrame, replacing magic numbers like z-[100].
 
@@ -166,6 +167,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             mapData={gameState.mapData}
                             gameTime={gameState.gameTime}
                             playerCharacter={gameState.party[0]}
+                            partyMembers={gameState.party}
                             worldSeed={gameState.worldSeed}
                             npcsInLocation={npcsInLocation}
                             itemsInLocation={itemsInLocation}
@@ -176,6 +178,21 @@ const GameModals: React.FC<GameModalsProps> = ({
                         />
                     </ErrorBoundary>
                 </Suspense>
+            )}
+
+            {/* Global 3D Overlay (from main screen button) */}
+            {gameState.isThreeDVisible && gameState.party[0] && gameState.subMapCoordinates && currentLocation.mapCoordinates && (
+                <ThreeDModal
+                    isOpen={gameState.isThreeDVisible}
+                    onClose={() => dispatch({ type: 'TOGGLE_THREE_D_VISIBILITY' })}
+                    worldSeed={gameState.worldSeed}
+                    biomeId={currentLocation.biomeId}
+                    gameTime={gameState.gameTime}
+                    playerSpeed={gameState.party[0].speed}
+                    partyMembers={gameState.party}
+                    parentWorldMapCoords={currentLocation.mapCoordinates}
+                    playerSubmapCoords={gameState.subMapCoordinates}
+                />
             )}
 
             {/* Character Sheet Modal */}

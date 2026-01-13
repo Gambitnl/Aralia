@@ -72,6 +72,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     setSearchTerm,
     filteredGlossaryIndex,
     groupedEntries,
+    categoryCounts,
     sortedCategories,
     expandedCategories,
     setExpandedCategories,
@@ -316,6 +317,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
             onSearchChange={setSearchTerm}
             hasError={!!error}
             gateResults={gateResults}
+            categoryCounts={categoryCounts}
             entryRefs={entryRefs}
             isColumnResizing={columnResizeState.isResizing}
           />
