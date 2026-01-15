@@ -26,6 +26,11 @@ If they ask for a "test run", run `npm test` after typecheck passes.
 ### 2) Run the checks and capture the failures
 
 Record the command(s) run and the error count from the output. Treat the output as the TODO list.
+Work in phases of **max 10 errors** per run. If there are more than 10 errors, fix the first 10 and stop.
+
+Optional helper script (terminates typecheck after N errors to keep output small):
+
+`scripts/typecheck-top-errors.ps1 -MaxErrors 10`
 
 ### 3) Fix with preservationist rules
 
@@ -53,9 +58,10 @@ Placement rules:
 - Keep the message short and actionable.
 - If you used an assertion (`as unknown as ...`) or a fallback, say so.
 
-### 5) Re-run until error count is 0
+### 5) Re-run until error count is 0 (phased)
 
-Repeat typecheck until it passes. If a specific error cannot be resolved without behavior change, stop and report it with TODOs and a brief explanation.
+Repeat typecheck in phases of **max 10 errors**. After each phase, stop and report progress.
+If a specific error cannot be resolved without behavior change, stop and report it with TODOs and a brief explanation.
 
 ## Reporting Checklist
 
@@ -63,3 +69,25 @@ Repeat typecheck until it passes. If a specific error cannot be resolved without
 - Confirm error count went to 0 (or explain why it did not).
 - List TODOs added with file paths.
 - Call out any behavior risks introduced by temporary assertions.
+
+## Codex Worklog (optional)
+
+If you discover a reusable pattern or critical lesson, add a journal entry to
+`.jules/worklogs/worklog_codex.md`.
+
+Before adding an entry, run `date` in the terminal and use this template:
+
+```md
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+For future follow-ups that are not learnings, use:
+
+```md
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```

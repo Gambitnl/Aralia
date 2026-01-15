@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import GridCellOutline from './GridCellOutline';
 
 interface PartyUnitProps {
-  playerRef: RefObject<Object3D>;
+  playerRef: RefObject<Object3D | Mesh | null>;
   positionsRef: MutableRefObject<Array<{ x: number; y: number; z: number } | null>>;
   unitIndex: number;
   offset: { x: number; z: number };

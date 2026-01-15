@@ -284,6 +284,26 @@ export function buildActionHandlers({
     OPEN_DYNAMIC_MERCHANT: async (action) => {
       await handleOpenDynamicMerchant({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
+
+    // Village-specific actions (migrated from label-based custom actions).
+    // These handlers replace the legacy label-based branching in the 'custom' handler.
+    EXIT_VILLAGE: () => {
+      // Transition back to PLAYING phase to exit the village.
+      dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
+      addMessage('You leave the village and return to your journey.', 'system');
+    },
+    VISIT_GENERAL_STORE: () => {
+      // Legacy general store with basic items.
+      const inventory: Item[] = [ITEMS['healing_potion'], ITEMS['rope_item'], ITEMS['torch_item']].filter(Boolean);
+      dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "General Store (Legacy)", inventory } });
+      addMessage('You enter the General Store.', 'system');
+    },
+    VISIT_BLACKSMITH: () => {
+      // Legacy blacksmith with basic weapons/armor.
+      const inventory: Item[] = [WEAPONS_DATA['dagger'], ITEMS['shield_std']].filter(Boolean);
+      dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "The Anvil (Legacy)", inventory } });
+      addMessage('You step into the sweltering heat of the Blacksmith.', 'system');
+    },
     BUY_ITEM: (action) => {
       const validation = validateMerchantTransaction('buy', action.payload || {}, gameState);
       if (validation.valid) {
@@ -302,7 +322,11 @@ export function buildActionHandlers({
     },
 
     // Custom and narrative actions.
+    // This handler now focuses on village context actions and generic custom actions.
+    // Label-based branching for specific village actions (Exit Village, Visit General Store, etc.)
+    // has been migrated to explicit action types (EXIT_VILLAGE, VISIT_GENERAL_STORE, etc.).
     custom: (action) => {
+      // Handle village context actions with integration prompts.
       if (action.payload?.villageContext) {
         const villageContext = action.payload.villageContext as VillageActionContext;
         const detailText = villageContext.description || `You take in the details of the ${villageContext.buildingType ?? 'building'}.`;
@@ -312,18 +336,9 @@ export function buildActionHandlers({
         }
         return;
       }
-      if (action.label === 'Exit Village') {
-        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
-        addMessage('You leave the village and return to your journey.', 'system');
-      } else if (action.label === 'Visit General Store') {
-        const inventory: Item[] = [ITEMS['healing_potion'], ITEMS['rope_item'], ITEMS['torch_item']].filter(Boolean);
-        dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "General Store (Legacy)", inventory } });
-        addMessage('You enter the General Store.', 'system');
-      } else if (action.label === 'Visit Blacksmith') {
-        const inventory: Item[] = [WEAPONS_DATA['dagger'], ITEMS['shield_std']].filter(Boolean);
-        dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "The Anvil (Legacy)", inventory } });
-        addMessage('You step into the sweltering heat of the Blacksmith.', 'system');
-      } else if (action.label?.includes('Visit') || action.label?.includes('Examine') || action.label?.includes('Browse') || action.label?.includes('Speak')) {
+
+      // Generic custom actions: provide feedback based on label content.
+      if (action.label?.includes('Visit') || action.label?.includes('Examine') || action.label?.includes('Browse') || action.label?.includes('Speak')) {
         addMessage(`You interact with: ${action.label}`, 'system');
       } else {
         addMessage(`Custom action: ${action.label}`, 'system');

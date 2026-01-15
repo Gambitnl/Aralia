@@ -14,6 +14,12 @@ interface TerrainProps {
   heightColors?: { low: Color; mid: Color; high: Color };
 }
 
+type ShaderWithUniforms = {
+  uniforms: Record<string, { value: unknown }>;
+  vertexShader: string;
+  fragmentShader: string;
+};
+
 const Terrain = ({
   size,
   heightSampler,
@@ -73,7 +79,7 @@ const Terrain = ({
     const material = materialRef.current;
     if (!material) return;
 
-    material.onBeforeCompile = (shader) => {
+    material.onBeforeCompile = (shader: ShaderWithUniforms) => {
       shader.uniforms.gridSize = { value: gridSizeFt };
       shader.uniforms.gridOpacity = { value: 0.6 };
       shader.uniforms.gridColor = { value: new ThreeColor(0x64748b) };

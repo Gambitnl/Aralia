@@ -63,12 +63,32 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
       damage: { dice: "1d8", type: DamageType.Fire }
     };
 
+    const defaultTargeting = {
+      type: "single",
+      range: 60,
+      maxTargets: 1,
+      validTargets: ["creatures"],
+      lineOfSight: true,
+      // SpellValidator expects areaOfEffect on all targeting payloads.
+      areaOfEffect: { shape: "Sphere", size: 0 },
+      filter: {
+        creatureTypes: [],
+        excludeCreatureTypes: [],
+        sizes: [],
+        alignments: [],
+        hasCondition: [],
+        isNativeToPlane: false,
+      },
+    } as unknown as Spell['targeting'];
+
     return {
       id: `spell-${safeUuid()}`,
       name: "Mock Spell",
       aliases: [],
       level: 1,
       school: "Evocation" as SpellSchool,
+      source: "core",
+      legacy: false,
       classes: ["Wizard"],
       description: "A mock spell for testing.",
       ritual: false,
@@ -109,19 +129,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
         concentration: false
       },
 
-      targeting: {
-        type: "single",
-        range: 60,
-        validTargets: ["creatures"],
-        lineOfSight: true,
-        filter: {
-          creatureTypes: [],
-          excludeCreatureTypes: [],
-          sizes: [],
-          alignments: [],
-          hasCondition: []
-        }
-      },
+      targeting: defaultTargeting,
 
       effects: [defaultDamageEffect],
 
@@ -445,6 +453,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
 
       dynamicLocations: {},
       dynamicNPCs: {},
+      generatedNpcs: {}, // Generated NPC registry for test state parity.
       environment: {
         precipitation: 'none',
         temperature: 'temperate',
@@ -576,6 +585,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       religion: { divineFavor: {}, discoveredDeities: [], activeBlessings: [] },
       dynamicLocations: {},
       dynamicNPCs: {},
+      generatedNpcs: {},
       environment: {
         precipitation: 'none',
         temperature: 'temperate',

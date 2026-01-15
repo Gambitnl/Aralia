@@ -270,6 +270,8 @@ export const initialGameState: GameState = {
 
     // Linker: World Coherence System
     dynamicLocations: {},
+    // Registry for procedurally generated NPCs.
+    generatedNpcs: {},
 
     // Depthcrawler: Underdark System
     // Identity System (initialized lazily or on demand)

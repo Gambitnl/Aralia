@@ -71,7 +71,7 @@ describe('CompassPane', () => {
     currentLocation: mockLocation,
     currentSubMapCoordinates: null,
     worldMapCoords: { x: 0, y: 0 },
-    subMapCoords: null,
+    subMapCoords: { x: 0, y: 0 },
     onAction: vi.fn(),
     disabled: false,
     mapData: null,

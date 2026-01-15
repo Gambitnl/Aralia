@@ -60,7 +60,7 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
                   {ship.modifications.length > 0 ? (
                     ship.modifications.map((u, i) => (
                       <span key={i} className="px-2 py-1 bg-blue-900/30 text-blue-300 text-xs rounded border border-blue-800/50">
-                        {u}
+                        {u.name}
                       </span>
                     ))
                   ) : (

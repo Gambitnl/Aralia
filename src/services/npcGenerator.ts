@@ -1,10 +1,11 @@
-import { NPC, NPCMemory, GoalStatus, Goal, TTSVoiceOption, SuspicionLevel, RichNPC, FamilyMember } from '../types/world';
+import { NPC, GoalStatus, Goal, TTSVoiceOption, SuspicionLevel, RichNPC, FamilyMember, NpcMemory } from '../types/world';
 import { NPCVisualSpec } from '../types/visuals';
 import { RACE_NAMES } from '../data/names/raceNames';
 import { RACE_PHYSICAL_TRAITS, FALLBACK_TRAITS, SCARS_AND_MARKS } from '../data/names/physicalTraits';
 import { AVAILABLE_CLASSES, CLASSES_DATA } from '../data/classes';
 import { BACKGROUNDS } from '../data/backgrounds';
-import { AbilityScores, AbilityScoreName, PlayerCharacter, EquipmentSlotType, Item } from '../types/character';
+import { AbilityScores, AbilityScoreName, PlayerCharacter } from '../types/character';
+import type { EquipmentSlotType, Item } from '../types/items';
 import { getAbilityModifierValue, calculateArmorClass, calculatePassiveScore } from '../utils/character/statUtils';
 import { ALL_RACES_DATA } from '../data/races';
 import { ALL_ITEMS, WEAPONS_DATA, ITEMS } from '../data/items';
@@ -415,6 +416,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
 
   const voice = config.voice || DEFAULT_VOICES[Math.floor(Math.random() * DEFAULT_VOICES.length)];
 
+  // TODO(preserve-lint): Replace NpcMemory with the structured NPCMemory when memory models merge.
   const initialMemory: NpcMemory = {
     disposition: config.initialDisposition ?? 50,
     knownFacts: [],

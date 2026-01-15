@@ -59,7 +59,14 @@ const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, d
 export const initialGameState: GameState = {
     phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
     party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
-    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty().map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
+    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame()
+        ? getDummyParty().map(p => ({
+            id: p.id || crypto.randomUUID(),
+            name: p.name, // TempPartyMember requires a display name.
+            level: p.level || 1,
+            classId: p.class.id
+        }))
+        : null,
     inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
     gold: 10, // Default starting gold
     currentLocationId: STARTING_LOCATION_ID,
@@ -232,6 +239,8 @@ export const initialGameState: GameState = {
 
     // Linker: World Coherence System
     dynamicLocations: {},
+    // Registry for procedurally generated NPCs.
+    generatedNpcs: {},
 
     // Depthcrawler: Underdark System
     // Identity System (initialized lazily or on demand)

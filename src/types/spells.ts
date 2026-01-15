@@ -21,6 +21,9 @@ export interface Spell {
   aliases?: string[];
   level: number; // 0 for Cantrip
   school: SpellSchool;
+  // TODO(preserve-lint): Align required metadata with SpellValidator once schema/typing are unified.
+  source?: string;
+  legacy?: boolean;
   classes: string[];
   description: string;
   higherLevels?: string;

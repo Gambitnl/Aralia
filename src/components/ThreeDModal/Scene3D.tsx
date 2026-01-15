@@ -34,6 +34,7 @@ interface Scene3DProps {
   onPlayerPosition?: (position: { x: number; y: number; z: number }) => void;
   onPlayerSpeed?: (speedFeetPerRound: number) => void;
   onFps?: (fps: number) => void;
+  pauseRender?: boolean;
 }
 
 interface FpsTrackerProps {
@@ -282,12 +283,13 @@ const SceneContents = ({
   );
 };
 
-const Scene3D = (props: Scene3DProps) => (
+const Scene3D = ({ pauseRender = false, ...props }: Scene3DProps) => (
   <Canvas
     shadows
     camera={{ position: [0, 80, 160], fov: 55, near: 0.1, far: 20000 }}
     dpr={[1, 1.5]}
     gl={{ antialias: false, powerPreference: 'high-performance' }}
+    frameloop={pauseRender ? 'never' : 'always'}
     className="w-full h-full"
   >
     <SceneContents {...props} />

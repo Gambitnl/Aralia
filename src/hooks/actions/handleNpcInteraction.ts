@@ -47,10 +47,11 @@ export async function handleStartDialogue({
       // In future, pull town wealth/biome from gameState to influence race/clothing
     };
     
-    npc = generateNPC(config);
+    const generatedNpc = generateNPC(config);
+    npc = generatedNpc;
     
     // Register them permanently
-    dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc } });
+    dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: generatedNpc } });
     
     // Add "Met" fact immediately so they remember you
     const metFact: KnownFact = {
@@ -62,10 +63,10 @@ export async function handleStartDialogue({
         strength: 3,
         lifespan: 999,
     };
-    dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: npc.id, fact: metFact } });
-    dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
+    dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: generatedNpc.id, fact: metFact } });
+    dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generatedNpc.id } });
     
-    addMessage(`You greet ${npc.name}, a ${npc.biography.age}-year-old ${npc.biography.classId}.`, "system");
+    addMessage(`You greet ${generatedNpc.name}, a ${generatedNpc.biography.age}-year-old ${generatedNpc.biography.classId}.`, "system");
   }
 
   // Now dispatch the actual session start with the guaranteed valid ID

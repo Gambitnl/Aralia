@@ -156,13 +156,14 @@ export const calculatePrice = (
     const region = REGIONAL_ECONOMIES[regionId];
     if (region) {
       // EXPORTS are locally abundant -> CHEAPER (Surplus logic)
+      // Use substring matching so tags like "food" match item types like "food_drink".
       const isExport = region.exports.some(tag =>
-        itemTags.some(it => it === tag.toLowerCase())
+        itemTags.some(it => it.includes(tag.toLowerCase()))
       );
 
       // IMPORTS are locally scarce -> EXPENSIVE (Scarcity logic)
       const isImport = region.imports.some(tag =>
-        itemTags.some(it => it === tag.toLowerCase())
+        itemTags.some(it => it.includes(tag.toLowerCase()))
       );
 
       if (transactionType === 'buy') {

@@ -70,6 +70,9 @@ function buildAbilityScores(
     const final = { ...base };
     if (race.abilityBonuses && race.abilityBonuses.length > 0) {
         for (const bonus of race.abilityBonuses) {
+            if (bonus.ability === 'Any') {
+                continue;
+            }
             final[bonus.ability] = (final[bonus.ability] || 10) + bonus.bonus;
         }
     } else {

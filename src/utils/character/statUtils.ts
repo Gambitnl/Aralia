@@ -30,6 +30,9 @@ export const calculateFixedRacialBonuses = (baseScores: AbilityScores, race: Rac
   const finalScores: AbilityScores = { ...baseScores };
   if (race && race.abilityBonuses) {
     race.abilityBonuses.forEach(bonus => {
+      if (bonus.ability === 'Any') {
+        return;
+      }
       finalScores[bonus.ability] = (finalScores[bonus.ability] || 0) + bonus.bonus;
     });
   }
@@ -265,4 +268,3 @@ export const calculatePassiveScore = (
 
   return score;
 };
-

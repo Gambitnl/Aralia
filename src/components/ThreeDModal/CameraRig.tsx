@@ -1,12 +1,12 @@
 import type { RefObject } from 'react';
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import type { Object3D } from 'three';
+import type { Mesh, Object3D } from 'three';
 import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 interface CameraRigProps {
-  playerRef: RefObject<Object3D>;
+  playerRef: RefObject<Object3D | Mesh | null>;
   maxDistance: number;
   minDistance?: number;
 }

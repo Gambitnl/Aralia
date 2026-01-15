@@ -61,6 +61,9 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     const finalAbilityScores = { ...baseScores }; 
     if (race.abilityBonuses) {
         race.abilityBonuses.forEach(bonus => {
+            if (bonus.ability === 'Any') {
+                return;
+            }
             finalAbilityScores[bonus.ability] += bonus.bonus;
         });
     }

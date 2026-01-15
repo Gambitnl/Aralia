@@ -191,16 +191,13 @@ describe('statUtils', () => {
             });
 
             const mageArmorEffect: ActiveEffect = {
-                id: 'mage_armor',
-                spellId: 'mage_armor',
-                casterId: 'tester',
-                sourceName: 'Mage Armor',
-                appliedTurn: 0,
-                type: 'buff',
+                type: 'set_base_ac',
+                name: 'Mage Armor',
+                value: 13, // Base AC for Mage Armor.
                 duration: { type: 'minutes', value: 480 },
-                startTime: Date.now(),
-                mechanics: { acBonus: 3 }
-            } as unknown as ActiveEffect;
+                appliedTurn: 0,
+                source: 'mage_armor',
+            };
 
             // Monk Unarmored: 10 + 3 + 4 = 17
             // Mage Armor: 13 + 3 = 16
@@ -251,18 +248,13 @@ describe('statUtils', () => {
             });
 
             const mageArmorEffect: ActiveEffect = {
-                id: 'mage_armor',
-                spellId: 'mage_armor',
-                casterId: 'tester',
-                sourceName: 'Mage Armor',
-                appliedTurn: 0,
-                type: 'buff',
+                type: 'set_base_ac',
+                name: 'Mage Armor',
+                value: 13, // Base AC for Mage Armor.
                 duration: { type: 'minutes', value: 480 },
-                startTime: Date.now(),
-                mechanics: {
-                    acBonus: 3 // simplified; base 13 vs default 10        
-                }
-            } as unknown as ActiveEffect;
+                appliedTurn: 0,
+                source: 'mage_armor',
+            };
 
             // Wearing Armor: 11 + 2 = 13.
             // Mage Armor (if allowed): 13 + 2 = 15.

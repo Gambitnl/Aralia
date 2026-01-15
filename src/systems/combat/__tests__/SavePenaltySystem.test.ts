@@ -48,6 +48,7 @@ describe('SavePenaltySystem', () => {
 
     it('converts riders to modifiers with negative dice strings', () => {
         mockTarget.savePenaltyRiders = [{
+            id: 'rider-1', // IDs are required for SavePenaltyRider cleanup.
             spellId: 'spell-1',
             casterId: mockCasterId,
             sourceName: 'Mind Sliver',
@@ -66,6 +67,7 @@ describe('SavePenaltySystem', () => {
     it('consumes next_save penalties', () => {
         mockTarget.savePenaltyRiders = [
             {
+                id: 'rider-2',
                 spellId: 'spell-1',
                 casterId: mockCasterId,
                 sourceName: 'Mind Sliver',
@@ -75,6 +77,7 @@ describe('SavePenaltySystem', () => {
                 appliedTurn: 1
             },
             {
+                id: 'rider-3',
                 spellId: 'spell-2',
                 casterId: mockCasterId,
                 sourceName: 'Bane',
@@ -96,6 +99,7 @@ describe('SavePenaltySystem', () => {
     it('expires penalties based on duration', () => {
         mockTarget.savePenaltyRiders = [
             {
+                id: 'rider-4',
                 spellId: 'spell-1',
                 casterId: mockCasterId,
                 sourceName: 'Mind Sliver',
@@ -108,11 +112,14 @@ describe('SavePenaltySystem', () => {
         mockState.characters = [mockTarget];
 
         // Turn 2 (1 round elapsed): should still be there
-        let newState = system.expirePenalties(mockState, 2);
+        mockState.turnState.currentTurn = 2; // currentTurn drives duration expiry math.
+        // Use caster ID so duration-based expiration runs.
+        let newState = system.expirePenalties(mockState, mockCasterId);
         expect(newState.characters[0].savePenaltyRiders).toHaveLength(1);
 
         // Turn 3 (2 rounds elapsed): should expire (turnsElapsed = 3-1 = 2, which is not < duration.value 2)
-        newState = system.expirePenalties(mockState, 3);
+        mockState.turnState.currentTurn = 3;
+        newState = system.expirePenalties(mockState, mockCasterId);
         expect(newState.characters[0].savePenaltyRiders).toHaveLength(0);
     });
 

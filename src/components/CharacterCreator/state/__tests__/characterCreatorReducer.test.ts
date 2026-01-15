@@ -414,7 +414,8 @@ describe('Character Creator Reducer', () => {
             { raceId: 'changeling', classId: 'bard', description: 'Changeling Bard (instincts + spellcasting)' },
 
             // Additional races
-            { raceId: 'aasimar', classId: 'paladin', description: 'Aasimar Paladin (celestial heritage)' },
+            // Base "aasimar" entry is not present; use a concrete lineage.
+            { raceId: 'protector_aasimar', classId: 'paladin', description: 'Protector Aasimar Paladin (celestial heritage)' },
             { raceId: 'firbolg', classId: 'druid', description: 'Firbolg Druid (nature connection)' },
             { raceId: 'goblin', classId: 'rogue', description: 'Goblin Rogue (sneaky)' },
         ];

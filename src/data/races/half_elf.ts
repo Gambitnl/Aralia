@@ -12,12 +12,12 @@ export const HALF_ELF_DATA: Race = {
     'Walking in two worlds but truly belonging to neither, half-elves combine what some say are the best qualities of their elf and human parents: human curiosity, inventiveness, and ambition tempered by the refined senses, love of nature, and artistic tastes of the elves. Some half-elves live among humans, set apart by their emotional and physical differences, while others dwell in elven settlements, restless and unfulfilled by elven timelessness. Most find places among other half-elves or in diverse communities where their heritage is less of an issue.',
   abilityBonuses: [
     {
-      ability: 'charisma',
-      amount: 2,
+      ability: 'Charisma',
+      bonus: 2,
     },
     {
-      ability: 'any',
-      amount: 1,
+      ability: 'Any',
+      bonus: 1,
       choiceCount: 2,
     },
   ],

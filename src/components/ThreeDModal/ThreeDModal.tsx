@@ -38,6 +38,7 @@ const ThreeDModal = ({
   const [playerSpeedPerRound, setPlayerSpeedPerRound] = useState(0);
   const [isDevTurbo, setIsDevTurbo] = useState(false);
   const [fps, setFps] = useState<number | null>(null);
+  const [isHmrDisconnected, setIsHmrDisconnected] = useState(false);
 
   const submapSeed = useMemo(() => (
     simpleHash(
@@ -84,6 +85,14 @@ const ThreeDModal = ({
     };
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    if (!import.meta.hot) return;
+    // Pause the render loop when the Vite dev server disconnects so the 3D
+    // scene doesn't keep animating after HMR drops.
+    import.meta.hot.on('vite:ws:disconnect', () => setIsHmrDisconnected(true));
+    import.meta.hot.on('vite:ws:connect', () => setIsHmrDisconnected(false));
+  }, []);
+
   if (!isOpen) return null;
 
   const effectivePlayerSpeed = isDevTurbo ? playerSpeed * 10 : playerSpeed;
@@ -108,8 +117,17 @@ const ThreeDModal = ({
           onPlayerPosition={setPlayerPosition}
           onPlayerSpeed={setPlayerSpeedPerRound}
           onFps={setFps}
+          pauseRender={isHmrDisconnected}
         />
       </div>
+      {isHmrDisconnected && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 text-gray-100">
+          <div className="rounded-lg bg-black/80 px-4 py-3 text-center text-sm shadow-lg">
+            <div className="font-semibold">Dev server disconnected</div>
+            <div>3D render paused until HMR reconnects.</div>
+          </div>
+        </div>
+      )}
       <div className="absolute top-4 left-4 text-xs text-gray-100 bg-black/60 rounded px-3 py-2 space-y-1">
         <div className="font-semibold">3D Exploration Mode</div>
         <div>WASD move · Shift dash · Mouse orbit/zoom</div>

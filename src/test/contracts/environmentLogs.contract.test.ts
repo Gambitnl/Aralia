@@ -23,6 +23,7 @@ describe('contract: environment and logs', () => {
       response: 'response',
     };
     const ollama: OllamaLogEntry = {
+      id: 'ollama-1', // OllamaLogEntry requires a stable identifier.
       timestamp: new Date(),
       model: 'llama',
       prompt: 'prompt',

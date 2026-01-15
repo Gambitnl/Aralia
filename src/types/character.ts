@@ -11,8 +11,10 @@ export type { AbilityScores, AbilityScoreName } from './core';
 // Racial data
 // -----------------------------------------------------------------------------
 export interface RacialAbilityBonus {
-  ability: AbilityScoreName;
+  // Use 'Any' for flexible ASI choices that are resolved in character creation.
+  ability: AbilityScoreName | 'Any';
   bonus: number;
+  choiceCount?: number;
 }
 
 export type ElvenLineageType = 'drow' | 'high_elf' | 'wood_elf';

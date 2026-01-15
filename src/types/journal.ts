@@ -46,7 +46,7 @@ export interface JournalEvent {
 /**
  * Loot entry for session recaps.
  */
-export interface LootEntry {
+export interface JournalLootEntry {
     id: string;
     name: string;
     quantity: number;
@@ -80,7 +80,7 @@ export interface SessionObjective {
 export interface SessionRecap {
     sessionNumber: number;
     keyEvents: SessionKeyEvent[];
-    loot: LootEntry[];
+    loot: JournalLootEntry[];
     currentObjectives: SessionObjective[];
     notes?: string;
 }

@@ -198,10 +198,14 @@ export function npcReducer(state: GameState, action: AppAction): Partial<GameSta
       // Initialize memory if needed (RichNPC comes with default memory, we should merge/use it)
       let newNpcMemory = state.npcMemory;
       if (!newNpcMemory[npc.id] && npc.memory) {
-        newNpcMemory = {
-          ...state.npcMemory,
-          [npc.id]: npc.memory
-        };
+        if ('disposition' in npc.memory) {
+          newNpcMemory = {
+            ...state.npcMemory,
+            [npc.id]: npc.memory
+          };
+        } else {
+          // TODO(preserve-lint): Map structured NPCMemory into NpcMemory when models are unified.
+        }
       }
 
       return {

@@ -38,8 +38,7 @@ export class SavePenaltySystem {
         if (!target) return state;
 
         const rider: SavePenaltyRider = {
-            // TODO: Fix TS2741 - missing 'id' property in SavePenaltyRider
-            // @ts-ignore
+            id: crypto.randomUUID(), // Required for rider tracking/cleanup.
             spellId: spellId || sourceName,
             casterId: casterId,
             sourceName: sourceName,

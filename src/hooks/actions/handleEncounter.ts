@@ -4,7 +4,7 @@
  * Handles encounter-related actions like 'GENERATE_ENCOUNTER'.
  */
 import React from 'react';
-import { GameState, ShowEncounterModalPayload, StartBattleMapEncounterPayload, Item } from '../../types';
+import { GameState, ShowEncounterModalPayload, StartBattleMapEncounterPayload, Item, TempPartyMember } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { calculateEncounterParameters, processAndValidateEncounter } from '../../utils/encounterUtils';
@@ -17,7 +17,12 @@ interface HandleGenerateEncounterProps {
 export async function handleGenerateEncounter({ gameState, dispatch }: HandleGenerateEncounterProps): Promise<void> {
     dispatch({ type: 'GENERATE_ENCOUNTER' }); 
     try {
-        const partyForEncounter = gameState.tempParty || gameState.party.map(p => ({ id: p.id!, level: p.level || 1, classId: p.class.id }));
+        const partyForEncounter: TempPartyMember[] = gameState.tempParty ?? gameState.party.map(p => ({
+            id: p.id!,
+            name: p.name,
+            level: p.level || 1,
+            classId: p.class.id,
+        }));
         if (partyForEncounter.length === 0) {
             throw new Error("Cannot generate encounter for an empty party.");
         }

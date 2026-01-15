@@ -13,12 +13,12 @@ export const HALF_ELF_HIGH_DATA: Race = {
     'Half-elves with high elf heritage often display an affinity for the arcane arts that runs strong in their elven bloodline. They may have features that lean slightly more elven than human, with longer ears and more angular features. Many are drawn to magical study, finding that wizardry and other arcane pursuits come naturally to them. Their high elf parent\'s culture of intellectual curiosity and magical tradition often leaves a lasting impression, even when raised among humans.',
   abilityBonuses: [
     {
-      ability: 'charisma',
-      amount: 2,
+      ability: 'Charisma',
+      bonus: 2,
     },
     {
-      ability: 'any',
-      amount: 1,
+      ability: 'Any',
+      bonus: 1,
       choiceCount: 2,
     },
   ],

@@ -181,6 +181,9 @@ type VariantConfig = {
   tags?: string[];
   magic?: Biome['magic'];
   icon?: string;
+  climate?: Biome['climate'];
+  moisture?: Biome['moisture'];
+  elevation?: Biome['elevation'];
 };
 
 const VARIANTS: Record<string, VariantConfig[]> = {

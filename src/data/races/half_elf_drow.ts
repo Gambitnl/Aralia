@@ -13,12 +13,12 @@ export const HALF_ELF_DROW_DATA: Race = {
     'Half-elves of drow heritage are often the result of forbidden unions or raids upon the surface world. Many face prejudice from both sides of their ancestry—mistrusted by surface dwellers for their dark elf blood and scorned by drow for their human taint. Despite these hardships, half-drow often develop strong wills and a determination to forge their own path. They may inherit the drow\'s affinity for shadow magic, manifesting as an ability to conjure dancing lights, darkness, and other supernatural effects.',
   abilityBonuses: [
     {
-      ability: 'charisma',
-      amount: 2,
+      ability: 'Charisma',
+      bonus: 2,
     },
     {
-      ability: 'any',
-      amount: 1,
+      ability: 'Any',
+      bonus: 1,
       choiceCount: 2,
     },
   ],

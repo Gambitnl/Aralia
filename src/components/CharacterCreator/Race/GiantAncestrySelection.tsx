@@ -19,42 +19,42 @@ const GIANT_INFO: Record<GiantAncestryType, {
   tagline: string;
   icon: string;
 }> = {
-  cloud_giant: {
+  Cloud: {
     color: 'text-sky-300',
     borderColor: 'border-sky-400/50',
     accentColor: 'bg-sky-400/20',
     tagline: 'Wreathed in mists and elusive as the wind',
     icon: '☁️',
   },
-  fire_giant: {
+  Fire: {
     color: 'text-orange-500',
     borderColor: 'border-orange-500/50',
     accentColor: 'bg-orange-500/20',
     tagline: 'Born of the forge and the heart of the volcano',
     icon: '🔥',
   },
-  frost_giant: {
+  Frost: {
     color: 'text-cyan-300',
     borderColor: 'border-cyan-400/50',
     accentColor: 'bg-cyan-400/20',
     tagline: 'Hardened by the absolute cold of eternal winters',
     icon: '❄️',
   },
-  hill_giant: {
+  Hill: {
     color: 'text-lime-400',
     borderColor: 'border-lime-500/50',
     accentColor: 'bg-lime-500/20',
     tagline: 'Unstoppable force of nature with immense durability',
     icon: '🪨',
   },
-  stone_giant: {
+  Stone: {
     color: 'text-slate-400',
     borderColor: 'border-slate-500/50',
     accentColor: 'bg-slate-500/20',
     tagline: 'Patient observers with the resilience of the earth',
     icon: '⛰️',
   },
-  storm_giant: {
+  Storm: {
     color: 'text-indigo-400',
     borderColor: 'border-indigo-400/50',
     accentColor: 'bg-indigo-400/20',

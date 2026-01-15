@@ -3,8 +3,7 @@
  * Dashboard modal for viewing trade routes and their market impact.
  */
 import React, { useState } from 'react';
-import { TradeRouteManager } from '../../utils/trade/TradeRouteManager';
-import { TradeRoute, MarketEvent } from '../../types/trade';
+import { TradeRoute, MarketEvent } from '../../types/economy';
 import { WindowFrame } from '../ui/WindowFrame';
 import RouteCard from './RouteCard';
 import MarketEventCard from './MarketEventCard';

@@ -81,7 +81,11 @@ export type ActionType =
   | 'START_DIALOGUE_SESSION'
   | 'UPDATE_DIALOGUE_SESSION'
   | 'END_DIALOGUE_SESSION'
-  | 'SET_DEV_MODE_ENABLED';
+  | 'SET_DEV_MODE_ENABLED'
+  // Village-specific actions (migrated from label-based custom actions)
+  | 'EXIT_VILLAGE'
+  | 'VISIT_GENERAL_STORE'
+  | 'VISIT_BLACKSMITH';
 
 export interface InspectSubmapTilePayload {
   tileX: number;

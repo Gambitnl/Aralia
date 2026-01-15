@@ -1,11 +1,11 @@
 import type { RefObject } from 'react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import type { BufferGeometry, LineSegments, Material, Object3D } from 'three';
+import type { BufferGeometry, LineSegments, Material, Mesh, Object3D } from 'three';
 import { BufferAttribute, BufferGeometry as ThreeBufferGeometry, Color, LineBasicMaterial } from 'three';
 
 interface GridCellOutlineProps {
-  playerRef: RefObject<Object3D>;
+  playerRef: RefObject<Object3D | Mesh | null>;
   gridSize: number;
   heightSampler: (x: number, z: number) => number;
   color?: number;

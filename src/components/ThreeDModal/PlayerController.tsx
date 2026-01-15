@@ -6,7 +6,7 @@ import { Vector3 } from 'three';
 import { useKeyInput } from './useKeyInput';
 
 interface PlayerControllerProps {
-  playerRef: RefObject<Mesh>;
+  playerRef: RefObject<Mesh | null>;
   speedFeetPerRound: number;
   submapHalfSize: number;
   heightSampler: (x: number, z: number) => number;

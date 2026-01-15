@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateNPC, NPCGenerationConfig } from '../npcGenerator';
-import { NPC } from '../../types/world';
+import type { NpcMemory } from '../../types/world';
 import { RACE_NAMES } from '../../data/names/raceNames';
 
 /**
@@ -27,7 +27,9 @@ describe('NPC Generator', () => {
     expect(npc.role).toBe('guard');
     expect(npc.initialPersonalityPrompt).toContain('guard');
     expect(npc.memory).toBeDefined();
-    expect(npc.memory?.disposition).toBe(50);
+    // TODO(preserve-lint): npc.memory uses NpcMemory until the unified memory model lands.
+    const memory = npc.memory as NpcMemory | undefined;
+    expect(memory?.disposition).toBe(50);
   });
 
   /**
@@ -45,7 +47,9 @@ describe('NPC Generator', () => {
     const npc = generateNPC(config);
 
     expect(npc.name).toBe('Test Merchant');
-    expect(npc.memory?.disposition).toBe(80);
+    // TODO(preserve-lint): npc.memory uses NpcMemory until the unified memory model lands.
+    const memory = npc.memory as NpcMemory | undefined;
+    expect(memory?.disposition).toBe(80);
     expect(npc.faction).toBe('Merchants Guild');
     expect(npc.role).toBe('merchant');
   });

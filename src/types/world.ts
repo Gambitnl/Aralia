@@ -2,7 +2,8 @@ import type { NPCVisualSpec } from './visuals';
 import type { NPCKnowledgeProfile } from './dialogue';
 import type { Position as CombatPosition } from './combat';
 import type { NPCMemory } from './memory'; // Added because NPC now carries optional memory.
-import type { AbilityScores, EquipmentSlotType, Item } from './character';
+import type { AbilityScores } from './character';
+import type { EquipmentSlotType, Item } from './items';
 
 export type Position = CombatPosition;
 
@@ -174,8 +175,8 @@ export interface NPC {
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
   visual?: NPCVisualSpec;
-  // Was missing from NPC; added to allow MemorySystem/tests to attach NPCMemory without type errors.
-  memory?: NPCMemory;
+  // TODO(preserve-lint): Unify NpcMemory/NPCMemory once the memory systems converge.
+  memory?: NPCMemory | NpcMemory;
 }
 
 export interface Biome {

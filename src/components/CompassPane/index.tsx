@@ -26,7 +26,7 @@ interface CompassPaneProps {
   currentLocation: Location;
   currentSubMapCoordinates: { x: number; y: number } | null;
   worldMapCoords: { x: number; y: number };
-  subMapCoords: { x: number; y: number };
+  subMapCoords: { x: number; y: number } | null;
   onAction: (action: Action) => void;
   disabled: boolean;
   mapData: MapData | null;

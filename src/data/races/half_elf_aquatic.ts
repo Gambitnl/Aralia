@@ -13,12 +13,12 @@ export const HALF_ELF_AQUATIC_DATA: Race = {
     'Half-elves of aquatic elf heritage are rare, as aquatic elves seldom interact with surface-dwelling peoples. Those who do exist often feel torn between two worlds—the depths of the ocean and the lands above. They typically have webbed fingers and toes, skin tinted with blues or greens, and an affinity for water that sets them apart from other half-elves. Many become sailors, fishermen, or adventurers who explore both the depths and the shores.',
   abilityBonuses: [
     {
-      ability: 'charisma',
-      amount: 2,
+      ability: 'Charisma',
+      bonus: 2,
     },
     {
-      ability: 'any',
-      amount: 1,
+      ability: 'Any',
+      bonus: 1,
       choiceCount: 2,
     },
   ],

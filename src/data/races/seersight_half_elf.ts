@@ -13,12 +13,12 @@ export const MARK_OF_DETECTION_HALF_ELF_DATA: Race = {
     'Born with an arcane sigil that grants powers of observation and insight, half-elves bearing the Mark of Detection possess an almost supernatural awareness of their surroundings. This hereditary gift manifests as a glowing pattern on the skin, awakening enhanced senses that pierce through deception and reveal hidden truths. Those with this mark are sought after as investigators, bodyguards, and advisors, their ability to perceive danger and uncover secrets making them invaluable in matters requiring discernment and protection.',
   abilityBonuses: [
     {
-      ability: 'wisdom',
-      amount: 2,
+      ability: 'Wisdom',
+      bonus: 2,
     },
     {
-      ability: 'intelligence',
-      amount: 1,
+      ability: 'Intelligence',
+      bonus: 1,
     },
   ],
   traits: [

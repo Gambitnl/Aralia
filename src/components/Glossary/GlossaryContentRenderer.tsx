@@ -7,6 +7,7 @@ import { GlossaryEntry } from '../../types';
 interface GlossaryContentRendererProps {
   markdownContent: string;
   onNavigate?: (termId: string) => void;
+  className?: string;
 }
 
 type GlossaryLinkElement = HTMLSpanElement & {
@@ -103,7 +104,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 });
 
-export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = ({ markdownContent, onNavigate }) => {
+export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = ({ markdownContent, onNavigate, className }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const glossaryIndex = useContext(GlossaryContext);
 
@@ -198,5 +199,5 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     }
   }, [structuredHtml, onNavigate]);
 
-  return <div ref={contentRef} dangerouslySetInnerHTML={{ __html: structuredHtml }} />;
+  return <div ref={contentRef} className={className} dangerouslySetInnerHTML={{ __html: structuredHtml }} />;
 };

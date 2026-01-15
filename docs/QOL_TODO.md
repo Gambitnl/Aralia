@@ -20,4 +20,4 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
 - [ ] Derive UI toggle list in useGameActions from shared action registry to avoid drift. (`src/hooks/useGameActions.ts:74`)
 - [x] Type action handler registry against Action['type'] with exhaustive check to catch missing/renamed actions. [DONE - Refactored `actionHandlers.ts` to use `Record<ActionType, ActionHandler>`]
 - [x] Validate merchant action payloads (item/cost/value) before dispatch. [DONE - Implemented `validateMerchantTransaction` in `handleMerchantInteraction.ts` and integrated into `actionHandlers.ts`]
-- [ ] Replace label-based custom action branching with explicit action types/config. (`src/hooks/actions/actionHandlers.ts:281`)
+- [x] Replace label-based custom action branching with explicit action types/config. [DONE - Added EXIT_VILLAGE, VISIT_GENERAL_STORE, and VISIT_BLACKSMITH action types with dedicated handlers; removed hardcoded label-based branching from 'custom' handler (lines 315-330). Note: VillageScene.tsx which originally used these labels is currently unused/legacy code; TownCanvas uses OPEN_DYNAMIC_MERCHANT instead.]

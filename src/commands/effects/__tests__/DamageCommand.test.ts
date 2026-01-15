@@ -244,9 +244,10 @@ describe('DamageCommand', () => {
         };
 
         // Pre-apply a save penalty to the target
-        const targetWithPenalty = {
+        const targetWithPenalty: CombatCharacter = {
             ...mockTarget,
             savePenaltyRiders: [{
+                id: 'mind-sliver-rider-1',
                 spellId: 'mind-sliver-1',
                 casterId: 'hero-1',
                 sourceName: 'Mind Sliver',

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { PlayerCharacter } from '../../../types';
-import { Companion } from '../../../types/companions';
+import { Companion, CompanionGoal } from '../../../types/companions';
 
 interface CharacterDetailsTabProps {
     character: PlayerCharacter;
@@ -25,7 +25,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
         class: character.class?.name,
     } : null);
 
-    const goals = companion?.goals?.filter(g => !g.isSecret && g.status === 'active');
+    const goals = companion?.goals?.filter((g: CompanionGoal) => !g.isSecret && g.status === 'active');
 
     return (
         <div className="h-full overflow-y-auto scrollable-content">
@@ -76,7 +76,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                                     <h4 className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Values</h4>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {personality.values.map((value, i) => (
+                                    {personality.values.map((value: string, i: number) => (
                                         <span key={i} className="px-3 py-1 bg-teal-500/10 text-teal-400 border border-teal-500/20 rounded-full text-[11px] font-semibold tracking-wide">
                                             {value}
                                         </span>
@@ -93,7 +93,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                                     <h4 className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Fears</h4>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {personality.fears.map((fear, i) => (
+                                    {personality.fears.map((fear: string, i: number) => (
                                         <span key={i} className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-[11px] font-semibold tracking-wide">
                                             {fear}
                                         </span>
@@ -110,7 +110,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                                     <h4 className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Quirks</h4>
                                 </div>
                                 <ul className="space-y-2">
-                                    {personality.quirks.map((quirk, i) => (
+                                    {personality.quirks.map((quirk: string, i: number) => (
                                         <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
                                             <span className="text-amber-400 mt-0.5">•</span>
                                             <span>{quirk}</span>
@@ -167,7 +167,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                             Active Goals
                         </h3>
                         <div className="space-y-2">
-                            {(soulData?.goals?.filter(g => !g.isSecret) || []).map((goal, i) => (
+                            {(soulData?.goals?.filter((g: CompanionGoal) => !g.isSecret) || []).map((goal: CompanionGoal, i: number) => (
                                 <div key={i} className="p-4 bg-amber-500/5 border-l-2 border-amber-500 rounded-r-lg">
                                     <p className="text-sm font-medium text-gray-200">{goal.description}</p>
                                 </div>

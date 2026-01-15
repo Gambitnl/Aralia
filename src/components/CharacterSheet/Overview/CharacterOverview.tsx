@@ -151,7 +151,7 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const savingThrowProfs = character.class.savingThrowProficiencies || [];
 
     // Has spell slots?
-    const hasSpellSlots = character.spellSlots && Object.values(character.spellSlots).some(s => s > 0);
+    const hasSpellSlots = character.spellSlots && Object.values(character.spellSlots).some(vial => vial.max > 0);
 
     return (
         <div className="grid grid-cols-1 gap-y-4 h-full overflow-hidden">
@@ -229,12 +229,11 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                         </h4>
                         <div className="grid grid-cols-3 gap-2 text-sm">
                             {Object.entries(character.spellSlots || {}).map(([level, slots]) => {
-                                if (slots === 0) return null;
-                                const used = character.usedSpellSlots?.[parseInt(level)] || 0;
+                                if (slots.max === 0) return null;
                                 return (
                                     <div key={level} className="text-center">
                                         <p className="text-xs text-gray-400">Level {level}</p>
-                                        <p className="font-semibold text-purple-300">{slots - used} / {slots}</p>
+                                        <p className="font-semibold text-purple-300">{slots.current} / {slots.max}</p>
                                     </div>
                                 );
                             })}
