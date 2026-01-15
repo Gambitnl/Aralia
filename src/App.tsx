@@ -127,7 +127,16 @@ const App: React.FC = () => {
 
   const { playPcmAudio, cleanupAudioContext } = useAudio(addMessage);
 
-  // TODO: Add proper cleanup for event listeners, timers, and audio contexts in useEffect cleanup functions to prevent memory leaks
+  // Cleanup effect: This ensures that when the component unmounts (e.g., user closes the app),
+  // we properly clean up the audio context to prevent memory leaks.
+  // Memory leaks happen when resources like audio contexts aren't properly released,
+  // causing the browser to hold onto memory that can't be used anymore.
+  useEffect(() => {
+    // The return function here is the "cleanup function" - React calls it when the component unmounts
+    return () => {
+      cleanupAudioContext();
+    };
+  }, [cleanupAudioContext]); // Only re-run if cleanupAudioContext function changes
 
   const getCurrentLocation = useCallback((): Location => {
     const currentId = gameState.currentLocationId;
