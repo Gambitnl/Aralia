@@ -74,7 +74,6 @@ const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(modul
 const NotFound = lazy(() => import('./components/ui/NotFound'));
 
 
-// TODO: Add React.memo and useMemo to prevent unnecessary re-renders in performance-critical components like GameLayout, CombatView, and TownCanvas
 // TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
 const App: React.FC = () => {
   // Validate environment variables on startup
@@ -127,7 +126,16 @@ const App: React.FC = () => {
 
   const { playPcmAudio, cleanupAudioContext } = useAudio(addMessage);
 
-  // TODO: Add proper cleanup for event listeners, timers, and audio contexts in useEffect cleanup functions to prevent memory leaks
+  // Cleanup effect: This ensures that when the component unmounts (e.g., user closes the app),
+  // we properly clean up the audio context to prevent memory leaks.
+  // Memory leaks happen when resources like audio contexts aren't properly released,
+  // causing the browser to hold onto memory that can't be used anymore.
+  useEffect(() => {
+    // The return function here is the "cleanup function" - React calls it when the component unmounts
+    return () => {
+      cleanupAudioContext();
+    };
+  }, [cleanupAudioContext]); // Only re-run if cleanupAudioContext function changes
 
   const getCurrentLocation = useCallback((): Location => {
     const currentId = gameState.currentLocationId;

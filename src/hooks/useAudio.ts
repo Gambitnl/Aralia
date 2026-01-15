@@ -52,7 +52,42 @@ export function useAudio(addMessage: AddMessageFn) {
     }
   }, [audioSettings.volume, audioSettings.isMuted]);
 
-  // TODO: Suspend/resume the AudioContext on tab visibility changes (Reason: background tabs keep the context alive and waste CPU/battery; Expectation: automatically pause playback pipeline until the user returns).
+  // Handle tab visibility changes to save CPU/battery
+  // When the user switches to a different tab, suspend the audio context
+  // When they return, resume it so audio can play again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Check if the audio context exists
+      if (!audioContextRef.current) return;
+
+      // If the tab is hidden (user switched away), suspend audio processing to save resources
+      if (document.hidden) {
+        // The suspend() method pauses audio processing but keeps the context alive
+        // This saves CPU/battery when the tab is in the background
+        if (audioContextRef.current.state === 'running') {
+          audioContextRef.current.suspend().catch(e =>
+            console.error('Error suspending AudioContext:', e)
+          );
+        }
+      } else {
+        // If the tab is visible again (user came back), resume audio processing
+        if (audioContextRef.current.state === 'suspended') {
+          audioContextRef.current.resume().catch(e =>
+            console.error('Error resuming AudioContext:', e)
+          );
+        }
+      }
+    };
+
+    // Listen for visibility changes (tab switching, minimizing window, etc.)
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup: remove the event listener when the component unmounts
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []); // Empty dependency array means this runs once on mount
+
   // TODO(FEATURES): Add ambient music and biome-based sound layers alongside TTS playback (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   const playPcmAudio = useCallback(
     async (base64PcmData: string) => {

@@ -126,4 +126,9 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     );
 };
 
-export default GameLayout;
+// Wrap GameLayout with React.memo to prevent unnecessary re-renders
+// React.memo is a performance optimization that tells React to only re-render this component
+// when its props actually change. Without this, GameLayout would re-render every time the parent
+// App component re-renders, even if none of GameLayout's props changed.
+// This is important because GameLayout is a large component that renders many child components.
+export default React.memo(GameLayout);

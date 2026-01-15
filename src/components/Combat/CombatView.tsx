@@ -419,4 +419,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   );
 };
 
-export default CombatView;
+// Wrap CombatView with React.memo to prevent unnecessary re-renders
+// CombatView is performance-critical because it handles complex combat state and renders
+// multiple actors, their stats, and action buttons. By memoizing it, we ensure it only
+// re-renders when combat-related props change, not when unrelated game state updates.
+export default React.memo(CombatView);

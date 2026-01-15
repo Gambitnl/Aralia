@@ -851,4 +851,8 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     );
 };
 
-export default TownCanvas;
+// Wrap TownCanvas with React.memo to prevent unnecessary re-renders
+// TownCanvas renders complex SVG/Canvas graphics for the town view, which is expensive to re-render.
+// By memoizing it, we ensure it only re-renders when the town state or related props change,
+// not when unrelated game state (like inventory or character stats) updates.
+export default React.memo(TownCanvas);
