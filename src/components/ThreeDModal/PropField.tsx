@@ -83,7 +83,6 @@ const PropField = ({
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    mesh.frustumCulled = false; // keep instanced field visible even if bounds are off
     const dummy = new Object3D();
 
     instances.forEach((instance, index) => {
@@ -95,6 +94,8 @@ const PropField = ({
     });
 
     mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingBox();
+    mesh.computeBoundingSphere();
   }, [instances]);
 
   if (count === 0) return null;

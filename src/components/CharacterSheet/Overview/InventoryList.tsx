@@ -7,7 +7,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../../../types';
-import { canEquipItem } from '../../../utils/characterUtils';
+import { canEquipItem, calculatePotentialAcChange } from '../../../utils/characterUtils';
 import Tooltip from '../../ui/Tooltip';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
 
@@ -290,7 +290,19 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
 
         {!isCollapsed && (
           <ul className="mt-2 space-y-1.5">
-            {bucket.children.map(child => {
+            {[...bucket.children].sort((a, b) => {
+              // Sort by proficiency: items the character can equip come first
+              const aIsEquippable = (a.type === 'armor' || a.type === 'weapon') && a.slot;
+              const bIsEquippable = (b.type === 'armor' || b.type === 'weapon') && b.slot;
+
+              const aCanEquip = aIsEquippable ? canEquipItem(character, a).can : true;
+              const bCanEquip = bIsEquippable ? canEquipItem(character, b).can : true;
+
+              // Proficient items first, non-proficient at bottom
+              if (aCanEquip && !bCanEquip) return -1;
+              if (!aCanEquip && bCanEquip) return 1;
+              return 0;
+            }).map(child => {
               const key = child.instanceId;
               const isEquippableType = child.type === 'armor' || child.type === 'weapon' || child.type === 'accessory';
               // REVIEW Q13: The canEquipItem check is only called if isEquippableType AND child.slot exist.
@@ -318,6 +330,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                 rowStyle = 'bg-amber-950/30 border-amber-500/40 hover:bg-amber-900/30';
               }
 
+              // Calculate potential AC change for armor items
+              const acChange = child.type === 'armor' ? calculatePotentialAcChange(character, child) : 0;
+
               return (
                 <React.Fragment key={key}>
                   <li className={`p-2 rounded-md border flex items-center justify-between transition-colors ${rowStyle}`}>
@@ -327,6 +342,30 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1">
                             <span className="font-medium text-amber-200 text-sm cursor-help truncate" title={child.name}>{child.name}</span>
+                            {/* AC Upgrade Indicator */}
+                            {acChange > 0 && (
+                              <Tooltip content={`Equipping this would increase your AC by ${acChange}`}>
+                                <span
+                                  className="material-symbols-outlined text-green-400 text-sm flex-shrink-0"
+                                  style={{ fontSize: '14px' }}
+                                  aria-label={`+${acChange} AC upgrade`}
+                                >
+                                  arrow_upward
+                                </span>
+                              </Tooltip>
+                            )}
+                            {/* AC Downgrade Indicator */}
+                            {acChange < 0 && (
+                              <Tooltip content={`Equipping this would decrease your AC by ${Math.abs(acChange)}`}>
+                                <span
+                                  className="material-symbols-outlined text-red-400 text-sm flex-shrink-0"
+                                  style={{ fontSize: '14px' }}
+                                  aria-label={`${acChange} AC downgrade`}
+                                >
+                                  arrow_downward
+                                </span>
+                              </Tooltip>
+                            )}
                             {isWarningOnly && <AlertTriangle size={12} className="text-amber-500" aria-label="Warning" />}
                             {isBlocked && <span className="text-[10px]" role="img" aria-label="Blocked">⛔</span>}
                           </div>

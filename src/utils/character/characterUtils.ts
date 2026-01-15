@@ -203,6 +203,43 @@ export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boo
   return { can: true };
 };
 
+/**
+ * Calculates the AC change if an item were equipped in place of the current gear.
+ * Used to display upgrade indicators in the inventory UI.
+ * @param character - The character to evaluate
+ * @param item - The item to check
+ * @returns The AC change (positive = upgrade, negative = downgrade, 0 = no change)
+ */
+export const calculatePotentialAcChange = (character: PlayerCharacter, item: Item): number => {
+  // Only armor items affect AC
+  if (item.type !== 'armor') return 0;
+
+  // Clone character's equipped items for hypothetical calculation
+  const hypotheticalEquippedItems = { ...character.equippedItems };
+
+  // Determine which slot the item goes in and equip it
+  if (item.armorCategory === 'Shield') {
+    hypotheticalEquippedItems.OffHand = item;
+  } else if (item.slot === 'Torso') {
+    hypotheticalEquippedItems.Torso = item;
+  } else if (item.slot) {
+    // For other armor slots (Head, Hands, Legs, Feet, Wrists), they don't typically affect AC calculation
+    // but we'll include them for completeness
+    hypotheticalEquippedItems[item.slot] = item;
+  }
+
+  // Create a hypothetical character with the new equipment
+  const hypotheticalCharacter: PlayerCharacter = {
+    ...character,
+    equippedItems: hypotheticalEquippedItems,
+  };
+
+  // Calculate new AC using the same function used elsewhere
+  const newAc = calculateArmorClass(hypotheticalCharacter, character.activeEffects || []);
+
+  return newAc - character.armorClass;
+};
+
 export { calculateFixedRacialBonuses };
 
 /**

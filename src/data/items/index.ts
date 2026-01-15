@@ -151,6 +151,7 @@ export const ITEMS: Record<string, Item> = {
   'splint_armor': { id: 'splint_armor', name: 'Splint Armor', icon: '🛡️', description: 'Vertical metal strips.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 17, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 60, cost: '200 GP' },
   'plate_armor': { id: 'plate_armor', name: 'Plate Armor', icon: '🛡️', description: 'Full interlocking metal plates.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 18, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 65, cost: '1,500 GP' },
   'shield_std': { id: 'shield_std', name: 'Shield', icon: '🛡️', description: 'A standard shield.', type: 'armor', slot: 'OffHand', armorCategory: 'Shield', armorClassBonus: 2, weight: 6, cost: '10 GP' },
+  'shield_plus_one': { id: 'shield_plus_one', name: '+1 Shield', icon: '🛡️', description: 'A magical shield that grants +3 to AC (+2 base + 1 enhancement).', type: 'armor', slot: 'OffHand', armorCategory: 'Shield', armorClassBonus: 3, weight: 6, cost: '1500 GP' },
 };
 
 // Import gatherable items and merge them

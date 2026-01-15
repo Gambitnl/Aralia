@@ -37,6 +37,7 @@ const ThreeDModal = ({
   const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number; z: number } | null>(null);
   const [playerSpeedPerRound, setPlayerSpeedPerRound] = useState(0);
   const [isDevTurbo, setIsDevTurbo] = useState(false);
+  const [fps, setFps] = useState<number | null>(null);
 
   const submapSeed = useMemo(() => (
     simpleHash(
@@ -106,6 +107,7 @@ const ThreeDModal = ({
           isCombatMode={isCombatMode}
           onPlayerPosition={setPlayerPosition}
           onPlayerSpeed={setPlayerSpeedPerRound}
+          onFps={setFps}
         />
       </div>
       <div className="absolute top-4 left-4 text-xs text-gray-100 bg-black/60 rounded px-3 py-2 space-y-1">
@@ -124,6 +126,7 @@ const ThreeDModal = ({
             Position: {playerPosition.x.toFixed(1)} ft, {playerPosition.z.toFixed(1)} ft
           </div>
         )}
+        <div>FPS: {fps ?? '—'}</div>
       </div>
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <button

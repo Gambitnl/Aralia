@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import type { Color, Mesh } from 'three';
 import { Color as ThreeColor } from 'three';
 import { BIOMES } from '../../constants';
@@ -33,7 +33,36 @@ interface Scene3DProps {
   isCombatMode: boolean;
   onPlayerPosition?: (position: { x: number; y: number; z: number }) => void;
   onPlayerSpeed?: (speedFeetPerRound: number) => void;
+  onFps?: (fps: number) => void;
 }
+
+interface FpsTrackerProps {
+  onFps?: (fps: number) => void;
+  sampleWindow?: number;
+}
+
+const FpsTracker = ({ onFps, sampleWindow = 0.5 }: FpsTrackerProps) => {
+  const accumulatorRef = useRef({ time: 0, frames: 0 });
+  const lastFpsRef = useRef<number | null>(null);
+
+  useFrame((_, delta) => {
+    const accumulator = accumulatorRef.current;
+    accumulator.time += delta;
+    accumulator.frames += 1;
+
+    if (accumulator.time >= sampleWindow) {
+      const fps = Math.round(accumulator.frames / accumulator.time);
+      if (fps !== lastFpsRef.current) {
+        lastFpsRef.current = fps;
+        onFps?.(fps);
+      }
+      accumulator.time = 0;
+      accumulator.frames = 0;
+    }
+  });
+
+  return null;
+};
 
 const SceneContents = ({
   biomeId,
@@ -46,12 +75,17 @@ const SceneContents = ({
   isCombatMode,
   onPlayerPosition,
   onPlayerSpeed,
+  onFps,
 }: Scene3DProps) => {
   const playerRef = useRef<Mesh>(null);
   const partyPositionsRef = useRef<Array<{ x: number; y: number; z: number } | null>>([]);
   const submapHalfSize = submapFootprintFt / 2;
   const biome = BIOMES[biomeId];
-  const playerSpawn = { x: 0, z: 0 };
+  // Capture the player's initial spawn location once so we can keep a permanent
+  // "no-props" bubble around the entry point without re-rolling prop placement
+  // every time the player moves.
+  const [spawnSafeCenter, setSpawnSafeCenter] = useState<{ x: number; z: number } | null>(null);
+  // Tuned safe radius to keep the starting area visually clear and collision-free.
   const playerSpawnSafeRadius = 50;
 
   const lighting = useMemo(
@@ -147,8 +181,18 @@ const SceneContents = ({
     partyPositionsRef.current.length = partyOffsets.length;
   }, [partyOffsets.length]);
 
+  useEffect(() => {
+    // Only snapshot the spawn position once. If we kept updating this center,
+    // props would appear to "follow" or shift as the player moves, which is not
+    // what we want for a static environment scatter.
+    if (spawnSafeCenter || !playerRef.current) return;
+    const { x, z } = playerRef.current.position;
+    setSpawnSafeCenter({ x, z });
+  }, [spawnSafeCenter]);
+
   return (
     <>
+      <FpsTracker onFps={onFps} />
       {!skyVisible && <color attach="background" args={[lighting.fogColor]} />}
       <fogExp2 attach="fog" args={[lighting.fogColor, lighting.fogDensity]} />
       <ambientLight color={lighting.ambientColor} intensity={lighting.ambientIntensity} />
@@ -180,7 +224,9 @@ const SceneContents = ({
         size={submapFootprintFt}
         heightSampler={heightSampler}
         tint={lighting.biomeColor}
-        spawnCenter={playerSpawn}
+        // If the spawn position hasn't been sampled yet, default to origin; once
+        // captured, keep using that fixed point to reserve a clear spawn zone.
+        spawnCenter={spawnSafeCenter ?? { x: 0, z: 0 }}
         spawnSafeRadius={playerSpawnSafeRadius}
       />
       {partyOffsets.map((offset, index) => {
