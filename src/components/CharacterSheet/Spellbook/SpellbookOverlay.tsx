@@ -1,14 +1,16 @@
 /**
  * @file SpellbookOverlay.tsx
  * A component for displaying a character's spellbook as a full-screen overlay.
+ * Features a 2-column master-detail layout with spell list and inline glossary display.
  */
-import React, { useState, useEffect, useContext } from 'react';
-import { PlayerCharacter, Spell, Action, LimitedUseAbility, ResourceVial } from '../../../types';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { PlayerCharacter, Spell, Action } from '../../../types';
 import SpellContext from '../../../context/SpellContext';
+import GlossaryContext from '../../../context/GlossaryContext';
 import { CLASSES_DATA } from '../../../constants';
-import Tooltip from '../../ui/Tooltip';
-// Spell info modal is housed under the Glossary folder
-import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
+import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
+import { findGlossaryEntryAndPath } from '../../../utils/glossaryUtils';
+import SpellSlotDisplay from './SpellSlotDisplay';
 
 interface SpellbookOverlayProps {
   isOpen: boolean;
@@ -17,189 +19,96 @@ interface SpellbookOverlayProps {
   onAction: (action: Action) => void;
 }
 
-const renderSpellSlots = (level: number, { current, max }: { current: number, max: number }) => {
-  if (max === 0) return null;
-  const slots = [];
-  for (let i = 0; i < max; i++) {
-    slots.push(
-      <div
-        key={i}
-        className={`spell-slot-dot ${i < current ? 'available' : 'used'}`}
-      />
-    );
-  }
-  return (
-    <div className="spell-slot-row">
-      <span className="spell-slot-level-label">Level {level}</span>
-      <div className="spell-slot-dots">{slots}</div>
-      <span className="spell-slot-counter">({current}/{max})</span>
-    </div>
-  );
-};
-
-const resolveMaxValue = (char: PlayerCharacter, ability: LimitedUseAbility): number => {
-  if (typeof ability.max === 'number') return ability.max;
-  // This is a simplified version. A full implementation would check specific ability modifiers.
-  if (ability.max === 'proficiency_bonus') return char.proficiencyBonus || 2;
-  return 1;
-};
-
-
-const LeftPage: React.FC<{
-  character: PlayerCharacter,
-  onAction: (action: Action) => void,
-  showAllSpells: boolean,
-  onToggleShowAll: () => void,
-}> = ({ character, onAction, showAllSpells, onToggleShowAll }) => {
-
-  const { spellSlots, limitedUses } = character;
-  const limitedUseAbilities = limitedUses ? Object.values(limitedUses) : [];
-
-  return (
-    <div className="spellbook-page spellbook-page-left scrollable-content">
-      <h2 className="spell-level-header">Resources</h2>
-
-      {spellSlots && (
-        <div className="resource-container">
-          <h3 className="resource-header">Abilities</h3>
-          <div className="space-y-1">
-            {limitedUseAbilities.map((ability: LimitedUseAbility) => (
-              <div key={ability.name} className="limited-use-entry">
-                <span className="limited-use-name">{ability.name}</span>
-                <span className="limited-use-counter">{ability.current} / {resolveMaxValue(character, ability)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="toggle-spells-container">
-        <label className="toggle-spells-label">
-          <span>All Class Spells</span>
-          <div className="toggle-switch">
-            <input type="checkbox" checked={showAllSpells} onChange={onToggleShowAll} />
-            <span className="toggle-slider"></span>
-          </div>
-        </label>
-      </div>
-
-      <div className="rest-buttons">
-        <button onClick={() => onAction({ type: 'SHORT_REST', label: 'Take Short Rest' })} className="spellbook-action-button">Short Rest</button>
-        <button onClick={() => onAction({ type: 'LONG_REST', label: 'Take Long Rest' })} className="spellbook-action-button">Long Rest</button>
-      </div>
-
-    </div>
-  );
-};
-
-const RightPage: React.FC<{
-  level: number;
-  character: PlayerCharacter;
-  allSpellsData: Record<string, Spell>;
-  showAllSpells: boolean;
-  onAction: (action: Action) => void;
-  setInfoSpellId: (id: string | null) => void;
-}> = ({ level, character, allSpellsData, showAllSpells, onAction, setInfoSpellId }) => {
-  const { spellbook, spellSlots } = character;
-  if (!spellbook) return null;
-
-  const classData = CLASSES_DATA[character.class.id];
-  const classSpellList = classData?.spellcasting?.spellList
-    .map(id => allSpellsData[id])
-    .filter((s): s is Spell => !!s) ?? [];
-
-  const knownSpellIds = new Set([
-    ...(spellbook.cantrips ?? []),
-    ...(spellbook.preparedSpells ?? []),
-    ...(spellbook.knownSpells ?? [])
-  ]);
-
-  const preparedSpellIds = new Set(spellbook.preparedSpells ?? []);
-
-  let spellsToDisplay: Spell[] = [];
-
-  if (showAllSpells) {
-    // Show ALL class spells + any known racial spells
-    const combinedIds = new Set([
-      ...classSpellList.map(s => s.id),
-      ...Array.from(knownSpellIds)
-    ]);
-    spellsToDisplay = Array.from(combinedIds)
-      .map(id => allSpellsData[id])
-      .filter((s): s is Spell => !!s && s.level === level);
-  } else {
-    // Show ONLY known spells (including racial ones that aren't in class list)
-    spellsToDisplay = Array.from(knownSpellIds)
-      .map(id => allSpellsData[id])
-      .filter((s): s is Spell => !!s && s.level === level);
-  }
-
-  spellsToDisplay.sort((a, b) => a.name.localeCompare(b.name));
-
-  const pageTitle = level === 0 ? "Cantrips" : `Level ${level} Spells`;
-
-  const canCast = (spell: Spell) => spell.level === 0 || (spellSlots?.[`level_${spell.level}` as keyof typeof spellSlots]?.current ?? 0) > 0;
-
-  return (
-    <div className="spellbook-page spellbook-page-right scrollable-content">
-      <h2 className="spell-level-header">{pageTitle}</h2>
-      <div className="spell-grid">
-        {spellsToDisplay.map(spell => {
-          const isAlwaysPrepared = character.class.id === 'druid' && spell.id === 'speak-with-animals';
-          const isKnown = knownSpellIds.has(spell.id);
-          const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared;
-          const isCastable = isKnown && canCast(spell);
-
-          return (
-            <div key={spell.id} className={`spell-entry ${isKnown ? 'known' : 'unknown'}`}>
-              <div className="spell-entry-info">
-                <div className="icon">🪄</div>
-                <Tooltip content={spell.description}>
-                  <span className="name cursor-help">{spell.name}</span>
-                </Tooltip>
-              </div>
-              <div className="spell-entry-buttons">
-                <button className="spellbook-action-button" disabled={!isCastable} onClick={() => onAction({ type: 'CAST_SPELL', label: `Cast ${spell.name}`, payload: { characterId: character.id!, spellId: spell.id, spellLevel: spell.level } })}>
-                  Cast
-                </button>
-                {spell.level > 0 && (
-                  <button className="spellbook-action-button" disabled={isAlwaysPrepared} onClick={() => onAction({ type: 'TOGGLE_PREPARED_SPELL', label: 'Toggle Spell Prep', payload: { characterId: character.id!, spellId: spell.id } })}>
-                    {isPrepared ? (isAlwaysPrepared ? 'Always' : 'Unprep') : 'Prep'}
-                  </button>
-                )}
-                <button className="spellbook-action-button" onClick={() => setInfoSpellId(spell.id)}>
-                  Info
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-
 const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, onClose, onAction }) => {
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [infoSpellId, setInfoSpellId] = useState<string | null>(null);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
   const [showAllPossibleSpells, setShowAllPossibleSpells] = useState(false);
   const allSpellsData = useContext(SpellContext);
+  const glossaryEntries = useContext(GlossaryContext);
 
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCurrentPageIndex(0);
+      setCurrentLevel(0);
+      setSelectedSpellId(null);
       setShowAllPossibleSpells(false);
     }
   }, [isOpen]);
 
+  // Handle escape key
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleEsc);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen, onClose]);
+
+  // Compute spell lists
+  const { spellsToDisplay, knownSpellIds, preparedSpellIds, levels } = useMemo(() => {
+    if (!allSpellsData || !character.spellbook) {
+      return { spellsToDisplay: [], knownSpellIds: new Set<string>(), preparedSpellIds: new Set<string>(), levels: [0] };
+    }
+
+    const { spellbook, spellSlots } = character;
+    const maxSpellLevelCharCanCast = Math.max(0, ...Object.keys(spellSlots ?? {}).map(k => parseInt(k.replace('level_', ''))));
+    const lvls = Array.from({ length: maxSpellLevelCharCanCast + 1 }, (_, i) => i);
+
+    const classData = CLASSES_DATA[character.class.id];
+    const classSpellList = classData?.spellcasting?.spellList
+      .map(id => allSpellsData[id])
+      .filter((s): s is Spell => !!s) ?? [];
+
+    const known = new Set([
+      ...(spellbook.cantrips ?? []),
+      ...(spellbook.preparedSpells ?? []),
+      ...(spellbook.knownSpells ?? [])
+    ]);
+
+    const prepared = new Set(spellbook.preparedSpells ?? []);
+
+    let spells: Spell[] = [];
+    if (showAllPossibleSpells) {
+      const combinedIds = new Set([
+        ...classSpellList.map(s => s.id),
+        ...Array.from(known)
+      ]);
+      spells = Array.from(combinedIds)
+        .map(id => allSpellsData[id])
+        .filter((s): s is Spell => !!s && s.level === currentLevel);
+    } else {
+      spells = Array.from(known)
+        .map(id => allSpellsData[id])
+        .filter((s): s is Spell => !!s && s.level === currentLevel);
+    }
+    spells.sort((a, b) => a.name.localeCompare(b.name));
+
+    return { spellsToDisplay: spells, knownSpellIds: known, preparedSpellIds: prepared, levels: lvls };
+  }, [allSpellsData, character, currentLevel, showAllPossibleSpells]);
+
+  // Auto-select first spell when level changes
+  useEffect(() => {
+    if (spellsToDisplay.length > 0 && !spellsToDisplay.find(s => s.id === selectedSpellId)) {
+      setSelectedSpellId(spellsToDisplay[0].id);
+    }
+  }, [spellsToDisplay, selectedSpellId]);
+
+  // Get glossary entry for selected spell
+  const selectedSpellEntry = useMemo(() => {
+    if (!selectedSpellId || !glossaryEntries) return null;
+    const { entry } = findGlossaryEntryAndPath(selectedSpellId, glossaryEntries);
+    return entry;
+  }, [selectedSpellId, glossaryEntries]);
+
   if (!isOpen || !allSpellsData || !character.spellbook) {
     return null;
   }
-
-  const maxSpellLevelCharCanCast = Math.max(0, ...Object.keys(character.spellSlots ?? {}).map(k => parseInt(k.replace('level_', ''))));
-  const pages = Array.from({ length: maxSpellLevelCharCanCast + 1 }, (_, i) => i);
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
@@ -207,67 +116,171 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
     }
   };
 
-  const handleOverlayKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onClose();
-    }
-  };
-
-  const handlePageTurn = (direction: 'next' | 'prev') => {
-    setCurrentPageIndex(prev => {
-      const newIndex = direction === 'next' ? prev + 1 : prev - 1;
-      return Math.max(0, Math.min(newIndex, pages.length - 1));
-    });
-  };
-
-  const currentLevel = pages[currentPageIndex];
+  const pageTitle = currentLevel === 0 ? "Cantrips" : `Level ${currentLevel} Spells`;
 
   return (
-    <>
+    <div
+      className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={handleOverlayClick}
+    >
       <div
-        className="spellbook-overlay fixed inset-0 z-[200] bg-black/80 flex items-center justify-center"
-        role="button"
-        tabIndex={0}
-        onClick={handleOverlayClick}
-        onKeyDown={handleOverlayKeyDown}
+        className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="spellbook-container bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 flex gap-4 relative max-h-[80vh]">
-          <LeftPage
-            character={character}
-            onAction={onAction}
-            showAllSpells={showAllPossibleSpells}
-            onToggleShowAll={() => setShowAllPossibleSpells(prev => !prev)}
-          />
-          <RightPage
-            level={currentLevel}
-            character={character}
-            allSpellsData={allSpellsData}
-            showAllSpells={showAllPossibleSpells}
-            onAction={onAction}
-            setInfoSpellId={setInfoSpellId}
-          />
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800/50">
+          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+            <span className="material-symbols-outlined text-purple-400">auto_stories</span>
+            Spellbook
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+            aria-label="Close Spellbook"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
 
-          <div className="spellbook-pagination absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
-            <button className="pagination-button px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50" onClick={() => handlePageTurn('prev')} disabled={currentPageIndex === 0}>
-              &#x276E;
-            </button>
-            <span className="page-number text-gray-300">Page {currentPageIndex + 1} of {pages.length}</span>
-            <button className="pagination-button px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50" onClick={() => handlePageTurn('next')} disabled={currentPageIndex === pages.length - 1}>
-              &#x276F;
-            </button>
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Column - Spell List */}
+          <div className="w-80 flex-shrink-0 border-r border-slate-700 flex flex-col bg-slate-800/30">
+            {/* Level Tabs */}
+            <div className="p-3 border-b border-slate-700 flex flex-wrap gap-1.5">
+              {levels.map(level => (
+                <button
+                  key={level}
+                  onClick={() => setCurrentLevel(level)}
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${currentLevel === level
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'
+                    }`}
+                >
+                  {level === 0 ? 'Cantrips' : `Lvl ${level}`}
+                </button>
+              ))}
+            </div>
+
+            {/* Spell List */}
+            <div className="flex-1 overflow-y-auto p-3 scrollable-content">
+              <h3 className="text-[10px] uppercase tracking-widest text-amber-400 font-bold mb-3 px-1">
+                {pageTitle}
+              </h3>
+
+              {spellsToDisplay.length === 0 ? (
+                <p className="text-slate-500 italic text-sm px-1">No spells at this level.</p>
+              ) : (
+                <div className="space-y-1">
+                  {spellsToDisplay.map(spell => {
+                    const isAlwaysPrepared = character.class.id === 'druid' && spell.id === 'speak-with-animals';
+                    const isKnown = knownSpellIds.has(spell.id);
+                    const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared;
+                    const isSelected = selectedSpellId === spell.id;
+
+                    return (
+                      <div
+                        key={spell.id}
+                        onClick={() => setSelectedSpellId(spell.id)}
+                        className={`group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-all ${isSelected
+                            ? 'bg-purple-500/20 border-l-4 border-purple-500'
+                            : isKnown
+                              ? 'hover:bg-slate-700/50 border-l-4 border-transparent'
+                              : 'opacity-50 hover:opacity-80 hover:bg-slate-700/30 border-l-4 border-transparent grayscale hover:grayscale-0'
+                          }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`material-symbols-outlined text-base ${isSelected ? 'text-purple-400' : 'text-slate-500 group-hover:text-purple-400'
+                            }`}>
+                            auto_fix_high
+                          </span>
+                          <span className={`text-sm truncate ${isSelected ? 'text-white font-medium' : 'text-slate-200'
+                            }`}>
+                            {spell.name}
+                          </span>
+                          {isPrepared && (
+                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
+                              {isAlwaysPrepared ? 'Always' : 'Prep'}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Prepare/Unprepare button - only for leveled spells */}
+                        {spell.level > 0 && isKnown && (
+                          <button
+                            className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isAlwaysPrepared
+                                ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
+                                : 'bg-purple-600/80 text-white hover:bg-purple-500'
+                              }`}
+                            disabled={isAlwaysPrepared}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAction({
+                                type: 'TOGGLE_PREPARED_SPELL',
+                                label: 'Toggle Spell Prep',
+                                payload: { characterId: character.id!, spellId: spell.id }
+                              });
+                            }}
+                          >
+                            {isPrepared ? (isAlwaysPrepared ? '—' : 'Unprep') : 'Prep'}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-          <button className="spellbook-close-button absolute top-2 right-2 text-gray-400 hover:text-white text-2xl" onClick={onClose} aria-label="Close Spellbook">&times;</button>
+
+          {/* Right Column - Spell Details */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Right Header - Spell Slots & Toggle */}
+            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700 bg-slate-800/20">
+              <SpellSlotDisplay spellSlots={character.spellSlots} />
+
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <span className="text-sm text-slate-400 group-hover:text-slate-200 transition-colors">
+                  Show All Class Spells
+                </span>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={showAllPossibleSpells}
+                    onChange={() => setShowAllPossibleSpells(!showAllPossibleSpells)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-purple-600 transition-colors" />
+                  <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4" />
+                </div>
+              </label>
+            </div>
+
+            {/* Spell Detail Pane */}
+            <div className="flex-1 overflow-y-auto p-6 scrollable-content">
+              {selectedSpellEntry ? (
+                <FullEntryDisplay
+                  entry={selectedSpellEntry}
+                  onNavigate={(termId) => setSelectedSpellId(termId)}
+                />
+              ) : selectedSpellId ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                  <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
+                  <p>Spell details not found in glossary.</p>
+                  <p className="text-sm">ID: {selectedSpellId}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                  <span className="material-symbols-outlined text-4xl mb-2">touch_app</span>
+                  <p>Select a spell to view details</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-      <SingleGlossaryEntryModal
-        isOpen={!!infoSpellId}
-        initialTermId={infoSpellId}
-        onClose={() => setInfoSpellId(null)}
-      />
-    </>
+    </div>
   );
 };
 
 export default SpellbookOverlay;
-

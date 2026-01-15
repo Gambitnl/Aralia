@@ -32,6 +32,7 @@ export function getDummyInitialInventory(allItems: Record<string, Item>): Item[]
         allItems['ring_mail'], allItems['chain_mail'], allItems['splint_armor'], allItems['plate_armor'],
         // Shield
         allItems['shield_std'],
+        allItems['shield_plus_one'],
         // === ALL WEAPONS WITH MASTERIES ===
         // Simple Melee Weapons (10 weapons)
         allItems['club'],           // Mastery: Slow
@@ -215,7 +216,9 @@ export function getDummyParty(): PlayerCharacter[] {
         transportMode: 'foot',
         racialSelections: { human: { skillIds: ['survival'] } },
         activeEffects: [], statusEffects: [],
-        equippedItems: {},
+        equippedItems: {
+            OffHand: ITEMS['shield_std'], // Equip regular shield for testing upgrade indicators
+        },
         limitedUses: {
             'second_wind': { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' }
         },
