@@ -74,7 +74,6 @@ const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(modul
 const NotFound = lazy(() => import('./components/ui/NotFound'));
 
 
-// TODO: Add React.memo and useMemo to prevent unnecessary re-renders in performance-critical components like GameLayout, CombatView, and TownCanvas
 // TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
 const App: React.FC = () => {
   // Validate environment variables on startup
