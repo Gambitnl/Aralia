@@ -10,8 +10,13 @@ import CameraRig from './CameraRig';
 import PlayerController from './PlayerController';
 import Terrain from './Terrain';
 import PropsLayer from './PropsLayer';
-import { createHeightSampler, getHeightRangeForBiome } from './terrainUtils';
-import TileOutline from './TileOutline';
+import {
+  createHeightSampler,
+  createMoistureSampler,
+  createSlopeSampler,
+  getHeightRangeForBiome,
+} from './terrainUtils';
+import GridCellOutline from './GridCellOutline';
 import EnemyUnit from './EnemyUnit';
 import PartyUnit from './PartyUnit';
 import SkyDome from './SkyDome';
@@ -21,8 +26,8 @@ interface Scene3DProps {
   biomeId: string;
   gameTime: Date;
   playerSpeed: number;
-  tileSeed: number;
-  tileFootprintFt: number;
+  submapSeed: number;
+  submapFootprintFt: number;
   showGrid: boolean;
   partyMembers: PlayerCharacter[];
   isCombatMode: boolean;
@@ -34,8 +39,8 @@ const SceneContents = ({
   biomeId,
   gameTime,
   playerSpeed,
-  tileSeed,
-  tileFootprintFt,
+  submapSeed,
+  submapFootprintFt,
   showGrid,
   partyMembers,
   isCombatMode,
@@ -44,17 +49,24 @@ const SceneContents = ({
 }: Scene3DProps) => {
   const playerRef = useRef<Mesh>(null);
   const partyPositionsRef = useRef<Array<{ x: number; y: number; z: number } | null>>([]);
-  const halfSize = tileFootprintFt / 2;
+  const submapHalfSize = submapFootprintFt / 2;
   const biome = BIOMES[biomeId];
+  const playerSpawn = { x: 0, z: 0 };
+  const playerSpawnSafeRadius = 50;
 
   const lighting = useMemo(
     () => getLightingForTime(gameTime, biomeId, biome?.rgbaColor),
     [gameTime, biomeId, biome?.rgbaColor]
   );
   const heightSampler = useMemo(
-    () => createHeightSampler(tileSeed, biomeId, tileFootprintFt),
-    [tileSeed, biomeId, tileFootprintFt]
+    () => createHeightSampler(submapSeed, biomeId, submapFootprintFt),
+    [submapSeed, biomeId, submapFootprintFt]
   );
+  const moistureSampler = useMemo(
+    () => createMoistureSampler(submapSeed, biomeId, submapFootprintFt),
+    [submapSeed, biomeId, submapFootprintFt]
+  );
+  const slopeSampler = useMemo(() => createSlopeSampler(heightSampler, 8), [heightSampler]);
   const heightRange = useMemo(() => getHeightRangeForBiome(biomeId), [biomeId]);
   const terrainColors = useMemo(() => {
     const base = lighting.biomeColor.clone();
@@ -65,8 +77,8 @@ const SceneContents = ({
     };
   }, [lighting.biomeColor]);
   const enemyPositions = useMemo(() => {
-    const rng = new SeededRandom(tileSeed + 4242);
-    const half = tileFootprintFt / 2;
+    const rng = new SeededRandom(submapSeed + 4242);
+    const half = submapFootprintFt / 2;
     const spawnRange = half * 0.7;
     const positions: Array<{ x: number; z: number }> = [];
     const minDistance = 200;
@@ -86,7 +98,7 @@ const SceneContents = ({
     }
 
     return positions;
-  }, [tileFootprintFt, tileSeed]);
+  }, [submapFootprintFt, submapSeed]);
   const partyOffsets = useMemo(() => {
     const baseOffsets = [
       { x: -10, z: -10 },
@@ -149,8 +161,10 @@ const SceneContents = ({
       />
       <SkyDome sunDirection={lighting.sunDirection} biomeId={biomeId} tint={lighting.biomeColor} visible={skyVisible} />
       <Terrain
-        size={tileFootprintFt}
+        size={submapFootprintFt}
         heightSampler={heightSampler}
+        slopeSampler={slopeSampler}
+        moistureSampler={moistureSampler}
         color={lighting.biomeColor.clone().multiplyScalar(0.8)}
         showGrid={showGrid}
         gridSizeFt={5}
@@ -158,14 +172,16 @@ const SceneContents = ({
         heightColors={terrainColors}
       />
       {waterLevel !== null && (
-        <WaterPlane size={tileFootprintFt} level={waterLevel} color={waterColor} />
+        <WaterPlane size={submapFootprintFt} level={waterLevel} color={waterColor} />
       )}
       <PropsLayer
-        tileSeed={tileSeed}
+        submapSeed={submapSeed}
         biomeId={biomeId}
-        size={tileFootprintFt}
+        size={submapFootprintFt}
         heightSampler={heightSampler}
         tint={lighting.biomeColor}
+        spawnCenter={playerSpawn}
+        spawnSafeRadius={playerSpawnSafeRadius}
       />
       {partyOffsets.map((offset, index) => {
         const member = partyMembers[index + 1];
@@ -180,7 +196,7 @@ const SceneContents = ({
             unitIndex={index}
             offset={offset}
             heightSampler={heightSampler}
-            tileHalfSize={halfSize}
+            submapHalfSize={submapHalfSize}
             showOutline={showGrid}
             playerSpeed={cappedSpeed}
             enemyPositions={enemyPositions}
@@ -204,13 +220,13 @@ const SceneContents = ({
       <PlayerController
         playerRef={playerRef}
         speedFeetPerRound={playerSpeed}
-        tileHalfSize={halfSize}
+        submapHalfSize={submapHalfSize}
         heightSampler={heightSampler}
         onPositionChange={onPlayerPosition}
         onSpeedChange={onPlayerSpeed}
       />
       <CameraRig playerRef={playerRef} maxDistance={500} />
-      <TileOutline
+      <GridCellOutline
         playerRef={playerRef}
         gridSize={5}
         heightSampler={heightSampler}
@@ -224,6 +240,8 @@ const Scene3D = (props: Scene3DProps) => (
   <Canvas
     shadows
     camera={{ position: [0, 80, 160], fov: 55, near: 0.1, far: 20000 }}
+    dpr={[1, 1.5]}
+    gl={{ antialias: false, powerPreference: 'high-performance' }}
     className="w-full h-full"
   >
     <SceneContents {...props} />

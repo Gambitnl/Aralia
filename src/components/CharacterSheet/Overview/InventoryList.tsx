@@ -6,10 +6,10 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
-import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../../types';
-import { canEquipItem } from '../../utils/characterUtils';
-import Tooltip from '../Tooltip';
-import { CoinBadge } from '../ui/CoinPurseDisplay';
+import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../../../types';
+import { canEquipItem } from '../../../utils/characterUtils';
+import Tooltip from '../../ui/Tooltip';
+import { CoinBadge } from '../../ui/CoinPurseDisplay';
 
 interface InventoryListProps {
   inventory: Item[];

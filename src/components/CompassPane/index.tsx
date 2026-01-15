@@ -5,6 +5,13 @@
  * It now also displays the player's current world and submap coordinates, and the current game time.
  * It also includes icon buttons to toggle the World Map and Submap views.
  * The submap toggle button is hidden if the compass is being shown within the SubmapPane itself.
+/**
+ * @file CompassPane.tsx
+ * This component displays the 8-directional compass for movement and a central "Look Around" button.
+ * Movement options are dynamically enabled/disabled based on game state and map data.
+ * It now also displays the player's current world and submap coordinates, and the current game time.
+ * It also includes icon buttons to toggle the World Map and Submap views.
+ * The submap toggle button is hidden if the compass is being shown within the SubmapPane itself.
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -14,13 +21,12 @@ import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { TimeWidget } from '../ui/TimeWidget';
 import Tooltip from '../ui/Tooltip'; // Import Tooltip
 import PassTimeModal from '../Town/PassTimeModal'; // Import the new modal
-import { GatheringPanel, AlchemyBenchPanel } from '../Crafting';
 
 interface CompassPaneProps {
   currentLocation: Location;
   currentSubMapCoordinates: { x: number; y: number } | null;
   worldMapCoords: { x: number; y: number };
-  subMapCoords: { x: number; y: number } | null;
+  subMapCoords: { x: number; y: number };
   onAction: (action: Action) => void;
   disabled: boolean;
   mapData: MapData | null;
@@ -60,8 +66,6 @@ const CompassPane: React.FC<CompassPaneProps> = ({
   isSubmapContext = false, // Default to false
 }) => {
   const [isPassTimeModalOpen, setIsPassTimeModalOpen] = useState(false); // State for the modal
-  const [isGatheringPanelOpen, setIsGatheringPanelOpen] = useState(false); // State for gathering panel
-  const [isAlchemyBenchOpen, setIsAlchemyBenchOpen] = useState(false); // State for alchemy bench
 
   const isCompassActionDisabled = (point: CompassPoint): boolean => {
     if (disabled) return true;
@@ -109,20 +113,6 @@ const CompassPane: React.FC<CompassPaneProps> = ({
         onConfirm={handlePassTimeConfirm}
         currentTime={gameTime}
       />
-
-      {/* Gathering Panel Modal Overlay */}
-      {isGatheringPanelOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <GatheringPanel onClose={() => setIsGatheringPanelOpen(false)} />
-        </div>
-      )}
-
-      {/* Alchemy Bench Modal Overlay */}
-      {isAlchemyBenchOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <AlchemyBenchPanel onClose={() => setIsAlchemyBenchOpen(false)} />
-        </div>
-      )}
 
       <div className="flex flex-col gap-2">
         {/* Time Widget */}
@@ -219,30 +209,6 @@ const CompassPane: React.FC<CompassPaneProps> = ({
                 </motion.button>
               </Tooltip>
             )}
-            <Tooltip content="Gather Herbs & Resources">
-              <motion.button
-                onClick={() => setIsGatheringPanelOpen(true)}
-                disabled={disabled}
-                whileTap={!disabled ? { scale: 0.9 } : undefined}
-                whileHover={!disabled ? { scale: 1.1 } : undefined}
-                className="p-2 rounded-full bg-green-600 hover:bg-green-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors text-xl"
-                aria-label="Gather Resources"
-              >
-                🌿
-              </motion.button>
-            </Tooltip>
-            <Tooltip content="Alchemy & Crafting Bench">
-              <motion.button
-                onClick={() => setIsAlchemyBenchOpen(true)}
-                disabled={disabled}
-                whileTap={!disabled ? { scale: 0.9 } : undefined}
-                whileHover={!disabled ? { scale: 1.1 } : undefined}
-                className="p-2 rounded-full bg-purple-600 hover:bg-purple-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-colors text-xl"
-                aria-label="Alchemy Bench"
-              >
-                ⚗️
-              </motion.button>
-            </Tooltip>
           </div>
         </div>
       </div>
@@ -251,4 +217,3 @@ const CompassPane: React.FC<CompassPaneProps> = ({
 };
 
 export default CompassPane;
-

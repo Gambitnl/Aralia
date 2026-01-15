@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import type { Mesh } from 'three';
-import TileOutline from './TileOutline';
+import GridCellOutline from './GridCellOutline';
 
 interface EnemyUnitProps {
   position: { x: number; z: number };
@@ -26,7 +26,7 @@ const EnemyUnit = ({
         <sphereGeometry args={[4, 16, 16]} />
         <meshStandardMaterial color={bodyColor} roughness={0.45} />
       </mesh>
-      <TileOutline
+      <GridCellOutline
         playerRef={enemyRef}
         gridSize={5}
         heightSampler={heightSampler}

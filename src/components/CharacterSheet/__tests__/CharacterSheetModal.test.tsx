@@ -16,15 +16,15 @@ vi.mock('framer-motion', () => {
   };
 });
 
-vi.mock('../EquipmentMannequin', () => ({
+vi.mock('../Overview/EquipmentMannequin', () => ({
   default: () => <div data-testid="equipment-mannequin">EquipmentMannequin</div>,
 }));
 
-vi.mock('../InventoryList', () => ({
+vi.mock('../Overview/InventoryList', () => ({
   default: () => <div data-testid="inventory-list">InventoryList</div>,
 }));
 
-vi.mock('../SkillDetailDisplay', () => ({
+vi.mock('../Skills/SkillDetailDisplay', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? (
       <div data-testid="skill-detail-display">
@@ -34,7 +34,7 @@ vi.mock('../SkillDetailDisplay', () => ({
     ) : null,
 }));
 
-vi.mock('../SpellbookOverlay', () => ({
+vi.mock('../Spellbook/SpellbookOverlay', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? (
       <div data-testid="spellbook-overlay">
@@ -43,7 +43,7 @@ vi.mock('../SpellbookOverlay', () => ({
     ) : null,
 }));
 
-vi.mock('../CharacterOverview', () => ({
+vi.mock('../Overview/CharacterOverview', () => ({
   default: ({ onOpenSkillDetails }: { onOpenSkillDetails: () => void }) => (
     <div data-testid="character-overview">
       <button onClick={onOpenSkillDetails}>Skills</button>

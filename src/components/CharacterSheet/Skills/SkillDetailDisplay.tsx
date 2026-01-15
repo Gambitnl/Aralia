@@ -5,18 +5,18 @@
  * total bonus, and any advantage notes, presented in a table format.
  */
 import React, { useEffect, useRef } from 'react';
-import { PlayerCharacter, Skill as SkillType } from '../../types';
-import { SKILLS_DATA } from '../../data/skills';
-import { getAbilityModifierValue } from '../../utils/characterUtils';
-import Tooltip from '../Tooltip'; 
+import { PlayerCharacter, Skill as SkillType } from '../../../types';
+import { SKILLS_DATA } from '../../../data/skills';
+import { getAbilityModifierValue } from '../../../utils/characterUtils';
+import Tooltip from '../../ui/Tooltip';
 // Inline glossary tooltips live under the Glossary folder
-import GlossaryTooltip from '../Glossary/GlossaryTooltip'; 
+import GlossaryTooltip from '../../Glossary/GlossaryTooltip';
 
 interface SkillDetailDisplayProps {
   isOpen: boolean;
   onClose: () => void;
   character: PlayerCharacter;
-  onNavigateToGlossary?: (termId: string) => void; 
+  onNavigateToGlossary?: (termId: string) => void;
 }
 
 const PROFICIENCY_BONUS_VALUE = 2; // Assuming Level 1 for now
@@ -121,7 +121,7 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
                     advantageTooltip = 'Advantage on Dexterity (Stealth) checks due to Svirfneblin Camouflage.';
                   }
                 }
-                
+
                 return (
                   <tr key={skill.id} className={alternatingRowClass}>
                     <td className={`${tableCellClass} font-medium text-amber-200`}>

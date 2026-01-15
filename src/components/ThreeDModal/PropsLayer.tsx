@@ -1,36 +1,61 @@
 import type { Color } from 'three';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Color as ThreeColor,
-  ConeGeometry,
-  CylinderGeometry,
-  DodecahedronGeometry,
-  Matrix4,
-  Mesh,
-  MeshStandardMaterial,
   BufferGeometry,
+  Color as ThreeColor,
+  DodecahedronGeometry,
   Material,
+  Matrix4,
+  MeshStandardMaterial,
 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { Billboard, Tree, TreePreset } from '@dgreenheck/ez-tree';
 import { BIOMES } from '../../constants';
+import { SeededRandom } from '../../utils/random/seededRandom';
 import PropField from './PropField';
 
 interface PropsLayerProps {
-  tileSeed: number;
+  submapSeed: number;
   biomeId: string;
   size: number;
   heightSampler: (x: number, z: number) => number;
   tint: Color;
+  spawnCenter?: { x: number; z: number };
+  spawnSafeRadius?: number;
 }
 
-const treeVariants = [
-  { id: 'default', file: 'tree_default.glb', count: 200 },
-  { id: 'tall', file: 'tree_tall.glb', count: 160 },
-  { id: 'pine', file: 'tree_pineTallA.glb', count: 140 },
-  { id: 'detailed', file: 'tree_detailed.glb', count: 120 },
-  { id: 'palm', file: 'tree_palm.glb', count: 100 },
-];
+const TREE_PRESET_KEYS = Object.keys(TreePreset);
+const MAX_TREE_VARIANTS = 24;
+
+interface TreePlan {
+  totalCount: number;
+  poolSize: number;
+  minScale: number;
+  maxScale: number;
+  spawnRadius?: number;
+}
+
+interface TreeVariantConfig {
+  id: string;
+  seed: number;
+  presetName: string;
+  count: number;
+  minScale: number;
+  maxScale: number;
+  spawnRadius?: number;
+}
+
+interface TreeAsset {
+  id: string;
+  seed: number;
+  count: number;
+  minScale: number;
+  maxScale: number;
+  spawnRadius?: number;
+  trunkGeometry: BufferGeometry;
+  trunkMaterial: Material;
+  leavesGeometry: BufferGeometry;
+  leavesMaterial: Material;
+}
 
 const getCounts = (family: string) => {
   switch (family) {
@@ -58,169 +83,266 @@ const getCounts = (family: string) => {
   }
 };
 
-const PropsLayer = ({ tileSeed, biomeId, size, heightSampler, tint }: PropsLayerProps) => {
+const getTreePlan = (family: string, size: number): TreePlan => {
+  switch (family) {
+    case 'forest':
+      return { totalCount: 8000, poolSize: 60, minScale: 1.2, maxScale: 3.2 };
+    case 'wetland':
+      return { totalCount: 6000, poolSize: 50, minScale: 1.15, maxScale: 3.0 };
+    case 'plains':
+      return {
+        totalCount: 3000,
+        poolSize: 40,
+        minScale: 1.0,
+        maxScale: 2.6,
+        spawnRadius: Math.min(size / 2, 1800),
+      };
+    case 'hills':
+      return { totalCount: 2800, poolSize: 40, minScale: 0.9, maxScale: 2.4 };
+    case 'mountain':
+    case 'highland':
+      return { totalCount: 1800, poolSize: 32, minScale: 0.8, maxScale: 2.1 };
+    case 'coastal':
+      return { totalCount: 2000, poolSize: 32, minScale: 0.85, maxScale: 2.3 };
+    case 'desert':
+      return { totalCount: 800, poolSize: 24, minScale: 0.7, maxScale: 1.8 };
+    case 'ocean':
+    case 'cave':
+    case 'dungeon':
+      return { totalCount: 0, poolSize: 0, minScale: 1, maxScale: 1 };
+    default:
+      return { totalCount: 2400, poolSize: 36, minScale: 0.95, maxScale: 2.5 };
+  }
+};
+
+const hashString = (value: string) => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+};
+
+const clampNumber = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const clampInt = (value: number, min: number, max: number) => Math.round(clampNumber(value, min, max));
+
+const PropsLayer = ({
+  submapSeed,
+  biomeId,
+  size,
+  heightSampler,
+  tint,
+  spawnCenter,
+  spawnSafeRadius,
+}: PropsLayerProps) => {
   const biome = BIOMES[biomeId];
   const family = biome?.family || biomeId;
   const counts = getCounts(family);
-  const plainsSpawnRadius = Math.min(size / 2, 1800);
-  const treeGeometry = useMemo(() => new ConeGeometry(6, 32, 7), []);
-  const trunkGeometry = useMemo(() => new CylinderGeometry(1.5, 2.2, 8, 6), []);
   const rockGeometry = useMemo(() => new DodecahedronGeometry(6, 0), []);
-  const assetBase = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL) ? import.meta.env.BASE_URL : '/';
-  const treeVariantDir = `${assetBase}assets/biomes/kenney-tree-kit`;
+  const biomeTint = useMemo(
+    () => new ThreeColor(biome?.rgbaColor ?? '#ffffff'),
+    [biomeId]
+  );
+  const safeCenter = spawnCenter ?? { x: 0, z: 0 };
+  const safeRadius = spawnSafeRadius ?? 0;
 
-  const treeMaterial = useMemo(() => {
-    const base = new ThreeColor(0x14532d).lerp(tint, 0.25);
-    return new MeshStandardMaterial({ color: base, roughness: 0.8, metalness: 0.05 });
-  }, [tint]);
-  const trunkMaterial = useMemo(() => {
-    const base = new ThreeColor(0x8b5a2b).lerp(tint, 0.1);
-    return new MeshStandardMaterial({ color: base, roughness: 0.9, metalness: 0.05 });
-  }, [tint]);
   const rockMaterial = useMemo(() => {
     const base = new ThreeColor(0x6b7280).lerp(tint, 0.15);
     return new MeshStandardMaterial({ color: base, roughness: 0.95, metalness: 0.1 });
   }, [tint]);
 
-  const [treeAssets, setTreeAssets] = useState<
-    Array<{ id: string; geometry: BufferGeometry; material: Material; count: number }>
-  >([]);
+  const treePlan = useMemo(() => getTreePlan(family, size), [family, size]);
+  const treeVariantConfigs = useMemo<TreeVariantConfig[]>(() => {
+    if (treePlan.totalCount <= 0 || TREE_PRESET_KEYS.length === 0) return [];
+    const poolSize = Math.min(treePlan.poolSize, treePlan.totalCount, MAX_TREE_VARIANTS);
+    const perVariant = Math.floor(treePlan.totalCount / poolSize);
+    const remainder = treePlan.totalCount % poolSize;
+    const seedBase = submapSeed + hashString(biomeId) * 97;
+    const rng = new SeededRandom(seedBase);
+
+    return Array.from({ length: poolSize }, (_, index) => {
+      const presetName = TREE_PRESET_KEYS[Math.floor(rng.next() * TREE_PRESET_KEYS.length)];
+      const seed = Math.floor(rng.next() * 1_000_000_000);
+      const count = perVariant + (index < remainder ? 1 : 0);
+      return {
+        id: `${presetName}-${index}`,
+        seed,
+        presetName,
+        count,
+        minScale: treePlan.minScale,
+        maxScale: treePlan.maxScale,
+        spawnRadius: treePlan.spawnRadius,
+      };
+    });
+  }, [biomeId, submapSeed, treePlan]);
+
+  const [treeAssets, setTreeAssets] = useState<TreeAsset[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    let activeAssets: Array<{ geometry: BufferGeometry; material: Material }> = [];
+    let activeAssets: TreeAsset[] = [];
 
-    const loadVariant = (variant: typeof treeVariants[number]) =>
-      new Promise<{
-        id: string;
-        geometry: BufferGeometry;
-        material: Material;
-        count: number;
-      }>((resolve, reject) => {
-        const loader = new GLTFLoader();
-        const url = `${treeVariantDir}/${variant.file}`;
-        loader.load(
-          url,
-          (gltf) => {
-            if (cancelled) return;
-        const scanScene = gltf.scene || gltf.scenes?.[0];
-        if (!scanScene) {
-          reject(new Error(`No scene found inside ${url}`));
-          return;
-        }
-        const meshes: Mesh[] = [];
-        scanScene.traverse((child) => {
-          const maybeMesh = child as Mesh;
-          if (maybeMesh.isMesh) {
-            meshes.push(maybeMesh);
+    if (treeVariantConfigs.length === 0) {
+      setTreeAssets([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const barkBase = new ThreeColor(0x8b5a2b).lerp(biomeTint, 0.2);
+    const leafBase = new ThreeColor(0x14532d).lerp(biomeTint, 0.4);
+    const nextAssets: TreeAsset[] = [];
+
+    try {
+      treeVariantConfigs.forEach((variant, index) => {
+        const rng = new SeededRandom(variant.seed);
+        const tree = new Tree();
+        tree.loadPreset(variant.presetName);
+
+        const barkTint = barkBase.clone().lerp(new ThreeColor(0xffffff), rng.next() * 0.08);
+        const leafTint = leafBase.clone().lerp(new ThreeColor(0xffffff), rng.next() * 0.12);
+
+        tree.options.seed = variant.seed;
+        tree.options.bark.tint = barkTint.getHex();
+        tree.options.leaves.tint = leafTint.getHex();
+        tree.options.bark.textured = false;
+        tree.options.bark.flatShading = true;
+        tree.options.leaves.billboard = Billboard.Single;
+        tree.options.branch.length[0] *= 0.75 + rng.next() * 0.5;
+        tree.options.branch.length[1] *= 0.7 + rng.next() * 0.45;
+        tree.options.branch.radius[0] *= 0.8 + rng.next() * 0.4;
+        tree.options.branch.radius[1] *= 0.8 + rng.next() * 0.4;
+        tree.options.leaves.count = clampInt(tree.options.leaves.count * (0.25 + rng.next() * 0.25), 80, 220);
+        tree.options.leaves.size *= 0.65 + rng.next() * 0.45;
+
+        const maxLevel = clampInt(tree.options.branch.levels, 1, 2);
+        tree.options.branch.levels = maxLevel;
+        for (let level = 0; level <= maxLevel; level += 1) {
+          const key = level as 0 | 1 | 2 | 3;
+          const sections = tree.options.branch.sections[key];
+          const segments = tree.options.branch.segments[key];
+          tree.options.branch.sections[key] = clampInt(sections * 0.45, 3, 8);
+          tree.options.branch.segments[key] = clampInt(segments * 0.45, 3, 7);
+          if (level <= 2) {
+            const childKey = level as 0 | 1 | 2;
+            const children = tree.options.branch.children[childKey];
+            tree.options.branch.children[childKey] = clampInt(children * (0.45 + rng.next() * 0.15), 2, 5);
           }
-        });
-        if (meshes.length === 0) {
-          reject(new Error(`No mesh found inside ${url}`));
-          return;
         }
-        const clonedGeoms = meshes.map((mesh) => {
-          const geom = mesh.geometry.clone();
-          mesh.updateWorldMatrix(true, false);
-          geom.applyMatrix4(new Matrix4().copy(mesh.matrixWorld));
-          return geom;
-        });
-        const mergedGeom = mergeGeometries(clonedGeoms, false);
-        if (!mergedGeom) {
-          reject(new Error(`Failed to merge geometries for ${url}`));
-          return;
-        }
-        mergedGeom.computeBoundingBox();
-        mergedGeom.computeBoundingSphere();
-        const material = Array.isArray(meshes[0].material)
-          ? (meshes[0].material[0] as Material).clone()
-          : (meshes[0].material as Material).clone();
-        resolve({ id: variant.id, geometry: mergedGeom, material, count: variant.count });
-          },
-          undefined,
-          reject
-        );
-      });
 
-    Promise.all(treeVariants.map(loadVariant))
-      .then((assets) => {
-        if (cancelled) {
-          assets.forEach((asset) => {
-            asset.geometry.dispose();
-            asset.material.dispose();
-          });
-          return;
+        tree.generate();
+
+        const trunkGeometry = tree.branchesMesh.geometry;
+        const leavesGeometry = tree.leavesMesh.geometry;
+        trunkGeometry.computeBoundingBox();
+        const minY = trunkGeometry.boundingBox?.min.y ?? 0;
+        if (minY !== 0) {
+          const offset = new Matrix4().makeTranslation(0, -minY, 0);
+          trunkGeometry.applyMatrix4(offset);
+          leavesGeometry.applyMatrix4(offset);
         }
-        activeAssets = assets;
-        setTreeAssets(assets);
-      })
-      .catch((err) => {
-        console.error('[PropsLayer] Failed to load tree variants', err);
+        trunkGeometry.computeBoundingSphere();
+        leavesGeometry.computeBoundingSphere();
+
+        const trunkMaterial = Array.isArray(tree.branchesMesh.material)
+          ? tree.branchesMesh.material[0]
+          : tree.branchesMesh.material;
+        const leavesMaterial = Array.isArray(tree.leavesMesh.material)
+          ? tree.leavesMesh.material[0]
+          : tree.leavesMesh.material;
+
+        nextAssets.push({
+          id: `tree-${index}`,
+          seed: variant.seed,
+          count: variant.count,
+          minScale: variant.minScale,
+          maxScale: variant.maxScale,
+          spawnRadius: variant.spawnRadius,
+          trunkGeometry,
+          trunkMaterial,
+          leavesGeometry,
+          leavesMaterial,
+        });
       });
+    } catch (err) {
+      console.error('[PropsLayer] Failed to generate tree variants', err);
+    }
+
+    if (!cancelled) {
+      activeAssets = nextAssets;
+      setTreeAssets(nextAssets);
+    } else {
+      nextAssets.forEach((asset) => {
+        asset.trunkGeometry.dispose();
+        asset.trunkMaterial.dispose();
+        asset.leavesGeometry.dispose();
+        asset.leavesMaterial.dispose();
+      });
+    }
 
     return () => {
       cancelled = true;
       activeAssets.forEach((asset) => {
-        asset.geometry.dispose();
-        asset.material.dispose();
+        asset.trunkGeometry.dispose();
+        asset.trunkMaterial.dispose();
+        asset.leavesGeometry.dispose();
+        asset.leavesMaterial.dispose();
       });
     };
-  }, [treeVariantDir]);
+  }, [biomeTint, treeVariantConfigs]);
 
   useEffect(() => () => {
-    treeGeometry.dispose();
-    trunkGeometry.dispose();
     rockGeometry.dispose();
-    treeMaterial.dispose();
-    trunkMaterial.dispose();
     rockMaterial.dispose();
-    treeAssets.forEach((asset) => {
-      asset.geometry.dispose();
-      asset.material.dispose();
-    });
-  }, [rockGeometry, rockMaterial, treeGeometry, treeMaterial, trunkGeometry, trunkMaterial, treeAssets]);
+  }, [rockGeometry, rockMaterial]);
 
   return (
     <>
-      {family === 'plains' &&
-        treeAssets.map((asset) => (
+      {treeAssets.map((asset) => (
+        <group key={asset.id}>
           <PropField
-            key={asset.id}
             count={asset.count}
             size={size}
-            seed={tileSeed + asset.count}
-            minScale={16}
-            maxScale={32}
+            seed={asset.seed}
+            minScale={asset.minScale}
+            maxScale={asset.maxScale}
             heightSampler={heightSampler}
-            geometry={asset.geometry}
-            material={asset.material}
-            spawnRadius={plainsSpawnRadius}
+            geometry={asset.trunkGeometry}
+            material={asset.trunkMaterial}
+            spawnRadius={asset.spawnRadius}
+            avoidCenter={safeCenter}
+            avoidRadius={safeRadius}
             yOffset={0}
           />
-        ))}
-      {family !== 'plains' && counts.trees > 0 && (
-        <PropField
-          count={counts.trees}
-          size={size}
-          seed={tileSeed + 37}
-          minScale={0.9}
-          maxScale={2.4}
-          heightSampler={heightSampler}
-          geometry={treeGeometry}
-          material={treeMaterial}
-          yOffset={14}
-        />
-      )}
+          <PropField
+            count={asset.count}
+            size={size}
+            seed={asset.seed}
+            minScale={asset.minScale}
+            maxScale={asset.maxScale}
+            heightSampler={heightSampler}
+            geometry={asset.leavesGeometry}
+            material={asset.leavesMaterial}
+            spawnRadius={asset.spawnRadius}
+            avoidCenter={safeCenter}
+            avoidRadius={safeRadius}
+            yOffset={0}
+          />
+        </group>
+      ))}
       {counts.rocks > 0 && (
         <PropField
           count={counts.rocks}
           size={size}
-          seed={tileSeed + 79}
+          seed={submapSeed + 79}
           minScale={0.7}
           maxScale={2.6}
           heightSampler={heightSampler}
           geometry={rockGeometry}
           material={rockMaterial}
+          avoidCenter={safeCenter}
+          avoidRadius={safeRadius}
           yOffset={2}
         />
       )}

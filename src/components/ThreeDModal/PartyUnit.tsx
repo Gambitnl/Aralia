@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Mesh, Object3D } from 'three';
 import { Vector3 } from 'three';
-import TileOutline from './TileOutline';
+import GridCellOutline from './GridCellOutline';
 
 interface PartyUnitProps {
   playerRef: RefObject<Object3D>;
@@ -11,7 +11,7 @@ interface PartyUnitProps {
   unitIndex: number;
   offset: { x: number; z: number };
   heightSampler: (x: number, z: number) => number;
-  tileHalfSize: number;
+  submapHalfSize: number;
   showOutline: boolean;
   playerSpeed: number;
   enemyPositions: Array<{ x: number; z: number }>;
@@ -29,7 +29,7 @@ const PartyUnit = ({
   unitIndex,
   offset,
   heightSampler,
-  tileHalfSize,
+  submapHalfSize,
   showOutline,
   playerSpeed,
   enemyPositions,
@@ -81,8 +81,8 @@ const PartyUnit = ({
       }
     }
 
-    targetX = clamp(targetX, -tileHalfSize, tileHalfSize);
-    targetZ = clamp(targetZ, -tileHalfSize, tileHalfSize);
+    targetX = clamp(targetX, -submapHalfSize, submapHalfSize);
+    targetZ = clamp(targetZ, -submapHalfSize, submapHalfSize);
 
     if (behaviorMode === 'combat') {
       const driftX = targetX - formationX;
@@ -133,8 +133,8 @@ const PartyUnit = ({
 
     velocity.addScaledVector(separation, 4);
 
-    const nextX = clamp(current.x + velocity.x, -tileHalfSize, tileHalfSize);
-    const nextZ = clamp(current.z + velocity.z, -tileHalfSize, tileHalfSize);
+    const nextX = clamp(current.x + velocity.x, -submapHalfSize, submapHalfSize);
+    const nextZ = clamp(current.z + velocity.z, -submapHalfSize, submapHalfSize);
     const height = heightSampler(nextX, nextZ);
 
     unit.position.set(nextX, height + 3, nextZ);
@@ -156,7 +156,7 @@ const PartyUnit = ({
         <boxGeometry args={[3, 6, 3]} />
         <meshStandardMaterial color={bodyColor} roughness={0.5} />
       </mesh>
-      <TileOutline
+      <GridCellOutline
         playerRef={unitRef}
         gridSize={5}
         heightSampler={heightSampler}

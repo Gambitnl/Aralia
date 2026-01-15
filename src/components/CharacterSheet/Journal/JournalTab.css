@@ -1,0 +1,409 @@
+/**
+ * Journal Tab Styles
+ * Parchment-styled journal with handwriting fonts and vintage aesthetics
+ */
+
+/* === Custom Fonts === */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quattrocento:wght@400;700&family=Dancing+Script:wght@500&display=swap');
+
+/* === Journal Spread Container === */
+.journal-spread {
+  display: flex;
+  flex-direction: row;
+  min-height: 600px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  border-radius: 4px;
+}
+
+/* === Parchment Texture === */
+.journal-parchment {
+  background: linear-gradient(135deg, #e8d9b5 0%, #d4c4a1 50%, #c9b896 100%);
+  box-shadow: 
+    inset 0 0 60px rgba(0, 0, 0, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 8px solid #3e2a1e;
+}
+
+/* === Ribbon Bookmark === */
+.journal-ribbon {
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 16px;
+  height: 80px;
+  background: linear-gradient(180deg, #8b1a1a 0%, #6b1414 100%);
+  transform: translateX(-50%);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+/* === Pages === */
+.journal-page {
+  flex: 1;
+  padding: 32px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.journal-page-left {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.journal-page-right {
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* === Binding === */
+.journal-binding {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.15);
+  transform: translateX(-50%);
+}
+
+/* === Page Headers === */
+.journal-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.journal-session-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.journal-session-label {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.25rem;
+  color: rgba(100, 60, 30, 0.7);
+}
+
+.journal-page-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3e2a1e;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.journal-date-info {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.journal-date-year {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(100, 60, 30, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.journal-date-day {
+  font-family: 'Quattrocento', serif;
+  font-size: 0.875rem;
+  color: #3e2a1e;
+  font-weight: 700;
+}
+
+/* === Narrative Text === */
+.journal-narrative {
+  flex: 1;
+  font-family: 'Quattrocento', serif;
+  font-size: 0.9rem;
+  color: rgba(62, 42, 30, 0.85);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.journal-paragraph {
+  margin-bottom: 1rem;
+}
+
+/* === Sketches & Notes Section === */
+.journal-sketches-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(100, 60, 30, 0.15);
+}
+
+.journal-notes-content {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(100, 60, 30, 0.1);
+}
+
+.journal-handwritten {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.125rem;
+  color: #3e2a1e;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* === Page Numbers === */
+.journal-page-number {
+  position: absolute;
+  bottom: 16px;
+  left: 32px;
+  font-size: 0.65rem;
+  font-family: monospace;
+  color: rgba(100, 60, 30, 0.4);
+}
+
+.journal-page-number-nav {
+  font-size: 0.65rem;
+  font-family: monospace;
+  color: rgba(100, 60, 30, 0.6);
+}
+
+/* === Recap Header === */
+.journal-recap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* === Sections === */
+.journal-section {
+  margin-bottom: 20px;
+}
+
+.journal-section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(100, 60, 30, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(100, 60, 30, 0.1);
+}
+
+/* === Key Events === */
+.journal-events-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.journal-event-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.journal-event-icon {
+  font-size: 0.875rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.journal-event-text {
+  font-family: 'Quattrocento', serif;
+  font-size: 0.85rem;
+  color: #3e2a1e;
+}
+
+/* === Loot === */
+.journal-loot-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.journal-loot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  border: 1px solid rgba(100, 60, 30, 0.1);
+}
+
+.journal-loot-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.journal-loot-name {
+  font-family: 'Quattrocento', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3e2a1e;
+  flex: 1;
+}
+
+.journal-loot-unidentified {
+  font-size: 0.625rem;
+  font-family: monospace;
+  color: rgba(100, 60, 30, 0.6);
+}
+
+/* === Objectives === */
+.journal-objectives-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.journal-objective {
+  padding: 12px;
+  background: rgba(100, 60, 30, 0.05);
+  border-radius: 4px;
+  border-left: 4px solid;
+}
+
+.journal-objective-primary {
+  border-left-color: #d4af37;
+}
+
+.journal-objective-secondary {
+  border-left-color: rgba(100, 60, 30, 0.3);
+}
+
+.journal-objective-text {
+  font-family: 'Quattrocento', serif;
+  font-size: 0.85rem;
+  color: #3e2a1e;
+  margin: 0;
+}
+
+/* === Chronicle / Auto Events === */
+.journal-auto-events {
+  margin-top: auto;
+}
+
+.journal-chronicle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.journal-chronicle-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: rgba(100, 60, 30, 0.7);
+}
+
+.journal-chronicle-icon {
+  font-size: 0.75rem;
+}
+
+.journal-chronicle-text {
+  font-family: 'Quattrocento', serif;
+}
+
+.journal-chronicle-more {
+  font-size: 0.65rem;
+  color: rgba(100, 60, 30, 0.5);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* === Page Navigation === */
+.journal-page-navigation {
+  position: absolute;
+  bottom: 16px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: rgba(100, 60, 30, 0.6);
+}
+
+.journal-nav-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: rgba(100, 60, 30, 0.6);
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.journal-nav-btn:hover:not(:disabled) {
+  color: #3e2a1e;
+}
+
+.journal-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* === Empty State === */
+.journal-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 48px;
+  text-align: center;
+}
+
+.journal-empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.journal-empty-text {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  color: #3e2a1e;
+  margin-bottom: 8px;
+}
+
+.journal-empty-hint {
+  font-family: 'Quattrocento', serif;
+  font-size: 0.875rem;
+  color: rgba(100, 60, 30, 0.6);
+  font-style: italic;
+  max-width: 300px;
+}
+
+/* === Custom Scrollbar for Journal === */
+.journal-page::-webkit-scrollbar {
+  width: 6px;
+}
+
+.journal-page::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.journal-page::-webkit-scrollbar-thumb {
+  background: rgba(100, 60, 30, 0.3);
+  border-radius: 10px;
+}
+
+.journal-page::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 60, 30, 0.5);
+}

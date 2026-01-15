@@ -3,8 +3,8 @@
  * Displays the character's family tree with visual relationship indicators.
  */
 import React from 'react';
-import { PlayerCharacter } from '../../types';
-import { FamilyMember } from '../../types/world';
+import { PlayerCharacter } from '../../../types';
+import { FamilyMember } from '../../../types/world';
 
 interface FamilyTreeTabProps {
     character: PlayerCharacter;

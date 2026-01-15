@@ -1,12 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
-import CharacterOverview from '../CharacterOverview';
+import CharacterOverview from '../Overview/CharacterOverview';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 describe('CharacterOverview', () => {
-  const mockOnOpenSkillDetails = vi.fn();
-
   it('renders character vitals', () => {
     const character = createMockPlayerCharacter({
       hp: 15,
@@ -16,10 +14,7 @@ describe('CharacterOverview', () => {
     });
 
     render(
-      <CharacterOverview 
-        character={character} 
-        onOpenSkillDetails={mockOnOpenSkillDetails} 
-      />
+      <CharacterOverview character={character} />
     );
 
     expect(screen.getByText('Vitals')).toBeDefined();
@@ -27,22 +22,6 @@ describe('CharacterOverview', () => {
     expect(screen.getByText('15')).toBeDefined();
     expect(screen.getByText('Armor Class:')).toBeDefined();
     expect(screen.getByText('12')).toBeDefined();
-  });
-
-  it('calls onOpenSkillDetails when button is clicked', () => {
-    const character = createMockPlayerCharacter();
-
-    render(
-      <CharacterOverview 
-        character={character} 
-        onOpenSkillDetails={mockOnOpenSkillDetails} 
-      />
-    );
-
-    const button = screen.getByText('View Skill Details');
-    fireEvent.click(button);
-
-    expect(mockOnOpenSkillDetails).toHaveBeenCalled();
   });
 
   it('renders spellcasting section if character has spellcasting ability', () => {
@@ -60,10 +39,7 @@ describe('CharacterOverview', () => {
     });
 
     render(
-      <CharacterOverview 
-        character={character} 
-        onOpenSkillDetails={mockOnOpenSkillDetails} 
-      />
+      <CharacterOverview character={character} />
     );
 
     expect(screen.getByText('Spellcasting')).toBeDefined();

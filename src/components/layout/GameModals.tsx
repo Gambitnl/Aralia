@@ -192,6 +192,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                     partyMembers={gameState.party}
                     parentWorldMapCoords={currentLocation.mapCoordinates}
                     playerSubmapCoords={gameState.subMapCoordinates}
+                    isDevModeEnabled={gameState.isDevModeEnabled}
                 />
             )}
 

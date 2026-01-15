@@ -14,6 +14,8 @@ interface PropFieldProps {
   material: Material;
   yOffset?: number;
   spawnRadius?: number;
+  avoidCenter?: { x: number; z: number };
+  avoidRadius?: number;
 }
 
 const PropField = ({
@@ -27,16 +29,33 @@ const PropField = ({
   material,
   yOffset = 0,
   spawnRadius,
+  avoidCenter,
+  avoidRadius,
 }: PropFieldProps) => {
   const meshRef = useRef<InstancedMesh>(null);
 
   const instances = useMemo(() => {
     const rng = new SeededRandom(seed);
     const half = spawnRadius ? Math.min(spawnRadius, size / 2) : size / 2;
+    const safeRadius = avoidCenter && typeof avoidRadius === 'number'
+      ? Math.max(0, Math.min(avoidRadius, Math.max(0, half - 1)))
+      : 0;
+    const safeRadiusSq = safeRadius * safeRadius;
+    const centerX = avoidCenter?.x ?? 0;
+    const centerZ = avoidCenter?.z ?? 0;
     const list: Array<{ x: number; y: number; z: number; scale: number; rotation: number }> = [];
     for (let i = 0; i < count; i += 1) {
-      const x = (rng.next() - 0.5) * half * 2;
-      const z = (rng.next() - 0.5) * half * 2;
+      let x = 0;
+      let z = 0;
+      if (safeRadius > 0) {
+        do {
+          x = (rng.next() - 0.5) * half * 2;
+          z = (rng.next() - 0.5) * half * 2;
+        } while ((x - centerX) ** 2 + (z - centerZ) ** 2 < safeRadiusSq);
+      } else {
+        x = (rng.next() - 0.5) * half * 2;
+        z = (rng.next() - 0.5) * half * 2;
+      }
       const baseY = heightSampler(x, z);
       list.push({
         x: Math.min(half, Math.max(-half, x)),
@@ -47,7 +66,19 @@ const PropField = ({
       });
     }
     return list;
-  }, [count, heightSampler, maxScale, minScale, seed, size, spawnRadius, yOffset]);
+  }, [
+    count,
+    heightSampler,
+    maxScale,
+    minScale,
+    seed,
+    size,
+    spawnRadius,
+    yOffset,
+    avoidCenter?.x,
+    avoidCenter?.z,
+    avoidRadius,
+  ]);
 
   useEffect(() => {
     const mesh = meshRef.current;

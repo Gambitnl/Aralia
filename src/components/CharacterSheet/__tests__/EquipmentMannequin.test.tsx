@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
-import EquipmentMannequin from '../EquipmentMannequin';
+import EquipmentMannequin from '../Overview/EquipmentMannequin';
 import { PlayerCharacter, Item } from '../../../types';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 

@@ -46,11 +46,23 @@
 - [x] Player movement + follow/orbit camera + feet-based speed.
 - [x] Heightfield terrain (Perlin) with biome-tinted props (instanced).
 - [x] Height-based terrain shading + sky dome + biome water planes.
+- [x] Terrain slope + moisture samplers wired into shader tinting for richer gradients.
 - [x] Shader-based world grid + 5 ft outline highlight.
 - [x] Party composition spawn + enemy placeholders with outlines.
 - [x] Party AI v1: formation slots, separation, combat hold posture (no auto-aggro).
 - [x] HUD speed indicator (ft/round + dash detection).
 - [x] Biome catalogue expanded to 10 families × 5 variants (50 biomes) with hazards/resources; map gen uses weighted spawn and towns read biome families.
+- [x] Submap vs combat grid terminology clarified in the 3D UI (combat grid toggle + submap seed label).
+- [x] Kenney tree kit props loaded, merged, rebased, and instanced with scale + density tuning; shader grid still grooves through terrain.
+- [x] Ez-tree procedural tree pipeline integrated (seeded variant pool + instanced trunks/leaves), replacing GLB reliance (no fallbacks).
+- [x] Plains sampler amplitude boosted; player controller height-samples to follow hills so trees align with ground.
+- [x] Spawn-safe radius for props to keep the player start area clear (no trees/rocks at spawn).
+
+---
+
+## Known Issues / Blockers
+
+- **Firefox WebGL context creation failures** were observed (`FEATURE_FAILURE_EGL_NO_CONFIG`, `FEATURE_FAILURE_WEBGL_EXHAUSTED_DRIVERS`) and resolved locally by restarting Firefox and updating `webgl.*` prefs (`webgl.forbid-software=false`, `webgl.force-enabled=true`). Documented in README for future devs; keep monitoring for regressions.
 
 ---
 
@@ -184,11 +196,38 @@
 
 ---
 
+## Research-Driven Proc-Gen Plan (2025/2026)
+
+**Phase A - Terrain Context (masks + slopes)**
+- Extend `terrainUtils.ts` to output height, slope, and moisture samplers per tile.
+- Use slope/moisture masks in `Terrain.tsx` shader for richer biome gradients.
+
+**Phase B - Rivers and Lakes (flow maps)**
+- Build a coarse flow map per tile (height-based steepest descent).
+- Carve riverbeds into the height sampler and lay spline/strip meshes for water.
+- Spawn lakes by pooling at local minima and feed their water level to `WaterPlane`.
+
+**Phase C - Caves and Underground**
+- For cave biomes, drive geometry from CA grids (marching squares/cubes).
+- For dungeons, keep WFC rooms and add connectors for multi-level layouts.
+
+**Phase D - Prop Density and Biome Hooks**
+- Use slope/moisture masks to gate prop density and spacing.
+- Apply Poisson-disc style placement for trees/rocks to avoid overlaps.
+- Keep hero assets (Kenney trees) layered after seeded features.
+
+**Phase E - Caching + Perf**
+- Cache height/flow/prop masks per `tileSeed` (SceneCache).
+- Store low-res mask textures to sample in shaders and reduce CPU overhead.
+
+---
+
 ## Risks and Mitigations
 
 - **Large tile footprint**: use chunked LOD + instancing + culling; no hard clip.
 - **Content repetition**: mix asset variants and seeded rotations/scales; add hero props.
 - **Performance spikes**: precompute seeds at game start and cache scene data.
+- **WebGL context creation failure**: cap geometry complexity per tree, reduce instance counts per biome, disable unnecessary GPU features (e.g., shadows/AA), and provide a strict low-GPU profile (still ez-tree, no fallbacks).
 - **Shader grid aliasing/shimmer**: fwidth-based line smoothing + distance fade + thicker near lines.
 - **Grid distortion on slopes**: use world-space projection and slope-aware line width; allow grid fade on steep inclines.
 - **Chunk seams in grid**: compute grid lines from world-space coordinates (not chunk-local UVs).
@@ -202,6 +241,17 @@
 - Indoor dungeon footprint per level.
 - Target FPS and minimum GPU profile.
 - Preferred highlight style for combat tiles: outline.
+
+---
+
+## Lessons Learned
+
+- **Kenney assets require rebasing.** The downloaded `kenney_nature-kit.zip` held GLTF trees whose meshes sat inside nested scene nodes; we now traverse/trench the entire scene, merge children, and subtract `minY` so their bases align with the heightfield (the trunks no longer clip below the ground).
+- **Player height should mirror terrain.** The controller already sampled heights, but the props were still offset—rebasing trees and keeping the player y-value tied to `heightSampler(x,z)` (plus offset) makes hills navigable without clipping into the lower plane.
+- **Dev-only turbo toggle.** Adding the toggled button in the 3D top bar gave us a fast-paced run to stress-test large tiles without exposing it outside dev mode.
+- **Submap vs combat grid clarity.** UI terminology now distinguishes the full 3D submap tile from the 5 ft combat grid.
+- **Ez-tree complexity must be capped.** Procedural tree generation can overwhelm GPU context creation if branch/leaf detail and instance counts are too high; counts and topology must be tightly bounded.
+- **Progressive tuning matters.** Start with small trees, increase scale, then adjust sampler amplitude/density; each iteration surfaces new issues (e.g., culling, bounding boxes) that we logged and fixed before moving on.
 
 ---
 

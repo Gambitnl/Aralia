@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import type { BufferGeometry, LineSegments, Material, Object3D } from 'three';
 import { BufferAttribute, BufferGeometry as ThreeBufferGeometry, Color, LineBasicMaterial } from 'three';
 
-interface TileOutlineProps {
+interface GridCellOutlineProps {
   playerRef: RefObject<Object3D>;
   gridSize: number;
   heightSampler: (x: number, z: number) => number;
@@ -26,14 +26,14 @@ const buildSquareGeometry = (size: number): BufferGeometry => {
   return lineGeometry;
 };
 
-const TileOutline = ({
+const GridCellOutline = ({
   playerRef,
   gridSize,
   heightSampler,
   color = 0x38bdf8,
   offset = 0.15,
   visible = true,
-}: TileOutlineProps) => {
+}: GridCellOutlineProps) => {
   const lineRef = useRef<LineSegments>(null);
 
   const geometry = useMemo(() => buildSquareGeometry(gridSize), [gridSize]);
@@ -63,4 +63,4 @@ const TileOutline = ({
   );
 };
 
-export default TileOutline;
+export default GridCellOutline;

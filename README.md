@@ -43,6 +43,15 @@ To configure this repository in the Jules IDE:
     npm run dev
     ```
 
+### Troubleshooting
+
+#### Firefox WebGL context errors (3D exploration)
+If 3D mode fails in Firefox with "Failed to create WebGL context" or ANGLE/EGL errors:
+*   Close Firefox and relaunch it to reset the GPU process.
+*   Reset modified `webgl.*` preferences to defaults; the fixes that worked here were setting `webgl.forbid-software=false` and `webgl.force-enabled=true`.
+*   Try a fresh profile via `about:profiles` to rule out extensions/prefs.
+*   Check `about:support` → Graphics for blocked drivers or WebGL warnings.
+
 ## 2. Core Features
 
 *   **Dynamic Storytelling**: Utilizes the Google Gemini API to generate dynamic location descriptions, NPC dialogue, and action outcomes, creating a unique adventure every time.

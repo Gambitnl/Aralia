@@ -275,7 +275,36 @@ export const useCompanionBanter = (
 
     failureCountRef.current = 0;
 
-    const { speakerId, text, isConcluding } = result.data;
+    let { speakerId, text, isConcluding } = result.data;
+
+    // Validate: if speakerId is same as last speaker, pick a different participant
+    const lastSpeakerId = banterHistoryRef.current[banterHistoryRef.current.length - 1]?.speakerId;
+    if (speakerId === lastSpeakerId && participantsRef.current.length > 1) {
+      const alternativeSpeaker = participantsRef.current.find(p => p.id !== lastSpeakerId);
+      if (alternativeSpeaker) {
+        console.debug(`Correcting same-speaker sequence: ${speakerId} -> ${alternativeSpeaker.id}`);
+        speakerId = alternativeSpeaker.id;
+      }
+    }
+
+    // Detect duplicate/near-duplicate lines
+    const lastText = banterHistoryRef.current[banterHistoryRef.current.length - 1]?.text?.toLowerCase().trim();
+    const currentText = text.toLowerCase().trim();
+    if (lastText && (currentText === lastText || currentText.includes(lastText) || lastText.includes(currentText))) {
+      console.debug('Skipping duplicate/near-duplicate banter line:', text);
+      // Retry with shorter delay instead of adding duplicate
+      failureCountRef.current += 1;
+      if (failureCountRef.current >= 3) {
+        endBanter();
+        return;
+      }
+      setIsWaitingForNextLine(true);
+      setSecondsUntilNextLine(5);
+      timeoutRef.current = setTimeout(() => {
+        generateNextLine();
+      }, 5000);
+      return;
+    }
 
     // Find speaker name
     const speaker = participantsRef.current.find(p => p.id === speakerId);

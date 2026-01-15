@@ -80,6 +80,7 @@ function buildBanterLinePrompt(
     turnNumber: number,
     nextSpeaker: BanterParticipant
 ): { role: string; content: string }[] {
+    const lastLine = conversationHistory[conversationHistory.length - 1];
     const historyText = conversationHistory.length > 0
         ? `\nConversation so far:\n${conversationHistory.map(h => `${h.speakerName}: "${h.text}"`).join('\n')}\n`
         : '';
@@ -94,12 +95,18 @@ function buildBanterLinePrompt(
     const otherMembers = participants.filter(p => p.id !== nextSpeaker.id)
         .map(p => `${p.name} (${p.race} ${p.class})`).join(', ');
 
+    // Build context about who just spoke
+    const respondingTo = lastLine
+        ? `\n[Responding To]\n${lastLine.speakerName} just said: "${lastLine.text}"\nYou must respond to this - do NOT repeat it.`
+        : '';
+
     return [
         {
             role: 'system',
             content: `You are a creative writer for a fantasy RPG.
 [Character Data]
 Name: ${nextSpeaker.name}
+ID: ${nextSpeaker.id}
 Role: ${nextSpeaker.sex} ${nextSpeaker.race} ${nextSpeaker.class}
 Personality: ${nextSpeaker.personality}
 Travelers: ${otherMembers}${memorySection}
@@ -108,12 +115,15 @@ Travelers: ${otherMembers}${memorySection}
 Location: ${contextData.locationName}
 Weather: ${contextData.weather || 'Clear'}
 Time: ${contextData.timeOfDay}
-${historyText}
+${historyText}${respondingTo}
 
 [Task]
-${conversationHistory.length === 0 ? `Start a new conversation about ${suggestedTopic}.` : 'Continue the conversation. Respond to the last speaker.'}
+${conversationHistory.length === 0 ? `Start a new conversation about ${suggestedTopic}.` : `Continue the conversation. Respond to ${lastLine?.speakerName || 'the last speaker'}.`}
 
-[Requirements]
+[CRITICAL REQUIREMENTS]
+- You MUST use speakerId exactly: "${nextSpeaker.id}"
+- Do NOT change or abbreviate the speakerId
+- Do NOT repeat or paraphrase what the previous speaker said
 - Stay in character. Use your traits and quirks.
 - 1-2 sentences max.
 - Be specific (places, people, items).
@@ -122,8 +132,7 @@ ${conversationHistory.length === 0 ? `Start a new conversation about ${suggested
 
 [Output Format]
 Return strict JSON only. No markdown code blocks. No intro/outro text.
-Example:
-{"speakerId": "${nextSpeaker.id}", "text": "I can't believe we survived that!", "emotion": "surprised", "isConcluding": false}`
+{"speakerId": "${nextSpeaker.id}", "text": "Your unique response here", "emotion": "neutral", "isConcluding": false}`
         }
     ];
 }
@@ -269,10 +278,17 @@ export async function generateBanterLine(
         };
     }
 
+    // Validate that the returned speakerId is a known participant
+    const validParticipantIds = participants.map(p => p.id);
+    const returnedSpeakerId = extracted.speakerId || nextSpeaker.id;
+    const validatedSpeakerId = validParticipantIds.includes(returnedSpeakerId)
+        ? returnedSpeakerId
+        : nextSpeaker.id;
+
     return {
         success: true,
         data: {
-            speakerId: extracted.speakerId || nextSpeaker.id,
+            speakerId: validatedSpeakerId,
             text: extracted.text,
             emotion: extracted.emotion || 'neutral',
             isConcluding: extracted.isConcluding || turnNumber >= 5

@@ -257,5 +257,11 @@ export type AppAction =
   // Dice Roller Actions
   | { type: 'TOGGLE_DICE_ROLLER' }
   | { type: 'SET_VISUAL_DICE_ENABLED'; payload: boolean }
-  | { type: 'RESTART_WITH_PROCEDURAL_PARTY'; payload: PlayerCharacter[] };
-
+  | { type: 'RESTART_WITH_PROCEDURAL_PARTY'; payload: PlayerCharacter[] }
+  // Journal Actions
+  | { type: 'INIT_JOURNAL_STATE' }
+  | { type: 'ADD_JOURNAL_ENTRY'; payload: import('../types/journal').JournalEntry }
+  | { type: 'UPDATE_JOURNAL_ENTRY'; payload: { entryId: string; updates: Partial<import('../types/journal').JournalEntry> } }
+  | { type: 'LOG_JOURNAL_EVENT'; payload: import('../types/journal').JournalEvent }
+  | { type: 'CLEAR_PENDING_EVENTS' }
+  | { type: 'INCREMENT_SESSION' };

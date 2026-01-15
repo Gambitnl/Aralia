@@ -8,7 +8,7 @@ import { useKeyInput } from './useKeyInput';
 interface PlayerControllerProps {
   playerRef: RefObject<Mesh>;
   speedFeetPerRound: number;
-  tileHalfSize: number;
+  submapHalfSize: number;
   heightSampler: (x: number, z: number) => number;
   heightOffset?: number;
   onPositionChange?: (position: { x: number; y: number; z: number }) => void;
@@ -20,7 +20,7 @@ const UP = new Vector3(0, 1, 0);
 const PlayerController = ({
   playerRef,
   speedFeetPerRound,
-  tileHalfSize,
+  submapHalfSize,
   heightSampler,
   heightOffset = 3,
   onPositionChange,
@@ -60,8 +60,8 @@ const PlayerController = ({
       currentSpeedPerRound = speedPerSecond * dashMultiplier * 6;
 
       player.position.addScaledVector(direction, moveDistance);
-      player.position.x = Math.min(tileHalfSize, Math.max(-tileHalfSize, player.position.x));
-      player.position.z = Math.min(tileHalfSize, Math.max(-tileHalfSize, player.position.z));
+      player.position.x = Math.min(submapHalfSize, Math.max(-submapHalfSize, player.position.x));
+      player.position.z = Math.min(submapHalfSize, Math.max(-submapHalfSize, player.position.z));
       player.rotation.y = Math.atan2(direction.x, direction.z);
     }
 

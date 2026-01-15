@@ -41,6 +41,7 @@ export * from './navalCombat'; // Export Naval Combat types
 export * from './crafting'; // Export Crafting system types
 export * from './conversation'; // Export Interactive Conversation types        
 export * from './environment'; // Export WeatherState and related environment types
+export * from './journal'; // Export Journal system types
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 export type { AppAction } from '../state/actionTypes';

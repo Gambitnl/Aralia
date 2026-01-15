@@ -5,7 +5,7 @@
  * It falls back to a default icon if the specific SVG is not found.
  */
 import React, { useState, useEffect } from 'react';
-import { ArmorProficiencyLevel, EquipmentSlotType } from '../../types';
+import { ArmorProficiencyLevel, EquipmentSlotType } from '../../../types';
 
 interface DynamicMannequinSlotIconProps {
   characterProficiency: ArmorProficiencyLevel;

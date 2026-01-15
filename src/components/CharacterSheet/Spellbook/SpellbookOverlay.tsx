@@ -3,12 +3,12 @@
  * A component for displaying a character's spellbook as a full-screen overlay.
  */
 import React, { useState, useEffect, useContext } from 'react';
-import { PlayerCharacter, Spell, Action, LimitedUseAbility, ResourceVial } from '../../types';
-import SpellContext from '../../context/SpellContext';
-import { CLASSES_DATA } from '../../constants';
-import Tooltip from '../Tooltip';
+import { PlayerCharacter, Spell, Action, LimitedUseAbility, ResourceVial } from '../../../types';
+import SpellContext from '../../../context/SpellContext';
+import { CLASSES_DATA } from '../../../constants';
+import Tooltip from '../../ui/Tooltip';
 // Spell info modal is housed under the Glossary folder
-import SingleGlossaryEntryModal from '../Glossary/SingleGlossaryEntryModal';
+import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
 
 interface SpellbookOverlayProps {
   isOpen: boolean;
@@ -226,13 +226,13 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
   return (
     <>
       <div
-        className="spellbook-overlay"
+        className="spellbook-overlay fixed inset-0 z-[200] bg-black/80 flex items-center justify-center"
         role="button"
         tabIndex={0}
         onClick={handleOverlayClick}
         onKeyDown={handleOverlayKeyDown}
       >
-        <div className="spellbook-container">
+        <div className="spellbook-container bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 flex gap-4 relative max-h-[80vh]">
           <LeftPage
             character={character}
             onAction={onAction}
@@ -248,16 +248,16 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
             setInfoSpellId={setInfoSpellId}
           />
 
-          <div className="spellbook-pagination">
-            <button className="pagination-button" onClick={() => handlePageTurn('prev')} disabled={currentPageIndex === 0}>
+          <div className="spellbook-pagination absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+            <button className="pagination-button px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50" onClick={() => handlePageTurn('prev')} disabled={currentPageIndex === 0}>
               &#x276E;
             </button>
-            <span className="page-number">Page {currentPageIndex + 1} of {pages.length}</span>
-            <button className="pagination-button" onClick={() => handlePageTurn('next')} disabled={currentPageIndex === pages.length - 1}>
+            <span className="page-number text-gray-300">Page {currentPageIndex + 1} of {pages.length}</span>
+            <button className="pagination-button px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50" onClick={() => handlePageTurn('next')} disabled={currentPageIndex === pages.length - 1}>
               &#x276F;
             </button>
           </div>
-          <button className="spellbook-close-button" onClick={onClose} aria-label="Close Spellbook">&times;</button>
+          <button className="spellbook-close-button absolute top-2 right-2 text-gray-400 hover:text-white text-2xl" onClick={onClose} aria-label="Close Spellbook">&times;</button>
         </div>
       </div>
       <SingleGlossaryEntryModal
@@ -270,3 +270,4 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
 };
 
 export default SpellbookOverlay;
+
