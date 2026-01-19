@@ -107,7 +107,7 @@ function parseToolsFromOutput(output: string): string[] {
   return tools;
 }
 
-async function testToolInvocation(serverName: string, toolName: string, args: object): Promise<boolean> {
+async function _testToolInvocation(serverName: string, toolName: string, args: object): Promise<boolean> {
   try {
     console.log(`\n  🧪 Testing ${serverName}/${toolName}...`);
 

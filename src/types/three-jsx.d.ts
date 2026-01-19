@@ -13,6 +13,7 @@ declare module 'react' {
       instancedMesh: any;
       lineSegments: any;
       mesh: any;
+      meshBasicMaterial: any;
       meshStandardMaterial: any;
       planeGeometry: any;
       sphereGeometry: any;

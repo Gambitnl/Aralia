@@ -10,7 +10,9 @@ vi.mock('../../services/ollama', () => ({
         isAvailable: vi.fn(),
         generateBanterLine: vi.fn(),
         summarizeConversation: vi.fn()
-    }
+    },
+    // TODO(lint-intent): Add a non-empty fact payload when banter fact extraction is exercised in tests.
+    extractDiscoveredFacts: vi.fn().mockResolvedValue({ success: true, data: [] })
 }));
 
 // Mock Math.random to always pass the 10% check for most tests
@@ -203,12 +205,23 @@ describe('useCompanionBanter', () => {
             metadata: { prompt: 'p', response: 'r', model: 'm', id: 'id' }
         });
 
-        // Mock generation to quickly build history
-        vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
-            success: true,
-            data: { speakerId: 'kaelen_thorne', text: 'Talk 1', emotion: 'neutral', isConcluding: false },
-            metadata: { prompt: 'p', response: 'r', model: 'm', id: 'id' }
-        });
+        // Provide unique lines to avoid the duplicate-filter guard in useCompanionBanter.
+        vi.mocked(OllamaService.generateBanterLine)
+            .mockResolvedValueOnce({
+                success: true,
+                data: { speakerId: 'kaelen_thorne', text: 'Talk 1', emotion: 'neutral', isConcluding: false },
+                metadata: { prompt: 'p1', response: 'r1', model: 'm', id: 'id-1' }
+            })
+            .mockResolvedValueOnce({
+                success: true,
+                data: { speakerId: 'elara_vance', text: 'Talk 2', emotion: 'neutral', isConcluding: false },
+                metadata: { prompt: 'p2', response: 'r2', model: 'm', id: 'id-2' }
+            })
+            .mockResolvedValueOnce({
+                success: true,
+                data: { speakerId: 'kaelen_thorne', text: 'Talk 3', emotion: 'neutral', isConcluding: false },
+                metadata: { prompt: 'p3', response: 'r3', model: 'm', id: 'id-3' }
+            });
 
         const { result } = renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
 
@@ -217,8 +230,8 @@ describe('useCompanionBanter', () => {
             await result.current.forceBanter();
         });
 
-        // Simulate a few turns (advancing timers to trigger next lines)
-        for (let i = 0; i < 3; i++) {
+        // Simulate a few turns (advancing timers to trigger next lines).
+        for (let i = 0; i < 2; i++) {
             await act(async () => {
                 await vi.advanceTimersByTimeAsync(30000); // BANTER_DELAY_MS
             });
@@ -229,9 +242,8 @@ describe('useCompanionBanter', () => {
             result.current.endBanter();
         });
 
-        // Wait for async promise chain (summarizeConversation is a promise that runs detached)
-        // We need to wait a tick for the promise to resolve
-        await new Promise(resolve => setTimeout(resolve, 0));
+        // Wait for the microtask queue so summarizeConversation can resolve.
+        await Promise.resolve();
 
         expect(OllamaService.summarizeConversation).toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({

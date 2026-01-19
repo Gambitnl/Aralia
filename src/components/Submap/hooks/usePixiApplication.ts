@@ -143,8 +143,10 @@ export function usePixiApplication(config: PixiAppConfig): UsePixiApplicationRes
 export interface LayerContainers {
     terrain: PIXI.Container;
     features: PIXI.Container;
+    setPieces: PIXI.Container;
     doodads: PIXI.Container;
     overlay: PIXI.Container;
+    weather: PIXI.Container;
     path: PIXI.Container;
     ui: PIXI.Container;
 }
@@ -164,8 +166,15 @@ export function createLayerContainers(stage: PIXI.Container): LayerContainers {
     doodads.label = 'doodads';
     doodads.sortableChildren = true; // Enable z-sorting for doodads
 
+    const setPieces = new PIXI.Container();
+    setPieces.label = 'setPieces';
+    setPieces.sortableChildren = true; // Enable z-sorting for set pieces
+
     const overlay = new PIXI.Container();
     overlay.label = 'overlay';
+
+    const weather = new PIXI.Container();
+    weather.label = 'weather';
 
     const path = new PIXI.Container();
     path.label = 'path';
@@ -176,12 +185,14 @@ export function createLayerContainers(stage: PIXI.Container): LayerContainers {
     // Add in order (bottom to top)
     stage.addChild(terrain);
     stage.addChild(features);
+    stage.addChild(setPieces);
     stage.addChild(doodads);
     stage.addChild(overlay);
+    stage.addChild(weather);
     stage.addChild(path);
     stage.addChild(ui);
 
-    return { terrain, features, doodads, overlay, path, ui };
+    return { terrain, features, setPieces, doodads, overlay, weather, path, ui };
 }
 
 /**

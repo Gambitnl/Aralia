@@ -42,7 +42,8 @@ describe('FullEntryDisplay', () => {
 
     await waitFor(() => expect(screen.getByTestId('content')).toBeInTheDocument());
     const content = screen.getByTestId('content').textContent || '';
-    expect(content).toContain('# Heading');
+    // FullEntryDisplay strips the main heading since the template renders it separately.
+    expect(content).not.toContain('# Heading');
     expect(content).toContain('Content body');
     expect(content).not.toContain('id: test-entry');
     expect(content).not.toContain('tags: [level 3]');

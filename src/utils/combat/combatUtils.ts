@@ -26,6 +26,7 @@ import { createAbilityFromSpell } from '../character/spellAbilityFactory';
 import { isWeaponProficient } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
 import { getAbilityModifierValue } from '../character/statUtils';
+import { buildHitPointDicePools } from '../character/characterUtils';
 import { ResistanceCalculator } from './resistanceUtils';
 
 import { bresenhamLine } from '../spatial/lineOfSight';
@@ -568,13 +569,15 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     position: { x: 0, y: 0 },
     stats,
     abilities,
-    team: 'player',
-    currentHP: player.hp,
-    maxHP: player.maxHp,
-    initiative: 0,
-    statusEffects: [],
-    actionEconomy: {
-      action: { used: false, remaining: 1 },
+	    team: 'player',
+	    currentHP: player.hp,
+	    maxHP: player.maxHp,
+	    // Carry Hit Dice pools into combat so pool-based targeting can use them.
+	    hitPointDice: buildHitPointDicePools(player),
+	    initiative: 0,
+	    statusEffects: [],
+	    actionEconomy: {
+	      action: { used: false, remaining: 1 },
       bonusAction: { used: false, remaining: 1 },
       reaction: { used: false, remaining: 1 },
       movement: { used: 0, total: stats.speed },

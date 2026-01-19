@@ -86,6 +86,11 @@ function log(message: string) {
     process.stderr.write(entry);
 }
 
+// Normalize thrown values from browser automation into a safe message string.
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
 // Browser state
 let context: BrowserContext | null = null;
 let activePage: Page | null = null;
@@ -202,9 +207,10 @@ async function generateImage(prompt: string, provider: Provider = "gemini"): Pro
         log("Generation complete");
         return { success: true, message: `Image generated via ${provider}. Use download_image to save.` };
 
-    } catch (error: any) {
-        log(`Error: ${error.message}`);
-        return { success: false, message: error.message };
+    } catch (error: unknown) {
+        const errorMessage = getErrorMessage(error);
+        log(`Error: ${errorMessage}`);
+        return { success: false, message: errorMessage };
     }
 }
 
@@ -253,9 +259,10 @@ async function downloadImage(outputPath?: string): Promise<{ success: boolean; p
         log(`Saved to: ${finalPath}`);
         return { success: true, path: finalPath, message: `Image downloaded to ${finalPath}` };
 
-    } catch (error: any) {
-        log(`Download Error: ${error.message}`);
-        return { success: false, path: "", message: error.message };
+    } catch (error: unknown) {
+        const errorMessage = getErrorMessage(error);
+        log(`Download Error: ${errorMessage}`);
+        return { success: false, path: "", message: errorMessage };
     }
 }
 

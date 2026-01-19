@@ -8,7 +8,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import React, { useState, useRef, useEffect, useContext as _useContext } from 'react';
 import { motion, AnimatePresence, MotionProps } from 'framer-motion';
-import { generateGuideResponse } from '../../services/geminiService'; // Build failed because '../services' resolves from components/ui; ascend to src/services.
+import { generateGuideResponse } from '../../services/ollamaTextService';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from '../../services/characterGenerator';
 import { PlayerCharacter, NPCMemory, GoalStatus } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -88,8 +88,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
             const result = await generateGuideResponse(
                 buildGuideMemory(),
                 GoalStatus.Active,
-                playerPromptContext,
-                devModelOverride
+                playerPromptContext
             );
 
             if (result.data?.text) {

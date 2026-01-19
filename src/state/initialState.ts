@@ -17,12 +17,16 @@ import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
 import { NavalState } from '../types/naval';
 import type { DivineFavor } from '../types/religion';
+import { getGameDay } from '../utils/timeUtils';
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {
     const initialTime = new Date(Date.UTC(351, 0, 1, 7, 0, 0, 0));
     return initialTime;
 };
+
+// Cache the initial time so related defaults (like rest tracking) stay in sync.
+const initialGameTime = createInitialGameTime();
 
 const INITIAL_UNDERDARK_STATE: UnderdarkState = {
     currentDepth: 0,
@@ -93,7 +97,13 @@ export const initialGameState: GameState = {
         isOpen: false,
         character: null,
     },
-    gameTime: createInitialGameTime(),
+    gameTime: initialGameTime,
+    // Track party-wide short rest pacing (daily cap + cooldown).
+    shortRestTracker: {
+        restsTakenToday: 0,
+        lastRestDay: getGameDay(initialGameTime),
+        lastRestEndedAtMs: null,
+    },
 
     // Dev Mode specific state
     isDevMenuVisible: false,

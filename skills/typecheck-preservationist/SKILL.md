@@ -7,7 +7,7 @@ description: Run typecheck/tests for the Aralia codebase and resolve TypeScript 
 
 ## Overview
 
-Run TypeScript typechecks (and requested tests) and fix errors with a preservationist approach: keep behavior intact, avoid feature removal, and add TODO markers where types are still uncertain.
+Run TypeScript typechecks (and requested tests) and fix errors with a preservationist approach: keep behavior intact, avoid feature removal, and always add concise comments/TODO markers when changes are not self-explanatory or types remain uncertain.
 
 ## Workflow
 
@@ -40,6 +40,7 @@ Prioritize minimal, behavior-preserving changes:
 - Add type guards or runtime checks before access.
 - Narrow unions with `in`, `typeof`, or discriminants.
 - Prefer local fixes over refactors that move or delete logic.
+- Add a brief comment for any new code that is not obvious, and whenever a preservationist workaround is chosen (e.g., test-only mocks, minimal stubs, legacy-safe fallbacks).
 
 Avoid these unless explicitly asked:
 
@@ -49,7 +50,7 @@ Avoid these unless explicitly asked:
 
 ### 4) Place TODOs where types are still risky
 
-If the only safe path is a temporary assertion or a loose type, add a TODO at the code block that explains the risk. Use this template:
+If the only safe path is a temporary assertion, a loose type, or a test-only assumption, add a TODO at the code block that explains the risk. Use this template:
 
 `// TODO(next-agent): Preserve behavior; refine type for <symbol> (was any/undefined).`
 
@@ -57,6 +58,8 @@ Placement rules:
 - Put the TODO immediately above the line or block in question.
 - Keep the message short and actionable.
 - If you used an assertion (`as unknown as ...`) or a fallback, say so.
+- If you changed logic in tests to match new UI/behavior, add a short comment describing the intent (why this assertion is now correct).
+- If you added or altered a mock, add a short comment stating what the mock guarantees (to avoid silent behavior drift).
 
 ### 5) Re-run until error count is 0 (phased)
 
@@ -67,7 +70,7 @@ If a specific error cannot be resolved without behavior change, stop and report 
 
 - List commands executed.
 - Confirm error count went to 0 (or explain why it did not).
-- List TODOs added with file paths.
+- List TODOs and any non-obvious comments added with file paths.
 - Call out any behavior risks introduced by temporary assertions.
 
 ## Codex Worklog (optional)

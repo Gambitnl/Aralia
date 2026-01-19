@@ -39,13 +39,12 @@ describe('Underdark Biome Mechanics', () => {
         const state = createMockState('shadowfell_rift');
         // Shadowfell has sanityModifier 3.0
         // Base loss is 1 per 30 mins (2 per hour)
-        // Magical darkness multiplies decayMultiplier by 2.
-        // So modifier becomes 3.0 * 2 = 6.0
-        // Total change = 2 (base units) * 6.0 = 12 points lost per hour.
-        // Expected: 100 - 12 = 88.
+        // Base light level is darkness, so no magical-darkness multiplier applies.
+        // Total change = 2 (base units) * 3.0 = 6 points lost per hour.
+        // Expected: 100 - 6 = 94.
 
         const { underdark } = UnderdarkMechanics.processTime(state, 3600);
-        expect(underdark.sanity.current).toBe(88);
+        expect(underdark.sanity.current).toBe(94);
     });
 
     it('should halt sanity decay in Fungal Forest (Safe Biome) when lit', () => {

@@ -6,6 +6,7 @@
 import React from 'react';
 import { GameState, Action, InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload } from '../../types';
 import { AppAction } from '../../state/actionTypes';
+import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetTileTooltipTextFn } from './actionHandlerTypes';
 import { DIRECTION_VECTORS } from '../../config/mapConfig';
@@ -40,10 +41,9 @@ export async function handleLookAround({
   }
 
   const lookContext = `${generalActionContext}${worldMapTileTooltipForGemini ? ` | Tile: ${worldMapTileTooltipForGemini}` : ''}`;
-  const lookDescResult = await GeminiService.generateActionOutcome(
+  const lookDescResult = await OllamaTextService.generateActionOutcome(
     'Player looks around the area.',
-    lookContext,
-    gameState.devModelOverride
+    lookContext
   );
   
   addGeminiLog('generateActionOutcome (look_around)', lookDescResult.data?.promptSent || lookDescResult.metadata?.promptSent || "", lookDescResult.data?.rawResponse || lookDescResult.metadata?.rawResponse || lookDescResult.error || "");
@@ -112,7 +112,7 @@ export async function handleInspectSubmapTile({
   }
   const { inspectTileDetails } = action.payload;
 
-  const inspectionResult = await GeminiService.generateTileInspectionDetails(
+  const inspectionResult = await OllamaTextService.generateTileInspectionDetails(
     inspectTileDetails as InspectSubmapTilePayload,
     generalActionContext,
     gameState.devModelOverride,
@@ -160,7 +160,7 @@ export async function handleAnalyzeSituation({
     addGeminiLog,
     generalActionContext
 }: HandleAnalyzeSituationProps): Promise<void> {
-    const analysisResult = await GeminiService.generateSituationAnalysis(generalActionContext, gameState.devModelOverride);
+    const analysisResult = await OllamaTextService.generateSituationAnalysis(generalActionContext);
     
     addGeminiLog('generateSituationAnalysis', analysisResult.data?.promptSent || analysisResult.metadata?.promptSent || "", analysisResult.data?.rawResponse || analysisResult.metadata?.rawResponse || analysisResult.error || "");
     

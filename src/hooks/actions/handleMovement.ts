@@ -6,7 +6,7 @@
 import React from 'react';
 import { GameState, Action, Location, MapData, PlayerCharacter, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
-import * as GeminiService from '../../services/geminiService';
+import * as OllamaTextService from '../../services/ollamaTextService';
 import { AddMessageFn, AddGeminiLogFn, LogDiscoveryFn, GetTileTooltipTextFn } from './actionHandlerTypes';
 import { LOCATIONS, BIOMES } from '../../constants';
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
@@ -346,7 +346,7 @@ export async function handleMovement({
         newMapDataForDispatch.tiles = newTiles;
       }
       geminiFunctionName = 'generateLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, playerContext, gameState.devModelOverride);
+      descriptionGenerationFn = () => OllamaTextService.generateLocationDescription(targetLocation.name, playerContext);
 
       // TODO(FEATURES): Replace hardcoded quest triggers with data-driven location metadata so quests can be discovered from any map tile (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
       // Quest Triggers for named locations
@@ -409,7 +409,7 @@ export async function handleMovement({
       const currentWorldTile = gameState.mapData?.tiles[currentWorldY]?.[currentWorldX];
       const tooltip = currentWorldTile ? getTileTooltipText(currentWorldTile) : null;
       geminiFunctionName = 'generateWildernessLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, playerContext, tooltip, gameState.devModelOverride);
+      descriptionGenerationFn = () => OllamaTextService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, playerContext, tooltip);
       travelEvent = generateTravelEvent(biome?.id || currentLoc.biomeId, undefined, { worldSeed: gameState.worldSeed, x: currentWorldX, y: currentWorldY });
       if (travelEvent) {
         travelEffect = travelEvent.effect;
@@ -496,12 +496,12 @@ export async function handleMovement({
       if (LOCATIONS[newLocationId]) {
         const targetDefLocation = LOCATIONS[newLocationId];
         geminiFunctionName = 'generateLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetDefLocation.name, playerContext, gameState.devModelOverride);
+        descriptionGenerationFn = () => OllamaTextService.generateLocationDescription(targetDefLocation.name, playerContext);
         movedToNewNamedLocation = targetDefLocation;
         baseDescriptionForFallback = targetDefLocation.baseDescription;
       } else {
         geminiFunctionName = 'generateWildernessLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile), gameState.devModelOverride);
+        descriptionGenerationFn = () => OllamaTextService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile));
       }
     }
   }

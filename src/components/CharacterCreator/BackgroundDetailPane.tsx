@@ -79,16 +79,16 @@ export const BackgroundDetailPane: React.FC<BackgroundDetailPaneProps> = ({ back
             <h4 className="text-sm text-green-400 font-bold uppercase mb-2">Suggested Characteristics</h4>
             <div className="space-y-2">
               <div className="text-xs text-gray-400">
-                <strong className="text-gray-300">Personality:</strong> "{background.suggestedCharacteristics.personalityTraits[0]}"
+                <strong className="text-gray-300">Personality:</strong> &quot;{background.suggestedCharacteristics.personalityTraits[0]}&quot;
               </div>
               <div className="text-xs text-gray-400">
-                <strong className="text-gray-300">Ideal:</strong> "{background.suggestedCharacteristics.ideals[0]}"
+                <strong className="text-gray-300">Ideal:</strong> &quot;{background.suggestedCharacteristics.ideals[0]}&quot;
               </div>
               <div className="text-xs text-gray-400">
-                <strong className="text-gray-300">Bond:</strong> "{background.suggestedCharacteristics.bonds[0]}"
+                <strong className="text-gray-300">Bond:</strong> &quot;{background.suggestedCharacteristics.bonds[0]}&quot;
               </div>
               <div className="text-xs text-gray-400">
-                <strong className="text-gray-300">Flaw:</strong> "{background.suggestedCharacteristics.flaws[0]}"
+                <strong className="text-gray-300">Flaw:</strong> &quot;{background.suggestedCharacteristics.flaws[0]}&quot;
               </div>
             </div>
           </div>

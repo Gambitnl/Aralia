@@ -1,6 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OllamaService, resetDefaultClient } from '../ollama';
+import { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
 
 // Mock global fetch
 const mockFetch = vi.fn();
@@ -54,9 +55,8 @@ describe('OllamaService', () => {
         // Start the service call
         const promise = OllamaService.generateBanter(mockParticipants, mockContext);
 
-        // At this point, the service should have started a 30s timer.
-        // We advance time by 30001ms to trigger it.
-        await vi.advanceTimersByTimeAsync(30001);
+        // Advance time past the configured timeout to trigger abort.
+        await vi.advanceTimersByTimeAsync(DEFAULT_OLLAMA_CONFIG.timeoutMs + 1);
 
         const result = await promise;
 

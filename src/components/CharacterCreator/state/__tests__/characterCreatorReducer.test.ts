@@ -381,6 +381,34 @@ describe('Character Creator Reducer', () => {
         });
     });
 
+    describe('NAVIGATE_TO_STEP Navigation', () => {
+        it('allows navigating forward regardless of completion', () => {
+            const state = initialCharacterCreatorState;
+
+            const result = characterCreatorReducer(state, {
+                type: 'NAVIGATE_TO_STEP',
+                payload: CreationStep.Class,
+            });
+
+            expect(result.step).toBe(CreationStep.Class);
+        });
+
+        it('does not reset existing selections', () => {
+            const stateAfterRace = characterCreatorReducer(initialCharacterCreatorState, {
+                type: 'SELECT_RACE',
+                payload: ALL_RACES_DATA['human'],
+            });
+
+            const navigated = characterCreatorReducer(stateAfterRace, {
+                type: 'NAVIGATE_TO_STEP',
+                payload: CreationStep.Class,
+            });
+
+            expect(navigated.selectedRace?.id).toBe('human');
+            expect(navigated.step).toBe(CreationStep.Class);
+        });
+    });
+
     describe('Class Selection', () => {
         it('advances to AbilityScores step on class selection', () => {
             const charClass = CLASSES_DATA['fighter'];

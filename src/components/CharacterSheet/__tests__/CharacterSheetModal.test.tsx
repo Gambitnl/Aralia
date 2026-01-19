@@ -16,51 +16,34 @@ vi.mock('framer-motion', () => {
   };
 });
 
-vi.mock('../Overview/EquipmentMannequin', () => ({
-  default: () => <div data-testid="equipment-mannequin">EquipmentMannequin</div>,
+vi.mock('../Overview', () => ({
+  CharacterOverview: () => <div data-testid="character-overview">CharacterOverview</div>,
+  EquipmentMannequin: () => <div data-testid="equipment-mannequin">EquipmentMannequin</div>,
+  InventoryList: () => <div data-testid="inventory-list">InventoryList</div>,
 }));
 
-vi.mock('../Overview/InventoryList', () => ({
-  default: () => <div data-testid="inventory-list">InventoryList</div>,
+vi.mock('../Skills', () => ({
+  SkillsTab: () => <div data-testid="skills-tab">SkillsTab</div>,
 }));
 
-vi.mock('../Skills/SkillDetailDisplay', () => ({
-  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-    isOpen ? (
-      <div data-testid="skill-detail-display">
-        Skill Details
-        <button onClick={onClose}>Close Skill Details</button>
-      </div>
-    ) : null,
+vi.mock('../Details', () => ({
+  CharacterDetailsTab: () => <div data-testid="details-tab">DetailsTab</div>,
 }));
 
-vi.mock('../Spellbook/SpellbookOverlay', () => ({
-  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-    isOpen ? (
-      <div data-testid="spellbook-overlay">
-        <button onClick={onClose}>Close Spellbook</button>
-      </div>
-    ) : null,
+vi.mock('../Family', () => ({
+  FamilyTreeTab: () => <div data-testid="family-tab">FamilyTab</div>,
 }));
 
-vi.mock('../Overview/CharacterOverview', () => ({
-  default: ({ onOpenSkillDetails }: { onOpenSkillDetails: () => void }) => (
-    <div data-testid="character-overview">
-      <button onClick={onOpenSkillDetails}>Skills</button>
-    </div>
-  ),
+vi.mock('../Spellbook', () => ({
+  SpellbookTab: () => <div data-testid="spellbook-tab">SpellbookTab</div>,
 }));
 
-vi.mock('../../Tooltip', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+vi.mock('../Crafting', () => ({
+  CraftingTab: () => <div data-testid="crafting-tab">CraftingTab</div>,
 }));
 
-vi.mock('../../Glossary/SingleGlossaryEntryModal', () => ({
-  default: () => null,
-}));
-
-vi.mock('../../../data/feats/featsData', () => ({
-  FEATS_DATA: [],
+vi.mock('../Journal', () => ({
+  JournalTab: () => <div data-testid="journal-tab">JournalTab</div>,
 }));
 
 describe('CharacterSheetModal', () => {
@@ -136,8 +119,8 @@ describe('CharacterSheetModal', () => {
   it('renders core sections and character name when open', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Test Hero')).toBeInTheDocument();
+    expect(screen.getByTestId('character-overview')).toBeInTheDocument();
     expect(screen.getByTestId('equipment-mannequin')).toBeInTheDocument();
     expect(screen.getByTestId('inventory-list')).toBeInTheDocument();
   });
@@ -149,33 +132,33 @@ describe('CharacterSheetModal', () => {
 
   // it('displays key character stats and ability scores', () => { ... });
 
-  it('opens and closes the spellbook overlay via the tab control', () => {
+  it('opens and closes the spellbook tab via the tab control', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
     fireEvent.click(screen.getByRole('tab', { name: 'Spellbook' }));
-    expect(screen.getByTestId('spellbook-overlay')).toBeInTheDocument();
+    expect(screen.getByTestId('spellbook-tab')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Close Spellbook'));
-    expect(screen.queryByTestId('spellbook-overlay')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Overview' }));
+    expect(screen.queryByTestId('spellbook-tab')).not.toBeInTheDocument();
   });
 
   it('calls onClose when the close button is clicked', () => {
     const onClose = vi.fn();
     render(<CharacterSheetModal {...defaultProps} onClose={onClose} />);
 
-    fireEvent.click(screen.getByLabelText('Close character sheet'));
+    fireEvent.click(screen.getByLabelText('Close'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the spellbook overlay with Escape while keeping the modal open', () => {
+  it('switches to the skills tab and back to overview', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Spellbook' }));
-    expect(screen.getByTestId('spellbook-overlay')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Skills' }));
+    expect(screen.getByTestId('skills-tab')).toBeInTheDocument();
 
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(screen.queryByTestId('spellbook-overlay')).not.toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Overview' }));
+    expect(screen.queryByTestId('skills-tab')).not.toBeInTheDocument();
+    expect(screen.getByTestId('character-overview')).toBeInTheDocument();
   });
 
   it('returns null when closed or without a character', () => {
@@ -186,15 +169,11 @@ describe('CharacterSheetModal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('toggles the skill detail overlay and closes it with Escape', () => {
+  it('switches to the spellbook tab and keeps the window open', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
-    expect(screen.queryByTestId('skill-detail-display')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('Skills'));
-    expect(screen.getByTestId('skill-detail-display')).toBeInTheDocument();
-
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(screen.queryByTestId('skill-detail-display')).not.toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Spellbook' }));
+    expect(screen.getByTestId('spellbook-tab')).toBeInTheDocument();
+    expect(screen.getByText('Test Hero')).toBeInTheDocument();
   });
 });

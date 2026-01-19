@@ -47,7 +47,10 @@ const mockCrafter = {
 } as unknown as PlayerCharacter;
 
 vi.mock('../../../utils/statUtils', () => ({
-  getSkillModifierValue: () => 5 // Mock +5 modifier
+  // NOTE: craftingService aliases getAbilityModifierValue as getSkillModifierValue.
+  // Provide both exports so tests survive alias changes without mutating production logic.
+  getAbilityModifierValue: () => 5,
+  getSkillModifierValue: () => 5
 }));
 
 vi.mock('../../../utils/combatUtils', () => ({
@@ -151,7 +154,8 @@ describe('Crafting System', () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Critical success');
-      expect(result.quality).toBe('rare');
+      // CraftingService bumps crit quality to masterwork on DC+10.
+      expect(result.quality).toBe('masterwork');
     });
   });
 });

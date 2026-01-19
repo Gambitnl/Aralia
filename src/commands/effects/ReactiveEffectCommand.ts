@@ -30,11 +30,11 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
     private registeredListeners: (() => void)[] = []; // Store cleanup functions
 
     execute(state: CombatState): CombatState {
-        // TODO(2026-01-03 pass 6 Codex-CLI): Reactive triggers currently log only; implement effect execution when the reactive system is wired.
-        return state;
-    }
+        const trigger = this.effect.trigger;
+        const durationRounds = this.getDurationInRounds();
+        // Preserve legacy state that may not initialize reactiveTriggers.
+        const newTriggers = [...(state.reactiveTriggers ?? [])];
 
-    /**
         const triggerId = generateId();
         newTriggers.push({
             id: triggerId,
@@ -45,16 +45,14 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
             expiresAtRound: durationRounds ? state.turnState.currentTurn + durationRounds : undefined
         });
 
-        // Register event listeners based on trigger type
+        // Register event listeners based on trigger type.
         this.registerEventListeners(triggerId);
 
-        // Handle sustain requirements
+        // Handle sustain requirements.
         if (trigger.type === 'on_caster_action' && trigger.sustainCost) {
             this.registerSustainRequirement(triggerId);
         }
 
-        // We must ensure reactiveTriggers exists since we just added it to the interface
-        // but existing runtime state might not have it initialized if derived from older logic
         const nextState = {
             ...state,
             reactiveTriggers: newTriggers

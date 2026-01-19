@@ -15,7 +15,7 @@ import { useCallback } from 'react';
 import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { ProcessTopicResult } from '../services/dialogueService';
-import * as GeminiService from '../services/geminiService';
+import * as OllamaTextService from '../services/ollamaTextService';
 import { NPCS } from '../constants';
 
 export const useDialogueSystem = (
@@ -38,11 +38,10 @@ export const useDialogueSystem = (
         if (!systemPrompt) return "...";
 
         try {
-            const result = await GeminiService.generateNPCResponse(
+            const result = await OllamaTextService.generateNPCResponse(
                 npc.name,
                 prompt ?? "",
-                systemPrompt,
-                gameState.devModelOverride ?? null
+                systemPrompt
             );
 
             if (result.data?.text) {

@@ -8,7 +8,7 @@ import { Action, NPC, Location, PlayerCharacter } from '../../../types';
 // src/utils/actionUtils.ts imports '../config/mapConfig' which resolves to src/config/mapConfig.ts
 // From this test file (src/utils/__tests__), those are ../../constants and ../../config/mapConfig
 
-vi.mock('../../constants', () => ({
+vi.mock('../../../constants', () => ({
   ITEMS: {
     'sword_iron': {
       name: 'Iron Sword',
@@ -31,19 +31,17 @@ vi.mock('../../constants', () => ({
   }
 }));
 
-vi.mock('../../config/mapConfig', () => ({
+vi.mock('../../../config/mapConfig', () => ({
   DIRECTION_VECTORS: {
     'north': { x: 0, y: -1 },
     'south': { x: 0, y: 1 }
   }
 }));
 
-// Helper to build permissive actions for tests while keeping labels present.
+// Helper to build permissive actions for tests while keeping labels optional.
 // TODO(lint-intent): Replace with richer fixtures when action shapes are finalized.
-const makeAction = (action: { type: string } & Record<string, unknown>): Action => ({
-  label: action.label ?? action.type,
-  ...action,
-} as Action);
+const makeAction = (action: { type: string } & Record<string, unknown>): Action =>
+  action as Action;
 
   describe('getDiegeticPlayerActionMessage', () => {
   const mockNpcs: Record<string, NPC> = {

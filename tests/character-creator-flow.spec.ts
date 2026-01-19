@@ -16,6 +16,21 @@ test.describe('Character Creator Visual E2E', () => {
         await page.goto('/');
         // Wait for the main menu to be visible
         await page.waitForLoadState('networkidle');
+
+        // Handle any modal dialogs that might block interactions (like Ollama modal)
+        const modalDialog = page.locator('div[role="dialog"]');
+        if (await modalDialog.isVisible({ timeout: 3000 })) {
+            // Try to find and click a close button
+            const closeButton = page.locator('button[aria-label*="close"], button:has-text("Close"), button:has-text("×")').first();
+            if (await closeButton.isVisible({ timeout: 1000 })) {
+                await closeButton.click();
+                await page.waitForTimeout(500);
+            } else {
+                // Try pressing Escape
+                await page.keyboard.press('Escape');
+                await page.waitForTimeout(500);
+            }
+        }
     });
 
     test('Complete Human Fighter creation flow', async ({ page }) => {

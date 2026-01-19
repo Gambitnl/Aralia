@@ -60,7 +60,7 @@ async function listServers(): Promise<void> {
 
       const toolCount = (stdout.match(/\n\s+\w+/g) || []).length;
       console.log(`   Tools: ${toolCount} available`);
-    } catch (error) {
+    } catch {
       console.log(`   Tools: (unable to fetch)`);
     }
 

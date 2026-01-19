@@ -103,18 +103,20 @@ describe('ThievesGuildInterface', () => {
         renderWithState({ thievesGuild: { ...baseGuildMembership, rank: 1, reputation: 50, activeJobs: [] } });
 
         expect(screen.getByText('Shadow Hands Guild')).toBeInTheDocument();
-        expect(screen.getByText(/Rank:/)).toBeInTheDocument();
+        // Header now renders inline "Rank 1 • Reputation 50" rather than a labeled row.
+        expect(screen.getByText(/Rank 1/i)).toBeInTheDocument();
+        expect(screen.getByText(/Reputation 50/i)).toBeInTheDocument();
         expect(screen.getByText('Associate')).toBeInTheDocument();
     });
 
     it('displays available jobs and accepts them', () => {
         renderWithState({ thievesGuild: { ...baseGuildMembership, rank: 1, reputation: 50, activeJobs: [] } });
 
-        // Check job list (mocked above)
-        expect(screen.getByText('Test Job')).toBeInTheDocument();
+        // UI displays the job description as the headline.
+        expect(screen.getByText('A test job')).toBeInTheDocument();
 
         // Accept job
-        fireEvent.click(screen.getByText('Accept Contract'));
+        fireEvent.click(screen.getByText('Accept'));
 
         expect(mockDispatch).toHaveBeenCalledWith({
             type: 'ACCEPT_GUILD_JOB',
@@ -151,10 +153,11 @@ describe('ThievesGuildInterface', () => {
             }
         });
 
-        // Switch tab
-        fireEvent.click(screen.getByText(/Active Jobs/));
+        // Switch tab - tab label is now "Active".
+        fireEvent.click(screen.getByText(/^Active$/));
 
-        expect(screen.getByText('Active Job 1')).toBeInTheDocument();
+        // Active tab renders the job description as the headline.
+        expect(screen.getByText('Doing things')).toBeInTheDocument();
         expect(screen.getByText('Abandon')).toBeInTheDocument();
     });
 });

@@ -17,6 +17,8 @@ import {
   AbilityScoreName,
   MagicInitiateSource,
   FeatChoice,
+  HitDieSize,
+  HitPointDicePool,
 } from '../../types';
 import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE } from '../../data/races';
 import { CLASSES_DATA } from '../../data/classes';
@@ -35,6 +37,7 @@ import { FEATS_DATA } from '../../data/feats/featsData';
  * @returns {number} The numerical modifier (e.g., 2, -1, 0).
  */
 export { getAbilityModifierValue, calculateFinalAbilityScores, getAbilityModifierString } from './statUtils';
+export { getMaxPreparedSpells } from './getMaxPreparedSpells';
 import { getAbilityModifierValue, calculateFinalAbilityScores, calculateFixedRacialBonuses, calculateArmorClass } from './statUtils';
 import {
   isWeaponProficient,
@@ -95,6 +98,165 @@ export function getCharacterRaceDisplayString(character: PlayerCharacter): strin
       return race.name;
   }
 }
+
+const HIT_DIE_SIZES: HitDieSize[] = [6, 8, 10, 12];
+
+const isHitDieSize = (value: number | undefined): value is HitDieSize =>
+  typeof value === 'number' && HIT_DIE_SIZES.includes(value as HitDieSize);
+
+const resolveClassHitDie = (character: PlayerCharacter, classId: string): HitDieSize => {
+  if (character.class?.id === classId && isHitDieSize(character.class.hitDie)) {
+    return character.class.hitDie;
+  }
+  const fromCharacterList = character.classes?.find(cls => cls.id === classId);
+  if (fromCharacterList?.hitDie && isHitDieSize(fromCharacterList.hitDie)) {
+    return fromCharacterList.hitDie;
+  }
+  const fromData = CLASSES_DATA[classId]?.hitDie;
+  if (isHitDieSize(fromData)) {
+    return fromData;
+  }
+  return 8;
+};
+
+const sanitizeHitPointDicePools = (pools: HitPointDicePool[]): HitPointDicePool[] => {
+  const sanitized = pools
+    .map(pool => ({
+      die: pool.die,
+      max: Math.max(0, Math.floor(pool.max)),
+      current: Math.max(0, Math.floor(pool.current)),
+    }))
+    .filter(pool => isHitDieSize(pool.die) && pool.max > 0);
+  return sanitized
+    .map(pool => ({
+      ...pool,
+      current: Math.min(pool.current, pool.max),
+    }))
+    .sort((a, b) => a.die - b.die);
+};
+
+const coerceHitPointDicePools = (
+  character: PlayerCharacter,
+  pools: PlayerCharacter['hitPointDice'] | { current?: number; max?: number } | null | undefined,
+): HitPointDicePool[] | null => {
+  if (Array.isArray(pools)) {
+    return sanitizeHitPointDicePools(pools);
+  }
+  if (pools && typeof pools === 'object' && ('current' in pools || 'max' in pools)) {
+    const level = Math.max(1, character.level ?? 1);
+    const die = resolveClassHitDie(character, character.class.id);
+    const max = Math.max(1, Math.floor(pools.max ?? level));
+    const current = Math.min(max, Math.max(0, Math.floor(pools.current ?? max)));
+    return sanitizeHitPointDicePools([{ die, current, max }]);
+  }
+  return null;
+};
+
+export const normalizeClassLevels = (character: PlayerCharacter): Record<string, number> => {
+  const level = Math.max(1, character.level ?? 1);
+  const primaryClassId = character.class?.id;
+  const normalized: Record<string, number> = {};
+
+  if (character.classLevels && Object.keys(character.classLevels).length > 0) {
+    Object.entries(character.classLevels).forEach(([classId, count]) => {
+      const safeCount = Math.max(0, Math.floor(count));
+      if (safeCount > 0) {
+        normalized[classId] = safeCount;
+      }
+    });
+  } else if (character.classes && character.classes.length > 0) {
+    character.classes.forEach(cls => {
+      normalized[cls.id] = (normalized[cls.id] || 0) + 1;
+    });
+  }
+
+  if (primaryClassId && normalized[primaryClassId] === undefined) {
+    normalized[primaryClassId] = 0;
+  }
+
+  const total = Object.values(normalized).reduce((sum, value) => sum + value, 0);
+  if (total < level && primaryClassId) {
+    normalized[primaryClassId] = (normalized[primaryClassId] || 0) + (level - total);
+  } else if (total > level) {
+    let excess = total - level;
+    const adjustmentOrder = primaryClassId
+      ? [primaryClassId, ...Object.keys(normalized).filter(id => id !== primaryClassId)]
+      : Object.keys(normalized);
+    adjustmentOrder.forEach(classId => {
+      if (excess <= 0) return;
+      const available = normalized[classId] || 0;
+      const reduction = Math.min(available, excess);
+      normalized[classId] = available - reduction;
+      excess -= reduction;
+      if (normalized[classId] <= 0) {
+        delete normalized[classId];
+      }
+    });
+  }
+
+  if (Object.keys(normalized).length === 0 && primaryClassId) {
+    normalized[primaryClassId] = level;
+  }
+
+  return normalized;
+};
+
+const buildHitPointDiceMaxByDie = (
+  character: PlayerCharacter,
+  classLevels: Record<string, number>,
+): Record<HitDieSize, number> => {
+  const maxByDie: Record<HitDieSize, number> = {
+    6: 0,
+    8: 0,
+    10: 0,
+    12: 0,
+  };
+
+  Object.entries(classLevels).forEach(([classId, count]) => {
+    if (count <= 0) return;
+    const die = resolveClassHitDie(character, classId);
+    maxByDie[die] += count;
+  });
+
+  return maxByDie;
+};
+
+const mergeHitPointDicePools = (
+  prevPools: HitPointDicePool[] | null | undefined,
+  maxByDie: Record<HitDieSize, number>,
+): HitPointDicePool[] => {
+  const previous = sanitizeHitPointDicePools(prevPools ?? []);
+  const previousByDie = new Map(previous.map(pool => [pool.die, pool]));
+
+  const nextPools = HIT_DIE_SIZES.map((die) => {
+    const max = maxByDie[die] || 0;
+    if (max <= 0) return null;
+    const prev = previousByDie.get(die);
+    const prevMax = prev?.max ?? 0;
+    const prevCurrent = prev?.current ?? prevMax;
+    const gained = Math.max(0, max - prevMax);
+    const current = Math.min(max, Math.max(0, prevCurrent + gained));
+    return { die, current, max };
+  }).filter(Boolean) as HitPointDicePool[];
+
+  return sanitizeHitPointDicePools(nextPools);
+};
+
+export const buildHitPointDicePools = (
+  character: PlayerCharacter,
+  overrides?: {
+    classLevels?: Record<string, number>;
+    previousPools?: PlayerCharacter['hitPointDice'] | { current?: number; max?: number } | null;
+  },
+): HitPointDicePool[] => {
+  const classLevels = overrides?.classLevels ?? normalizeClassLevels(character);
+  const prevPools = coerceHitPointDicePools(character, overrides?.previousPools ?? character.hitPointDice);
+  const maxByDie = buildHitPointDiceMaxByDie(character, classLevels);
+  return mergeHitPointDicePools(prevPools, maxByDie);
+};
+
+export const getHitPointDiceTotal = (pools?: HitPointDicePool[]): number =>
+  (pools ?? []).reduce((sum, pool) => sum + pool.current, 0);
 
 /**
  * Returns a numerical value for armor categories to allow for comparisons.
@@ -253,6 +415,8 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
   const baseAbilityScores: AbilityScores = { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 };
   const finalAbilityScores = calculateFixedRacialBonuses(baseAbilityScores, raceData);
   const maxHp = classData.hitDie + getAbilityModifierValue(finalAbilityScores.Constitution);
+  // Initialize class levels so Hit Dice pools can be derived for temp members.
+  const classLevels = { [classData.id]: Math.max(1, tempMember.level) };
 
   const newChar: PlayerCharacter = {
     id: tempMember.id,
@@ -261,12 +425,14 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
     xp: 0,
     race: raceData,
     class: classData,
+    classLevels,
     abilityScores: baseAbilityScores,
     finalAbilityScores,
     skills: [],
     statusEffects: [],
     hp: maxHp,
     maxHp: maxHp,
+    hitPointDice: undefined,
     armorClass: 10 + getAbilityModifierValue(finalAbilityScores.Dexterity),
     speed: 30,
     darkvisionRange: 0,
@@ -274,6 +440,7 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
     equippedItems: {},
     proficiencyBonus: Math.floor((tempMember.level - 1) / 4) + 2,
   };
+  newChar.hitPointDice = buildHitPointDicePools(newChar, { classLevels });
   newChar.armorClass = calculateArmorClass(newChar, newChar.activeEffects);
   return newChar;
 };
@@ -721,6 +888,10 @@ export const performLevelUp = (
       updatedCharacter = applyFeatToCharacter(updatedCharacter, feat, {
         applyHpBonus: false,
         selectedAbilityScore: featChoice?.selectedAbilityScore,
+        selectedCantrips: featChoice?.selectedCantrips as string[] | undefined,
+        selectedLeveledSpells: featChoice?.selectedLeveledSpells as string[] | undefined,
+        selectedSpellSource: featChoice?.selectedSpellSource as MagicInitiateSource | undefined,
+        selectedSkills: featChoice?.selectedSkills as string[] | undefined,
       });
 
       // Store feat choices on the character if provided
@@ -741,7 +912,9 @@ export const performLevelUp = (
   updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);
 
   // Calculate HP increase (Average of Hit Die + Con Mod) plus any feat bonuses.
-  const hitDie = updatedCharacter.class.hitDie;
+  // Use the chosen class hit die for multiclass level-ups.
+  const leveledClassId = choices?.classId || updatedCharacter.class?.id;
+  const hitDie = leveledClassId ? resolveClassHitDie(updatedCharacter, leveledClassId) : updatedCharacter.class.hitDie;
   const hpIncreaseBase = (hitDie / 2) + 1;
   const conMod = getAbilityModifierValue(updatedCharacter.finalAbilityScores.Constitution);
   const hpBonusPerLevel = getHpBonusPerLevelFromFeats(updatedCharacter.feats || []);
@@ -758,6 +931,18 @@ export const performLevelUp = (
 
   updatedCharacter.maxHp = (character.maxHp || 0) + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment;
   updatedCharacter.hp = Math.min(updatedCharacter.maxHp, (character.hp || 0) + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment);
+
+  // Update class level tracking and refresh Hit Dice pools for the new level.
+  const updatedClassLevels = normalizeClassLevels(character);
+  if (leveledClassId) {
+    // Apply the level to the chosen class so Hit Dice pools grow correctly.
+    updatedClassLevels[leveledClassId] = (updatedClassLevels[leveledClassId] || 0) + 1;
+  }
+  updatedCharacter.classLevels = updatedClassLevels;
+  updatedCharacter.hitPointDice = buildHitPointDicePools(updatedCharacter, {
+    classLevels: updatedClassLevels,
+    previousPools: character.hitPointDice,
+  });
 
   // Calculate new Proficiency Bonus
   updatedCharacter.proficiencyBonus = Math.floor((newLevel - 1) / 4) + 2;
@@ -778,8 +963,23 @@ export const applyXpAndHandleLevelUps = (
   let safetyCounter = 0;
 
   while (canLevelUp(updatedCharacter) && safetyCounter < 20) {
+    const nextLevel = (updatedCharacter.level || 1) + 1;
+    const asiBudget = getAbilityScoreImprovementBudget(nextLevel);
+    const hasAsiOrFeatChoice = !!choices && (!!choices.featId || !!choices.abilityScoreIncreases);
+
+    // Pause automatic leveling when a choice is required but none was provided.
+    if (asiBudget > 0 && !hasAsiOrFeatChoice) {
+      // Stop auto-leveling when a choice is required so UI can prompt for ASI/feat selection.
+      break;
+    }
+
     updatedCharacter = performLevelUp(updatedCharacter, choices);
     safetyCounter += 1;
+
+    // Avoid reusing a single choice payload across multiple level-ups.
+    if (choices) {
+      break;
+    }
   }
 
   return updatedCharacter;

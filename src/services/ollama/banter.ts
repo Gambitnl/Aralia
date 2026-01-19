@@ -167,8 +167,8 @@ export async function generateBanter(
     });
 
     if (!result.ok) {
-        // Check if it's a timeout error
-        if (result.error === 'Request timed out') {
+        // Check if it's a timeout error (fetchWithTimeout includes elapsed time in the message).
+        if (result.error.toLowerCase().includes('timed out')) {
             return client.createErrorResult(
                 { type: 'TIMEOUT', message: result.error },
                 { prompt, response: `[TIMEOUT ERROR] ${result.error}`, model }

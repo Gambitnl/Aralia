@@ -6,10 +6,11 @@
  * Now wrapped in WindowFrame for resizing/dragging capabilities.
  */
 import React, { useEffect, useState } from 'react';
-import { PlayerCharacter, Item, EquipmentSlotType, Action, Quest } from '../../types';
+import { PlayerCharacter, Item, EquipmentSlotType, Action, Quest, LevelUpChoices } from '../../types';
 import { JournalState } from '../../types/journal';
 import { Companion } from '../../types/companions';
 import { WindowFrame } from '../ui/WindowFrame';
+import { canLevelUp } from '../../utils/characterUtils';
 
 // Tab components from subfolders
 import { CharacterOverview, EquipmentMannequin, InventoryList } from './Overview';
@@ -19,6 +20,7 @@ import { FamilyTreeTab } from './Family';
 import { SpellbookTab } from './Spellbook';
 import { CraftingTab } from './Crafting';
 import { JournalTab } from './Journal';
+import LevelUpModal from './LevelUpModal';
 
 interface CharacterSheetModalProps {
   isOpen: boolean;
@@ -49,10 +51,13 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<SheetTab>('overview');
   const [filterBySlot, setFilterBySlot] = useState<EquipmentSlotType | null>(null);
+  const [isLevelUpOpen, setIsLevelUpOpen] = useState(false);
 
   useEffect(() => {
     // Reset to overview tab when modal opens or character changes
     setActiveTab('overview');
+    // Close any level-up flow when switching characters.
+    setIsLevelUpOpen(false);
   }, [isOpen, character?.id]);
 
   const handleSlotClick = (slot: EquipmentSlotType, item?: Item) => {
@@ -73,6 +78,22 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
     character.spellbook.knownSpells.length > 0
   );
   const hasFamily = character.richNpcData?.family && character.richNpcData.family.length > 0;
+  const canLevel = !!character.id && canLevelUp(character);
+
+  const handleLevelUpConfirm = (choices: LevelUpChoices) => {
+    if (!character.id) return;
+    // Use the generic character choice action so reducer logic stays centralized.
+    onAction({
+      type: 'UPDATE_CHARACTER_CHOICE',
+      label: 'Level Up',
+      payload: {
+        characterId: character.id,
+        choiceType: 'level_up',
+        choiceId: 'level_up',
+        secondaryValue: { choices },
+      },
+    });
+  };
 
   return (
     <WindowFrame
@@ -144,6 +165,17 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           >
             Journal
           </button>
+          {canLevel && (
+            <div className="ml-auto flex items-center">
+              <button
+                onClick={() => setIsLevelUpOpen(true)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-600/80 hover:bg-emerald-500 text-white"
+                aria-label={`Level up ${character.name}`}
+              >
+                Level Up
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Main Content Area */}
@@ -202,6 +234,14 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Level up flow is nested here so it can reuse the active character context. */}
+      <LevelUpModal
+        isOpen={isLevelUpOpen}
+        character={character}
+        onClose={() => setIsLevelUpOpen(false)}
+        onConfirm={handleLevelUpConfirm}
+      />
     </WindowFrame>
   );
 };

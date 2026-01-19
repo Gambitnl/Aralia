@@ -240,7 +240,9 @@ const GameModals: React.FC<GameModalsProps> = ({
                             party={gameState.party}
                             onViewCharacterSheet={handleOpenCharacterSheet}
                             onFixMissingChoice={onFixMissingChoice}
-                            companions={gameState.companions}
+                            onLongRest={() => onAction({ type: 'LONG_REST', label: 'Long Rest' })}
+                            onShortRest={() => onAction({ type: 'SHORT_REST', label: 'Short Rest' })}
+                            shortRestTracker={gameState.shortRestTracker}
                         />
                     </ErrorBoundary>
                 </Suspense>

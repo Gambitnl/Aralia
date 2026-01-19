@@ -23,6 +23,9 @@ A pure function that implements all state transition logic.
 *   A top-level `switch` statement handles the cross-cutting actions directly.
 *   For all other actions, it calls each slice reducer in sequence, spreading their returned partial state objects onto the new state. This allows each slice to handle the actions relevant to it without interfering with others.
 
+### Notable Cross-Cutting Actions
+*   **`END_BATTLE`**: Distributes XP and rewards, auto-applies any level ups that do not require choices, and queues system messages when a character can still level up (so the player can open the level-up modal and make selections).
+
 ## Usage
 
 *   **`App.tsx`**: Imports `appReducer` and `initialGameState` and uses them with the `useReducer` hook to manage the application's state.

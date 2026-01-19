@@ -1,5 +1,6 @@
 import React from 'react';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableHeader, TableRow } from '../ui/Table';
 
 interface Characteristic {
     label: string;
@@ -22,36 +23,36 @@ export const GlossarySummaryTable: React.FC<GlossarySummaryTableProps> = ({
     if (!characteristics || characteristics.length === 0) return null;
 
     return (
-        <div className="mb-8 overflow-hidden rounded-lg border border-gray-600 shadow-md">
-            <table className="min-w-full divide-y divide-gray-600">
-                <thead className="bg-gray-700/50">
-                    <tr>
+        <TableContainer className="mb-8">
+            <Table>
+                <TableHeader>
+                    <TableRow>
                         {characteristics.map((char, index) => (
-                            <th
+                            <TableHead
                                 key={index}
-                                className="px-4 py-3 text-left text-[10px] font-bold text-sky-300 uppercase tracking-tighter border-r border-gray-600 last:border-r-0"
+                                className="border-r border-gray-600 last:border-r-0"
                             >
                                 {char.label}
-                            </th>
+                            </TableHead>
                         ))}
-                    </tr>
-                </thead>
-                <tbody className="bg-gray-800/50">
-                    <tr>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow>
                         {characteristics.map((char, index) => (
-                            <td
+                            <TableCell
                                 key={index}
-                                className="px-4 py-4 text-sm font-medium text-gray-200 border-r border-gray-600 last:border-r-0"
+                                className="border-r border-gray-600 last:border-r-0 align-top"
                             >
                                 <GlossaryContentRenderer
                                     markdownContent={char.value}
                                     onNavigate={onNavigate}
                                 />
-                            </td>
+                            </TableCell>
                         ))}
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </TableContainer>
     );
 };

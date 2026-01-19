@@ -2,7 +2,7 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool } from '../types';
 import { RitualState } from '../types/rituals';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -116,7 +116,8 @@ export type AppAction =
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }
   | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[] } }
-  | { type: 'SHORT_REST' }
+  // Short rest updates can include healing, Hit Dice pool adjustments, and party-level rest tracking.
+  | { type: 'SHORT_REST'; payload?: { healingByCharacterId?: Record<string, number>; hitPointDiceUpdates?: Record<string, HitPointDicePool[]>; shortRestTracker?: GameState['shortRestTracker'] } }
   // Religion Actions
   | { type: 'PRAY'; payload: { deityId: string; offering?: number } }
   | { type: 'TRIGGER_DEITY_ACTION'; payload: { trigger: string } }

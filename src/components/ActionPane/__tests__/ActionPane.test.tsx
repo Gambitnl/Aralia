@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ActionPane from '../index';
-import { Action, Item, Location, NPC } from '../../../types';
+import { Action, Item, Location, NPC, PlayerCharacter } from '../../../types';
 
 // Mock framer-motion to avoid animation issues and hoisting errors
 vi.mock('framer-motion', async (importOriginal) => {
@@ -63,10 +63,57 @@ describe('ActionPane', () => {
     { id: 'item-1', name: 'Ancient Coin', description: '', type: 'treasure' },
   ];
 
+  const mockPartyMember: PlayerCharacter = {
+    id: 'party-1',
+    name: 'Test Hero',
+    level: 1,
+    proficiencyBonus: 2,
+    race: { id: 'human', name: 'Human', description: '', traits: [] },
+    class: {
+      id: 'fighter',
+      name: 'Fighter',
+      description: '',
+      hitDie: 10,
+      primaryAbility: ['Strength'],
+      savingThrowProficiencies: ['Strength'],
+      skillProficienciesAvailable: [],
+      numberOfSkillProficiencies: 0,
+      armorProficiencies: [],
+      weaponProficiencies: [],
+      features: [],
+    },
+    abilityScores: {
+      Strength: 10,
+      Dexterity: 10,
+      Constitution: 10,
+      Intelligence: 10,
+      Wisdom: 10,
+      Charisma: 10,
+    },
+    finalAbilityScores: {
+      Strength: 10,
+      Dexterity: 10,
+      Constitution: 10,
+      Intelligence: 10,
+      Wisdom: 10,
+      Charisma: 10,
+    },
+    skills: [],
+    hp: 8,
+    maxHp: 10,
+    armorClass: 10,
+    speed: 30,
+    darkvisionRange: 0,
+    transportMode: 'foot',
+    statusEffects: [],
+    equippedItems: {},
+  };
+
   const defaultProps = {
     currentLocation: baseLocation,
     npcsInLocation,
     itemsInLocation,
+    party: [mockPartyMember],
     onAction: vi.fn(),
     disabled: false,
     geminiGeneratedActions: null as Action[] | null,
@@ -155,12 +202,14 @@ describe('ActionPane', () => {
     render(
       <ActionPane
         {...defaultProps}
-        isDevDummyActive={true}
+        isDevModeEnabled={true}
         hasNewRateLimitError={true}
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
-    expect(screen.getByText('Dev Menu')).toBeInTheDocument();
+    // Use the system menu trigger label ("Menu") to avoid matching "Dev Menu" buttons.
+    fireEvent.click(screen.getByRole('button', { name: /^Menu$/i }));
+    // Assert the menu entry specifically to avoid the standalone Dev Menu action button.
+    expect(screen.getByRole('menuitem', { name: 'Dev Menu' })).toBeInTheDocument();
   });
 });

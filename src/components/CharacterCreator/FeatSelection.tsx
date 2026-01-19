@@ -1,7 +1,7 @@
 /**
  * @file FeatSelection.tsx
  */
-import React, { useContext, useCallback, useMemo } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { Feat, MagicInitiateSource, FeatGrantedSpell } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
 import type { FeatChoiceState, FeatChoiceValue } from './state/characterCreatorState';
@@ -26,8 +26,9 @@ interface FeatSelectionProps {
   onConfirm: () => void;
   onBack?: () => void;
   hasEligibleFeats: boolean;
-  dispatch: React.Dispatch<AppAction>;
+  dispatch?: React.Dispatch<AppAction>;
   knownSkillIds?: string[];
+  allowSkip?: boolean;
 }
 
 /**
@@ -95,8 +96,11 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   onBack,
   hasEligibleFeats,
   dispatch,
-  knownSkillIds = []
+  knownSkillIds = [],
+  allowSkip = true,
 }) => {
+  // When skip is disabled (e.g., level-up flow), require an explicit feat selection.
+  const selectionRequired = !allowSkip;
   // We allow deselection so the feat step behaves like a voluntary choice rather than a hard blocker.
   const handleToggle = useCallback((featId: string, isDisabled: boolean) => {
     if (isDisabled) return;
@@ -137,7 +141,8 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   const selectedSpellSource = currentChoices?.selectedSpellSource as MagicInitiateSource | undefined;
 
   // Helper to check if all spell choices are complete
-  const areSpellChoicesComplete = useMemo(() => {
+  // Compute inline to keep React Compiler-friendly behavior without manual memoization.
+  const areSpellChoicesComplete = (() => {
     if (!spellBenefits) return true;
 
     // Check if source is needed and selected (for Magic Initiate)
@@ -155,7 +160,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     }
 
     return true;
-  }, [spellBenefits, selectedSpellSource, currentChoices]); // eslint-disable-line react-hooks/preserve-manual-memoization
+  })();
 
   // Handle spell source change - clear spell selections
   const handleSpellSourceChange = useCallback((source: MagicInitiateSource) => {
@@ -170,7 +175,9 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   }, [selectedFeatId, selectedSpellSource, onSetFeatChoice]);
 
   // Handle Skill Toggle
-  const handleSkillToggle = useCallback((skillId: string) => {
+  // Keep this as a plain function to avoid manual memoization warnings from the React Compiler lint.
+  // TODO(next-agent): Preserve behavior; revisit memoization if compiler support improves or this becomes a hotspot.
+  const handleSkillToggle = (skillId: string) => {
     if (!selectedFeatId) return;
 
     const currentList = (featChoices[selectedFeatId]?.selectedSkills as string[]) || [];
@@ -184,17 +191,26 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     }
     onSetFeatChoice(selectedFeatId, 'selectedSkills', newList);
 
-  }, [selectedFeatId, featChoices, selectableSkillCount, onSetFeatChoice]);
+  };
 
   return (
     <div className="flex flex-col h-full">
       <h2 className="text-2xl text-sky-300 mb-6 text-center">Select a Feat</h2>
       <p className="text-gray-400 text-center mb-6">
-        Choose a feat to customize your character&apos;s abilities. This step is optional&mdash;continue without a selection if no feat fits your build.
+        {selectionRequired
+          ? 'Choose a feat to gain at this level.'
+          : "Choose a feat to customize your character's abilities. This step is optional; continue without a selection if no feat fits your build."}
       </p>
       {!hasEligibleFeats && (
         <div className="mb-4 text-center text-sm text-amber-200 bg-amber-900/30 border border-amber-700/60 rounded-lg px-3 py-2">
-          At 1st level none of your prerequisites are met yet, so skipping is expected. You can always add a feat later once you qualify.
+          {selectionRequired
+            ? 'No eligible feats are available right now. Go back and choose an Ability Score Improvement instead.'
+            : 'At 1st level none of your prerequisites are met yet, so skipping is expected. You can always add a feat later once you qualify.'}
+        </div>
+      )}
+      {selectionRequired && !selectedFeatId && (
+        <div className="mb-4 text-center text-xs text-gray-400">
+          Select a feat to continue.
         </div>
       )}
 
@@ -460,34 +476,37 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
           </button>
         )}
         <div className="flex-1 flex justify-end gap-3">
-          <button
-            onClick={() => {
-              const featCleared = !!selectedFeatId;
-              onSelectFeat('');
-              if (featCleared) {
-                // We only surface the toast if a choice was actively cleared, not if the user just clicked past an empty selection.
-                // This keeps the feedback relevant and avoids penalizing players for exploring.
-                dispatch({
-                  type: 'ADD_NOTIFICATION',
-                  payload: {
-                    message: 'Feat selection skipped.',
-                    type: 'info',
-                    duration: 3000,
-                  },
-                });
-              }
-              onConfirm();
-            }}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-            aria-label="Skip feat selection and continue"
-          >
-            Skip
-          </button>
+          {allowSkip && (
+            <button
+              onClick={() => {
+                const featCleared = !!selectedFeatId;
+                onSelectFeat('');
+                if (featCleared && dispatch) {
+                  // We only surface the toast if a choice was actively cleared, not if the user just clicked past an empty selection.
+                  // This keeps the feedback relevant and avoids penalizing players for exploring.
+                  dispatch({
+                    type: 'ADD_NOTIFICATION',
+                    payload: {
+                      message: 'Feat selection skipped.',
+                      type: 'info',
+                      duration: 3000,
+                    },
+                  });
+                }
+                onConfirm();
+              }}
+              className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              aria-label="Skip feat selection and continue"
+            >
+              Skip
+            </button>
+          )}
           <button
             onClick={onConfirm}
             className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
             aria-label="Confirm feat choice and continue"
             disabled={
+              (selectionRequired && !selectedFeatId) ||
               (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
               (hasSelectableASI && !selectedASI) ||
               (hasSelectableDamageType && !selectedDamageType) ||

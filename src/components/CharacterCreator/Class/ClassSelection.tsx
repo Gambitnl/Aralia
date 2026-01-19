@@ -2,7 +2,7 @@
  * @file ClassSelection.tsx
  * Refactored to use the Split Config Style (List on Left, Details on Right).
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Class as CharClass } from '../../../types'; 
 import { CreationStepLayout } from '../ui/CreationStepLayout';
@@ -22,16 +22,11 @@ const ClassSelection: React.FC<ClassSelectionProps> = ({
 }) => {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
-  // Auto-select first class
-  useEffect(() => {
-    if (!selectedClassId && classes.length > 0) {
-      const sorted = [...classes].sort((a, b) => a.name.localeCompare(b.name));
-      setSelectedClassId(sorted[0].id);
-    }
-  }, [classes, selectedClassId]);
-
   const sortedClasses = [...classes].sort((a, b) => a.name.localeCompare(b.name));
-  const selectedClass = classes.find(c => c.id === selectedClassId);
+  const defaultClassId = sortedClasses[0]?.id ?? null;
+  // Avoid setState-in-effect by treating the first class as the implicit selection.
+  const effectiveClassId = selectedClassId ?? defaultClassId;
+  const selectedClass = sortedClasses.find(c => c.id === effectiveClassId) ?? null;
 
   return (
     <CreationStepLayout title="Choose Your Class" onBack={onBack}>
@@ -43,14 +38,14 @@ const ClassSelection: React.FC<ClassSelectionProps> = ({
                 key={charClass.id}
                 onClick={() => setSelectedClassId(charClass.id)}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent ${
-                  selectedClassId === charClass.id
+                  effectiveClassId === charClass.id
                     ? 'bg-sky-900/40 border-sky-500/50 text-sky-300 shadow-md font-semibold'
                     : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span>{charClass.name}</span>
-                  {selectedClassId === charClass.id && (
+                  {effectiveClassId === charClass.id && (
                     <motion.span layoutId="active-indicator-class" className="text-sky-400 text-sm">
                       ▶
                     </motion.span>

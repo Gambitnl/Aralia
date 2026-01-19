@@ -2,7 +2,7 @@
  * @file BackgroundSelection.tsx
  * Refactored to use the Split Config Style.
  */
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Race } from '../../types';
 import { BACKGROUNDS, AGE_APPROPRIATE_BACKGROUNDS } from '../../data/backgrounds';
@@ -84,18 +84,15 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
     return appropriateIds.map(id => BACKGROUNDS[id]).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
   }, [ageCategory]);
 
-  // Auto-select first if none selected
-  useEffect(() => {
-      if (!selectedBackgroundId && availableBackgrounds.length > 0) {
-          setSelectedBackgroundId(availableBackgrounds[0].id);
-      }
-  }, [availableBackgrounds, selectedBackgroundId]);
+  const defaultBackgroundId = availableBackgrounds[0]?.id ?? null;
+  // Avoid setState-in-effect by treating the first available background as the implicit selection.
+  const effectiveBackgroundId = selectedBackgroundId ?? defaultBackgroundId;
 
-  const selectedBackground = selectedBackgroundId ? BACKGROUNDS[selectedBackgroundId] : null;
+  const selectedBackground = effectiveBackgroundId ? BACKGROUNDS[effectiveBackgroundId] : null;
 
   const handleConfirm = () => {
-      if (selectedBackgroundId) {
-          onBackgroundChange(selectedBackgroundId);
+      if (effectiveBackgroundId) {
+          onBackgroundChange(effectiveBackgroundId);
           onNext();
       }
   };
@@ -120,14 +117,14 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
                                 key={bg.id}
                                 onClick={() => setSelectedBackgroundId(bg.id)}
                                 className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent ${
-                                    selectedBackgroundId === bg.id
+                                    effectiveBackgroundId === bg.id
                                         ? 'bg-green-900/40 border-green-500/50 text-green-300 shadow-md font-semibold'
                                         : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
                                     <span>{bg.name}</span>
-                                    {selectedBackgroundId === bg.id && (
+                                    {effectiveBackgroundId === bg.id && (
                                         <motion.span layoutId="active-indicator-bg" className="text-green-400 text-sm">
                                             ▶
                                         </motion.span>

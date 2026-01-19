@@ -1,7 +1,7 @@
 /**
  * @file CreationSidebar.tsx
  * Persistent left sidebar for character creation, showing step progress,
- * current selections, and allowing navigation to completed steps.
+ * current selections, and allowing navigation between steps.
  * Inspired by Baldur's Gate 3's character creation UI.
  */
 import React from 'react';
@@ -64,8 +64,8 @@ const SidebarStepRow: React.FC<{
   const isCurrent = currentStep === config.step;
   const isNested = config.parentStep !== undefined;
 
-  // Can only navigate to completed steps or current step
-  const canNavigate = isComplete && !isCurrent;
+  // Steps are always navigable (except the current step), regardless of completion.
+  const canNavigate = !isCurrent;
 
   const summary = config.getSelectionSummary(state);
 
@@ -81,11 +81,10 @@ const SidebarStepRow: React.FC<{
       disabled={!canNavigate}
       className={`
         w-full flex items-center gap-3 py-2 px-3 rounded-md text-left transition-colors
-        ${isNested ? 'ml-4' : ''}
-        ${isCurrent ? 'bg-gray-700/50' : ''}
-        ${canNavigate ? 'hover:bg-gray-700/70 cursor-pointer' : 'cursor-default'}
-        ${!isComplete && !isCurrent ? 'opacity-50' : ''}
-      `}
+	        ${isNested ? 'ml-4' : ''}
+	        ${isCurrent ? 'bg-gray-700/50' : ''}
+	        ${canNavigate ? 'hover:bg-gray-700/70 cursor-pointer' : 'cursor-default'}
+	      `}
       aria-current={isCurrent ? 'step' : undefined}
       aria-label={`${config.label}${summary ? `: ${summary}` : ''}${isComplete ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
     >

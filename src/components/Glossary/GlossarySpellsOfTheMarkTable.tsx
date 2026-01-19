@@ -1,5 +1,6 @@
 import React from 'react';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableHeader, TableRow } from '../ui/Table';
 
 interface SpellLevel {
     minLevel: number;
@@ -24,21 +25,21 @@ export const GlossarySpellsOfTheMarkTable: React.FC<GlossarySpellsOfTheMarkTable
     if (isEmbedded) {
         return (
             <div className="mt-3">
-                <table className="w-full text-left text-xs bg-black/20 rounded border-collapse">
-                    <thead>
-                        <tr className="border-b border-gray-600">
-                            <th className="py-2 px-3 font-semibold text-amber-300 uppercase tracking-wider w-24">Level</th>
-                            <th className="py-2 px-3 font-semibold text-amber-300 uppercase tracking-wider">Spells</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-700/30">
+                <Table className="rounded-t-none">
+                    <TableHeader>
+                        <TableRow className="border-b border-gray-600">
+                            <TableHead className="w-24 text-amber-300">Level</TableHead>
+                            <TableHead className="text-amber-300">Spells</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {spells.map((level, index) => (
-                            <tr key={index} className="hover:bg-gray-800/30 transition-colors">
-                                <td className="py-2 px-3 text-amber-400/90 font-mono">
+                            <TableRow key={index}>
+                                <TableCell className="font-mono text-amber-400/90">
                                     {level.minLevel}
-                                </td>
-                                <td className="py-2 px-3 text-gray-300">
-                                    <div className="flex flex-wrap gap-2">
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex flex-wrap gap-2 text-gray-300">
                                         {level.spells.map((spell, i) => (
                                             <span key={i}>
                                                 <GlossaryContentRenderer
@@ -50,35 +51,35 @@ export const GlossarySpellsOfTheMarkTable: React.FC<GlossarySpellsOfTheMarkTable
                                             </span>
                                         ))}
                                     </div>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
         );
     }
 
     return (
-        <div className="overflow-hidden rounded-lg border border-gray-600 shadow-lg bg-gray-900/40 mt-4">
-             <div className="bg-gray-800/60 px-4 py-2 border-b border-gray-600">
+        <TableContainer className="mt-4">
+            <div className="bg-gray-800/60 px-4 py-2 border-b border-gray-600">
                 <h4 className="text-sm font-bold text-amber-300">Spells of the Mark</h4>
             </div>
-            <table className="w-full text-left text-xs bg-black/20 rounded-b border-collapse">
-                <thead>
-                    <tr className="border-b border-gray-600">
-                        <th className="py-2 px-4 font-semibold text-sky-400 uppercase tracking-wider w-32">Spell Level</th>
-                        <th className="py-2 px-4 font-semibold text-sky-400 uppercase tracking-wider">Spells</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700/30">
+            <Table>
+                <TableHeader>
+                    <TableRow className="border-b border-gray-600">
+                        <TableHead className="w-32 text-sky-400">Spell Level</TableHead>
+                        <TableHead className="text-sky-400">Spells</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
                     {spells.map((level, index) => (
-                        <tr key={index} className="hover:bg-gray-800/50 transition-colors">
-                            <td className="py-2 px-4 text-gray-400 font-mono">
+                        <TableRow key={index}>
+                            <TableCell className="font-mono text-gray-400">
                                 Level {level.minLevel}
-                            </td>
-                            <td className="py-2 px-4 text-gray-300">
-                                <div className="flex flex-wrap gap-2">
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-wrap gap-2 text-gray-300">
                                     {level.spells.map((spell, i) => (
                                         <span key={i}>
                                             <GlossaryContentRenderer
@@ -89,11 +90,11 @@ export const GlossarySpellsOfTheMarkTable: React.FC<GlossarySpellsOfTheMarkTable
                                         </span>
                                     ))}
                                 </div>
-                            </td>
-                        </tr>
+                            </TableCell>
+                        </TableRow>
                     ))}
-                </tbody>
-            </table>
-        </div>
+                </TableBody>
+            </Table>
+        </TableContainer>
     );
 };

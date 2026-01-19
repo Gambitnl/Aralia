@@ -19,7 +19,7 @@ import { WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants'
 import { SKILLS_DATA } from '../../../data/skills';
 import { BACKGROUNDS } from '../../../data/backgrounds';
 import { CharacterCreationState } from '../state/characterCreatorState';
-import { getAbilityModifierValue, applyAllFeats } from '../../../utils/characterUtils';
+import { getAbilityModifierValue, applyAllFeats, buildHitPointDicePools } from '../../../utils/characterUtils';
 
 // --- Helper Functions for Character Assembly ---
 
@@ -464,6 +464,8 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
 
     const castingProperties = assembleCastingProperties(currentState);
 
+    // Seed class levels for Hit Dice pools (single-class at creation).
+    const classLevels = { [finalClass.id]: 1 };
     let assembledCharacter: PlayerCharacter = {
       id: `${Date.now()}-${(currentName || "char").replace(/\s+/g, '-')}`,
       name: currentName || "Adventurer",
@@ -474,15 +476,18 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       proficiencyBonus: 2,
       race: selectedRace,
       class: finalClass,
+      classLevels,
       abilityScores: baseAbilityScores,
       finalAbilityScores,
-      skills: assembleFinalSkills(currentState),
-      hp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
-      maxHp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
-      armorClass: 10 + getAbilityModifierValue(finalAbilityScores.Dexterity),
-      speed: calculateCharacterSpeed(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
-      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined, racialSelections['gnome']?.choiceId as 'forest_gnome' | 'rock_gnome' | 'deep_gnome' | undefined),
-      transportMode: 'foot',
+	      skills: assembleFinalSkills(currentState),
+	      hp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
+	      maxHp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
+	      // Hit Dice pools are computed after assembly to include class levels.
+	      hitPointDice: undefined,
+	      armorClass: 10 + getAbilityModifierValue(finalAbilityScores.Dexterity),
+	      speed: calculateCharacterSpeed(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
+	      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined, racialSelections['gnome']?.choiceId as 'forest_gnome' | 'rock_gnome' | 'deep_gnome' | undefined),
+	      transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
       feats: currentState.selectedFeat ? [currentState.selectedFeat] : [],
       featChoices: (currentState.featChoices as unknown as Record<string, import('../../../types/character').FeatChoice>) || {},
@@ -496,6 +501,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       racialSelections: currentState.racialSelections,
       visuals: currentState.visuals,
     };
+    assembledCharacter.hitPointDice = buildHitPointDicePools(assembledCharacter, { classLevels });
 
     // Apply age-based modifications
     if (currentState.characterAge) {

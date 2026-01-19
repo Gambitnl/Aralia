@@ -54,15 +54,19 @@ function parseArgs(args: string[]) {
 }
 
 const parsed = parseArgs(args);
-const validRoles = ['merchant', 'quest_giver', 'guard', 'civilian', 'unique'];
+const validRoles = ['merchant', 'quest_giver', 'guard', 'civilian', 'unique'] as const;
+type ValidRole = (typeof validRoles)[number];
+const isValidRole = (value?: string): value is ValidRole =>
+  !!value && validRoles.includes(value as ValidRole);
 
 // Validate role if provided
-if (parsed.role && !validRoles.includes(parsed.role)) {
+if (parsed.role && !isValidRole(parsed.role)) {
     console.error(`Invalid role: ${parsed.role}. Valid roles are: ${validRoles.join(', ')}`);
     process.exit(1);
 }
 
-const role = (parsed.role as any) || 'civilian';
+// Keep the CLI role constrained to the generator's allowed union.
+const role: NPCGenerationConfig['role'] = isValidRole(parsed.role) ? parsed.role : 'civilian';
 const generated: NPC[] = [];
 
 // Generate the requested number of NPCs

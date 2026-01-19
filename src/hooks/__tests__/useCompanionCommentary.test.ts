@@ -39,7 +39,12 @@ describe('useCompanionCommentary', () => {
         localHeat: {},
         knownCrimes: [],
         bounties: []
-      }
+      },
+      // Provide minimal state for commentary context construction.
+      questLog: [],
+      dynamicLocations: { loc_1: { name: 'Test Location' } },
+      environment: { currentWeather: 'Clear' },
+      gameTime: new Date().toISOString()
     } as unknown as GameState;
     vi.useFakeTimers();
   });
@@ -52,6 +57,11 @@ describe('useCompanionCommentary', () => {
   it('should trigger a loot reaction when gold increases significantly', async () => {
     const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch as any), {
       initialProps: { state: mockState }
+    });
+
+    // Clear the startup delay guard before triggering reactions.
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
     });
 
     vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -85,6 +95,11 @@ describe('useCompanionCommentary', () => {
 
     const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch as any), {
       initialProps: { state: mockState }
+    });
+
+    // Clear the startup delay guard before triggering reactions.
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
     });
 
     // Trigger first reaction
@@ -186,6 +201,11 @@ describe('useCompanionCommentary', () => {
       ({ state }) => useCompanionCommentary(state as GameState, mockDispatch as any),
       { initialProps: { state: testState } }
     );
+
+    // Clear the startup delay guard before triggering reactions.
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+    });
 
     // Simulate crime committed
     const updatedState = {

@@ -43,7 +43,7 @@ describe('CharacterOverview', () => {
     );
 
     expect(screen.getByText('Spellcasting')).toBeDefined();
-    expect(screen.getByText('Intelligence')).toBeDefined();
+    expect(screen.getByText(/Int\s*\(\+3\)/)).toBeDefined();
     // Save DC: 8 + 3 (prof) + 3 (mod) = 14
     expect(screen.getByText('14')).toBeDefined();
   });

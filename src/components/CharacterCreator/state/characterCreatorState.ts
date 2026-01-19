@@ -528,11 +528,10 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       return { ...state, ...fieldsToReset, step: targetPrevStep };
     }
     case 'NAVIGATE_TO_STEP': {
-      // Allow navigation to any completed step (for sidebar navigation)
-      // This does NOT reset data - it just changes the current view
       const targetStep = action.payload;
-      // Don't allow navigating forward past current progress
-      if (targetStep > state.step) return state;
+      // Sidebar navigation does NOT reset data - it just changes the current view.
+      // Steps are freely navigable regardless of completion.
+      if (targetStep === state.step) return state;
       return { ...state, step: targetStep };
     }
     default:

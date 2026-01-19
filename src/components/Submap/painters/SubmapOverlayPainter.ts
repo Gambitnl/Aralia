@@ -16,6 +16,13 @@ import { TILE_SIZE as _TILE_SIZE, getBiomePalette as _getBiomePalette, rgbToHex 
 
 export type TimeOfDay = 'dawn' | 'day' | 'dusk' | 'night';
 
+export interface WeatherConfig {
+    type: WeatherType;
+    intensity: number; // 0-1
+    biomeId: string;
+    timeOfDay: TimeOfDay;
+}
+
 export interface OverlayConfig {
     timeOfDay: TimeOfDay;
     biomeId: string;

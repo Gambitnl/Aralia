@@ -3,13 +3,13 @@
  * Refactored to use accordion-style grouping by baseRace.
  * Parent rows are not selectable; only variant races (subraces) are.
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Race } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { RaceDetailPane, RaceDetailData, RacialChoiceData } from './RaceDetailPane';
-import { RACE_GROUPS, getRaceGroupById } from '../../../data/races/raceGroups';
+import { getRaceGroupById } from '../../../data/races/raceGroups';
 import { BTN_PRIMARY } from '../../../styles/buttonStyles';
 
 // Helper to transform raw Race data into the detail pane format
@@ -35,19 +35,27 @@ const transformRaceData = (race: Race): RaceDetailData => {
     if (isCoreTrait && keywordFound) {
       const value = trait.substring(keywordFound.length).trim();
       switch (keywordFound) {
-        case 'creature type:': baseTraits.type = value; break;
-        case 'size:': baseTraits.size = value; break;
-        case 'speed:':
+        case 'creature type:': {
+          baseTraits.type = value;
+          break;
+        }
+        case 'size:': {
+          baseTraits.size = value;
+          break;
+        }
+        case 'speed:': {
           const speedMatch = value.match(/(\d+)/);
           baseTraits.speed = speedMatch ? parseInt(speedMatch[1], 10) : 30;
           break;
-        case 'darkvision:':
+        }
+        case 'darkvision:': {
           const dvMatch = value.match(/(\d+)/);
           baseTraits.darkvision = dvMatch ? parseInt(dvMatch[1], 10) : 0;
           if (value.toLowerCase().includes('superior') || value.toLowerCase().includes('120')) {
             baseTraits.darkvision = 120;
           }
           break;
+        }
       }
     } else {
       const parts = trait.split(':');
@@ -136,22 +144,10 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
     return groups.sort((a, b) => a.name.localeCompare(b.name));
   }, [races]);
 
-  // Auto-select the first variant of the first group
-  useEffect(() => {
-    if (!selectedRaceId && raceGroups.length > 0) {
-      const firstGroup = raceGroups[0];
-      if (firstGroup.variants.length > 0) {
-        setSelectedRaceId(firstGroup.variants[0].id);
-      }
-    }
-  }, [raceGroups, selectedRaceId]);
-
-  // Reset spell ability when race changes
-  useEffect(() => {
-    setSelectedSpellAbility(null);
-  }, [selectedRaceId]);
-
-  const selectedRace = races.find(r => r.id === selectedRaceId);
+  const defaultRaceId = raceGroups[0]?.variants[0]?.id ?? null;
+  // Avoid setState-in-effect by treating the first variant as the implicit selection.
+  const effectiveRaceId = selectedRaceId ?? defaultRaceId;
+  const selectedRace = races.find(r => r.id === effectiveRaceId);
 
   // Compute detail data with sibling variants for comparison table
   const detailData = useMemo(() => {
@@ -203,6 +199,8 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
 
   const handleVariantClick = (raceId: string) => {
     setSelectedRaceId(raceId);
+    // Reset spell ability when the chosen race changes.
+    setSelectedSpellAbility(null);
   };
 
   const raceConfirmButton = selectedRace ? (
@@ -239,7 +237,7 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
               // Single race without variants - render as direct selection button
               if (isSingleRace) {
                 const race = group.variants[0];
-                const isSelected = selectedRaceId === race.id;
+                const isSelected = effectiveRaceId === race.id;
                 return (
                   <button
                     key={race.id}
@@ -296,7 +294,7 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
                       >
                         <div className="ml-4 pl-3 border-l-2 border-gray-700 space-y-1 py-2">
                           {group.variants.map((race) => {
-                            const isSelected = selectedRaceId === race.id;
+                            const isSelected = effectiveRaceId === race.id;
                             return (
                               <button
                                 key={race.id}

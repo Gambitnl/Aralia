@@ -39,6 +39,7 @@ The `CharacterSheetModal.tsx` component provides a modal dialog interface to dis
 
 2.  **Content Sections**:
     *   **Header**: Displays the character's name and a close button ("X").
+    *   **Tab Bar**: Includes a "Level Up" button when the character has enough XP, opening the level-up modal flow.
     *   **Main Content Area (Grid Layout)**:
         *   **Column 1 (Character Details)**: Displays core stats (Vitals, Ability Scores), skills, and selected class/racial features (Fighting Style, Divine Domain, Giant Ancestry, Fiendish Legacy).
         *   **Column 2 (Spells & Inventory)**:

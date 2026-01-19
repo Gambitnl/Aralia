@@ -46,8 +46,9 @@ export function useResizableWindow(
 ) {
     const { initialMaximized = false } = options;
 
-    // Track whether window is currently maximized (for toggle behavior)
-    const [isMaximized, setIsMaximized] = useState<boolean>(initialMaximized);
+    // Only consider maximized if initialMaximized is set AND there's no saved data
+    const hasSavedData = !!SafeStorage.getItem(storageKey);
+    const [isMaximized, setIsMaximized] = useState<boolean>(initialMaximized && !hasSavedData);
 
     // Window size - persisted
     const [size, setSize] = useState<WindowSize>(() => {

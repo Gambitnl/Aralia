@@ -1,7 +1,7 @@
 import { EquipmentSlotType, Item } from './items';
 import { Monster, Location, VillageActionContext, DiscoveryResidue } from './world';
 import { Quest } from './quests';
-import { TempPartyMember, PlayerCharacter } from './character';
+import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './character';
 import { Faction } from './factions';
 
 // -----------------------------------------------------------------------------
@@ -183,6 +183,8 @@ export interface Action {
     spellId?: string;
     spellLevel?: number;
     abilityId?: string;
+    // Short rest spend map: character id -> die size -> count.
+    hitPointDiceSpend?: HitPointDiceSpendMap;
     encounterData?: ShowEncounterModalPayload;
     startBattleMapEncounterData?: StartBattleMapEncounterPayload;
     npcId?: string;

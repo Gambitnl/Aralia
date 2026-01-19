@@ -34,51 +34,106 @@
     "filePath": "/data/glossary/entries/classes/artificer.json",
     "subEntries": [
       {
-        "id": "alchemist_subclass",
-        "title": "Alchemist (Artificer Subclass)",
+        "id": "artificer_subclasses_group",
+        "title": "Artificer Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "artificer",
-          "subclass",
-          "alchemist",
-          "potions",
-          "elixirs",
-          "healing",
-          "chemistry"
-        ],
-        "excerpt": "An expert at combining reagents to produce mystical effects, from healing elixirs to volatile concoctions.",
-        "aliases": [],
-        "seeAlso": [
-          "artificer",
-          "experimental_elixir",
-          "alchemical_savant"
-        ],
-        "filePath": "/data/glossary/entries/classes/artificer_subclasses/alchemist.json",
         "parentClass": "artificer",
-        "type": "subclass"
-      },
-      {
-        "id": "armorer_subclass",
-        "title": "Armorer (Artificer Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "artificer",
-          "subclass",
-          "armorer",
-          "heavy armor",
-          "arcane armor",
-          "guardian",
-          "infiltrator"
-        ],
-        "excerpt": "Modifies armor to function as a second skin, enhancing magic, defense, and unleashing potent attacks.",
-        "aliases": [],
-        "seeAlso": [
-          "artificer",
-          "arcane_armor_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/artificer_subclasses/armorer.json",
-        "parentClass": "artificer",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "alchemist_subclass",
+            "title": "Alchemist",
+            "category": "Character Classes",
+            "tags": [
+              "artificer",
+              "subclass",
+              "alchemist",
+              "potions",
+              "elixirs",
+              "healing",
+              "chemistry"
+            ],
+            "excerpt": "An expert at combining reagents to produce mystical effects, from healing elixirs to volatile concoctions.",
+            "aliases": [],
+            "seeAlso": [
+              "artificer",
+              "experimental_elixir",
+              "alchemical_savant"
+            ],
+            "filePath": "/data/glossary/entries/classes/artificer_subclasses/alchemist.json",
+            "parentClass": "artificer",
+            "type": "subclass"
+          },
+          {
+            "id": "armorer_subclass",
+            "title": "Armorer",
+            "category": "Character Classes",
+            "tags": [
+              "artificer",
+              "subclass",
+              "armorer",
+              "heavy armor",
+              "arcane armor",
+              "guardian",
+              "infiltrator"
+            ],
+            "excerpt": "Modifies armor to function as a second skin, enhancing magic, defense, and unleashing potent attacks.",
+            "aliases": [],
+            "seeAlso": [
+              "artificer",
+              "arcane_armor_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/artificer_subclasses/armorer.json",
+            "parentClass": "artificer",
+            "type": "subclass"
+          },
+          {
+            "id": "artillerist_subclass",
+            "title": "Artillerist",
+            "category": "Character Classes",
+            "tags": [
+              "artificer",
+              "subclass",
+              "artillerist",
+              "eldritch cannon",
+              "turret",
+              "explosions"
+            ],
+            "excerpt": "Specializes in using magic to hurl energy, projectiles, and explosions with a magical cannon.",
+            "aliases": [],
+            "seeAlso": [
+              "artificer",
+              "eldritch_cannon_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/artificer_subclasses/artillerist.json",
+            "parentClass": "artificer",
+            "type": "subclass"
+          },
+          {
+            "id": "battle_smith_subclass",
+            "title": "Battle Smith",
+            "category": "Character Classes",
+            "tags": [
+              "artificer",
+              "subclass",
+              "battle smith",
+              "steel defender",
+              "construct",
+              "protector",
+              "golem"
+            ],
+            "excerpt": "A combination of protector and medic, accompanied by a protective steel defender of their own creation.",
+            "aliases": [],
+            "seeAlso": [
+              "artificer",
+              "steel_defender_feature",
+              "battle_ready_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/artificer_subclasses/battle_smith.json",
+            "parentClass": "artificer",
+            "type": "subclass"
+          }
+        ]
       },
       {
         "id": "artificer_infusions",
@@ -118,52 +173,6 @@
         "filePath": "/data/glossary/entries/classes/artificer_spell_list.json",
         "parentClass": "artificer",
         "type": "spell_list"
-      },
-      {
-        "id": "artillerist_subclass",
-        "title": "Artillerist (Artificer Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "artificer",
-          "subclass",
-          "artillerist",
-          "eldritch cannon",
-          "turret",
-          "explosions"
-        ],
-        "excerpt": "Specializes in using magic to hurl energy, projectiles, and explosions with a magical cannon.",
-        "aliases": [],
-        "seeAlso": [
-          "artificer",
-          "eldritch_cannon_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/artificer_subclasses/artillerist.json",
-        "parentClass": "artificer",
-        "type": "subclass"
-      },
-      {
-        "id": "battle_smith_subclass",
-        "title": "Battle Smith (Artificer Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "artificer",
-          "subclass",
-          "battle smith",
-          "steel defender",
-          "construct",
-          "protector",
-          "golem"
-        ],
-        "excerpt": "A combination of protector and medic, accompanied by a protective steel defender of their own creation.",
-        "aliases": [],
-        "seeAlso": [
-          "artificer",
-          "steel_defender_feature",
-          "battle_ready_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/artificer_subclasses/battle_smith.json",
-        "parentClass": "artificer",
-        "type": "subclass"
       }
     ]
   },
@@ -195,106 +204,115 @@
     "filePath": "/data/glossary/entries/classes/barbarian.json",
     "subEntries": [
       {
-        "id": "path_of_the_berserker",
-        "title": "Path of the Berserker (Barbarian Subclass)",
+        "id": "barbarian_subclasses_group",
+        "title": "Barbarian Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "barbarian",
-          "subclass",
-          "berserker",
-          "frenzy"
-        ],
-        "excerpt": "Channel Rage into violent fury, unleashing devastating attacks.",
-        "aliases": [
-          "berserker"
-        ],
-        "seeAlso": [
-          "barbarian",
-          "frenzy_berserker",
-          "reckless_attack",
-          "rage"
-        ],
-        "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_berserker.json",
         "parentClass": "barbarian",
-        "type": "subclass"
-      },
-      {
-        "id": "path_of_the_wild_heart",
-        "title": "Path of the Wild Heart (Barbarian Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "barbarian",
-          "subclass",
-          "wild heart",
-          "totem",
-          "animal aspect"
-        ],
-        "excerpt": "Walk in community with the animal world, gaining animalistic powers.",
-        "aliases": [
-          "totem warrior"
-        ],
-        "seeAlso": [
-          "barbarian",
-          "animal_speaker",
-          "rage_of_the_wilds"
-        ],
-        "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_wild_heart.json",
-        "parentClass": "barbarian",
-        "type": "subclass"
-      },
-      {
-        "id": "path_of_the_world_tree",
-        "title": "Path of the World Tree (Barbarian Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "barbarian",
-          "subclass",
-          "world tree",
-          "yggdrasil",
-          "teleport",
-          "vitality"
-        ],
-        "excerpt": "Trace the roots and branches of the multiverse, drawing on the World Tree's vitality and power of travel.",
-        "aliases": [
-          "world tree warrior"
-        ],
-        "seeAlso": [
-          "barbarian",
-          "vitality_of_the_tree",
-          "branches_of_the_tree",
-          "teleport"
-        ],
-        "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_world_tree.json",
-        "parentClass": "barbarian",
-        "type": "subclass"
-      },
-      {
-        "id": "path_of_the_zealot",
-        "title": "Path of the Zealot (Barbarian Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "barbarian",
-          "subclass",
-          "zealot",
-          "divine",
-          "holy warrior",
-          "radiant",
-          "necrotic"
-        ],
-        "excerpt": "Rage in ecstatic union with a god, channeling divine fury into your strikes.",
-        "aliases": [
-          "divine rager"
-        ],
-        "seeAlso": [
-          "barbarian",
-          "divine_fury",
-          "warrior_of_the_gods",
-          "radiant_damage",
-          "necrotic_damage"
-        ],
-        "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_zealot.json",
-        "parentClass": "barbarian",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "path_of_the_berserker",
+            "title": "Path of the Berserker",
+            "category": "Character Classes",
+            "tags": [
+              "barbarian",
+              "subclass",
+              "berserker",
+              "frenzy"
+            ],
+            "excerpt": "Channel Rage into violent fury, unleashing devastating attacks.",
+            "aliases": [
+              "berserker"
+            ],
+            "seeAlso": [
+              "barbarian",
+              "frenzy_berserker",
+              "reckless_attack",
+              "rage"
+            ],
+            "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_berserker.json",
+            "parentClass": "barbarian",
+            "type": "subclass"
+          },
+          {
+            "id": "path_of_the_wild_heart",
+            "title": "Path of the Wild Heart",
+            "category": "Character Classes",
+            "tags": [
+              "barbarian",
+              "subclass",
+              "wild heart",
+              "totem",
+              "animal aspect"
+            ],
+            "excerpt": "Walk in community with the animal world, gaining animalistic powers.",
+            "aliases": [
+              "totem warrior"
+            ],
+            "seeAlso": [
+              "barbarian",
+              "animal_speaker",
+              "rage_of_the_wilds"
+            ],
+            "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_wild_heart.json",
+            "parentClass": "barbarian",
+            "type": "subclass"
+          },
+          {
+            "id": "path_of_the_world_tree",
+            "title": "Path of the World Tree",
+            "category": "Character Classes",
+            "tags": [
+              "barbarian",
+              "subclass",
+              "world tree",
+              "yggdrasil",
+              "teleport",
+              "vitality"
+            ],
+            "excerpt": "Trace the roots and branches of the multiverse, drawing on the World Tree's vitality and power of travel.",
+            "aliases": [
+              "world tree warrior"
+            ],
+            "seeAlso": [
+              "barbarian",
+              "vitality_of_the_tree",
+              "branches_of_the_tree",
+              "teleport"
+            ],
+            "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_world_tree.json",
+            "parentClass": "barbarian",
+            "type": "subclass"
+          },
+          {
+            "id": "path_of_the_zealot",
+            "title": "Path of the Zealot",
+            "category": "Character Classes",
+            "tags": [
+              "barbarian",
+              "subclass",
+              "zealot",
+              "divine",
+              "holy warrior",
+              "radiant",
+              "necrotic"
+            ],
+            "excerpt": "Rage in ecstatic union with a god, channeling divine fury into your strikes.",
+            "aliases": [
+              "divine rager"
+            ],
+            "seeAlso": [
+              "barbarian",
+              "divine_fury",
+              "warrior_of_the_gods",
+              "radiant_damage",
+              "necrotic_damage"
+            ],
+            "filePath": "/data/glossary/entries/classes/barbarian_subclasses/path_of_the_zealot.json",
+            "parentClass": "barbarian",
+            "type": "subclass"
+          }
+        ]
       }
     ]
   },
@@ -334,6 +352,119 @@
     "filePath": "/data/glossary/entries/classes/bard.json",
     "subEntries": [
       {
+        "id": "bard_subclasses_group",
+        "title": "Bard Subclasses",
+        "category": "Character Classes",
+        "parentClass": "bard",
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "college_of_dance",
+            "title": "College of Dance",
+            "category": "Character Classes",
+            "tags": [
+              "bard",
+              "subclass",
+              "college",
+              "dance",
+              "movement",
+              "unarmored defense"
+            ],
+            "excerpt": "Move in harmony with the cosmos, emphasizing agility, speed, and grace.",
+            "aliases": [
+              "dancer"
+            ],
+            "seeAlso": [
+              "bard",
+              "dazzling_footwork",
+              "unarmored_defense_bard"
+            ],
+            "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_dance.json",
+            "parentClass": "bard",
+            "type": "subclass"
+          },
+          {
+            "id": "college_of_glamour",
+            "title": "College of Glamour",
+            "category": "Character Classes",
+            "tags": [
+              "bard",
+              "subclass",
+              "college",
+              "glamour",
+              "fey",
+              "charm",
+              "beguiling"
+            ],
+            "excerpt": "Weave beguiling Fey magic, cloaking yourself in otherworldly majesty.",
+            "aliases": [
+              "fey-speaker",
+              "glamour bard"
+            ],
+            "seeAlso": [
+              "bard",
+              "mantle_of_inspiration",
+              "charmed_condition"
+            ],
+            "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_glamour.json",
+            "parentClass": "bard",
+            "type": "subclass"
+          },
+          {
+            "id": "college_of_lore",
+            "title": "College of Lore",
+            "category": "Character Classes",
+            "tags": [
+              "bard",
+              "subclass",
+              "college",
+              "lore",
+              "knowledge",
+              "cutting words",
+              "magical secrets"
+            ],
+            "excerpt": "Plumb the depths of magical knowledge, collecting spells and secrets from diverse sources.",
+            "aliases": [
+              "loremaster"
+            ],
+            "seeAlso": [
+              "bard",
+              "cutting_words",
+              "magical_secrets"
+            ],
+            "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_lore.json",
+            "parentClass": "bard",
+            "type": "subclass"
+          },
+          {
+            "id": "college_of_valor",
+            "title": "College of Valor",
+            "category": "Character Classes",
+            "tags": [
+              "bard",
+              "subclass",
+              "college",
+              "valor",
+              "combat",
+              "skald",
+              "martial"
+            ],
+            "excerpt": "Sing the deeds of ancient heroes, inspiring others to martial greatness.",
+            "aliases": [
+              "skald"
+            ],
+            "seeAlso": [
+              "bard",
+              "combat_inspiration",
+              "extra_attack"
+            ],
+            "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_valor.json",
+            "parentClass": "bard",
+            "type": "subclass"
+          }
+        ]
+      },
+      {
         "id": "bard_spell_list",
         "title": "Bard Spell List",
         "category": "Character Classes",
@@ -351,110 +482,6 @@
         "filePath": "/data/glossary/entries/classes/bard_spell_list.json",
         "parentClass": "bard",
         "type": "spell_list"
-      },
-      {
-        "id": "college_of_dance",
-        "title": "College of Dance (Bard Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "bard",
-          "subclass",
-          "college",
-          "dance",
-          "movement",
-          "unarmored defense"
-        ],
-        "excerpt": "Move in harmony with the cosmos, emphasizing agility, speed, and grace.",
-        "aliases": [
-          "dancer"
-        ],
-        "seeAlso": [
-          "bard",
-          "dazzling_footwork",
-          "unarmored_defense_bard"
-        ],
-        "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_dance.json",
-        "parentClass": "bard",
-        "type": "subclass"
-      },
-      {
-        "id": "college_of_glamour",
-        "title": "College of Glamour (Bard Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "bard",
-          "subclass",
-          "college",
-          "glamour",
-          "fey",
-          "charm",
-          "beguiling"
-        ],
-        "excerpt": "Weave beguiling Fey magic, cloaking yourself in otherworldly majesty.",
-        "aliases": [
-          "fey-speaker",
-          "glamour bard"
-        ],
-        "seeAlso": [
-          "bard",
-          "mantle_of_inspiration",
-          "charmed_condition"
-        ],
-        "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_glamour.json",
-        "parentClass": "bard",
-        "type": "subclass"
-      },
-      {
-        "id": "college_of_lore",
-        "title": "College of Lore (Bard Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "bard",
-          "subclass",
-          "college",
-          "lore",
-          "knowledge",
-          "cutting words",
-          "magical secrets"
-        ],
-        "excerpt": "Plumb the depths of magical knowledge, collecting spells and secrets from diverse sources.",
-        "aliases": [
-          "loremaster"
-        ],
-        "seeAlso": [
-          "bard",
-          "cutting_words",
-          "magical_secrets"
-        ],
-        "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_lore.json",
-        "parentClass": "bard",
-        "type": "subclass"
-      },
-      {
-        "id": "college_of_valor",
-        "title": "College of Valor (Bard Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "bard",
-          "subclass",
-          "college",
-          "valor",
-          "combat",
-          "skald",
-          "martial"
-        ],
-        "excerpt": "Sing the deeds of ancient heroes, inspiring others to martial greatness.",
-        "aliases": [
-          "skald"
-        ],
-        "seeAlso": [
-          "bard",
-          "combat_inspiration",
-          "extra_attack"
-        ],
-        "filePath": "/data/glossary/entries/classes/bard_subclasses/college_of_valor.json",
-        "parentClass": "bard",
-        "type": "subclass"
       }
     ]
   },
@@ -491,6 +518,118 @@
     "filePath": "/data/glossary/entries/classes/cleric.json",
     "subEntries": [
       {
+        "id": "cleric_subclasses_group",
+        "title": "Cleric Subclasses",
+        "category": "Character Classes",
+        "parentClass": "cleric",
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "life_domain_subclass",
+            "title": "Life Domain",
+            "category": "Character Classes",
+            "tags": [
+              "cleric",
+              "subclass",
+              "domain",
+              "life",
+              "healing"
+            ],
+            "excerpt": "Soothe the hurts of the world by focusing on positive energy to sustain all life.",
+            "aliases": [
+              "healer domain"
+            ],
+            "seeAlso": [
+              "cleric",
+              "disciple_of_life",
+              "preserve_life",
+              "blessed_healer"
+            ],
+            "filePath": "/data/glossary/entries/classes/cleric_subclasses/life_domain.json",
+            "parentClass": "cleric",
+            "type": "subclass"
+          },
+          {
+            "id": "light_domain_subclass",
+            "title": "Light Domain",
+            "category": "Character Classes",
+            "tags": [
+              "cleric",
+              "subclass",
+              "domain",
+              "light",
+              "fire",
+              "radiant"
+            ],
+            "excerpt": "Bring light to banish darkness, wielding blazing fire and divine revelation.",
+            "aliases": [
+              "sun domain"
+            ],
+            "seeAlso": [
+              "cleric",
+              "radiance_of_the_dawn",
+              "warding_flare"
+            ],
+            "filePath": "/data/glossary/entries/classes/cleric_subclasses/light_domain.json",
+            "parentClass": "cleric",
+            "type": "subclass"
+          },
+          {
+            "id": "trickery_domain_subclass",
+            "title": "Trickery Domain",
+            "category": "Character Classes",
+            "tags": [
+              "cleric",
+              "subclass",
+              "domain",
+              "trickery",
+              "illusion",
+              "deception",
+              "stealth"
+            ],
+            "excerpt": "Make mischief and challenge authority with magic of deception, illusion, and stealth.",
+            "aliases": [
+              "mischief domain"
+            ],
+            "seeAlso": [
+              "cleric",
+              "invoke_duplicity",
+              "blessing_of_the_trickster"
+            ],
+            "filePath": "/data/glossary/entries/classes/cleric_subclasses/trickery_domain.json",
+            "parentClass": "cleric",
+            "type": "subclass"
+          },
+          {
+            "id": "war_domain_subclass",
+            "title": "War Domain",
+            "category": "Character Classes",
+            "tags": [
+              "cleric",
+              "subclass",
+              "domain",
+              "war",
+              "battle",
+              "valor",
+              "martial"
+            ],
+            "excerpt": "Inspire valor and smite foes on the battlefield, offering acts of violence as prayers.",
+            "aliases": [
+              "battle domain",
+              "war priest"
+            ],
+            "seeAlso": [
+              "cleric",
+              "guided_strike",
+              "war_priest"
+            ],
+            "filePath": "/data/glossary/entries/classes/cleric_subclasses/war_domain.json",
+            "parentClass": "cleric",
+            "type": "subclass"
+          }
+        ]
+      },
+      {
         "id": "cleric_spell_list",
         "title": "Cleric Spell List",
         "category": "Character Classes",
@@ -508,109 +647,6 @@
         "filePath": "/data/glossary/entries/classes/cleric_spell_list.json",
         "parentClass": "cleric",
         "type": "spell_list"
-      },
-      {
-        "id": "life_domain_subclass",
-        "title": "Life Domain (Cleric Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "cleric",
-          "subclass",
-          "domain",
-          "life",
-          "healing"
-        ],
-        "excerpt": "Soothe the hurts of the world by focusing on positive energy to sustain all life.",
-        "aliases": [
-          "healer domain"
-        ],
-        "seeAlso": [
-          "cleric",
-          "disciple_of_life",
-          "preserve_life",
-          "blessed_healer"
-        ],
-        "filePath": "/data/glossary/entries/classes/cleric_subclasses/life_domain.json",
-        "parentClass": "cleric",
-        "type": "subclass"
-      },
-      {
-        "id": "light_domain_subclass",
-        "title": "Light Domain (Cleric Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "cleric",
-          "subclass",
-          "domain",
-          "light",
-          "fire",
-          "radiant"
-        ],
-        "excerpt": "Bring light to banish darkness, wielding blazing fire and divine revelation.",
-        "aliases": [
-          "sun domain"
-        ],
-        "seeAlso": [
-          "cleric",
-          "radiance_of_the_dawn",
-          "warding_flare"
-        ],
-        "filePath": "/data/glossary/entries/classes/cleric_subclasses/light_domain.json",
-        "parentClass": "cleric",
-        "type": "subclass"
-      },
-      {
-        "id": "trickery_domain_subclass",
-        "title": "Trickery Domain (Cleric Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "cleric",
-          "subclass",
-          "domain",
-          "trickery",
-          "illusion",
-          "deception",
-          "stealth"
-        ],
-        "excerpt": "Make mischief and challenge authority with magic of deception, illusion, and stealth.",
-        "aliases": [
-          "mischief domain"
-        ],
-        "seeAlso": [
-          "cleric",
-          "invoke_duplicity",
-          "blessing_of_the_trickster"
-        ],
-        "filePath": "/data/glossary/entries/classes/cleric_subclasses/trickery_domain.json",
-        "parentClass": "cleric",
-        "type": "subclass"
-      },
-      {
-        "id": "war_domain_subclass",
-        "title": "War Domain (Cleric Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "cleric",
-          "subclass",
-          "domain",
-          "war",
-          "battle",
-          "valor",
-          "martial"
-        ],
-        "excerpt": "Inspire valor and smite foes on the battlefield, offering acts of violence as prayers.",
-        "aliases": [
-          "battle domain",
-          "war priest"
-        ],
-        "seeAlso": [
-          "cleric",
-          "guided_strike",
-          "war_priest"
-        ],
-        "filePath": "/data/glossary/entries/classes/cleric_subclasses/war_domain.json",
-        "parentClass": "cleric",
-        "type": "subclass"
       }
     ]
   },
@@ -648,106 +684,115 @@
     "filePath": "/data/glossary/entries/classes/druid.json",
     "subEntries": [
       {
-        "id": "circle_of_the_land_subclass",
-        "title": "Circle of the Land",
+        "id": "druid_subclasses_group",
+        "title": "Druid Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "druid",
-          "subclass",
-          "circle",
-          "land",
-          "spells",
-          "nature"
-        ],
-        "excerpt": "Celebrate a connection to the natural world, safeguarding ancient knowledge and rites.",
-        "aliases": [
-          "land druid"
-        ],
-        "seeAlso": [
-          "druid",
-          "spellcasting",
-          "wild_shape_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_land.json",
         "parentClass": "druid",
-        "type": "subclass"
-      },
-      {
-        "id": "circle_of_the_moon_subclass",
-        "title": "Circle of the Moon",
-        "category": "Character Classes",
-        "tags": [
-          "druid",
-          "subclass",
-          "circle",
-          "moon",
-          "wild shape",
-          "animal forms"
-        ],
-        "excerpt": "Adopt animal forms to guard the wilds, drawing on lunar magic to transform.",
-        "aliases": [
-          "moon druid"
-        ],
-        "seeAlso": [
-          "druid",
-          "wild_shape_feature",
-          "moonbeam"
-        ],
-        "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_moon.json",
-        "parentClass": "druid",
-        "type": "subclass"
-      },
-      {
-        "id": "circle_of_the_sea_subclass",
-        "title": "Circle of the Sea",
-        "category": "Character Classes",
-        "tags": [
-          "druid",
-          "subclass",
-          "circle",
-          "sea",
-          "storm",
-          "tides",
-          "ocean"
-        ],
-        "excerpt": "Become one with the tides and storms, drawing on tempestuous forces.",
-        "aliases": [
-          "sea druid"
-        ],
-        "seeAlso": [
-          "druid",
-          "spellcasting",
-          "wild_shape_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_sea.json",
-        "parentClass": "druid",
-        "type": "subclass"
-      },
-      {
-        "id": "circle_of_the_stars_subclass",
-        "title": "Circle of the Stars",
-        "category": "Character Classes",
-        "tags": [
-          "druid",
-          "subclass",
-          "circle",
-          "stars",
-          "constellations",
-          "cosmos"
-        ],
-        "excerpt": "Harness secrets hidden in constellations, drawing on the powers of the cosmos.",
-        "aliases": [
-          "star druid"
-        ],
-        "seeAlso": [
-          "druid",
-          "wild_shape_feature",
-          "spellcasting",
-          "guiding_bolt"
-        ],
-        "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_stars.json",
-        "parentClass": "druid",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "circle_of_the_land_subclass",
+            "title": "Circle of the Land",
+            "category": "Character Classes",
+            "tags": [
+              "druid",
+              "subclass",
+              "circle",
+              "land",
+              "spells",
+              "nature"
+            ],
+            "excerpt": "Celebrate a connection to the natural world, safeguarding ancient knowledge and rites.",
+            "aliases": [
+              "land druid"
+            ],
+            "seeAlso": [
+              "druid",
+              "spellcasting",
+              "wild_shape_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_land.json",
+            "parentClass": "druid",
+            "type": "subclass"
+          },
+          {
+            "id": "circle_of_the_moon_subclass",
+            "title": "Circle of the Moon",
+            "category": "Character Classes",
+            "tags": [
+              "druid",
+              "subclass",
+              "circle",
+              "moon",
+              "wild shape",
+              "animal forms"
+            ],
+            "excerpt": "Adopt animal forms to guard the wilds, drawing on lunar magic to transform.",
+            "aliases": [
+              "moon druid"
+            ],
+            "seeAlso": [
+              "druid",
+              "wild_shape_feature",
+              "moonbeam"
+            ],
+            "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_moon.json",
+            "parentClass": "druid",
+            "type": "subclass"
+          },
+          {
+            "id": "circle_of_the_sea_subclass",
+            "title": "Circle of the Sea",
+            "category": "Character Classes",
+            "tags": [
+              "druid",
+              "subclass",
+              "circle",
+              "sea",
+              "storm",
+              "tides",
+              "ocean"
+            ],
+            "excerpt": "Become one with the tides and storms, drawing on tempestuous forces.",
+            "aliases": [
+              "sea druid"
+            ],
+            "seeAlso": [
+              "druid",
+              "spellcasting",
+              "wild_shape_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_sea.json",
+            "parentClass": "druid",
+            "type": "subclass"
+          },
+          {
+            "id": "circle_of_the_stars_subclass",
+            "title": "Circle of the Stars",
+            "category": "Character Classes",
+            "tags": [
+              "druid",
+              "subclass",
+              "circle",
+              "stars",
+              "constellations",
+              "cosmos"
+            ],
+            "excerpt": "Harness secrets hidden in constellations, drawing on the powers of the cosmos.",
+            "aliases": [
+              "star druid"
+            ],
+            "seeAlso": [
+              "druid",
+              "wild_shape_feature",
+              "spellcasting",
+              "guiding_bolt"
+            ],
+            "filePath": "/data/glossary/entries/classes/druid_subclasses/circle_of_the_stars.json",
+            "parentClass": "druid",
+            "type": "subclass"
+          }
+        ]
       },
       {
         "id": "druid_spell_list",
@@ -808,88 +853,97 @@
     "filePath": "/data/glossary/entries/classes/fighter.json",
     "subEntries": [
       {
-        "id": "battle_master_subclass",
-        "title": "Battle Master (Fighter Subclass)",
+        "id": "fighter_subclasses_group",
+        "title": "Fighter Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "fighter",
-          "subclass",
-          "maneuvers",
-          "superiority dice"
-        ],
-        "excerpt": "A master of sophisticated battle maneuvers, using tactical techniques fueled by Superiority Dice.",
-        "aliases": [],
-        "seeAlso": [
-          "fighter",
-          "maneuvers_battle_master"
-        ],
-        "filePath": "/data/glossary/entries/classes/fighter_subclasses/battle_master.json",
         "parentClass": "fighter",
-        "type": "subclass"
-      },
-      {
-        "id": "champion_subclass",
-        "title": "Champion (Fighter Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "fighter",
-          "subclass",
-          "critical hit",
-          "champion",
-          "athlete"
-        ],
-        "excerpt": "A warrior who pursues physical excellence, focusing on raw martial prowess and dealing devastating critical hits.",
-        "aliases": [],
-        "seeAlso": [
-          "fighter",
-          "improved_critical"
-        ],
-        "filePath": "/data/glossary/entries/classes/fighter_subclasses/champion.json",
-        "parentClass": "fighter",
-        "type": "subclass"
-      },
-      {
-        "id": "eldritch_knight_subclass",
-        "title": "Eldritch Knight (Fighter Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "fighter",
-          "subclass",
-          "magic",
-          "arcane",
-          "spellcasting"
-        ],
-        "excerpt": "A martial warrior who combines their combat skills with the study of arcane magic from the Wizard spell list.",
-        "aliases": [],
-        "seeAlso": [
-          "fighter",
-          "spellcasting",
-          "war_magic"
-        ],
-        "filePath": "/data/glossary/entries/classes/fighter_subclasses/eldritch_knight.json",
-        "parentClass": "fighter",
-        "type": "subclass"
-      },
-      {
-        "id": "psi_warrior_subclass",
-        "title": "Psi Warrior (Fighter Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "fighter",
-          "subclass",
-          "psionic",
-          "telekinetic",
-          "mental force"
-        ],
-        "excerpt": "A fighter who augments their physical might with psionic power, creating telekinetic shields and strikes.",
-        "aliases": [],
-        "seeAlso": [
-          "fighter",
-          "psionic_power"
-        ],
-        "filePath": "/data/glossary/entries/classes/fighter_subclasses/psi_warrior.json",
-        "parentClass": "fighter",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "battle_master_subclass",
+            "title": "Battle Master",
+            "category": "Character Classes",
+            "tags": [
+              "fighter",
+              "subclass",
+              "maneuvers",
+              "superiority dice"
+            ],
+            "excerpt": "A master of sophisticated battle maneuvers, using tactical techniques fueled by Superiority Dice.",
+            "aliases": [],
+            "seeAlso": [
+              "fighter",
+              "maneuvers_battle_master"
+            ],
+            "filePath": "/data/glossary/entries/classes/fighter_subclasses/battle_master.json",
+            "parentClass": "fighter",
+            "type": "subclass"
+          },
+          {
+            "id": "champion_subclass",
+            "title": "Champion",
+            "category": "Character Classes",
+            "tags": [
+              "fighter",
+              "subclass",
+              "critical hit",
+              "champion",
+              "athlete"
+            ],
+            "excerpt": "A warrior who pursues physical excellence, focusing on raw martial prowess and dealing devastating critical hits.",
+            "aliases": [],
+            "seeAlso": [
+              "fighter",
+              "improved_critical"
+            ],
+            "filePath": "/data/glossary/entries/classes/fighter_subclasses/champion.json",
+            "parentClass": "fighter",
+            "type": "subclass"
+          },
+          {
+            "id": "eldritch_knight_subclass",
+            "title": "Eldritch Knight",
+            "category": "Character Classes",
+            "tags": [
+              "fighter",
+              "subclass",
+              "magic",
+              "arcane",
+              "spellcasting"
+            ],
+            "excerpt": "A martial warrior who combines their combat skills with the study of arcane magic from the Wizard spell list.",
+            "aliases": [],
+            "seeAlso": [
+              "fighter",
+              "spellcasting",
+              "war_magic"
+            ],
+            "filePath": "/data/glossary/entries/classes/fighter_subclasses/eldritch_knight.json",
+            "parentClass": "fighter",
+            "type": "subclass"
+          },
+          {
+            "id": "psi_warrior_subclass",
+            "title": "Psi Warrior",
+            "category": "Character Classes",
+            "tags": [
+              "fighter",
+              "subclass",
+              "psionic",
+              "telekinetic",
+              "mental force"
+            ],
+            "excerpt": "A fighter who augments their physical might with psionic power, creating telekinetic shields and strikes.",
+            "aliases": [],
+            "seeAlso": [
+              "fighter",
+              "psionic_power"
+            ],
+            "filePath": "/data/glossary/entries/classes/fighter_subclasses/psi_warrior.json",
+            "parentClass": "fighter",
+            "type": "subclass"
+          }
+        ]
       }
     ]
   },
@@ -926,102 +980,111 @@
     "filePath": "/data/glossary/entries/classes/monk.json",
     "subEntries": [
       {
-        "id": "warrior_of_mercy_subclass",
-        "title": "Warrior of Mercy (Monk Subclass)",
+        "id": "monk_subclasses_group",
+        "title": "Monk Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "monk",
-          "subclass",
-          "mercy",
-          "healing",
-          "harm"
-        ],
-        "excerpt": "Manipulate the forces of life and death, acting as both wandering physician and swift end to your enemies.",
-        "aliases": [],
-        "seeAlso": [
-          "monk",
-          "hand_of_harm",
-          "hand_of_healing"
-        ],
-        "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_mercy.json",
         "parentClass": "monk",
-        "type": "subclass"
-      },
-      {
-        "id": "warrior_of_shadow_subclass",
-        "title": "Warrior of Shadow (Monk Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "monk",
-          "subclass",
-          "shadow",
-          "stealth",
-          "subterfuge",
-          "shadowfell",
-          "teleport"
-        ],
-        "excerpt": "Practice stealth and subterfuge, harnessing the power of the Shadowfell to hide and teleport through darkness.",
-        "aliases": [],
-        "seeAlso": [
-          "monk",
-          "shadow_arts",
-          "shadow_step",
-          "darkness",
-          "minor_illusion"
-        ],
-        "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_shadow.json",
-        "parentClass": "monk",
-        "type": "subclass"
-      },
-      {
-        "id": "warrior_of_the_elements_subclass",
-        "title": "Warrior of the Elements (Monk Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "monk",
-          "subclass",
-          "elements",
-          "fire",
-          "water",
-          "air",
-          "earth",
-          "elemental chaos"
-        ],
-        "excerpt": "Tap into the power of the Elemental Planes, wielding strikes and bursts of elemental power.",
-        "aliases": [],
-        "seeAlso": [
-          "monk",
-          "elemental_attunement",
-          "elemental_burst",
-          "elementalism_spell"
-        ],
-        "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_the_elements.json",
-        "parentClass": "monk",
-        "type": "subclass"
-      },
-      {
-        "id": "warrior_of_the_open_hand_subclass",
-        "title": "Warrior of the Open Hand (Monk Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "monk",
-          "subclass",
-          "open hand",
-          "unarmed combat",
-          "quivering palm",
-          "healing"
-        ],
-        "excerpt": "Masters of unarmed combat, learning techniques to push, trip, and manipulate their foes' energy.",
-        "aliases": [],
-        "seeAlso": [
-          "monk",
-          "open_hand_technique",
-          "quivering_palm",
-          "wholeness_of_body"
-        ],
-        "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_the_open_hand.json",
-        "parentClass": "monk",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "warrior_of_mercy_subclass",
+            "title": "Warrior of Mercy",
+            "category": "Character Classes",
+            "tags": [
+              "monk",
+              "subclass",
+              "mercy",
+              "healing",
+              "harm"
+            ],
+            "excerpt": "Manipulate the forces of life and death, acting as both wandering physician and swift end to your enemies.",
+            "aliases": [],
+            "seeAlso": [
+              "monk",
+              "hand_of_harm",
+              "hand_of_healing"
+            ],
+            "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_mercy.json",
+            "parentClass": "monk",
+            "type": "subclass"
+          },
+          {
+            "id": "warrior_of_shadow_subclass",
+            "title": "Warrior of Shadow",
+            "category": "Character Classes",
+            "tags": [
+              "monk",
+              "subclass",
+              "shadow",
+              "stealth",
+              "subterfuge",
+              "shadowfell",
+              "teleport"
+            ],
+            "excerpt": "Practice stealth and subterfuge, harnessing the power of the Shadowfell to hide and teleport through darkness.",
+            "aliases": [],
+            "seeAlso": [
+              "monk",
+              "shadow_arts",
+              "shadow_step",
+              "darkness",
+              "minor_illusion"
+            ],
+            "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_shadow.json",
+            "parentClass": "monk",
+            "type": "subclass"
+          },
+          {
+            "id": "warrior_of_the_elements_subclass",
+            "title": "Warrior of the Elements",
+            "category": "Character Classes",
+            "tags": [
+              "monk",
+              "subclass",
+              "elements",
+              "fire",
+              "water",
+              "air",
+              "earth",
+              "elemental chaos"
+            ],
+            "excerpt": "Tap into the power of the Elemental Planes, wielding strikes and bursts of elemental power.",
+            "aliases": [],
+            "seeAlso": [
+              "monk",
+              "elemental_attunement",
+              "elemental_burst",
+              "elementalism_spell"
+            ],
+            "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_the_elements.json",
+            "parentClass": "monk",
+            "type": "subclass"
+          },
+          {
+            "id": "warrior_of_the_open_hand_subclass",
+            "title": "Warrior of the Open Hand",
+            "category": "Character Classes",
+            "tags": [
+              "monk",
+              "subclass",
+              "open hand",
+              "unarmed combat",
+              "quivering palm",
+              "healing"
+            ],
+            "excerpt": "Masters of unarmed combat, learning techniques to push, trip, and manipulate their foes' energy.",
+            "aliases": [],
+            "seeAlso": [
+              "monk",
+              "open_hand_technique",
+              "quivering_palm",
+              "wholeness_of_body"
+            ],
+            "filePath": "/data/glossary/entries/classes/monk_subclasses/warrior_of_the_open_hand.json",
+            "parentClass": "monk",
+            "type": "subclass"
+          }
+        ]
       }
     ]
   },
@@ -1055,102 +1118,111 @@
     "filePath": "/data/glossary/entries/classes/paladin.json",
     "subEntries": [
       {
-        "id": "oath_of_devotion_subclass",
-        "title": "Oath of Devotion (Paladin Subclass)",
+        "id": "paladin_subclasses_group",
+        "title": "Paladin Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "paladin",
-          "subclass",
-          "oath",
-          "devotion",
-          "justice",
-          "order",
-          "holy"
-        ],
-        "excerpt": "Uphold the ideals of justice and order, acting as a knight in shining armor against the forces of darkness.",
-        "aliases": [],
-        "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "sacred_weapon",
-          "aura_of_devotion"
-        ],
-        "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_devotion.json",
         "parentClass": "paladin",
-        "type": "subclass"
-      },
-      {
-        "id": "oath_of_glory_subclass",
-        "title": "Oath of Glory (Paladin Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "paladin",
-          "subclass",
-          "oath",
-          "glory",
-          "heroism",
-          "athlete"
-        ],
-        "excerpt": "Strive for the heights of heroism, believing you and your companions are destined for glory.",
-        "aliases": [],
-        "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "inspiring_smite",
-          "peerless_athlete"
-        ],
-        "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_glory.json",
-        "parentClass": "paladin",
-        "type": "subclass"
-      },
-      {
-        "id": "oath_of_the_ancients_subclass",
-        "title": "Oath of the Ancients (Paladin Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "paladin",
-          "subclass",
-          "oath",
-          "ancients",
-          "nature",
-          "fey",
-          "light"
-        ],
-        "excerpt": "Preserve life and light in the world, cherishing beauty and laughter over abstract principles.",
-        "aliases": [],
-        "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "natures_wrath",
-          "aura_of_warding"
-        ],
-        "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_the_ancients.json",
-        "parentClass": "paladin",
-        "type": "subclass"
-      },
-      {
-        "id": "oath_of_vengeance_subclass",
-        "title": "Oath of Vengeance (Paladin Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "paladin",
-          "subclass",
-          "oath",
-          "vengeance",
-          "punishment",
-          "justice"
-        ],
-        "excerpt": "A solemn commitment to punish those who have committed grievously evil acts.",
-        "aliases": [],
-        "seeAlso": [
-          "paladin",
-          "channel_divinity_paladin",
-          "vow_of_enmity",
-          "relentless_avenger"
-        ],
-        "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_vengeance.json",
-        "parentClass": "paladin",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "oath_of_devotion_subclass",
+            "title": "Oath of Devotion",
+            "category": "Character Classes",
+            "tags": [
+              "paladin",
+              "subclass",
+              "oath",
+              "devotion",
+              "justice",
+              "order",
+              "holy"
+            ],
+            "excerpt": "Uphold the ideals of justice and order, acting as a knight in shining armor against the forces of darkness.",
+            "aliases": [],
+            "seeAlso": [
+              "paladin",
+              "channel_divinity_paladin",
+              "sacred_weapon",
+              "aura_of_devotion"
+            ],
+            "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_devotion.json",
+            "parentClass": "paladin",
+            "type": "subclass"
+          },
+          {
+            "id": "oath_of_glory_subclass",
+            "title": "Oath of Glory",
+            "category": "Character Classes",
+            "tags": [
+              "paladin",
+              "subclass",
+              "oath",
+              "glory",
+              "heroism",
+              "athlete"
+            ],
+            "excerpt": "Strive for the heights of heroism, believing you and your companions are destined for glory.",
+            "aliases": [],
+            "seeAlso": [
+              "paladin",
+              "channel_divinity_paladin",
+              "inspiring_smite",
+              "peerless_athlete"
+            ],
+            "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_glory.json",
+            "parentClass": "paladin",
+            "type": "subclass"
+          },
+          {
+            "id": "oath_of_the_ancients_subclass",
+            "title": "Oath of the Ancients",
+            "category": "Character Classes",
+            "tags": [
+              "paladin",
+              "subclass",
+              "oath",
+              "ancients",
+              "nature",
+              "fey",
+              "light"
+            ],
+            "excerpt": "Preserve life and light in the world, cherishing beauty and laughter over abstract principles.",
+            "aliases": [],
+            "seeAlso": [
+              "paladin",
+              "channel_divinity_paladin",
+              "natures_wrath",
+              "aura_of_warding"
+            ],
+            "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_the_ancients.json",
+            "parentClass": "paladin",
+            "type": "subclass"
+          },
+          {
+            "id": "oath_of_vengeance_subclass",
+            "title": "Oath of Vengeance",
+            "category": "Character Classes",
+            "tags": [
+              "paladin",
+              "subclass",
+              "oath",
+              "vengeance",
+              "punishment",
+              "justice"
+            ],
+            "excerpt": "A solemn commitment to punish those who have committed grievously evil acts.",
+            "aliases": [],
+            "seeAlso": [
+              "paladin",
+              "channel_divinity_paladin",
+              "vow_of_enmity",
+              "relentless_avenger"
+            ],
+            "filePath": "/data/glossary/entries/classes/paladin_subclasses/oath_of_vengeance.json",
+            "parentClass": "paladin",
+            "type": "subclass"
+          }
+        ]
       },
       {
         "id": "paladin_spell_list",
@@ -1207,92 +1279,101 @@
     "filePath": "/data/glossary/entries/classes/ranger.json",
     "subEntries": [
       {
-        "id": "beast_master_subclass",
-        "title": "Beast Master (Ranger Subclass)",
+        "id": "ranger_subclasses_group",
+        "title": "Ranger Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "ranger",
-          "subclass",
-          "beast master",
-          "animal companion",
-          "primal beast"
-        ],
-        "excerpt": "Form a mystical bond with a special animal, drawing on primal magic and a deep connection to the natural world.",
-        "aliases": [],
-        "seeAlso": [
-          "ranger",
-          "primal_companion"
-        ],
-        "filePath": "/data/glossary/entries/classes/ranger_subclasses/beast_master.json",
         "parentClass": "ranger",
-        "type": "subclass"
-      },
-      {
-        "id": "fey_wanderer_subclass",
-        "title": "Fey Wanderer (Ranger Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "ranger",
-          "subclass",
-          "fey wanderer",
-          "feywild",
-          "charm",
-          "psychic"
-        ],
-        "excerpt": "Wield Fey mirth and fury, thanks to a boon from an archfey or a location in the Feywild.",
-        "aliases": [],
-        "seeAlso": [
-          "ranger",
-          "dreadful_strikes_fey",
-          "otherworldly_glamour"
-        ],
-        "filePath": "/data/glossary/entries/classes/ranger_subclasses/fey_wanderer.json",
-        "parentClass": "ranger",
-        "type": "subclass"
-      },
-      {
-        "id": "gloom_stalker_subclass",
-        "title": "Gloom Stalker (Ranger Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "ranger",
-          "subclass",
-          "gloom stalker",
-          "shadow",
-          "darkness",
-          "ambush"
-        ],
-        "excerpt": "Draw on shadow magic to fight foes in the darkest places, excelling at ambushes.",
-        "aliases": [],
-        "seeAlso": [
-          "ranger",
-          "dread_ambusher",
-          "umbral_sight"
-        ],
-        "filePath": "/data/glossary/entries/classes/ranger_subclasses/gloom_stalker.json",
-        "parentClass": "ranger",
-        "type": "subclass"
-      },
-      {
-        "id": "hunter_subclass",
-        "title": "Hunter (Ranger Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "ranger",
-          "subclass",
-          "hunter",
-          "prey",
-          "slayer"
-        ],
-        "excerpt": "Stalk prey using your abilities as a Hunter to protect nature and people everywhere.",
-        "aliases": [],
-        "seeAlso": [
-          "ranger",
-          "favored_enemy_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/ranger_subclasses/hunter.json",
-        "parentClass": "ranger",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "beast_master_subclass",
+            "title": "Beast Master",
+            "category": "Character Classes",
+            "tags": [
+              "ranger",
+              "subclass",
+              "beast master",
+              "animal companion",
+              "primal beast"
+            ],
+            "excerpt": "Form a mystical bond with a special animal, drawing on primal magic and a deep connection to the natural world.",
+            "aliases": [],
+            "seeAlso": [
+              "ranger",
+              "primal_companion"
+            ],
+            "filePath": "/data/glossary/entries/classes/ranger_subclasses/beast_master.json",
+            "parentClass": "ranger",
+            "type": "subclass"
+          },
+          {
+            "id": "fey_wanderer_subclass",
+            "title": "Fey Wanderer",
+            "category": "Character Classes",
+            "tags": [
+              "ranger",
+              "subclass",
+              "fey wanderer",
+              "feywild",
+              "charm",
+              "psychic"
+            ],
+            "excerpt": "Wield Fey mirth and fury, thanks to a boon from an archfey or a location in the Feywild.",
+            "aliases": [],
+            "seeAlso": [
+              "ranger",
+              "dreadful_strikes_fey",
+              "otherworldly_glamour"
+            ],
+            "filePath": "/data/glossary/entries/classes/ranger_subclasses/fey_wanderer.json",
+            "parentClass": "ranger",
+            "type": "subclass"
+          },
+          {
+            "id": "gloom_stalker_subclass",
+            "title": "Gloom Stalker",
+            "category": "Character Classes",
+            "tags": [
+              "ranger",
+              "subclass",
+              "gloom stalker",
+              "shadow",
+              "darkness",
+              "ambush"
+            ],
+            "excerpt": "Draw on shadow magic to fight foes in the darkest places, excelling at ambushes.",
+            "aliases": [],
+            "seeAlso": [
+              "ranger",
+              "dread_ambusher",
+              "umbral_sight"
+            ],
+            "filePath": "/data/glossary/entries/classes/ranger_subclasses/gloom_stalker.json",
+            "parentClass": "ranger",
+            "type": "subclass"
+          },
+          {
+            "id": "hunter_subclass",
+            "title": "Hunter",
+            "category": "Character Classes",
+            "tags": [
+              "ranger",
+              "subclass",
+              "hunter",
+              "prey",
+              "slayer"
+            ],
+            "excerpt": "Stalk prey using your abilities as a Hunter to protect nature and people everywhere.",
+            "aliases": [],
+            "seeAlso": [
+              "ranger",
+              "favored_enemy_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/ranger_subclasses/hunter.json",
+            "parentClass": "ranger",
+            "type": "subclass"
+          }
+        ]
       },
       {
         "id": "ranger_spell_list",
@@ -1346,96 +1427,105 @@
     "filePath": "/data/glossary/entries/classes/rogue.json",
     "subEntries": [
       {
-        "id": "arcane_trickster_subclass",
-        "title": "Arcane Trickster (Rogue Subclass)",
+        "id": "rogue_subclasses_group",
+        "title": "Rogue Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "rogue",
-          "subclass",
-          "arcane trickster",
-          "magic",
-          "wizard spells",
-          "mage hand"
-        ],
-        "excerpt": "Enhance your roguish skills with a touch of arcane magic from the Wizard spell list, specializing in illusions and enchantments.",
-        "aliases": [],
-        "seeAlso": [
-          "rogue",
-          "spellcasting",
-          "mage_hand_legerdemain"
-        ],
-        "filePath": "/data/glossary/entries/classes/rogue_subclasses/arcane_trickster.json",
         "parentClass": "rogue",
-        "type": "subclass"
-      },
-      {
-        "id": "assassin_subclass",
-        "title": "Assassin (Rogue Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "rogue",
-          "subclass",
-          "assassin",
-          "stealth",
-          "disguise",
-          "poison"
-        ],
-        "excerpt": "Practice the grim art of death, using stealth, poison, and disguise to eliminate foes with deadly efficiency.",
-        "aliases": [],
-        "seeAlso": [
-          "rogue",
-          "assassinate_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/rogue_subclasses/assassin.json",
-        "parentClass": "rogue",
-        "type": "subclass"
-      },
-      {
-        "id": "soulknife_subclass",
-        "title": "Soulknife (Rogue Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "rogue",
-          "subclass",
-          "soulknife",
-          "psionic",
-          "psychic",
-          "telepathy"
-        ],
-        "excerpt": "Strike with the power of your mind, cutting through barriers both physical and psychic with blades of pure psionic energy.",
-        "aliases": [],
-        "seeAlso": [
-          "rogue",
-          "psionic_power_soulknife",
-          "psychic_blades"
-        ],
-        "filePath": "/data/glossary/entries/classes/rogue_subclasses/soulknife.json",
-        "parentClass": "rogue",
-        "type": "subclass"
-      },
-      {
-        "id": "thief_subclass",
-        "title": "Thief (Rogue Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "rogue",
-          "subclass",
-          "thief",
-          "fast hands",
-          "second-story work",
-          "use magic device"
-        ],
-        "excerpt": "A mix of burglar, treasure hunter, and explorer, a Thief is the epitome of an adventurer, excelling at infiltration and using magic items.",
-        "aliases": [],
-        "seeAlso": [
-          "rogue",
-          "fast_hands_feature",
-          "second_story_work_feature",
-          "use_magic_device_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/rogue_subclasses/thief.json",
-        "parentClass": "rogue",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "arcane_trickster_subclass",
+            "title": "Arcane Trickster",
+            "category": "Character Classes",
+            "tags": [
+              "rogue",
+              "subclass",
+              "arcane trickster",
+              "magic",
+              "wizard spells",
+              "mage hand"
+            ],
+            "excerpt": "Enhance your roguish skills with a touch of arcane magic from the Wizard spell list, specializing in illusions and enchantments.",
+            "aliases": [],
+            "seeAlso": [
+              "rogue",
+              "spellcasting",
+              "mage_hand_legerdemain"
+            ],
+            "filePath": "/data/glossary/entries/classes/rogue_subclasses/arcane_trickster.json",
+            "parentClass": "rogue",
+            "type": "subclass"
+          },
+          {
+            "id": "assassin_subclass",
+            "title": "Assassin",
+            "category": "Character Classes",
+            "tags": [
+              "rogue",
+              "subclass",
+              "assassin",
+              "stealth",
+              "disguise",
+              "poison"
+            ],
+            "excerpt": "Practice the grim art of death, using stealth, poison, and disguise to eliminate foes with deadly efficiency.",
+            "aliases": [],
+            "seeAlso": [
+              "rogue",
+              "assassinate_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/rogue_subclasses/assassin.json",
+            "parentClass": "rogue",
+            "type": "subclass"
+          },
+          {
+            "id": "soulknife_subclass",
+            "title": "Soulknife",
+            "category": "Character Classes",
+            "tags": [
+              "rogue",
+              "subclass",
+              "soulknife",
+              "psionic",
+              "psychic",
+              "telepathy"
+            ],
+            "excerpt": "Strike with the power of your mind, cutting through barriers both physical and psychic with blades of pure psionic energy.",
+            "aliases": [],
+            "seeAlso": [
+              "rogue",
+              "psionic_power_soulknife",
+              "psychic_blades"
+            ],
+            "filePath": "/data/glossary/entries/classes/rogue_subclasses/soulknife.json",
+            "parentClass": "rogue",
+            "type": "subclass"
+          },
+          {
+            "id": "thief_subclass",
+            "title": "Thief",
+            "category": "Character Classes",
+            "tags": [
+              "rogue",
+              "subclass",
+              "thief",
+              "fast hands",
+              "second-story work",
+              "use magic device"
+            ],
+            "excerpt": "A mix of burglar, treasure hunter, and explorer, a Thief is the epitome of an adventurer, excelling at infiltration and using magic items.",
+            "aliases": [],
+            "seeAlso": [
+              "rogue",
+              "fast_hands_feature",
+              "second_story_work_feature",
+              "use_magic_device_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/rogue_subclasses/thief.json",
+            "parentClass": "rogue",
+            "type": "subclass"
+          }
+        ]
       }
     ]
   },
@@ -1474,78 +1564,110 @@
     "filePath": "/data/glossary/entries/classes/sorcerer.json",
     "subEntries": [
       {
-        "id": "aberrant_mind_subclass",
-        "title": "Aberrant Mind",
+        "id": "sorcerer_subclasses_group",
+        "title": "Sorcerer Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "sorcerer",
-          "subclass",
-          "aberrant",
-          "psionic",
-          "mind flayer",
-          "far realm"
-        ],
-        "excerpt": "Wield unnatural psionic power, touching other minds and altering the world around you.",
-        "aliases": [
-          "psionic sorcerer"
-        ],
-        "seeAlso": [
-          "sorcerer",
-          "psionic_spells",
-          "telepathic_speech"
-        ],
-        "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/aberrant_sorcery.json",
         "parentClass": "sorcerer",
-        "type": "subclass"
-      },
-      {
-        "id": "clockwork_soul_subclass",
-        "title": "Clockwork Soul",
-        "category": "Character Classes",
-        "tags": [
-          "sorcerer",
-          "subclass",
-          "clockwork",
-          "mechanus",
-          "order",
-          "constructs"
-        ],
-        "excerpt": "Channel the cosmic forces of order, equalizing chaotic moments and imbuing allies with shimmering shields.",
-        "aliases": [
-          "order sorcerer",
-          "clockwork mage"
-        ],
-        "seeAlso": [
-          "sorcerer",
-          "restore_balance"
-        ],
-        "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/clockwork_sorcery.json",
-        "parentClass": "sorcerer",
-        "type": "subclass"
-      },
-      {
-        "id": "draconic_sorcery_subclass",
-        "title": "Draconic Sorcery",
-        "category": "Character Classes",
-        "tags": [
-          "sorcerer",
-          "subclass",
-          "draconic",
-          "dragon",
-          "scales",
-          "wings"
-        ],
-        "excerpt": "Your innate magic comes from the gift of a dragon, granting you resilience, elemental affinity, and draconic power.",
-        "aliases": [
-          "dragon sorcerer"
-        ],
-        "seeAlso": [
-          "sorcerer",
-          "draconic_resilience"
-        ],
-        "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/draconic_sorcery.json",
-        "parentClass": "sorcerer",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "aberrant_mind_subclass",
+            "title": "Aberrant Mind",
+            "category": "Character Classes",
+            "tags": [
+              "sorcerer",
+              "subclass",
+              "aberrant",
+              "psionic",
+              "mind flayer",
+              "far realm"
+            ],
+            "excerpt": "Wield unnatural psionic power, touching other minds and altering the world around you.",
+            "aliases": [
+              "psionic sorcerer"
+            ],
+            "seeAlso": [
+              "sorcerer",
+              "psionic_spells",
+              "telepathic_speech"
+            ],
+            "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/aberrant_sorcery.json",
+            "parentClass": "sorcerer",
+            "type": "subclass"
+          },
+          {
+            "id": "clockwork_soul_subclass",
+            "title": "Clockwork Soul",
+            "category": "Character Classes",
+            "tags": [
+              "sorcerer",
+              "subclass",
+              "clockwork",
+              "mechanus",
+              "order",
+              "constructs"
+            ],
+            "excerpt": "Channel the cosmic forces of order, equalizing chaotic moments and imbuing allies with shimmering shields.",
+            "aliases": [
+              "order sorcerer",
+              "clockwork mage"
+            ],
+            "seeAlso": [
+              "sorcerer",
+              "restore_balance"
+            ],
+            "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/clockwork_sorcery.json",
+            "parentClass": "sorcerer",
+            "type": "subclass"
+          },
+          {
+            "id": "draconic_sorcery_subclass",
+            "title": "Draconic Sorcery",
+            "category": "Character Classes",
+            "tags": [
+              "sorcerer",
+              "subclass",
+              "draconic",
+              "dragon",
+              "scales",
+              "wings"
+            ],
+            "excerpt": "Your innate magic comes from the gift of a dragon, granting you resilience, elemental affinity, and draconic power.",
+            "aliases": [
+              "dragon sorcerer"
+            ],
+            "seeAlso": [
+              "sorcerer",
+              "draconic_resilience"
+            ],
+            "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/draconic_sorcery.json",
+            "parentClass": "sorcerer",
+            "type": "subclass"
+          },
+          {
+            "id": "wild_magic_subclass",
+            "title": "Wild Magic",
+            "category": "Character Classes",
+            "tags": [
+              "sorcerer",
+              "subclass",
+              "wild magic",
+              "chaos",
+              "random"
+            ],
+            "excerpt": "Your magic stems from the raw forces of chaos, leading to unpredictable surges of untamed power.",
+            "aliases": [
+              "wild mage"
+            ],
+            "seeAlso": [
+              "sorcerer",
+              "wild_magic_surge"
+            ],
+            "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/wild_magic_sorcery.json",
+            "parentClass": "sorcerer",
+            "type": "subclass"
+          }
+        ]
       },
       {
         "id": "sorcerer_spell_list",
@@ -1565,29 +1687,6 @@
         "filePath": "/data/glossary/entries/classes/sorcerer_spell_list.json",
         "parentClass": "sorcerer",
         "type": "spell_list"
-      },
-      {
-        "id": "wild_magic_subclass",
-        "title": "Wild Magic",
-        "category": "Character Classes",
-        "tags": [
-          "sorcerer",
-          "subclass",
-          "wild magic",
-          "chaos",
-          "random"
-        ],
-        "excerpt": "Your magic stems from the raw forces of chaos, leading to unpredictable surges of untamed power.",
-        "aliases": [
-          "wild mage"
-        ],
-        "seeAlso": [
-          "sorcerer",
-          "wild_magic_surge"
-        ],
-        "filePath": "/data/glossary/entries/classes/sorcerer_subclasses/wild_magic_sorcery.json",
-        "parentClass": "sorcerer",
-        "type": "subclass"
       }
     ]
   },
@@ -1620,101 +1719,110 @@
     "filePath": "/data/glossary/entries/classes/warlock.json",
     "subEntries": [
       {
-        "id": "archfey_patron_subclass",
-        "title": "Archfey Patron (Warlock Subclass)",
+        "id": "warlock_subclasses_group",
+        "title": "Warlock Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "warlock",
-          "subclass",
-          "patron",
-          "archfey",
-          "fey"
-        ],
-        "excerpt": "Bargain with a whimsical archfey, wielding the beguiling and terrifying magic of the Feywild.",
-        "aliases": [
-          "fey warlock"
-        ],
-        "seeAlso": [
-          "warlock",
-          "misty_step"
-        ],
-        "filePath": "/data/glossary/entries/classes/warlock_subclasses/archfey.json",
         "parentClass": "warlock",
-        "type": "subclass"
-      },
-      {
-        "id": "celestial_patron_subclass",
-        "title": "Celestial Patron (Warlock Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "warlock",
-          "subclass",
-          "patron",
-          "celestial",
-          "healing",
-          "radiant"
-        ],
-        "excerpt": "Call on the power of the heavens, healing allies and searing foes with holy light.",
-        "aliases": [
-          "holy warlock"
-        ],
-        "seeAlso": [
-          "warlock",
-          "healing_light",
-          "radiant_soul"
-        ],
-        "filePath": "/data/glossary/entries/classes/warlock_subclasses/celestial.json",
-        "parentClass": "warlock",
-        "type": "subclass"
-      },
-      {
-        "id": "fiend_patron_subclass",
-        "title": "Fiend Patron (Warlock Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "warlock",
-          "subclass",
-          "patron",
-          "fiend",
-          "devil",
-          "demon"
-        ],
-        "excerpt": "Make a deal with the Lower Planes, gaining fiery magic and infernal resilience.",
-        "aliases": [
-          "fiendlock"
-        ],
-        "seeAlso": [
-          "warlock",
-          "dark_ones_blessing"
-        ],
-        "filePath": "/data/glossary/entries/classes/warlock_subclasses/fiend.json",
-        "parentClass": "warlock",
-        "type": "subclass"
-      },
-      {
-        "id": "great_old_one_patron_subclass",
-        "title": "Great Old One Patron (Warlock Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "warlock",
-          "subclass",
-          "patron",
-          "great old one",
-          "aberration",
-          "psychic",
-          "telepathy"
-        ],
-        "excerpt": "Unearth forbidden lore from ineffable beings of the Far Realm, touching other minds with alien power.",
-        "aliases": [
-          "GOOlock"
-        ],
-        "seeAlso": [
-          "warlock",
-          "awakened_mind"
-        ],
-        "filePath": "/data/glossary/entries/classes/warlock_subclasses/great_old_one.json",
-        "parentClass": "warlock",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "archfey_patron_subclass",
+            "title": "Archfey Patron",
+            "category": "Character Classes",
+            "tags": [
+              "warlock",
+              "subclass",
+              "patron",
+              "archfey",
+              "fey"
+            ],
+            "excerpt": "Bargain with a whimsical archfey, wielding the beguiling and terrifying magic of the Feywild.",
+            "aliases": [
+              "fey warlock"
+            ],
+            "seeAlso": [
+              "warlock",
+              "misty_step"
+            ],
+            "filePath": "/data/glossary/entries/classes/warlock_subclasses/archfey.json",
+            "parentClass": "warlock",
+            "type": "subclass"
+          },
+          {
+            "id": "celestial_patron_subclass",
+            "title": "Celestial Patron",
+            "category": "Character Classes",
+            "tags": [
+              "warlock",
+              "subclass",
+              "patron",
+              "celestial",
+              "healing",
+              "radiant"
+            ],
+            "excerpt": "Call on the power of the heavens, healing allies and searing foes with holy light.",
+            "aliases": [
+              "holy warlock"
+            ],
+            "seeAlso": [
+              "warlock",
+              "healing_light",
+              "radiant_soul"
+            ],
+            "filePath": "/data/glossary/entries/classes/warlock_subclasses/celestial.json",
+            "parentClass": "warlock",
+            "type": "subclass"
+          },
+          {
+            "id": "fiend_patron_subclass",
+            "title": "Fiend Patron",
+            "category": "Character Classes",
+            "tags": [
+              "warlock",
+              "subclass",
+              "patron",
+              "fiend",
+              "devil",
+              "demon"
+            ],
+            "excerpt": "Make a deal with the Lower Planes, gaining fiery magic and infernal resilience.",
+            "aliases": [
+              "fiendlock"
+            ],
+            "seeAlso": [
+              "warlock",
+              "dark_ones_blessing"
+            ],
+            "filePath": "/data/glossary/entries/classes/warlock_subclasses/fiend.json",
+            "parentClass": "warlock",
+            "type": "subclass"
+          },
+          {
+            "id": "great_old_one_patron_subclass",
+            "title": "Great Old One Patron",
+            "category": "Character Classes",
+            "tags": [
+              "warlock",
+              "subclass",
+              "patron",
+              "great old one",
+              "aberration",
+              "psychic",
+              "telepathy"
+            ],
+            "excerpt": "Unearth forbidden lore from ineffable beings of the Far Realm, touching other minds with alien power.",
+            "aliases": [
+              "GOOlock"
+            ],
+            "seeAlso": [
+              "warlock",
+              "awakened_mind"
+            ],
+            "filePath": "/data/glossary/entries/classes/warlock_subclasses/great_old_one.json",
+            "parentClass": "warlock",
+            "type": "subclass"
+          }
+        ]
       },
       {
         "id": "warlock_spell_list",
@@ -1769,96 +1877,105 @@
     "filePath": "/data/glossary/entries/classes/wizard.json",
     "subEntries": [
       {
-        "id": "abjurer_subclass",
-        "title": "Abjurer",
+        "id": "wizard_subclasses_group",
+        "title": "Wizard Subclasses",
         "category": "Character Classes",
-        "tags": [
-          "wizard",
-          "subclass",
-          "abjuration",
-          "protection",
-          "warding"
-        ],
-        "excerpt": "Focuses on magic that blocks, banishes, or protects, ending harmful effects and guarding against spying.",
-        "aliases": [],
-        "seeAlso": [
-          "wizard",
-          "abjuration_school",
-          "arcane_ward_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/wizard_subclasses/abjurer.json",
         "parentClass": "wizard",
-        "type": "subclass"
-      },
-      {
-        "id": "diviner_subclass",
-        "title": "Diviner",
-        "category": "Character Classes",
-        "tags": [
-          "wizard",
-          "subclass",
-          "divination",
-          "foresight",
-          "prophecy",
-          "portent"
-        ],
-        "excerpt": "Strives to part the veils of space, time, and consciousness, mastering spells of discernment, remote viewing, and foresight.",
-        "aliases": [],
-        "seeAlso": [
-          "wizard",
-          "divination_school",
-          "portent_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/wizard_subclasses/diviner.json",
-        "parentClass": "wizard",
-        "type": "subclass"
-      },
-      {
-        "id": "evoker_subclass",
-        "title": "Evoker",
-        "category": "Character Classes",
-        "tags": [
-          "wizard",
-          "subclass",
-          "evocation",
-          "elemental",
-          "damage",
-          "fireball"
-        ],
-        "excerpt": "Creates powerful elemental effects like searing flame, crackling lightning, and burning acid.",
-        "aliases": [],
-        "seeAlso": [
-          "wizard",
-          "evocation_school",
-          "sculpt_spells_feature",
-          "fireball"
-        ],
-        "filePath": "/data/glossary/entries/classes/wizard_subclasses/evoker.json",
-        "parentClass": "wizard",
-        "type": "subclass"
-      },
-      {
-        "id": "illusionist_subclass",
-        "title": "Illusionist",
-        "category": "Character Classes",
-        "tags": [
-          "wizard",
-          "subclass",
-          "illusion",
-          "deception",
-          "trickery",
-          "phantasm"
-        ],
-        "excerpt": "Specializes in magic that dazzles the senses and tricks the mind, crafting illusions that make the impossible seem real.",
-        "aliases": [],
-        "seeAlso": [
-          "wizard",
-          "illusion_school",
-          "phantasmal_creatures_feature"
-        ],
-        "filePath": "/data/glossary/entries/classes/wizard_subclasses/illusionist.json",
-        "parentClass": "wizard",
-        "type": "subclass"
+        "type": "subclass_group",
+        "subEntries": [
+          {
+            "id": "abjurer_subclass",
+            "title": "Abjurer",
+            "category": "Character Classes",
+            "tags": [
+              "wizard",
+              "subclass",
+              "abjuration",
+              "protection",
+              "warding"
+            ],
+            "excerpt": "Focuses on magic that blocks, banishes, or protects, ending harmful effects and guarding against spying.",
+            "aliases": [],
+            "seeAlso": [
+              "wizard",
+              "abjuration_school",
+              "arcane_ward_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/wizard_subclasses/abjurer.json",
+            "parentClass": "wizard",
+            "type": "subclass"
+          },
+          {
+            "id": "diviner_subclass",
+            "title": "Diviner",
+            "category": "Character Classes",
+            "tags": [
+              "wizard",
+              "subclass",
+              "divination",
+              "foresight",
+              "prophecy",
+              "portent"
+            ],
+            "excerpt": "Strives to part the veils of space, time, and consciousness, mastering spells of discernment, remote viewing, and foresight.",
+            "aliases": [],
+            "seeAlso": [
+              "wizard",
+              "divination_school",
+              "portent_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/wizard_subclasses/diviner.json",
+            "parentClass": "wizard",
+            "type": "subclass"
+          },
+          {
+            "id": "evoker_subclass",
+            "title": "Evoker",
+            "category": "Character Classes",
+            "tags": [
+              "wizard",
+              "subclass",
+              "evocation",
+              "elemental",
+              "damage",
+              "fireball"
+            ],
+            "excerpt": "Creates powerful elemental effects like searing flame, crackling lightning, and burning acid.",
+            "aliases": [],
+            "seeAlso": [
+              "wizard",
+              "evocation_school",
+              "sculpt_spells_feature",
+              "fireball"
+            ],
+            "filePath": "/data/glossary/entries/classes/wizard_subclasses/evoker.json",
+            "parentClass": "wizard",
+            "type": "subclass"
+          },
+          {
+            "id": "illusionist_subclass",
+            "title": "Illusionist",
+            "category": "Character Classes",
+            "tags": [
+              "wizard",
+              "subclass",
+              "illusion",
+              "deception",
+              "trickery",
+              "phantasm"
+            ],
+            "excerpt": "Specializes in magic that dazzles the senses and tricks the mind, crafting illusions that make the impossible seem real.",
+            "aliases": [],
+            "seeAlso": [
+              "wizard",
+              "illusion_school",
+              "phantasmal_creatures_feature"
+            ],
+            "filePath": "/data/glossary/entries/classes/wizard_subclasses/illusionist.json",
+            "parentClass": "wizard",
+            "type": "subclass"
+          }
+        ]
       },
       {
         "id": "wizard_spell_list",

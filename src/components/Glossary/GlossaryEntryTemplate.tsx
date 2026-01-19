@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GlossaryTraitTable } from './GlossaryTraitTable';
 import { GlossarySpellsOfTheMarkTable } from './GlossarySpellsOfTheMarkTable';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
+import { ArtificerInfusionsTable } from './ArtificerInfusionsTable';
 import ImageModal from '../ImageModal';
 import { GlossaryEntry } from '../../types';
 
@@ -137,10 +138,18 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                     {/* Lore / Introductory Text (New or Legacy) */}
                     {(entry.entryLore || (!entry.characteristics && markdownContent)) && (
                         <div className="prose prose-sm prose-invert max-w-none text-gray-300 leading-relaxed prose-headings:text-amber-300 prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-strong:text-sky-300 prose-a:text-sky-400 hover:prose-a:text-sky-300 prose-blockquote:border-l-sky-500">
-                            <GlossaryContentRenderer
-                                markdownContent={entry.entryLore || markdownContent || ''}
-                                onNavigate={onNavigate}
-                            />
+                            {/* Special rendering for Artificer Infusions */}
+                            {entry.id === 'artificer_infusions' && markdownContent ? (
+                                <ArtificerInfusionsTable
+                                    markdownContent={markdownContent}
+                                    onNavigate={onNavigate}
+                                />
+                            ) : (
+                                <GlossaryContentRenderer
+                                    markdownContent={entry.entryLore || markdownContent || ''}
+                                    onNavigate={onNavigate}
+                                />
+                            )}
                         </div>
                     )}
 

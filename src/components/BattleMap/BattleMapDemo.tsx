@@ -61,7 +61,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const [characters, setCharacters] = useState<CombatCharacter[]>(initialSetup.positionedCharacters);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  // TODO(next-agent): Preserve behavior; wire selection state into BattleMap interactions when the demo UI expands.
+  const [_selectedCharacterId, _setSelectedCharacterId] = useState<string | null>(null);
 
   const biomeRef = useRef(biome);
   useEffect(() => {

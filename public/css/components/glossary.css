@@ -1,155 +1,194 @@
 /* Glossary Tooltip Trigger Styling */
 .glossary-term-link {
-  border-bottom: 1px dotted #fbbf24; /* amber-400 */
+  border-bottom: 1px dotted #fbbf24;
+  /* amber-400 */
   position: relative;
   cursor: help;
   transition: color 0.2s ease;
-  color: #fde047; /* yellow-400 - slightly brighter for base link */
+  color: #fde047;
+  /* yellow-400 - slightly brighter for base link */
 }
-.glossary-term-link:hover, .glossary-term-link:focus {
-  color: #fef08a; /* yellow-200 - even brighter on hover/focus */
-  outline: none; 
+
+.glossary-term-link:hover,
+.glossary-term-link:focus {
+  color: #fef08a;
+  /* yellow-200 - even brighter on hover/focus */
+  outline: none;
 }
-.glossary-term-link::after { /* Default '?' for external tooltips */
+
+.glossary-term-link::after {
+  /* Default '?' for external tooltips */
   content: "❔";
-  font-size: .7em; 
+  font-size: .7em;
   position: absolute;
-  right: -1.1em; 
-  top: -0.2em;    
+  right: -1.1em;
+  top: -0.2em;
   opacity: 0;
   transition: opacity .2s ease;
-  color: #fbbf24; /* amber-400 */
+  color: #fbbf24;
+  /* amber-400 */
 }
-.glossary-term-link:hover::after, .glossary-term-link:focus::after {
+
+.glossary-term-link:hover::after,
+.glossary-term-link:focus::after {
   opacity: 1;
 }
 
 /* Styling for internal glossary links (rendered from Markdown) */
-.glossary-term-link-from-markdown { /* Used by Glossary.tsx for internal links */
-  color: #7dd3fc; /* sky-300 */
-  border-bottom: 1px dotted #0ea5e9; /* sky-500 */
-  cursor: pointer; /* Indicates clickability */
+.glossary-term-link-from-markdown {
+  /* Used by Glossary.tsx for internal links */
+  color: #7dd3fc;
+  /* sky-300 */
+  border-bottom: 1px dotted #0ea5e9;
+  /* sky-500 */
+  cursor: pointer;
+  /* Indicates clickability */
   transition: color 0.2s ease, border-color 0.2s ease;
 }
-.glossary-term-link-from-markdown:hover, .glossary-term-link-from-markdown:focus {
-  color: #e0f2fe; /* sky-100 */
-  border-bottom-color: #38bdf8; /* sky-400 */
+
+.glossary-term-link-from-markdown:hover,
+.glossary-term-link-from-markdown:focus {
+  color: #e0f2fe;
+  /* sky-100 */
+  border-bottom-color: #38bdf8;
+  /* sky-400 */
   outline: none;
 }
-.glossary-term-link-from-markdown::after { /* No '?' for internal links */
-   content: ""; 
+
+.glossary-term-link-from-markdown::after {
+  /* No '?' for internal links */
+  content: "";
 }
 
 /* Details & Summary (Caret logic) */
-.prose details > summary {
-  list-style: none; 
-  position: relative; 
-  padding-left: 1.5rem; 
+.prose details>summary {
+  list-style: none;
+  position: relative;
+  padding-left: 1.5rem;
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
-.prose details > summary:hover {
+
+.prose details>summary:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
-.prose details > summary::-webkit-details-marker { /* Safari */
+
+.prose details>summary::-webkit-details-marker {
+  /* Safari */
   display: none;
 }
-.prose details > summary::before { /* This is the caret */
+
+.prose details>summary::before {
+  /* This is the caret */
   content: '▶';
   position: absolute;
-  left: 0.25rem; 
-  top: 50%; /* Vertically center */
-  transform: translateY(-50%) rotate(0deg); /* Adjust for centering and initial rotation */
-  font-size: 0.8em; 
+  left: 0.25rem;
+  top: 50%;
+  /* Vertically center */
+  transform: translateY(-50%) rotate(0deg);
+  /* Adjust for centering and initial rotation */
+  font-size: 0.8em;
   transition: transform 0.2s ease-in-out;
-  color: #fcd34d; /* amber-300 for better visibility */
+  color: #fcd34d;
+  /* amber-300 for better visibility */
 }
-.prose details[open] > summary::before {
+
+.prose details[open]>summary::before {
   transform: translateY(-50%) rotate(90deg);
 }
 
 /* Styling for standard (non-feature-card) details */
 .prose details:not(.feature-card) {
-  background-color: rgba(55, 65, 81, 0.15); 
-  padding: 0.75rem; 
-  border-radius: 0.375rem; 
+  background-color: rgba(55, 65, 81, 0.15);
+  padding: 0.75rem;
+  border-radius: 0.375rem;
   margin-bottom: 1rem;
-  border-left: 3px solid #fcd34d; /* amber-300 */
+  border-left: 3px solid #fcd34d;
+  /* amber-300 */
 }
-.prose details:not(.feature-card) > summary {
+
+.prose details:not(.feature-card)>summary {
   font-weight: 600;
-  color: #fde047; /* yellow-400 */
-  line-height: 1.5; 
+  color: #fde047;
+  /* yellow-400 */
+  line-height: 1.5;
 }
-.prose details:not(.feature-card) > div { 
+
+.prose details:not(.feature-card)>div {
   padding-top: 0.75rem;
-  margin-left: 1.25rem; 
+  margin-left: 1.25rem;
 }
 
 /* Feature Card Styling (Can BE a <details> element) */
-.prose .feature-card, 
-.prose details.feature-card { 
+.prose .feature-card,
+.prose details.feature-card {
   transition: transform .15s ease, background-color .15s ease;
-  margin-top: 1.5rem; 
-  margin-bottom: 1.5rem; 
-  padding: 1rem; 
-  border-radius: 0.5rem; 
-  border-width: 1px; 
-  border-color: rgba(252, 211, 77, 0.3); /* amber-300 with opacity */
-  background-color: rgba(30, 41, 55, 0.4); /* gray-800 with more opacity */
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-width: 1px;
+  border-color: rgba(252, 211, 77, 0.3);
+  /* amber-300 with opacity */
+  background-color: rgba(30, 41, 55, 0.4);
+  /* gray-800 with more opacity */
 }
+
 .prose .feature-card:hover,
 .prose details.feature-card:hover {
   transform: translateY(-2px);
-  background-color: rgba(55, 65, 81, 0.5); 
+  background-color: rgba(55, 65, 81, 0.5);
 }
+
 /* Summary of a <details class="feature-card"> (main heading) */
-.prose details.feature-card > summary {
-  font-weight: normal; 
-  color: inherit; 
-  padding-top: 0rem; 
-  padding-bottom: 0.5rem; 
-  line-height: 1.3; 
-}
-.prose details.feature-card > summary h3 { 
-  display: inline; 
-  font-size: 1.25rem !important; 
-  font-weight: 700 !important; 
-  color: #fcd34d !important; 
-  margin: 0 !important; 
-  padding: 0 !important; 
-  border-bottom: none !important; 
-  position: static; 
-  line-height: 1.1; 
+.prose details.feature-card>summary {
+  font-weight: normal;
+  color: inherit;
+  padding-top: 0rem;
+  padding-bottom: 0.5rem;
+  line-height: 1.3;
 }
 
-.prose details.feature-card > div {
-  padding-top: 0.5rem; 
+.prose details.feature-card>summary h3 {
+  display: inline;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #fcd34d !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+  position: static;
+  line-height: 1.1;
 }
 
-.prose .feature-card h4, 
-.prose details.feature-card h4 { 
-  color: #fde047; 
+.prose details.feature-card>div {
+  padding-top: 0.5rem;
+}
+
+.prose .feature-card h4,
+.prose details.feature-card h4 {
+  color: #fde047;
   margin-top: 1rem !important;
   margin-bottom: 0.5rem !important;
   font-weight: 600;
-  font-size: 1.125rem !important; 
+  font-size: 1.125rem !important;
 }
 
 /* Styling for NESTED details summaries WITHIN a feature-card */
-.prose .feature-card details > summary, 
-.prose details.feature-card details > summary { 
-  font-weight: 600; 
-  color: #fde047; 
-  padding-top: 0.25rem; 
+.prose .feature-card details>summary,
+.prose details.feature-card details>summary {
+  font-weight: 600;
+  color: #fde047;
+  padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   margin-top: 0.5rem;
-  line-height: 1.5; 
+  line-height: 1.5;
 }
-.prose .feature-card details > div,
-.prose details.feature-card details > div { 
+
+.prose .feature-card details>div,
+.prose details.feature-card details>div {
   padding-top: 0.5rem;
-  margin-left: 1.25rem; 
+  margin-left: 1.25rem;
 }
 
 /* Glossary Entry Enhancements */
@@ -186,7 +225,7 @@
 .glossary-callout {
   background-color: rgba(17, 24, 39, 0.8);
   border: 1px solid rgba(107, 114, 128, 0.3);
-  border-left: 4px solid #0ea5e9; 
+  border-left: 4px solid #0ea5e9;
   border-radius: 0.375rem;
   padding: 1rem 1.25rem;
   margin: 1.5rem 0;
@@ -201,43 +240,313 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 70; 
+  z-index: 70;
 }
+
 .glossary-entry-modal-content {
-  background-color: #1f2937; /* gray-800 */
-  color: #d1d5db; /* gray-300 */
+  background-color: #1f2937;
+  /* gray-800 */
+  color: #d1d5db;
+  /* gray-300 */
   padding: 1.5rem 2rem;
   border-radius: 0.75rem;
-  border: 1px solid #4b5563; /* gray-600 */
+  border: 1px solid #4b5563;
+  /* gray-600 */
   max-width: 90vw;
   max-height: 90vh;
   width: 800px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
 }
+
 .glossary-entry-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #4b5563; /* gray-600 */
+  border-bottom: 1px solid #4b5563;
+  /* gray-600 */
 }
+
 .glossary-entry-modal-title {
-  font-size: 1.875rem; /* text-3xl */
+  font-size: 1.875rem;
+  /* text-3xl */
   font-weight: bold;
-  color: #fcd34d; /* amber-300 */
+  color: #fcd34d;
+  /* amber-300 */
   font-family: 'Cinzel Decorative', cursive;
 }
+
 .glossary-entry-modal-body {
   overflow-y: auto;
   flex-grow: 1;
   padding-right: 1rem;
 }
+
 .glossary-entry-modal-footer {
   margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid #4b5563;
   text-align: right;
+}
+
+/* ============================================
+   Artificer Infusions Table Styles
+   Premium table layout with gold accents
+   ============================================ */
+
+.infusions-table-container {
+  margin-top: 1.5rem;
+}
+
+/* Table Header */
+.infusions-header {
+  display: grid;
+  grid-template-columns: 5fr 2fr 2fr 3fr;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  color: #64748b;
+  border-bottom: 1px solid #334155;
+}
+
+.infusions-col-name {}
+
+.infusions-col-level {
+  text-align: center;
+}
+
+.infusions-col-attune {
+  text-align: center;
+}
+
+.infusions-col-item {
+  text-align: right;
+}
+
+/* Infusion List */
+.infusions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* Individual Infusion Row */
+.infusion-row {
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.infusion-row:hover {
+  border-color: rgba(226, 184, 86, 0.4);
+  background-color: rgba(226, 184, 86, 0.02);
+}
+
+.infusion-row-expanded {
+  border-color: rgba(226, 184, 86, 0.5);
+}
+
+/* Row Header (Clickable) */
+.infusion-row-header {
+  display: grid;
+  grid-template-columns: 5fr 2fr 2fr 3fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+/* Name Column with Icon */
+.infusions-col-name {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.infusion-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: rgba(226, 184, 86, 0.08);
+  border: 1px solid rgba(226, 184, 86, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.infusion-icon .material-symbols-outlined {
+  font-size: 0.875rem;
+}
+
+.infusion-icon .material-icons-round {
+  color: #E2B856;
+  font-size: 1.25rem;
+}
+
+.infusion-name-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.infusion-name {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #E2B856;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.infusion-type {
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+/* Level Badge */
+.infusion-level-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.5rem;
+  font-weight: 700;
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+.infusion-level-high {
+  background-color: rgba(226, 184, 86, 0.15);
+  border: 1px solid rgba(226, 184, 86, 0.3);
+  color: #E2B856;
+}
+
+/* Attunement */
+.infusion-attune-yes {
+  color: #E2B856;
+  font-weight: 500;
+}
+
+/* Target Item */
+.infusions-col-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.infusion-target {
+  font-size: 0.5rem;
+  font-style: italic;
+  color: #94a3b8;
+}
+
+.infusion-expand-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #64748b;
+  transition: color 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.infusion-expand-icon.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.infusion-row:hover .infusion-expand-icon {
+  color: #E2B856;
+}
+
+/* Expandable Description */
+.infusion-description {
+  padding: 0.5rem 1rem 0.75rem;
+  padding-left: 3rem;
+  border-top: 1px solid rgba(51, 65, 85, 0.5);
+  background-color: rgba(15, 23, 42, 0.3);
+  font-size: 0.625rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.infusion-description p {
+  margin: 0;
+}
+
+.infusion-description strong {
+  color: #E2B856;
+}
+
+/* Footer */
+.infusions-footer {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #151C2C;
+  border-radius: 0.75rem;
+  border: 1px solid #334155;
+}
+
+.infusions-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.infusions-stat {
+  text-align: center;
+}
+
+.infusions-stat-value {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  font-size: 1.5rem;
+  color: #E2B856;
+}
+
+.infusions-stat-secondary {
+  color: #94a3b8;
+}
+
+.infusions-stat-label {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+}
+
+.infusions-stat-divider {
+  width: 1px;
+  height: 2rem;
+  background-color: #334155;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .infusions-header {
+    display: none;
+  }
+
+  .infusion-row-header {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .infusions-col-level,
+  .infusions-col-attune,
+  .infusions-col-item {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .infusion-description {
+    padding-left: 1.5rem;
+  }
 }

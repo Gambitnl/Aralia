@@ -7,6 +7,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item, Race as _Race, Class as _CharClass } from '../../types';
 import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
+import { buildHitPointDicePools } from '../../utils/characterUtils';
 import { FEATURES } from '../../config/features';
 
 import { ALL_RACES_DATA } from '../races/index.ts';
@@ -123,25 +124,31 @@ export function getDummyParty(): PlayerCharacter[] {
     const KAELEN_SKILLS: Skill[] = [SKILLS_DATA['stealth'], SKILLS_DATA['sleight_of_hand'], SKILLS_DATA['deception'], SKILLS_DATA['perception']].filter(Boolean) as Skill[];
     const KAELEN_MAX_HP = kaelenClass.hitDie + getAbilityModifierValue(KAELEN_FINAL_SCORES.Constitution);
 
-    const tempKaelen: PlayerCharacter = {
-        id: 'kaelen_thorne', // MATCHING COMPANION ID
-        name: "Kaelen Thorne",
-        age: 28,
-        level: 1, proficiencyBonus: 2, xp: 0,
-        race: kaelenRace, class: kaelenClass,
-        abilityScores: KAELEN_BASE_SCORES, finalAbilityScores: KAELEN_FINAL_SCORES,
-        skills: KAELEN_SKILLS, hp: KAELEN_MAX_HP, maxHp: KAELEN_MAX_HP,
-        armorClass: 10,
-        speed: 30, darkvisionRange: 60,
-        transportMode: 'foot',
-        racialSelections: {},
-        activeEffects: [],
+    // Keep class-level breakdown so Hit Dice pools show the correct die.
+    const kaelenClassLevels = { [kaelenClass.id]: 1 };
+	    const tempKaelen: PlayerCharacter = {
+	        id: 'kaelen_thorne', // MATCHING COMPANION ID
+	        name: "Kaelen Thorne",
+	        age: 28,
+	        level: 1, proficiencyBonus: 2, xp: 0,
+	        race: kaelenRace, class: kaelenClass,
+          classLevels: kaelenClassLevels,
+	        abilityScores: KAELEN_BASE_SCORES, finalAbilityScores: KAELEN_FINAL_SCORES,
+	        skills: KAELEN_SKILLS, hp: KAELEN_MAX_HP, maxHp: KAELEN_MAX_HP,
+	        // Hit Dice pools are computed after assembly to include class levels.
+	        hitPointDice: undefined,
+	        armorClass: 10,
+	        speed: 30, darkvisionRange: 60,
+	        transportMode: 'foot',
+	        racialSelections: {},
+	        activeEffects: [],
         statusEffects: [],
         equippedItems: {},
         limitedUses: {
             'sneak_attack': { name: 'Sneak Attack', current: 1, max: 1, resetOn: 'combat' } // visual placeholder usage
         },
     };
+    tempKaelen.hitPointDice = buildHitPointDicePools(tempKaelen, { classLevels: kaelenClassLevels });
     tempKaelen.armorClass = calculateArmorClass(tempKaelen);
 
     // --- Use Elara Vance (Data from companions.ts used as base) ---
@@ -172,24 +179,30 @@ export function getDummyParty(): PlayerCharacter[] {
         level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 }, level_9: { current: 0, max: 0 },
     };
 
-    const tempElara: PlayerCharacter = {
-        id: 'elara_vance', // MATCHING COMPANION ID
-        name: "Elara Vance",
-        age: 24,
-        level: 1, proficiencyBonus: 2, xp: 0,
-        race: elaraRace, class: elaraClass,
-        abilityScores: ELARA_BASE_SCORES, finalAbilityScores: ELARA_FINAL_SCORES,
-        skills: ELARA_SKILLS, hp: ELARA_MAX_HP, maxHp: ELARA_MAX_HP,
-        armorClass: 10,
-        speed: 30,
-        darkvisionRange: 0,
-        transportMode: 'foot',
-        racialSelections: { human: { skillIds: ['medicine'] } },
+    // Keep class-level breakdown so Hit Dice pools show the correct die.
+    const elaraClassLevels = { [elaraClass.id]: 1 };
+	    const tempElara: PlayerCharacter = {
+	        id: 'elara_vance', // MATCHING COMPANION ID
+	        name: "Elara Vance",
+	        age: 24,
+	        level: 1, proficiencyBonus: 2, xp: 0,
+	        race: elaraRace, class: elaraClass,
+          classLevels: elaraClassLevels,
+	        abilityScores: ELARA_BASE_SCORES, finalAbilityScores: ELARA_FINAL_SCORES,
+	        skills: ELARA_SKILLS, hp: ELARA_MAX_HP, maxHp: ELARA_MAX_HP,
+	        // Hit Dice pools are computed after assembly to include class levels.
+	        hitPointDice: undefined,
+	        armorClass: 10,
+	        speed: 30,
+	        darkvisionRange: 0,
+	        transportMode: 'foot',
+	        racialSelections: { human: { skillIds: ['medicine'] } },
         selectedDivineOrder: 'Protector',
         spellcastingAbility: 'wisdom', spellbook: elaraSpellbook, spellSlots: elaraSlots,
         limitedUses: {}, equippedItems: {},
         activeEffects: [], statusEffects: [],
     };
+    tempElara.hitPointDice = buildHitPointDicePools(tempElara, { classLevels: elaraClassLevels });
     tempElara.armorClass = calculateArmorClass(tempElara);
 
     // --- Create DEv Player ---
@@ -203,19 +216,24 @@ export function getDummyParty(): PlayerCharacter[] {
     const PLAYER_SKILLS: Skill[] = [SKILLS_DATA['athletics'], SKILLS_DATA['survival']].filter(Boolean) as Skill[];
     const PLAYER_MAX_HP = playerClass.hitDie + getAbilityModifierValue(PLAYER_FINAL_SCORES.Constitution);
 
-    const tempPlayer: PlayerCharacter = {
-        id: 'player', // STANDARD PLAYER ID
-        name: "Dev Player",
-        age: 30,
-        level: 1, proficiencyBonus: 2, xp: 0,
-        race: playerRace, class: playerClass,
-        abilityScores: PLAYER_BASE_SCORES, finalAbilityScores: PLAYER_FINAL_SCORES,
-        skills: PLAYER_SKILLS, hp: PLAYER_MAX_HP, maxHp: PLAYER_MAX_HP,
-        armorClass: 10,
-        speed: 30, darkvisionRange: 0,
-        transportMode: 'foot',
-        racialSelections: { human: { skillIds: ['survival'] } },
-        activeEffects: [], statusEffects: [],
+    // Keep class-level breakdown so Hit Dice pools show the correct die.
+    const playerClassLevels = { [playerClass.id]: 1 };
+	    const tempPlayer: PlayerCharacter = {
+	        id: 'player', // STANDARD PLAYER ID
+	        name: "Dev Player",
+	        age: 30,
+	        level: 1, proficiencyBonus: 2, xp: 0,
+	        race: playerRace, class: playerClass,
+          classLevels: playerClassLevels,
+	        abilityScores: PLAYER_BASE_SCORES, finalAbilityScores: PLAYER_FINAL_SCORES,
+	        skills: PLAYER_SKILLS, hp: PLAYER_MAX_HP, maxHp: PLAYER_MAX_HP,
+	        // Hit Dice pools are computed after assembly to include class levels.
+	        hitPointDice: undefined,
+	        armorClass: 10,
+	        speed: 30, darkvisionRange: 0,
+	        transportMode: 'foot',
+	        racialSelections: { human: { skillIds: ['survival'] } },
+	        activeEffects: [], statusEffects: [],
         equippedItems: {
             OffHand: ITEMS['shield_std'], // Equip regular shield for testing upgrade indicators
         },
@@ -223,6 +241,7 @@ export function getDummyParty(): PlayerCharacter[] {
             'second_wind': { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' }
         },
     };
+    tempPlayer.hitPointDice = buildHitPointDicePools(tempPlayer, { classLevels: playerClassLevels });
     tempPlayer.armorClass = calculateArmorClass(tempPlayer);
 
     MEMOIZED_DUMMY_PARTY = [tempPlayer, tempKaelen, tempElara];

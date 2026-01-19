@@ -14,6 +14,12 @@ Displays the main overview tab of the character sheet, including:
 
 It utilizes the `useCharacterProficiencies` hook to calculate proficiency strings.
 
+### `LevelUpModal.tsx`
+Modal flow for leveling up from the character sheet:
+- Lets players choose which class advances when multiclassing.
+- Handles Ability Score Improvements (ASI) or feat selection at eligible levels.
+- Dispatches selections back through `UPDATE_CHARACTER_CHOICE`.
+
 ### `SkillDetailDisplay.tsx`
 A modal/overlay component that provides detailed information about a character's skills, including proficiency bonuses and relevant ability scores.
 

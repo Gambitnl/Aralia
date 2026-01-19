@@ -218,10 +218,8 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
       if (!state.selectedFeat) return null;
       return state.selectedFeat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     },
-    isVisible: (state) => {
-      // Show if human (always gets feat) or if we're at/past this step
-      return state.selectedRace?.id === 'human' || state.step >= CreationStep.FeatSelection;
-    },
+    // Always show so users can jump ahead and see eligibility/skipping messaging.
+    isVisible: () => true,
   },
 
   // === FINAL GROUP ===

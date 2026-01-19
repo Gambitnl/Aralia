@@ -6,6 +6,7 @@
 import React from 'react';
 import { GameState, Action, GoalStatus, KnownFact } from '../../types';
 import { AppAction } from '../../state/actionTypes';
+import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';

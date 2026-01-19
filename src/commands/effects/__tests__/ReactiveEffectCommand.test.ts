@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReactiveEffectCommand } from '../ReactiveEffectCommand';
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories';
 import { CombatCharacter, CombatState } from '../../../types/combat';
+import type { EffectCondition } from '../../../types/spells';
 
 // Mock logger
 // TODO: Consider mocking MovementEventEmitter/AttackEventEmitter and emitting events so we can verify triggers instead of relying solely on the logger call.
@@ -42,11 +43,12 @@ describe('ReactiveEffectCommand Security Check', () => {
     });
 
     it('should log execution via logger instead of console.log', () => {
+        const alwaysCondition: EffectCondition = { type: 'always' };
         const command = new ReactiveEffectCommand(
             {
                 type: 'REACTIVE',
                 trigger: { type: 'on_target_move', movementType: 'leave_reach' },
-                condition: { type: 'always' } as any
+                condition: alwaysCondition
             },
             {
                 spellId: 'spell-1',

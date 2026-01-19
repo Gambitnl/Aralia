@@ -24,18 +24,19 @@ describe('RelationshipManager', () => {
 
     expect(updatedCompanion.relationships[playerId]).toBeDefined();
     expect(updatedCompanion.relationships[playerId].approval).toBe(10);
-    expect(updatedCompanion.relationships[playerId].level).toBe('acquaintance');
+    expect(updatedCompanion.relationships[playerId].level).toBe('stranger');
   });
 
-  it('should cap approval at -100 and 100', () => {
+  it('should cap approval at -500 and 500', () => {
+    // RelationshipManager uses a -500..500 approval scale.
     const companion = createMockCompanion();
     const playerId = 'player-1';
 
-    let updated = RelationshipManager.processApprovalEvent(companion, playerId, 150, 'Did everything right');
-    expect(updated.relationships[playerId].approval).toBe(100);
+    let updated = RelationshipManager.processApprovalEvent(companion, playerId, 700, 'Did everything right');
+    expect(updated.relationships[playerId].approval).toBe(500);
 
-    updated = RelationshipManager.processApprovalEvent(companion, playerId, -200, 'Did everything wrong');
-    expect(updated.relationships[playerId].approval).toBe(-100);
+    updated = RelationshipManager.processApprovalEvent(updated, playerId, -1200, 'Did everything wrong');
+    expect(updated.relationships[playerId].approval).toBe(-500);
   });
 
   it('should change relationship level based on thresholds', () => {
@@ -43,13 +44,14 @@ describe('RelationshipManager', () => {
     const playerId = 'player-1';
 
     // Default 0 -> Stranger
-    let updated = RelationshipManager.processApprovalEvent(companion, playerId, 40, 'Became friend');
-    expect(updated.relationships[playerId].level).toBe('friend'); // 40 is in [30, 59]
+    // Relationship thresholds shift by 100-point increments.
+    let updated = RelationshipManager.processApprovalEvent(companion, playerId, 240, 'Became friend');
+    expect(updated.relationships[playerId].level).toBe('friend'); // 240 is in [200, 299]
 
-    updated = RelationshipManager.processApprovalEvent(updated, playerId, -80, 'Betrayal');
-    // 40 - 80 = -40
-    // -40 is in rival range [-69, -30]
-    expect(updated.relationships[playerId].approval).toBe(-40);
+    updated = RelationshipManager.processApprovalEvent(updated, playerId, -520, 'Betrayal');
+    // 240 - 520 = -280
+    // -280 is in rival range [-300, -201]
+    expect(updated.relationships[playerId].approval).toBe(-280);
     expect(updated.relationships[playerId].level).toBe('rival');
   });
 
@@ -57,10 +59,10 @@ describe('RelationshipManager', () => {
     const companion = createMockCompanion();
     const playerId = 'player-1';
 
-    const updated = RelationshipManager.processApprovalEvent(companion, playerId, 40, 'Became friend');
+    const updated = RelationshipManager.processApprovalEvent(companion, playerId, 240, 'Became friend');
 
     const history = updated.relationships[playerId].history;
     expect(history.length).toBeGreaterThan(0);
-    expect(history[history.length - 1].description).toContain('changed from stranger to friend');
+    expect(history[history.length - 1].description).toContain('Relationship changed from stranger to friend');
   });
 });

@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { logger } from '../logger';
 import * as securityUtils from '../securityUtils';
 
-// Mock ENV to have a predictable secret for redaction
-vi.mock('../../config/env', () => ({
+// Mock ENV to have a predictable secret for redaction.
+// NOTE: Path matches the import specifier used by src/utils/core/securityUtils.ts.
+vi.mock('../../../config/env', () => ({
   ENV: {
     API_KEY: 'SECRET_API_KEY_123',
     DEV: true

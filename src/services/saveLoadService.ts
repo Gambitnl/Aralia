@@ -8,6 +8,8 @@
  * an optional callback) instead of relying on intrusive `alert()` calls.
  */
 import { GameState, GamePhase, NotificationType } from '../types';
+import { buildHitPointDicePools, normalizeClassLevels } from '../utils/characterUtils';
+import { getGameDay } from '../utils/timeUtils';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
 import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';
@@ -256,7 +258,28 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     loadedState.ollamaInteractionLog = loadedState.ollamaInteractionLog || [];
     loadedState.notifications = []; // Reset notifications
 
+    if (loadedState.party?.length) {
+      // Normalize older saves to the Hit Dice pool model (class-level aware).
+      loadedState.party = loadedState.party.map(member => {
+        const classLevels = normalizeClassLevels(member);
+        const normalizedMember = { ...member, classLevels };
+        return {
+          ...normalizedMember,
+          hitPointDice: buildHitPointDicePools(normalizedMember, { classLevels, previousPools: member.hitPointDice }),
+        };
+      });
+    }
+
     normalizeLoadedDates(loadedState);
+    // Ensure new rest pacing fields exist when loading older saves.
+    const restTrackerSeedTime = loadedState.gameTime instanceof Date
+      ? loadedState.gameTime
+      : new Date(loadedState.gameTime);
+    loadedState.shortRestTracker = {
+      restsTakenToday: loadedState.shortRestTracker?.restsTakenToday ?? 0,
+      lastRestDay: loadedState.shortRestTracker?.lastRestDay ?? getGameDay(restTrackerSeedTime),
+      lastRestEndedAtMs: loadedState.shortRestTracker?.lastRestEndedAtMs ?? null,
+    };
     upsertSlotMetadata({
       slotId: storageKey,
       slotName: (parsedData as StoredSavePayload).slotName || storageKey,

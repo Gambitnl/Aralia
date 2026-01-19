@@ -1,4 +1,13 @@
 import React from 'react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '../ui/Table';
 import { GlossaryIcon } from './IconRegistry';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
 
@@ -18,6 +27,34 @@ interface GlossaryTraitTableProps {
     characteristics?: Characteristic[];
     onNavigate?: (termId: string) => void;
 }
+
+/**
+ * Maps common trait names or concepts to curated icons.
+ * Fallbacks to a default 'sparkle' or similar if no match found.
+ */
+const getTraitIcon = (name: string, defaultIcon?: string): string => {
+    const n = name.toLowerCase();
+
+    // Explicit mappings for the example/common traits
+    if (n.includes('lucky') || n.includes('luck')) return 'clover';
+    if (n.includes('brave') || n.includes('courage')) return 'shield_star'; // or 'shield'
+    if (n.includes('nimble') || n.includes('speed') || n.includes('agility')) return 'wind'; // 'wind' or 'feather' or 'mid_paw'
+
+    // Fallback to the provided icon if it's already a valid key (not an emoji)
+    // The current data uses emojis like 🍀, 🛡️, 🏃. We need to detect if it's an emoji and replace it 
+    // or if it's a key. Assuming the incoming 'icon' prop might still be an emoji from old data.
+    // However, the interface says 'icon: string'.
+
+    // Use the logic: if we have a specific mapping, use it. 
+    // If the 'defaultIcon' looks like a valid registry key (simple text), use it.
+    // If it looks like an emoji (non-ascii), use a generic fallback.
+
+    if (defaultIcon && /^[a-z0-9_]+$/i.test(defaultIcon)) {
+        return defaultIcon;
+    }
+
+    return 'sparkle'; // Default generic trait icon
+};
 
 /**
  * Renders a unified table of characteristics and traits in spell progression style.
@@ -46,8 +83,11 @@ export const GlossaryTraitTable: React.FC<GlossaryTraitTableProps> = ({
     );
 
     // Determine vision text
+    // Determine vision text
     let visionText = 'Normal';
-    let visionIcon = '👁️';
+    // Use 'eye' for normal/darkvision, or potentially 'eye_mdi' / 'fa_eye' if preferred. 
+    // 'eye' is the standard concept key.
+    let visionIcon = 'eye';
 
     if (darkvisionTrait) {
         // Try to extract range from description (e.g., "60 feet" or "120 feet")
@@ -70,71 +110,71 @@ export const GlossaryTraitTable: React.FC<GlossaryTraitTableProps> = ({
     );
 
     return (
-        <div className="overflow-hidden rounded-lg border border-gray-600 shadow-lg bg-gray-900/40">
-            <table className="w-full text-left text-xs bg-black/20 rounded border-collapse [&_p]:m-0 [&_p]:leading-relaxed">
-                <thead>
-                    <tr className="border-b border-gray-600">
-                        <th className="py-3 px-4 font-semibold text-amber-300 uppercase tracking-wider">Trait</th>
-                        <th className="py-3 px-4 font-semibold text-amber-300 uppercase tracking-wider">Description</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700/30">
+        <TableContainer>
+            <Table>
+                <TableHeader>
+                    <TableRow className="border-b border-gray-600">
+                        <TableHead>Trait</TableHead>
+                        <TableHead>Description</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
                     {/* Creature Type */}
                     {creatureType && (
-                        <tr className="hover:bg-gray-800/50 transition-colors">
-                            <td className="py-3 px-4 align-top">
+                        <TableRow>
+                            <TableCell>
                                 <span className="text-sky-400 font-semibold">Creature Type</span>
-                            </td>
-                            <td className="py-3 px-4 text-gray-300">
+                            </TableCell>
+                            <TableCell>
                                 <GlossaryContentRenderer
                                     markdownContent={creatureType.value}
                                     onNavigate={onNavigate}
                                 />
-                            </td>
-                        </tr>
+                            </TableCell>
+                        </TableRow>
                     )}
 
                     {/* Size */}
                     {size && (
-                        <tr className="hover:bg-gray-800/50 transition-colors">
-                            <td className="py-3 px-4 align-top">
+                        <TableRow>
+                            <TableCell>
                                 <span className="text-sky-400 font-semibold">Size</span>
-                            </td>
-                            <td className="py-3 px-4 text-gray-300">
+                            </TableCell>
+                            <TableCell>
                                 <GlossaryContentRenderer
                                     markdownContent={size.value}
                                     onNavigate={onNavigate}
                                 />
-                            </td>
-                        </tr>
+                            </TableCell>
+                        </TableRow>
                     )}
 
                     {/* Speed */}
                     {speed && (
-                        <tr className="hover:bg-gray-800/50 transition-colors">
-                            <td className="py-3 px-4 align-top">
+                        <TableRow>
+                            <TableCell>
                                 <span className="text-sky-400 font-semibold">Speed</span>
-                            </td>
-                            <td className="py-3 px-4 text-gray-300">
+                            </TableCell>
+                            <TableCell>
                                 <GlossaryContentRenderer
                                     markdownContent={speed.value}
                                     onNavigate={onNavigate}
                                 />
-                            </td>
-                        </tr>
+                            </TableCell>
+                        </TableRow>
                     )}
 
                     {/* Vision (always shown) */}
-                    <tr className="hover:bg-gray-800/50 transition-colors group">
-                        <td className="py-3 px-4 align-top">
+                    <TableRow>
+                        <TableCell>
                             <div className="flex items-center gap-2">
                                 <div className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400 group-hover:scale-110 transition-transform">
-                                    <GlossaryIcon name={visionIcon} className="w-4 h-4" />
+                                    <GlossaryIcon name={visionIcon} className="w-4 h-4 text-sky-400/80" />
                                 </div>
                                 <span className="text-sky-400 font-semibold">Vision</span>
                             </div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-300">
+                        </TableCell>
+                        <TableCell>
                             {visionText}
                             {darkvisionTrait && (
                                 <div className="text-xs text-gray-400 mt-1">
@@ -144,30 +184,33 @@ export const GlossaryTraitTable: React.FC<GlossaryTraitTableProps> = ({
                                     />
                                 </div>
                             )}
-                        </td>
-                    </tr>
+                        </TableCell>
+                    </TableRow>
 
                     {/* All other racial traits */}
                     {otherTraits.map((trait, index) => (
-                        <tr key={index} className="hover:bg-gray-800/50 transition-colors group">
-                            <td className="py-3 px-4 align-top">
+                        <TableRow key={index}>
+                            <TableCell>
                                 <div className="flex items-center gap-2">
                                     <div className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400 group-hover:scale-110 transition-transform">
-                                        <GlossaryIcon name={trait.icon} className="w-4 h-4" />
+                                        <GlossaryIcon name={getTraitIcon(trait.name, trait.icon)} className="w-4 h-4" />
                                     </div>
                                     <span className="text-sky-400 font-semibold">{trait.name}</span>
                                 </div>
-                            </td>
-                            <td className="py-3 px-4 text-gray-300">
+                            </TableCell>
+                            <TableCell>
                                 <GlossaryContentRenderer
                                     markdownContent={trait.description}
                                     onNavigate={onNavigate}
                                 />
-                            </td>
-                        </tr>
+                            </TableCell>
+                        </TableRow>
                     ))}
-                </tbody>
-            </table>
-        </div>
+                </TableBody>
+            </Table>
+            <div className="px-4 py-2 border-t border-gray-700/50 bg-gray-900/20 text-[10px] text-gray-500 flex justify-end">
+                <span>Icons from the <span className="text-sky-400/80">Curated Library</span></span>
+            </div>
+        </TableContainer>
     );
 };

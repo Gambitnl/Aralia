@@ -99,6 +99,16 @@ export interface OllamaLogEntry {
   isPending?: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Rest Tracking
+// ---------------------------------------------------------------------------
+
+export interface ShortRestTracker {
+  restsTakenToday: number;
+  lastRestDay: number;
+  lastRestEndedAtMs: number | null;
+}
+
 // -----------------------------------------------------------------------------
 // Game State
 // -----------------------------------------------------------------------------
@@ -275,4 +285,7 @@ export interface GameState {
 
   // Archive of completed banter moments
   archivedBanters: import('./companions').BanterMoment[];
+
+  // Party-level short rest pacing and daily tracking.
+  shortRestTracker: ShortRestTracker;
 }

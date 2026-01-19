@@ -102,6 +102,6 @@ describe('MapTile', () => {
 
     const button = screen.getByRole('gridcell');
     // MapTile uses the title attribute for the tooltip
-    expect(button.getAttribute('title')).toContain('Plains (0, 0)');
+    expect(button.getAttribute('title')).toContain(`${biome.name} (0, 0)`);
   });
 });

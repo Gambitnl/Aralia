@@ -531,6 +531,8 @@ export interface BaseEffect {
   trigger: EffectTrigger;
   condition: EffectCondition;
   scaling?: ScalingFormula;
+  // TODO(preserve-lint): SpellValidator requires descriptions; make this required once data is normalized.
+  description?: string;
 }
 
 /** An effect that deals damage. */

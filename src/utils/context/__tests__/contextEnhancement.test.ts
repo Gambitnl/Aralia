@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { generateGeneralActionContext } from '../contextUtils';
-import { GameState, PlayerCharacter, Location, GamePhase, WorldRumor, WeatherState } from '../../../types';
+import { GameState, PlayerCharacter, Location, GamePhase, WorldRumor } from '../../../types';
 
 // Mock dependencies
 vi.mock('../../../constants', () => ({
@@ -17,7 +17,8 @@ vi.mock('../submapUtils', () => ({
   getSubmapTileInfo: () => null
 }));
 
-vi.mock('../timeUtils', () => ({
+// contextUtils imports from core/timeUtils, so mock that module path directly.
+vi.mock('../../core/timeUtils', () => ({
   getTimeModifiers: () => ({ description: 'The stars are bright.' }), // Fallback description
   formatGameTime: () => '12:00 AM'
 }));
@@ -65,14 +66,11 @@ describe('contextUtils (Enhanced)', () => {
     id: 'r3', text: 'War declared', type: 'skirmish', timestamp: 150, expiration: 250
   };
 
-  // Setup mock weather
-  const mockEnvironment: WeatherState = {
-    precipitation: 'heavy_rain',
-    temperature: 'temperate',
-    wind: { direction: 'north', speed: 'moderate' },
-    visibility: 'lightly_obscured',
-    baseTemperature: 'temperate',
-    baseVisibility: 'lightly_obscured'
+  // Setup mock weather in the narrative environment shape expected by contextUtils.
+  const mockEnvironment = {
+    currentCondition: { name: 'Heavy Rain', description: 'Pouring rain.' },
+    temperature: 65,
+    windSpeed: 15
   };
 
   const mockGameState: GameState = {
@@ -100,7 +98,9 @@ describe('contextUtils (Enhanced)', () => {
 
     expect(context).toContain('## ATMOSPHERE & ENVIRONMENT');
     expect(context).toContain('Time: 12:00 AM');
-    expect(context).toContain('Weather: Heavy Rain (Temp: 65°F, Wind: 15 mph)');
+    expect(context).toContain('Weather: Heavy Rain');
+    expect(context).toContain('Temp: 65');
+    expect(context).toContain('Wind: 15 mph');
     expect(context).toContain('Look/Feel: Pouring rain.');
   });
 

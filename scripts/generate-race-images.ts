@@ -11,7 +11,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { glob } from 'glob';
-// @ts-ignore
+// TODO(next-agent): Preserve behavior; replace this ts-expect-error once tsx supports extensionless local TS imports.
+// @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep explicit extension for CLI use.
 import { generateImage, downloadImage, cleanup } from './image-gen-mcp.ts';
 
 const RACES_DIR = path.resolve(process.cwd(), 'public/data/glossary/entries/races');

@@ -9,19 +9,21 @@ The Submap is the primary exploration interface where players navigate tile-base
 | File | Role |
 |------|------|
 | `src/components/Submap/SubmapPane.tsx` | Main submap container (31KB) |
-| `src/components/Submap/SubmapRendererPixi.tsx` | PixiJS-based rendering |
 | `src/hooks/useSubmapProceduralData.ts` | Procedural generation hook |
 | `src/components/Submap/submapData.ts` | Tile and feature data definitions |
 
 ## Subcomponents
 
-- **Rendering**: `SubmapRendererPixi.tsx`, `SubmapTile.tsx` - Visual tile rendering
-- **Painters**: `painters/` directory - Specialized PixiJS painters for terrain, features, overlays
+- **Rendering**: `SubmapTile.tsx` - Visual tile rendering
 - **Quick Travel**: `useQuickTravel.ts` - Fast travel mechanics
 - **Tile Inspection**: `useInspectableTiles.ts` - Tile info on hover/click
 - **Day/Night**: `useDayNightOverlay.ts` - Time-of-day visual effects
 - **Procedural Data**: `useSubmapProceduralData.ts` - Terrain generation
 - **Visuals**: `submapVisuals.ts` - Visual configuration and styling
+
+// TODO: Update documentation to reflect current state - remove references to PixiJS painters
+// Line 29 still mentions "PixiJS painter classes" which were removed
+// Update component ownership to reflect actual current architecture
 
 ## File Ownership
 
@@ -65,8 +67,6 @@ Battle map systems (hooks and services for tactical grid generation and state ma
 
 ## Open Questions / TODOs
 
-- [ ] Optimize PixiJS rendering for large submaps
-- [ ] Document painter architecture (SubmapTilePainter, SubmapFeaturePainter, etc.)
 - [ ] Clarify boundary between submapData.ts and biomes.ts
 - [ ] TODO(Lockpick): Integrate trap detection into Submap movement logic.
 

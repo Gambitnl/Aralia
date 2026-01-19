@@ -17,7 +17,6 @@ import { useSubmapProceduralData } from '../../hooks/useSubmapProceduralData';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
 import SubmapTile from './SubmapTile';
 import { CaTileType } from '../../services/cellularAutomataService';
-import SubmapRendererPixi from './SubmapRendererPixi';
 import { WindowFrame } from '../ui/WindowFrame';
 
 // Modularized imports
@@ -39,6 +38,10 @@ import { usePathfindingGrid, useQuickTravelData } from './useQuickTravel';
 import { useInspectableTiles } from './useInspectableTiles';
 import { getDayNightOverlayClass } from './useDayNightOverlay';
 import ThreeDModal from '../ThreeDModal/ThreeDModal';
+
+// TODO: Add runtime prop validation using prop-types or zod schemas
+// SubmapPane receives 15+ props but has no validation - runtime errors occur with invalid props
+// Consider adding TypeScript branded types for critical props like coordinates and dimensions
 
 interface SubmapPaneProps {
     currentLocation: Location;
@@ -89,7 +92,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
     const gridContainerRef = useRef<HTMLDivElement>(null);
     const hoverFrameRef = useRef<number | null>(null);
-    const lastRenderMetricsUpdateAtRef = useRef<number>(0);
     const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
     const [isInspecting, setIsInspecting] = useState(false);
     const [inspectionMessage, setInspectionMessage] = useState<string | null>(null);
@@ -98,9 +100,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     const [isQuickTravelMode, setIsQuickTravelMode] = useState(false);
     const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    // TODO[PIXI-PREFERENCE]: Persist usePixiRenderer to localStorage so users don't re-enable each session.
-    const [usePixiRenderer, setUsePixiRenderer] = useState(false);
-    const [renderMetrics, setRenderMetrics] = useState<{ lastMs: number; fpsEstimate: number } | null>(null);
     const [isThreeDOpen, setIsThreeDOpen] = useState(false);
 
     const currentBiome = BIOMES[currentWorldBiomeId] || null;
@@ -156,16 +155,18 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         submapDimensions,
         currentWorldBiomeId,
         parentWorldMapCoords,
-        seededFeaturesConfig: visualsConfig.seededFeatures,
-        worldSeed,
-        adjacentBiomeIds,
     });
+
 
     const secondaryBiomeTint = useMemo(() => {
         if (!biomeBlendContext.secondaryBiomeId) return null;
         const neighborBiome = BIOMES[biomeBlendContext.secondaryBiomeId];
         return cssColorToHex(neighborBiome?.rgbaColor);
     }, [biomeBlendContext.secondaryBiomeId]);
+
+    // TODO: Add React.memo and useMemo optimizations for expensive re-renders
+    // SubmapPane re-renders frequently with player movement - profile and optimize
+    // Consider implementing virtual scrolling for large submaps (50x50+ tiles)
 
     // Modal lifecycle: handle Escape semantics and restore focus when no sub-mode is active.
     useEffect(() => {
@@ -331,23 +332,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         if (isQuickTravelMode) scheduleHoverUpdate({ x, y });
     }, [isQuickTravelMode, scheduleHoverUpdate]);
 
-    const handlePixiHover = useCallback((coords: { x: number; y: number } | null) => {
-        if (!isQuickTravelMode) return;
-        if (!coords) {
-            scheduleHoverUpdate(null);
-            return;
-        }
-        scheduleHoverUpdate({ x: coords.x, y: coords.y });
-    }, [isQuickTravelMode, scheduleHoverUpdate]);
-
-    const handleRenderMetrics = useCallback((metrics: { lastMs: number; fpsEstimate: number }) => {
-        // Persist the latest frame time so UI can surface performance regressions quickly.
-        // Throttle to avoid render loops (Pixi can render multiple times during prop reconciliation).
-        const now = performance.now();
-        if (now - lastRenderMetricsUpdateAtRef.current < 250) return;
-        lastRenderMetricsUpdateAtRef.current = now;
-        setRenderMetrics(metrics);
-    }, []);
 
     useEffect(() => () => {
         // Ensure any pending hover rAF callbacks are cancelled when the pane unmounts.
@@ -390,6 +374,9 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
     const dayNightOverlayClass = getDayNightOverlayClass(gameTime);
 
+    // TODO: Wrap SubmapPane in React Error Boundary to catch runtime errors gracefully
+    // Current component can crash the entire submap view if hooks throw unexpected errors
+    // Add fallback UI that allows player to return to world map
 
     return (
         <WindowFrame
@@ -418,39 +405,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                         role="button"
                         aria-label="Submap viewport"
                     >
-                        <div className="flex items-center justify-between text-xs text-gray-300 mb-1">
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    className="accent-amber-400"
-                                    checked={usePixiRenderer}
-                                    onChange={(e) => setUsePixiRenderer(e.target.checked)}
-                                />
-                                <span>Use PixiJS renderer (beta)</span>
-                            </label>
-                            {usePixiRenderer && renderMetrics && (
-                                <span className="text-emerald-300">
-                                    {renderMetrics.lastMs.toFixed(1)} ms · ~{Math.max(renderMetrics.fpsEstimate, 0).toFixed(0)} fps
-                                </span>
-                            )}
-                        </div>
-
-                        {usePixiRenderer && (
-                            <div className="mb-2 border border-gray-700 rounded bg-black/30">
-                                <SubmapRendererPixi
-                                    dimensions={submapDimensions}
-                                    playerSubmapCoords={playerSubmapCoords}
-                                    wfcGrid={wfcGrid}
-                                    caGrid={caGrid as CaTileType[][] | undefined}
-                                    biomeBlendContext={biomeBlendContext}
-                                    paletteOverrides={pixiPaletteOverrides}
-                                    biomeTintColor={secondaryBiomeTint}
-                                    onHoverTile={handlePixiHover}
-                                    onRenderMetrics={handleRenderMetrics}
-                                    seededFeatures={activeSeededFeatures}
-                                />
-                            </div>
-                        )}
 
                         <div
                             ref={gridContainerRef}
@@ -585,6 +539,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                 currentLocation={currentLocation}
                                 npcsInLocation={npcsInLocation}
                                 itemsInLocation={itemsInLocation}
+                                party={partyMembers}
                                 onAction={onAction}
                                 disabled={disabled || isInspecting || isQuickTravelMode}
                                 geminiGeneratedActions={geminiGeneratedActions}

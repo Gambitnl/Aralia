@@ -33,7 +33,8 @@ The `handleResourceActions.ts` module contains a collection of simple, synchrono
 ### `handleShortRest(props)`
 
 *   **Action Dispatched**: `SHORT_REST` and `ADVANCE_TIME`
-*   **Purpose**: Adds a system message indicating a short rest is being taken, dispatches the `SHORT_REST` action to trigger the recovery of abilities that reset on a short rest, and advances the in-game clock by 1 hour.
+*   **Purpose**: Enforces party-level pacing (max 3 short rests per in-game day, 2-hour cooldown), adds a system message when the rest begins, rolls and applies Hit Point Dice spending for each party member (with roll breakdowns logged), dispatches the `SHORT_REST` action with healing + hit dice updates + updated rest tracking, and advances the in-game clock by 1 hour.
+*   **Payload shape**: `hitPointDiceSpend` is a map of character id → `{ [dieSize]: count }`, where each count is clamped to the remaining Hit Dice for that die size.
 
 ## Design Philosophy
 

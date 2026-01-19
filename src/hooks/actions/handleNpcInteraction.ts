@@ -6,7 +6,7 @@
 import React from 'react';
 import { GameState, Action, GoalStatus, KnownFact } from '../../types';
 import { AppAction } from '../../state/actionTypes';
-import * as GeminiService from '../../services/geminiService';
+import * as OllamaTextService from '../../services/ollamaTextService';
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
 import { NPCS } from '../../constants';
@@ -141,11 +141,10 @@ export async function handleTalk({
 
     // 3. Call the refactored geminiService function
     const npcMemoryContext = JSON.stringify(memory);
-    const npcResponseResult = await GeminiService.generateNPCResponse(
+    const npcResponseResult = await OllamaTextService.generateNPCResponse(
       npc.name,
       fullPrompt,
-      npcMemoryContext,
-      gameState.devModelOverride ?? null
+      npcMemoryContext
     );
     
     const promptSent = npcResponseResult.data?.promptSent || npcResponseResult.metadata?.promptSent || 'Unknown prompt';

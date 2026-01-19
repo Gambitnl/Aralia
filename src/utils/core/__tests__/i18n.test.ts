@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { t } from '../i18n';
 
-// Mock the locales since we are testing the utility logic, not the content of json files
-vi.mock('../../locales/en.json', () => ({
+// Mock the locales since we are testing the utility logic, not the content of json files.
+// NOTE: Path matches the import specifier used by src/utils/core/i18n.ts.
+vi.mock('../../../locales/en.json', () => ({
   default: {
     app: {
       game_over: "GAME OVER",

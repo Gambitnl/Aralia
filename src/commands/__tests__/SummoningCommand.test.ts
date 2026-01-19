@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { SummoningCommand } from '../effects/SummoningCommand'
 import { SummoningEffect } from '@/types/spells'
-import { CombatState, CombatCharacter } from '@/types/combat'
+import { BattleMapData, CombatState, CombatCharacter } from '@/types/combat'
+import type { MapData } from '@/types/world'
 import { CommandContext } from '../base/SpellCommand'
 import { CLASSES_DATA } from '@/constants'
 import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories'
@@ -41,6 +42,16 @@ vi.mock('@/constants', async (importOriginal) => {
 })
 
 describe('SummoningCommand', () => {
+    type SummoningMapData = {
+        dimensions?: { width: number; height: number };
+        gridSize?: { cols: number; rows: number };
+    };
+    // TODO(next-agent): Preserve behavior; replace these casts once battle/world map shapes are unified for summon bounds.
+    const toBattleMapData = (mapData?: SummoningMapData): BattleMapData | undefined =>
+        mapData ? (mapData as unknown as BattleMapData) : undefined;
+    const toWorldMapData = (mapData?: SummoningMapData): MapData | null =>
+        mapData ? (mapData as unknown as MapData) : null;
+
     const mockCaster: CombatCharacter = {
         id: 'caster-1',
         name: 'Wizard',
@@ -172,18 +183,18 @@ describe('SummoningCommand', () => {
 
     describe('SummoningCommand - Boundary Checks', () => {
         // Reuse mockCaster and helper functions adjusted for the existing describe block context if needed
-        const createMockContext = (mapData: unknown): CommandContext => ({
+        const createMockContext = (mapData?: SummoningMapData): CommandContext => ({
             spellId: 'spell-1',
             spellName: 'Summon Spell',
             castAtLevel: 1,
             caster: mockCaster,
             targets: [],
             gameState: {
-                ...createMockGameState({ currentLocationId: 'arena', subMapCoordinates: { x: 5, y: 5 }, mapData: mapData as any }),
-                mapData: mapData as any
+                ...createMockGameState({ currentLocationId: 'arena', subMapCoordinates: { x: 5, y: 5 }, mapData: toWorldMapData(mapData) }),
+                mapData: toWorldMapData(mapData)
             }
         })
-        const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: unknown): CombatState => ({
+        const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: SummoningMapData): CombatState => ({
             isActive: true,
             characters,
             turnState: {
@@ -201,7 +212,7 @@ describe('SummoningCommand', () => {
             combatLog: [],
             reactiveTriggers: [],
             activeLightSources: [],
-            mapData: mapData as any
+            mapData: toBattleMapData(mapData)
         })
 
         const mockEffect: SummoningEffect = {

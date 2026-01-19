@@ -210,7 +210,7 @@ describe('DamageCommand', () => {
             let newState = command.execute(mockState);
 
             // Verify first application
-            let updatedCaster = newState.characters.find(c => c.id === mockCaster.id);
+            const updatedCaster = newState.characters.find(c => c.id === mockCaster.id);
             expect(updatedCaster?.featUsageThisTurn).toContain('slasher_slow');
             // Reset logs for clarity, keep state
             newState = { ...newState, combatLog: [] };

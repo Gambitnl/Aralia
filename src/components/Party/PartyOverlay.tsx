@@ -1,123 +1,203 @@
 /**
  * @file PartyOverlay.tsx
- * A modal overlay to display the player's party members.
+ * A modal overlay to display the player's party members with detailed stats.
+ * Uses WindowFrame for consistent modal behavior (draggable, resizable).
+ *
+ * Features:
+ * - Party member cards with combat stats, HP, spell slots
+ * - Footer with Long Rest and Short Rest buttons
+ * - Short rest indicator showing remaining rests for the day
  */
-import React, { useEffect, useRef, useState } from 'react';
-import { motion, MotionProps } from 'framer-motion';
-// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { PlayerCharacter, MissingChoice, GameState as _GameState, Companion } from '../../types';
-import PartyPane from './PartyPane';
-import { RelationshipsPane } from './RelationshipsPane';
-import { COMPANIONS } from '../../constants'; // Fallback
 
-// We need to access GameState companions if possible, but props might limit us.
-// Let's assume we can pass companions as a prop or fallback to constants.
-// I'll update the interface to accept optional companions record.
+import React from 'react';
+import { PlayerCharacter, MissingChoice, ShortRestTracker } from '../../types';
+import { WindowFrame } from '../ui/WindowFrame';
+import PartyPane from './PartyPane';
+import Tooltip from '../ui/Tooltip';
+import { GlossaryIcon } from '../Glossary/IconRegistry';
+
+// -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
+
+/** Maximum number of short rests allowed per day */
+const MAX_SHORT_RESTS_PER_DAY = 3;
+
+// -----------------------------------------------------------------------------
+// Props Interface
+// -----------------------------------------------------------------------------
 
 interface PartyOverlayProps {
-  isOpen: boolean;
-  onClose: () => void;
-  party: PlayerCharacter[];
-  onViewCharacterSheet: (character: PlayerCharacter) => void;
-  onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
-      companions?: Record<string, Companion>; // Optional for now
+    /** Whether the overlay is currently visible */
+    isOpen: boolean;
+    /** Callback to close the overlay */
+    onClose: () => void;
+    /** Array of party members to display */
+    party: PlayerCharacter[];
+    /** Callback when viewing a character's full sheet */
+    onViewCharacterSheet: (character: PlayerCharacter) => void;
+    /** Callback when fixing a missing character choice */
+    onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
+    /** Callback to initiate a long rest */
+    onLongRest?: () => void;
+    /** Callback to initiate a short rest (opens RestModal) */
+    onShortRest?: () => void;
+    /** Current short rest tracking state */
+    shortRestTracker?: ShortRestTracker;
 }
 
-type Tab = 'party' | 'relationships';
+// -----------------------------------------------------------------------------
+// Helper Components
+// -----------------------------------------------------------------------------
 
-const overlayMotion: MotionProps = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
+/**
+ * Footer action button with icon and label.
+ */
+interface FooterButtonProps {
+    /** Icon name from GlossaryIcon registry */
+    iconName: string;
+    /** Button label text */
+    label: string;
+    /** Click handler */
+    onClick?: () => void;
+    /** Whether the button is disabled */
+    disabled?: boolean;
+    /** Optional tooltip content */
+    tooltip?: string;
+    /** Button variant - primary has golden background */
+    variant?: 'primary' | 'secondary';
+    /** Optional badge text (e.g., "2/3") */
+    badge?: string;
+}
 
-const modalMotion: MotionProps = {
-  initial: { y: 30, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: 30, opacity: 0 },
-};
+const FooterButton: React.FC<FooterButtonProps> = ({
+    iconName,
+    label,
+    onClick,
+    disabled = false,
+    tooltip,
+    variant = 'secondary',
+    badge
+}) => {
+    const baseClasses = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors";
 
-const PartyOverlay: React.FC<PartyOverlayProps> = ({ isOpen, onClose, party, onViewCharacterSheet, onFixMissingChoice, companions }) => {
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('party');
-  
-  // Use passed companions or fallback to static data if not provided (e.g. from tests/legacy)
-      const activeCompanions = companions || (COMPANIONS as Record<string, Companion>);
+    const variantClasses = variant === 'primary'
+        ? "bg-amber-500 hover:bg-amber-400 text-gray-900 shadow-lg shadow-amber-500/20"
+        : "hover:bg-white/5 text-gray-300 hover:text-white";
 
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
-      // closeButtonRef.current?.focus(); // Removed auto-focus on close button to let user tab naturally
+    const disabledClasses = disabled
+        ? "opacity-50 cursor-not-allowed"
+        : "";
+
+    const button = (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            className={`${baseClasses} ${variantClasses} ${disabledClasses}`}
+        >
+            <GlossaryIcon name={iconName} className="w-5 h-5" />
+            <span>{label}</span>
+            {badge && (
+                <span className="text-xs bg-gray-700 px-1.5 py-0.5 rounded text-gray-300">
+                    {badge}
+                </span>
+            )}
+        </button>
+    );
+
+    if (tooltip) {
+        return (
+            <Tooltip content={tooltip}>
+                {button}
+            </Tooltip>
+        );
     }
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+    return button;
+};
 
-  return (
-    <motion.div
-      {...overlayMotion}
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        {...modalMotion}
-        className="relative bg-gray-800 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="party-overlay-title"
-      >
-        <button 
-          ref={closeButtonRef}
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-400 hover:text-white text-3xl p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-400 z-10"
-          aria-label="Close Party View"
-        >&times;</button>
-        
-        {/* Tabs */}
-        <div className="flex border-b border-gray-700 bg-gray-900/50">
-            <button
-                onClick={() => setActiveTab('party')}
-                className={`flex-1 py-3 px-4 text-center font-cinzel font-bold transition-colors ${
-                    activeTab === 'party'
-                    ? 'text-amber-400 border-b-2 border-amber-400 bg-gray-800'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
-                }`}
-            >
-                Party Roster
-            </button>
-            <button
-                onClick={() => setActiveTab('relationships')}
-                className={`flex-1 py-3 px-4 text-center font-cinzel font-bold transition-colors ${
-                    activeTab === 'relationships'
-                    ? 'text-amber-400 border-b-2 border-amber-400 bg-gray-800'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
-                }`}
-            >
-                Relationships
-            </button>
-        </div>
+// -----------------------------------------------------------------------------
+// Main Component
+// -----------------------------------------------------------------------------
 
-        <div className="overflow-y-auto scrollable-content p-4">
-          {activeTab === 'party' ? (
-              <PartyPane party={party} onViewCharacterSheet={onViewCharacterSheet} onFixMissingChoice={onFixMissingChoice} />
-          ) : (
-              <RelationshipsPane companions={activeCompanions} />
-          )}
-        </div>
+const PartyOverlay: React.FC<PartyOverlayProps> = ({
+    isOpen,
+    onClose,
+    party,
+    onViewCharacterSheet,
+    onFixMissingChoice,
+    onLongRest,
+    onShortRest,
+    shortRestTracker
+}) => {
+    // Don't render anything if not open
+    if (!isOpen) return null;
 
-      </motion.div>
-    </motion.div>
-  );
+    // Calculate remaining short rests
+    const shortRestsTaken = shortRestTracker?.restsTakenToday ?? 0;
+    const shortRestsRemaining = MAX_SHORT_RESTS_PER_DAY - shortRestsTaken;
+    const canShortRest = shortRestsRemaining > 0;
+
+    return (
+        <WindowFrame
+            title="Party Roster"
+            onClose={onClose}
+            storageKey="party-overlay-window"
+            initialMaximized={false}
+        >
+            {/* Main content container with flex column to allow footer */}
+            <div className="flex flex-col h-full">
+                {/* Scrollable party content area */}
+                <div className="flex-1 overflow-y-auto scrollable-content p-4">
+                    <PartyPane
+                        party={party}
+                        onViewCharacterSheet={onViewCharacterSheet}
+                        onFixMissingChoice={onFixMissingChoice}
+                    />
+                </div>
+
+                {/* Footer with rest actions */}
+                <div className="shrink-0 border-t border-gray-700 bg-gray-800/50 p-3">
+                    <div className="flex items-center justify-center gap-2">
+                        {/* Rest action buttons container */}
+                        <div className="bg-gray-800 border border-amber-500/20 p-2 rounded-xl flex items-center gap-2 shadow-lg">
+                            {/* Long Rest button */}
+                            {onLongRest && (
+                                <FooterButton
+                                    iconName="moon"
+                                    label="Long Rest"
+                                    onClick={onLongRest}
+                                    tooltip="Take a long rest to fully recover HP, spell slots, and abilities (8 hours)"
+                                />
+                            )}
+
+                            {/* Divider */}
+                            {onLongRest && onShortRest && (
+                                <div className="w-px h-6 bg-white/10 mx-1" />
+                            )}
+
+                            {/* Short Rest button with remaining indicator */}
+                            {onShortRest && (
+                                <FooterButton
+                                    iconName="clock"
+                                    label="Short Rest"
+                                    onClick={onShortRest}
+                                    disabled={!canShortRest}
+                                    badge={`${shortRestsRemaining}/${MAX_SHORT_RESTS_PER_DAY}`}
+                                    tooltip={
+                                        canShortRest
+                                            ? `Take a short rest to spend Hit Dice and recover some abilities (1 hour). ${shortRestsRemaining} remaining today.`
+                                            : "No short rests remaining today. Take a long rest to reset."
+                                    }
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </WindowFrame>
+    );
 };
 
 export default PartyOverlay;

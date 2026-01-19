@@ -24,6 +24,7 @@ import type {
   VillageActionContext,
   Quest,
   GoalStatus,
+  HitPointDiceSpendMap,
 } from '../../types';
 import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
@@ -215,8 +216,10 @@ export function buildActionHandlers({
     LONG_REST: async () => {
       await handleLongRest({ gameState, dispatch, addMessage, addGeminiLog });
     },
-    SHORT_REST: () => {
-      handleShortRest({ dispatch, addMessage });
+    SHORT_REST: (action) => {
+      // The short-rest UI supplies a spend map keyed by character id, which we pass to the handler.
+      const restPayload = action.payload as { hitPointDiceSpend?: HitPointDiceSpendMap } | undefined;
+      handleShortRest({ gameState, dispatch, addMessage, hitPointDiceSpend: restPayload?.hitPointDiceSpend });
     },
     wait: (action) => {
       const seconds = Number((action.payload as { seconds?: number } | undefined)?.seconds ?? 0);

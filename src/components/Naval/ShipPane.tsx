@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Ship } from '../../types/naval';
 import { Anchor, Users, Package } from 'lucide-react';
 import { WindowFrame } from '../ui/WindowFrame';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 
 interface ShipPaneProps {
   ship: Ship;
@@ -115,29 +116,29 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
                 </div>
               </div>
 
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-700 text-gray-500 uppercase text-xs">
-                    <th className="pb-2">Item</th>
-                    <th className="pb-2 text-right">Qty</th>
-                    <th className="pb-2 text-right">Weight</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-800">
+              <Table className="text-sm">
+                <TableHeader>
+                  <TableRow className="border-b border-gray-700">
+                    <TableHead className="pb-2 text-gray-500 uppercase text-xs">Item</TableHead>
+                    <TableHead className="pb-2 text-right text-gray-500 uppercase text-xs">Qty</TableHead>
+                    <TableHead className="pb-2 text-right text-gray-500 uppercase text-xs">Weight</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-800">
                   {ship.cargo.items.map(item => (
-                    <tr key={item.id} className="text-gray-300">
-                      <td className="py-2">{item.name} {item.isContraband && <span className="ml-2 text-xs text-red-400 bg-red-900/20 px-1 rounded">ILLEGAL</span>}</td>
-                      <td className="py-2 text-right">{item.quantity}</td>
-                      <td className="py-2 text-right">{item.weightPerUnit * item.quantity}t</td>
-                    </tr>
+                    <TableRow key={item.id} className="text-gray-300">
+                      <TableCell className="py-2">{item.name} {item.isContraband && <span className="ml-2 text-xs text-red-400 bg-red-900/20 px-1 rounded">ILLEGAL</span>}</TableCell>
+                      <TableCell className="py-2 text-right">{item.quantity}</TableCell>
+                      <TableCell className="py-2 text-right">{item.weightPerUnit * item.quantity}t</TableCell>
+                    </TableRow>
                   ))}
                   {ship.cargo.items.length === 0 && (
-                    <tr>
-                      <td colSpan={3} className="py-8 text-center text-gray-600">Empty Hold</td>
-                    </tr>
+                    <TableRow>
+                      <TableCell colSpan={3} className="py-8 text-center text-gray-600">Empty Hold</TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
         </div>

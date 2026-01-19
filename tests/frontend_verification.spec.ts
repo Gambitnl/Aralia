@@ -6,6 +6,21 @@ test('Verify standard terminology for Hit Points and Armor Class', async ({ page
   // Let's go to the main menu first.
   await page.goto('http://localhost:3000/Aralia/');
 
+  // Handle any modal dialogs that might block interactions (like Ollama modal)
+  const modalDialog = page.locator('div[role="dialog"]');
+  if (await modalDialog.isVisible({ timeout: 3000 })) {
+    // Try to find and click a close button
+    const closeButton = page.locator('button[aria-label*="close"], button:has-text("Close"), button:has-text("×")').first();
+    if (await closeButton.isVisible({ timeout: 1000 })) {
+      await closeButton.click();
+      await page.waitForTimeout(500);
+    } else {
+      // Try pressing Escape
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
+    }
+  }
+
   // 2. Start a new game or Quick Start (Dev) to get to a screen with HP/AC.
   // If we are already in the game (auto-start), we skip this step.
   const quickStartButton = page.locator('text=Quick Start (Dev)');

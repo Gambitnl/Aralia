@@ -23,12 +23,13 @@ import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { getGameDay } from '../utils/timeUtils';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 // TODO(lint-intent): 'createPlayerCharacterFromTemp' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp as _createPlayerCharacterFromTemp } from '../utils/characterUtils';
+import { applyXpAndHandleLevelUps, canLevelUp, createPlayerCharacterFromTemp as _createPlayerCharacterFromTemp } from '../utils/characterUtils';
 import { createEnemyFromMonster } from '../utils/combatUtils';
 import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
@@ -58,6 +59,9 @@ const createInitialGameTime = (): Date => {
     const initialTime = new Date(Date.UTC(351, 0, 1, 7, 0, 0, 0));
     return initialTime;
 };
+
+// Cache the initial time so we can align related default fields (like rest tracking).
+const initialGameTime = createInitialGameTime();
 
 const INITIAL_UNDERDARK_STATE: UnderdarkState = {
     currentDepth: 0,
@@ -121,7 +125,13 @@ export const initialGameState: GameState = {
         isOpen: false,
         character: null,
     },
-    gameTime: createInitialGameTime(),
+    gameTime: initialGameTime,
+    // Track party-wide short rest pacing (max rests per day + cooldown).
+    shortRestTracker: {
+        restsTakenToday: 0,
+        lastRestDay: getGameDay(initialGameTime),
+        lastRestEndedAtMs: null,
+    },
 
     // Dev Mode specific state
     isDevMenuVisible: false,
@@ -349,9 +359,16 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 };
                 if (action.payload === GamePhase.CHARACTER_CREATION) {
                     // Full reset for a new game
+                    const resetGameTime = createInitialGameTime();
                     additionalUpdates = {
                         ...additionalUpdates,
-                        gameTime: createInitialGameTime(),
+                        gameTime: resetGameTime,
+                        // Reset short rest pacing alongside the fresh in-game clock.
+                        shortRestTracker: {
+                            restsTakenToday: 0,
+                            lastRestDay: getGameDay(resetGameTime),
+                            lastRestEndedAtMs: null,
+                        },
                         discoveryLog: [],
                         unreadDiscoveryCount: 0,
                         inventory: [],
@@ -799,7 +816,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             };
         }
 
-        case 'INITIALIZE_DUMMY_PLAYER_STATE':
+        case 'INITIALIZE_DUMMY_PLAYER_STATE': {
+            // Use a fresh time reference so rest tracking stays aligned in dev flow.
+            const dummyGameTime = createInitialGameTime();
             return {
                 ...state,
                 messages: [
@@ -814,11 +833,18 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 inventory: [...initialInventoryForDummyCharacter],
                 gold: 100,
                 currentLocationActiveDynamicNpcIds: action.payload.initialActiveDynamicNpcIds,
-                gameTime: createInitialGameTime(),
+                gameTime: dummyGameTime,
+                // Reset short rest pacing in lockstep with the dev seed clock.
+                shortRestTracker: {
+                    restsTakenToday: 0,
+                    lastRestDay: getGameDay(dummyGameTime),
+                    lastRestEndedAtMs: null,
+                },
                 questLog: [],
                 isQuestLogVisible: false,
                 notifications: [],
             };
+        }
 
         case 'APPLY_TAKE_ITEM_UPDATE': {
             const { item, locationId, discoveryEntry } = action.payload;
@@ -901,6 +927,25 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         };
                     });
 
+                // Queue follow-up prompts when XP gains still leave level-ups available.
+                const pendingLevelUpMessages: GameState['messages'] = updatedParty
+                    .map((member, index): GameState['messages'][number] | null => {
+                        if (!canLevelUp(member)) return null;
+                        const previousLevel = state.party[index]?.level ?? member.level ?? 1;
+                        const currentLevel = member.level ?? previousLevel;
+                        const leveledThisReward = currentLevel > previousLevel;
+                        const prompt = leveledThisReward
+                            ? `${member.name} can level up again. Open the character sheet to keep going.`
+                            : `${member.name} has enough XP to level up. Open the character sheet to choose rewards.`;
+                        return {
+                            id: Date.now() + index + 200,
+                            text: prompt,
+                            sender: 'system',
+                            timestamp: new Date()
+                        };
+                    })
+                    .filter((message): message is GameState['messages'][number] => message !== null);
+
                 const rewardItems = rewards.items ?? [];
                 const itemsFoundMessage = rewardItems.length > 0
                     ? `You found: ${rewardItems.map(i => i.name).join(', ')}.`
@@ -922,6 +967,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         ...newState.messages,
                         victoryMessage,
                         ...levelUpMessages,
+                        ...pendingLevelUpMessages,
                     ]
                 };
             } else {

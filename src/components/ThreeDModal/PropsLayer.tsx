@@ -21,6 +21,21 @@ interface PropsLayerProps {
   tint: Color;
   spawnCenter?: { x: number; z: number };
   spawnSafeRadius?: number;
+  treeCountMultiplier?: number;
+  rockCountMultiplier?: number;
+  heroLineEnabled?: boolean;
+  heroLineSpacing?: number;
+  heroLineOffset?: { x: number; z: number };
+  customTreeOptions?: Record<string, unknown> | null;
+  customTreeEnabled?: boolean;
+  customTreeOffset?: { x: number; z: number };
+  customTreeScale?: number;
+  comparisonTreeOptions?: Record<string, unknown> | null;
+  comparisonTreeEnabled?: boolean;
+  comparisonTreeOffset?: { x: number; z: number };
+  comparisonTreeScale?: number;
+  onCustomTreeStats?: (stats: TreeStats | null) => void;
+  onComparisonTreeStats?: (stats: TreeStats | null) => void;
 }
 
 const TREE_PRESET_KEYS = Object.keys(TreePreset);
@@ -55,6 +70,16 @@ interface TreeAsset {
   trunkMaterial: Material;
   leavesGeometry: BufferGeometry;
   leavesMaterial: Material;
+}
+
+export interface TreeStats {
+  heightFt: number;
+  trunkVertices: number;
+  leavesVertices: number;
+  trunkTriangles: number;
+  leavesTriangles: number;
+  totalVertices: number;
+  totalTriangles: number;
 }
 
 const getCounts = (family: string) => {
@@ -127,6 +152,79 @@ const clampNumber = (value: number, min: number, max: number) => Math.min(max, M
 
 const clampInt = (value: number, min: number, max: number) => Math.round(clampNumber(value, min, max));
 
+const getGeometryStats = (geometry: BufferGeometry) => {
+  const vertexCount = geometry.attributes.position?.count ?? 0;
+  const triangleCount = geometry.index ? geometry.index.count / 3 : vertexCount / 3;
+  return { vertexCount, triangleCount };
+};
+
+// Build a single ez-tree asset from JSON options so the test rig can place
+// custom/baseline trees in fixed locations while also reporting stats.
+const buildTreeAsset = (options: Record<string, unknown>, id: string) => {
+  const tree = new Tree();
+  tree.loadFromJson(options as never);
+  tree.generate();
+
+  const trunkGeometry = tree.branchesMesh.geometry;
+  const leavesGeometry = tree.leavesMesh.geometry;
+  trunkGeometry.computeBoundingBox();
+  leavesGeometry.computeBoundingBox();
+
+  const trunkBox = trunkGeometry.boundingBox;
+  const leavesBox = leavesGeometry.boundingBox;
+  const minY = Math.min(trunkBox?.min.y ?? 0, leavesBox?.min.y ?? 0);
+
+  // Shift meshes so y=0 is the ground plane. This keeps placements and height
+  // stats consistent with the terrain height sampler.
+  if (minY !== 0) {
+    const offset = new Matrix4().makeTranslation(0, -minY, 0);
+    trunkGeometry.applyMatrix4(offset);
+    leavesGeometry.applyMatrix4(offset);
+  }
+
+  trunkGeometry.computeBoundingSphere();
+  leavesGeometry.computeBoundingSphere();
+  trunkGeometry.computeBoundingBox();
+  leavesGeometry.computeBoundingBox();
+
+  const trunkMaterial = Array.isArray(tree.branchesMesh.material)
+    ? tree.branchesMesh.material[0]
+    : tree.branchesMesh.material;
+  const leavesMaterial = Array.isArray(tree.leavesMesh.material)
+    ? tree.leavesMesh.material[0]
+    : tree.leavesMesh.material;
+
+  const trunkStats = getGeometryStats(trunkGeometry);
+  const leavesStats = getGeometryStats(leavesGeometry);
+  const trunkBounds = trunkGeometry.boundingBox;
+  const leavesBounds = leavesGeometry.boundingBox;
+  const heightFt = Math.max(trunkBounds?.max.y ?? 0, leavesBounds?.max.y ?? 0);
+
+  const asset: TreeAsset = {
+    id,
+    seed: Number((options as Record<string, unknown>).seed ?? 0),
+    count: 1,
+    minScale: 1,
+    maxScale: 1,
+    trunkGeometry,
+    trunkMaterial,
+    leavesGeometry,
+    leavesMaterial,
+  };
+
+  const stats: TreeStats = {
+    heightFt,
+    trunkVertices: trunkStats.vertexCount,
+    leavesVertices: leavesStats.vertexCount,
+    trunkTriangles: trunkStats.triangleCount,
+    leavesTriangles: leavesStats.triangleCount,
+    totalVertices: trunkStats.vertexCount + leavesStats.vertexCount,
+    totalTriangles: trunkStats.triangleCount + leavesStats.triangleCount,
+  };
+
+  return { asset, stats };
+};
+
 const PropsLayer = ({
   submapSeed,
   biomeId,
@@ -135,36 +233,116 @@ const PropsLayer = ({
   tint,
   spawnCenter,
   spawnSafeRadius,
+  treeCountMultiplier,
+  rockCountMultiplier,
+  heroLineEnabled,
+  heroLineSpacing,
+  heroLineOffset,
+  customTreeOptions,
+  customTreeEnabled,
+  customTreeOffset,
+  customTreeScale,
+  comparisonTreeOptions,
+  comparisonTreeEnabled,
+  comparisonTreeOffset,
+  comparisonTreeScale,
+  onCustomTreeStats,
+  onComparisonTreeStats,
 }: PropsLayerProps) => {
   const biome = BIOMES[biomeId];
   const family = biome?.family || biomeId;
-  const counts = getCounts(family);
-  const rockGeometry = useMemo(() => new DodecahedronGeometry(6, 0), []);
+  const treeCountScale = treeCountMultiplier ?? 1;
+  const rockCountScale = rockCountMultiplier ?? 1;
+  const showHeroLine = heroLineEnabled ?? false;
+  const heroSpacing = heroLineSpacing ?? 50;
+  const heroOffset = heroLineOffset ?? { x: 0, z: 120 };
+  const showCustomTree = customTreeEnabled ?? false;
+  const customOffset = customTreeOffset ?? { x: 0, z: heroOffset.z + 80 };
+  const customScale = customTreeScale ?? 1;
+  const showComparisonTree = comparisonTreeEnabled ?? false;
+  const comparisonOffset = comparisonTreeOffset ?? { x: customOffset.x - 80, z: customOffset.z };
+  const comparisonScale = comparisonTreeScale ?? 1;
+  const counts = useMemo(() => {
+    const base = getCounts(family);
+    return {
+      trees: Math.max(0, Math.round(base.trees * treeCountScale)),
+      rocks: Math.max(0, Math.round(base.rocks * rockCountScale)),
+    };
+  }, [family, rockCountScale, treeCountScale]);
+  const rockGeometry = useMemo(() => {
+    const geometry = new DodecahedronGeometry(6, 0);
+    geometry.computeBoundingSphere();
+    return geometry;
+  }, []);
   const biomeTint = useMemo(
     () => new ThreeColor(biome?.rgbaColor ?? '#ffffff'),
     [biomeId]
   );
   const safeCenter = spawnCenter ?? { x: 0, z: 0 };
   const safeRadius = spawnSafeRadius ?? 0;
+  const [treeAssets, setTreeAssets] = useState<TreeAsset[]>([]);
+  const [customTreeAsset, setCustomTreeAsset] = useState<TreeAsset | null>(null);
+  const [comparisonTreeAsset, setComparisonTreeAsset] = useState<TreeAsset | null>(null);
+  // Render each generated tree variant once in a straight line for quick QA
+  // and side-by-side comparison in the 3D test scene.
+  const heroLineEntries = useMemo(() => {
+    if (!showHeroLine || treeAssets.length === 0) return [];
+    const spacing = Math.max(10, heroSpacing);
+    const startX = heroOffset.x - ((treeAssets.length - 1) * spacing) / 2;
+
+    return treeAssets.map((asset, index) => {
+      const x = startX + index * spacing;
+      const z = heroOffset.z;
+      const y = heightSampler(x, z);
+      return {
+        id: asset.id,
+        asset,
+        x,
+        y,
+        z,
+        scale: asset.maxScale,
+      };
+    });
+  }, [
+    heightSampler,
+    heroOffset.x,
+    heroOffset.z,
+    heroSpacing,
+    showHeroLine,
+    treeAssets,
+  ]);
 
   const rockMaterial = useMemo(() => {
     const base = new ThreeColor(0x6b7280).lerp(tint, 0.15);
     return new MeshStandardMaterial({ color: base, roughness: 0.95, metalness: 0.1 });
   }, [tint]);
 
-  const treePlan = useMemo(() => getTreePlan(family, size), [family, size]);
+  const treePlan = useMemo(() => {
+    const plan = getTreePlan(family, size);
+    return {
+      ...plan,
+      totalCount: Math.max(0, Math.round(plan.totalCount * treeCountScale)),
+    };
+  }, [family, size, treeCountScale]);
   const treeVariantConfigs = useMemo<TreeVariantConfig[]>(() => {
-    if (treePlan.totalCount <= 0 || TREE_PRESET_KEYS.length === 0) return [];
-    const poolSize = Math.min(treePlan.poolSize, treePlan.totalCount, MAX_TREE_VARIANTS);
-    const perVariant = Math.floor(treePlan.totalCount / poolSize);
-    const remainder = treePlan.totalCount % poolSize;
+    const shouldGeneratePool = (treePlan.totalCount > 0 || showHeroLine) && treePlan.poolSize > 0;
+    if (!shouldGeneratePool || TREE_PRESET_KEYS.length === 0) return [];
+
+    // In "hero line" mode we still want a pool of variants even when scatter
+    // is disabled (totalCount=0). Setting `count=0` keeps the world clean
+    // while still rendering one exemplar per variant in the line.
+    const shouldScatter = treePlan.totalCount > 0;
+    const poolTarget = shouldScatter ? treePlan.totalCount : treePlan.poolSize;
+    const poolSize = Math.min(treePlan.poolSize, poolTarget, MAX_TREE_VARIANTS);
+    const perVariant = shouldScatter ? Math.floor(treePlan.totalCount / poolSize) : 0;
+    const remainder = shouldScatter ? treePlan.totalCount % poolSize : 0;
     const seedBase = submapSeed + hashString(biomeId) * 97;
     const rng = new SeededRandom(seedBase);
 
     return Array.from({ length: poolSize }, (_, index) => {
       const presetName = TREE_PRESET_KEYS[Math.floor(rng.next() * TREE_PRESET_KEYS.length)];
       const seed = Math.floor(rng.next() * 1_000_000_000);
-      const count = perVariant + (index < remainder ? 1 : 0);
+      const count = shouldScatter ? perVariant + (index < remainder ? 1 : 0) : 0;
       return {
         id: `${presetName}-${index}`,
         seed,
@@ -175,9 +353,7 @@ const PropsLayer = ({
         spawnRadius: treePlan.spawnRadius,
       };
     });
-  }, [biomeId, submapSeed, treePlan]);
-
-  const [treeAssets, setTreeAssets] = useState<TreeAsset[]>([]);
+  }, [biomeId, showHeroLine, submapSeed, treePlan]);
 
   useEffect(() => {
     let cancelled = false;
@@ -292,6 +468,92 @@ const PropsLayer = ({
     };
   }, [biomeTint, treeVariantConfigs]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let nextAsset: TreeAsset | null = null;
+
+    if (!showCustomTree || !customTreeOptions) {
+      setCustomTreeAsset(null);
+      onCustomTreeStats?.(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Rebuild the custom tree whenever sliders change; dispose the old GPU
+    // resources so rapid edits do not leak memory in the test harness.
+    try {
+      const { asset, stats } = buildTreeAsset(customTreeOptions, 'custom-tree');
+      nextAsset = asset;
+      onCustomTreeStats?.(stats);
+    } catch (err) {
+      console.error('[PropsLayer] Failed to generate custom tree', err);
+      onCustomTreeStats?.(null);
+    }
+
+    if (!cancelled) {
+      setCustomTreeAsset(nextAsset);
+    } else if (nextAsset) {
+      nextAsset.trunkGeometry.dispose();
+      nextAsset.trunkMaterial.dispose();
+      nextAsset.leavesGeometry.dispose();
+      nextAsset.leavesMaterial.dispose();
+    }
+
+    return () => {
+      cancelled = true;
+      if (nextAsset) {
+        nextAsset.trunkGeometry.dispose();
+        nextAsset.trunkMaterial.dispose();
+        nextAsset.leavesGeometry.dispose();
+        nextAsset.leavesMaterial.dispose();
+      }
+    };
+  }, [customTreeOptions, onCustomTreeStats, showCustomTree]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let nextAsset: TreeAsset | null = null;
+
+    if (!showComparisonTree || !comparisonTreeOptions) {
+      setComparisonTreeAsset(null);
+      onComparisonTreeStats?.(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Comparison tree mirrors the preset so the lab can show side-by-side
+    // deltas without touching the preset data itself.
+    try {
+      const { asset, stats } = buildTreeAsset(comparisonTreeOptions, 'comparison-tree');
+      nextAsset = asset;
+      onComparisonTreeStats?.(stats);
+    } catch (err) {
+      console.error('[PropsLayer] Failed to generate comparison tree', err);
+      onComparisonTreeStats?.(null);
+    }
+
+    if (!cancelled) {
+      setComparisonTreeAsset(nextAsset);
+    } else if (nextAsset) {
+      nextAsset.trunkGeometry.dispose();
+      nextAsset.trunkMaterial.dispose();
+      nextAsset.leavesGeometry.dispose();
+      nextAsset.leavesMaterial.dispose();
+    }
+
+    return () => {
+      cancelled = true;
+      if (nextAsset) {
+        nextAsset.trunkGeometry.dispose();
+        nextAsset.trunkMaterial.dispose();
+        nextAsset.leavesGeometry.dispose();
+        nextAsset.leavesMaterial.dispose();
+      }
+    };
+  }, [comparisonTreeOptions, onComparisonTreeStats, showComparisonTree]);
+
   useEffect(() => () => {
     rockGeometry.dispose();
     rockMaterial.dispose();
@@ -299,7 +561,13 @@ const PropsLayer = ({
 
   return (
     <>
-      {treeAssets.map((asset) => (
+      {treeAssets.map((asset) => {
+        const trunkRadius = asset.trunkGeometry.boundingSphere?.radius ?? 0;
+        const leavesRadius = asset.leavesGeometry.boundingSphere?.radius ?? 0;
+        // Use the larger of trunk/leaves so the spawn-safe radius accounts for
+        // the full tree footprint and keeps entry points clear.
+        const spawnBuffer = Math.max(trunkRadius, leavesRadius);
+        return (
         <group key={asset.id}>
           <PropField
             count={asset.count}
@@ -313,6 +581,7 @@ const PropsLayer = ({
             spawnRadius={asset.spawnRadius}
             avoidCenter={safeCenter}
             avoidRadius={safeRadius}
+            avoidBuffer={spawnBuffer}
             yOffset={0}
           />
           <PropField
@@ -327,10 +596,12 @@ const PropsLayer = ({
             spawnRadius={asset.spawnRadius}
             avoidCenter={safeCenter}
             avoidRadius={safeRadius}
+            avoidBuffer={spawnBuffer}
             yOffset={0}
           />
         </group>
-      ))}
+        );
+      })}
       {counts.rocks > 0 && (
         <PropField
           count={counts.rocks}
@@ -343,8 +614,49 @@ const PropsLayer = ({
           material={rockMaterial}
           avoidCenter={safeCenter}
           avoidRadius={safeRadius}
+          avoidBuffer={rockGeometry.boundingSphere?.radius ?? 0}
           yOffset={2}
         />
+      )}
+      {heroLineEntries.length > 0 && (
+        <group>
+          {heroLineEntries.map((entry) => (
+            <group
+              key={`hero-${entry.id}`}
+              position={[entry.x, entry.y, entry.z]}
+              scale={[entry.scale, entry.scale, entry.scale]}
+            >
+              <mesh geometry={entry.asset.trunkGeometry} material={entry.asset.trunkMaterial} castShadow receiveShadow />
+              <mesh geometry={entry.asset.leavesGeometry} material={entry.asset.leavesMaterial} castShadow receiveShadow />
+            </group>
+          ))}
+        </group>
+      )}
+      {customTreeAsset && (
+        <group
+          position={[
+            customOffset.x,
+            heightSampler(customOffset.x, customOffset.z),
+            customOffset.z,
+          ]}
+          scale={[customScale, customScale, customScale]}
+        >
+          <mesh geometry={customTreeAsset.trunkGeometry} material={customTreeAsset.trunkMaterial} castShadow receiveShadow />
+          <mesh geometry={customTreeAsset.leavesGeometry} material={customTreeAsset.leavesMaterial} castShadow receiveShadow />
+        </group>
+      )}
+      {comparisonTreeAsset && (
+        <group
+          position={[
+            comparisonOffset.x,
+            heightSampler(comparisonOffset.x, comparisonOffset.z),
+            comparisonOffset.z,
+          ]}
+          scale={[comparisonScale, comparisonScale, comparisonScale]}
+        >
+          <mesh geometry={comparisonTreeAsset.trunkGeometry} material={comparisonTreeAsset.trunkMaterial} castShadow receiveShadow />
+          <mesh geometry={comparisonTreeAsset.leavesGeometry} material={comparisonTreeAsset.leavesMaterial} castShadow receiveShadow />
+        </group>
       )}
     </>
   );

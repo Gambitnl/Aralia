@@ -20,6 +20,8 @@ It handles actions related to:
     *   `SET_GEMINI_ACTIONS`: Updates the list of custom, contextual actions suggested by the AI to be displayed in the `ActionPane`.
 *   **Game Time**:
     *   `ADVANCE_TIME`: Increments the in-game clock by a specified number of seconds.
+    *   `ADVANCE_TIME`: Resets the party-level short rest counter when a new in-game day starts.
+    *   `SHORT_REST`: Updates the party-level short rest tracker with the latest rest timestamp and count.
 
 ## Usage
 

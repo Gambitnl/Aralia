@@ -56,6 +56,13 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       const newTime = new Date(oldTime.getTime());
       newTime.setSeconds(newTime.getSeconds() + action.payload.seconds);
 
+      // Normalize rest tracking in case older states omitted the tracker.
+      const currentRestTracker = state.shortRestTracker ?? {
+        restsTakenToday: 0,
+        lastRestDay: getGameDay(oldTime),
+        lastRestEndedAtMs: null,
+      };
+
       // Check if a day has passed
       const oldDay = getGameDay(oldTime);
       const newDay = getGameDay(newTime);
@@ -96,6 +103,14 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       }
 
       if (daysPassed > 0) {
+        // Reset daily short rest counts when the in-game day ticks over.
+        if (newDay !== currentRestTracker.lastRestDay) {
+          partialUpdate.shortRestTracker = {
+            ...currentRestTracker,
+            restsTakenToday: 0,
+            lastRestDay: newDay,
+          };
+        }
         // Note: processWorldEvents expects the full state, so we ideally merge our partial updates first
         // But since processWorldEvents mostly cares about factions/history, passing state with just updated time is OK for now.
         const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
@@ -110,6 +125,14 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       }
 
       return partialUpdate;
+    }
+
+    case 'SHORT_REST': {
+      const restPayload = action.payload as { shortRestTracker?: GameState['shortRestTracker'] } | undefined;
+      // Update party-level rest pacing if the handler supplied it.
+      return restPayload?.shortRestTracker
+        ? { shortRestTracker: restPayload.shortRestTracker }
+        : {};
     }
 
     case 'ADD_MET_NPC': {

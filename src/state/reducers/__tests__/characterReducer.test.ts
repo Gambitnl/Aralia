@@ -47,4 +47,48 @@ describe('characterReducer', () => {
              expect(char.level).toBe(2);
         }
     });
+
+    it('should apply short rest healing, hit dice updates, and limited use resets', () => {
+        const character = createMockPlayerCharacter({
+            id: 'short-rest-char',
+            hp: 5,
+            maxHp: 12,
+            hitPointDice: [{ die: 10, current: 2, max: 2 }],
+            limitedUses: {
+                second_wind: { name: 'Second Wind', current: 0, max: 1, resetOn: 'short_rest' }
+            }
+        });
+        const state = { ...initialState, party: [character] } as GameState;
+        const action: AppAction = {
+            type: 'SHORT_REST',
+            payload: {
+                healingByCharacterId: { 'short-rest-char': 4 },
+                hitPointDiceUpdates: { 'short-rest-char': [{ die: 10, current: 1, max: 2 }] }
+            }
+        };
+
+        const newState = characterReducer(state, action);
+        const updated = newState.party?.[0];
+
+        expect(updated?.hp).toBe(9);
+        expect(updated?.hitPointDice?.[0].current).toBe(1);
+        expect(updated?.limitedUses?.second_wind.current).toBe(1);
+    });
+
+    it('should restore hit point dice on long rest', () => {
+        const character = createMockPlayerCharacter({
+            id: 'long-rest-char',
+            hp: 3,
+            maxHp: 10,
+            hitPointDice: [{ die: 8, current: 0, max: 2 }]
+        });
+        const state = { ...initialState, party: [character] } as GameState;
+        const action: AppAction = { type: 'LONG_REST', payload: { deniedCharacterIds: [] } };
+
+        const newState = characterReducer(state, action);
+        const updated = newState.party?.[0];
+
+        expect(updated?.hp).toBe(10);
+        expect(updated?.hitPointDice?.[0].current).toBe(2);
+    });
 });

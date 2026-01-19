@@ -4,18 +4,48 @@ import { ConditionEvaluator, EvaluationContext } from '../ConditionEvaluator';
 import { Condition } from '../../../types/logic';
 import { CombatCharacter } from '../../../types/combat';
 
-// Mock character factory
+// Minimal class payload; evaluator never inspects class details.
+const mockClass = {
+  id: 'fighter',
+  name: 'Fighter',
+  description: '',
+  hitDie: 10,
+  primaryAbility: [],
+  savingThrowProficiencies: [],
+  skillProficienciesAvailable: [],
+  numberOfSkillProficiencies: 0,
+  armorProficiencies: [],
+  weaponProficiencies: [],
+  features: []
+};
+
+// Shared action economy stub so CombatCharacter typing stays valid in tests.
+const baseActionEconomy = {
+  action: { used: false, remaining: 1 },
+  bonusAction: { used: false, remaining: 1 },
+  reaction: { used: false, remaining: 1 },
+  movement: { used: 0, total: 30 },
+  freeActions: 0
+};
+
+// Mock character factory for the evaluator; keep only fields it reads.
 // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-const createMockCharacter = (id: string, hp: number, statusEffects: unknown[] = []): CombatCharacter => ({
+const createMockCharacter = (id: string, currentHP: number, statusEffects: { name: string }[] = []): CombatCharacter => ({
   id,
   name: 'Mock',
-  hp,
-  maxHp: 100,
-  stats: { armorClass: 15, movementSpeed: 30, initiativeBonus: 0, passivePerception: 10 },
-  abilities: { strength: 10, dexterity: 12 },
+  level: 1,
+  class: mockClass,
+  position: { x: 0, y: 0 },
+  stats: { speed: 30 } as unknown as CombatCharacter['stats'],
+  abilities: [],
+  team: 'player',
+  currentHP,
+  maxHP: 100,
+  initiative: 0,
+  armorClass: 15,
   statusEffects,
   conditions: [], // Add required conditions property
-  // ... minimal required fields
+  actionEconomy: baseActionEconomy
 // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
 } as unknown as CombatCharacter);
 
@@ -76,7 +106,7 @@ describe('ConditionEvaluator', () => {
   });
 
   it('evaluates status condition', () => {
-      const poisonedHero = createMockCharacter('hero', 50, [{ statusCondition: { name: 'Poisoned' } }]);
+      const poisonedHero = createMockCharacter('hero', 50, [{ name: 'Poisoned' }]);
       const ctx = { self: poisonedHero };
       const condition: Condition = {
           type: 'status',

@@ -42,6 +42,8 @@ vi.mock('../NotFound', () => ({ default: () => <div>Not Found</div> }));
 vi.mock('../../components/ui/LoadingSpinner', () => ({ LoadingSpinner: () => <div>Loading...</div> }));
 vi.mock('../../components/NotificationSystem', () => ({ NotificationSystem: () => <div>Notifications</div> }));
 vi.mock('../../components/layout/GameModals', () => ({ default: () => <div>Game Modals</div> }));
+// Avoid DiceOverlay's DiceProvider requirement for this focused error boundary test.
+vi.mock('../dice/DiceOverlay', () => ({ DiceOverlay: () => null }));
 
 // Mock GameLayout to throw an error for the test
 vi.mock('../layout/GameLayout', () => ({

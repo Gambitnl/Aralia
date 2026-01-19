@@ -21,8 +21,8 @@ It handles actions related to:
     *   `CAST_SPELL`: Decrements the appropriate spell slot for a character.
     *   `USE_LIMITED_ABILITY`: Decrements the uses of a character's special ability (e.g., Second Wind).
     *   `TOGGLE_PREPARED_SPELL`: Adds or removes a spell from a character's `preparedSpells` list.
-    *   `SHORT_REST`: Restores abilities that reset on a short rest.
-    *   `LONG_REST`: Fully restores HP, spell slots, and all rest-based limited abilities.
+    *   `SHORT_REST`: Restores short-rest abilities, applies Hit Dice healing, and updates Hit Dice pools.
+    *   `LONG_REST`: Fully restores HP, spell slots, rest-based limited abilities, and all spent Hit Dice.
 
 ### Helper Logic
 The reducer uses utility functions from `src/utils/characterUtils.ts` (like `calculateArmorClass`) to correctly update derived character stats whenever equipment changes.

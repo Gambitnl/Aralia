@@ -8,7 +8,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp, getCharacterMaxArmorProficiency, getArmorCategoryHierarchy } from '../../utils/characterUtils';
+import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp, getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, buildHitPointDicePools } from '../../utils/characterUtils';
 import { isWeaponProficient } from '../../utils/weaponUtils';
 // TODO(lint-intent): 'LOCATIONS' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -84,17 +84,17 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                             newInventory[i] = null;
                         }
                     } else {
-                         // Single item
-                         remaining--;
-                         newInventory[i] = null;
+                        // Single item
+                        remaining--;
+                        newInventory[i] = null;
                     }
                 }
             }
 
             // If we still need to remove items and we found some single items that we marked as null, we are good.
             // But what if we didn't find enough?
-             if (remaining > 0) {
-                 console.warn(`REMOVE_ITEM: Could not find enough of item ${itemId} to remove. Requested: ${count}, Found: ${count - remaining}`);
+            if (remaining > 0) {
+                console.warn(`REMOVE_ITEM: Could not find enough of item ${itemId} to remove. Requested: ${count}, Found: ${count - remaining}`);
             }
 
             // Filter out the nulls (removed items)
@@ -322,8 +322,22 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const spellbook = { ...charToUpdate.spellbook };
             const preparedSpells = new Set(spellbook.preparedSpells);
 
-            if (preparedSpells.has(spellId)) preparedSpells.delete(spellId);
-            else preparedSpells.add(spellId);
+            if (preparedSpells.has(spellId)) {
+                // Always allow unpreparing
+                preparedSpells.delete(spellId);
+            } else {
+                // Check limit before adding
+                const { getMaxPreparedSpells } = require('../../utils/character/getMaxPreparedSpells');
+                const maxPrepared = getMaxPreparedSpells(charToUpdate);
+
+                // If maxPrepared is null (known caster), no limit applies
+                // Otherwise, enforce the limit
+                if (maxPrepared !== null && preparedSpells.size >= maxPrepared) {
+                    console.log(`Cannot prepare more spells. Already at max (${maxPrepared}).`);
+                    return {}; // Don't add - already at limit
+                }
+                preparedSpells.add(spellId);
+            }
 
             spellbook.preparedSpells = Array.from(preparedSpells);
             const updatedCharacter = { ...charToUpdate, spellbook };
@@ -364,16 +378,49 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'SHORT_REST': {
+            const healingByCharacterId = action.payload?.healingByCharacterId || {};
+            const hitPointDiceUpdates = action.payload?.hitPointDiceUpdates || {};
+
             const newParty = state.party.map(char => {
-                const restoredUses = { ...char.limitedUses };
-                let usesChanged = false;
-                for (const id in restoredUses) {
-                    if (restoredUses[id].resetOn === 'short_rest') {
-                        restoredUses[id] = { ...restoredUses[id], current: resolveMaxValue(char, restoredUses[id]) };
-                        usesChanged = true;
+                const charId = char.id;
+                let hasChanged = false;
+                let updatedChar = char;
+
+                // Restore limited-use abilities that reset on short rests.
+                if (char.limitedUses) {
+                    const restoredUses = { ...char.limitedUses };
+                    let usesChanged = false;
+                    for (const id in restoredUses) {
+                        if (restoredUses[id].resetOn === 'short_rest') {
+                            restoredUses[id] = { ...restoredUses[id], current: resolveMaxValue(char, restoredUses[id]) };
+                            usesChanged = true;
+                        }
+                    }
+                    if (usesChanged) {
+                        updatedChar = { ...updatedChar, limitedUses: restoredUses };
+                        hasChanged = true;
                     }
                 }
-                return usesChanged ? { ...char, limitedUses: restoredUses } : char;
+
+                // Apply any hit dice spend updates calculated by the short rest handler.
+                if (charId && hitPointDiceUpdates[charId]) {
+                    updatedChar = { ...updatedChar, hitPointDice: hitPointDiceUpdates[charId] };
+                    hasChanged = true;
+                }
+
+                // Apply healing from spent hit dice (clamped in handler, but also bounded here).
+                if (charId) {
+                    const healing = healingByCharacterId[charId];
+                    if (typeof healing === 'number' && healing !== 0) {
+                        const newHp = Math.max(0, Math.min(updatedChar.maxHp, updatedChar.hp + healing));
+                        if (newHp !== updatedChar.hp) {
+                            updatedChar = { ...updatedChar, hp: newHp };
+                            hasChanged = true;
+                        }
+                    }
+                }
+
+                return hasChanged ? updatedChar : char;
             });
             return { party: newParty };
         }
@@ -417,6 +464,13 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                 // Restore HP
                 charCopy.hp = charCopy.maxHp;
+
+                // Restore Hit Point Dice (2024 rules: Long Rest restores all spent dice).
+                const restoredHitPointDice = buildHitPointDicePools(charCopy).map(pool => ({
+                    ...pool,
+                    current: pool.max,
+                }));
+                charCopy.hitPointDice = restoredHitPointDice;
 
                 return charCopy;
             });
@@ -475,9 +529,8 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             let charToUpdate = { ...state.party[charIndex] };
             const parsedSecondary = (secondaryValue ?? {}) as { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean };
 
-            // TODO(FEATURES): Add level-up UI flows that gather ASI/feat/spell choices and pass LevelUpChoices here (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
             // Level up handling uses a generic choiceType so UI flows can supply XP gains
-            // and the desired ASI/feat selection without adding a new action type.
+            // and the desired class/ASI/feat selections without adding a new action type.
             if (choiceType === 'level_up') {
                 const levelChoices = parsedSecondary.choices;
                 const xpGain = typeof parsedSecondary.xpGained === 'number' ? parsedSecondary.xpGained : 0;

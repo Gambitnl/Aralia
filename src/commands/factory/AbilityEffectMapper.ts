@@ -1,5 +1,5 @@
 import { AbilityEffect } from '@/types/combat';
-import { SpellEffect, DamageType } from '@/types/spells';
+import { SpellEffect, DamageType, ConditionName } from '@/types/spells';
 
 export class AbilityEffectMapper {
   static mapToSpellEffect(abilityEffect: AbilityEffect): SpellEffect | null {
@@ -30,10 +30,8 @@ export class AbilityEffectMapper {
           trigger: { type: 'immediate' },
           condition: { type: 'always' },
           statusCondition: {
-            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            name: abilityEffect.statusEffect.name as any, // Cast to ConditionName
+            // TODO(next-agent): Preserve behavior; enforce ConditionName at the AbilityEffect source to remove this cast.
+            name: abilityEffect.statusEffect.name as ConditionName,
             duration: { type: 'rounds', value: abilityEffect.statusEffect.duration },
           },
         };

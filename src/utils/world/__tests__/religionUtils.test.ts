@@ -9,8 +9,9 @@ import {
 } from '../religionUtils';
 import { DivineFavor, DeityAction, TempleService, Blessing } from '../../../types';
 
-// Mock the DEITIES data to prevent dependency on actual data file changes
-vi.mock('../../data/deities', () => ({
+// Mock the DEITIES data to prevent dependency on actual data file changes.
+// NOTE: Path matches the import specifier used by religionUtils.
+vi.mock('../../../data/deities', () => ({
     DEITIES: [
         {
             id: 'test_god',
@@ -88,20 +89,22 @@ describe('religionUtils', () => {
     describe('evaluateAction', () => {
         it('should return correct action for approved trigger', () => {
             const result = evaluateAction('test_god', 'GOOD_ACT');
-            expect(result).toEqual({
-                id: 'GOOD_ACT',
+            // Action IDs are namespaced by deity + trigger for traceability.
+            expect(result).toMatchObject({
                 description: 'Did good',
                 favorChange: 5
             });
+            expect(result?.id).toBe('test_god_approve_GOOD_ACT');
         });
 
         it('should return correct action for forbidden trigger', () => {
             const result = evaluateAction('test_god', 'BAD_ACT');
-            expect(result).toEqual({
-                id: 'BAD_ACT',
+            // Action IDs are namespaced by deity + trigger for traceability.
+            expect(result).toMatchObject({
                 description: 'Did bad',
                 favorChange: -5
             });
+            expect(result?.id).toBe('test_god_forbid_BAD_ACT');
         });
 
         it('should return null for unknown trigger', () => {

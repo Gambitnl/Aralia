@@ -14,6 +14,7 @@ import { ALL_RACES_DATA } from '../../data/races';
 import { createPlayerCombatCharacter } from '../combat/combatUtils';
 import { SKILLS_DATA } from '../../data/skills';
 import { getAbilityModifierValue } from '../character/statUtils';
+import { buildHitPointDicePools } from '../character/characterUtils';
 
 // ============================================================================
 // Configuration Types
@@ -157,6 +158,8 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
         spellcastingAbility = charClass.spellcasting.ability.toLowerCase() as 'intelligence' | 'wisdom' | 'charisma';
     }
 
+    // Track per-class levels to derive correct Hit Dice pools.
+    const classLevels = { [charClass.id]: config.level };
     const character: PlayerCharacter = {
         id: `quick-${config.classId}-${config.level}`,
         name: config.name || `Test ${charClass.name}`,
@@ -165,16 +168,19 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
         proficiencyBonus,
         race,
         class: charClass,
+        classLevels,
         abilityScores: base,
         finalAbilityScores: final,
         skills,
-        savingThrowProficiencies: charClass.savingThrowProficiencies,
-        hp: maxHp,
-        maxHp,
-        armorClass: baseAc,
-        speed: race.id === 'dwarf' || race.id === 'gnome' ? 25 : 30,
-        darkvisionRange: race.traits?.some(t => t.toLowerCase().includes('darkvision')) ? 60 : 0,
-        transportMode: 'foot',
+	        savingThrowProficiencies: charClass.savingThrowProficiencies,
+	        hp: maxHp,
+	        maxHp,
+	        // Hit Dice pools are computed after assembly to include class levels.
+	        hitPointDice: undefined,
+	        armorClass: baseAc,
+	        speed: race.id === 'dwarf' || race.id === 'gnome' ? 25 : 30,
+	        darkvisionRange: race.traits?.some(t => t.toLowerCase().includes('darkvision')) ? 60 : 0,
+	        transportMode: 'foot',
         spellcastingAbility,
         statusEffects: [],
         equippedItems: {},
@@ -184,6 +190,7 @@ export function createQuickCharacter(config: QuickCharacterConfig): PlayerCharac
             preparedSpells: [],
         } : undefined,
     };
+    character.hitPointDice = buildHitPointDicePools(character, { classLevels });
 
     return character;
 }

@@ -9,15 +9,17 @@
  */
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Location, Action, NPC, Item } from '../../types';
+import { Location, Action, NPC, Item, PlayerCharacter, HitPointDiceSpendMap } from '../../types';
 import { ActionButton } from './ActionButton';
 import { useActionGeneration } from './useActionGeneration';
 import { SystemMenu } from './SystemMenu';
+import RestModal from '../ui/RestModal';
 
 interface ActionPaneProps {
   currentLocation: Location;
   npcsInLocation: NPC[];
   itemsInLocation: Item[];
+  party: PlayerCharacter[];
   onAction: (action: Action) => void;
   disabled: boolean;
   geminiGeneratedActions: Action[] | null;
@@ -40,6 +42,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   isDevDummyActive,
   isDevModeEnabled,
   unreadDiscoveryCount,
+  party,
 
   hasNewRateLimitError,
   subMapCoordinates,
@@ -48,6 +51,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   const oracleInputRef = useRef<HTMLInputElement | null>(null);
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
   const [oracleQuery, setOracleQuery] = useState('');
+  // Tracks whether the short-rest modal is open so we can collect Hit Dice spend.
+  const [isRestModalOpen, setIsRestModalOpen] = useState(false);
 
   const { generalActions } = useActionGeneration({
     currentLocation,
@@ -70,6 +75,15 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       setOracleQuery('');
       setIsOracleInputVisible(false);
     }
+  };
+
+  const handleShortRestConfirm = (spend: HitPointDiceSpendMap) => {
+    // Dispatch the SHORT_REST action with a per-character spend map.
+    onAction({ type: 'SHORT_REST', label: 'Short Rest', payload: { hitPointDiceSpend: spend } });
+  };
+
+  const handleShortRestClick = (_action: Action) => {
+    setIsRestModalOpen(true);
   };
 
   return (
@@ -144,6 +158,23 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         ))}
       </div>
 
+      {/* Rest Actions */}
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-amber-300 mb-2">Rest & Recovery</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <ActionButton
+            action={{ type: 'SHORT_REST', label: 'Short Rest' }}
+            onClick={handleShortRestClick}
+            disabled={disabled}
+          />
+          <ActionButton
+            action={{ type: 'LONG_REST', label: 'Long Rest' }}
+            onClick={onAction}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+
       {/* Dev Menu Button (when enabled) */}
       {isDevModeEnabled && (
         <div className="mb-4">
@@ -163,6 +194,14 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         hasNewRateLimitError={hasNewRateLimitError}
         isDevDummyActive={isDevDummyActive}
         isDevModeEnabled={isDevModeEnabled}
+      />
+
+      {/* Modal collects Hit Dice spending for the entire party. */}
+      <RestModal
+        isOpen={isRestModalOpen}
+        party={party}
+        onClose={() => setIsRestModalOpen(false)}
+        onConfirm={handleShortRestConfirm}
       />
 
     </div>

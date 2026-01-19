@@ -28,11 +28,20 @@
       "Bash(set:*)",
       "Bash(for:*)",
       "Bash(gh:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(ping:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "chrome-devtools",
+    "github",
+    "image-gen"
+  ],
   "hooks": {
     "PreToolUse": [
       {

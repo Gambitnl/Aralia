@@ -6,7 +6,7 @@
 import React from 'react';
 import { GameState, KnownFact, GossipUpdatePayload, DiscoveryType, NpcMemory } from '../../types';
 import { AppAction } from '../../state/actionTypes';
-import * as GeminiService from '../../services/geminiService';
+import * as OllamaTextService from '../../services/ollamaTextService';
 import { AddGeminiLogFn } from './actionHandlerTypes';
 import { NPCS, LOCATIONS } from '../../constants';
 import * as NpcBehaviorConfig from '../../config/npcBehaviorConfig';
@@ -81,7 +81,7 @@ export async function handleGossipEvent(
             
             if (!speaker || !listener) continue;
 
-            const rephraseResult = await GeminiService.rephraseFactForGossip(factToSpread.fact.text, speaker.initialPersonalityPrompt, listener.initialPersonalityPrompt, gameState.devModelOverride);
+            const rephraseResult = await OllamaTextService.rephraseFactForGossip(factToSpread.fact.text, speaker.initialPersonalityPrompt, listener.initialPersonalityPrompt);
             
             addGeminiLog('rephraseFactForGossip', rephraseResult.data?.promptSent || rephraseResult.metadata?.promptSent || "", rephraseResult.data?.rawResponse || rephraseResult.metadata?.rawResponse || rephraseResult.error || "");
             
@@ -188,7 +188,7 @@ export async function handleImmediateGossip(
     const listener = NPCS[listenerId];
     if (!listener) continue;
 
-    const rephraseResult = await GeminiService.rephraseFactForGossip(factToSpread.text, speaker.initialPersonalityPrompt, listener.initialPersonalityPrompt, gameState.devModelOverride);
+    const rephraseResult = await OllamaTextService.rephraseFactForGossip(factToSpread.text, speaker.initialPersonalityPrompt, listener.initialPersonalityPrompt);
     
     addGeminiLog('rephraseFactForGossip (immediate)', rephraseResult.data?.promptSent || rephraseResult.metadata?.promptSent || "", rephraseResult.data?.rawResponse || rephraseResult.metadata?.rawResponse || rephraseResult.error || "");
     

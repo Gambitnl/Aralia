@@ -8,7 +8,7 @@
 import { PlayerCharacter, AbilityScores, SpellbookData, SpellSlots, LimitedUses, Item, Skill, EquipmentSlotType } from '../types';
 import { RACES_DATA as ALL_RACES_DATA, CLASSES_DATA, WEAPONS_DATA, ITEMS } from '../constants';
 import { SKILLS_DATA } from '../data/skills';
-import { getAbilityModifierValue, calculateArmorClass } from '../utils/characterUtils';
+import { getAbilityModifierValue, calculateArmorClass, buildHitPointDicePools } from '../utils/characterUtils';
 
 export interface CharacterGenerationConfig {
   name: string;
@@ -215,6 +215,8 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     }
 
     // 6. Final Assembly
+    // Track class levels so Hit Dice pools reflect the correct die size.
+    const classLevels = { [charClass.id]: level };
     const character: PlayerCharacter = {
         id: crypto.randomUUID(),
         name: config.name,
@@ -222,15 +224,18 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         proficiencyBonus,
         race,
         class: charClass,
+        classLevels,
         abilityScores: baseScores,
         finalAbilityScores,
-        skills: selectedSkills,
-        hp: maxHp,
-        maxHp,
-        armorClass: 10, // Recalculated below
-        speed,
-        darkvisionRange,
-        transportMode: 'foot',
+	        skills: selectedSkills,
+	        hp: maxHp,
+	        maxHp,
+	        // Build Hit Dice after assembly to preserve pool formatting.
+	        hitPointDice: undefined,
+	        armorClass: 10, // Recalculated below
+	        speed,
+	        darkvisionRange,
+	        transportMode: 'foot',
         statusEffects: [],
         equippedItems,
         spellbook,
@@ -241,6 +246,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         // Add default sub-selections if needed for strict typing, or leave optional
     };
 
+    character.hitPointDice = buildHitPointDicePools(character, { classLevels });
     character.armorClass = calculateArmorClass(character);
 
     return character;

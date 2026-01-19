@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber } from '../../types/combat';
+import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber, Position, SpellEffectAnimationData } from '../../types/combat';
 import DamageNumberOverlay from './DamageNumberOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { getStatusEffectIcon } from '../../utils/combatUtils';
@@ -24,6 +24,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
   animations,
   aoePreview,
 }) => {
+  type SpellEffectOverlayData = SpellEffectAnimationData & { targetPosition?: Position };
   const spellAnimations = animations.filter(anim => anim.type === 'spell_effect');
   const [activeSpells, setActiveSpells] = useState<Record<string, boolean>>({});
 
@@ -90,9 +91,10 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
 
       {/* Spell effect ripples */}
       {spellAnimations.map((anim) => {
-        const data: any = anim.data;
-        const positions: { x: number; y: number }[] = data?.targetPositions || (data?.targetPosition ? [data.targetPosition] : []);
-        return positions.map((pos: { x: number; y: number }) => (
+        const data = anim.data as SpellEffectOverlayData | undefined;
+        // Legacy payloads may include a single targetPosition instead of an array.
+        const positions = data?.targetPositions || (data?.targetPosition ? [data.targetPosition] : []);
+        return positions.map((pos) => (
           <div
             key={`${anim.id}-${pos.x}-${pos.y}`}
             className="absolute rounded-full bg-indigo-400/40 border border-indigo-300/40"

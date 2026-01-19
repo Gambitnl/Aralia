@@ -75,6 +75,9 @@ const NotFound = lazy(() => import('./components/ui/NotFound'));
 
 
 // TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
+// PROGRESS: Most AI functions (location descriptions, NPC interactions, etc.) now use local Ollama instead of Gemini,
+// significantly reducing internet dependency. Merchant inventories still require Gemini. Need service worker for caching
+// static assets and handling offline fallbacks when Ollama server is unavailable.
 const App: React.FC = () => {
   // Validate environment variables on startup
   useEffect(() => {
@@ -100,7 +103,11 @@ const App: React.FC = () => {
     banterHistory
   } = useCompanionBanter(gameState, dispatch, isBanterPaused);
   // Ollama Dependency Check
-  const { ollamaWarningDismissed, setOllamaWarningDismissed } = useOllamaCheck(dispatch);
+  // Keep the check side-effect active; UI wiring can consume this state later.
+  const {
+    ollamaWarningDismissed: _ollamaWarningDismissed,
+    setOllamaWarningDismissed: _setOllamaWarningDismissed
+  } = useOllamaCheck(dispatch);
 
 
   const addMessage = useCallback(
@@ -750,6 +757,7 @@ const App: React.FC = () => {
           messages={gameState.messages}
           npcsInLocation={npcs}
           itemsInLocation={itemsInCurrentLocation}
+          party={gameState.party}
           geminiGeneratedActions={gameState.geminiGeneratedActions}
           unreadDiscoveryCount={gameState.unreadDiscoveryCount}
           hasNewRateLimitError={gameState.hasNewRateLimitError}

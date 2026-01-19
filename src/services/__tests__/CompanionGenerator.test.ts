@@ -24,6 +24,9 @@ vi.mock('../ollama/client', () => {
             getModel() {
                 return Promise.resolve('test-model');
             }
+            isAvailable() {
+                return Promise.resolve(true);
+            }
             generate() {
                 // Simulate the JSON being embedded in the response string
                 return Promise.resolve({ ok: true, data: { response: `\`\`\`json\n${JSON.stringify(mockSoul)}\n\`\`\`` } });

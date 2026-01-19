@@ -6,7 +6,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
-import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../../../types';
+import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType } from '../../../types';
 import { canEquipItem, calculatePotentialAcChange } from '../../../utils/characterUtils';
 import Tooltip from '../../ui/Tooltip';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
@@ -98,6 +98,19 @@ const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode =>
 
 const ROOT_CONTAINER_ID = 'root-backpack';
 
+/** Item type filter categories for the inventory UI */
+type ItemTypeFilter = 'all' | 'armor' | 'weapons' | 'consumables' | 'tools' | 'accessories' | 'other';
+
+const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; types: string[] }[] = [
+  { id: 'all', label: 'All', icon: 'inventory_2', types: [] },
+  { id: 'armor', label: 'Armor', icon: 'shield', types: ['armor'] },
+  { id: 'weapons', label: 'Weapons', icon: 'swords', types: ['weapon'] },
+  { id: 'consumables', label: 'Consumables', icon: 'local_drink', types: ['consumable', 'potion', 'food_drink', 'scroll'] },
+  { id: 'tools', label: 'Tools', icon: 'construction', types: ['tool', 'light_source'] },
+  { id: 'accessories', label: 'Accessories', icon: 'diamond', types: ['accessory', 'clothing'] },
+  { id: 'other', label: 'Other', icon: 'category', types: ['note', 'book', 'map', 'key', 'spell_component', 'crafting_material', 'treasure', 'reagent', 'ammunition', 'trap'] },
+];
+
 const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction, filterBySlot, onClearFilter }) => {
   /**
    * The weight computation still sums the raw inventory to keep parity
@@ -144,6 +157,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     return inventory.filter(item => !coinIds.includes(item.id));
   }, [inventory]);
 
+  // State for item type filtering
+  const [activeTypeFilter, setActiveTypeFilter] = useState<ItemTypeFilter>('all');
+
   // Apply slot-based filtering if active
   const filteredInventory = useMemo(() => {
     if (!filterBySlot) return nonCoinInventory;
@@ -179,6 +195,16 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     });
   }, [nonCoinInventory, filterBySlot, character]);
 
+  // Apply type-based filtering
+  const typeFilteredInventory = useMemo(() => {
+    if (activeTypeFilter === 'all') return filteredInventory;
+
+    const filterConfig = ITEM_TYPE_FILTERS.find(f => f.id === activeTypeFilter);
+    if (!filterConfig || filterConfig.types.length === 0) return filteredInventory;
+
+    return filteredInventory.filter(item => filterConfig.types.includes(item.type as string));
+  }, [filteredInventory, activeTypeFilter]);
+
   /**
    * Containers introduce a hierarchy. Because duplicate items are allowed,
    * we fabricate a stable instanceId for rendering and for in-component
@@ -186,8 +212,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
    * not yet been expanded to persist container assignments globally.
    */
   const inventoryInstances = useMemo(() => {
-    return filteredInventory.map((item, index) => ({ ...item, instanceId: `${item.id}-${index}` }));
-  }, [filteredInventory]);
+    return typeFilteredInventory.map((item, index) => ({ ...item, instanceId: `${item.id}-${index}` }));
+  }, [typeFilteredInventory]);
 
   const [containerAssignments, setContainerAssignments] = useState<Record<string, string>>({});
   const [collapsedContainers, setCollapsedContainers] = useState<Record<string, boolean>>({});
@@ -468,6 +494,41 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
       <div className="flex justify-between items-center mb-2 px-1">
         <h3 className="font-semibold text-sky-400 text-sm">Backpack</h3>
         <span className="text-xs text-gray-400">Weight: {totalInventoryWeight} lbs</span>
+      </div>
+
+      {/* Type Filter Buttons */}
+      <div className="mb-3 flex flex-wrap gap-1">
+        {ITEM_TYPE_FILTERS.map(filter => {
+          const isActive = activeTypeFilter === filter.id;
+          // Count items matching this filter
+          const count = filter.id === 'all'
+            ? filteredInventory.length
+            : filteredInventory.filter(item => filter.types.includes(item.type as string)).length;
+
+          if (count === 0 && filter.id !== 'all') return null; // Hide empty categories
+
+          return (
+            <Tooltip key={filter.id} content={`${filter.label} (${count} items)`}>
+              <button
+                type="button"
+                onClick={() => setActiveTypeFilter(filter.id)}
+                className={`
+                  flex items-center gap-1 px-2 py-1 text-xs rounded-md border transition-all
+                  ${isActive
+                    ? 'bg-sky-700 border-sky-500 text-white shadow-md'
+                    : 'bg-gray-800/70 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500'
+                  }
+                `}
+                aria-pressed={isActive}
+                aria-label={`Filter by ${filter.label}`}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{filter.icon}</span>
+                <span>{filter.label}</span>
+                <span className={`text-[10px] ${isActive ? 'text-sky-200' : 'text-gray-500'}`}>({count})</span>
+              </button>
+            </Tooltip>
+          );
+        })}
       </div>
 
       {nonCoinInventory.length > 0 ? (

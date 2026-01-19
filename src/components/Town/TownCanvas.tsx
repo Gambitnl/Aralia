@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { AssetPainter } from '../../services/RealmSmithAssetPainter';
-import { BiomeType, BuildingType, Building } from '../../types/realmsmith';
+import { Building } from '../../types/realmsmith';
 import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../../types/town';
 import { PlayerCharacter } from '../../types/character';
 import type { Action } from '../../types';
@@ -11,43 +11,11 @@ import { RefreshCw, ZoomIn, ZoomOut, Maximize, Moon, Sun, Grid, Settings, X, Use
 import { useTownController } from '../../hooks/useTownController';
 import { CharacterVisualConfig } from '../../services/CharacterAssetService';
 import { useAmbientLife } from '../../hooks/useAmbientLife';
-
-const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
-    [BuildingType.HOUSE_SMALL]: { name: 'Small House', desc: 'A modest residence for common folk.' },
-    [BuildingType.HOUSE_LARGE]: { name: 'Large House', desc: 'A two-story home for wealthier merchants.' },
-    [BuildingType.TAVERN]: { name: 'Tavern', desc: 'The social hub, warm and inviting.' },
-    [BuildingType.BLACKSMITH]: { name: 'Blacksmith', desc: 'Echoes with the sound of hammer on anvil.' },
-    [BuildingType.MARKET_STALL]: { name: 'Market Stall', desc: 'Traders selling local goods and wares.' },
-    [BuildingType.CHURCH]: { name: 'Church', desc: 'A peaceful sanctuary with stained glass.' },
-    [BuildingType.TEMPLE]: { name: 'Temple', desc: 'A grand structure dedicated to high deities.' },
-    [BuildingType.LIBRARY]: { name: 'Library', desc: 'Filled with ancient scrolls and knowledge.' },
-    [BuildingType.ALCHEMIST]: { name: 'Alchemist', desc: 'Smells of sulfur and strange herbs.' },
-    [BuildingType.TOWER]: { name: 'Tower', desc: 'A fortified lookout overlooking the town.' },
-    [BuildingType.MANOR]: { name: 'Manor', desc: 'The luxurious estate of a noble family.' },
-    [BuildingType.BARRACKS]: { name: 'Barracks', desc: 'Housing for the town guard.' },
-    [BuildingType.FARM_HOUSE]: { name: 'Farm House', desc: 'A rustic home surrounded by fields.' },
-    [BuildingType.WINDMILL]: { name: 'Windmill', desc: 'Grinds grain with the power of the wind.' },
-    [BuildingType.LUMBER_MILL]: { name: 'Lumber Mill', desc: 'Processes timber from the nearby forest.' },
-    [BuildingType.GUILD_HALL]: { name: 'Guild Hall', desc: 'A headquarters for local artisans and merchants.' },
-    [BuildingType.STABLE]: { name: 'Stables', desc: 'Shelter for horses and travelers\' mounts.' },
-    [BuildingType.GRANARY]: { name: 'Granary', desc: 'A large storehouse for the town\'s food supply.' },
-    [BuildingType.SHRINE]: { name: 'Shrine', desc: 'A small holy site for quiet prayer.' },
-    [BuildingType.SCHOOL]: { name: 'School', desc: 'A place of learning for the town\'s youth.' },
-    [BuildingType.BAKERY]: { name: 'Bakery', desc: 'Fills the street with the smell of fresh bread.' },
-    [BuildingType.TAILOR]: { name: 'Tailor', desc: 'Fine clothes and fabrics are sold here.' },
-    [BuildingType.JEWELER]: { name: 'Jeweler', desc: 'A secure shop selling precious gems and metals.' },
-};
-
-const COMMERCIAL_BUILDING_TYPES = new Set([
-    BuildingType.TAVERN,
-    BuildingType.BLACKSMITH,
-    BuildingType.MARKET_STALL,
-    BuildingType.ALCHEMIST,
-    BuildingType.BAKERY,
-    BuildingType.TAILOR,
-    BuildingType.JEWELER,
-    BuildingType.GUILD_HALL, // Maybe?
-]);
+import { useTownAnimation } from './hooks/useTownAnimation';
+import { useTownCamera } from './hooks/useTownCamera';
+import { useTownPointerHandlers } from './hooks/useTownPointerHandlers';
+import { BUILDING_DESCRIPTIONS, COMMERCIAL_BUILDING_TYPES } from './townMetadata';
+import { mapTownBiome, TOWN_TILE_SIZE_PX } from './townUtils';
 
 interface TownCanvasProps {
     worldSeed: number;
@@ -75,15 +43,6 @@ interface TownCanvasProps {
     onExitTown?: () => void;
 }
 
-// Animation constants
-const MOVEMENT_DURATION_MS = 150; // Time to animate between tiles
-const CAMERA_LERP_FACTOR = 0.15; // Camera smoothing (0-1, lower = smoother)
-
-// Easing function for smooth movement
-const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
-
-// Linear interpolation helper
-const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 const isCharacterVisualConfig = (
     visuals: PlayerCharacter['visuals']
@@ -133,22 +92,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     // passive in some browser paths, which produces console errors + page scroll).
     const mainRef = useRef<HTMLElement | null>(null);
 
-    // Map Aralia biome to Realmsmith biome
-    const mapBiome = (b: string): BiomeType => {
-        switch (b) {
-            case 'plains': return BiomeType.PLAINS;
-            case 'forest': return BiomeType.FOREST;
-            case 'mountain': return BiomeType.MOUNTAIN;
-            case 'hills': return BiomeType.HIGHLANDS;
-            case 'desert': return BiomeType.DESERT;
-            case 'swamp': return BiomeType.SWAMP;
-            case 'ocean': return BiomeType.COASTAL;
-            case 'cave': return BiomeType.CRYSTAL_WASTES;
-            case 'dungeon': return BiomeType.DEAD_LANDS;
-            default: return BiomeType.PLAINS;
-        }
-    };
-
     // Deterministic seed based on world coords
     const townSeed = useMemo(() => {
         return worldSeed + (worldX * 1000) + worldY;
@@ -157,7 +100,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     // Initialize Town Controller
     const { state: townState, actions: townActions } = useTownController({
         townSeed,
-        initialBiome: mapBiome(araliaBiome),
+        initialBiome: mapTownBiome(araliaBiome),
         entryDirection,
         playerPosition
     });
@@ -186,129 +129,39 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     // Ambient Life (NPCs)
     const ambientNpcs = useAmbientLife(mapData, townSeed);
 
-    // Animation state
-    const [animatedPosition, setAnimatedPosition] = useState<TownPosition | null>(null);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const previousPositionRef = useRef<TownPosition | null>(null);
-    const animationStartTimeRef = useRef<number>(0);
-    const animationFrameRef = useRef<number | null>(null);
-    const [playerFacing, setPlayerFacing] = useState<TownDirection>('south');
+    const { animatedPosition, isAnimating, playerFacing } = useTownAnimation(effectivePlayerPosition);
+    const { setIsCameraLocked, jumpToPlayer, handleResetView } = useTownCamera({
+        animatedPosition,
+        effectivePlayerPosition,
+        mapData,
+        canvasRef,
+        zoom,
+        setPan,
+        resetView,
+    });
+
+    const {
+        isDragging,
+        handlePointerDown,
+        handlePointerMove,
+        handlePointerUp,
+        didDragRef,
+        getBuildingAtClientPos,
+        getNpcAtClientPos,
+    } = useTownPointerHandlers({
+        canvasRef,
+        mapData,
+        ambientNpcs,
+        pan,
+        zoom,
+        hoveredBuilding,
+        setHoveredBuilding,
+        setHoverPos,
+        setPan,
+        setIsCameraLocked,
+    });
 
     const [showDevControls, setShowDevControls] = useState(false);
-
-    // --- Click-and-drag panning state ---
-    // The TownCanvas camera supports two modes:
-    // 1) "Locked": it smoothly follows the player (camera follow effect).
-    // 2) "Free": the player can pan the view by dragging anywhere on the map.
-    //
-    // We keep drag bookkeeping in refs to avoid re-renders on every pointermove and to
-    // ensure we always read the starting coordinates for the current drag gesture.
-    const [isDragging, setIsDragging] = useState(false);
-    const [isCameraLocked, setIsCameraLocked] = useState(true);
-    const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-    const dragStartPanRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-    const didDragRef = useRef(false);
-
-    // Initialize animated position when effectivePlayerPosition first becomes available
-    useEffect(() => {
-        if (effectivePlayerPosition && !animatedPosition) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setAnimatedPosition(effectivePlayerPosition);
-            previousPositionRef.current = effectivePlayerPosition;
-        }
-    }, [effectivePlayerPosition, animatedPosition]);
-
-    // Animation effect - triggered when effectivePlayerPosition changes
-    useEffect(() => {
-        if (!effectivePlayerPosition || !previousPositionRef.current) return;
-
-        // Check if position actually changed
-        const prevPos = previousPositionRef.current;
-        if (prevPos.x === effectivePlayerPosition.x && prevPos.y === effectivePlayerPosition.y) return;
-
-        // Determine facing direction based on movement
-        const dx = effectivePlayerPosition.x - prevPos.x;
-        const dy = effectivePlayerPosition.y - prevPos.y;
-
-        let newFacing: TownDirection = 'south';
-        if (dx > 0 && dy < 0) newFacing = 'northeast';
-        else if (dx > 0 && dy > 0) newFacing = 'southeast';
-        else if (dx < 0 && dy < 0) newFacing = 'northwest';
-        else if (dx < 0 && dy > 0) newFacing = 'southwest';
-        else if (dx > 0) newFacing = 'east';
-        else if (dx < 0) newFacing = 'west';
-        else if (dy < 0) newFacing = 'north';
-        else if (dy > 0) newFacing = 'south';
-
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setPlayerFacing(newFacing);
-
-        // Start animation
-        setIsAnimating(true);
-        animationStartTimeRef.current = performance.now();
-
-        const animate = (currentTime: number) => {
-            const elapsed = currentTime - animationStartTimeRef.current;
-            const progress = Math.min(elapsed / MOVEMENT_DURATION_MS, 1);
-            const easedProgress = easeOutCubic(progress);
-
-            // Interpolate position
-            const newX = lerp(prevPos.x, effectivePlayerPosition.x, easedProgress);
-            const newY = lerp(prevPos.y, effectivePlayerPosition.y, easedProgress);
-
-            setAnimatedPosition({ x: newX, y: newY });
-
-            if (progress < 1) {
-                animationFrameRef.current = requestAnimationFrame(animate);
-            } else {
-                // Animation complete
-                setAnimatedPosition(effectivePlayerPosition);
-                setIsAnimating(false);
-                previousPositionRef.current = effectivePlayerPosition;
-            }
-        };
-
-        // Cancel any existing animation
-        if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
-        }
-
-        animationFrameRef.current = requestAnimationFrame(animate);
-
-        // Cleanup on unmount
-        return () => {
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current);
-            }
-        };
-    }, [effectivePlayerPosition]);
-
-    // Camera follow effect - smooth pan to keep player centered
-    useEffect(() => {
-        if (!isCameraLocked) return;
-        if (!animatedPosition || !mapData || !canvasRef.current) return;
-
-        const canvas = canvasRef.current;
-        const containerWidth = canvas.parentElement?.clientWidth || canvas.width;
-        const containerHeight = canvas.parentElement?.clientHeight || canvas.height;
-
-        const TILE_SIZE = 32;
-
-        // Calculate target pan to center player
-        const playerPixelX = animatedPosition.x * TILE_SIZE + TILE_SIZE / 2;
-        const playerPixelY = animatedPosition.y * TILE_SIZE + TILE_SIZE / 2;
-
-        // Center the player in the viewport
-        const targetPanX = (containerWidth / 2) / zoom - playerPixelX;
-        const targetPanY = (containerHeight / 2) / zoom - playerPixelY;
-
-        // Smooth lerp toward target
-        setPan(currentPan => ({
-            x: lerp(currentPan.x, targetPanX, CAMERA_LERP_FACTOR),
-            y: lerp(currentPan.y, targetPanY, CAMERA_LERP_FACTOR),
-        }));
-    }, [animatedPosition, isCameraLocked, mapData, setPan, zoom]);
-
 
     // Painting Effect
     useEffect(() => {
@@ -327,9 +180,8 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         // we guarantee that it only runs when both the mapData is available and
         // the canvas element has been mounted to the DOM. This prevents the race
         // condition that was causing the "cannot read properties of null" error.
-        const TILE_SIZE = 32;
-        canvas.width = mapData.width * TILE_SIZE;
-        canvas.height = mapData.height * TILE_SIZE;
+        canvas.width = mapData.width * TOWN_TILE_SIZE_PX;
+        canvas.height = mapData.height * TOWN_TILE_SIZE_PX;
 
         // Clear canvas
         ctx.fillStyle = '#111827'; // Tailwind gray-900
@@ -390,60 +242,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     // Use external move handler if provided, otherwise use local
     const handleMove = onPlayerMove ?? handleLocalMove;
 
-    // --- Zoom & Pan Handlers ---
-
-    const getBuildingAtClientPos = useCallback((clientX: number, clientY: number): Building | null => {
-        if (!canvasRef.current || !mapData) return null;
-        const rect = canvasRef.current.getBoundingClientRect();
-
-        if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
-            return null;
-        }
-
-        // Map screen coordinates to internal canvas coordinates
-        const scaleX = canvasRef.current.width / rect.width;
-        const scaleY = canvasRef.current.height / rect.height;
-
-        const canvasX = (clientX - rect.left) * scaleX;
-        const canvasY = (clientY - rect.top) * scaleY;
-
-        // TILE_SIZE is 32
-        const tileX = Math.floor(canvasX / 32);
-        const tileY = Math.floor(canvasY / 32);
-
-        if (tileX < 0 || tileX >= mapData.width || tileY < 0 || tileY >= mapData.height) {
-            return null;
-        }
-
-        const tile = mapData.tiles[tileX][tileY];
-        if (!tile.buildingId) return null;
-
-        return mapData.buildings.find(b => b.id === tile.buildingId) ?? null;
-    }, [mapData]);
-
-    const getNpcAtClientPos = useCallback((clientX: number, clientY: number): string | null => {
-        if (!canvasRef.current || !ambientNpcs) return null;
-        const rect = canvasRef.current.getBoundingClientRect();
-
-        const scaleX = canvasRef.current.width / rect.width;
-        const scaleY = canvasRef.current.height / rect.height;
-        const canvasX = (clientX - rect.left) * scaleX;
-        const canvasY = (clientY - rect.top) * scaleY;
-
-        // Check if click is near any NPC (within half a tile)
-        const TILE_SIZE_PX = 32;
-        for (const npc of ambientNpcs) {
-            const npcPxX = npc.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
-            const npcPxY = npc.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
-            
-            const dist = Math.sqrt(Math.pow(canvasX - npcPxX, 2) + Math.pow(canvasY - npcPxY, 2));
-            if (dist < TILE_SIZE_PX / 2) {
-                return npc.id;
-            }
-        }
-        return null;
-    }, [ambientNpcs]);
-
     useEffect(() => {
         const el = mainRef.current;
         if (!el) return;
@@ -459,79 +257,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         el.addEventListener('wheel', onWheel, { passive: false });
         return () => el.removeEventListener('wheel', onWheel as EventListener);
     }, [setZoom]);
-
-    const handlePointerDown = (e: React.PointerEvent) => {
-        if (e.button !== 0) return;
-        const target = e.target as HTMLElement | null;
-        if (target?.closest?.('[data-no-pan]')) return;
-
-        // Capture the pointer so pan continues even if the cursor leaves the canvas area
-        // while the mouse button remains pressed.
-        e.currentTarget.setPointerCapture(e.pointerId);
-        setIsDragging(true);
-        didDragRef.current = false;
-        dragStartRef.current = { x: e.clientX, y: e.clientY };
-        dragStartPanRef.current = { x: pan.x, y: pan.y };
-    };
-
-    const handlePointerMove = (e: React.PointerEvent) => {
-        if (dragStartRef.current) {
-            const dxPx = e.clientX - dragStartRef.current.x;
-            const dyPx = e.clientY - dragStartRef.current.y;
-
-            // Small movements during click are common; require a tiny threshold
-            // before we treat the gesture as an intentional pan.
-            const hasExceededThreshold = Math.abs(dxPx) > 3 || Math.abs(dyPx) > 3;
-            if (!didDragRef.current && hasExceededThreshold) {
-                didDragRef.current = true;
-                setIsCameraLocked(false);
-                setHoveredBuilding(null);
-            }
-
-            if (didDragRef.current) {
-                setPan({
-                    x: dragStartPanRef.current.x + dxPx / zoom,
-                    y: dragStartPanRef.current.y + dyPx / zoom,
-                });
-            }
-            return;
-        }
-
-        // Hover Logic (NPCs prioritize over buildings)
-        const npcId = getNpcAtClientPos(e.clientX, e.clientY);
-        if (npcId) {
-            // TODO: Set hovered NPC state for tooltip
-            setHoveredBuilding(null);
-            document.body.style.cursor = 'pointer'; // Feedback
-            return;
-        } else {
-            document.body.style.cursor = 'default';
-        }
-
-        // Hover (Building Detection)
-        const building = getBuildingAtClientPos(e.clientX, e.clientY);
-        if (building && building !== hoveredBuilding) {
-            setHoveredBuilding(building);
-            setHoverPos({ x: e.clientX, y: e.clientY });
-            return;
-        }
-        if (building) {
-            setHoverPos({ x: e.clientX, y: e.clientY });
-            return;
-        }
-        setHoveredBuilding(null);
-    };
-
-    const handlePointerUp = (e: React.PointerEvent) => {
-        if (!dragStartRef.current) return;
-        setIsDragging(false);
-        dragStartRef.current = null;
-        try {
-            e.currentTarget.releasePointerCapture(e.pointerId);
-        } catch {
-            // Ignore if capture isn't held.
-        }
-    };
 
     const openBuilding = useCallback((building: Building) => {
         const isCommercial = COMMERCIAL_BUILDING_TYPES.has(building.type);
@@ -604,30 +329,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             }
         }
     };
-
-    // Center camera on player position
-    const jumpToPlayer = useCallback(() => {
-        if (!effectivePlayerPosition || !canvasRef.current || !mapData) return;
-
-        const TILE_SIZE = 32;
-        const canvas = canvasRef.current;
-        const containerWidth = canvas.parentElement?.clientWidth || canvas.width;
-        const containerHeight = canvas.parentElement?.clientHeight || canvas.height;
-
-        const playerPixelX = effectivePlayerPosition.x * TILE_SIZE + TILE_SIZE / 2;
-        const playerPixelY = effectivePlayerPosition.y * TILE_SIZE + TILE_SIZE / 2;
-
-        setIsCameraLocked(true);
-        setPan({
-            x: (containerWidth / 2) / zoom - playerPixelX,
-            y: (containerHeight / 2) / zoom - playerPixelY,
-        });
-    }, [effectivePlayerPosition, mapData, setPan, zoom]);
-
-    const handleResetView = useCallback(() => {
-        setIsCameraLocked(true);
-        resetView();
-    }, [resetView]);
 
     // Compute blocked directions for navigation
     const blockedDirections = useMemo((): TownDirection[] => {

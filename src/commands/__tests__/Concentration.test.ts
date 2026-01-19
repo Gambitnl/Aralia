@@ -39,7 +39,6 @@ describe('Concentration System', () => {
                 name: mockCaster.name,
                 // TODO: keep combat + narrative characters in sync when we wire real data through the spell flow.
             });
-            const mockState = createMockCombatState({ characters: [mockCaster] });
             const mockGameState = createMockGameState({ party: [mockPlayer] });
 
             const commands = await SpellCommandFactory.createCommands(spell, mockCaster, [], 1, mockGameState);
@@ -63,7 +62,6 @@ describe('Concentration System', () => {
                     canDropAsFreeAction: true
                 }
             });
-            const mockState = createMockCombatState({ characters: [casterConcentrating] });
             const concentratingPlayer: PlayerCharacter = createMockPlayerCharacter({
                 id: casterConcentrating.id,
                 name: casterConcentrating.name,

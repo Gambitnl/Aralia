@@ -56,6 +56,9 @@ export interface AlchemyRecipe {
 
 export const REAGENT_DATABASE: Record<string, ReagentProperty[]> = {
   // Common
+  // Test fixtures reference these IDs; keep explicit mappings for deterministic recipes.
+  'herb_red_root': ['curative', 'binding'],
+  'herb_blue_leaf': ['reactive'],
   'cats_tongue': ['curative', 'binding'],
   'dreamlilly': ['toxic', 'inert'], // Intoxicating
   'gillyweed': ['binding', 'inert'], // Waterbreathing

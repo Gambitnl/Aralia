@@ -149,8 +149,13 @@ export class TargetAllocator {
       // TODO(lint-intent): Normalize on `currentHP` across combat helpers.
       return (character as unknown as { hp?: number }).hp ?? character.currentHP ?? 0;
     }
-    // Fallback for hit_dice or other resources
-    // TODO: Implement hit dice lookup if needed
+    if (resource === 'hit_dice') {
+      if (character.hitPointDice && character.hitPointDice.length > 0) {
+        // Sum remaining dice across die sizes for pool-based spells.
+        return character.hitPointDice.reduce((sum, pool) => sum + pool.current, 0);
+      }
+      return character.level ?? 0;
+    }
     return 0;
   }
 }

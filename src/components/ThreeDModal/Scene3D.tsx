@@ -9,7 +9,7 @@ import { getLightingForTime } from './lighting';
 import CameraRig from './CameraRig';
 import PlayerController from './PlayerController';
 import Terrain from './Terrain';
-import PropsLayer from './PropsLayer';
+import PropsLayer, { type TreeStats } from './PropsLayer';
 import {
   createHeightSampler,
   createMoistureSampler,
@@ -21,6 +21,10 @@ import EnemyUnit from './EnemyUnit';
 import PartyUnit from './PartyUnit';
 import SkyDome from './SkyDome';
 import WaterPlane from './WaterPlane';
+import LabGround from './LabGround';
+import LabClouds from './LabClouds';
+import LabGrass from './LabGrass';
+import LabRocks from './LabRocks';
 
 interface Scene3DProps {
   biomeId: string;
@@ -28,6 +32,7 @@ interface Scene3DProps {
   playerSpeed: number;
   submapSeed: number;
   submapFootprintFt: number;
+  environmentMode?: 'submap' | 'tree-lab';
   showGrid: boolean;
   partyMembers: PlayerCharacter[];
   isCombatMode: boolean;
@@ -35,6 +40,39 @@ interface Scene3DProps {
   onPlayerSpeed?: (speedFeetPerRound: number) => void;
   onFps?: (fps: number) => void;
   pauseRender?: boolean;
+  treeCountMultiplier?: number;
+  rockCountMultiplier?: number;
+  heroLineEnabled?: boolean;
+  heroLineSpacing?: number;
+  heroLineOffset?: { x: number; z: number };
+  customTreeOptions?: Record<string, unknown> | null;
+  customTreeEnabled?: boolean;
+  customTreeOffset?: { x: number; z: number };
+  customTreeScale?: number;
+  comparisonTreeOptions?: Record<string, unknown> | null;
+  comparisonTreeEnabled?: boolean;
+  comparisonTreeOffset?: { x: number; z: number };
+  comparisonTreeScale?: number;
+  onCustomTreeStats?: (stats: TreeStats | null) => void;
+  onComparisonTreeStats?: (stats: TreeStats | null) => void;
+  lightingOverrides?: {
+    sunAzimuth?: number;
+    sunElevation?: number;
+    sunIntensity?: number;
+    ambientIntensity?: number;
+    fogDensity?: number;
+  };
+  cameraFocusTarget?: { x: number; z: number } | null;
+  cameraFocusHeightOffset?: number;
+  cameraFocusRequestId?: number;
+  cameraFocusDistance?: number;
+  cameraFocusLock?: boolean;
+  labGrassEnabled?: boolean;
+  labGrassCount?: number;
+  labFlowersEnabled?: boolean;
+  labFlowerCount?: number;
+  labRocksEnabled?: boolean;
+  labRocksPerType?: number;
 }
 
 interface FpsTrackerProps {
@@ -51,6 +89,8 @@ const FpsTracker = ({ onFps, sampleWindow = 0.5 }: FpsTrackerProps) => {
     accumulator.time += delta;
     accumulator.frames += 1;
 
+    // Emit FPS updates in a short window instead of every frame so the UI
+    // overlay updates smoothly without adding extra render pressure.
     if (accumulator.time >= sampleWindow) {
       const fps = Math.round(accumulator.frames / accumulator.time);
       if (fps !== lastFpsRef.current) {
@@ -77,11 +117,40 @@ const SceneContents = ({
   onPlayerPosition,
   onPlayerSpeed,
   onFps,
+  treeCountMultiplier,
+  rockCountMultiplier,
+  heroLineEnabled,
+  heroLineSpacing,
+  heroLineOffset,
+  customTreeOptions,
+  customTreeEnabled,
+  customTreeOffset,
+  customTreeScale,
+  comparisonTreeOptions,
+  comparisonTreeEnabled,
+  comparisonTreeOffset,
+  comparisonTreeScale,
+  onCustomTreeStats,
+  onComparisonTreeStats,
+  lightingOverrides,
+  cameraFocusTarget,
+  cameraFocusHeightOffset,
+  cameraFocusRequestId,
+  cameraFocusDistance,
+  cameraFocusLock,
+  environmentMode = 'submap',
+  labGrassEnabled,
+  labGrassCount,
+  labFlowersEnabled,
+  labFlowerCount,
+  labRocksEnabled,
+  labRocksPerType,
 }: Scene3DProps) => {
   const playerRef = useRef<Mesh>(null);
   const partyPositionsRef = useRef<Array<{ x: number; y: number; z: number } | null>>([]);
   const submapHalfSize = submapFootprintFt / 2;
   const biome = BIOMES[biomeId];
+  const isTreeLab = environmentMode === 'tree-lab';
   // Capture the player's initial spawn location once so we can keep a permanent
   // "no-props" bubble around the entry point without re-rolling prop placement
   // every time the player moves.
@@ -93,15 +162,38 @@ const SceneContents = ({
     () => getLightingForTime(gameTime, biomeId, biome?.rgbaColor),
     [gameTime, biomeId, biome?.rgbaColor]
   );
-  const heightSampler = useMemo(
-    () => createHeightSampler(submapSeed, biomeId, submapFootprintFt),
-    [submapSeed, biomeId, submapFootprintFt]
-  );
-  const moistureSampler = useMemo(
-    () => createMoistureSampler(submapSeed, biomeId, submapFootprintFt),
-    [submapSeed, biomeId, submapFootprintFt]
-  );
-  const slopeSampler = useMemo(() => createSlopeSampler(heightSampler, 8), [heightSampler]);
+  const sunDirection = useMemo(() => {
+    const base = lighting.sunDirection.clone();
+    // Allow the test harness to override sun position so artists can light
+    // trees without waiting for a specific in-game time of day.
+    if (lightingOverrides?.sunAzimuth !== undefined || lightingOverrides?.sunElevation !== undefined) {
+      const azimuth = ((lightingOverrides?.sunAzimuth ?? 0) * Math.PI) / 180;
+      const elevation = ((lightingOverrides?.sunElevation ?? 45) * Math.PI) / 180;
+      base.set(
+        Math.cos(elevation) * Math.sin(azimuth),
+        Math.sin(elevation),
+        Math.cos(elevation) * Math.cos(azimuth)
+      );
+    }
+    return base.normalize();
+  }, [lighting.sunDirection, lightingOverrides?.sunAzimuth, lightingOverrides?.sunElevation]);
+  const sunIntensity = lightingOverrides?.sunIntensity ?? lighting.sunIntensity;
+  const ambientIntensity = lightingOverrides?.ambientIntensity ?? lighting.ambientIntensity;
+  const fogDensity = lightingOverrides?.fogDensity ?? lighting.fogDensity;
+  const heightSampler = useMemo(() => {
+    // Tree-lab mode uses a large ground plane so there are no visible tile edges.
+    // Keeping height flat also makes tree shape iteration easier to judge.
+    if (isTreeLab) return () => 0;
+    return createHeightSampler(submapSeed, biomeId, submapFootprintFt);
+  }, [biomeId, isTreeLab, submapFootprintFt, submapSeed]);
+  const moistureSampler = useMemo(() => {
+    if (isTreeLab) return () => 0;
+    return createMoistureSampler(submapSeed, biomeId, submapFootprintFt);
+  }, [biomeId, isTreeLab, submapFootprintFt, submapSeed]);
+  const slopeSampler = useMemo(() => {
+    if (isTreeLab) return () => 0;
+    return createSlopeSampler(heightSampler, 8);
+  }, [heightSampler, isTreeLab]);
   const heightRange = useMemo(() => getHeightRangeForBiome(biomeId), [biomeId]);
   const terrainColors = useMemo(() => {
     const base = lighting.biomeColor.clone();
@@ -154,15 +246,22 @@ const SceneContents = ({
   }, [partyMembers]);
   const skyVisible = biomeId !== 'cave' && biomeId !== 'dungeon';
   const waterLevel = useMemo(() => {
+    if (isTreeLab) return null;
     if (biomeId === 'ocean') return 0;
     if (biomeId === 'swamp') return heightRange.min * 0.25;
     return null;
-  }, [biomeId, heightRange.min]);
+  }, [biomeId, heightRange.min, isTreeLab]);
   const waterColor = useMemo<Color>(() => {
     if (biomeId === 'ocean') return new ThreeColor(0x1d4ed8);
     if (biomeId === 'swamp') return new ThreeColor(0x0f766e);
     return new ThreeColor(0x1d4ed8);
   }, [biomeId]);
+  const fogColor = useMemo(() => {
+    // Match ez-tree's demo vibe in the lab: a bright sky-blue fog reads as
+    // atmosphere instead of "white void" behind a small terrain tile.
+    if (isTreeLab) return new ThreeColor(0x94b9f8);
+    return lighting.fogColor;
+  }, [isTreeLab, lighting.fogColor]);
   const partyProfiles = useMemo(() => {
     const meleeClasses = new Set(['fighter', 'barbarian', 'paladin', 'ranger', 'rogue', 'monk']);
     const supportClasses = new Set(['cleric', 'druid', 'bard']);
@@ -191,31 +290,69 @@ const SceneContents = ({
     setSpawnSafeCenter({ x, z });
   }, [spawnSafeCenter]);
 
+  const focusTarget = useMemo(() => {
+    if (!cameraFocusTarget) return null;
+    // Lift the focus point to the terrain surface so the camera can lock onto
+    // tree crowns without drifting below the ground plane.
+    const y = heightSampler(cameraFocusTarget.x, cameraFocusTarget.z) + (cameraFocusHeightOffset ?? 12);
+    return { x: cameraFocusTarget.x, y, z: cameraFocusTarget.z };
+  }, [cameraFocusHeightOffset, cameraFocusTarget, heightSampler]);
+
   return (
     <>
       <FpsTracker onFps={onFps} />
       {!skyVisible && <color attach="background" args={[lighting.fogColor]} />}
-      <fogExp2 attach="fog" args={[lighting.fogColor, lighting.fogDensity]} />
-      <ambientLight color={lighting.ambientColor} intensity={lighting.ambientIntensity} />
+      <fogExp2 attach="fog" args={[fogColor, fogDensity]} />
+      <ambientLight color={lighting.ambientColor} intensity={ambientIntensity} />
       <hemisphereLight color={lighting.ambientColor} groundColor={lighting.biomeColor} intensity={0.35} />
       <directionalLight
         color={lighting.sunColor}
-        intensity={lighting.sunIntensity}
-        position={lighting.sunDirection.toArray()}
+        intensity={sunIntensity}
+        position={sunDirection.toArray()}
         castShadow
       />
-      <SkyDome sunDirection={lighting.sunDirection} biomeId={biomeId} tint={lighting.biomeColor} visible={skyVisible} />
-      <Terrain
-        size={submapFootprintFt}
-        heightSampler={heightSampler}
-        slopeSampler={slopeSampler}
-        moistureSampler={moistureSampler}
-        color={lighting.biomeColor.clone().multiplyScalar(0.8)}
-        showGrid={showGrid}
-        gridSizeFt={5}
-        heightRange={heightRange}
-        heightColors={terrainColors}
-      />
+      <SkyDome sunDirection={sunDirection} biomeId={biomeId} tint={lighting.biomeColor} visible={skyVisible} />
+      {isTreeLab ? (
+        <>
+          <LabGround
+          // Make the ground much larger than the movement bounds so the user
+          // never sees a "floating square tile" while iterating on trees.
+          size={Math.max(20000, submapFootprintFt * 8)}
+          tint={lighting.biomeColor.clone().multiplyScalar(0.85)}
+        />
+          <LabClouds size={Math.max(6000, submapFootprintFt * 3)} height={240} />
+          <LabGrass
+            seed={submapSeed}
+            grassEnabled={labGrassEnabled}
+            flowersEnabled={labFlowersEnabled}
+            grassCount={labGrassCount}
+            flowerCountPerColor={labFlowerCount}
+            radius={Math.min(600, submapHalfSize * 0.85)}
+            avoidCenter={spawnSafeCenter ?? { x: 0, z: 0 }}
+            avoidRadius={playerSpawnSafeRadius}
+          />
+          <LabRocks
+            seed={submapSeed}
+            enabled={labRocksEnabled}
+            countPerType={labRocksPerType}
+            radius={Math.min(350, submapHalfSize * 0.7)}
+            avoidCenter={spawnSafeCenter ?? { x: 0, z: 0 }}
+            avoidRadius={playerSpawnSafeRadius}
+          />
+        </>
+      ) : (
+        <Terrain
+          size={submapFootprintFt}
+          heightSampler={heightSampler}
+          slopeSampler={slopeSampler}
+          moistureSampler={moistureSampler}
+          color={lighting.biomeColor.clone().multiplyScalar(0.8)}
+          showGrid={showGrid}
+          gridSizeFt={5}
+          heightRange={heightRange}
+          heightColors={terrainColors}
+        />
+      )}
       {waterLevel !== null && (
         <WaterPlane size={submapFootprintFt} level={waterLevel} color={waterColor} />
       )}
@@ -229,6 +366,21 @@ const SceneContents = ({
         // captured, keep using that fixed point to reserve a clear spawn zone.
         spawnCenter={spawnSafeCenter ?? { x: 0, z: 0 }}
         spawnSafeRadius={playerSpawnSafeRadius}
+        treeCountMultiplier={treeCountMultiplier}
+        rockCountMultiplier={rockCountMultiplier}
+        heroLineEnabled={heroLineEnabled}
+        heroLineSpacing={heroLineSpacing}
+        heroLineOffset={heroLineOffset}
+        customTreeOptions={customTreeOptions}
+        customTreeEnabled={customTreeEnabled}
+        customTreeOffset={customTreeOffset}
+        customTreeScale={customTreeScale}
+        comparisonTreeOptions={comparisonTreeOptions}
+        comparisonTreeEnabled={comparisonTreeEnabled}
+        comparisonTreeOffset={comparisonTreeOffset}
+        comparisonTreeScale={comparisonTreeScale}
+        onCustomTreeStats={onCustomTreeStats}
+        onComparisonTreeStats={onComparisonTreeStats}
       />
       {partyOffsets.map((offset, index) => {
         const member = partyMembers[index + 1];
@@ -272,7 +424,14 @@ const SceneContents = ({
         onPositionChange={onPlayerPosition}
         onSpeedChange={onPlayerSpeed}
       />
-      <CameraRig playerRef={playerRef} maxDistance={500} />
+      <CameraRig
+        playerRef={playerRef}
+        maxDistance={500}
+        focusTarget={focusTarget}
+        focusRequestId={cameraFocusRequestId}
+        focusDistance={cameraFocusDistance}
+        lockOnFocus={cameraFocusLock}
+      />
       <GridCellOutline
         playerRef={playerRef}
         gridSize={5}

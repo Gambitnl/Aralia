@@ -46,9 +46,10 @@ describe('ShipPane', () => {
     render(<ShipPane ship={mockShip} onClose={() => {}} />);
 
     expect(screen.getByText('The Sea Spray')).toBeInTheDocument();
-    expect(screen.getByText('Small Sloop')).toBeInTheDocument();
-    expect(screen.getByText('50 / 50')).toBeInTheDocument(); // Hull
-    expect(screen.getByText('40 ft')).toBeInTheDocument(); // Speed
+    expect(screen.getByText('Hull')).toBeInTheDocument();
+    expect(screen.getByText('50/50')).toBeInTheDocument(); // Hull
+    expect(screen.getByText('40')).toBeInTheDocument(); // Speed
+    expect(screen.getByText('Knots')).toBeInTheDocument(); // Speed unit
   });
 
   it('switches tabs to crew list', () => {
@@ -76,13 +77,7 @@ describe('ShipPane', () => {
     const handleClose = vi.fn();
     render(<ShipPane ship={mockShip} onClose={handleClose} />);
 
-    // There are multiple close buttons (header X and potentially others), usually the X icon button
-    // The X icon from lucide renders an SVG, usually accessible via role button if parent is button.
-    // In our component: <button onClick={onClose} ...><X /></button>
-    // We can find it by getting all buttons and picking the one in the header, or simplified:
-    const buttons = screen.getAllByRole('button');
-    // The first button in the header is the X
-    fireEvent.click(buttons[0]);
+    fireEvent.click(screen.getByLabelText('Close'));
 
     expect(handleClose).toHaveBeenCalled();
   });

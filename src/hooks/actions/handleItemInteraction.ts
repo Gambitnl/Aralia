@@ -9,6 +9,7 @@ import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { ITEMS, LOCATIONS } from '../../constants';
 import { SKILLS_DATA } from '../../data/skills';
+import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { INITIAL_QUESTS } from '../../data/quests';

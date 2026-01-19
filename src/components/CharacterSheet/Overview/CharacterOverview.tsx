@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
-import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString } from '../../../utils/characterUtils';
+import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString, buildHitPointDicePools } from '../../../utils/characterUtils';
 import { calculatePassiveScore } from '../../../utils/statUtils';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { useCharacterProficiencies } from '../../../hooks/useCharacterProficiencies';
@@ -153,6 +153,12 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     // Has spell slots?
     const hasSpellSlots = character.spellSlots && Object.values(character.spellSlots).some(vial => vial.max > 0);
 
+    // Present Hit Dice by die size so multiclass pools are clear (e.g., d10 2/2 • d6 1/1).
+    const hitPointDicePools = buildHitPointDicePools(character);
+    const hitPointDiceDisplay = hitPointDicePools
+        .map(pool => `d${pool.die} ${pool.current}/${pool.max}`)
+        .join(' • ');
+
     return (
         <div className="grid grid-cols-1 gap-y-4 h-full overflow-hidden">
             <div className="space-y-3 overflow-y-auto scrollable-content p-1 pr-2 h-full">
@@ -175,6 +181,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
                         <p className="text-sm">Hit Points: <span className="font-semibold text-green-400">{character.hp}</span> / {character.maxHp}</p>
+                        {hitPointDiceDisplay && (
+                            <p className="text-sm col-span-2">Hit Dice: <span className="font-semibold text-amber-300">{hitPointDiceDisplay}</span></p>
+                        )}
                         <Tooltip content={buildAcTooltip(character, dexMod)}>
                             <p className="text-sm cursor-help border-b border-dotted border-blue-400/50">
                                 Armor Class: <span className="font-semibold text-blue-400">{character.armorClass}</span>

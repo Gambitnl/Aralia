@@ -7,7 +7,7 @@ import {
   DamageType
 } from '@/types/spells';
 
-import { getGameEpoch } from '@/utils/timeUtils';
+import { getGameEpoch, getGameDay } from '@/utils/timeUtils';
 import {
   GameState,
   GamePhase,
@@ -33,6 +33,7 @@ import {
 
 import { CommandContext } from '@/commands/base/SpellCommand';
 import { v4 as uuidv4 } from 'uuid';
+import { buildHitPointDicePools } from '@/utils/character';
 
 /**
  * [Warden] Hardened factories against failures in uuid generation or time utilities.
@@ -60,6 +61,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
       type: "DAMAGE",
       trigger: { type: "immediate" },
       condition: { type: "hit" },
+      description: "Mock damage effect.",
       damage: { dice: "1d8", type: DamageType.Fire }
     };
 
@@ -288,11 +290,14 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
       Charisma: 10
     };
 
-    return {
+    const level = overrides.level ?? 1;
+    // Seed class levels so mock characters have valid Hit Dice pools.
+    const baseCharacter: PlayerCharacter = {
       id: `char-${safeUuid()}`,
       name: "Mock Hero",
       race: mockRace,
       class: mockClass,
+      level,
       abilityScores: mockAbilities,
       finalAbilityScores: mockAbilities,
       skills: [],
@@ -304,8 +309,16 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
       transportMode: 'foot' as TransportMode,
       equippedItems: {},
       statusEffects: [], // Initialize statusEffects
+      classLevels: { [mockClass.id]: level },
       ...overrides
     };
+    if (!baseCharacter.hitPointDice) {
+      // Ensure Hit Dice pools exist even when overrides omit them.
+      const resolvedClassLevels = baseCharacter.classLevels ?? { [baseCharacter.class.id]: baseCharacter.level ?? 1 };
+      baseCharacter.classLevels = resolvedClassLevels;
+      baseCharacter.hitPointDice = buildHitPointDicePools(baseCharacter, { classLevels: resolvedClassLevels });
+    }
+    return baseCharacter;
   } catch (error) {
     console.error("Warden: createMockPlayerCharacter failed", error);
     // Return minimal safe object
@@ -319,6 +332,8 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
         skillProficienciesAvailable: [], numberOfSkillProficiencies: 0,
         armorProficiencies: [], weaponProficiencies: [], features: []
       },
+      level: 1,
+      classLevels: { fighter: 1 },
       abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
       finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
       skills: [],
@@ -337,6 +352,7 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
  */
 export function createMockGameState(overrides: Partial<GameState> = {}): GameState {
   try {
+    const resolvedGameTime = overrides.gameTime ?? getGameEpoch();
     return {
       phase: GamePhase.PLAYING,
       party: [],
@@ -365,7 +381,13 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
         isOpen: false,
         character: null
       },
-      gameTime: getGameEpoch(), // This can fail if timeUtils is broken
+      gameTime: resolvedGameTime, // This can fail if timeUtils is broken
+      // Default short rest tracker aligned to the mock game clock.
+      shortRestTracker: {
+        restsTakenToday: 0,
+        lastRestDay: getGameDay(resolvedGameTime),
+        lastRestEndedAtMs: null,
+      },
 
       isDevMenuVisible: false,
       isPartyEditorVisible: false,
@@ -536,6 +558,12 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       geminiGeneratedActions: [],
       characterSheetModal: { isOpen: false, character: null },
       gameTime: new Date(),
+      // Keep rest tracking stable in the fallback state.
+      shortRestTracker: {
+        restsTakenToday: 0,
+        lastRestDay: getGameDay(new Date()),
+        lastRestEndedAtMs: null,
+      },
       isDevMenuVisible: true, // Allow dev menu to potentially fix
       isPartyEditorVisible: false,
       isGeminiLogViewerVisible: false,

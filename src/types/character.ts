@@ -321,6 +321,8 @@ export interface FeatChoice {
 }
 
 export interface LevelUpChoices {
+  // Optional class selection for multiclass level-ups (determines hit die gains).
+  classId?: string;
   abilityScoreIncreases?: Partial<AbilityScores>;
   featId?: string;
   featChoices?: {
@@ -356,6 +358,19 @@ export interface LimitedUseAbility {
 
 export type LimitedUses = Record<string, LimitedUseAbility>;
 
+export type HitDieSize = 6 | 8 | 10 | 12;
+
+export interface HitPointDicePool {
+  die: HitDieSize;
+  current: number;
+  max: number;
+}
+
+// Short-rest spend selections by die size (per character).
+export type HitPointDiceSpend = Partial<Record<HitDieSize, number>>;
+// Short-rest spend selections keyed by character id.
+export type HitPointDiceSpendMap = Record<string, HitPointDiceSpend>;
+
 export interface RacialSelectionData {
   choiceId?: string;
   spellAbility?: AbilityScoreName;
@@ -384,6 +399,11 @@ export interface PlayerCharacter {
    * TODO(lint-preserve): Migrate those systems to the primary `class` field and remove this fallback.
    */
   classes?: Class[];
+  /**
+   * Optional class-level breakdown used for multiclass features (e.g., Hit Dice pools).
+   * When absent, systems assume the full level belongs to `class`.
+   */
+  classLevels?: Record<string, number>;
   abilityScores: AbilityScores;
   finalAbilityScores: AbilityScores;
   /**
@@ -397,6 +417,12 @@ export interface PlayerCharacter {
   initiativeBonus?: number;
   hp: number;
   maxHp: number;
+  /**
+   * Hit Point Dice (Hit Dice) available for spending during Short Rests.
+   * 2024 rules: a character has 1 at level 1 and gains 1 each level thereafter.
+   * Long Rests restore all spent Hit Point Dice.
+   */
+  hitPointDice?: HitPointDicePool[];
   armorClass: number;
   speed: number;
   darkvisionRange: number;

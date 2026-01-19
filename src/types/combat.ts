@@ -5,7 +5,7 @@
  * used throughout the Aralia RPG application's battle map feature.
  */
 import type { AbilityScoreName, CharacterStats } from './core';
-import type { Class, SpellbookData, SpellSlots, FeatChoice } from './character';
+import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character';
 import type { Item } from './items';
 // TODO(lint-intent): 'SavingThrowAbility' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -161,6 +161,8 @@ export interface CombatCharacter {
   team: 'player' | 'enemy';
   currentHP: number;
   maxHP: number;
+  /** Optional: tracks remaining/total Hit Point Dice for rest-like mechanics. */
+  hitPointDice?: HitPointDicePool[];
   initiative: number;
   statusEffects: StatusEffect[];
   conditions?: ActiveCondition[];

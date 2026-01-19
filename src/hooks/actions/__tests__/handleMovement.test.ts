@@ -10,13 +10,17 @@ import { initialGameState } from '../../../state/appState';
 vi.mock('../../../services/geminiService');
 vi.mock('../../../systems/time/SeasonalSystem');
 
-// Mock submapUtils
-vi.mock('../../../utils/submapUtils', () => ({
-  getSubmapTileInfo: vi.fn(() => ({
-    effectiveTerrainType: 'wilderness', // implies 30 min (1800s) travel
-    isImpassable: false,
-  })),
-}));
+// Mock submapUtils (partial) so travel event helpers can access createSeededRandom.
+vi.mock('../../../utils/submapUtils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../utils/submapUtils')>();
+  return {
+    ...actual,
+    getSubmapTileInfo: vi.fn(() => ({
+      effectiveTerrainType: 'wilderness', // implies 30 min (1800s) travel
+      isImpassable: false,
+    })),
+  };
+});
 
 // Mock timeUtils
 vi.mock('../../../utils/timeUtils', async (importOriginal) => {
@@ -52,6 +56,16 @@ describe('handleMovement - Seasonal Effects', () => {
       id: 'player1',
       name: 'Hero',
       transportMode: 'foot',
+      skills: [],
+      // Minimal stats to satisfy travel event skill checks.
+      abilityScores: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
+      }
     } as PlayerCharacter;
 
     mockGameState = {
