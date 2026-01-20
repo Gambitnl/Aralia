@@ -1,7 +1,7 @@
 # Implementation Plan: Environmental Interaction Prototype
 
 ## Phase 1: Environment Setup & Research
-- [ ] Task: Research Three.js dynamic PlaneGeometry modification and vertex updates.
+- [x] Task: Research Three.js dynamic PlaneGeometry modification and vertex updates. [research: validated existing patterns in Terrain.tsx]
 - [ ] Task: Create a new isolated test view in `Aralia Design Preview` for environmental experiments.
 - [ ] Task: Implement a basic "Ground Plane" with high vertex density for testing deformation.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup' (Protocol in workflow.md)
