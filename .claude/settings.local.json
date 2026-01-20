@@ -31,7 +31,10 @@
       "Bash(pnpm:*)",
       "Bash(ping:*)",
       "Bash(netstat:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "mcp__github__get_file_contents",
+      "Skill(claudeception)",
+      "Skill(claudeception:*)"
     ],
     "deny": [],
     "ask": []

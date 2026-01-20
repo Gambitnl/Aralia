@@ -1398,7 +1398,9 @@ async function main() {
 
   const html = generateVisualizationHTML(graphData);
 
-  const outputPath = path.join(process.cwd(), 'codebase-visualization.html');
+  const outputDir = path.join(process.cwd(), 'misc');
+  fs.mkdirSync(outputDir, { recursive: true });
+  const outputPath = path.join(outputDir, 'codebase-visualization.html');
   fs.writeFileSync(outputPath, html, 'utf-8');
 
   console.log('\nVisualization generated: ' + outputPath);

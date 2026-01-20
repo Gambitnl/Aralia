@@ -28,32 +28,63 @@ interface GlossaryTraitTableProps {
     onNavigate?: (termId: string) => void;
 }
 
+// List of valid icon names to validate against
+// This avoids rendering broken icons or just raw text when the icon name is invalid
+export const VALID_ICONS = new Set([
+    'eye', 'heart', 'shield', 'sword', 'wind', 'flame', 'water', 'mountain', 'stars', 'skull',
+    'sun', 'moon', 'magic', 'feather', 'claw', 'brain', 'lightbulb', 'clock', 'book',
+    'flask', 'gavel', 'music', 'pray', 'leaf', 'fist', 'crosshairs', 'mask', 'wizard_hat',
+    'build', 'hardware', 'auto_awesome', 'spa', 'security', 'martial_arts', 'verified_user',
+    'fa_flask', 'fa_gavel', 'fa_music', 'fa_hands_praying', 'fa_leaf', 'fa_shield_halved',
+    'fa_hand_fist', 'fa_sun', 'fa_crosshairs', 'fa_mask', 'fa_fire', 'fa_skull', 'fa_hat_wizard',
+    'fa_eye', 'fa_lightbulb', 'fa_brain', 'fa_book', 'fa_feather',
+    'sword_cross', 'axe', 'mace', 'eye_mdi', 'lightbulb_mdi', 'brain_mdi', 'book_mdi',
+    'feather_mdi', 'claw_mdi', 'bow_arrow', 'axe_battle', 'pickaxe', 'fencing', 'spear',
+    'shield_sun', 'shield_sun_outline', 'shield_sword', 'shield_sword_outline',
+    'shield_cross', 'shield_cross_outline', 'shield_crown', 'shield_crown_outline',
+    'shield_moon', 'shield_moon_outline', 'shield_star', 'shield_star_outline',
+    'magic_staff', 'wizard_hat_mdi', 'bottle_tonic_skull', 'bottle_tonic_skull_outline',
+    'skull_mdi', 'skull_outline_mdi', 'skull_crossbones', 'skull_crossbones_outline',
+    'weather_hail', 'weather_hazy', 'weather_lightning', 'weather_lightning_rainy',
+    'weather_pouring', 'weather_cloudy', 'weather_rainy', 'weather_sunny', 'weather_fog',
+    'weather_snowy', 'weather_snowy_heavy', 'weather_snowy_rainy',
+    'tree', 'tree_outline',
+    'dice_d4', 'dice_d4_outline', 'dice_d6', 'dice_d6_outline', 'dice_d8', 'dice_d8_outline',
+    'dice_d10', 'dice_d10_outline', 'dice_d12', 'dice_d12_outline', 'dice_d20', 'dice_d20_outline',
+    'horse', 'horse_variant', 'horse_variant_fast', 'fish',
+    'paw', 'paw_outline', 'paw_off', 'paw_off_outline', 'spider',
+    'clover', 'clover_outline', 'horseshoe', 'emoticon_sick', 'emoticon_sick_outline',
+    'emoticon_kiss', 'emoticon_kiss_outline', 'emoticon_devil', 'emoticon_devil_outline',
+    'flower', 'flower_outline'
+]);
+
 /**
  * Maps common trait names or concepts to curated icons.
  * Fallbacks to a default 'sparkle' or similar if no match found.
  */
-const getTraitIcon = (name: string, defaultIcon?: string): string => {
+export const getTraitIcon = (name: string, defaultIcon?: string): string => {
     const n = name.toLowerCase();
 
     // Explicit mappings for the example/common traits
     if (n.includes('lucky') || n.includes('luck')) return 'clover';
-    if (n.includes('brave') || n.includes('courage')) return 'shield_star'; // or 'shield'
-    if (n.includes('nimble') || n.includes('speed') || n.includes('agility')) return 'wind'; // 'wind' or 'feather' or 'mid_paw'
+    if (n.includes('brave') || n.includes('courage')) return 'shield_star';
+    if (n.includes('nimble') || n.includes('speed') || n.includes('agility')) return 'wind';
+    if (n.includes('resilience') || n.includes('tough')) return 'shield';
+    if (n.includes('magic') || n.includes('spell')) return 'magic';
+    if (n.includes('attack') || n.includes('combat')) return 'sword';
+    if (n.includes('skill') || n.includes('expert')) return 'book';
+    if (n.includes('vision') || n.includes('sight')) return 'eye';
 
-    // Fallback to the provided icon if it's already a valid key (not an emoji)
-    // The current data uses emojis like 🍀, 🛡️, 🏃. We need to detect if it's an emoji and replace it 
-    // or if it's a key. Assuming the incoming 'icon' prop might still be an emoji from old data.
-    // However, the interface says 'icon: string'.
-
-    // Use the logic: if we have a specific mapping, use it. 
-    // If the 'defaultIcon' looks like a valid registry key (simple text), use it.
-    // If it looks like an emoji (non-ascii), use a generic fallback.
-
-    if (defaultIcon && /^[a-z0-9_]+$/i.test(defaultIcon)) {
+    // Check if defaultIcon is valid
+    if (defaultIcon && VALID_ICONS.has(defaultIcon)) {
         return defaultIcon;
     }
 
-    return 'sparkle'; // Default generic trait icon
+    // Check if name itself matches an icon (case insensitive)
+    const exactMatch = Array.from(VALID_ICONS).find(icon => icon.toLowerCase() === n);
+    if (exactMatch) return exactMatch;
+
+    return 'auto_awesome'; // Default generic trait icon (sparkles)
 };
 
 /**
@@ -188,24 +219,32 @@ export const GlossaryTraitTable: React.FC<GlossaryTraitTableProps> = ({
                     </TableRow>
 
                     {/* All other racial traits */}
-                    {otherTraits.map((trait, index) => (
-                        <TableRow key={index}>
-                            <TableCell>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400 group-hover:scale-110 transition-transform">
-                                        <GlossaryIcon name={getTraitIcon(trait.name, trait.icon)} className="w-4 h-4" />
+                    {otherTraits.map((trait, index) => {
+                        const iconName = getTraitIcon(trait.name, trait.icon);
+                        const isFallback = iconName === 'auto_awesome';
+
+                        return (
+                            <TableRow key={index}>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <div className={`flex-shrink-0 p-1 rounded group-hover:scale-110 transition-transform ${isFallback
+                                            ? "bg-red-900/30 text-red-500"
+                                            : "bg-sky-900/30 text-sky-400"
+                                            }`}>
+                                            <GlossaryIcon name={iconName} className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-sky-400 font-semibold">{trait.name}</span>
                                     </div>
-                                    <span className="text-sky-400 font-semibold">{trait.name}</span>
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <GlossaryContentRenderer
-                                    markdownContent={trait.description}
-                                    onNavigate={onNavigate}
-                                />
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                                </TableCell>
+                                <TableCell>
+                                    <GlossaryContentRenderer
+                                        markdownContent={trait.description}
+                                        onNavigate={onNavigate}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
             <div className="px-4 py-2 border-t border-gray-700/50 bg-gray-900/20 text-[10px] text-gray-500 flex justify-end">

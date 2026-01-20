@@ -22,6 +22,8 @@ dist-ssr
 # AI Agent local configs
 .agent_tools/
 .claude/
+.codex/skills/
+.codex/steer.md
 .DS_Store
 *.suo
 *.ntvs*
@@ -35,6 +37,7 @@ nul
 
 # Generated assets
 public/assets/images/
+public/assets/ez-tree-lab/
 
 # Aralia Uplink (local-only coordination files)
 .uplink/

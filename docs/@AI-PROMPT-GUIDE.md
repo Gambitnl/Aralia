@@ -68,4 +68,4 @@ To help track our progress, the application now uses a structured versioning sys
 *   **Your Role**: When you want to continue working on something, you can now be more specific. For example:
     > "Let's continue working on the Glossary UI. The last version was v0.1.1. I'd like to add a new section for magic items."
 
-    This allows me to easily find the last feature version and increment it correctly in the `version_history.json` file, ensuring our changelog is accurate and organized. I will handle updating the version numbers in both the history file and the `metadata.json` file.
+    This allows me to easily find the last feature version and increment it correctly in the `version_history.json` file, ensuring our changelog is accurate and organized. I will handle updating the version numbers in both the history file and the `misc/metadata.json` file.
