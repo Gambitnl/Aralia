@@ -7,10 +7,10 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup' (Protocol in workflow.md)
 
 ## Phase 2: Core Terrain Deformation (The "Mold Earth" Sprint)
-- [ ] Task: Write utility to modify heightmap data based on world coordinates.
-- [ ] Task: Implement vertex shader or CPU-side vertex position updates for the terrain mesh.
-- [ ] Task: Integrate `cannon-es` or `rapier` (verify current physics engine) to update colliders on terrain change.
-- [ ] Task: Implement a "Mold Earth" debug tool (brush) to test raising/lowering ground.
+- [x] Task: Write utility to modify heightmap data based on world coordinates. [checkpoint: 826a572]
+- [x] Task: Implement vertex shader or CPU-side vertex position updates for the terrain mesh. [checkpoint: 826a572]
+- [x] Task: Integrate `cannon-es` or `rapier` (verify current physics engine) to update colliders on terrain change. [checkpoint: 826a572]
+- [x] Task: Implement a "Mold Earth" debug tool (brush) to test raising/lowering ground. [checkpoint: 826a572]
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Deformation' (Protocol in workflow.md)
 
 ## Phase 3: Environmental States (The "Elementalism" Sprint)
