@@ -28,8 +28,17 @@ export const PreviewEnvironment: React.FC = () => {
         {/* Controls Overlay */}
         <div className="absolute right-0 top-0 h-full w-[300px] bg-gray-950/90 border-l border-gray-800 p-4 overflow-y-auto">
           <h3 className="text-xs font-bold text-gray-400 uppercase mb-4">Deformation Tools</h3>
-          <div className="text-sm text-gray-500 italic">
-            Tools coming in Phase 2...
+          <div className="space-y-4">
+            <div className="p-3 bg-gray-900 rounded border border-gray-700">
+              <div className="text-xs font-bold text-amber-400 mb-1">Mold Earth (Brush)</div>
+              <ul className="text-xs text-gray-300 space-y-1 list-disc ml-4">
+                <li><kbd className="bg-gray-800 px-1 rounded">Click</kbd> to Raise terrain</li>
+                <li><kbd className="bg-gray-800 px-1 rounded">Shift + Click</kbd> to Lower terrain</li>
+              </ul>
+            </div>
+            <div className="text-xs text-gray-500 italic">
+              Physics simulation (height adherence) validated via manager sampling.
+            </div>
           </div>
         </div>
       </div>
