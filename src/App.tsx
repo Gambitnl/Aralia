@@ -51,6 +51,7 @@ import { SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
+import { Z_INDEX } from './styles/zIndex';
 
 import { NotificationSystem } from './components/ui/NotificationSystem';
 import { GameProvider } from './state/GameContext';
@@ -72,6 +73,7 @@ const CharacterCreator = lazy(() => import('./components/CharacterCreator/Charac
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
+const DesignPreviewPage = lazy(() => import('./components/DesignPreview/DesignPreviewPage').then(module => ({ default: module.DesignPreviewPage })));
 
 
 // TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
@@ -509,6 +511,9 @@ const App: React.FC = () => {
       case 'toggle_unified_log_viewer':
         dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' });
         break;
+      case 'design_preview':
+        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.DESIGN_PREVIEW });
+        break;
       case 'battle_map_demo':
         handleBattleMapDemo();
         break;
@@ -783,6 +788,12 @@ const App: React.FC = () => {
     );
   } else if (gameState.phase === GamePhase.LOAD_TRANSITION) {
     mainContent = <LoadGameTransition character={gameState.party[0]} />;
+  } else if (gameState.phase === GamePhase.DESIGN_PREVIEW) {
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the Design Preview.">
+        <DesignPreviewPage />
+      </ErrorBoundary>
+    );
   } else if (gameState.phase === GamePhase.NOT_FOUND) {
     mainContent = (
       <NotFound
@@ -809,7 +820,7 @@ const App: React.FC = () => {
 
           {/* Global Error Message Banner */}
           {gameState.error && (
-            <div className="bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[100] text-center">
+            <div className={`bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[${Z_INDEX.ERROR_OVERLAY}] text-center`}>
               {t('app.ui.error.message', { message: gameState.error })}
               <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">{t('app.ui.error.dismiss')}</button>
             </div>

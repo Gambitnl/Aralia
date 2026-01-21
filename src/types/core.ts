@@ -11,6 +11,7 @@ export enum GamePhase {
   VILLAGE_VIEW,
   COMBAT,
   NOT_FOUND,
+  DESIGN_PREVIEW,
 }
 
 // Core D&D attributes

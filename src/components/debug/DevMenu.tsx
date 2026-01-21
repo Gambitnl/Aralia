@@ -7,8 +7,9 @@ import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../../config/geminiConfig';
 import { useGameState } from '../../state/GameContext';
 import { generateVillageTemple } from '../../utils/templeUtils';
 import { VillageActionContext, VillagePersonality } from '../../types';
+import { Z_INDEX } from '../../styles/zIndex';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party' | 'design_preview';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -127,13 +128,14 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
         { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
         { label: 'Naval Dashboard', action: 'toggle_naval_dashboard', style: 'bg-slate-700 hover:bg-slate-600 border border-slate-500' },
         { label: 'Trade Routes', action: 'toggle_trade_route_dashboard', style: 'bg-amber-700 hover:bg-amber-600 border border-amber-500' },
+        { label: 'Open Design Preview', action: 'design_preview', style: 'bg-emerald-700 hover:bg-emerald-600 border border-emerald-500' },
       ],
     },
   ];
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4" // Higher z-index than map/submap
+      className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[${Z_INDEX.DEBUG_OVERLAY}] p-4`} // Higher z-index than map/submap
       aria-modal="true"
       role="dialog"
       aria-labelledby="dev-menu-title"
