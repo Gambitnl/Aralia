@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Environmental Interaction Prototype (Spell-driven Malleability)**
+- [x] **Track: Environmental Interaction Prototype (Spell-driven Malleability)**
   *Link: [./tracks/env_proto_20260121/](./tracks/env_proto_20260121/)*
