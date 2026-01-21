@@ -5,7 +5,8 @@
 
 export class DeformationManager {
   private grid: Record<string, number> = {};
-  private gridSize = 2; // 2 feet per cell for performance/memory balance
+  private disturbanceGrid: Record<string, number> = {}; // Tracks how much the terrain has been altered
+  private gridSize = 2;
 
   private getKey(gx: number, gz: number): string {
     return `${gx},${gz}`;
@@ -13,11 +14,6 @@ export class DeformationManager {
 
   /**
    * Applies a deformation to the terrain.
-   * @param x World X coordinate
-   * @param z World Z coordinate
-   * @param radius Radius of influence in feet
-   * @param amount Maximum height change in feet
-   * @param type Whether to raise or lower the terrain
    */
   applyDeformation(x: number, z: number, radius: number, amount: number, type: 'raise' | 'lower') {
     const startX = Math.floor((x - radius) / this.gridSize);
@@ -33,10 +29,11 @@ export class DeformationManager {
         
         if (dist < radius) {
           const t = 1 - dist / radius;
-          // Smooth cubic falloff
           const weight = 3 * t * t - 2 * t * t * t;
           const key = this.getKey(gx, gz);
           const current = this.grid[key] || 0;
+          const currentDisturbance = this.disturbanceGrid[key] || 0;
+          
           const delta = amount * weight;
           
           if (type === 'raise') {
@@ -44,16 +41,29 @@ export class DeformationManager {
           } else {
             this.grid[key] = current - delta;
           }
+          
+          // Accumulate disturbance (absolute change)
+          this.disturbanceGrid[key] = currentDisturbance + Math.abs(delta);
         }
       }
     }
   }
 
   /**
-   * Samples the cumulative height offset at a given world coordinate.
-   * Uses bilinear interpolation for smooth visual results.
+   * Samples the cumulative height offset.
    */
   getHeightOffset(x: number, z: number): number {
+    return this.sampleGrid(x, z, this.grid);
+  }
+
+  /**
+   * Samples the disturbance level (0 = pristine, >0 = altered).
+   */
+  getDisturbance(x: number, z: number): number {
+    return this.sampleGrid(x, z, this.disturbanceGrid);
+  }
+
+  private sampleGrid(x: number, z: number, data: Record<string, number>): number {
     const gx = x / this.gridSize;
     const gz = z / this.gridSize;
     
@@ -65,10 +75,10 @@ export class DeformationManager {
     const tx = gx - x0;
     const tz = gz - z0;
 
-    const h00 = this.grid[this.getKey(x0, z0)] || 0;
-    const h10 = this.grid[this.getKey(x1, z0)] || 0;
-    const h01 = this.grid[this.getKey(x0, z1)] || 0;
-    const h11 = this.grid[this.getKey(x1, z1)] || 0;
+    const h00 = data[this.getKey(x0, z0)] || 0;
+    const h10 = data[this.getKey(x1, z0)] || 0;
+    const h01 = data[this.getKey(x0, z1)] || 0;
+    const h11 = data[this.getKey(x1, z1)] || 0;
 
     const h0 = h00 * (1 - tx) + h10 * tx;
     const h1 = h01 * (1 - tx) + h11 * tx;
@@ -78,5 +88,6 @@ export class DeformationManager {
 
   clear() {
     this.grid = {};
+    this.disturbanceGrid = {};
   }
 }
