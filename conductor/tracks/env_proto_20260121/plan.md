@@ -14,11 +14,11 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Deformation' (Protocol in workflow.md) [checkpoint: d7f0df2]
 
 ## Phase 3: Environmental States (The "Elementalism" Sprint)
-- [ ] Task: Define a schema for "Environmental Overlays" (Fire, Grease, Ice).
-- [ ] Task: Implement a shader-based or mesh-based system to visualize these states on the terrain.
-- [ ] Task: Prototype "Create Bonfire" effect (localized fire state).
-- [ ] Task: Prototype "Grease" effect (localized slippery state).
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: States' (Protocol in workflow.md)
+- [x] Task: Define a schema for "Environmental Overlays" (Fire, Grease, Ice). [checkpoint: 2bd9166]
+- [x] Task: Implement a shader-based or mesh-based system to visualize these states on the terrain. [checkpoint: 2bd9166]
+- [x] Task: Prototype "Create Bonfire" effect (localized fire state). [checkpoint: 2bd9166]
+- [x] Task: Prototype "Grease" effect (localized slippery state). [checkpoint: 2bd9166]
+- [x] Task: Conductor - User Manual Verification 'Phase 3: States' (Protocol in workflow.md) [checkpoint: 2bd9166]
 
 ## Phase 4: Integration Review
 - [ ] Task: Review performance of real-time physics updates.
