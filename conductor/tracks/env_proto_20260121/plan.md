@@ -21,6 +21,6 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: States' (Protocol in workflow.md) [checkpoint: 2bd9166]
 
 ## Phase 4: Integration Review
-- [ ] Task: Review performance of real-time physics updates.
-- [ ] Task: Document the "Malleable World" API for future spell implementations.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Review' (Protocol in workflow.md)
+- [x] Task: Review performance of real-time physics updates. [checkpoint: ca5287b]
+- [x] Task: Document the "Malleable World" API for future spell implementations. [checkpoint: ca5287b]
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Review' (Protocol in workflow.md) [checkpoint: ca5287b]
