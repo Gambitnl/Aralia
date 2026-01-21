@@ -2,8 +2,8 @@
 
 ## Phase 1: Environment Setup & Research
 - [x] Task: Research Three.js dynamic PlaneGeometry modification and vertex updates. [research: validated existing patterns in Terrain.tsx]
-- [ ] Task: Create a new isolated test view in `Aralia Design Preview` for environmental experiments.
-- [ ] Task: Implement a basic "Ground Plane" with high vertex density for testing deformation.
+- [x] Task: Create a new isolated test view in `Aralia Design Preview` for environmental experiments. [checkpoint: 017d823]
+- [x] Task: Implement a basic "Ground Plane" with high vertex density for testing deformation. [checkpoint: 017d823]
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup' (Protocol in workflow.md)
 
 ## Phase 2: Core Terrain Deformation (The "Mold Earth" Sprint)
