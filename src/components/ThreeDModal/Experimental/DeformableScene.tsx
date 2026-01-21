@@ -3,15 +3,47 @@ import { Canvas, ThreeEvent } from '@react-three/fiber';
 import { DeformableTerrain } from './DeformableTerrain';
 import { SimpleControls } from './SimpleControls';
 import { DeformationManager } from './DeformationManager';
+import { OverlayMesh } from './OverlayMesh';
+import { EnvironmentalEffectType } from './types';
 
-export const DeformableScene = () => {
+export type ToolType = 'mold_earth' | 'create_bonfire' | 'grease' | 'ice' | 'clear';
+
+interface DeformableSceneProps {
+  activeTool: ToolType;
+}
+
+export const DeformableScene = ({ activeTool }: DeformableSceneProps) => {
   const manager = useMemo(() => new DeformationManager(), []);
   const [version, setVersion] = useState(0);
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
-    // Left click to raise, Shift+Left click to lower
-    const type = event.shiftKey ? 'lower' : 'raise';
-    manager.applyDeformation(event.point.x, event.point.z, 15, 4, type);
+    const { x, z } = event.point;
+
+    if (activeTool === 'mold_earth') {
+      const type = event.shiftKey ? 'lower' : 'raise';
+      manager.applyDeformation(x, z, 15, 4, type);
+    } else if (activeTool === 'create_bonfire') {
+      manager.addOverlay({
+        id: `bonfire-${Date.now()}`,
+        type: 'fire',
+        x,
+        z,
+        radius: 8,
+        intensity: 1.0
+      });
+    } else if (activeTool === 'grease') {
+      manager.addOverlay({
+        id: `grease-${Date.now()}`,
+        type: 'grease',
+        x,
+        z,
+        radius: 12,
+        intensity: 0.8
+      });
+    } else if (activeTool === 'clear') {
+      manager.clear();
+    }
+
     setVersion(v => v + 1);
   };
 
@@ -29,11 +61,22 @@ export const DeformableScene = () => {
         manager={manager} 
         version={version} 
       />
+      
+      {/* Environmental Overlays */}
+      {manager.getOverlays().map(overlay => (
+        <OverlayMesh 
+          key={overlay.id} 
+          overlay={overlay} 
+          manager={manager} 
+          version={version} 
+        />
+      ))}
+
       <mesh 
         rotation={[-Math.PI / 2, 0, 0]} 
         position={[0, -0.1, 0]} 
         onPointerDown={handlePointerDown}
-        visible={false} // Invisible interaction plane
+        visible={false}
       >
         <planeGeometry args={[1000, 1000]} />
       </mesh>

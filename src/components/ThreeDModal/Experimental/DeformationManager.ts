@@ -3,9 +3,12 @@
  * Manages dynamic terrain height offsets for the malleable world system.
  */
 
+import { EnvironmentalOverlay } from './types';
+
 export class DeformationManager {
   private grid: Record<string, number> = {};
-  private disturbanceGrid: Record<string, number> = {}; // Tracks how much the terrain has been altered
+  private disturbanceGrid: Record<string, number> = {};
+  private overlays: EnvironmentalOverlay[] = [];
   private gridSize = 2;
 
   private getKey(gx: number, gz: number): string {
@@ -86,8 +89,17 @@ export class DeformationManager {
     return h0 * (1 - tz) + h1 * tz;
   }
 
+  addOverlay(overlay: EnvironmentalOverlay) {
+    this.overlays.push(overlay);
+  }
+
+  getOverlays(): EnvironmentalOverlay[] {
+    return this.overlays;
+  }
+
   clear() {
     this.grid = {};
     this.disturbanceGrid = {};
+    this.overlays = [];
   }
 }
