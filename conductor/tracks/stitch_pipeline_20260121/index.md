@@ -1,4 +1,4 @@
-# Track env_proto_20260121 Context
+# Track stitch_pipeline_20260121 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)
