@@ -16,14 +16,13 @@ The project currently targets at least 16 major pillars (including Politics, Fai
 
 **Immediate Focus:**
 *   **Logical World Simulation:** Prioritizing the "passage of time" and logical cause-and-effect. Events (like wars) must have narrative buildups, execution phases, and lingering consequences.
-*   **Dynamic Landscapes:** The world map is not static. While landmarks (towns, towers) have fixed coordinates, the surrounding terrain/biomes can shift based on simulation states (e.g., a drought transforming a prairie into a steppe).
+*   **Dynamic Landscapes:** The world map is not static. While landmarks (towns, towers) have fixed coordinates, the surrounding terrain/biomes can shift based on simulation states (e.g., a drought transforming a prairie into a steppe). The **Malleable World** system allows for real-time terrain deformation and environmental state changes (Fire, Grease) driven by spells and physical interactions.
 
 ## User Experience (UX)
 *   **Immersive First:** The primary interface is a persistent **3D world** (Three.js) to maximize immersion.
 *   **Tech Stack:** 
     *   **3D (Three.js):** The primary engine for exploration, world views, and maps. 
     *   *Note: Previous experiments with Pixi.js are being deprecated in favor of a unified 3D approach.*
-    *   **Constraint:** Acknowledged challenge in reconciling Three.js with complex environmental spell effects (e.g., terrain destruction).
 
 ## AI Strategy (Gemini Integration)
 *   **Role:** **High Autonomy (The Dungeon Master).**
