@@ -28,8 +28,8 @@ export const MARK_OF_HANDLING_HUMAN_DATA: Race = {
     id: 'mark_of_handling_human',
     icon: '🐾',
     color: '#8B4513',
-    maleIllustrationPath: 'assets/images/races/mark_of_handling_human_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_handling_human_female.png',
+    maleIllustrationPath: 'assets/images/races/Human_Beastborn_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Human_Beastborn_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'animal-friendship' },

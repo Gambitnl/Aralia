@@ -17,6 +17,8 @@
     "typecheck": "tsc -b",
     "lint": "eslint src scripts tests",
     "mcp": "tsx scripts/mcp-util.ts",
+    "stitch:init": "npx @_davideast/stitch-mcp init",
+    "stitch:doctor": "npx @_davideast/stitch-mcp doctor --verbose",
     "generate:race-images": "tsx scripts/generate-race-images.ts"
   },
   "dependencies": {

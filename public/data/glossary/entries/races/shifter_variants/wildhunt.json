@@ -55,5 +55,7 @@
     "humanoid",
     "incapacitated"
   ],
-  "filePath": "/data/glossary/entries/races/shifter_variants/wildhunt.json"
+  "filePath": "/data/glossary/entries/races/shifter_variants/wildhunt.json",
+  "maleImageUrl": "/assets/images/races/Shifter_Wildhunt_Male.png",
+  "femaleImageUrl": "/assets/images/races/Shifter_Wildhunt_Female.png"
 }

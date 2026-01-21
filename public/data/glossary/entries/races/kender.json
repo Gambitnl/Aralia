@@ -49,5 +49,7 @@
     "humanoid",
     "halfling"
   ],
-  "filePath": "/data/glossary/entries/races/kender.json"
+  "filePath": "/data/glossary/entries/races/kender.json",
+  "maleImageUrl": "/assets/images/races/Kender_Male.png",
+  "femaleImageUrl": "/assets/images/races/Kender_Female.png"
 }

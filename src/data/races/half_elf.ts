@@ -34,7 +34,7 @@ export const HALF_ELF_DATA: Race = {
     id: 'half_elf',
     icon: '🌓',
     color: '#DDA0DD',
-    maleIllustrationPath: 'assets/images/races/half_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/half_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Half_elf_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half_elf_Female.png',
   },
 };

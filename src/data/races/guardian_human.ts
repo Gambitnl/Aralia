@@ -28,8 +28,8 @@ export const MARK_OF_SENTINEL_HUMAN_DATA: Race = {
     id: 'mark_of_sentinel_human',
     icon: '🛡️',
     color: '#4169E1',
-    maleIllustrationPath: 'assets/images/races/mark_of_sentinel_human_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_sentinel_human_female.png',
+    maleIllustrationPath: 'assets/images/races/Human_Guardian_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Human_Guardian_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'shield' },

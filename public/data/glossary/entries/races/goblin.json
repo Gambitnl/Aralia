@@ -52,6 +52,6 @@
     "nimble_escape"
   ],
   "filePath": "/data/glossary/entries/races/goblin.json",
-  "maleImageUrl": "/assets/images/races/goblin_male.png",
-  "femaleImageUrl": "/assets/images/races/goblin_female.png"
+  "maleImageUrl": "/assets/images/races/Goblin_Male.png",
+  "femaleImageUrl": "/assets/images/races/Goblin_Female.png"
 }

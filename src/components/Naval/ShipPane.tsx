@@ -49,8 +49,10 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
               <div className="grid grid-cols-2 gap-4">
                 <StatCard label="Hull" value={`${ship.stats.hullPoints}/${ship.stats.maxHullPoints}`} subtext="Hit Points" colorClass="text-green-400" />
                 <StatCard label="Speed" value={ship.stats.speed.toString()} subtext="Knots" />
-                {/* TODO: Replace simple count (ship.weapons.length) with a calculated "Firepower" rating or Damage Per Second (DPS) metric. 
-                    Currently just shows number of weapons, which gives little indication of actual combat effectiveness. */}
+                {/* TODO: Replace simple count (ship.weapons.length) with a calculated "Firepower" rating or Damage Per Second (DPS) metric.
+                    Currently just shows number of weapons, which gives little indication of actual combat effectiveness.
+                    Naval battle mechanics need to be looked up online to ensure that proper D&D mechanics are used.
+                    Find official rules where possible, and lean into addendum rules which are widely accepted by community where official rules don't cover the logic completely. */}
                 <StatCard label="Weapons" value={ship.weapons.length.toString()} subtext="Installed" />
                 <StatCard label="Manuever" value={ship.stats.maneuverability.toString()} subtext="Rating" />
               </div>
@@ -109,8 +111,10 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
                 </div>
                 <div>
                   <div className="text-xs text-gray-400 uppercase">Supplies</div>
-                  {/* TODO: Verify supply unit conversion logic. 
-                      Currently displaying raw values as "days". Ensure that 1 unit of food/water strictly equates to 1 day of consumption for the current crew size to prevent player confusion. */}
+                  {/* TODO: Verify supply unit conversion logic.
+                      Currently displaying raw values as "days". Ensure that 1 unit of food/water strictly equates to 1 day of consumption for the current crew size to prevent player confusion.
+                      Naval battle mechanics need to be looked up online to ensure that proper D&D mechanics are used.
+                      Find official rules where possible, and lean into addendum rules which are widely accepted by community where official rules don't cover the logic completely. */}
                   <div className="text-sm text-gray-300">Food: {ship.cargo.supplies.food} days</div>
                   <div className="text-sm text-gray-300">Water: {ship.cargo.supplies.water} days</div>
                 </div>

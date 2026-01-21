@@ -37,7 +37,7 @@ export const HALF_ELF_AQUATIC_DATA: Race = {
     id: 'half_elf_aquatic',
     icon: '🌊',
     color: '#5F9EA0',
-    maleIllustrationPath: 'assets/images/races/half_elf_aquatic_male.png',
-    femaleIllustrationPath: 'assets/images/races/half_elf_aquatic_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Elf_Aquatic_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Elf_Aquatic_Female.png',
   },
 };

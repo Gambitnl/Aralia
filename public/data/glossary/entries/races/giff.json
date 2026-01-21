@@ -3,8 +3,8 @@
   "title": "Giff",
   "category": "Character Races",
   "entryLore": "Giff are hippo-headed humanoids of impressive size who are renowned across the multiverse for their martial prowess and their love of firearms. Originally from a world whose name has been lost to time, giff now travel throughout Wildspace, often serving as mercenaries, bodyguards, or soldiers. They are fiercely proud of their military heritage and maintain strict hierarchies and traditions even when far from their kin. A giff's word is their bond, and they take contracts and oaths extremely seriously.",
-  "maleImageUrl": "/assets/images/races/giff_male.png",
-  "femaleImageUrl": "/assets/images/Placeholder.jpg",
+  "maleImageUrl": "/assets/images/races/Giff_Male.png",
+  "femaleImageUrl": "/assets/images/races/Giff_Female.png",
   "source": "AAG",
   "characteristics": [
     {

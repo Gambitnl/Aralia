@@ -37,5 +37,7 @@
     "minor_illusion",
     "speak_with_animals"
   ],
-  "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.json"
+  "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.json",
+  "maleImageUrl": "/assets/images/races/Gnome_Forest_Male.png",
+  "femaleImageUrl": "/assets/images/races/Gnome_Forest_Female.png"
 }

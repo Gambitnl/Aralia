@@ -31,5 +31,7 @@
     "bonus_action",
     "teleport"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.json"
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.json",
+  "maleImageUrl": "/assets/images/races/Goliath_Cloud Giant_Male.png",
+  "femaleImageUrl": "/assets/images/races/Goliath_Cloud Giant_Female.png"
 }

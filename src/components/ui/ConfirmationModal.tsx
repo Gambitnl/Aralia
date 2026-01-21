@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4"
+          className={`fixed inset-0 bg-black/70 flex items-center justify-center z-[${Z_INDEX.MODAL_BACKGROUND}] p-4`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

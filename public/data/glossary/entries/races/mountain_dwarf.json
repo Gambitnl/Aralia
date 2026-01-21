@@ -38,5 +38,7 @@
     "dwarf",
     "humanoid"
   ],
-  "filePath": "/data/glossary/entries/races/mountain_dwarf.json"
+  "filePath": "/data/glossary/entries/races/mountain_dwarf.json",
+  "maleImageUrl": "/assets/images/races/Dwarf_Mountain_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dwarf_Mountain_Female.png"
 }

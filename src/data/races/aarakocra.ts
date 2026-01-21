@@ -26,8 +26,8 @@ export const AARAKOCRA_DATA: Race = {
     id: 'aarakocra',
     icon: '🦅',
     color: '#8B7355',
-    maleIllustrationPath: 'assets/images/races/aarakocra_male.png',
-    femaleIllustrationPath: 'assets/images/races/aarakocra_female.png',
+    maleIllustrationPath: 'assets/images/races/Aarakocra_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Aarakocra_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Wind Caller',

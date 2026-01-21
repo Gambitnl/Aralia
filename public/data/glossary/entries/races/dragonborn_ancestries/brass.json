@@ -1,45 +1,47 @@
 {
-    "id": "brass_dragonborn",
-    "title": "Brass Dragonborn",
-    "category": "Character Races",
-    "entryLore": "Descended from the gregarious and talkative brass dragons of the hot deserts, these dragonborn command the power of fire. They often possess a friendly and inquisitive nature, reflecting the social and often eccentric personalities of their draconic kin.",
-    "imageUrl": "/assets/images/races/dragonborn_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Ancestry Type",
-            "value": "Draconic (Brass)"
-        },
-        {
-            "label": "Damage Type",
-            "value": "[[fire_damage|Fire]]"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Fire Breath (Brass)",
-            "icon": "flame",
-            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[fire_damage|Fire damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
-        },
-        {
-            "name": "Fire Resistance (Brass)",
-            "icon": "shield",
-            "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
-        }
-    ],
-    "tags": [
-        "dragonborn",
-        "ancestry",
-        "brass",
-        "fire"
-    ],
-    "aliases": [
-        "brass ancestry"
-    ],
-    "seeAlso": [
-        "dragonborn",
-        "fire_damage",
-        "breath_weapon"
-    ],
-    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/brass.json"
+  "id": "brass_dragonborn",
+  "title": "Brass Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Descended from the gregarious and talkative brass dragons of the hot deserts, these dragonborn command the power of fire. They often possess a friendly and inquisitive nature, reflecting the social and often eccentric personalities of their draconic kin.",
+  "imageUrl": "/assets/images/races/dragonborn_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Brass)"
+    },
+    {
+      "label": "Damage Type",
+      "value": "[[fire_damage|Fire]]"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Fire Breath (Brass)",
+      "icon": "flame",
+      "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[fire_damage|Fire damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+    },
+    {
+      "name": "Fire Resistance (Brass)",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "ancestry",
+    "brass",
+    "fire"
+  ],
+  "aliases": [
+    "brass ancestry"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "fire_damage",
+    "breath_weapon"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/brass.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Brass_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Brass_Female.png"
 }

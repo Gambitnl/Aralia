@@ -18,7 +18,7 @@ export const SWIFTSTRIDE_SHIFTER_DATA: Race = {
     id: 'swiftstride_shifter',
     icon: '🦌',
     color: '#DEB887',
-    maleIllustrationPath: 'assets/images/races/swiftstride_shifter_male.png',
-    femaleIllustrationPath: 'assets/images/races/swiftstride_shifter_female.png',
+    maleIllustrationPath: 'assets/images/races/Shifter_Swiftstride_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Shifter_Swiftstride_Female.png',
   },
 };

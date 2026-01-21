@@ -67,5 +67,7 @@
     "humanoid",
     "charmed"
   ],
-  "filePath": "/data/glossary/entries/races/half_elf_variants/aquatic.json"
+  "filePath": "/data/glossary/entries/races/half_elf_variants/aquatic.json",
+  "maleImageUrl": "/assets/images/races/Half-Elf_Aquatic_Male.png",
+  "femaleImageUrl": "/assets/images/races/Half-Elf_Aquatic_Female.png"
 }

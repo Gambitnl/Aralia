@@ -106,5 +106,7 @@
         "[[greater_restoration]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Halfling_Mender_Male.png",
+  "femaleImageUrl": "/assets/images/races/Halfling_Mender_Female.png"
 }

@@ -26,7 +26,7 @@ export const FOREST_GNOME_DATA: Race = {
         id: 'forest_gnome',
         icon: '🦝',
         color: '#228B22',
-        maleIllustrationPath: 'assets/images/races/forest_gnome_male.png',
-        femaleIllustrationPath: 'assets/images/races/forest_gnome_female.png',
+        maleIllustrationPath: 'assets/images/races/Gnome_Forest_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Gnome_Forest_Female.png',
     },
 };

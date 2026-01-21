@@ -28,7 +28,7 @@ export const SEA_ELF_DATA: Race = {
     id: 'sea_elf',
     icon: '🌊',
     color: '#20B2AA',
-    maleIllustrationPath: 'assets/images/races/sea_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/sea_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Elf_Sea_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Elf_Sea_Female.png',
   },
 };

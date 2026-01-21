@@ -75,5 +75,7 @@
     "sleep",
     "invisibility"
   ],
-  "filePath": "/data/glossary/entries/races/elf_lineages/pallid_elf.json"
+  "filePath": "/data/glossary/entries/races/elf_lineages/pallid_elf.json",
+  "maleImageUrl": "/assets/images/races/Elf_Pallid_Male.png",
+  "femaleImageUrl": "/assets/images/races/Elf_Pallid_Female.png"
 }

@@ -65,5 +65,7 @@
     "poison_damage",
     "poisoned"
   ],
-  "filePath": "/data/glossary/entries/races/plasmoid.json"
+  "filePath": "/data/glossary/entries/races/plasmoid.json",
+  "maleImageUrl": "/assets/images/races/Plasmoid_Male.png",
+  "femaleImageUrl": "/assets/images/races/Plasmoid_Female.png"
 }

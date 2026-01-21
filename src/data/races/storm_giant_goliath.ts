@@ -24,7 +24,7 @@ export const STORM_GIANT_GOLIATH_DATA: Race = {
     id: 'storm_giant_goliath',
     icon: '⚡',
     color: '#4169E1',
-    maleIllustrationPath: 'assets/images/races/storm_giant_goliath_male.png',
-    femaleIllustrationPath: 'assets/images/races/storm_giant_goliath_female.png',
+    maleIllustrationPath: 'assets/images/races/Goliath_Storm Giant_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Goliath_Storm Giant_Female.png',
   },
 };

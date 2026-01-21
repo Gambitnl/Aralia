@@ -28,7 +28,7 @@ export const MOUNTAIN_DWARF_DATA: Race = {
         id: 'mountain_dwarf',
         icon: '⛰️',
         color: '#808080',
-        maleIllustrationPath: 'assets/images/races/mountain_dwarf_male.png',
-        femaleIllustrationPath: 'assets/images/races/mountain_dwarf_female.png',
+        maleIllustrationPath: 'assets/images/races/Dwarf_Mountain_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Dwarf_Mountain_Female.png',
     },
 };

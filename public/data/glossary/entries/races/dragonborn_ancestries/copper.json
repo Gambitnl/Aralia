@@ -1,45 +1,47 @@
 {
-    "id": "copper_dragonborn",
-    "title": "Copper Dragonborn",
-    "category": "Character Races",
-    "entryLore": "Descended from the witty and prankish copper dragons of the rocky hills, these dragonborn command the power of acid. They often possess a sharp wit and a love for riddles, reflecting the humorous and often mischievous nature of their draconic kin.",
-    "imageUrl": "/assets/images/races/dragonborn_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Ancestry Type",
-            "value": "Draconic (Copper)"
-        },
-        {
-            "label": "Damage Type",
-            "value": "[[acid_damage|Acid]]"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Acid Breath (Copper)",
-            "icon": "magic",
-            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[acid_damage|Acid damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
-        },
-        {
-            "name": "Acid Resistance (Copper)",
-            "icon": "shield",
-            "description": "You have [[resistance|Resistance]] to [[acid_damage|Acid damage]]."
-        }
-    ],
-    "tags": [
-        "dragonborn",
-        "ancestry",
-        "copper",
-        "acid"
-    ],
-    "aliases": [
-        "copper ancestry"
-    ],
-    "seeAlso": [
-        "dragonborn",
-        "acid_damage",
-        "breath_weapon"
-    ],
-    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/copper.json"
+  "id": "copper_dragonborn",
+  "title": "Copper Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Descended from the witty and prankish copper dragons of the rocky hills, these dragonborn command the power of acid. They often possess a sharp wit and a love for riddles, reflecting the humorous and often mischievous nature of their draconic kin.",
+  "imageUrl": "/assets/images/races/dragonborn_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Copper)"
+    },
+    {
+      "label": "Damage Type",
+      "value": "[[acid_damage|Acid]]"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Acid Breath (Copper)",
+      "icon": "magic",
+      "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[acid_damage|Acid damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+    },
+    {
+      "name": "Acid Resistance (Copper)",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[acid_damage|Acid damage]]."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "ancestry",
+    "copper",
+    "acid"
+  ],
+  "aliases": [
+    "copper ancestry"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "acid_damage",
+    "breath_weapon"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/copper.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Copper_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Copper_Female.png"
 }

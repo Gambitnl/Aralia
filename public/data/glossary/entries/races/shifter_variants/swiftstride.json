@@ -55,5 +55,7 @@
     "humanoid",
     "opportunity_attack"
   ],
-  "filePath": "/data/glossary/entries/races/shifter_variants/swiftstride.json"
+  "filePath": "/data/glossary/entries/races/shifter_variants/swiftstride.json",
+  "maleImageUrl": "/assets/images/races/Shifter_Swiftstride_Male.png",
+  "femaleImageUrl": "/assets/images/races/Shifter_Swiftstride_Female.png"
 }

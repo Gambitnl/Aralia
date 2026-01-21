@@ -76,5 +76,7 @@
     "humanoid",
     "charmed"
   ],
-  "filePath": "/data/glossary/entries/races/elf_lineages/sea_elf.json"
+  "filePath": "/data/glossary/entries/races/elf_lineages/sea_elf.json",
+  "maleImageUrl": "/assets/images/races/Elf_Sea_Male.png",
+  "femaleImageUrl": "/assets/images/races/Elf_Sea_Female.png"
 }

@@ -1,45 +1,47 @@
 {
-    "id": "bronze_dragonborn",
-    "title": "Bronze Dragonborn",
-    "category": "Character Races",
-    "entryLore": "Descended from the inquisitive and protective bronze dragons of the coastal caves, these dragonborn command the power of lightning. They often feel a strong sense of duty and a love for the sea, reflecting the inquisitive and helpful nature of their draconic kin.",
-    "imageUrl": "/assets/images/races/dragonborn_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Ancestry Type",
-            "value": "Draconic (Bronze)"
-        },
-        {
-            "label": "Damage Type",
-            "value": "[[lightning_damage|Lightning]]"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Lightning Breath (Bronze)",
-            "icon": "magic",
-            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[lightning_damage|Lightning damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
-        },
-        {
-            "name": "Lightning Resistance (Bronze)",
-            "icon": "shield",
-            "description": "You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]]."
-        }
-    ],
-    "tags": [
-        "dragonborn",
-        "ancestry",
-        "bronze",
-        "lightning"
-    ],
-    "aliases": [
-        "bronze ancestry"
-    ],
-    "seeAlso": [
-        "dragonborn",
-        "lightning_damage",
-        "breath_weapon"
-    ],
-    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/bronze.json"
+  "id": "bronze_dragonborn",
+  "title": "Bronze Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Descended from the inquisitive and protective bronze dragons of the coastal caves, these dragonborn command the power of lightning. They often feel a strong sense of duty and a love for the sea, reflecting the inquisitive and helpful nature of their draconic kin.",
+  "imageUrl": "/assets/images/races/dragonborn_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Bronze)"
+    },
+    {
+      "label": "Damage Type",
+      "value": "[[lightning_damage|Lightning]]"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Lightning Breath (Bronze)",
+      "icon": "magic",
+      "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[lightning_damage|Lightning damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+    },
+    {
+      "name": "Lightning Resistance (Bronze)",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]]."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "ancestry",
+    "bronze",
+    "lightning"
+  ],
+  "aliases": [
+    "bronze ancestry"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "lightning_damage",
+    "breath_weapon"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/bronze.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Bronze_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Bronze_Female.png"
 }

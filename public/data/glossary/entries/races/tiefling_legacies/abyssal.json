@@ -1,48 +1,50 @@
 {
-    "id": "abyssal_tiefling",
-    "title": "Abyssal Legacy",
-    "category": "Character Races",
-    "entryLore": "Hailing from the chaos of the Abyss, this legacy grants resistance to poison and innate demonic magic. Those with the Abyssal Legacy often possess physical features like tusks, fur, or animalistic horns, reflecting the entropy and predatory nature of their demonic ancestors.",
-    "imageUrl": "/assets/images/races/tiefling_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Legacy Type",
-            "value": "Fiendish (Abyssal)"
-        },
-        {
-            "label": "Origin",
-            "value": "The Abyss / Demonic"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Abyssal Resistance",
-            "icon": "shield",
-            "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]]."
-        },
-        {
-            "name": "Abyssal Magic",
-            "icon": "magic",
-            "description": "You know the [[poison_spray|Poison Spray]] cantrip. Starting at 3rd level, you can cast [[ray_of_sickness|Ray of Sickness]] once per long rest. Starting at 5th level, you can cast [[hold_person|Hold Person]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
-        }
-    ],
-    "tags": [
-        "tiefling",
-        "legacy",
-        "abyssal",
-        "demon",
-        "poison"
-    ],
-    "aliases": [
-        "abyssal legacy"
-    ],
-    "seeAlso": [
-        "tiefling",
-        "poison_damage",
-        "poison_spray",
-        "ray_of_sickness",
-        "hold_person"
-    ],
-    "filePath": "/data/glossary/entries/races/tiefling_legacies/abyssal.json"
+  "id": "abyssal_tiefling",
+  "title": "Abyssal Legacy",
+  "category": "Character Races",
+  "entryLore": "Hailing from the chaos of the Abyss, this legacy grants resistance to poison and innate demonic magic. Those with the Abyssal Legacy often possess physical features like tusks, fur, or animalistic horns, reflecting the entropy and predatory nature of their demonic ancestors.",
+  "imageUrl": "/assets/images/races/tiefling_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Legacy Type",
+      "value": "Fiendish (Abyssal)"
+    },
+    {
+      "label": "Origin",
+      "value": "The Abyss / Demonic"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Abyssal Resistance",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]]."
+    },
+    {
+      "name": "Abyssal Magic",
+      "icon": "magic",
+      "description": "You know the [[poison_spray|Poison Spray]] cantrip. Starting at 3rd level, you can cast [[ray_of_sickness|Ray of Sickness]] once per long rest. Starting at 5th level, you can cast [[hold_person|Hold Person]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+    }
+  ],
+  "tags": [
+    "tiefling",
+    "legacy",
+    "abyssal",
+    "demon",
+    "poison"
+  ],
+  "aliases": [
+    "abyssal legacy"
+  ],
+  "seeAlso": [
+    "tiefling",
+    "poison_damage",
+    "poison_spray",
+    "ray_of_sickness",
+    "hold_person"
+  ],
+  "filePath": "/data/glossary/entries/races/tiefling_legacies/abyssal.json",
+  "maleImageUrl": "/assets/images/races/Tiefling_Abyssal_Male.png",
+  "femaleImageUrl": "/assets/images/races/Tiefling_Abyssal_Female.png"
 }

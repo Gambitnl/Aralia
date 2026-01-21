@@ -27,7 +27,7 @@ export const LOTUSDEN_HALFLING_DATA: Race = {
         id: 'lotusden_halfling',
         icon: '🌸',
         color: '#98FB98',
-        maleIllustrationPath: 'assets/images/races/lotusden_halfling_male.png',
-        femaleIllustrationPath: 'assets/images/races/lotusden_halfling_female.png',
+        maleIllustrationPath: 'assets/images/races/Halfling_Lotusden_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Halfling_Lotusden_Female.png',
     },
 };

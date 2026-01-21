@@ -36,7 +36,7 @@ export const HALF_ELF_HIGH_DATA: Race = {
     id: 'half_elf_high',
     icon: '⭐',
     color: '#B0C4DE',
-    maleIllustrationPath: 'assets/images/races/half_elf_high_male.png',
-    femaleIllustrationPath: 'assets/images/races/half_elf_high_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Elf_High_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Elf_High_Female.png',
   },
 };

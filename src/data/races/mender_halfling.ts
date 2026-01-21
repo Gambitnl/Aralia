@@ -28,7 +28,7 @@ export const MARK_OF_HEALING_HALFLING_DATA: Race = {
         id: 'mark_of_healing_halfling',
         icon: '⚕️',
         color: '#FF69B4',
-        maleIllustrationPath: 'assets/images/races/mark_of_healing_halfling_male.png',
-        femaleIllustrationPath: 'assets/images/races/mark_of_healing_halfling_female.png',
+        maleIllustrationPath: 'assets/images/races/Halfling_Mender_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Halfling_Mender_Female.png',
     },
 };

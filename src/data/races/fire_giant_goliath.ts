@@ -24,7 +24,7 @@ export const FIRE_GIANT_GOLIATH_DATA: Race = {
     id: 'fire_giant_goliath',
     icon: '🔥',
     color: '#FF4500',
-    maleIllustrationPath: 'assets/images/races/fire_giant_goliath_male.png',
-    femaleIllustrationPath: 'assets/images/races/fire_giant_goliath_female.png',
+    maleIllustrationPath: 'assets/images/races/Goliath_Fire Giant_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Goliath_Fire Giant_Female.png',
   },
 };

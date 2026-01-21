@@ -27,8 +27,8 @@ export const DUERGAR_DATA: Race = {
     id: 'duergar',
     icon: '⛏️',
     color: '#696969',
-    maleIllustrationPath: 'assets/images/races/duergar_male.png',
-    femaleIllustrationPath: 'assets/images/races/duergar_female.png',
+    maleIllustrationPath: 'assets/images/races/Duergar_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Duergar_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Duergar Magic',

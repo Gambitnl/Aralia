@@ -3,6 +3,7 @@ import { BIOMES } from '../../constants';
 import type { PlayerCharacter } from '../../types';
 import Scene3D from './Scene3D';
 import { simpleHash } from '../../utils/spatial/submapUtils';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface ThreeDModalProps {
   isOpen: boolean;
@@ -103,7 +104,7 @@ const ThreeDModal = ({
   const biomeColorStyle = biome?.rgbaColor ? { backgroundColor: biome.rgbaColor } : undefined;
 
   return (
-    <div className="fixed inset-0 z-[150] bg-black">
+    <div className={`fixed inset-0 z-[${Z_INDEX.MODAL_IMMERSIVE_BACKGROUND}] bg-black`}>
       <div className="absolute inset-0">
         <Scene3D
           biomeId={biomeId}
@@ -121,7 +122,7 @@ const ThreeDModal = ({
         />
       </div>
       {isHmrDisconnected && (
-        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 text-gray-100">
+        <div className={`absolute inset-0 z-[${Z_INDEX.MODAL_IMMERSIVE_CONTENT}] flex items-center justify-center bg-black/70 text-gray-100`}>
           <div className="rounded-lg bg-black/80 px-4 py-3 text-center text-sm shadow-lg">
             <div className="font-semibold">Dev server disconnected</div>
             <div>3D render paused until HMR reconnects.</div>

@@ -26,7 +26,7 @@ export const LIGHTFOOT_HALFLING_DATA: Race = {
         id: 'lightfoot_halfling',
         icon: '🏃',
         color: '#DEB887',
-        maleIllustrationPath: 'assets/images/races/lightfoot_halfling_male.png',
-        femaleIllustrationPath: 'assets/images/races/lightfoot_halfling_female.png',
+        maleIllustrationPath: 'assets/images/races/Halfling_Lightfoot_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Halfling_Lightfoot_Female.png',
     },
 };

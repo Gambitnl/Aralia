@@ -27,7 +27,7 @@ export const SPRING_ELADRIN_DATA: Race = {
     id: 'spring_eladrin',
     icon: '🌸',
     color: '#98FB98',
-    maleIllustrationPath: 'assets/images/races/spring_eladrin_male.png',
-    femaleIllustrationPath: 'assets/images/races/spring_eladrin_female.png',
+    maleIllustrationPath: 'assets/images/races/Eladrin_Spring_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Eladrin_Spring_Female.png',
   },
 };

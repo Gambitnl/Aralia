@@ -25,7 +25,7 @@ export const TABAXI_DATA: Race = {
     id: 'tabaxi',
     icon: '🐱',
     color: '#D2691E',
-    maleIllustrationPath: 'assets/images/races/tabaxi_male.png',
-    femaleIllustrationPath: 'assets/images/races/tabaxi_female.png',
+    maleIllustrationPath: 'assets/images/races/Tabaxi_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Tabaxi_Female.png',
   },
 };

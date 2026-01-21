@@ -26,7 +26,7 @@ export const BRASS_DRAGONBORN_DATA: Race = {
     id: 'brass_dragonborn',
     icon: '🐉',
     color: '#CD853F',
-    maleIllustrationPath: 'assets/images/races/brass_dragonborn_male.png',
-    femaleIllustrationPath: 'assets/images/races/brass_dragonborn_female.png',
+    maleIllustrationPath: 'assets/images/races/Dragonborn_Brass_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dragonborn_Brass_Female.png',
   },
 };

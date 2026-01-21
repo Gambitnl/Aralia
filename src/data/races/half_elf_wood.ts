@@ -37,7 +37,7 @@ export const HALF_ELF_WOOD_DATA: Race = {
     id: 'half_elf_wood',
     icon: '🌿',
     color: '#6B8E23',
-    maleIllustrationPath: 'assets/images/races/half_elf_wood_male.png',
-    femaleIllustrationPath: 'assets/images/races/half_elf_wood_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Elf_Wood_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Elf_Wood_Female.png',
   },
 };

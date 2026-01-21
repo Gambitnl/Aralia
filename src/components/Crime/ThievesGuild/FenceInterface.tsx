@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useGameState } from '../../../state/GameContext';
 import { GuildService } from '../../../types/crime';
 import { Item, ItemRarity, ItemRarityDefinitions } from '../../../types/items';
+import { Z_INDEX } from '../../../styles/zIndex';
 
 interface FenceInterfaceProps {
     service: GuildService;
@@ -71,7 +72,7 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
     });
 
     return (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4">
+        <div className={`fixed inset-0 bg-black/90 flex items-center justify-center z-[${Z_INDEX.MODAL_BACKGROUND}] p-4`}>
             <div className="bg-gray-900 border border-amber-900/50 rounded-lg max-w-2xl w-full h-[70vh] flex flex-col shadow-2xl overflow-hidden relative">
 
                 {/* Header */}

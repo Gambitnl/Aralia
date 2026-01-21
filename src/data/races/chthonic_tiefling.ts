@@ -25,8 +25,8 @@ export const CHTHONIC_TIEFLING_DATA: Race = {
     id: 'chthonic_tiefling',
     icon: '💀',
     color: '#696969',
-    maleIllustrationPath: 'assets/images/races/chthonic_tiefling_male.png',
-    femaleIllustrationPath: 'assets/images/races/chthonic_tiefling_female.png',
+    maleIllustrationPath: 'assets/images/races/Tiefling_Chthonic_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Tiefling_Chthonic_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'thaumaturgy' },

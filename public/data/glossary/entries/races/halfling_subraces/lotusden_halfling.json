@@ -66,5 +66,7 @@
     "druidcraft",
     "entangle"
   ],
-  "filePath": "/data/glossary/entries/races/halfling_subraces/lotusden_halfling.json"
+  "filePath": "/data/glossary/entries/races/halfling_subraces/lotusden_halfling.json",
+  "maleImageUrl": "/assets/images/races/Halfling_Lotusden_Male.png",
+  "femaleImageUrl": "/assets/images/races/Halfling_Lotusden_Female.png"
 }

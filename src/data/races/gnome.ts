@@ -76,7 +76,7 @@ export const GNOME_DATA: Race = {
     id: 'gnome',
     icon: '🔧',
     color: '#DEB887',
-    maleIllustrationPath: 'assets/images/races/gnome_male.png',
-    femaleIllustrationPath: 'assets/images/races/gnome_female.png',
+    maleIllustrationPath: 'assets/images/races/Gnome_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Gnome_Female.png',
   },
 };

@@ -26,7 +26,7 @@ export const TRITON_DATA: Race = {
     id: 'triton',
     icon: '🔱',
     color: '#20B2AA',
-    maleIllustrationPath: 'assets/images/races/triton_male.png',
-    femaleIllustrationPath: 'assets/images/races/triton_female.png',
+    maleIllustrationPath: 'assets/images/races/Triton_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Triton_Female.png',
   },
 };

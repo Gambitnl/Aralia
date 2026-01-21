@@ -27,7 +27,7 @@ export const WINTER_ELADRIN_DATA: Race = {
     id: 'winter_eladrin',
     icon: '❄️',
     color: '#B0E0E6',
-    maleIllustrationPath: 'assets/images/races/winter_eladrin_male.png',
-    femaleIllustrationPath: 'assets/images/races/winter_eladrin_female.png',
+    maleIllustrationPath: 'assets/images/races/Eladrin_Winter_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Eladrin_Winter_Female.png',
   },
 };

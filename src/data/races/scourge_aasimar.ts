@@ -20,8 +20,8 @@ export const SCOURGE_AASIMAR_DATA: Race = {
     id: 'scourge_aasimar',
     icon: '🔥',
     color: '#FF4500',
-    maleIllustrationPath: 'assets/images/races/scourge_aasimar_male.png',
-    femaleIllustrationPath: 'assets/images/races/scourge_aasimar_female.png',
+    maleIllustrationPath: 'assets/images/races/Aasimar_Scourge_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Aasimar_Scourge_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'light' }

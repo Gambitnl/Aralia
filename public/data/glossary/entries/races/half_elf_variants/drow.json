@@ -63,5 +63,7 @@
     "humanoid",
     "charmed"
   ],
-  "filePath": "/data/glossary/entries/races/half_elf_variants/drow.json"
+  "filePath": "/data/glossary/entries/races/half_elf_variants/drow.json",
+  "maleImageUrl": "/assets/images/races/Half-Elf_Drow_Male.png",
+  "femaleImageUrl": "/assets/images/races/Half-Elf_Drow_Female.png"
 }

@@ -54,5 +54,7 @@
     "humanoid",
     "psychic_damage"
   ],
-  "filePath": "/data/glossary/entries/races/kalashtar.json"
+  "filePath": "/data/glossary/entries/races/kalashtar.json",
+  "maleImageUrl": "/assets/images/races/Kalashtar_Male.png",
+  "femaleImageUrl": "/assets/images/races/Kalashtar_Female.png"
 }

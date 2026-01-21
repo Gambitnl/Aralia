@@ -28,7 +28,7 @@ export const DWARF_DATA: Race = {
     id: 'dwarf',
     icon: '⛏️',
     color: '#8B4513',
-    maleIllustrationPath: 'assets/images/races/dwarf_male.png',
-    femaleIllustrationPath: 'assets/images/races/dwarf_female.png',
+    maleIllustrationPath: 'assets/images/races/Dwarf_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dwarf_Female.png',
   },
 };

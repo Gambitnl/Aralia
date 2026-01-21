@@ -22,8 +22,8 @@ export const FAIRY_DATA: Race = {
     id: 'fairy',
     icon: '🧚',
     color: '#FF69B4',
-    maleIllustrationPath: 'assets/images/races/fairy_male.png',
-    femaleIllustrationPath: 'assets/images/races/fairy_female.png',
+    maleIllustrationPath: 'assets/images/races/Fairy_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Fairy_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Fairy Magic',

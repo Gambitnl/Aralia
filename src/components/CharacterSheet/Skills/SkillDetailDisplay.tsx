@@ -8,6 +8,7 @@ import React, { useEffect, useRef } from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../../types';
 import { SKILLS_DATA } from '../../../data/skills';
 import { getAbilityModifierValue } from '../../../utils/characterUtils';
+import { Z_INDEX } from '../../../styles/zIndex';
 import Tooltip from '../../ui/Tooltip';
 // Inline glossary tooltips live under the Glossary folder
 import GlossaryTooltip from '../../Glossary/GlossaryTooltip';
@@ -57,7 +58,7 @@ const SkillDetailDisplay: React.FC<SkillDetailDisplayProps> = ({ isOpen, onClose
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] p-4" // z-index higher than CharacterSheetModal
+      className={`fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[${Z_INDEX.MODAL_BACKGROUND}] p-4`} // z-index higher than CharacterSheetModal
       aria-modal="true"
       role="dialog"
       aria-labelledby="skill-detail-overlay-title"

@@ -31,5 +31,7 @@
     "reaction",
     "constitution"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.json"
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.json",
+  "maleImageUrl": "/assets/images/races/Goliath_Stone Giant_Male.png",
+  "femaleImageUrl": "/assets/images/races/Goliath_Stone Giant_Female.png"
 }

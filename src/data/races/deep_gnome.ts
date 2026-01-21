@@ -26,7 +26,7 @@ export const DEEP_GNOME_DATA: Race = {
         id: 'deep_gnome',
         icon: '🪨',
         color: '#696969',
-        maleIllustrationPath: 'assets/images/races/deep_gnome_male.png',
-        femaleIllustrationPath: 'assets/images/races/deep_gnome_female.png',
+        maleIllustrationPath: 'assets/images/races/Gnome_Deep_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Gnome_Deep_Female.png',
     },
 };

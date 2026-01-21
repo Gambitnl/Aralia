@@ -26,7 +26,7 @@ export const BUGBEAR_DATA: Race = {
     id: 'bugbear',
     icon: '🐻',
     color: '#8B4513',
-    maleIllustrationPath: 'assets/images/races/bugbear_male.png',
-    femaleIllustrationPath: 'assets/images/races/bugbear_female.png',
+    maleIllustrationPath: 'assets/images/races/Bugbear_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Bugbear_Female.png',
   },
 };

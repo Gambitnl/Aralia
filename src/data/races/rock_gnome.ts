@@ -26,7 +26,7 @@ export const ROCK_GNOME_DATA: Race = {
         id: 'rock_gnome',
         icon: '⚙️',
         color: '#A0522D',
-        maleIllustrationPath: 'assets/images/races/rock_gnome_male.png',
-        femaleIllustrationPath: 'assets/images/races/rock_gnome_female.png',
+        maleIllustrationPath: 'assets/images/races/Gnome_Rock_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Gnome_Rock_Female.png',
     },
 };

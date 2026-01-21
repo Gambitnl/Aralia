@@ -105,5 +105,7 @@
         "[[legend_lore]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Half-Elf_Seersight_Male.png",
+  "femaleImageUrl": "/assets/images/races/Half-Elf_Seersight_Female.png"
 }

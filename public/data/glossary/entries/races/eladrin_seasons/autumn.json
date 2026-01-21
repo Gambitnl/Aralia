@@ -72,5 +72,7 @@
     "fey",
     "charmed"
   ],
-  "filePath": "/data/glossary/entries/races/eladrin_seasons/autumn.json"
+  "filePath": "/data/glossary/entries/races/eladrin_seasons/autumn.json",
+  "maleImageUrl": "/assets/images/races/Eladrin_Autumn_Male.png",
+  "femaleImageUrl": "/assets/images/races/Eladrin_Autumn_Female.png"
 }

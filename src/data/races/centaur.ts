@@ -24,7 +24,7 @@ export const CENTAUR_DATA: Race = {
     id: 'centaur',
     icon: '🐴',
     color: '#8B6914',
-    maleIllustrationPath: 'assets/images/races/centaur_male.png',
-    femaleIllustrationPath: 'assets/images/races/centaur_female.png',
+    maleIllustrationPath: 'assets/images/races/Centaur_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Centaur_Female.png',
   },
 };

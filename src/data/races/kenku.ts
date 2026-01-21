@@ -25,7 +25,7 @@ export const KENKU_DATA: Race = {
     id: 'kenku',
     icon: '🐦',
     color: '#2F4F4F',
-    maleIllustrationPath: 'assets/images/races/kenku_male.png',
-    femaleIllustrationPath: 'assets/images/races/kenku_female.png',
+    maleIllustrationPath: 'assets/images/races/Kenku_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Kenku_Female.png',
   },
 };

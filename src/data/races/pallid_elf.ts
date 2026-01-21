@@ -28,7 +28,7 @@ export const PALLID_ELF_DATA: Race = {
     id: 'pallid_elf',
     icon: '👁️',
     color: '#D3D3D3',
-    maleIllustrationPath: 'assets/images/races/pallid_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/pallid_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Elf_Pallid_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Elf_Pallid_Female.png',
   },
 };

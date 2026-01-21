@@ -7,27 +7,24 @@ description: Generate D&D character images using Google Gemini or Whisk via manu
 Use this skill to generate character art using Google's AI tools. This approach uses the unified `image-gen` MCP server or the agent's native `devtools` tools to drive the browser.
 
 ## Prerequisites
-- **Chrome Browser**: Must be running with remote debugging enabled.
-  - **Command**: `Start-Process "chrome.exe" -ArgumentList "--remote-debugging-port=9222", "--user-data-dir=""$HOME\.gemini\whisk-browser-profile""", "https://gemini.google.com/app"`
-- **Unified MCP Server**: The project uses `scripts/image-gen-mcp.ts` to automate these workflows via `mcp-cli`.
+- **Chrome Browser**: The script `scripts/image-gen-mcp.ts` manages the browser session (launching `chrome` with a persistent profile).
+  - **Manual Login**: Required on the first run. The script will pause and alert you if you are not logged in.
+- **Unified MCP Server**:
   - **Server Name**: `image-gen`
-  - **Tools**: `generate_image`, `download_image`
+  - **Tools**: `generate_image`, `download_image`, `verify_image_adherence`
 
 ## Core Learnings & Obstacles
 - **Whisk vs. Gemini**: Whisk (labs.google) is highly reactive and often ignores automated clicks. **Gemini (gemini.google.com) is much more stable** and is the default provider for the unified tool.
-- **Automation**: Use `npm run mcp call image-gen/generate_image '{"prompt": "..."}'` for automated generation.
-- **Profile Locking**: If the browser won't connect or the script crashes, Chrome might have a lock on the profile. 
-  - **Solution**: Run `taskkill /F /IM chrome.exe /T` and then delete the lock file: `Remove-Item "$HOME\.gemini\whisk-browser-profile\SingletonLock" -Force`.
-- **Dynamic UIDs**: Never rely on `uid=XX_YY` from snapshots for long-term logic. They change every time the page updates. Use **Attribute-Based Selectors** (e.g., `button[aria-label="Send message"]`).
+- **Visual Verification**: Use `verify_image_adherence` to check generated images against the "Full Body D&D Villager" guidelines. This tool re-uploads the image to Gemini and asks for a critique.
 - **One-Turn Search & Generate**: Gemini can handle "Search then Generate" in a single prompt. This is faster and more accurate than doing it in two steps.
 
 ## Workflow
 
 ### 1. Launch & Connect
-1.  Kill any existing Chrome instances.
-2.  Clear the `SingletonLock` if necessary.
-3.  Launch Chrome to `https://gemini.google.com/app`.
-4.  Use `list_pages` and `select_page` to focus the tab.
+The script handles launching automatically.
+1.  Run the server or script: `npx tsx scripts/image-gen-mcp.ts`
+2.  If it's your first time, the window will open. **Log in to Google.**
+3.  Once logged in, the script will be ready to accept tool calls.
 
 ### 2. Optimized Prompting (Two-Step Strategy)
 To ensure accuracy and "mundane/slice-of-life" grounding, use a two-step approach.
@@ -45,40 +42,63 @@ To ensure accuracy and "mundane/slice-of-life" grounding, use a two-step approac
 - Always wait for the first response to complete (approx 10-15s) before sending the second prompt.
 
 ### 4. Downloading & Renaming
-Gemini downloads images with random names (e.g., `Gemini_Generated_Image_...`).
-1.  Click the "Download full size image" button (usually `aria-label="download"`).
-2.  Find the file in `Downloads`:
-    ```powershell
-    Get-ChildItem -Path "$HOME\Downloads" -Filter "Gemini_Generated_Image_*.png" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    ```
-3.  **Rename & Move**: Move it immediately to the project path:
-    - **Path**: `public/assets/images/races/[race]_[gender].png`
-    - **Constraint**: Always use lowercase filenames.
+Use the `download_image` tool. It automatically handles finding the high-res URL or clicking the download button.
 
-### 5. Layout Consistency
+- **Tool Call**: `download_image(outputPath: "absolute/path/to/Parent_Subrace_Gender.png")`
+- **Path Convention**: `public/assets/images/races/[Parent]_[Subrace]_[Gender].png` (TitleCase).
+  - Example: `Elf_Wood_Male.png`
+  - Example: `Dragonborn_Red_Male.png`
+  - Example: `Aarakocra_Female.png` (No subrace)
+
+### 5. Verification
+Use the `verify_image_adherence` tool to ensure quality.
+
+- **Tool Call**: `verify_image_adherence(imagePath: "...")`
+- **Guidelines Checked**: Full Body (Head to Toe), Common Villager/Worker, Slice-of-Life, D&D 5e Style.
+- **Action**: If verification returns `complies: false`, consider regenerating the image.
+
+### 6. Layout Consistency
 - **Sizing**: To ensure race images aren't "huge," generate **both Male and Female** (or two variations) for every race. This triggers the `hasDualImages` layout in the glossary, which uses small thumbnails instead of full-card width.
 
-### 6. Cleanup & Efficiency
-- **New Chat Protocol**: **IMMEDIATELY** after a successful download/move, reset the session. The most reliable way is to navigate to the URL again:
-  - `navigate_page(url="https://gemini.google.com/app")`
+### 6. Automated Wiring & Auditing
+Use the `scripts/audit_and_wire_images.ts` script to automatically:
+- **Rename** files to the `Parent_Subrace_Gender.png` convention.
+- **Wire** the new paths into `src/data/races/*.ts` and `glossary/*.json`.
+- **Audit** for missing wiring.
+
+Run with: `npx tsx scripts/audit_and_wire_images.ts`
+### 7. Cleanup & Efficiency
+- **New Chat Protocol**: The script automatically handles "New Chat" logic when necessary to avoid context bleed.
+- **Session Reset**: If you encounter issues, kill the terminal and run `taskkill /F /IM chrome.exe /T` to fully reset the browser.
 - **Fast-Path Automation**: To save tokens and time, avoid `take_snapshot` for known static elements. Use `evaluate_script` with stable CSS selectors:
-  - **Input & Send**:
-    ```javascript
-    () => {
-      const editor = document.querySelector('div[contenteditable="true"]');
-      if (editor) {
-        editor.innerText = "YOUR PROMPT HERE";
-        editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
-        editor.focus();
-        setTimeout(() => document.querySelector('button[aria-label="Send message"]').click(), 500);
-      }
-    }
+
+### 8. Implementation (Linking Images)
+You must wire up the images in **TWO** places: the Glossary (JSON) and the Character Creator (TypeScript).
+
+#### A. Glossary Data (JSON)
+1.  Open `public/data/glossary/entries/races/[race].json`.
+2.  Add/Update:
+    ```json
+    "maleImageUrl": "/assets/images/races/[race]_male.png",
+    "femaleImageUrl": "/assets/images/races/[race]_female.png"
     ```
-  - **Download**: `Array.from(document.querySelectorAll('button[aria-label="Download full size image"]')).pop().click()`
+
+#### B. Character Creator Data (TypeScript)
+1.  Open `src/data/races/[race].ts`.
+2.  Update the `visual` object within the race constant:
+    ```typescript
+    visual: {
+      // ... keep existing icon/color
+      maleIllustrationPath: 'assets/images/races/[race]_male.png',
+      femaleIllustrationPath: 'assets/images/races/[race]_female.png',
+    },
+    ```
+    *(Note: No leading slash for the TS file paths)*
 
 ## Status Checklist (as of 2026-01-20)
 
 **Completed**:
+- [x] Aarakocra (M/F)
 - [x] Aasimar (M/F)
 - [x] Air Genasi (M/F)
 - [x] Astral Elf (M/F)
@@ -178,8 +198,8 @@ Gemini downloads images with random names (e.g., `Gemini_Generated_Image_...`).
 - [x] Brass Dragonborn (Female)
 - [x] Bronze Dragonborn (Male)
 - [x] Bronze Dragonborn (Female)
-- [ ] Copper Dragonborn (Male)
-- [ ] Copper Dragonborn (Female)
+- [x] Copper Dragonborn (Male)
+- [x] Copper Dragonborn (Female)
 - [ ] Gold Dragonborn (Male)
 - [ ] Gold Dragonborn (Female)
 - [ ] Green Dragonborn (Male)

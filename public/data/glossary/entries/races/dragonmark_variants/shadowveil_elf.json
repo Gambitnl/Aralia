@@ -117,5 +117,7 @@
         "[[mislead]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Elf_Shadowveil_Male.png",
+  "femaleImageUrl": "/assets/images/races/Elf_Shadowveil_Female.png"
 }

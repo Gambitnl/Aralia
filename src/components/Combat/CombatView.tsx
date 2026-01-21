@@ -13,6 +13,7 @@ import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
+import { Z_INDEX } from '../../styles/zIndex';
 import { useSummons } from '../../hooks/combat/useSummons';
 import InitiativeTracker from '../BattleMap/InitiativeTracker';
 import AbilityPalette from '../BattleMap/AbilityPalette';
@@ -282,7 +283,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
 
       {/* Creature Harvest Panel Modal */}
       {isHarvestPanelOpen && selectedHarvestCreature && (
-        <div className="absolute inset-0 bg-black/80 z-[60] flex items-center justify-center">
+        <div className={`absolute inset-0 bg-black/80 z-[${Z_INDEX.COMBAT_OVERLAY}] flex items-center justify-center`}>
           <div className="relative">
             <CreatureHarvestPanel
               creatureId={selectedHarvestCreature}

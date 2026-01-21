@@ -1,45 +1,47 @@
 {
-    "id": "red_dragonborn",
-    "title": "Red Dragonborn",
-    "category": "Character Races",
-    "entryLore": "Descended from the arrogant and covetous red dragons of the mountain peaks, these dragonborn command the power of fire. They often possess a fierce pride and a thirst for power, reflecting the domineering and often temperamental nature of their draconic kin.",
-    "imageUrl": "/assets/images/races/dragonborn_female.png",
-    "source": "PHB 2024",
-    "characteristics": [
-        {
-            "label": "Ancestry Type",
-            "value": "Draconic (Red)"
-        },
-        {
-            "label": "Damage Type",
-            "value": "[[fire_damage|Fire]]"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Fire Breath (Red)",
-            "icon": "flame",
-            "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[fire_damage|Fire damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
-        },
-        {
-            "name": "Fire Resistance (Red)",
-            "icon": "shield",
-            "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
-        }
-    ],
-    "tags": [
-        "dragonborn",
-        "ancestry",
-        "red",
-        "fire"
-    ],
-    "aliases": [
-        "red ancestry"
-    ],
-    "seeAlso": [
-        "dragonborn",
-        "fire_damage",
-        "breath_weapon"
-    ],
-    "filePath": "/data/glossary/entries/races/dragonborn_ancestries/red.json"
+  "id": "red_dragonborn",
+  "title": "Red Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Descended from the arrogant and covetous red dragons of the mountain peaks, these dragonborn command the power of fire. They often possess a fierce pride and a thirst for power, reflecting the domineering and often temperamental nature of their draconic kin.",
+  "imageUrl": "/assets/images/races/dragonborn_female.png",
+  "source": "PHB 2024",
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Red)"
+    },
+    {
+      "label": "Damage Type",
+      "value": "[[fire_damage|Fire]]"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Fire Breath (Red)",
+      "icon": "flame",
+      "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[fire_damage|Fire damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
+    },
+    {
+      "name": "Fire Resistance (Red)",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "ancestry",
+    "red",
+    "fire"
+  ],
+  "aliases": [
+    "red ancestry"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "fire_damage",
+    "breath_weapon"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/red.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Red_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Red_Female.png"
 }

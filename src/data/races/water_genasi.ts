@@ -24,8 +24,8 @@ export const WATER_GENASI_DATA: Race = {
     id: 'water_genasi',
     icon: '💧',
     color: '#1E90FF',
-    maleIllustrationPath: 'assets/images/races/water_genasi_male.png',
-    femaleIllustrationPath: 'assets/images/races/water_genasi_female.png',
+    maleIllustrationPath: 'assets/images/races/Genasi_Water_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Genasi_Water_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Call to the Wave',

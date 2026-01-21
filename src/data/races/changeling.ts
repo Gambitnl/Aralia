@@ -22,7 +22,7 @@ export const CHANGELING_DATA: Race = {
     id: 'changeling',
     icon: '🎭',
     color: '#E8E8E8',
-    maleIllustrationPath: 'assets/images/races/changeling_male.png',
-    femaleIllustrationPath: 'assets/images/races/changeling_female.png',
+    maleIllustrationPath: 'assets/images/races/Changeling_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Changeling_Female.png',
   },
 };

@@ -36,7 +36,7 @@ export const MARK_OF_DETECTION_HALF_ELF_DATA: Race = {
     id: 'mark_of_detection_half_elf',
     icon: '🔍',
     color: '#FFD700',
-    maleIllustrationPath: 'assets/images/races/mark_of_detection_half_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_detection_half_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Elf_Seersight_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Elf_Seersight_Female.png',
   },
 };

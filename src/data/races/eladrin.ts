@@ -24,8 +24,8 @@ export const ELADRIN_DATA: Race = {
     id: 'eladrin',
     icon: '🍂',
     color: '#DA70D6',
-    maleIllustrationPath: 'assets/images/races/eladrin_male.png',
-    femaleIllustrationPath: 'assets/images/races/eladrin_female.png',
+    maleIllustrationPath: 'assets/images/races/Eladrin_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Eladrin_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Fey Step',

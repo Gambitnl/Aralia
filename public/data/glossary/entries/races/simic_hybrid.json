@@ -56,5 +56,7 @@
     "humanoid",
     "vedalken"
   ],
-  "filePath": "/data/glossary/entries/races/simic_hybrid.json"
+  "filePath": "/data/glossary/entries/races/simic_hybrid.json",
+  "maleImageUrl": "/assets/images/races/Simic_hybrid_Male.png",
+  "femaleImageUrl": "/assets/images/races/Simic_hybrid_Female.png"
 }

@@ -37,7 +37,7 @@ export const MARK_OF_STORM_HALF_ELF_DATA: Race = {
     id: 'mark_of_storm_half_elf',
     icon: '⚡',
     color: '#4682B4',
-    maleIllustrationPath: 'assets/images/races/mark_of_storm_half_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_storm_half_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Elf_Stormborn_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Elf_Stormborn_Female.png',
   },
 };

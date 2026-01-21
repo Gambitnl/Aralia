@@ -66,5 +66,7 @@
     "radiant_damage",
     "necrotic_damage"
   ],
-  "filePath": "/data/glossary/entries/races/aasimar_variants/scourge.json"
+  "filePath": "/data/glossary/entries/races/aasimar_variants/scourge.json",
+  "maleImageUrl": "/assets/images/races/Aasimar_Scourge_Male.png",
+  "femaleImageUrl": "/assets/images/races/Aasimar_Scourge_Female.png"
 }

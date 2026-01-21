@@ -55,5 +55,7 @@
     "goblin",
     "hobgoblin"
   ],
-  "filePath": "/data/glossary/entries/races/verdan.json"
+  "filePath": "/data/glossary/entries/races/verdan.json",
+  "maleImageUrl": "/assets/images/races/Verdan_Male.png",
+  "femaleImageUrl": "/assets/images/races/Verdan_Female.png"
 }

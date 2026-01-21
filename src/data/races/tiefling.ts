@@ -54,7 +54,7 @@ export const TIEFLING_DATA: Race = {
     id: 'tiefling',
     icon: '😈',
     color: '#8B0000',
-    maleIllustrationPath: 'assets/images/races/tiefling_male.png',
-    femaleIllustrationPath: 'assets/images/races/tiefling_female.png',
+    maleIllustrationPath: 'assets/images/races/Tiefling_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Tiefling_Female.png',
   },
 };

@@ -31,5 +31,7 @@
     "reaction",
     "thunder_damage"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json"
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json",
+  "maleImageUrl": "/assets/images/races/Goliath_Storm Giant_Male.png",
+  "femaleImageUrl": "/assets/images/races/Goliath_Storm Giant_Female.png"
 }

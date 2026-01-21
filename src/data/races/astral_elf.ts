@@ -29,7 +29,7 @@ export const ASTRAL_ELF_DATA: Race = {
     id: 'astral_elf',
     icon: '⭐',
     color: '#4169E1',
-    maleIllustrationPath: 'assets/images/races/astral_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/astral_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Elf_Astral_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Elf_Astral_Female.png',
   },
 };

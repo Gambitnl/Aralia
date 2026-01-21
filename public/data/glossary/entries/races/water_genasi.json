@@ -46,6 +46,6 @@
     "create_or_destroy_water"
   ],
   "filePath": "/data/glossary/entries/races/water_genasi.json",
-  "maleImageUrl": "/assets/images/races/water_genasi_male.png",
-  "femaleImageUrl": "/assets/images/races/water_genasi_female.png"
+  "maleImageUrl": "/assets/images/races/Genasi_Water_Male.png",
+  "femaleImageUrl": "/assets/images/races/Genasi_Water_Female.png"
 }

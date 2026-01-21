@@ -66,5 +66,7 @@
     "humanoid",
     "charmed"
   ],
-  "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
+  "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json",
+  "maleImageUrl": "/assets/images/races/Half-Elf_Wood_Male.png",
+  "femaleImageUrl": "/assets/images/races/Half-Elf_Wood_Female.png"
 }

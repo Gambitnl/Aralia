@@ -26,7 +26,7 @@ export const STOUT_HALFLING_DATA: Race = {
         id: 'stout_halfling',
         icon: '🛡️',
         color: '#8B7355',
-        maleIllustrationPath: 'assets/images/races/stout_halfling_male.png',
-        femaleIllustrationPath: 'assets/images/races/stout_halfling_female.png',
+        maleIllustrationPath: 'assets/images/races/Halfling_Stout_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Halfling_Stout_Female.png',
     },
 };

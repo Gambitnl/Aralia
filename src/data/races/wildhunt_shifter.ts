@@ -18,7 +18,7 @@ export const WILDHUNT_SHIFTER_DATA: Race = {
     id: 'wildhunt_shifter',
     icon: '🦉',
     color: '#2F4F4F',
-    maleIllustrationPath: 'assets/images/races/wildhunt_shifter_male.png',
-    femaleIllustrationPath: 'assets/images/races/wildhunt_shifter_female.png',
+    maleIllustrationPath: 'assets/images/races/Shifter_Wildhunt_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Shifter_Wildhunt_Female.png',
   },
 };

@@ -29,7 +29,7 @@ export const MARK_OF_SHADOW_ELF_DATA: Race = {
     id: 'mark_of_shadow_elf',
     icon: '🌑',
     color: '#191970',
-    maleIllustrationPath: 'assets/images/races/mark_of_shadow_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_shadow_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Elf_Shadowveil_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Elf_Shadowveil_Female.png',
   },
 };

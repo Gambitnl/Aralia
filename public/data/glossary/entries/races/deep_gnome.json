@@ -44,5 +44,7 @@
     "disguise_self",
     "nondetection"
   ],
-  "filePath": "/data/glossary/entries/races/deep_gnome.json"
+  "filePath": "/data/glossary/entries/races/deep_gnome.json",
+  "maleImageUrl": "/assets/images/races/Gnome_Deep_Male.png",
+  "femaleImageUrl": "/assets/images/races/Gnome_Deep_Female.png"
 }

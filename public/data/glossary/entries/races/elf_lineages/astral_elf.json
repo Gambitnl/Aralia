@@ -75,5 +75,7 @@
     "humanoid",
     "charmed"
   ],
-  "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json"
+  "filePath": "/data/glossary/entries/races/elf_lineages/astral_elf.json",
+  "maleImageUrl": "/assets/images/races/Elf_Astral_Male.png",
+  "femaleImageUrl": "/assets/images/races/Elf_Astral_Female.png"
 }

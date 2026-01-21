@@ -29,7 +29,7 @@ export const WOOD_ELF_DATA: Race = {
     id: 'wood_elf',
     icon: '🌲',
     color: '#228B22',
-    maleIllustrationPath: 'assets/images/races/wood_elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/wood_elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Elf_Wood_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Elf_Wood_Female.png',
   },
 };

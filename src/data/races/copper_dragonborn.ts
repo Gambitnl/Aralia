@@ -26,7 +26,7 @@ export const COPPER_DRAGONBORN_DATA: Race = {
     id: 'copper_dragonborn',
     icon: '🐉',
     color: '#B87333',
-    maleIllustrationPath: 'assets/images/races/copper_dragonborn_male.png',
-    femaleIllustrationPath: 'assets/images/races/copper_dragonborn_female.png',
+    maleIllustrationPath: 'assets/images/races/Dragonborn_Copper_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dragonborn_Copper_Female.png',
   },
 };

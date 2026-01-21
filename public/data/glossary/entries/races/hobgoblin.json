@@ -60,5 +60,7 @@
     "bugbear",
     "fey_ancestry"
   ],
-  "filePath": "/data/glossary/entries/races/hobgoblin.json"
+  "filePath": "/data/glossary/entries/races/hobgoblin.json",
+  "maleImageUrl": "/assets/images/races/Hobgoblin_Male.png",
+  "femaleImageUrl": "/assets/images/races/Hobgoblin_Female.png"
 }

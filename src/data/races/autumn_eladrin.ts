@@ -27,7 +27,7 @@ export const AUTUMN_ELADRIN_DATA: Race = {
     id: 'autumn_eladrin',
     icon: '🍂',
     color: '#D2691E',
-    maleIllustrationPath: 'assets/images/races/autumn_eladrin_male.png',
-    femaleIllustrationPath: 'assets/images/races/autumn_eladrin_female.png',
+    maleIllustrationPath: 'assets/images/races/Eladrin_Autumn_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Eladrin_Autumn_Female.png',
   },
 };

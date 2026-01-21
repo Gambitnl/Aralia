@@ -26,7 +26,7 @@ export const GOLD_DRAGONBORN_DATA: Race = {
     id: 'gold_dragonborn',
     icon: '🐉',
     color: '#FFD700',
-    maleIllustrationPath: 'assets/images/races/gold_dragonborn_male.png',
-    femaleIllustrationPath: 'assets/images/races/gold_dragonborn_female.png',
+    maleIllustrationPath: 'assets/images/races/Dragonborn_Gold_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dragonborn_Gold_Female.png',
   },
 };

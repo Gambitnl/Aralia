@@ -23,8 +23,8 @@ export const EARTH_GENASI_DATA: Race = {
     id: 'earth_genasi',
     icon: '🌍',
     color: '#8B4513',
-    maleIllustrationPath: 'assets/images/races/earth_genasi_male.png',
-    femaleIllustrationPath: 'assets/images/races/earth_genasi_female.png',
+    maleIllustrationPath: 'assets/images/races/Genasi_Earth_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Genasi_Earth_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Merge with Stone',

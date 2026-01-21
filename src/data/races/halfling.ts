@@ -26,7 +26,7 @@ export const HALFLING_DATA: Race = {
     id: 'halfling',
     icon: '🏠',
     color: '#DAA520',
-    maleIllustrationPath: 'assets/images/races/halfling_male.png',
-    femaleIllustrationPath: 'assets/images/races/halfling_female.png',
+    maleIllustrationPath: 'assets/images/races/Halfling_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Halfling_Female.png',
   },
 };

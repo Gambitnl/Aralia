@@ -96,5 +96,7 @@
         "[[arcane_hand]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Human_Guardian_Male.png",
+  "femaleImageUrl": "/assets/images/races/Human_Guardian_Female.png"
 }

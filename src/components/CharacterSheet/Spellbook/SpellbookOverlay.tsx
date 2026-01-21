@@ -8,6 +8,7 @@ import { PlayerCharacter, Spell, Action } from '../../../types';
 import SpellContext from '../../../context/SpellContext';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { CLASSES_DATA } from '../../../constants';
+import { Z_INDEX } from '../../../styles/zIndex';
 import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../../../utils/glossaryUtils';
 import SpellSlotDisplay from './SpellSlotDisplay';
@@ -120,7 +121,7 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
 
   return (
     <div
-      className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+      className={`fixed inset-0 z-[${Z_INDEX.MODAL_SPECIALIZED_OVERLAY}] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4`}
       onClick={handleOverlayClick}
     >
       <div

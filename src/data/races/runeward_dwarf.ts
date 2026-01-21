@@ -29,7 +29,7 @@ export const MARK_OF_WARDING_DWARF_DATA: Race = {
         id: 'mark_of_warding_dwarf',
         icon: '🛡️',
         color: '#4169E1',
-        maleIllustrationPath: 'assets/images/races/mark_of_warding_dwarf_male.png',
-        femaleIllustrationPath: 'assets/images/races/mark_of_warding_dwarf_female.png',
+        maleIllustrationPath: 'assets/images/races/Dwarf_Runeward_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Dwarf_Runeward_Female.png',
     },
 };

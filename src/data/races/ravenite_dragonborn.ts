@@ -25,7 +25,7 @@ export const RAVENITE_DRAGONBORN_DATA: Race = {
     id: 'ravenite_dragonborn',
     icon: '🐲',
     color: '#B22222',
-    maleIllustrationPath: 'assets/images/races/ravenite_dragonborn_male.png',
-    femaleIllustrationPath: 'assets/images/races/ravenite_dragonborn_female.png',
+    maleIllustrationPath: 'assets/images/races/Dragonborn_Ravenite_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dragonborn_Ravenite_Female.png',
   },
 };

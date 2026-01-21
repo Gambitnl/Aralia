@@ -96,5 +96,7 @@
         "[[creation]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Human_Forgeborn_Male.png",
+  "femaleImageUrl": "/assets/images/races/Human_Forgeborn_Female.png"
 }

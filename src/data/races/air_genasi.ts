@@ -27,8 +27,8 @@ export const AIR_GENASI_DATA: Race = {
     id: 'air_genasi',
     icon: '💨',
     color: '#E0FFFF',
-    maleIllustrationPath: 'assets/images/races/air_genasi_male.png',
-    femaleIllustrationPath: 'assets/images/races/air_genasi_female.png',
+    maleIllustrationPath: 'assets/images/races/Genasi_Air_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Genasi_Air_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Mingle with the Wind',

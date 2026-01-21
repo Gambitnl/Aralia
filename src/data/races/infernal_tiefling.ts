@@ -25,8 +25,8 @@ export const INFERNAL_TIEFLING_DATA: Race = {
     id: 'infernal_tiefling',
     icon: '😈',
     color: '#DC143C',
-    maleIllustrationPath: 'assets/images/races/infernal_tiefling_male.png',
-    femaleIllustrationPath: 'assets/images/races/infernal_tiefling_female.png',
+    maleIllustrationPath: 'assets/images/races/Tiefling_Infernal_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Tiefling_Infernal_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'thaumaturgy' },

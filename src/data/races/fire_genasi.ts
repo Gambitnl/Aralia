@@ -23,8 +23,8 @@ export const FIRE_GENASI_DATA: Race = {
     id: 'fire_genasi',
     icon: '🔥',
     color: '#FF4500',
-    maleIllustrationPath: 'assets/images/races/fire_genasi_male.png',
-    femaleIllustrationPath: 'assets/images/races/fire_genasi_female.png',
+    maleIllustrationPath: 'assets/images/races/Genasi_Fire_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Genasi_Fire_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Reach to the Blaze',

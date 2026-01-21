@@ -25,8 +25,8 @@ export const ABYSSAL_TIEFLING_DATA: Race = {
     id: 'abyssal_tiefling',
     icon: '👹',
     color: '#8B008B',
-    maleIllustrationPath: 'assets/images/races/abyssal_tiefling_male.png',
-    femaleIllustrationPath: 'assets/images/races/abyssal_tiefling_female.png',
+    maleIllustrationPath: 'assets/images/races/Tiefling_Abyssal_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Tiefling_Abyssal_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'thaumaturgy' },

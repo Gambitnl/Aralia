@@ -20,8 +20,8 @@ export const FALLEN_AASIMAR_DATA: Race = {
     id: 'fallen_aasimar',
     icon: '💀',
     color: '#4B0082',
-    maleIllustrationPath: 'assets/images/races/fallen_aasimar_male.png',
-    femaleIllustrationPath: 'assets/images/races/fallen_aasimar_female.png',
+    maleIllustrationPath: 'assets/images/races/Aasimar_Fallen_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Aasimar_Fallen_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'light' }

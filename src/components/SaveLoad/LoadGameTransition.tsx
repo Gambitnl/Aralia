@@ -5,6 +5,7 @@
 import React from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { PlayerCharacter } from '../../types';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface LoadGameTransitionProps {
   character: PlayerCharacter; // The character from the loaded save
@@ -26,7 +27,7 @@ const LoadGameTransition: React.FC<LoadGameTransitionProps> = ({ character }) =>
   return (
     <motion.div
       {...containerMotion}
-      className="fixed inset-0 bg-gray-900 flex items-center justify-center z-[100]"
+      className={`fixed inset-0 bg-gray-900 flex items-center justify-center z-[${Z_INDEX.LOADING_TRANSITION}]`}
       aria-live="polite"
       aria-label={`Welcome back, ${character.name}`}
     >

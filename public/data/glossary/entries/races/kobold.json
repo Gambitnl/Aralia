@@ -1,49 +1,51 @@
 {
-    "id": "kobold",
-    "title": "Kobold",
-    "category": "Character Races",
-    "entryLore": "Small and clever, kobolds are distant kin of dragons. While often viewed as mere pests by larger folk, they possess a remarkable communal spirit and a surprising ingenuity. They are experts at setting traps and navigating tight spaces, using their draconic heritage to tap into subtle magical or physical gifts that allow them to overcome their diminutive size.",
-    "imageUrl": "/assets/images/races/kobold_female.png",
-    "source": "MPMM",
-    "characteristics": [
-        {
-            "label": "Creature Type",
-            "value": "[[humanoid]]"
-        },
-        {
-            "label": "Size",
-            "value": "[[size|Small]]"
-        },
-        {
-            "label": "Speed",
-            "value": "30 feet"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Draconic Cry",
-            "icon": "magic",
-            "description": "As a [[bonus_action|Bonus Action]], you can let out a cry at your enemies within 10 feet of you. Until the start of your next turn, you and your allies have [[advantage|Advantage]] on attack rolls against any of those enemies who could hear you. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], regaining all uses on a [[long_rest|Long Rest]]."
-        },
-        {
-            "name": "Kobold Legacy",
-            "icon": "stars",
-            "description": "You have a connection to dragons which grants you one of the following benefits: **Craftiness** (proficiency in one skill), **Defiance** (advantage on saves against being frightened), or **Draconic Sorcery** (you know one cantrip from the sorcerer spell list)."
-        }
-    ],
-    "tags": [
-        "race",
-        "kobold",
-        "draconic",
-        "small",
-        "humanoid"
-    ],
-    "aliases": [],
-    "seeAlso": [
-        "humanoid",
-        "darkvision",
-        "draconic_cry",
-        "kobold_legacy"
-    ],
-    "filePath": "/data/glossary/entries/races/kobold.json"
+  "id": "kobold",
+  "title": "Kobold",
+  "category": "Character Races",
+  "entryLore": "Small and clever, kobolds are distant kin of dragons. While often viewed as mere pests by larger folk, they possess a remarkable communal spirit and a surprising ingenuity. They are experts at setting traps and navigating tight spaces, using their draconic heritage to tap into subtle magical or physical gifts that allow them to overcome their diminutive size.",
+  "imageUrl": "/assets/images/races/kobold_female.png",
+  "source": "MPMM",
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Draconic Cry",
+      "icon": "magic",
+      "description": "As a [[bonus_action|Bonus Action]], you can let out a cry at your enemies within 10 feet of you. Until the start of your next turn, you and your allies have [[advantage|Advantage]] on attack rolls against any of those enemies who could hear you. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], regaining all uses on a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Kobold Legacy",
+      "icon": "stars",
+      "description": "You have a connection to dragons which grants you one of the following benefits: **Craftiness** (proficiency in one skill), **Defiance** (advantage on saves against being frightened), or **Draconic Sorcery** (you know one cantrip from the sorcerer spell list)."
+    }
+  ],
+  "tags": [
+    "race",
+    "kobold",
+    "draconic",
+    "small",
+    "humanoid"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "darkvision",
+    "draconic_cry",
+    "kobold_legacy"
+  ],
+  "filePath": "/data/glossary/entries/races/kobold.json",
+  "maleImageUrl": "/assets/images/races/Kobold_Male.png",
+  "femaleImageUrl": "/assets/images/races/Kobold_Female.png"
 }

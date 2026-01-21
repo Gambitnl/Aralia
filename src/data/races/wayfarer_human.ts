@@ -28,8 +28,8 @@ export const MARK_OF_PASSAGE_HUMAN_DATA: Race = {
     id: 'mark_of_passage_human',
     icon: '🏃',
     color: '#4682B4',
-    maleIllustrationPath: 'assets/images/races/mark_of_passage_human_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_passage_human_female.png',
+    maleIllustrationPath: 'assets/images/races/Human_Wayfarer_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Human_Wayfarer_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'misty-step' },

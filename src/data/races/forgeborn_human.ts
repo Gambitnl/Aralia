@@ -28,8 +28,8 @@ export const MARK_OF_MAKING_HUMAN_DATA: Race = {
     id: 'mark_of_making_human',
     icon: '🔨',
     color: '#CD7F32',
-    maleIllustrationPath: 'assets/images/races/mark_of_making_human_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_making_human_female.png',
+    maleIllustrationPath: 'assets/images/races/Human_Forgeborn_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Human_Forgeborn_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'mending' },

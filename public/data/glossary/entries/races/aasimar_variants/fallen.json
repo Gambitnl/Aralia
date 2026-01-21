@@ -67,5 +67,7 @@
     "necrotic_damage",
     "frightened"
   ],
-  "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json"
+  "filePath": "/data/glossary/entries/races/aasimar_variants/fallen.json",
+  "maleImageUrl": "/assets/images/races/Aasimar_Fallen_Male.png",
+  "femaleImageUrl": "/assets/images/races/Aasimar_Fallen_Female.png"
 }

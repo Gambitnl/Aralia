@@ -24,8 +24,6 @@ import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import ThreeDModal from '../ThreeDModal/ThreeDModal';
 
-// TODO: Define a centralized Z-Index registry (e.g., in theme/constants) to manage the stacking order of modals, overlays (DiceRoller, PartyOverlay), and the WindowFrame, replacing magic numbers like z-[100].
-
 // Lazy load heavy/conditional components to improve initial bundle size
 const MapPane = lazy(() => import('../MapPane'));
 const QuestLog = lazy(() => import('../QuestLog'));

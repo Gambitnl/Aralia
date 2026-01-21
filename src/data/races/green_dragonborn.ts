@@ -26,7 +26,7 @@ export const GREEN_DRAGONBORN_DATA: Race = {
     id: 'green_dragonborn',
     icon: '🐉',
     color: '#228B22',
-    maleIllustrationPath: 'assets/images/races/green_dragonborn_male.png',
-    femaleIllustrationPath: 'assets/images/races/green_dragonborn_female.png',
+    maleIllustrationPath: 'assets/images/races/Dragonborn_Green_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dragonborn_Green_Female.png',
   },
 };

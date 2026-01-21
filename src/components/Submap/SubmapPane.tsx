@@ -13,6 +13,7 @@ import { Action, InspectSubmapTilePayload, Location, MapData, PlayerCharacter, N
 import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import GlossaryDisplay from '../Glossary/GlossaryDisplay';
+import { Z_INDEX } from '../../styles/zIndex';
 import { useSubmapProceduralData } from '../../hooks/useSubmapProceduralData';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
 import SubmapTile from './SubmapTile';
@@ -451,7 +452,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                             {/* Dynamic SVG Path Overlay */}
                             {isQuickTravelMode && quickTravelData.orderedPath.length > 0 && (
                                 <svg
-                                    className="absolute inset-0 w-full h-full pointer-events-none z-[20]"
+                                    className={`absolute inset-0 w-full h-full pointer-events-none z-[${Z_INDEX.SUBMAP_OVERLAY}]`}
                                     viewBox={`0 0 ${submapDimensions.cols} ${submapDimensions.rows}`}
                                     preserveAspectRatio="none" // Stretch to fit container
                                 >
@@ -562,7 +563,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                     TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
                     */
                     <div
-                        className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60]"
+                        className={`fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[${Z_INDEX.MODAL_BACKGROUND}]`}
                         onClick={(e) => e.target === e.currentTarget && setIsGlossaryOpen(false)}
                         onKeyDown={(event) => {
                             if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {

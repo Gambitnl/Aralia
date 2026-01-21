@@ -8,6 +8,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import React, { useState, useRef, useEffect, useContext as _useContext } from 'react';
 import { motion, AnimatePresence, MotionProps } from 'framer-motion';
+import { Z_INDEX } from '../../styles/zIndex';
 import { generateGuideResponse } from '../../services/ollamaTextService';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from '../../services/characterGenerator';
 import { PlayerCharacter, NPCMemory, GoalStatus } from '../../types';
@@ -162,7 +163,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
 
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[70] p-4"
+            className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-4`}
             aria-modal="true"
             role="dialog"
             aria-labelledby="game-guide-title"

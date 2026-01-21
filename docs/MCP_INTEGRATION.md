@@ -38,22 +38,28 @@ The `mcp-cli` package is already installed as a dev dependency from GitHub:
 
 ## Configured MCP Servers
 
-Your project has three MCP servers configured in `.mcp.json`:
+Your project has four MCP servers configured in `.mcp.json`:
 
-### 1. **chrome-devtools**
+### 1. **stitch**
+Stitch MCP (UI + image generation)
+```bash
+npm run mcp inspect stitch
+```
+
+### 2. **chrome-devtools**
 Browser automation and DevTools access
 ```bash
 npm run mcp inspect chrome-devtools
 ```
 
-### 2. **github**
+### 3. **github**
 GitHub API integration (requires token configuration)
 ```bash
 npm run mcp inspect github
 ```
 
-### 3. **image-gen**
-Custom server for generating images via Google Gemini or Whisk
+### 4. **image-gen**
+Custom server for generating images via Google Gemini or Whisk (fallback)
 ```bash
 npm run mcp inspect image-gen
 ```
@@ -69,6 +75,11 @@ npm run mcp list
 
 #### Inspect a specific server
 ```bash
+npm run mcp inspect stitch
+```
+
+#### Inspect a fallback server
+```bash
 npm run mcp inspect image-gen
 ```
 
@@ -80,6 +91,16 @@ npm run mcp schema image-gen/generate_image
 #### Call a tool directly
 ```bash
 npm run mcp call image-gen/generate_image '{"prompt":"fantasy dragon"}'
+```
+
+### Stitch Setup Helpers
+
+```bash
+# Guided Stitch setup (gcloud auth + project + API enablement)
+npm run stitch:init
+
+# Verify Stitch health checks
+npm run stitch:doctor
 ```
 
 ### Asset Generation
@@ -96,10 +117,19 @@ npm run generate:race-images autognome
 npm run generate:race-images -- --force
 ```
 
+**Provider selection (optional):**
+```bash
+# Force fallback to image-gen
+IMAGE_GEN_PRIMARY=image-gen npm run generate:race-images
+
+# Override Stitch tool name or extra args
+STITCH_IMAGE_TOOL=generate_image STITCH_IMAGE_ARGS='{"style":"fantasy"}' npm run generate:race-images
+```
+
 **How it works:**
 1. Reads race data from `public/data/glossary/entries/races/*.json`
 2. Creates prompts based on race lore and characteristics
-3. Uses Gemini to generate fantasy art
+3. Uses Stitch to generate fantasy art (fallbacks to image-gen if Stitch is unavailable)
 4. Downloads images to `public/assets/images/races/`
 
 ### Testing
@@ -124,15 +154,12 @@ This validates that:
 ### Example 1: Generate a Race Image
 
 ```bash
-# Step 1: Generate the image
-npm run mcp call image-gen/generate_image '{
-  "prompt": "A noble elf warrior with silver hair, wielding a mystical bow, fantasy RPG character art"
-}'
+# Stitch (primary)
+npm run mcp call stitch/<tool> '{"prompt":"A noble elf warrior with silver hair, wielding a mystical bow, fantasy RPG character art"}'
 
-# Step 2: Download the generated image
-npm run mcp call image-gen/download_image '{
-  "outputPath": "C:\\Users\\gambi\\Documents\\Git\\AraliaV4\\Aralia\\public\\assets\\images\\races\\elf.png"
-}'
+# image-gen (fallback)
+npm run mcp call image-gen/generate_image '{"prompt":"A noble elf warrior, fantasy RPG art"}'
+npm run mcp call image-gen/download_image '{"outputPath":"C:\\Users\\gambi\\Documents\\Git\\AraliaV4\\Aralia\\public\\assets\\images\\races\\elf.png"}'
 ```
 
 ### Example 2: Batch Generate Race Images
@@ -150,6 +177,9 @@ npm run generate:race-images dragonborn
 ```bash
 # Verify all servers are working
 npm run test:mcp
+
+# Test Stitch only
+npm run test:mcp stitch
 
 # Test just the image-gen server
 npm run test:mcp image-gen

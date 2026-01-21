@@ -105,7 +105,7 @@ export const ELF_DATA: Race = {
     id: 'elf',
     icon: '🧝',
     color: '#228B22',
-    maleIllustrationPath: 'assets/images/races/elf_male.png',
-    femaleIllustrationPath: 'assets/images/races/elf_female.png',
+    maleIllustrationPath: 'assets/images/races/Elf_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Elf_Female.png',
   },
 };

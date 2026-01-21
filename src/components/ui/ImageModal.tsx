@@ -4,6 +4,7 @@
  */
 import React, { useEffect } from 'react';
 import { motion, MotionProps } from 'framer-motion';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface ImageModalProps {
   src: string;
@@ -37,7 +38,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
     */
     <motion.div
       {...modalMotion}
-      className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[100] p-8"
+      className={`fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-8`}
       onClick={onClose}
       onKeyDown={(event) => {
         if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {

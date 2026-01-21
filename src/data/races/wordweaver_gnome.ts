@@ -27,7 +27,7 @@ export const MARK_OF_SCRIBING_GNOME_DATA: Race = {
         id: 'mark_of_scribing_gnome',
         icon: '📜',
         color: '#4682B4',
-        maleIllustrationPath: 'assets/images/races/mark_of_scribing_gnome_male.png',
-        femaleIllustrationPath: 'assets/images/races/mark_of_scribing_gnome_female.png',
+        maleIllustrationPath: 'assets/images/races/Gnome_Wordweaver_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Gnome_Wordweaver_Female.png',
     },
 };

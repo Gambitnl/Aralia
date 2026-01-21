@@ -26,8 +26,8 @@ export const DRACONBLOOD_DRAGONBORN_DATA: Race = {
     id: 'draconblood_dragonborn',
     icon: '🐲',
     color: '#8B008B',
-    maleIllustrationPath: 'assets/images/races/draconblood_dragonborn_male.png',
-    femaleIllustrationPath: 'assets/images/races/draconblood_dragonborn_female.png',
+    maleIllustrationPath: 'assets/images/races/Dragonborn_Draconblood_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dragonborn_Draconblood_Female.png',
   },
   racialSpellChoice: {
     traitName: 'Draconic Ancestral Legacy',

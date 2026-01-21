@@ -73,5 +73,7 @@
     "charmed",
     "frightened"
   ],
-  "filePath": "/data/glossary/entries/races/eladrin_seasons/winter.json"
+  "filePath": "/data/glossary/entries/races/eladrin_seasons/winter.json",
+  "maleImageUrl": "/assets/images/races/Eladrin_Winter_Male.png",
+  "femaleImageUrl": "/assets/images/races/Eladrin_Winter_Female.png"
 }

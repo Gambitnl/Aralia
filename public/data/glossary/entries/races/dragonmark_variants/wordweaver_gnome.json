@@ -105,5 +105,7 @@
         "[[dream]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Gnome_Wordweaver_Male.png",
+  "femaleImageUrl": "/assets/images/races/Gnome_Wordweaver_Female.png"
 }

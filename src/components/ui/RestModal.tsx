@@ -7,6 +7,7 @@ import { motion, MotionProps } from 'framer-motion';
 import { PlayerCharacter, HitPointDiceSpendMap, HitPointDiceSpend, HitPointDicePool } from '../../types';
 import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/characterUtils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface RestModalProps {
   isOpen: boolean;
@@ -88,7 +89,7 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
   return (
     <motion.div
       {...overlayMotion}
-      className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+      className={`fixed inset-0 z-[${Z_INDEX.MODAL_INTERACTIVE}] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4`}
       onClick={onClose}
       aria-modal="true"
       role="dialog"

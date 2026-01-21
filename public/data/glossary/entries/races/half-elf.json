@@ -3,7 +3,8 @@
     "title": "Half-Elf",
     "category": "Character Races",
     "entryLore": "Half-elves are individuals born from the union of humans and elves, or those who carry the heritage of both lineages in their blood. In the 2024 rules, they are often characterized as 'Children of Different Kindreds,' allowing them to inherit the physical appearance of both parents while choosing the mechanical traits of one. They often find themselves navigating two worlds, possessing the versatility of humans and the keen senses or magical affinity of elves.",
-    "imageUrl": "/assets/images/races/half_elf_female.png",
+    "maleImageUrl": "/assets/images/races/Half-Elf_High_Male.png",
+    "femaleImageUrl": "/assets/images/races/Half-Elf_High_Female.png",
     "source": "PHB 2024",
     "characteristics": [
         {

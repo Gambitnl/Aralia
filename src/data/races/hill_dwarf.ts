@@ -28,7 +28,7 @@ export const HILL_DWARF_DATA: Race = {
         id: 'hill_dwarf',
         icon: '⛰️',
         color: '#8B4513',
-        maleIllustrationPath: 'assets/images/races/hill_dwarf_male.png',
-        femaleIllustrationPath: 'assets/images/races/hill_dwarf_female.png',
+        maleIllustrationPath: 'assets/images/races/Dwarf_Hill_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Dwarf_Hill_Female.png',
     },
 };

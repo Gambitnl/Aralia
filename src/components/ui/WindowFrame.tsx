@@ -6,6 +6,7 @@ import React, { useRef } from 'react';
 import { useResizableWindow } from '../../hooks/useResizableWindow';
 import Tooltip from './Tooltip';
 import { ResizeHandles } from './ResizeHandles';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface WindowFrameProps {
     title: string;
@@ -51,7 +52,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 pointer-events-none z-[100]">
+        <div className={`fixed inset-0 pointer-events-none z-[${Z_INDEX.WINDOW_FRAME}]`}>
             {/* Window Container */}
             <div
                 ref={windowRef}

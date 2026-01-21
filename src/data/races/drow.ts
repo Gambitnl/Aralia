@@ -28,7 +28,7 @@ export const DROW_DATA: Race = {
     id: 'drow',
     icon: '🕷️',
     color: '#800080',
-    maleIllustrationPath: 'assets/images/races/drow_male.png',
-    femaleIllustrationPath: 'assets/images/races/drow_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Elf_Drow_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Elf_Drow_Female.png',
   },
 };

@@ -59,5 +59,7 @@
     "frightened",
     "poison"
   ],
-  "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
+  "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json",
+  "maleImageUrl": "/assets/images/races/Halfling_Stout_Male.png",
+  "femaleImageUrl": "/assets/images/races/Halfling_Stout_Female.png"
 }

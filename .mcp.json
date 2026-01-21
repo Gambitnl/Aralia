@@ -1,9 +1,9 @@
 {
   "mcpServers": {
     "chrome-devtools": {
-      "command": "npx.cmd",
+      "command": "node",
       "args": [
-        "chrome-devtools-mcp@latest",
+        "R:\\AraliaV4\\Aralia\\.agent_tools\\chrome-devtools-mcp\\build\\src\\index.js",
         "--browserUrl",
         "http://127.0.0.1:9222"
       ]
@@ -24,6 +24,17 @@
         "tsx",
         "scripts/image-gen-mcp.ts"
       ]
+    },
+    "stitch": {
+      "command": "npx.cmd",
+      "args": [
+        "@_davideast/stitch-mcp",
+        "proxy",
+        "--debug"
+      ],
+      "env": {
+        "STITCH_PROJECT_ID": "your-project-id"
+      }
     }
   }
 }

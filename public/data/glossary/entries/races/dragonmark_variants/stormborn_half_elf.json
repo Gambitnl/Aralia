@@ -110,5 +110,7 @@
         "[[conjure_elemental]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Half-Elf_Stormborn_Male.png",
+  "femaleImageUrl": "/assets/images/races/Half-Elf_Stormborn_Female.png"
 }

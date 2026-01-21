@@ -31,5 +31,7 @@
     "cold_damage",
     "speed"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.json"
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.json",
+  "maleImageUrl": "/assets/images/races/Goliath_Frost Giant_Male.png",
+  "femaleImageUrl": "/assets/images/races/Goliath_Frost Giant_Female.png"
 }

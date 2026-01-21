@@ -30,5 +30,7 @@
     "goliath",
     "fire_damage"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.json"
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.json",
+  "maleImageUrl": "/assets/images/races/Goliath_Fire Giant_Male.png",
+  "femaleImageUrl": "/assets/images/races/Goliath_Fire Giant_Female.png"
 }

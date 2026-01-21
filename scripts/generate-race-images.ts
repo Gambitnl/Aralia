@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Generate race images (Male/Female versions) using Browser Automation (Gemini/Whisk).
+ * Generate race images (Male/Female versions) using Stitch (primary) with image-gen fallback.
  * 
  * Usage:
  *   npm run generate:race-images
@@ -13,7 +13,7 @@ import * as path from 'path';
 import { glob } from 'glob';
 // TODO(next-agent): Preserve behavior; replace this ts-expect-error once tsx supports extensionless local TS imports.
 // @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep explicit extension for CLI use.
-import { generateImage, downloadImage, cleanup } from './image-gen-mcp.ts';
+import { generateImage, downloadImage, cleanup } from './image-gen-driver.ts';
 
 const RACES_DIR = path.resolve(process.cwd(), 'public/data/glossary/entries/races');
 const IMAGES_DIR = path.resolve(process.cwd(), 'public/assets/images/races');
@@ -58,13 +58,15 @@ async function processRace(raceFile: string, force: boolean): Promise<void> {
     const prompt = generatePrompt(race, gender);
     
     // 1. Generate
-    console.log(`     Sending prompt to browser...`);
+    console.log(`     Sending prompt to image generator...`);
     const genResult = await generateImage(prompt, 'gemini'); 
     
     if (!genResult.success) {
         console.error(`  ✗ Generation failed: ${genResult.message}`);
         continue;
     }
+
+    console.log(`     Provider: ${genResult.provider}`);
     
     await new Promise(r => setTimeout(r, 2000));
 
@@ -89,7 +91,7 @@ async function main() {
 
   if (!fs.existsSync(IMAGES_DIR)) fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
-  console.log('🎨 Race Image Generator (Browser Automation)');
+  console.log('🎨 Race Image Generator (Stitch + Fallback)');
   console.log('============================================\n');
 
   const raceFiles = await glob('**/*.json', {

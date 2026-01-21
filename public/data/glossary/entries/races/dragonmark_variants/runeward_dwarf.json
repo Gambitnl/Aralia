@@ -105,5 +105,7 @@
         "[[antilife_shell]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Dwarf_Runeward_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dwarf_Runeward_Female.png"
 }

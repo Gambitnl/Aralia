@@ -8,6 +8,7 @@
  */
 import React, { useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Z_INDEX } from '../../styles/zIndex';
 import { X, Dice6 } from 'lucide-react';
 import { useDice } from '../../contexts/DiceContext';
 
@@ -37,7 +38,7 @@ export const DiceOverlay: React.FC = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-[80] pointer-events-none"
+                    className={`fixed inset-0 z-[${Z_INDEX.DICE_OVERLAY}] pointer-events-none`}
                     aria-hidden={!isOverlayVisible}
                 >
                     {/* Semi-transparent backdrop - only clickable when not rolling */}

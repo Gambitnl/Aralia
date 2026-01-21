@@ -8,6 +8,7 @@
  */
 import React from 'react';
 import Tooltip from '../ui/Tooltip';
+import { Z_INDEX } from '../../styles/zIndex';
 import PlayerSprite from '../BattleMap/PlayerSprite';
 import { SeededFeatureConfig } from '../../types';
 
@@ -140,7 +141,7 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
         </span>
 
         {isPlayerPos && (
-          <div className="absolute inset-0 flex items-center justify-center z-[100]">
+          <div className={`absolute inset-0 flex items-center justify-center z-[${Z_INDEX.CONTENT}]`}>
             <PlayerSprite facing="south" size={20} />
           </div>
         )}

@@ -62,7 +62,7 @@ export const GOLIATH_DATA: Race = {
     id: 'goliath',
     icon: '🏔️',
     color: '#708090',
-    maleIllustrationPath: 'assets/images/races/goliath_male.png',
-    femaleIllustrationPath: 'assets/images/races/goliath_female.png',
+    maleIllustrationPath: 'assets/images/races/Goliath_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Goliath_Female.png',
   },
 };

@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';
+import { Z_INDEX } from '../../styles/zIndex';
 import {
   AbilityScoreName,
   AbilityScores,
@@ -181,7 +182,7 @@ const LevelUpModal: React.FC<LevelUpModalProps> = ({ isOpen, character, onClose,
   return (
     <motion.div
       {...overlayMotion}
-      className="fixed inset-0 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+      className={`fixed inset-0 z-[${Z_INDEX.MODAL_INTERACTIVE}] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4`}
       onClick={onClose}
       aria-modal="true"
       role="dialog"

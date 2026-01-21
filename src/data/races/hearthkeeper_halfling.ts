@@ -28,7 +28,7 @@ export const MARK_OF_HOSPITALITY_HALFLING_DATA: Race = {
         id: 'mark_of_hospitality_halfling',
         icon: '🏠',
         color: '#FFB347',
-        maleIllustrationPath: 'assets/images/races/mark_of_hospitality_halfling_male.png',
-        femaleIllustrationPath: 'assets/images/races/mark_of_hospitality_halfling_female.png',
+        maleIllustrationPath: 'assets/images/races/Halfling_Hearthkeeper_Male.png',
+        femaleIllustrationPath: 'assets/images/races/Halfling_Hearthkeeper_Female.png',
     },
 };

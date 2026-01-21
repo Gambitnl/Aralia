@@ -73,5 +73,7 @@
     "charmed",
     "fire_damage"
   ],
-  "filePath": "/data/glossary/entries/races/eladrin_seasons/summer.json"
+  "filePath": "/data/glossary/entries/races/eladrin_seasons/summer.json",
+  "maleImageUrl": "/assets/images/races/Eladrin_Summer_Male.png",
+  "femaleImageUrl": "/assets/images/races/Eladrin_Summer_Female.png"
 }

@@ -96,5 +96,7 @@
         "[[teleportation_circle]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Human_Wayfarer_Male.png",
+  "femaleImageUrl": "/assets/images/races/Human_Wayfarer_Female.png"
 }

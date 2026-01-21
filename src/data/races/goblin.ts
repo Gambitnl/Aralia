@@ -23,7 +23,7 @@ export const GOBLIN_DATA: Race = {
     id: 'goblin',
     icon: '👺',
     color: '#556B2F',
-    maleIllustrationPath: 'assets/images/races/goblin_male.png',
-    femaleIllustrationPath: 'assets/images/races/goblin_female.png',
+    maleIllustrationPath: 'assets/images/races/Goblin_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Goblin_Female.png',
   },
 };

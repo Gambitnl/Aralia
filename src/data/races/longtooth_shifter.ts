@@ -18,7 +18,7 @@ export const LONGTOOTH_SHIFTER_DATA: Race = {
     id: 'longtooth_shifter',
     icon: '🐺',
     color: '#696969',
-    maleIllustrationPath: 'assets/images/races/longtooth_shifter_male.png',
-    femaleIllustrationPath: 'assets/images/races/longtooth_shifter_female.png',
+    maleIllustrationPath: 'assets/images/races/Shifter_Longtooth_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Shifter_Longtooth_Female.png',
   },
 };

@@ -66,5 +66,7 @@
     "radiant_damage",
     "necrotic_damage"
   ],
-  "filePath": "/data/glossary/entries/races/aasimar_variants/protector.json"
+  "filePath": "/data/glossary/entries/races/aasimar_variants/protector.json",
+  "maleImageUrl": "/assets/images/races/Aasimar_Protector_Male.png",
+  "femaleImageUrl": "/assets/images/races/Aasimar_Protector_Female.png"
 }

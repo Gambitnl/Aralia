@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { MissingChoice } from '../types';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface MissingChoiceModalProps {
   isOpen: boolean;
@@ -67,7 +68,7 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
   return (
     <motion.div
       {...overlayMotion}
-      className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] p-4"
+      className={`fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-4`}
       onClick={onClose}
       aria-modal="true"
       role="dialog"

@@ -35,6 +35,7 @@ Expected output:
 ```
 ✅ chrome-devtools: 82 tools available
 ❌ github: (requires token configuration)
+stitch: (requires setup)
 ✅ image-gen: 2 tools available
 ```
 
@@ -44,6 +45,11 @@ npm run mcp list
 ```
 
 ### Inspect a Server
+```bash
+npm run mcp inspect stitch
+```
+
+### Inspect the Fallback Server
 ```bash
 npm run mcp inspect image-gen
 ```
@@ -62,7 +68,12 @@ npm run generate:race-images -- --force
 
 ## 🔧 Configured MCP Servers
 
-### ✅ image-gen (Working)
+### stitch (Primary)
+Stitch MCP server for UI + image generation
+- **Status**: Requires Stitch setup + GCP project
+- **Setup**: npm run stitch:init
+
+### image-gen (Fallback)
 Custom server for generating fantasy art via Google Gemini or Whisk
 - **Tools**: generate_image, download_image
 - **Status**: Ready to use
@@ -90,6 +101,7 @@ npm run mcp call <server>/<tool> '<json>'     # Call a tool
 
 # Testing
 npm run test:mcp                              # Test all servers
+npm run test:mcp stitch                        # Test Stitch
 npm run test:mcp image-gen                    # Test specific server
 
 # Asset Generation
@@ -100,10 +112,11 @@ npm run generate:race-images dragonborn       # Generate specific race
 ## 💡 Example: Generate a Custom Image
 
 ```bash
-# Step 1: Generate an image
-npm run mcp call image-gen/generate_image '{"prompt":"A noble elf warrior, fantasy RPG art"}'
+# Stitch (primary)
+npm run mcp call stitch/<tool> '{"prompt":"A noble elf warrior, fantasy RPG art"}'
 
-# Step 2: Download it
+# image-gen (fallback)
+npm run mcp call image-gen/generate_image '{"prompt":"A noble elf warrior, fantasy RPG art"}'
 npm run mcp call image-gen/download_image '{"outputPath":"./my-image.png"}'
 ```
 

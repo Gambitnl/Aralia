@@ -67,5 +67,7 @@
     "gnome",
     "mending"
   ],
-  "filePath": "/data/glossary/entries/races/autognome.json"
+  "filePath": "/data/glossary/entries/races/autognome.json",
+  "maleImageUrl": "/assets/images/races/Autognome_Male.png",
+  "femaleImageUrl": "/assets/images/races/Autognome_Female.png"
 }

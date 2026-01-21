@@ -27,7 +27,7 @@ export const SUMMER_ELADRIN_DATA: Race = {
     id: 'summer_eladrin',
     icon: '☀️',
     color: '#FF6347',
-    maleIllustrationPath: 'assets/images/races/summer_eladrin_male.png',
-    femaleIllustrationPath: 'assets/images/races/summer_eladrin_female.png',
+    maleIllustrationPath: 'assets/images/races/Eladrin_Summer_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Eladrin_Summer_Female.png',
   },
 };

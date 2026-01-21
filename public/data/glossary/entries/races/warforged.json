@@ -58,5 +58,7 @@
     "poisoned",
     "poison_damage"
   ],
-  "filePath": "/data/glossary/entries/races/warforged.json"
+  "filePath": "/data/glossary/entries/races/warforged.json",
+  "maleImageUrl": "/assets/images/races/Warforged_Male.png",
+  "femaleImageUrl": "/assets/images/races/Warforged_Female.png"
 }

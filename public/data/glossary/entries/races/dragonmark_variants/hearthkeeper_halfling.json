@@ -106,5 +106,7 @@
         "[[hallow]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Halfling_Hearthkeeper_Male.png",
+  "femaleImageUrl": "/assets/images/races/Halfling_Hearthkeeper_Female.png"
 }

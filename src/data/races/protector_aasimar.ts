@@ -20,8 +20,8 @@ export const PROTECTOR_AASIMAR_DATA: Race = {
     id: 'protector_aasimar',
     icon: '😇',
     color: '#FFD700',
-    maleIllustrationPath: 'assets/images/races/protector_aasimar_male.png',
-    femaleIllustrationPath: 'assets/images/races/protector_aasimar_female.png',
+    maleIllustrationPath: 'assets/images/races/Aasimar_Protector_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Aasimar_Protector_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'light' }

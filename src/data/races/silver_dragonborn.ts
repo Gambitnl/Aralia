@@ -26,7 +26,7 @@ export const SILVER_DRAGONBORN_DATA: Race = {
     id: 'silver_dragonborn',
     icon: '🐉',
     color: '#C0C0C0',
-    maleIllustrationPath: 'assets/images/races/silver_dragonborn_male.png',
-    femaleIllustrationPath: 'assets/images/races/silver_dragonborn_female.png',
+    maleIllustrationPath: 'assets/images/races/Dragonborn_Silver_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Dragonborn_Silver_Female.png',
   },
 };

@@ -10,6 +10,7 @@ import * as path from "path";
 import * as os from "os";
 import { fileURLToPath } from 'url';
 
+
 /**
  * Unified Image Generation MCP Server
  * Consolidates Gemini and Whisk browser automation.
@@ -63,6 +64,22 @@ const CONFIG: Record<Provider, ProviderConfig> = {
     }
 };
 
+const LOGIN_SELECTORS = [
+    'a[href*="accounts.google.com/ServiceLogin"]',
+    'input[type="email"]',
+    '#identifierId',
+    'text="Sign in"',
+    'text="Sign in with Google"'
+];
+
+// Selectors that indicate a "clean" state (ready for new prompt)
+const WELCOME_SELECTORS = [
+    'h1:has-text("Hello")',
+    'h1:has-text("Hi there")',
+    '[data-testid="starter-prompt-container"]',
+    'text="How can I help you today?"'
+];
+
 const DEFAULT_OUTPUT_DIR = path.join(os.homedir(), ".gemini", "generated-images");
 
 // MCP Server setup
@@ -77,6 +94,104 @@ const server = new Server(
         },
     }
 );
+
+const IMAGE_GUIDELINES = [
+    "Full body view, showing the character from head to toe (CRITICAL)",
+    "Subject is a Common Villager or Worker (not an adventurer/hero)",
+    "Setting is a slice-of-life setting (mundane, not combat)",
+    "Art style is high-quality D&D 5e canon illustration",
+    "No text, UI elements, or blurry artifacts"
+];
+
+async function verifyImageAdherence(imagePath: string): Promise<{ success: boolean; complies: boolean; message: string }> {
+    try {
+        if (!activePage || activePage.isClosed() || !currentProvider) {
+            throw new Error("No active browser session. Generate an image first.");
+        }
+
+        const provider = currentProvider;
+        const config = CONFIG[provider];
+
+        if (provider !== 'gemini') {
+            return { success: false, complies: false, message: "Verification is currently only supported on Gemini provider." };
+        }
+
+        if (!fs.existsSync(imagePath)) {
+            return { success: false, complies: false, message: `Image not found at ${imagePath}` };
+        }
+
+        log("Starting visual verification...");
+
+        // 1. Start New Chat
+        const newChatBtn = await activePage.$(config.selectors.newChat!);
+        if (newChatBtn) {
+            await newChatBtn.click();
+            await activePage.waitForTimeout(1000);
+        }
+
+        // 2. Upload Image
+        const fileInput = await activePage.waitForSelector('input[type="file"]', { state: 'attached', timeout: 5000 });
+        if (!fileInput) throw new Error("Could not find file input for image upload");
+
+        await activePage.setInputFiles('input[type="file"]', imagePath);
+        await activePage.waitForTimeout(2000); // Wait for upload
+
+        // 3. Send Prompt
+        const prompt = `Analyze this image against the following guidelines:\n` +
+            IMAGE_GUIDELINES.map(g => `- ${g}`).join('\n') +
+            `\n\nDoes the image adhere to these guidelines? Answer EXACTLY in this JSON format: { "complies": boolean, "reason": "concise explanation" }`;
+
+        let input = null;
+        for (const selector of config.selectors.input) {
+            input = await activePage.waitForSelector(selector, { timeout: 5000 }).catch(() => null);
+            if (input) break;
+        }
+        if (!input) throw new Error("Could not find prompt input");
+
+        await input.click({ clickCount: 3 });
+        await activePage.keyboard.press("Backspace");
+        await input.fill(prompt);
+        await activePage.waitForTimeout(500);
+        await activePage.keyboard.press("Enter");
+
+        // 4. Wait for Response
+        log("Waiting for verification analysis...");
+        await activePage.waitForFunction(() => {
+            const responses = document.querySelectorAll('.model-response-text');
+            return responses.length > 0 && !document.querySelector('[aria-label="Stop generation"]');
+        }, { timeout: 30000 });
+
+        // 5. Extract Text
+        const responseText = await activePage.evaluate(() => {
+            const responses = Array.from(document.querySelectorAll('.markdown'));
+            const lastResponse = responses[responses.length - 1];
+            return lastResponse ? lastResponse.textContent : null;
+        });
+
+        if (!responseText) throw new Error("Could not read response from Gemini");
+
+        // 6. Parse JSON
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            return { success: true, complies: false, message: "Could not parse JSON response from Gemini. Raw response: " + responseText.substring(0, 100) };
+        }
+
+        const analysis = JSON.parse(jsonMatch[0]);
+        return {
+            success: true,
+            complies: analysis.complies,
+            message: analysis.reason
+        };
+
+    } catch (error: unknown) {
+        const errorMessage = getErrorMessage(error);
+        return { success: false, complies: false, message: `Verification failed: ${errorMessage}` };
+    }
+}
+
+
+
+// Debug logging
 
 // Debug logging
 function log(message: string) {
@@ -131,6 +246,19 @@ async function ensureBrowser(provider: Provider): Promise<Page> {
         await activePage.goto(config.url, { waitUntil: "domcontentloaded" });
     }
 
+    // Login Check
+    try {
+        const loginEl = await activePage.waitForSelector(LOGIN_SELECTORS.join(','), { timeout: 3000 });
+        if (loginEl) {
+            const msg = `[${provider}] 🛑 LOGGED OUT! You must manually log in to the browser window.`;
+            log(msg);
+            throw new Error("User is not logged in. Please log in manually in the browser window and try again.");
+        }
+    } catch (e) {
+        // Timeout means we didn't find login selectors, which is GOOD (usually).
+        // But we should double check if we can see the input.
+    }
+
     return activePage;
 }
 
@@ -145,7 +273,20 @@ async function generateImage(prompt: string, provider: Provider = "gemini"): Pro
         if (provider === "gemini" && config.selectors.newChat) {
             const newChatBtn = await page.$(config.selectors.newChat);
             if (newChatBtn) {
+                log("Starting new chat...");
                 await newChatBtn.click();
+                // Wait for the old chat to disappear or welcome message to appear
+                try {
+                    await Promise.race([
+                        page.waitForSelector(WELCOME_SELECTORS.join(','), { timeout: 5000 }),
+                        page.waitForFunction(() => {
+                            // Wait for chat history to be cleared (heuristic)
+                            return document.querySelectorAll('.user-query').length === 0;
+                        }, { timeout: 5000 })
+                    ]);
+                } catch (e) {
+                    log("Warning: Timed out waiting for new chat clear, proceeding anyway...");
+                }
                 await page.waitForTimeout(1000);
             }
         }
@@ -153,11 +294,17 @@ async function generateImage(prompt: string, provider: Provider = "gemini"): Pro
         // Find and fill input
         let input = null;
         for (const selector of config.selectors.input) {
-            input = await page.waitForSelector(selector, { timeout: 5000 }).catch(() => null);
+            input = await page.waitForSelector(selector, { timeout: 15000 }).catch(() => null);
             if (input) break;
         }
 
-        if (!input) throw new Error(`Could not find prompt input for ${provider}`);
+        if (!input) {
+            const title = await page.title().catch(e => "Error getting title");
+            const bodyText = await page.evaluate(() => document.body.innerText.substring(0, 500)).catch(e => "Error getting body");
+            log(`DEBUG: Title: ${title}`);
+            log(`DEBUG: Body start: ${bodyText}`);
+            throw new Error(`Could not find prompt input for ${provider}`);
+        }
 
         await input.click({ clickCount: 3 }); // Select all
         await page.keyboard.press("Backspace");
@@ -290,6 +437,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
                     outputPath: { type: "string", description: "Absolute path to save the image" }
                 }
             }
+        },
+        {
+            name: "verify_image_adherence",
+            description: "Check if an image adheres to style guidelines using Gemini Vision.",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    imagePath: { type: "string", description: "Absolute path to the image" }
+                },
+                required: ["imagePath"]
+            }
         }
     ]
 }));
@@ -305,6 +463,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const { outputPath } = args as { outputPath?: string };
         const result = await downloadImage(outputPath);
         return { content: [{ type: "text", text: result.message }], isError: !result.success };
+    }
+    if (name === "verify_image_adherence") {
+        const { imagePath } = args as { imagePath: string };
+        const result = await verifyImageAdherence(imagePath);
+        const status = result.complies ? "✅ Complies" : "❌ Does not comply";
+        return {
+            content: [{ type: "text", text: `${status}: ${result.message}` }],
+            isError: !result.success
+        };
     }
     throw new Error(`Unknown tool: ${name}`);
 });
@@ -322,7 +489,7 @@ async function main() {
     await server.connect(transport);
 }
 
-export { generateImage, downloadImage, cleanup };
+export { generateImage, downloadImage, cleanup, ensureBrowser, verifyImageAdherence };
 
 // Only run server if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

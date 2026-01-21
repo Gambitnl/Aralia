@@ -38,5 +38,7 @@
     "prestidigitation",
     "tinkers_tools"
   ],
-  "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome.json"
+  "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome.json",
+  "maleImageUrl": "/assets/images/races/Gnome_Rock_Male.png",
+  "femaleImageUrl": "/assets/images/races/Gnome_Rock_Female.png"
 }

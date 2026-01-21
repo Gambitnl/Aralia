@@ -18,7 +18,7 @@ export const BEASTHIDE_SHIFTER_DATA: Race = {
     id: 'beasthide_shifter',
     icon: '🐻',
     color: '#8B4513',
-    maleIllustrationPath: 'assets/images/races/beasthide_shifter_male.png',
-    femaleIllustrationPath: 'assets/images/races/beasthide_shifter_female.png',
+    maleIllustrationPath: 'assets/images/races/Shifter_Beasthide_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Shifter_Beasthide_Female.png',
   },
 };

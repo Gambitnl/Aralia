@@ -96,5 +96,7 @@
         "[[awaken]]"
       ]
     }
-  ]
+  ],
+  "maleImageUrl": "/assets/images/races/Human_Beastborn_Male.png",
+  "femaleImageUrl": "/assets/images/races/Human_Beastborn_Female.png"
 }
