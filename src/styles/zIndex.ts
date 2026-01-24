@@ -10,6 +10,7 @@
  * - `BASE` (0): Default content layer
  * - `CONTENT` (1): Content above base
  * - `SUBMAP_OVERLAY` (20): SVG overlays on submaps
+ * - `MINIMAP` (30): Minimap component (above game content, below modals)
  *
  * ### 100-299: Modal System
  * - `MODAL_BACKGROUND` (100): Modal backdrop (blocks interaction)
@@ -97,6 +98,9 @@ export const Z_INDEX = {
   /** Submap content overlay */
   SUBMAP_OVERLAY: 20,
 
+  /** Minimap component (shows above game content but below modals/windows) */
+  MINIMAP: 30,
+
   // ============================================================================
   // MODAL SYSTEM (100-299)
   // ============================================================================
@@ -157,6 +161,9 @@ export const Z_INDEX = {
 
   /** Error states and notifications */
   ERROR_OVERLAY: 900,
+
+  /** Page header bars (below window frames so WindowFrame controls remain accessible) */
+  PAGE_HEADER: 750,
 
   // ============================================================================
   // ALWAYS-ON-TOP ELEMENTS (1000+)

@@ -46,6 +46,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   const { results: gateResults, recheck: recheckSpells, isLoading: isCheckingSpells } = useSpellGateChecks();
   const modalRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<Record<string, HTMLLIElement | HTMLButtonElement | null>>({});
+  const hasNavigatedInitial = useRef<string | null>(null);
 
   // State
   const [selectedEntry, setSelectedEntry] = useState<GlossaryEntry | null>(null);
@@ -173,21 +174,24 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   // Initialize on open
   useEffect(() => {
     if (isOpen && glossaryIndex) {
-      if (initialTermId) {
+      if (initialTermId && hasNavigatedInitial.current !== initialTermId) {
         handleNavigateToGlossary(initialTermId);
-      } else if (!selectedEntry && filteredGlossaryIndex.length > 0) {
+        hasNavigatedInitial.current = initialTermId;
+      } else if (!selectedEntry && !hasNavigatedInitial.current && filteredGlossaryIndex.length > 0) {
         const firstCategory = sortedCategories[0];
         if (firstCategory && groupedEntries[firstCategory]?.[0]) {
           handleEntrySelect(groupedEntries[firstCategory][0]);
           if (!expandedCategories.has(firstCategory)) {
             setExpandedCategories(prev => new Set(prev).add(firstCategory));
           }
+          hasNavigatedInitial.current = 'default'; // Mark as initialized with default selection
         }
       }
       firstFocusableElementRef.current?.focus();
     } else if (!isOpen) {
       setSelectedEntry(null);
       setSearchTerm('');
+      hasNavigatedInitial.current = null; // Reset when closed
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTermId, glossaryIndex]);

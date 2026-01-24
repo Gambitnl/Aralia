@@ -17,5 +17,5 @@
     "difficult_terrain"
   ],
   "filePath": "/data/glossary/entries/rules/movement/crawling.json",
-  "markdown": "# Crawling\r\nWhile you're crawling, each foot of movement costs 1 extra foot (2 extra feet in <span data-term-id=\"difficult_terrain\" class=\"glossary-term-link-from-markdown\">Difficult Terrain</span>). See also "<span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span>."\r\n"
+  "markdown": "# Crawling\r\nWhile you're crawling, each foot of movement costs 1 extra foot (2 extra feet in <span data-term-id=\"difficult_terrain\" class=\"glossary-term-link-from-markdown\">Difficult Terrain</span>). See also <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span>.\r\n"
 }

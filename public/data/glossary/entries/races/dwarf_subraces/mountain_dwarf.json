@@ -47,5 +47,7 @@
     "tags": ["race", "dwarf", "mountain_dwarf", "humanoid", "armored", "warrior"],
     "aliases": [],
     "seeAlso": ["dwarf", "hill_dwarf", "humanoid", "poison"],
-    "filePath": "/data/glossary/entries/races/dwarf_subraces/mountain_dwarf.json"
+    "filePath": "/data/glossary/entries/races/dwarf_subraces/mountain_dwarf.json",
+    "maleImageUrl": "/assets/images/races/Dwarf_Mountain_Male.png",
+    "femaleImageUrl": "/assets/images/races/Dwarf_Mountain_Female.png"
 }

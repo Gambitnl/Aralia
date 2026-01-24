@@ -149,7 +149,8 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
       if (inFeatureSection && nodeName === 'H3') {
         currentDetails = document.createElement('details');
         currentDetails.className = 'feature-card';
-        currentDetails.open = true;
+        // Note: We don't set currentDetails.open = true here to prevent force-unfolding on re-renders.
+        // If it starts closed, it stays closed. If it's a new entry, it starts closed.
 
         const summary = document.createElement('summary');
         const summaryH3 = document.createElement('h3');

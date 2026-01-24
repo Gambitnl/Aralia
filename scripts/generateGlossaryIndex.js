@@ -20,6 +20,159 @@ const titleFromId = (id) =>
     .replace(/[_-]/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
+const normalizeRaceKey = (value) => String(value ?? "").toLowerCase().replace(/-/g, "_");
+
+const RACE_GROUP_DEFS = [
+  {
+    id: "aasimar",
+    title: "Aasimar",
+    excerpt: "Celestial-blooded mortals and their variants.",
+    baseRaceIds: ["aasimar"],
+    pathPrefixes: ["races/aasimar_variants/"],
+  },
+  {
+    id: "beastfolk",
+    title: "Beastfolk",
+    excerpt: "Humanoids with animalistic features.",
+    ids: [
+      "aarakocra",
+      "giff",
+      "hadozee",
+      "harengon",
+      "kenku",
+      "leonin",
+      "lizardfolk",
+      "loxodon",
+      "minotaur",
+      "tabaxi",
+      "thri_kreen",
+      "tortle",
+      "yuan-ti",
+    ],
+  },
+  {
+    id: "dragonborn",
+    title: "Dragonborn",
+    excerpt: "Dragonborn traits and draconic ancestries.",
+    ids: ["dragonborn"],
+    pathPrefixes: ["races/dragonborn_ancestries/"],
+    primaryIds: ["dragonborn"],
+  },
+  {
+    id: "dwarf",
+    title: "Dwarf",
+    excerpt: "Dwarven lineages and related variants.",
+    ids: ["dwarf", "hill_dwarf", "mountain_dwarf", "duergar"],
+    baseRaceIds: ["dwarf"],
+    primaryIds: ["dwarf"],
+  },
+  {
+    id: "eladrin",
+    title: "Eladrin",
+    excerpt: "Seasonal eladrin variants and traits.",
+    ids: ["eladrin"],
+    baseRaceIds: ["eladrin"],
+    pathPrefixes: ["races/eladrin_seasons/"],
+    primaryIds: ["eladrin"],
+  },
+  {
+    id: "elf",
+    title: "Elf",
+    excerpt: "Elven lineages and related variants.",
+    ids: ["elf"],
+    baseRaceIds: ["elf"],
+    pathPrefixes: ["races/elf_lineages/"],
+    primaryIds: ["elf"],
+  },
+  {
+    id: "genasi",
+    title: "Genasi",
+    excerpt: "Elemental genasi lineages.",
+    ids: ["genasi", "air_genasi", "earth_genasi", "fire_genasi", "water_genasi"],
+    primaryIds: ["genasi"],
+  },
+  {
+    id: "gith",
+    title: "Gith",
+    excerpt: "Psionic peoples split between two cultures.",
+    ids: ["githyanki", "githzerai"],
+  },
+  {
+    id: "gnome",
+    title: "Gnome",
+    excerpt: "Gnome lineages and variants.",
+    ids: ["gnome", "deep_gnome"],
+    baseRaceIds: ["gnome"],
+    pathPrefixes: ["races/gnome_subraces/"],
+    primaryIds: ["gnome"],
+  },
+  {
+    id: "goblinoid",
+    title: "Goblinoid",
+    excerpt: "Fey-touched goblins and hobgoblins.",
+    ids: ["goblin", "hobgoblin"],
+  },
+  {
+    id: "goliath",
+    title: "Goliath",
+    excerpt: "Goliath traits and giant ancestries.",
+    ids: ["goliath"],
+    pathPrefixes: ["races/goliath_ancestries/"],
+    primaryIds: ["goliath"],
+  },
+  {
+    id: "half_elf",
+    title: "Half-Elf",
+    excerpt: "Half-elf variants and dragonmarks.",
+    ids: ["half-elf"],
+    baseRaceIds: ["half_elf"],
+    pathPrefixes: ["races/half_elf_variants/"],
+    primaryIds: ["half-elf"],
+  },
+  {
+    id: "half_orc",
+    title: "Half-Orc",
+    excerpt: "Half-orc variants and dragonmarks.",
+    ids: ["half-orc"],
+    baseRaceIds: ["half_orc"],
+    primaryIds: ["half-orc"],
+  },
+  {
+    id: "halfling",
+    title: "Halfling",
+    excerpt: "Halfling subraces and variants.",
+    ids: ["halfling"],
+    baseRaceIds: ["halfling"],
+    pathPrefixes: ["races/halfling_subraces/"],
+    primaryIds: ["halfling"],
+  },
+  {
+    id: "human",
+    title: "Human",
+    excerpt: "Human variants and dragonmarks.",
+    ids: ["human"],
+    baseRaceIds: ["human"],
+    primaryIds: ["human"],
+  },
+  {
+    id: "shifter",
+    title: "Shifter",
+    excerpt: "Shifter variants and traits.",
+    ids: ["shifter"],
+    baseRaceIds: ["shifter"],
+    pathPrefixes: ["races/shifter_variants/"],
+    primaryIds: ["shifter"],
+  },
+  {
+    id: "tiefling",
+    title: "Tiefling",
+    excerpt: "Tiefling legacies and traits.",
+    ids: ["tiefling"],
+    pathPrefixes: ["races/tiefling_legacies/"],
+    primaryIds: ["tiefling"],
+  },
+];
+
 function loadJson(fullPath) {
   const raw = fs.readFileSync(fullPath, "utf-8");
   return JSON.parse(raw);
@@ -66,21 +219,83 @@ function buildSpellIndexFromManifest() {
   return levelGroups;
 }
 
+function groupRaceEntries(raceRecords) {
+  const usedIds = new Set();
+  const groups = [];
+
+  const isDragonmark = (record) => record.meta.relPath.startsWith("races/dragonmark_variants/");
+
+  for (const def of RACE_GROUP_DEFS) {
+    const ids = new Set((def.ids || []).map(normalizeRaceKey));
+    const baseRaceIds = new Set((def.baseRaceIds || []).map(normalizeRaceKey));
+    const primaryIds = new Set((def.primaryIds || []).map(normalizeRaceKey));
+    const pathPrefixes = def.pathPrefixes || [];
+    const tagIncludes = (def.tagIncludes || []).map(normalizeRaceKey);
+
+    const members = raceRecords.filter((record) => {
+      const entryId = normalizeRaceKey(record.entry.id);
+      const baseRace = normalizeRaceKey(record.meta.baseRace);
+      const tags = (record.entry.tags || []).map(normalizeRaceKey);
+
+      if (ids.has(entryId)) return true;
+      if (baseRace && baseRaceIds.has(baseRace)) return true;
+      if (pathPrefixes.some((prefix) => record.meta.relPath.startsWith(prefix))) return true;
+      if (tagIncludes.some((tag) => tags.includes(tag))) return true;
+
+      return false;
+    });
+
+    if (members.length === 0) continue;
+
+    members.sort((a, b) => {
+      const aPrimary = primaryIds.has(normalizeRaceKey(a.entry.id));
+      const bPrimary = primaryIds.has(normalizeRaceKey(b.entry.id));
+      if (aPrimary !== bPrimary) return aPrimary ? -1 : 1;
+
+      const aDragonmark = isDragonmark(a);
+      const bDragonmark = isDragonmark(b);
+      if (aDragonmark !== bDragonmark) return aDragonmark ? 1 : -1;
+
+      return a.entry.title.localeCompare(b.entry.title);
+    });
+
+    members.forEach((record) => usedIds.add(record.entry.id));
+    groups.push({
+      id: `group_${def.id}`,
+      title: def.title,
+      category: "Character Races",
+      excerpt: def.excerpt,
+      filePath: null,
+      subEntries: members.map((record) => record.entry),
+    });
+  }
+
+  const remaining = raceRecords
+    .filter((record) => !usedIds.has(record.entry.id))
+    .map((record) => record.entry);
+
+  const combined = [...groups, ...remaining];
+  combined.sort((a, b) => a.title.localeCompare(b.title));
+
+  return combined;
+}
+
 function buildIndex() {
   console.log(`Scanning for glossary JSON entries in: ${ENTRY_BASE_DIR}`);
 
   const files = glob.sync("**/*.json", {
     cwd: ENTRY_BASE_DIR,
-    ignore: ["spells/**"], // spells come from spells_manifest.json
+    ignore: ["spells/**", "dev/**"], // spells come from spells_manifest.json; dev entries excluded
   });
 
   console.log(`Found ${files.length} files...`);
 
-  const allEntries = files
+  const entryRecords = files
     .map((relPath) => {
       const fullPath = path.join(ENTRY_BASE_DIR, relPath);
       const fileNameWithoutExt = path.basename(relPath, ".json");
-      const fetchableFilePath = `/data/glossary/entries/${relPath.replace(/\\/g, "/")}`;
+      const normalizedRelPath = relPath.replace(/\\/g, "/");
+      const fetchableFilePath = `/data/glossary/entries/${normalizedRelPath}`;
 
       try {
         const data = loadJson(fullPath);
@@ -94,14 +309,20 @@ function buildIndex() {
         }
 
         return {
-          id,
-          title,
-          category,
-          tags: data.tags || [],
-          excerpt: data.excerpt || "No excerpt available.",
-          aliases: data.aliases || [],
-          seeAlso: data.seeAlso || [],
-          filePath: fetchableFilePath,
+          entry: {
+            id,
+            title,
+            category,
+            tags: data.tags || [],
+            excerpt: data.excerpt || "No excerpt available.",
+            aliases: data.aliases || [],
+            seeAlso: data.seeAlso || [],
+            filePath: fetchableFilePath,
+          },
+          meta: {
+            baseRace: data.baseRace,
+            relPath: normalizedRelPath,
+          },
         };
       } catch (e) {
         console.error(`\n--- ERROR PROCESSING FILE: ${relPath} ---\n`);
@@ -110,7 +331,9 @@ function buildIndex() {
         throw new Error(`Halting build due to error in ${relPath}.`);
       }
     })
-    .filter((e) => e !== null);
+    .filter((record) => record !== null);
+
+  const allEntries = entryRecords.map((record) => record.entry);
 
   const idCounts = new Map();
   allEntries.forEach((e) => idCounts.set(e.id, (idCounts.get(e.id) || 0) + 1));
@@ -234,6 +457,13 @@ function buildIndex() {
       entriesByCategory["Character Classes"] = classGroups;
     } catch (e) {
       console.error("Failed to organize class index:", e?.message || e);
+    }
+  }
+
+  if (entriesByCategory["Character Races"]) {
+    const raceRecords = entryRecords.filter((record) => record.entry.category === "Character Races");
+    if (raceRecords.length > 0) {
+      entriesByCategory["Character Races"] = groupRaceEntries(raceRecords);
     }
   }
 

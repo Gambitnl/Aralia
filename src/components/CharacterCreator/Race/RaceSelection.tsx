@@ -225,118 +225,123 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
   ) : null;
 
   return (
-    <CreationStepLayout title="Choose Your Race" raceConfirmButton={raceConfirmButton}>
-      <SplitPaneLayout
-        controls={
-          <div className="space-y-1">
-            {raceGroups.map((group) => {
-              const isExpanded = expandedGroupId === group.id;
-              const hasMultipleVariants = group.variants.length > 1;
-              const isSingleRace = group.variants.length === 1;
+    <CreationStepLayout title="Choose Your Race" raceConfirmButton={raceConfirmButton} bodyScrollable={false}>
+      <div className="h-full min-h-0">
+        <SplitPaneLayout
+          className="h-full min-h-0"
+          controls={
+            <div className="space-y-1">
+              {raceGroups.map((group) => {
+                const isExpanded = expandedGroupId === group.id;
+                const isSingleRace = group.variants.length === 1;
 
-              // Single race without variants - render as direct selection button
-              if (isSingleRace) {
-                const race = group.variants[0];
-                const isSelected = effectiveRaceId === race.id;
-                return (
-                  <button
-                    key={race.id}
-                    onClick={() => handleVariantClick(race.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex items-center justify-between ${isSelected
-                      ? 'bg-amber-900/40 border-amber-500/50 text-amber-400 shadow-md font-semibold'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
-                      }`}
-                  >
-                    <span>{race.name}</span>
-                    {isSelected && (
-                      <motion.span layoutId="active-indicator" className="text-amber-500 text-sm">
-                        ▶
-                      </motion.span>
-                    )}
-                  </button>
-                );
-              }
-
-              // Multi-variant group - render as accordion
-              return (
-                <div key={group.id} className="flex flex-col">
-                  {/* Group Header (NOT selectable) */}
-                  <button
-                    onClick={() => handleGroupClick(group.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex items-center justify-between ${isExpanded
-                      ? 'bg-gray-700/60 border-gray-600 text-white'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
-                      }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{group.name}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-900/40 border border-sky-700/50 text-sky-400 font-bold">
-                        {group.variants.length}
-                      </span>
-                    </div>
-                    <svg
-                      className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''} text-gray-400`}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                if (isSingleRace) {
+                  const race = group.variants[0];
+                  const isSelected = effectiveRaceId === race.id;
+                  return (
+                    <button
+                      key={race.id}
+                      onClick={() => handleVariantClick(race.id)}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex items-center justify-between ${isSelected
+                        ? 'bg-amber-900/40 border-amber-500/50 text-amber-400 shadow-md font-semibold'
+                        : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
+                        }`}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                      <span>{race.name}</span>
+                      {isSelected && (
+                        <motion.span layoutId="active-indicator" className="text-amber-500 text-sm">
+                          ▶
+                        </motion.span>
+                      )}
+                    </button>
+                  );
+                }
 
-                  {/* Expanded Variants */}
-                  <AnimatePresence initial={false}>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
+                return (
+                  <div key={group.id} className="flex flex-col">
+                    <button
+                      onClick={() => handleGroupClick(group.id)}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex items-center justify-between ${isExpanded
+                        ? 'bg-gray-700/60 border-gray-600 text-white'
+                        : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{group.name}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-900/40 border border-sky-700/50 text-sky-400 font-bold">
+                          {group.variants.length}
+                        </span>
+                      </div>
+                      <svg
+                        className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''} text-gray-400`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor"
                       >
-                        <div className="ml-4 pl-3 border-l-2 border-gray-700 space-y-1 py-2">
-                          {group.variants.map((race) => {
-                            const isSelected = effectiveRaceId === race.id;
-                            return (
-                              <button
-                                key={race.id}
-                                onClick={() => handleVariantClick(race.id)}
-                                className={`w-full text-left px-3 py-2 rounded-md transition-all duration-150 text-sm flex items-center justify-between ${isSelected
-                                  ? 'bg-amber-900/50 text-amber-400 font-semibold'
-                                  : 'bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white'
-                                  }`}
-                              >
-                                <span>{race.name}</span>
-                                {isSelected && (
-                                  <motion.span layoutId="active-indicator" className="text-amber-500 text-xs">
-                                    ▶
-                                  </motion.span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        }
-        preview={
-          detailData ? (
-            <motion.div
-              key={detailData.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2 }}
-              className="h-full"
-            >
-              <RaceDetailPane
-                race={detailData}
-                onSelect={onRaceSelect}
-                selectedSpellAbility={selectedSpellAbility}
-                onSpellAbilityChange={setSelectedSpellAbility}
-              />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="ml-4 pl-3 border-l-2 border-gray-700 space-y-1 py-2">
+                            {group.variants.map((race) => {
+                              const isSelected = effectiveRaceId === race.id;
+                              return (
+                                <button
+                                  key={race.id}
+                                  onClick={() => handleVariantClick(race.id)}
+                                  className={`w-full text-left px-3 py-2 rounded-md transition-all duration-150 text-sm flex items-center justify-between ${isSelected
+                                    ? 'bg-amber-900/50 text-amber-400 font-semibold'
+                                    : 'bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                  <span>{race.name}</span>
+                                  {isSelected && (
+                                    <motion.span layoutId="active-indicator" className="text-amber-500 text-xs">
+                                      ▶
+                                    </motion.span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          }
+          preview={
+            detailData ? (
+              <motion.div
+                key={detailData.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                <RaceDetailPane
+                  race={detailData}
+                  onSelect={onRaceSelect}
+                  selectedSpellAbility={selectedSpellAbility}
+                  onSpellAbilityChange={setSelectedSpellAbility}
+                />
+              </motion.div>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500 italic">
+                Select a race to view details
+              </div>
+            )
+          }
+        />
             </motion.div>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500 italic">
@@ -344,7 +349,8 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
             </div>
           )
         }
-      />
+        />
+      </div>
     </CreationStepLayout>
   );
 };

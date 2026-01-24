@@ -7,5 +7,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/ability_check_dc.json",
-  "markdown": "# Difficulty Class\r\nThe Difficulty Class of an ability check represents the task's difficulty. The more difficult the task, the higher its DC. The rules provide DCs for certain checks, but the DM ultimately sets them. The Typical Difficulty Classes table presents a range of possible DCs for ability checks.\r\n\r\n### Typical Difficulty Classes\r\n| Task Difficulty    | DC |\r\n|--------------------|----|\r\n| Very easy          | 5  |\r\n| Easy               | 10 |\r\n| Medium             | 15 |\r\n| Hard               | 20 |\r\n| Very hard          | 25 |\r\n| Nearly impossible  | 30 |\r\n"
+  "markdown": "# Difficulty Class\r\nThe Difficulty Class of an ability check represents the task's difficulty. The more difficult the task, the higher its DC. The rules provide DCs for certain checks, but the game ultimately sets them. The Typical Difficulty Classes table presents a range of possible DCs for ability checks.\r\n\r\n### Typical Difficulty Classes\r\n| Task Difficulty    | DC |\r\n|--------------------|----|\r\n| Very easy          | 5  |\r\n| Easy               | 10 |\r\n| Medium             | 15 |\r\n| Hard               | 20 |\r\n| Very hard          | 25 |\r\n| Nearly impossible  | 30 |\r\n"
 }

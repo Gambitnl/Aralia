@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { WindowFrame } from '../ui/WindowFrame';
 import { VariantSwitcher } from './VariantSwitcher';
+import { Z_INDEX } from '../../styles/zIndex';
 import { PreviewRace } from './steps/PreviewRace';
+
+// ============================================================================
+// CODEBASE VISUALIZER CONSTANTS
+// ============================================================================
+
+// Port where the codebase visualizer server runs
+const VISUALIZER_PORT = 3847;
+// Full URL to the visualizer
+const VISUALIZER_URL = `http://localhost:${VISUALIZER_PORT}`;
 import { PreviewAge } from './steps/PreviewAge';
 import { PreviewBackground } from './steps/PreviewBackground';
 import { PreviewVisuals } from './steps/PreviewVisuals';
@@ -31,6 +41,56 @@ export const DesignPreviewPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<string>('race');
   const [variant, setVariant] = useState<string>('unified');
   const [isWindowOpen, setIsWindowOpen] = useState(true);
+  // Track visualizer server status: 'unknown' | 'running' | 'stopped'
+  const [visualizerStatus, setVisualizerStatus] = useState<string>('unknown');
+
+  // ============================================================================
+  // CODEBASE VISUALIZER FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Opens the codebase visualizer in a new browser tab.
+   * The visualizer server must be running for this to work.
+   */
+  const openVisualizer = useCallback(() => {
+    window.open(VISUALIZER_URL, '_blank');
+  }, []);
+
+  /**
+   * Sends a shutdown request to the visualizer server.
+   * The server will gracefully close after responding.
+   */
+  const killVisualizer = useCallback(async () => {
+    try {
+      // Send shutdown request to the visualizer server's API endpoint
+      const response = await fetch(`${VISUALIZER_URL}/api/shutdown`);
+      if (response.ok) {
+        setVisualizerStatus('stopped');
+        console.log('Visualizer server shutdown requested');
+      }
+    } catch (error) {
+      // If fetch fails, server is likely already stopped
+      setVisualizerStatus('stopped');
+      console.log('Visualizer server is not running or already stopped');
+    }
+  }, []);
+
+  /**
+   * Checks if the visualizer server is currently running.
+   * Updates the visualizerStatus state accordingly.
+   */
+  const checkVisualizerStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`${VISUALIZER_URL}/api/health`);
+      if (response.ok) {
+        setVisualizerStatus('running');
+      } else {
+        setVisualizerStatus('stopped');
+      }
+    } catch {
+      setVisualizerStatus('stopped');
+    }
+  }, []);
 
   const steps = [
     { id: 'race', label: 'Race' },
@@ -92,12 +152,14 @@ export const DesignPreviewPage: React.FC = () => {
   return (
     <div className="h-screen bg-gray-900 text-gray-200 overflow-hidden flex flex-col">
       {/* Top Bar */}
-      <header className="flex-shrink-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between shadow-md z-40">
+      {/* Header bar - uses PAGE_HEADER z-index to stay above WindowFrame */}
+      <header className={`flex-shrink-0 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between shadow-md z-[${Z_INDEX.PAGE_HEADER}]`}>
         <div className="flex items-center gap-4 overflow-hidden w-full">
           <h1 className="text-lg font-cinzel font-bold text-gray-300 mr-2 flex-shrink-0">Design Preview</h1>
           <div className="flex bg-gray-900 rounded-lg p-1 border border-gray-700 gap-1 overflow-x-auto no-scrollbar mask-fade">
             {steps.map(s => (
               <button
+                type="button"
                 key={s.id}
                 onClick={() => setCurrentStep(s.id)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${currentStep === s.id ? 'bg-amber-600 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
@@ -109,7 +171,41 @@ export const DesignPreviewPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-shrink-0 ml-4">
+        {/* Right side controls: Visualizer buttons + Style switcher */}
+        <div className="flex-shrink-0 ml-4 flex items-center gap-3">
+          {/* Codebase Visualizer Controls */}
+          <div className="flex items-center gap-2 border-r border-gray-700 pr-3">
+            {/* Open Visualizer Button - opens in new tab */}
+            <button
+              type="button"
+              onClick={openVisualizer}
+              onMouseEnter={checkVisualizerStatus}
+              className="px-3 py-1.5 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors"
+              title="Open Codebase Visualizer in new tab"
+            >
+              Visualizer
+            </button>
+            {/* Kill Server Button - sends shutdown request */}
+            <button
+              type="button"
+              onClick={killVisualizer}
+              className="px-3 py-1.5 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-500 transition-colors"
+              title="Stop the visualizer server"
+            >
+              Kill
+            </button>
+            {/* Status indicator dot */}
+            <div
+              className={`w-2 h-2 rounded-full ${
+                visualizerStatus === 'running' ? 'bg-green-500' :
+                visualizerStatus === 'stopped' ? 'bg-red-500' :
+                'bg-gray-500'
+              }`}
+              title={`Server status: ${visualizerStatus}`}
+            />
+          </div>
+
+          {/* Style Variant Switcher */}
           <VariantSwitcher
             label="Style"
             selectedId={variant}

@@ -118,18 +118,30 @@ export function useGlossarySearch(
         return filterAndExpandEntries(glossaryIndex || [], searchTerm).filteredEntries;
     }, [glossaryIndex, searchTerm, filterAndExpandEntries]);
 
+    // Track the previous search term to detect when search is cleared vs initial empty state
+    const [wasSearching, setWasSearching] = useState(false);
+
     // Auto-expand matching categories and parents when search changes
+    // IMPORTANT: Only reset expansion state when actively clearing a search, not on every render
     useEffect(() => {
         const trimmedSearch = searchTerm.trim();
-        if (trimmedSearch) {
+        const isCurrentlySearching = trimmedSearch.length > 0;
+
+        if (isCurrentlySearching) {
+            // Active search: auto-expand matching categories and entries
             const { categoriesToExpand, parentsToExpand } = filterAndExpandEntries(glossaryIndex || [], trimmedSearch);
             setExpandedCategories(categoriesToExpand);
             setExpandedParentEntries(parentsToExpand);
-        } else {
+            setWasSearching(true);
+        } else if (wasSearching) {
+            // User just cleared the search: reset expansion state to allow fresh manual navigation
             setExpandedCategories(new Set());
             setExpandedParentEntries(new Set());
+            setWasSearching(false);
         }
-    }, [searchTerm, glossaryIndex, filterAndExpandEntries]);
+        // When searchTerm is empty and wasSearching is false, do nothing
+        // This preserves manual expand/collapse actions during normal browsing
+    }, [searchTerm, glossaryIndex, filterAndExpandEntries, wasSearching]);
 
     // Group by category
     const groupedEntries = useMemo(() => filteredGlossaryIndex.reduce((acc, entry) => {

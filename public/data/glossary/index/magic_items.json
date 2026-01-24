@@ -1,108 +1,5 @@
 [
   {
-    "id": "spell_scroll",
-    "title": "Spell Scroll",
-    "category": "Magic Items",
-    "tags": [
-      "magic item",
-      "spell",
-      "consumable",
-      "scroll"
-    ],
-    "excerpt": "A magical scroll bearing the words of a single spell, allowing a caster to use it without expending a spell slot if the spell is on their class list.",
-    "aliases": [
-      "scroll"
-    ],
-    "seeAlso": [
-      "spell_level_slots",
-      "spells_chapter",
-      "magic_items",
-      "casting_time_rules",
-      "spell_components_rules"
-    ],
-    "filePath": "/data/glossary/entries/magic_items/spell_scroll.json"
-  },
-  {
-    "id": "attune_during_short_rest",
-    "title": "Attune during a Short Rest",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attune_during_short_rest.json"
-  },
-  {
-    "id": "attunement",
-    "title": "Attunement",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "Rules for forming a bond with a magic item.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.json"
-  },
-  {
-    "id": "ending_attunement",
-    "title": "Ending Attunement",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/ending_attunement.json"
-  },
-  {
-    "id": "identifying_magic_item",
-    "title": "Identifying a Magic Item",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/identifying_magic_item.json"
-  },
-  {
-    "id": "magic_items_overview",
-    "title": "Magic Items",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "General rules for using magic items.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items.json"
-  },
-  {
-    "id": "multiple_items_of_same_kind",
-    "title": "Multiple Items of the Same Kind",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/multiple_items_of_same_kind.json"
-  },
-  {
-    "id": "no_more_than_three_items",
-    "title": "No More Than Three Items",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/no_more_than_three_items.json"
-  },
-  {
-    "id": "paired_items",
-    "title": "Paired Items",
-    "category": "Magic Items",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/paired_items.json"
-  },
-  {
     "id": "scribing_spell_scrolls",
     "title": "Scribing Spell Scrolls",
     "category": "Magic Items",
@@ -127,13 +24,26 @@
     "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_spell_scrolls.json"
   },
   {
-    "id": "wearing_wielding_items",
-    "title": "Wearing and Wielding Items",
+    "id": "spell_scroll",
+    "title": "Spell Scroll",
     "category": "Magic Items",
-    "tags": [],
-    "excerpt": "Rules for how magic items are worn and used.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/wearing_wielding_items.json"
+    "tags": [
+      "magic item",
+      "spell",
+      "consumable",
+      "scroll"
+    ],
+    "excerpt": "A magical scroll bearing the words of a single spell, allowing a caster to use it without expending a spell slot if the spell is on their class list.",
+    "aliases": [
+      "scroll"
+    ],
+    "seeAlso": [
+      "spell_level_slots",
+      "spells_chapter",
+      "magic_items",
+      "casting_time_rules",
+      "spell_components_rules"
+    ],
+    "filePath": "/data/glossary/entries/magic_items/spell_scroll.json"
   }
 ]

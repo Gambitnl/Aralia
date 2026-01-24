@@ -6,6 +6,14 @@
   "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "MPMM",
   "baseRace": "aasimar",
+  "lore": {
+    "typicalDwelling": "Protector aasimar often live among mortals in bustling cities or quiet villages, drawn to places where the light of temples and shrines casts long shadows against the darkness. They prefer modest homes near places of worship, where they can hear the prayers of the faithful and remain vigilant.",
+    "typicalAttire": "In their daily lives, protector aasimar favor flowing garments in whites and golds, adorned with subtle celestial motifs—a sunburst clasp, silver threading that catches the light. They rarely wear armor unless danger calls, preferring simple elegance that reflects their divine heritage.",
+    "typicalEnvironment": "They are drawn to places bathed in natural light: sunlit highlands, tranquil groves, and the quiet courtyards of ancient temples. Even in cities, they seek rooftops and towers where the dawn arrives first.",
+    "societyType": "Though they walk among other races, protector aasimar are ultimately solitary guardians. They receive guidance through dreams and visions from celestial patrons, and this divine counsel shapes their path. They form deep bonds with those they protect but often feel apart from the world they defend.",
+    "typicalAssociation": "Protector aasimar embody vigilance and compassion. They are defenders of the weak, striking at evil wherever it arises while shielding the innocent. Most lean toward lawful good alignments, though their methods vary—some are gentle healers, others stern warriors of light.",
+    "physicalAppearance": "Protector aasimar stand slightly taller than most humans, typically between 5'10\" and 6'4\", with lean, graceful builds that suggest both strength and agility. Their physique is athletic but not overly muscular—more like a dancer or acrobat than a warrior. Their skin carries a subtle golden or silvery luminescence, most visible in dim light, as if lit from within. This glow is strongest along the cheekbones, collarbones, and the backs of their hands. Their faces are strikingly beautiful with high cheekbones, a strong but elegant jawline, and full lips. Their eyes are their most distinctive feature: pupil-less orbs of pale white, soft gold, or shimmering silver that seem to radiate calm. Their hair ranges from platinum blonde to pure white, often worn long and flowing, with individual strands that catch light even in shadow. Many have a faint covering of soft, downy feathers—usually white or pale gold—along their shoulders, upper back, and sometimes behind their ears. Their hands are long-fingered and elegant. When their divine power awakens, luminous incorporeal wings of pure radiant light extend from their backs, spanning roughly 12 feet, and their entire form glows with inner warmth."
+  },
   "characteristics": [
     {
       "label": "Creature Type",

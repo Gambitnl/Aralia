@@ -13,6 +13,8 @@ export interface CreationStepLayoutProps {
   className?: string;
   /** Optional custom confirm button (e.g., for Race selection) */
   raceConfirmButton?: React.ReactNode;
+  /** Allow disabling the outer scroll container so inner panes can scroll independently. */
+  bodyScrollable?: boolean;
 }
 
 /**
@@ -29,6 +31,7 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
   backLabel = 'Back',
   className = '',
   raceConfirmButton,
+  bodyScrollable = true,
 }) => {
   return (
     <div className={`flex flex-col h-full w-full ${className}`}>
@@ -49,8 +52,13 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
       </div>
 
       {/* Scrollable Body */}
-      <div className="flex-grow overflow-y-auto px-4 sm:px-6 py-4 scrollable-content border border-gray-700 rounded-xl">
+      <div
+        className={`flex-grow px-4 sm:px-6 py-4 scrollable-content border border-gray-700 rounded-xl ${
+          bodyScrollable ? 'overflow-y-auto' : 'overflow-hidden'
+        }`}
+      >
         <motion.div
+          className={bodyScrollable ? '' : 'h-full min-h-0'}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}

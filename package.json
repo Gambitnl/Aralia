@@ -14,6 +14,7 @@
     "test": "vitest",
     "test:types": "tsd src/types/__tests__/spells.test-d.ts",
     "test:mcp": "tsx scripts/test-mcp-servers.ts",
+    "mcp:chrome": "start chrome --remote-debugging-port=9222",
     "typecheck": "tsc -b",
     "lint": "eslint src scripts tests",
     "mcp": "tsx scripts/mcp-util.ts",

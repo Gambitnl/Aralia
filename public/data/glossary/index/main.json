@@ -1,13 +1,12 @@
 {
-  "lastGenerated": "2025-12-19T11:33:50.821Z",
+  "lastGenerated": "2026-01-23T14:44:55.323Z",
   "index_files": [
     "/data/glossary/index/character_classes.json",
     "/data/glossary/index/character_races.json",
-    "/data/glossary/index/developer.json",
+    "/data/glossary/index/crafting.json",
     "/data/glossary/index/magic_items.json",
     "/data/glossary/index/rules_glossary.json",
     "/data/glossary/index/spellcasting_mechanics.json",
-    "/data/glossary/index/spells.json",
-    "/data/glossary/index/crafting_glossary.json"
+    "/data/glossary/index/spells.json"
   ]
 }

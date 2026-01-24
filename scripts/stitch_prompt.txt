@@ -1,0 +1,1 @@
+A sleek dark-themed inventory item card for a fantasy RPG web application. Shows item icon, name, rarity border color, and stat bonuses. Compact grid-friendly layout. Uses gold accents for legendary items. React component.

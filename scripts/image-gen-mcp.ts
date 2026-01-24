@@ -9,15 +9,13 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import { fileURLToPath } from 'url';
+import { Provider, recordRaceImageDownload, recordRaceImageVerification } from "./raceImageStatus.js";
 
 
 /**
  * Unified Image Generation MCP Server
  * Consolidates Gemini and Whisk browser automation.
  */
-
-type Provider = "gemini" | "whisk";
-
 interface ProviderConfig {
     url: string;
     userDataDir: string;
@@ -103,7 +101,14 @@ const IMAGE_GUIDELINES = [
     "No text, UI elements, or blurry artifacts"
 ];
 
-async function verifyImageAdherence(imagePath: string): Promise<{ success: boolean; complies: boolean; message: string }> {
+interface VerifyImageResult {
+    success: boolean;
+    complies: boolean;
+    message: string;
+    verifiedRace?: string;
+}
+
+async function verifyImageAdherence(imagePath: string): Promise<VerifyImageResult> {
     try {
         if (!activePage || activePage.isClosed() || !currentProvider) {
             throw new Error("No active browser session. Generate an image first.");
@@ -139,7 +144,7 @@ async function verifyImageAdherence(imagePath: string): Promise<{ success: boole
         // 3. Send Prompt
         const prompt = `Analyze this image against the following guidelines:\n` +
             IMAGE_GUIDELINES.map(g => `- ${g}`).join('\n') +
-            `\n\nDoes the image adhere to these guidelines? Answer EXACTLY in this JSON format: { "complies": boolean, "reason": "concise explanation" }`;
+            `\n\nDoes the image adhere to these guidelines? Answer EXACTLY in this JSON format: { "complies": boolean, "race": "string|null", "reason": "concise explanation" }`;
 
         let input = null;
         for (const selector of config.selectors.input) {
@@ -177,10 +182,23 @@ async function verifyImageAdherence(imagePath: string): Promise<{ success: boole
         }
 
         const analysis = JSON.parse(jsonMatch[0]);
+        const verifiedRace = typeof analysis.race === "string" && analysis.race.trim() ? analysis.race.trim() : undefined;
+        const reason = typeof analysis.reason === "string" ? analysis.reason : "";
+        try {
+            recordRaceImageVerification(imagePath, {
+                tool: "verify_image_adherence",
+                complies: !!analysis.complies,
+                message: reason,
+                verifiedRace,
+            });
+        } catch (recordError: unknown) {
+            log(`Verification status error: ${getErrorMessage(recordError)}`);
+        }
         return {
             success: true,
-            complies: analysis.complies,
-            message: analysis.reason
+            complies: !!analysis.complies,
+            message: reason,
+            verifiedRace,
         };
 
     } catch (error: unknown) {
@@ -361,12 +379,13 @@ async function generateImage(prompt: string, provider: Provider = "gemini"): Pro
     }
 }
 
-async function downloadImage(outputPath?: string): Promise<{ success: boolean; path: string; message: string }> {
+async function downloadImage(options: { outputPath?: string; race?: string; variant?: string; gender?: string; prompt?: string }): Promise<{ success: boolean; path: string; message: string }> {
     try {
         if (!activePage || activePage.isClosed() || !currentProvider) {
             throw new Error("No active browser session. Generate an image first.");
         }
 
+        const { outputPath, race, variant, gender, prompt } = options;
         const provider = currentProvider;
         const config = CONFIG[provider];
         fs.mkdirSync(DEFAULT_OUTPUT_DIR, { recursive: true });
@@ -404,6 +423,21 @@ async function downloadImage(outputPath?: string): Promise<{ success: boolean; p
         }
 
         log(`Saved to: ${finalPath}`);
+        try {
+            const { duplicates } = recordRaceImageDownload({
+                race,
+                variant,
+                gender,
+                prompt,
+                provider,
+                imagePath: finalPath,
+            });
+            if (duplicates.length > 0) {
+                log(`Duplicate hash detected for ${finalPath} matching ${duplicates.map((dup) => dup.imagePath).join(", ")}`);
+            }
+        } catch (recordError: unknown) {
+            log(`Status record error: ${getErrorMessage(recordError)}`);
+        }
         return { success: true, path: finalPath, message: `Image downloaded to ${finalPath}` };
 
     } catch (error: unknown) {
@@ -434,7 +468,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             inputSchema: {
                 type: "object",
                 properties: {
-                    outputPath: { type: "string", description: "Absolute path to save the image" }
+                    outputPath: { type: "string", description: "Absolute path to save the image" },
+                    race: { type: "string", description: "Intended race portrayed by the image" },
+                    variant: { type: "string", description: "Optional subrace or variant name" },
+                    gender: { type: "string", description: "Gender portrayed in the image" },
+                    prompt: { type: "string", description: "Prompt text used to generate the image" }
                 }
             }
         },
@@ -460,16 +498,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: "text", text: result.message }], isError: !result.success };
     }
     if (name === "download_image") {
-        const { outputPath } = args as { outputPath?: string };
-        const result = await downloadImage(outputPath);
+        const { outputPath, race, variant, gender, prompt } = args as {
+            outputPath?: string;
+            race?: string;
+            variant?: string;
+            gender?: string;
+            prompt?: string;
+        };
+        const result = await downloadImage({ outputPath, race, variant, gender, prompt });
         return { content: [{ type: "text", text: result.message }], isError: !result.success };
     }
     if (name === "verify_image_adherence") {
         const { imagePath } = args as { imagePath: string };
         const result = await verifyImageAdherence(imagePath);
         const status = result.complies ? "✅ Complies" : "❌ Does not comply";
+        const extra = result.verifiedRace ? ` (verified race: ${result.verifiedRace})` : "";
         return {
-            content: [{ type: "text", text: `${status}: ${result.message}` }],
+            content: [{ type: "text", text: `${status}: ${result.message}${extra}` }],
             isError: !result.success
         };
     }

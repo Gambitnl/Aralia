@@ -6,6 +6,14 @@
   "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "MPMM",
   "baseRace": "aasimar",
+  "lore": {
+    "typicalDwelling": "Scourge aasimar often withdraw from society, seeking seclusion where they can contain the divine fire that burns within them. They make their homes in austere monasteries, remote shrines, or isolated hermitages—anywhere they can focus on mastering their volatile power without endangering others.",
+    "typicalAttire": "Most scourge aasimar wear hooded robes and ceremonial masks that conceal their blazing eyes and the faint glow that emanates from their skin. Their garments are practical and often flame-resistant, designed to survive the radiant energy they periodically release. They unmask only in battle.",
+    "typicalEnvironment": "They gravitate toward harsh, purifying landscapes: sun-scorched deserts, volcanic highlands, or war-torn frontiers where their destructive gifts can be put to righteous use. In cities, they haunt the edges—torch-lit temples and shadowed battlements.",
+    "societyType": "Scourge aasimar are driven by an all-consuming need to destroy evil. Some join militant holy orders, while others walk alone as wandering purifiers. Their intensity can be off-putting, and they often struggle to form lasting bonds with those who cannot understand the fire that drives them.",
+    "typicalAssociation": "These aasimar are zealots and purifiers, channeling divine wrath against corruption. They range from lawful neutral to lawful good, but their methods are often extreme. They are self-sacrificing, intense, and utterly relentless in their mission to scour evil from the world.",
+    "physicalAppearance": "Scourge aasimar share the tall, graceful build of their protector kin—typically 5'10\" to 6'4\"—but their bodies show unmistakable signs of the divine fire burning within. Their physique tends toward lean and sinewy, hardened by the constant effort of containing their radiant power. Their skin has a faint inner glow, with veins that pulse with golden or white-hot light beneath the surface, particularly visible along the neck, forearms, and temples. Their faces are angular and intense, with sharp cheekbones and a severe beauty that can be unsettling. Their eyes are their most striking feature: orbs of solid blazing light or smoldering flame, without visible iris or pupil—which is why many wear masks or hoods to conceal them. Their hair is typically pale gold, white, or occasionally appears singed or ashen at the tips, sometimes with faint embers that glow when they're agitated. Their skin feels warm to the touch, and in moments of stress, heat shimmers around them like desert air. When they unleash their power, searing light pours from their eyes and mouth, their skin radiates intense heat, cracks of light appear along their body like molten fissures, and the air around them distorts from the furnace-like energy."
+  },
   "characteristics": [
     {
       "label": "Creature Type",

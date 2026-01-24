@@ -3,7 +3,7 @@
     "chrome-devtools": {
       "command": "node",
       "args": [
-        "R:\\AraliaV4\\Aralia\\.agent_tools\\chrome-devtools-mcp\\build\\src\\index.js",
+        "scripts/run-chrome-mcp.js",
         "--browserUrl",
         "http://127.0.0.1:9222"
       ]

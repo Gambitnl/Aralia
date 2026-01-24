@@ -13,5 +13,5 @@
     "rolling_20_or_1"
   ],
   "filePath": "/data/glossary/entries/rules/attack_roll.json",
-  "markdown": "# Attack Rolls\r\nAn attack roll determines whether an attack hits a target. An attack roll hits if the roll equals or exceeds the target's Armor Class. Attack rolls usually occur in battle, but the DM might also ask for an attack roll in other situations, such as an archery competition.\r\n\r\nFor more details on modifiers, proficiency, Armor Class, and critical rolls, see the sub-entries.\r\n"
+  "markdown": "# Attack Rolls\r\nAn attack roll determines whether an attack hits a target. An attack roll hits if the roll equals or exceeds the target's Armor Class. Attack rolls usually occur in battle, but the game might also call for an attack roll in other situations, such as an archery competition.\r\n\r\nFor more details on modifiers, proficiency, Armor Class, and critical rolls, see the sub-entries.\r\n"
 }

@@ -479,6 +479,28 @@ const server = http.createServer(async (req, res) => {
 
   const url = req.url || '/';
 
+  // API endpoint to check if server is running (health check)
+  if (url === '/api/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', port: PORT }));
+    return;
+  }
+
+  // API endpoint to gracefully shutdown the server
+  if (url === '/api/shutdown') {
+    console.log('[' + new Date().toLocaleTimeString() + '] Shutdown requested via API');
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'shutting_down' }));
+    // Give the response time to send before closing
+    setTimeout(() => {
+      server.close(() => {
+        console.log('Server shut down gracefully');
+        process.exit(0);
+      });
+    }, 100);
+    return;
+  }
+
   // API endpoint to get fresh graph data
   if (url === '/api/graph') {
     console.log('[' + new Date().toLocaleTimeString() + '] Regenerating graph data...');

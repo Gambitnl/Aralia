@@ -123,7 +123,8 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                     currentLocationCoords={currentLocation.mapCoordinates}
                     submapCoords={subMapCoordinates ?? null}
                     visible={true} // Always visible in this layout
-                    toggleMap={() => onAction({ type: 'toggle_map', label: 'Open Map' })}
+                    toggleSubmap={() => onAction({ type: 'toggle_submap_visibility', label: 'Open Submap' })}
+                    worldSeed={worldSeed}
                 />
             </div>
         </div>

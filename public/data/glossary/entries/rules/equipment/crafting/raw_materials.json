@@ -7,5 +7,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.json",
-  "markdown": "# Crafting: Raw Materials\r\nTo make an item, you need raw materials worth half its purchase cost (round down). For example, you need 750 GP of raw materials to make Plate Armor, which sells for 1,500 GP. The DM determines whether appropriate raw materials are available."
+  "markdown": "# Crafting: Raw Materials\r\nTo make an item, you need raw materials worth half its purchase cost (round down). For example, you need 750 GP of raw materials to make Plate Armor, which sells for 1,500 GP. The game determines whether appropriate raw materials are available."
 }

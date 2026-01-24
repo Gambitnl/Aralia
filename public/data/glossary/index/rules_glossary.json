@@ -167,7 +167,7 @@
   },
   {
     "id": "alchemists_fire_item",
-    "title": "Alchemist’s Fire",
+    "title": "Alchemist's Fire",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -177,13 +177,34 @@
   },
   {
     "id": "alchemists_supplies",
-    "title": "Alchemist’s Supplies",
+    "title": "Alchemist's Supplies",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/alchemists_supplies.json"
+  },
+  {
+    "id": "alchemy_crafting",
+    "title": "Alchemy Crafting",
+    "category": "Rules Glossary",
+    "tags": [
+      "crafting",
+      "alchemy",
+      "consumable",
+      "potions",
+      "oil"
+    ],
+    "excerpt": "Proficiency with Alchemist's Supplies allows you to produce useful concoctions, such as potions and oils, often cheaper than buying them.",
+    "aliases": [
+      "potion brewing"
+    ],
+    "seeAlso": [
+      "herbalism_gathering",
+      "poison_crafting"
+    ],
+    "filePath": "/data/glossary/entries/rules/crafting/alchemy_crafting.json"
   },
   {
     "id": "ammunition_property",
@@ -267,7 +288,7 @@
   },
   {
     "id": "artisans_tools",
-    "title": "Artisan’s Tools",
+    "title": "Artisan's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "Details on tools focused on crafting and trades.",
@@ -320,6 +341,26 @@
       "rolling_20_or_1"
     ],
     "filePath": "/data/glossary/entries/rules/attack_roll.json"
+  },
+  {
+    "id": "attune_during_short_rest",
+    "title": "Attune during a Short Rest",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attune_during_short_rest.json"
+  },
+  {
+    "id": "attunement",
+    "title": "Attunement",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Rules for forming a bond with a magic item.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.json"
   },
   {
     "id": "barding",
@@ -395,13 +436,23 @@
   },
   {
     "id": "brewers_supplies",
-    "title": "Brewer’s Supplies",
+    "title": "Brewer's Supplies",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/brewers_supplies.json"
+  },
+  {
+    "id": "brewing_potions_of_healing",
+    "title": "Brewing Potions of Healing",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/brewing_potions_of_healing.json"
   },
   {
     "id": "bright_light",
@@ -424,7 +475,7 @@
   },
   {
     "id": "calligraphers_supplies",
-    "title": "Calligrapher’s Supplies",
+    "title": "Calligrapher's Supplies",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -433,18 +484,25 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/calligraphers_supplies.json"
   },
   {
-    "id": "scribing_cantrips",
+    "id": "cantrip",
     "title": "Cantrips",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_cantrips.json"
+    "tags": [
+      "spellcasting",
+      "magic"
+    ],
+    "excerpt": "A spell that can be cast at will, without using a spell slot and without being prepared in advance. Cantrips are simple but reliable magical effects.",
+    "aliases": [
+      "Cantrip"
+    ],
+    "seeAlso": [
+      "spell_slot"
+    ],
+    "filePath": "/data/glossary/entries/rules/cantrip.json"
   },
   {
     "id": "carpenters_tools",
-    "title": "Carpenter’s Tools",
+    "title": "Carpenter's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -464,7 +522,7 @@
   },
   {
     "id": "cartographers_tools",
-    "title": "Cartographer’s Tools",
+    "title": "Cartographer's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -490,6 +548,26 @@
       "special_speeds"
     ],
     "filePath": "/data/glossary/entries/rules/changes_to_your_speeds.json"
+  },
+  {
+    "id": "charisma",
+    "title": "Charisma",
+    "category": "Rules Glossary",
+    "tags": [
+      "ability scores",
+      "attributes",
+      "stats"
+    ],
+    "excerpt": "Measures force of personality, persuasiveness, and leadership ability. Charisma is important for bards, paladins, sorcerers, and warlocks.",
+    "aliases": [
+      "CHA"
+    ],
+    "seeAlso": [
+      "wisdom",
+      "intelligence",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/charisma.json"
   },
   {
     "id": "charmed_condition",
@@ -538,7 +616,7 @@
   },
   {
     "id": "cobblers_tools",
-    "title": "Cobbler’s Tools",
+    "title": "Cobbler's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -577,6 +655,23 @@
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/comfortable_lifestyle.json"
   },
   {
+    "id": "concentration",
+    "title": "Concentration",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "magic",
+      "combat"
+    ],
+    "excerpt": "Some spells require you to maintain concentration to keep their magic active. If you lose concentration, such a spell ends immediately.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_slot",
+      "constitution"
+    ],
+    "filePath": "/data/glossary/entries/rules/concentration.json"
+  },
+  {
     "id": "conditions",
     "title": "Conditions (Overview)",
     "category": "Rules Glossary",
@@ -585,7 +680,7 @@
       "condition",
       "status effect"
     ],
-    "excerpt": "Many effects impose a condition, a temporary state that alters the recipient’s capabilities. The specific conditions, their durations, and stacking rules are detailed in sub-entries.",
+    "excerpt": "Many effects impose a condition, a temporary state that alters the recipient's capabilities. The specific conditions, their durations, and stacking rules are detailed in sub-entries.",
     "aliases": [
       "status effects"
     ],
@@ -599,14 +694,14 @@
   },
   {
     "id": "conditions_dont_stack",
-    "title": "Conditions Don’t Stack",
+    "title": "Conditions Don't Stack",
     "category": "Rules Glossary",
     "tags": [
       "rules",
       "condition",
       "stacking"
     ],
-    "excerpt": "If multiple effects impose the same condition, the effects don’t get worse. The Exhaustion condition is an exception.",
+    "excerpt": "If multiple effects impose the same condition, the effects don't get worse. The Exhaustion condition is an exception.",
     "aliases": [],
     "seeAlso": [
       "conditions",
@@ -615,14 +710,56 @@
     "filePath": "/data/glossary/entries/rules/conditions_dont_stack.json"
   },
   {
+    "id": "constitution",
+    "title": "Constitution",
+    "category": "Rules Glossary",
+    "tags": [
+      "ability scores",
+      "attributes",
+      "stats"
+    ],
+    "excerpt": "Measures health, stamina, and vital force. Constitution determines your hit points and affects concentration on spells.",
+    "aliases": [
+      "CON"
+    ],
+    "seeAlso": [
+      "strength",
+      "dexterity",
+      "hit_points",
+      "concentration",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/constitution.json"
+  },
+  {
     "id": "cooks_utensils",
-    "title": "Cook’s Utensils",
+    "title": "Cook's Utensils",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/cooks_utensils.json"
+  },
+  {
+    "id": "crafting_equipment",
+    "title": "Crafting Equipment",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Rules for making nonmagical items, potions, and scrolls.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting_equipment.json"
+  },
+  {
+    "id": "crafting_nonmagical_items",
+    "title": "Crafting Nonmagical Items",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Rules for crafting nonmagical items, requiring tools, raw materials, and time.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/crafting_nonmagical_items.json"
   },
   {
     "id": "crawling",
@@ -724,6 +861,26 @@
     "filePath": "/data/glossary/entries/rules/conditions/deafened_condition.json"
   },
   {
+    "id": "dexterity",
+    "title": "Dexterity",
+    "category": "Rules Glossary",
+    "tags": [
+      "ability scores",
+      "attributes",
+      "stats"
+    ],
+    "excerpt": "Measures agility, reflexes, and balance. Dexterity is important for ranged combat, initiative, armor class, and avoiding area effects.",
+    "aliases": [
+      "DEX"
+    ],
+    "seeAlso": [
+      "strength",
+      "constitution",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/dexterity.json"
+  },
+  {
     "id": "saving_throw_dc",
     "title": "Difficulty Class",
     "category": "Rules Glossary",
@@ -738,7 +895,7 @@
     "title": "Difficulty Class",
     "category": "Rules Glossary",
     "tags": [],
-    "excerpt": "Represents the task’s difficulty for an ability check.",
+    "excerpt": "Represents the task's difficulty for an ability check.",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ability_check_dc.json"
@@ -807,6 +964,16 @@
       "conditions"
     ],
     "filePath": "/data/glossary/entries/rules/duration_condition.json"
+  },
+  {
+    "id": "ending_attunement",
+    "title": "Ending Attunement",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/ending_attunement.json"
   },
   {
     "id": "equipment",
@@ -976,7 +1143,7 @@
   },
   {
     "id": "glassblowers_tools",
-    "title": "Glassblower’s Tools",
+    "title": "Glassblower's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -1031,6 +1198,27 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/heavy.json"
   },
   {
+    "id": "herbalism_gathering",
+    "title": "Herbalism & Gathering",
+    "category": "Rules Glossary",
+    "tags": [
+      "crafting",
+      "herbalism",
+      "gathering",
+      "nature",
+      "plants"
+    ],
+    "excerpt": "Proficiency with an Herbalism Kit allows you to identify plants, safely collect them, and create healing salves and potions.",
+    "aliases": [
+      "foraging"
+    ],
+    "seeAlso": [
+      "alchemy_crafting",
+      "poison_crafting"
+    ],
+    "filePath": "/data/glossary/entries/rules/crafting/herbalism_gathering.json"
+  },
+  {
     "id": "herbalism_kit",
     "title": "Herbalism Kit",
     "category": "Rules Glossary",
@@ -1082,6 +1270,16 @@
     "filePath": "/data/glossary/entries/rules/hit_points.json"
   },
   {
+    "id": "identifying_magic_item",
+    "title": "Identifying a Magic Item",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/identifying_magic_item.json"
+  },
+  {
     "id": "incapacitated_condition",
     "title": "Incapacitated",
     "category": "Rules Glossary",
@@ -1099,6 +1297,24 @@
       "concentration"
     ],
     "filePath": "/data/glossary/entries/rules/conditions/incapacitated_condition.json"
+  },
+  {
+    "id": "initiative",
+    "title": "Initiative",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "turn order"
+    ],
+    "excerpt": "Determines the order of turns in combat. At the start of combat, everyone rolls initiative by making a Dexterity check.",
+    "aliases": [
+      "Turn Order"
+    ],
+    "seeAlso": [
+      "dexterity",
+      "action"
+    ],
+    "filePath": "/data/glossary/entries/rules/initiative.json"
   },
   {
     "id": "interacting_with_objects",
@@ -1138,7 +1354,7 @@
   },
   {
     "id": "jewelers_tools",
-    "title": "Jeweler’s Tools",
+    "title": "Jeweler's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -1181,7 +1397,7 @@
   },
   {
     "id": "leatherworkers_tools",
-    "title": "Leatherworker’s Tools",
+    "title": "Leatherworker's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -1246,6 +1462,28 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/loading.json"
   },
   {
+    "id": "lockpicking",
+    "title": "Lockpicking",
+    "category": "Rules Glossary",
+    "tags": [
+      "skills",
+      "dexterity",
+      "rogue",
+      "exploration"
+    ],
+    "excerpt": "No excerpt available.",
+    "aliases": [
+      "picking locks",
+      "pick lock"
+    ],
+    "seeAlso": [
+      "thieves_tools",
+      "traps",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/lockpicking.json"
+  },
+  {
     "id": "long_rest",
     "title": "Long Rest",
     "category": "Rules Glossary",
@@ -1264,8 +1502,40 @@
     "filePath": "/data/glossary/entries/rules/long_rest.json"
   },
   {
+    "id": "magic_action",
+    "title": "Magic Action (Cast a Spell)",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "magic",
+      "actions"
+    ],
+    "excerpt": "Using your action to cast a spell. Most spells have a casting time of 1 action, making this one of the most common actions for spellcasters.",
+    "aliases": [
+      "Cast a Spell",
+      "Spellcasting Action"
+    ],
+    "seeAlso": [
+      "action",
+      "spell_slot",
+      "bonus_action",
+      "concentration"
+    ],
+    "filePath": "/data/glossary/entries/rules/magic_action.json"
+  },
+  {
+    "id": "magic_items_overview",
+    "title": "Magic Items",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "General rules for using magic items.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items.json"
+  },
+  {
     "id": "masons_tools",
-    "title": "Mason’s Tools",
+    "title": "Mason's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -1324,6 +1594,16 @@
     "filePath": "/data/glossary/entries/rules/equipment/mounts_and_vehicles.json"
   },
   {
+    "id": "multiple_items_of_same_kind",
+    "title": "Multiple Items of the Same Kind",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/multiple_items_of_same_kind.json"
+  },
+  {
     "id": "musical_instrument",
     "title": "Musical Instrument (Varies)",
     "category": "Rules Glossary",
@@ -1335,7 +1615,7 @@
   },
   {
     "id": "navigators_tools",
-    "title": "Navigator’s Tools",
+    "title": "Navigator's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -1352,6 +1632,16 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/nick.json"
+  },
+  {
+    "id": "no_more_than_three_items",
+    "title": "No More Than Three Items",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/no_more_than_three_items.json"
   },
   {
     "id": "obscured_areas",
@@ -1393,6 +1683,26 @@
     "filePath": "/data/glossary/entries/rules/one_thing_at_a_time.json"
   },
   {
+    "id": "opportunity_attack",
+    "title": "Opportunity Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "attack",
+      "reaction"
+    ],
+    "excerpt": "A special reaction you can take when a hostile creature you can see moves out of your reach. The most common type of reaction.",
+    "aliases": [
+      "Attack of Opportunity",
+      "AoO"
+    ],
+    "seeAlso": [
+      "reaction",
+      "attack_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/opportunity_attack.json"
+  },
+  {
     "id": "other_tools",
     "title": "Other Tools",
     "category": "Rules Glossary",
@@ -1404,13 +1714,23 @@
   },
   {
     "id": "painters_supplies",
-    "title": "Painter’s Supplies",
+    "title": "Painter's Supplies",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/painters_supplies.json"
+  },
+  {
+    "id": "paired_items",
+    "title": "Paired Items",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/paired_items.json"
   },
   {
     "id": "paralyzed_condition",
@@ -1457,6 +1777,27 @@
     "filePath": "/data/glossary/entries/rules/conditions/petrified_condition.json"
   },
   {
+    "id": "poison_crafting",
+    "title": "Poison Crafting",
+    "category": "Rules Glossary",
+    "tags": [
+      "crafting",
+      "poison",
+      "toxin",
+      "injury",
+      "ingested"
+    ],
+    "excerpt": "Proficiency with a Poisoner's Kit allows you to create poisons from various materials and handle them safely.",
+    "aliases": [
+      "poison making"
+    ],
+    "seeAlso": [
+      "alchemy_crafting",
+      "herbalism_gathering"
+    ],
+    "filePath": "/data/glossary/entries/rules/crafting/poison_crafting.json"
+  },
+  {
     "id": "poisoned_condition",
     "title": "Poisoned",
     "category": "Rules Glossary",
@@ -1474,7 +1815,7 @@
   },
   {
     "id": "poisoners_kit",
-    "title": "Poisoner’s Kit",
+    "title": "Poisoner's Kit",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -1494,23 +1835,13 @@
   },
   {
     "id": "potters_tools",
-    "title": "Potter’s Tools",
+    "title": "Potter's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/potters_tools.json"
-  },
-  {
-    "id": "scribing_prerequisites",
-    "title": "Prerequisites for the Scribe",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_prerequisites.json"
   },
   {
     "id": "proficiency",
@@ -1640,6 +1971,16 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/range.json"
   },
   {
+    "id": "crafting_raw_materials",
+    "title": "Raw Materials",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.json"
+  },
+  {
     "id": "reach_property",
     "title": "Reach",
     "category": "Rules Glossary",
@@ -1679,7 +2020,7 @@
       "combat",
       "opportunity attack"
     ],
-    "excerpt": "An instant response to a trigger of some kind, which can occur on your turn or on someone else’s.",
+    "excerpt": "An instant response to a trigger of some kind, which can occur on your turn or on someone else's.",
     "aliases": [],
     "seeAlso": [
       "actions",
@@ -1703,6 +2044,23 @@
       "advantage_disadvantage"
     ],
     "filePath": "/data/glossary/entries/rules/conditions/restrained_condition.json"
+  },
+  {
+    "id": "ritual",
+    "title": "Ritual Casting",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "magic"
+    ],
+    "excerpt": "Certain spells can be cast as rituals, taking 10 additional minutes but not consuming a spell slot. Only some classes can cast rituals.",
+    "aliases": [
+      "Ritual"
+    ],
+    "seeAlso": [
+      "spell_slot"
+    ],
+    "filePath": "/data/glossary/entries/rules/ritual.json"
   },
   {
     "id": "advantage_disadvantage_roll_two",
@@ -1891,7 +2249,7 @@
   },
   {
     "id": "smiths_tools",
-    "title": "Smith’s Tools",
+    "title": "Smith's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -1965,6 +2323,25 @@
     "filePath": "/data/glossary/entries/rules/equipment/vehicles/speed.json"
   },
   {
+    "id": "spell_slot",
+    "title": "Spell Slots",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "magic",
+      "resources"
+    ],
+    "excerpt": "A limited resource that represents the magical energy you can expend to cast spells. Spell slots are expended when you cast a spell and are regained when you finish a long rest.",
+    "aliases": [
+      "Spell Slot"
+    ],
+    "seeAlso": [
+      "long_rest",
+      "cantrip"
+    ],
+    "filePath": "/data/glossary/entries/rules/spell_slot.json"
+  },
+  {
     "id": "spellcasting_services_overview",
     "title": "Spellcasting",
     "category": "Rules Glossary",
@@ -1983,6 +2360,36 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/spellcasting_services.json"
+  },
+  {
+    "id": "spells_chapter",
+    "title": "Spells (Chapter Overview)",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "magic",
+      "spellcasting",
+      "core mechanic"
+    ],
+    "excerpt": "A general introduction to how spells function in the game, covering fundamental concepts. Detailed rules are found in sub-entries under 'Spellcasting Mechanics'.",
+    "aliases": [
+      "spell rules",
+      "magic rules",
+      "spellcasting overview"
+    ],
+    "seeAlso": [
+      "gaining_spells",
+      "spell_level_slots",
+      "school_of_magic",
+      "casting_time_rules",
+      "spell_range_rules",
+      "spell_components_rules",
+      "spell_duration_rules",
+      "spell_effects_rules",
+      "spell_scroll",
+      "magic_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells_chapter.json"
   },
   {
     "id": "squalid_lifestyle",
@@ -2091,7 +2498,7 @@
   },
   {
     "id": "thieves_tools",
-    "title": "Thieves’ Tools",
+    "title": "Thieves' Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -2110,14 +2517,14 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/thrown.json"
   },
   {
-    "id": "scribing_time_and_cost",
-    "title": "Time and Cost",
+    "id": "crafting_time",
+    "title": "Time",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_time_and_cost.json"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/time.json"
   },
   {
     "id": "time_limited_object_interactions",
@@ -2131,7 +2538,7 @@
   },
   {
     "id": "tinkers_tools",
-    "title": "Tinker’s Tools",
+    "title": "Tinker's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -2168,6 +2575,27 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/topple.json"
+  },
+  {
+    "id": "traps",
+    "title": "Traps",
+    "category": "Rules Glossary",
+    "tags": [
+      "hazards",
+      "exploration",
+      "dungeon"
+    ],
+    "excerpt": "No excerpt available.",
+    "aliases": [
+      "trap",
+      "hazard"
+    ],
+    "seeAlso": [
+      "thieves_tools",
+      "lockpicking",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/traps.json"
   },
   {
     "id": "travel",
@@ -2208,6 +2636,24 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/two_handed.json"
+  },
+  {
+    "id": "unarmed_strike",
+    "title": "Unarmed Strike",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "attack",
+      "melee"
+    ],
+    "excerpt": "A melee attack made with a punch, kick, head-butt, or similar forceful blow. Instead of using a weapon, you use your fist, foot, or another body part.",
+    "aliases": [
+      "Unarmed Attack"
+    ],
+    "seeAlso": [
+      "attack_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/unarmed_strike.json"
   },
   {
     "id": "unconscious_condition",
@@ -2298,8 +2744,18 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons.json"
   },
   {
+    "id": "wearing_wielding_items",
+    "title": "Wearing and Wielding Items",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Rules for how magic items are worn and used.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/wearing_wielding_items.json"
+  },
+  {
     "id": "weavers_tools",
-    "title": "Weaver’s Tools",
+    "title": "Weaver's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -2322,8 +2778,28 @@
     "filePath": "/data/glossary/entries/rules/what_is_an_object.json"
   },
   {
+    "id": "wisdom",
+    "title": "Wisdom",
+    "category": "Rules Glossary",
+    "tags": [
+      "ability scores",
+      "attributes",
+      "stats"
+    ],
+    "excerpt": "Measures awareness, intuition, and insight. Wisdom is important for clerics, druids, and rangers, and affects perception and many saving throws.",
+    "aliases": [
+      "WIS"
+    ],
+    "seeAlso": [
+      "intelligence",
+      "charisma",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/wisdom.json"
+  },
+  {
     "id": "woodcarvers_tools",
-    "title": "Woodcarver’s Tools",
+    "title": "Woodcarver's Tools",
     "category": "Rules Glossary",
     "tags": [],
     "excerpt": "No excerpt available.",
@@ -2340,69 +2816,5 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/wretched_lifestyle.json"
-  },
-  {
-    "id": "thieves_tools",
-    "title": "Thieves' Tools",
-    "category": "Rules Glossary",
-    "tags": [
-      "equipment",
-      "tools",
-      "rogue",
-      "lockpicking"
-    ],
-    "excerpt": "A set of specialized tools used for picking locks, disarming traps, and other clandestine activities. Proficiency allows adding your proficiency bonus to checks made with them.",
-    "aliases": [
-      "thieves tools",
-      "lockpicks"
-    ],
-    "seeAlso": [
-      "lockpicking",
-      "traps"
-    ],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/thieves_tools.json"
-  },
-  {
-    "id": "lockpicking",
-    "title": "Lockpicking",
-    "category": "Rules Glossary",
-    "tags": [
-      "skills",
-      "dexterity",
-      "rogue",
-      "exploration"
-    ],
-    "excerpt": "The art of opening locks without a key using Thieves' Tools. Requires a Dexterity check against the lock's DC, with proficiency bonus if proficient with Thieves' Tools.",
-    "aliases": [
-      "picking locks",
-      "pick lock"
-    ],
-    "seeAlso": [
-      "thieves_tools",
-      "traps",
-      "ability_check"
-    ],
-    "filePath": "/data/glossary/entries/rules/lockpicking.json"
-  },
-  {
-    "id": "traps",
-    "title": "Traps",
-    "category": "Rules Glossary",
-    "tags": [
-      "hazards",
-      "exploration",
-      "dungeon"
-    ],
-    "excerpt": "Hidden dangers designed to harm or hinder intruders. Traps can be detected with Wisdom (Perception) or Intelligence (Investigation) checks, and disarmed with Dexterity checks using Thieves' Tools.",
-    "aliases": [
-      "trap",
-      "hazard"
-    ],
-    "seeAlso": [
-      "thieves_tools",
-      "lockpicking",
-      "ability_check"
-    ],
-    "filePath": "/data/glossary/entries/rules/traps.json"
   }
 ]

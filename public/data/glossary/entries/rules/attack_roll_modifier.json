@@ -7,5 +7,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/attack_roll_modifier.json",
-  "markdown": "# Ability Modifier\r\nThe <span data-term-id=\"attack_roll_abilities\" class=\"glossary-term-link-from-markdown\">Attack Roll Abilities table</span> shows which ability modifier to use for different types of attack rolls.\r\n\r\nSome features let you use different ability modifiers from those listed. For example, the Finesse property (see "Equipment") lets you use Strength or Dexterity with a weapon that has that property.\r\n"
+  "markdown": "# Ability Modifier\r\nThe <span data-term-id=\"attack_roll_abilities\" class=\"glossary-term-link-from-markdown\">Attack Roll Abilities table</span> shows which ability modifier to use for different types of attack rolls.\r\n\r\nSome features let you use different ability modifiers from those listed. For example, the Finesse property (see the Equipment section) lets you use Strength or Dexterity with a weapon that has that property.\r\n"
 }

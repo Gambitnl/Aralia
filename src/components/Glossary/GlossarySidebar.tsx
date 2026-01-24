@@ -210,39 +210,44 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                 <p className="text-gray-500 italic text-center py-4">No terms match your search.</p>
             )}
 
-            {sortedCategories.map(category => (
-                <details key={category} open={expandedCategories.has(category)} className="mb-1">
-                    <summary
-                        className={`p-2 font-semibold cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg list-none flex justify-between items-center ${getCategoryColor(category)}`}
-                        onClick={(e) => { e.preventDefault(); onToggleCategory(category); }}
-                    >
-                        <span className="flex items-center">
-                            {getCategoryIcon(category)}
-                            {category} ({categoryCounts[category] || 0})
-                        </span>
-                        <span className={`ml-2 transform transition-transform duration-150 ${expandedCategories.has(category) ? 'rotate-90' : ''}`}>▶</span>
-                    </summary>
+            {sortedCategories.map(category => {
+                const isExpanded = expandedCategories.has(category);
+                return (
+                    <div key={category} className="mb-1">
+                        <button
+                            type="button"
+                            className={`w-full p-2 font-semibold cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg flex justify-between items-center text-left ${getCategoryColor(category)}`}
+                            onClick={() => onToggleCategory(category)}
+                            aria-expanded={isExpanded}
+                        >
+                            <span className="flex items-center">
+                                {getCategoryIcon(category)}
+                                {category} ({categoryCounts[category] || 0})
+                            </span>
+                            <span className={`ml-2 transform transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
+                        </button>
 
-                    {expandedCategories.has(category) && (
-                        <ul className="space-y-px pl-1 pt-1">
-                            {groupedEntries[category]?.sort((a, b) => a.title.localeCompare(b.title)).map(entry => (
-                                <GlossaryEntryNode
-                                    key={entry.id}
-                                    entry={entry}
-                                    level={1}
-                                    selectedEntry={selectedEntry}
-                                    expandedParentEntries={expandedParentEntries}
-                                    onToggleParentEntry={onToggleParentEntry}
-                                    onEntrySelect={onEntrySelect}
-                                    searchTerm={searchTerm}
-                                    gateResults={gateResults}
-                                    entryRefs={entryRefs}
-                                />
-                            ))}
-                        </ul>
-                    )}
-                </details>
-            ))}
+                        {isExpanded && (
+                            <ul className="space-y-px pl-1 pt-1">
+                                {groupedEntries[category]?.sort((a, b) => a.title.localeCompare(b.title)).map(entry => (
+                                    <GlossaryEntryNode
+                                        key={entry.id}
+                                        entry={entry}
+                                        level={1}
+                                        selectedEntry={selectedEntry}
+                                        expandedParentEntries={expandedParentEntries}
+                                        onToggleParentEntry={onToggleParentEntry}
+                                        onEntrySelect={onEntrySelect}
+                                        searchTerm={searchTerm}
+                                        gateResults={gateResults}
+                                        entryRefs={entryRefs}
+                                    />
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 };
