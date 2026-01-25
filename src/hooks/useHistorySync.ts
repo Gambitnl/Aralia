@@ -8,6 +8,10 @@ import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 const getPhaseSlug = (phase: GamePhase): string => GamePhase[phase]?.toLowerCase() || '';
 const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
   if (!slug) return null;
+  if (slug.toLowerCase() === 'design_preview') {
+    console.warn("[Decoupling] 'design_preview' is now a standalone tool. Access it at /Aralia/misc/design.html");
+    return null;
+  }
   const key = slug.toUpperCase() as keyof typeof GamePhase;
   return key in GamePhase ? GamePhase[key] : (parseInt(slug, 10) in GamePhase ? parseInt(slug, 10) : null);
 };
@@ -41,16 +45,16 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
 
   // Helper to sync state params
   const syncParams = useCallback((params: URLSearchParams, phase: GamePhase) => {
-      params.set('phase', getPhaseSlug(phase));
-      if (phase === GamePhase.PLAYING || phase === GamePhase.VILLAGE_VIEW) {
-        if (gameState.subMapCoordinates) {
-            params.set('x', gameState.subMapCoordinates.x.toString());
-            params.set('y', gameState.subMapCoordinates.y.toString());
-        }
-        if (gameState.currentLocationId) params.set('loc', gameState.currentLocationId);
-      } else {
-        ['x', 'y', 'loc'].forEach(k => params.delete(k));
+    params.set('phase', getPhaseSlug(phase));
+    if (phase === GamePhase.PLAYING || phase === GamePhase.VILLAGE_VIEW) {
+      if (gameState.subMapCoordinates) {
+        params.set('x', gameState.subMapCoordinates.x.toString());
+        params.set('y', gameState.subMapCoordinates.y.toString());
       }
+      if (gameState.currentLocationId) params.set('loc', gameState.currentLocationId);
+    } else {
+      ['x', 'y', 'loc'].forEach(k => params.delete(k));
+    }
   }, [gameState.subMapCoordinates, gameState.currentLocationId]);
 
   useEffect(() => {
@@ -67,11 +71,13 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
         // Ranger: Restore location context if available and safe
         const [x, y, loc] = [params.get('x'), params.get('y'), params.get('loc')];
         if (x && y && loc && urlPhase === GamePhase.PLAYING && gameState.party.length > 0) {
-             dispatch({ type: 'MOVE_PLAYER', payload: {
-                 newLocationId: loc,
-                 newSubMapCoordinates: { x: parseInt(x), y: parseInt(y) },
-                 activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(loc, LOCATIONS)
-             }});
+          dispatch({
+            type: 'MOVE_PLAYER', payload: {
+              newLocationId: loc,
+              newSubMapCoordinates: { x: parseInt(x), y: parseInt(y) },
+              activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(loc, LOCATIONS)
+            }
+          });
         }
       } else if (rawPhase && urlPhase === null) {
         // Ranger: Handle 404 (valid parameter but invalid phase)
@@ -99,9 +105,9 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     // Only update if URL actually changed to avoid thrashing
     const currentSearch = new URLSearchParams(window.location.search).toString();
     if (currentSearch !== params.toString()) {
-        window.history[method]({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
+      window.history[method]({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
     }
-  // TODO(lint-intent): If history sync needs to ignore some transitions, add an explicit guard for those phases.
+    // TODO(lint-intent): If history sync needs to ignore some transitions, add an explicit guard for those phases.
   }, [
     dispatch,
     gameState.phase,
@@ -124,16 +130,18 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
         // Restore coordinates on Back/Forward
         const [x, y, loc] = [params.get('x'), params.get('y'), params.get('loc')];
         if (x && y && loc && target === GamePhase.PLAYING) {
-             dispatch({ type: 'MOVE_PLAYER', payload: {
-                 newLocationId: loc,
-                 newSubMapCoordinates: { x: parseInt(x), y: parseInt(y) },
-                 activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(loc, LOCATIONS)
-             }});
+          dispatch({
+            type: 'MOVE_PLAYER', payload: {
+              newLocationId: loc,
+              newSubMapCoordinates: { x: parseInt(x), y: parseInt(y) },
+              activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(loc, LOCATIONS)
+            }
+          });
         }
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  // TODO(lint-intent): If popstate should ignore deep links in some phases, add a guard for those phases.
+    // TODO(lint-intent): If popstate should ignore deep links in some phases, add a guard for those phases.
   }, [dispatch, gameState.party.length, safeNavigate]);
 };

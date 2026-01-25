@@ -9,7 +9,7 @@ import { generateVillageTemple } from '../../utils/templeUtils';
 import { VillageActionContext, VillagePersonality } from '../../types';
 import { Z_INDEX } from '../../styles/zIndex';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party' | 'design_preview';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -128,7 +128,6 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
         { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
         { label: 'Naval Dashboard', action: 'toggle_naval_dashboard', style: 'bg-slate-700 hover:bg-slate-600 border border-slate-500' },
         { label: 'Trade Routes', action: 'toggle_trade_route_dashboard', style: 'bg-amber-700 hover:bg-amber-600 border border-amber-500' },
-        { label: 'Open Design Preview', action: 'design_preview', style: 'bg-emerald-700 hover:bg-emerald-600 border border-emerald-500' },
       ],
     },
   ];

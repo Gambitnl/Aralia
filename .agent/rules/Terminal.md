@@ -14,6 +14,11 @@ This guide tracks common issues encountered when running terminal commands and p
     1. Ensure installation was successful.
     2. Check npm global binary directory or project-local `node_modules/.bin`.
     3. Use absolute paths if necessary.
+    4. **Fallback:** If a command like `rg` (ripgrep) is missing, use `git grep` or PowerShell's `Select-String`.
+
+- **Error: `fatal: unable to resolve revision: src` (Git Grep)**
+  - **Cause:** Occurs when mixing Windows path separators or specific pathspec syntax that PowerShell misinterprets.
+  - **Solution:** Wrap complex pathspecs in quotes and use forward slashes for internal Git paths (e.g., `git grep "pattern" -- src ":(exclude)path/to/ignore"`).
 
 - **Error: `MODULE_NOT_FOUND` / Import Errors**
   - **Cause:** Dependencies are missing or the project isn't built.
@@ -30,6 +35,7 @@ This guide tracks common issues encountered when running terminal commands and p
   - PowerShell uses backticks `` ` `` for escaping, not backslashes `\`.
   - Use double quotes `"` for paths containing spaces.
   - Be careful with complex JSON strings in `run_command`; prefer writing to a temp file and reading it if escaping becomes too complex.
+  - **Pathspec Exclusions:** In PowerShell, use `: (exclude)` with careful quoting: `git grep "pattern" -- "." ":(exclude)node_modules/*"`.
 - **Execution Policy:** If scripts fail to run, check the PowerShell Execution Policy (`Get-ExecutionPolicy`).
 
 ## Execution Best Practices
@@ -39,5 +45,6 @@ This guide tracks common issues encountered when running terminal commands and p
   - PowerShell to file: `command > output.log 2>&1`
   - PowerShell to null: `command | Out-Null` or `command > $null 2>&1`
 - **Async Management:** For long-running commands (like `gemini --yolo`), use the background execution capability and monitor status via `command_status` helper tools.
-- **Tool Issues:** If a specific tool like `start_new_jules_task` fails with `ENOENT`, fallback to direct CLI commands (e.g., `run_shell_command('jules new ...')`).
+- **Exit Code Interpretation:** Some commands (like `npx tsc --noEmit`) may return non-zero exit codes due to pre-existing errors. Filter the output with `Select-String` to focus on your changes rather than relying solely on the exit code.
+- **Tool Issues:** If a specific tool like `grep_search` fails with internal OS errors (e.g., missing `.antigravityignore` or special files like `nul`), fallback to `run_command` with native CLI tools.
 

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aralia Developer Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --amber-400: #fbbf24;
+            --sky-400: #38bdf8;
+            --emerald-400: #34d399;
+            --text-gray: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', cursive;
+            color: var(--amber-400);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        p.subtitle {
+            color: var(--text-gray);
+            margin-bottom: 3rem;
+            font-size: 1.2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--amber-400);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            margin: 0 0 0.5rem 0;
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .card .badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-app {
+            color: var(--sky-400);
+        }
+
+        .badge-tool {
+            color: var(--emerald-400);
+        }
+
+        .badge-debug {
+            color: var(--amber-400);
+        }
+
+        .footer {
+            margin-top: 4rem;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Aralia Dev Hub</h1>
+    <p class="subtitle">Centralized access for standalone development tools</p>
+
+    <div class="grid">
+        <a href="/Aralia/" class="card">
+            <span class="badge badge-app">Core Application</span>
+            <h2>MAIN GAME</h2>
+            <p>Launch the main Aralia RPG experience. Play, test gameplay systems, and access the in-game dev menu.</p>
+        </a>
+
+        <a href="/Aralia/misc/design.html" class="card">
+            <span class="badge badge-tool">Developer Tool</span>
+            <h2>DESIGN PREVIEW</h2>
+            <p>UI Component Playground. Test layouts, icons, and specialized creation steps in isolation.</p>
+        </a>
+
+        <a href="http://localhost:3847" target="_blank" class="card">
+            <span class="badge badge-debug">External System</span>
+            <h2>CODEBASE VISUALIZER</h2>
+            <p>Interactive tree map and dependency visualizer for the Aralia source code. (Requires visualizer server).
+            </p>
+        </a>
+    </div>
+
+    <div class="footer">
+        &copy; 2026 Aralia RPG • Advanced Agentic Coding Session
+    </div>
+</body>
+
+</html>

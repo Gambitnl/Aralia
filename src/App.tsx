@@ -73,8 +73,14 @@ const CharacterCreator = lazy(() => import('./components/CharacterCreator/Charac
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
-// DesignPreviewPage has been decoupled from the main app bundle.
-// Access it directly at: /Aralia/misc/design.html
+// --- Decoupled Developer Tools Registry ---
+// Some developer tools have been decoupled from the main application bundle to 
+// optimize production builds and prevent build-time dependencies on local-only files.
+// 
+// Access these tools directly via their entry points:
+// - Design Preview: /Aralia/misc/design.html
+// - Developer Hub:  /Aralia/misc/dev_hub.html (Central landing page)
+// -------------------------------------------
 
 
 // TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
