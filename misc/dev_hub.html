@@ -67,6 +67,7 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
 
         .card:hover {
@@ -75,11 +76,18 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
         }
 
+        .card.active {
+            border-color: var(--emerald-400);
+        }
+
         .card h2 {
             margin: 0 0 0.5rem 0;
             font-family: 'Cinzel Decorative', cursive;
             font-size: 1.5rem;
             color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .card p {
@@ -95,18 +103,70 @@
             font-weight: bold;
             letter-spacing: 0.05em;
             margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .badge-app {
-            color: var(--sky-400);
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #475569;
+            display: inline-block;
+            margin-right: 4px;
         }
 
-        .badge-tool {
-            color: var(--emerald-400);
+        .status-active .status-dot {
+            background-color: var(--emerald-400);
+            box-shadow: 0 0 8px var(--emerald-400);
         }
 
-        .badge-debug {
-            color: var(--amber-400);
+        .status-starting .status-dot {
+            background-color: var(--amber-400);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .kill-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 10;
+            transition: all 0.2s;
+        }
+
+        .kill-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .card.active .kill-btn {
+            display: flex;
         }
 
         .footer {
@@ -134,17 +194,127 @@
             <p>UI Component Playground. Test layouts, icons, and specialized creation steps in isolation.</p>
         </a>
 
-        <a href="http://localhost:3847" target="_blank" class="card">
-            <span class="badge badge-debug">External System</span>
+        <div id="visualizer-card" class="card" onclick="handleVisualizerClick()">
+            <button class="kill-btn" onclick="killVisualizer(event)" title="Stop Server">×</button>
+            <span class="badge badge-debug">
+                External System
+                <span id="visualizer-status" class="status-inactive">
+                    <span class="status-dot"></span>
+                    <span id="status-text">OFFLINE</span>
+                </span>
+            </span>
             <h2>CODEBASE VISUALIZER</h2>
-            <p>Interactive tree map and dependency visualizer for the Aralia source code. (Requires visualizer server).
-            </p>
-        </a>
+            <p id="visualizer-desc">Interactive tree map and dependency visualizer. Click to launch server and open.</p>
+        </div>
     </div>
 
     <div class="footer">
         &copy; 2026 Aralia RPG • Advanced Agentic Coding Session
     </div>
+
+    <script>
+        const VISUALIZER_URL = 'http://localhost:3847';
+        const HEALTH_URL = `${VISUALIZER_URL}/api/health`;
+        const SHUTDOWN_URL = `${VISUALIZER_URL}/api/shutdown`;
+        const START_URL = '/api/visualizer/start'; // Vite middleware endpoint
+
+        let visualizerState = 'offline'; // offline, starting, online
+
+        async function checkVisualizerStatus() {
+            try {
+                const response = await fetch(HEALTH_URL, { mode: 'cors' });
+                if (response.ok) {
+                    setVisualizerState('online');
+                } else {
+                    setVisualizerState('offline');
+                }
+            } catch (e) {
+                if (visualizerState !== 'starting') {
+                    setVisualizerState('offline');
+                }
+            }
+        }
+
+        function setVisualizerState(state) {
+            const card = document.getElementById('visualizer-card');
+            const status = document.getElementById('visualizer-status');
+            const statusText = document.getElementById('status-text');
+            const desc = document.getElementById('visualizer-desc');
+
+            visualizerState = state;
+            status.className = `status-${state}`;
+
+            if (state === 'online') {
+                card.classList.add('active');
+                statusText.innerText = 'ACTIVE';
+                desc.innerText = 'Visualizer server is running. Click to open in a new tab.';
+            } else if (state === 'starting') {
+                card.classList.remove('active');
+                statusText.innerText = 'STARTING...';
+                desc.innerText = 'Booting up the visualization engine. Please wait...';
+            } else {
+                card.classList.remove('active');
+                statusText.innerText = 'OFFLINE';
+                desc.innerText = 'Interactive tree map and dependency visualizer. Click to launch server and open.';
+            }
+        }
+
+        async function handleVisualizerClick() {
+            if (visualizerState === 'online') {
+                window.open(VISUALIZER_URL, '_blank');
+            } else if (visualizerState === 'offline') {
+                startVisualizer();
+            }
+        }
+
+        async function startVisualizer() {
+            setVisualizerState('starting');
+            try {
+                await fetch(START_URL);
+
+                // Poll for health
+                let attempts = 0;
+                const poll = setInterval(async () => {
+                    attempts++;
+                    try {
+                        const res = await fetch(HEALTH_URL, { mode: 'cors' });
+                        if (res.ok) {
+                            clearInterval(poll);
+                            setVisualizerState('online');
+                            window.open(VISUALIZER_URL, '_blank');
+                        }
+                    } catch (e) { }
+
+                    if (attempts > 20) {
+                        clearInterval(poll);
+                        setVisualizerState('offline');
+                        alert('Timed out waiting for visualizer to start.');
+                    }
+                }, 1000);
+            } catch (e) {
+                console.error('Failed to trigger visualizer start', e);
+                setVisualizerState('offline');
+            }
+        }
+
+        async function killVisualizer(event) {
+            event.stopPropagation();
+            if (!confirm('Stop the visualizer server?')) return;
+
+            try {
+                await fetch(SHUTDOWN_URL, { method: 'POST', mode: 'cors' });
+                setTimeout(checkVisualizerStatus, 500);
+            } catch (e) {
+                // Server might have closed connection immediately
+                setTimeout(checkVisualizerStatus, 500);
+            }
+        }
+
+        // Initial check
+        checkVisualizerStatus();
+        // Periodic check
+        setInterval(checkVisualizerStatus, 5000);
+    </script>
 </body>
 
 </html>

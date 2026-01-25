@@ -10,7 +10,7 @@ import { GameState, WorldRumor } from '../../types';
 import { Secret } from '../../types/identity';
 import { SecretGenerator } from './SecretGenerator';
 import { getGameDay } from '../../utils/timeUtils';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 export interface PurchaseableRumor {
     id: string;

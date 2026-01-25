@@ -9,7 +9,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Crew, CrewMember, CrewRole, Ship } from '../../types/naval';
 import { CREW_NAMES, CREW_SURNAMES, CREW_TRAITS, ROLE_BASE_SKILLS, ROLE_DAILY_WAGE } from '../../data/naval/crewTraits';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 // Initialize a seeded random generator (using date for now, can be replaced)
 const rng = new SeededRandom(Date.now());

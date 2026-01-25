@@ -10,7 +10,7 @@ import {
     HeatLevel as _HeatLevel
 } from '../../types/crime';
 import { PlayerCharacter } from '../../types/character';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 export class SmugglingSystem {
 

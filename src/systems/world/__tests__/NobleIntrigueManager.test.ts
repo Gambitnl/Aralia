@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateNobleIntrigue } from '../NobleIntrigueManager';
 import { createMockGameState, createMockFaction } from '../../../utils/factories';
-import { SeededRandom } from '../../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 // Mock SeededRandom to control outcomes
 // We need to extend or mock the class used in the SUT.

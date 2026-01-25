@@ -645,9 +645,13 @@ function getHTMLPage(): string {
       overflow-y: auto;
     }
     .detail-panel.visible { display: block; }
-    .detail-panel h3 { font-size: 1em; color: #7dd3fc; margin-bottom: 8px; }
-    .detail-panel p { font-size: 0.85em; color: #aaa; margin-bottom: 12px; line-height: 1.5; }
-    .code-blocks-list { list-style: none; }
+    .detail-panel h3 { font-size: 1.1em; color: #7dd3fc; margin-bottom: 4px; }
+    .detail-path { font-size: 0.75em; color: #666; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .copy-btn { padding: 2px 6px; background: rgba(255,255,255,0.05); border: 1px solid #3a3a5a; border-radius: 3px; color: #888; cursor: pointer; font-size: 0.9em; }
+    .copy-btn:hover { background: rgba(125, 211, 252, 0.1); color: #7dd3fc; }
+    .detail-panel p { font-size: 0.85em; color: #aaa; margin-bottom: 16px; line-height: 1.5; }
+    .section-title { font-size: 0.75em; font-weight: bold; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #2a2a4a; padding-bottom: 4px; }
+    .code-blocks-list { list-style: none; margin-bottom: 20px; }
     .code-block-item {
       padding: 8px 10px;
       background: rgba(20, 20, 35, 0.5);
@@ -795,8 +799,17 @@ function getHTMLPage(): string {
       <div class="file-list" id="fileList"></div>
       <div class="detail-panel" id="detailPanel">
         <h3 id="detailTitle">File Details</h3>
+        <div class="detail-path">
+          <span id="detailPathText">Select a file</span>
+          <button class="copy-btn" onclick="copyPath()" id="copyBtn" style="display:none">Copy</button>
+        </div>
         <p id="detailDesc">Select a file to see details</p>
+        
+        <div class="section-title">Exports & Blocks</div>
         <ul class="code-blocks-list" id="codeBlocksList"></ul>
+        
+        <div class="section-title">Used By (Dependents)</div>
+        <ul class="code-blocks-list" id="dependentsList"></ul>
       </div>
     </div>
     <div class="graph-container">
@@ -973,13 +986,19 @@ function getHTMLPage(): string {
       panel.classList.add('visible');
       title.textContent = node.name;
       desc.textContent = node.description;
+      
+      var pathText = document.getElementById('detailPathText');
+      var copyBtn = document.getElementById('copyBtn');
+      pathText.textContent = node.relativePath;
+      copyBtn.style.display = 'inline-block';
 
       blocksList.innerHTML = '';
       node.codeBlocks.forEach(function(block) {
         var li = document.createElement('li');
         li.className = 'code-block-item type-' + block.type;
+        var exportBadge = block.exports ? '<span class="block-type" style="background:#4ade8022; color:#4ade80; border:1px solid #4ade8044; margin-left:5px;">EXPORTED</span>' : '';
         li.innerHTML = '<div class="block-header">' +
-          '<span class="block-name">' + block.name + '</span>' +
+          '<span class="block-name">' + block.name + exportBadge + '</span>' +
           '<span class="block-type">' + block.type + '</span>' +
           '</div>' +
           '<div class="block-desc">' + block.description + '</div>';
@@ -989,6 +1008,33 @@ function getHTMLPage(): string {
       if (node.codeBlocks.length === 0) {
         blocksList.innerHTML = '<li style="color: #666; font-size: 0.85em;">No code blocks extracted</li>';
       }
+
+      var depList = document.getElementById('dependentsList');
+      depList.innerHTML = '';
+      node.importedBy.forEach(function(depId) {
+        var depNode = graphData.nodes.find(n => n.id === depId);
+        var li = document.createElement('li');
+        li.className = 'code-block-item';
+        li.style.cursor = 'pointer';
+        li.innerHTML = '<div class="block-header"><span class="block-name">' + (depNode ? depNode.name : depId) + '</span></div>' +
+                       '<div class="block-desc" style="font-size:0.7em">' + depId + '</div>';
+        li.onclick = function() { selectNode(depNode); scrollToFileInList(depId); };
+        depList.appendChild(li);
+      });
+
+      if (node.importedBy.length === 0) {
+        depList.innerHTML = '<li style="color: #666; font-size: 0.85em;">No dependents found (Orphan)</li>';
+      }
+    }
+
+    function copyPath() {
+      if (!selectedNode) return;
+      navigator.clipboard.writeText(selectedNode.fullPath).then(function() {
+        var btn = document.getElementById('copyBtn');
+        var originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = originalText; }, 2000);
+      });
     }
 
     function createGraph() {

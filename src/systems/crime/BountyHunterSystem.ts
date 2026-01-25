@@ -17,7 +17,7 @@ import { GameState, NotorietyState } from '../../types';
 import { CombatCharacter, CharacterStats, ActionEconomyState, Position as _Position } from '../../types/combat';
 import { AbilityScoreName as _AbilityScoreName } from '../../types/core';
 import { Class } from '../../types/character';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 import { HunterProfile, HunterTier, AmbushEvent } from '../../types/crime';
 
 // --- Constants ---

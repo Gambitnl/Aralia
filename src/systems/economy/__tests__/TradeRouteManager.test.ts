@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { processDailyRoutes, initializeTradeRoutes } from '../TradeRouteManager';
 import { GameState } from '../../../types';
 import { TradeRoute } from '../../../types/economy';
-import { SeededRandom } from '../../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 describe('TradeRouteManager', () => {
   let mockState: GameState;

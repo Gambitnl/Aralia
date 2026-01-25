@@ -4,7 +4,7 @@
  */
 import { MapData, MapTile, Location, Biome } from '../types';
 import { STARTING_LOCATION_ID } from '../constants';
-import { SeededRandom } from '../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 /**
  * Generates a world map with biomes and links to predefined locations.

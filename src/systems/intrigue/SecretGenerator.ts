@@ -8,7 +8,7 @@
 
 import { Secret } from '../../types/identity';
 import { Faction } from '../../types/factions';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 type SecretTag = Secret['tags'][number];
 

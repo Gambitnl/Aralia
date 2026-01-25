@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { TownMap, TileType } from '../types/realmsmith';
 import { TownDirection, TOWN_DIRECTION_VECTORS, TownPosition } from '../types/town';
-import { SeededRandom } from '../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 export interface AmbientNPC {
     id: string;

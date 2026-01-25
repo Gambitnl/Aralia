@@ -6,7 +6,7 @@
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../types/combat';
 import { BATTLE_MAP_DIMENSIONS } from '../config/mapConfig';
 import { BattleMapGenerator } from '../services/battleMapGenerator';
-import { SeededRandom } from '../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 type SpawnConfig = 'left-right' | 'top-bottom' | 'corners-tl-br' | 'corners-tr-bl';
 

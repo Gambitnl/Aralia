@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NobleHouse, NobleMember, NobleRole } from '../../types/noble';
 import { Faction } from '../../types/factions';
 import { SecretGenerator } from './SecretGenerator';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 const HOUSE_NAMES = [
   "Valerius", "Thorne", "Blackwood", "Hallow", "Sterling",

@@ -4,7 +4,7 @@ import {
     ContrabandDefinition,
     ContrabandCategory
 } from '../../types/crime';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 import { Item, ItemType } from '../../types/items';
 
 export class BlackMarketSystem {

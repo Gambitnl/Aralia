@@ -12,7 +12,7 @@ import {
   TravelDirection,
   PACE_MODIFIERS
 } from '../../types/travel';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 // Map difficult terrain subtypes if we had them (e.g. 'forest' -> 15, 'desert' -> 10)
 // Since we only have 'difficult' right now, we default to 15 (Standard forest/swamp difficulty).

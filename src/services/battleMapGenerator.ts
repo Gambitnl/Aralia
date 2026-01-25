@@ -4,7 +4,7 @@
  */
 import { BattleMapData, BattleMapTile, BattleMapTerrain, BattleMapDecoration } from '../types/combat';
 import { PerlinNoise } from '../utils/perlinNoise';
-import { SeededRandom } from '../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 export class BattleMapGenerator {
   private width: number;

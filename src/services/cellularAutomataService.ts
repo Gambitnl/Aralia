@@ -4,7 +4,7 @@
  * Ideal for creating organic cave-like structures.
  * Includes post-processing to ensure map connectivity.
  */
-import { SeededRandom } from '../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 export type CaTileType = 'floor' | 'wall';
 

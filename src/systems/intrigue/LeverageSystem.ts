@@ -11,7 +11,7 @@ import { Secret } from '../../types/identity';
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { Faction as _Faction } from '../../types/factions';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 export type LeverageGoal = 'blackmail' | 'information' | 'favor' | 'safe_passage';
 export type LeverageOutcome = 'success' | 'failure' | 'backfire';

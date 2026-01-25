@@ -15,7 +15,7 @@ import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { generateMap } from '../services/mapService';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
-import { SeededRandom } from '../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 import { generateCompanion } from '../services/CompanionGenerator';
 
 type AddMessageFn = (text: string, sender?: 'system' | 'player' | 'npc') => void;

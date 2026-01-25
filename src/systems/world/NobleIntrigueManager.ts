@@ -9,7 +9,7 @@
 import { GameState, GameMessage, WorldRumor, Faction } from '../../types';
 import { modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay } from '../../utils/timeUtils';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 import { WorldEventResult } from './WorldEventManager';
 import { v4 as uuidv4 } from 'uuid';
 

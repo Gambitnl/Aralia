@@ -7,7 +7,7 @@
  */
 
 import { GameState, GameMessage, TradeRoute, EconomyState, MarketEvent, MarketEventType } from '../../types';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 import { INITIAL_TRADE_ROUTES } from '../../data/tradeRoutes';
 
 export interface TradeRouteUpdateResult {

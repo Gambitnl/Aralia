@@ -3,6 +3,7 @@ import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import type { ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
+import { spawn } from 'child_process';
 
 const formatProxyTarget = (target: ProxyOptions['target']): string => {
   if (!target) return 'unknown';
@@ -43,6 +44,35 @@ const addProxyDiagnostics = (
       }
     });
   }
+});
+
+const visualizerManager = () => ({
+  name: 'visualizer-manager',
+  configureServer(server: any) {
+    server.middlewares.use((req: any, res: any, next: any) => {
+      if (req.url === '/api/visualizer/start') {
+        console.info('[dev] Starting Codebase Visualizer server...');
+        try {
+          // Use npx tsx to run the script in the background
+          const child = spawn('npx', ['tsx', 'scripts/codebase-visualizer-server.ts'], {
+            detached: true,
+            stdio: 'ignore',
+            shell: true,
+          });
+          child.unref();
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'starting' }));
+        } catch (error) {
+          console.error('[dev] Failed to start visualizer:', error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Failed to start visualizer server' }));
+        }
+        return;
+      }
+      next();
+    });
+  },
 });
 
 export default defineConfig(({ mode, command }) => {
@@ -91,7 +121,7 @@ export default defineConfig(({ mode, command }) => {
         )
       }
     },
-    plugins: [react()],
+    plugins: [react(), visualizerManager()],
     define: {
       // Shim process.env for legacy support (allows process.env.API_KEY to work).
       // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.

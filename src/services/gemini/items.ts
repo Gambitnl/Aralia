@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { FAST_MODEL, COMPLEX_MODEL } from "../../config/geminiConfig";
 import { logger } from "../../utils/logger";
 import { safeJSONParse, cleanAIJSON, redactSensitiveData } from "../../utils/securityUtils";
-import { SeededRandom } from "../../utils/seededRandom";
+import { SeededRandom } from '@/utils/random';
 import { formatMemoryForAI } from "../../utils/memoryUtils";
 import { InventoryResponseSchema, ItemSchema } from "../geminiSchemas";
 import { generateText } from "./core";

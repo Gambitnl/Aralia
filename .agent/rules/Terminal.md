@@ -37,6 +37,7 @@ This guide tracks common issues encountered when running terminal commands and p
   - Be careful with complex JSON strings in `run_command`; prefer writing to a temp file and reading it if escaping becomes too complex.
   - **Pathspec Exclusions:** In PowerShell, use `: (exclude)` with careful quoting: `git grep "pattern" -- "." ":(exclude)node_modules/*"`.
 - **Execution Policy:** If scripts fail to run, check the PowerShell Execution Policy (`Get-ExecutionPolicy`).
+- **Spawning Shell Processes:** When using Node's `child_process.spawn` or `exec` on Windows to run commands like `npx`, always set `{ shell: true }` in the options. This ensures that `.cmd` and `.ps1` wrappers are correctly handled by the system shell.
 
 ## Execution Best Practices
 

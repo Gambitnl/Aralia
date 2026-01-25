@@ -6,7 +6,7 @@ import {
     HeistPlan
 } from '../../types/crime';
 import { Location } from '../../types';
-import { SeededRandom } from '../../utils/seededRandom';
+import { SeededRandom } from '@/utils/random';
 
 export class ThievesGuildSystem {
 
