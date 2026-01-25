@@ -26,8 +26,7 @@ export const MARK_OF_HEALING_HALFLING_DATA: Race = {
     imageUrl: 'assets/images/races/mark_of_healing_halfling.png',
     visual: {
         id: 'mark_of_healing_halfling',
-        icon: '⚕️',
-        color: '#FF69B4',
+    color: '#FF69B4',
         maleIllustrationPath: 'assets/images/races/Halfling_Mender_Male.png',
         femaleIllustrationPath: 'assets/images/races/Halfling_Mender_Female.png',
     },

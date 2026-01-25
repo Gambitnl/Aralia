@@ -17,7 +17,7 @@ const transformRaceData = (race: Race): RaceDetailData => {
   const baseTraits: RaceDetailData['baseTraits'] = {};
   const feats: RaceDetailData['feats'] = [];
 
-  const coreTraitKeywords = ['creature type:', 'size:', 'speed:', 'darkvision:'];
+  const coreTraitKeywords = ['creature type:', 'size:', 'speed:', 'vision:'];
 
   race.traits.forEach(trait => {
     const lowerTrait = trait.toLowerCase();
@@ -48,12 +48,9 @@ const transformRaceData = (race: Race): RaceDetailData => {
           baseTraits.speed = speedMatch ? parseInt(speedMatch[1], 10) : 30;
           break;
         }
-        case 'darkvision:': {
+        case 'vision:': {
           const dvMatch = value.match(/(\d+)/);
           baseTraits.darkvision = dvMatch ? parseInt(dvMatch[1], 10) : 0;
-          if (value.toLowerCase().includes('superior') || value.toLowerCase().includes('120')) {
-            baseTraits.darkvision = 120;
-          }
           break;
         }
       }
@@ -68,10 +65,10 @@ const transformRaceData = (race: Race): RaceDetailData => {
   });
 
   if (baseTraits.darkvision === undefined) {
-    const dvTrait = race.traits.find(t => t.toLowerCase().includes('darkvision'));
-    if (dvTrait) {
-      const dvMatch = dvTrait.match(/(\d+)/);
-      baseTraits.darkvision = dvMatch ? parseInt(dvMatch[1], 10) : 0;
+    const vTrait = race.traits.find(t => t.toLowerCase().includes('vision:'));
+    if (vTrait) {
+      const vMatch = vTrait.match(/(\d+)/);
+      baseTraits.darkvision = vMatch ? parseInt(vMatch[1], 10) : 0;
     } else {
       baseTraits.darkvision = 0;
     }
@@ -341,14 +338,6 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
               </div>
             )
           }
-        />
-            </motion.div>
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-500 italic">
-              Select a race to view details
-            </div>
-          )
-        }
         />
       </div>
     </CreationStepLayout>

@@ -22,7 +22,6 @@ export const FIRBOLG_DATA: Race = {
   ],
   visual: {
     id: 'firbolg',
-    icon: '🌲',
     color: '#6B8E23',
     maleIllustrationPath: 'assets/images/races/Firbolg_Male.png',
     femaleIllustrationPath: 'assets/images/races/Firbolg_Female.png',

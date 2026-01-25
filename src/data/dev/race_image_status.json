@@ -1,0 +1,1232 @@
+[
+  {
+    "id": "Cloud",
+    "title": "Cloud",
+    "icon": "\ud83c\udfd4\ufe0f",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "aarakocra",
+    "title": "Aarakocra",
+    "icon": "\ud83e\udd85",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "abyssal",
+    "title": "Abyssal Legacy",
+    "icon": "\ud83d\ude08",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "abyssal_tiefling",
+    "title": "Abyssal Legacy",
+    "icon": "\ud83d\udc79",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "air_genasi",
+    "title": "Air Genasi Lineage",
+    "icon": "\ud83d\udca8",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "astral_elf",
+    "title": "Astral Elf",
+    "icon": "\u2b50",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "autognome",
+    "title": "Autognome",
+    "icon": "\ud83e\udd16",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "autumn_eladrin",
+    "title": "Autumn Eladrin",
+    "icon": "\ud83c\udf42",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "beastborn_human",
+    "title": "Beastborn Human",
+    "icon": "\ud83d\udc3e",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "beasthide_shifter",
+    "title": "Beasthide Shifter",
+    "icon": "\ud83d\udc3b",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "black_dragonborn",
+    "title": "Black Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "blue_dragonborn",
+    "title": "Blue Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "brass_dragonborn",
+    "title": "Brass Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "bronze_dragonborn",
+    "title": "Bronze Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "bugbear",
+    "title": "Bugbear",
+    "icon": "\ud83d\udc3b",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "centaur",
+    "title": "Centaur",
+    "icon": "\ud83d\udc34",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "changeling",
+    "title": "Changeling",
+    "icon": "\ud83c\udfad",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "chthonic_tiefling",
+    "title": "Chthonic Legacy",
+    "icon": "\ud83d\udc80",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "cloud_giant",
+    "title": "Cloud Giant Ancestry",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "cloud_giant_goliath",
+    "title": "Cloud Giant Goliath",
+    "icon": "\u2601\ufe0f",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "copper_dragonborn",
+    "title": "Copper Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "deep_gnome",
+    "title": "Deep Gnome (Svirfneblin)",
+    "icon": "\ud83e\udea8",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "draconblood_dragonborn",
+    "title": "Draconblood Dragonborn",
+    "icon": "\ud83d\udc32",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "dragonborn",
+    "title": "Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "drow",
+    "title": "Drow Lineage",
+    "icon": "\ud83e\udddd",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "duergar",
+    "title": "Duergar",
+    "icon": "\u26cf\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "dwarf",
+    "title": "Dwarf",
+    "icon": "\u26cf\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "earth_genasi",
+    "title": "Earth Genasi Lineage",
+    "icon": "\ud83c\udf0d",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "eladrin",
+    "title": "Eladrin",
+    "icon": "\ud83c\udf42",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "elf",
+    "title": "Elf",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "fairy",
+    "title": "Fairy",
+    "icon": "\ud83e\uddda",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "fallen_aasimar",
+    "title": "Fallen Aasimar",
+    "icon": "\ud83d\udc80",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "firbolg",
+    "title": "Firbolg",
+    "icon": "\ud83c\udf32",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "fire_genasi",
+    "title": "Fire Genasi Lineage",
+    "icon": "\ud83d\udd25",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "fire_giant",
+    "title": "Fire Giant Ancestry",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "fire_giant_goliath",
+    "title": "Fire Giant Goliath",
+    "icon": "\ud83d\udd25",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "forest_gnome",
+    "title": "Forest Gnome Lineage",
+    "icon": "\ud83e\udd9d",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "forgeborn_human",
+    "title": "Forgeborn Human",
+    "icon": "\ud83d\udd28",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "frost_giant",
+    "title": "Frost Giant Ancestry",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "frost_giant_goliath",
+    "title": "Frost Giant Goliath",
+    "icon": "\u2744\ufe0f",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "giff",
+    "title": "Giff",
+    "icon": "\ud83d\udd2b",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "githyanki",
+    "title": "Githyanki",
+    "icon": "\u2694\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "githzerai",
+    "title": "Githzerai",
+    "icon": "\ud83e\uddd8",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "goblin",
+    "title": "Goblin",
+    "icon": "\ud83d\udc7a",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "gold_dragonborn",
+    "title": "Gold Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "goliath",
+    "title": "Goliath",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "green_dragonborn",
+    "title": "Green Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "guardian_human",
+    "title": "Guardian Human",
+    "icon": "\ud83d\udee1\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "hadozee",
+    "title": "Hadozee",
+    "icon": "\ud83e\ude82",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "half-elf",
+    "title": "Half-Elf",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "half-orc",
+    "title": "Half-Orc",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": false,
+    "female_ok": false,
+    "img_count": 0
+  },
+  {
+    "id": "half_elf",
+    "title": "Half-Elf",
+    "icon": "\ud83c\udf13",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "half_elf_aquatic",
+    "title": "Half-Elf (Aquatic)",
+    "icon": "\ud83c\udf0a",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "half_elf_drow",
+    "title": "Half-Elf (Drow)",
+    "icon": "\ud83d\udd78\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "half_elf_high",
+    "title": "Half-Elf (High)",
+    "icon": "\u2b50",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "half_elf_wood",
+    "title": "Half-Elf (Wood)",
+    "icon": "\ud83c\udf3f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "half_orc",
+    "title": "Half-Orc",
+    "icon": "\ud83d\udee1\ufe0f",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "halfling",
+    "title": "Halfling",
+    "icon": "\ud83c\udfe0",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "harengon",
+    "title": "Harengon",
+    "icon": "\ud83d\udc07",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "hearthkeeper_halfling",
+    "title": "Hearthkeeper Halfling",
+    "icon": "\ud83c\udfe0",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "high_elf",
+    "title": "High Elf Lineage",
+    "icon": "\u2728",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "hill_dwarf",
+    "title": "Hill Dwarf",
+    "icon": "\u26f0\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "hill_giant",
+    "title": "Hill Giant Ancestry",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "hill_giant_goliath",
+    "title": "Hill Giant Goliath",
+    "icon": "\u26f0\ufe0f",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "hobgoblin",
+    "title": "Hobgoblin",
+    "icon": "\ud83d\udee1\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "human",
+    "title": "Human",
+    "icon": "\ud83d\udc64",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "infernal_tiefling",
+    "title": "Infernal Legacy",
+    "icon": "\ud83d\ude08",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "kalashtar",
+    "title": "Kalashtar",
+    "icon": "\ud83e\uddd8",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "kender",
+    "title": "Kender",
+    "icon": "\ud83c\udf92",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "kenku",
+    "title": "Kenku",
+    "icon": "\ud83d\udc26",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "kobold",
+    "title": "Kobold",
+    "icon": "\ud83d\udc32",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "leonin",
+    "title": "Leonin",
+    "icon": "\ud83e\udd81",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "lightfoot_halfling",
+    "title": "Lightfoot Halfling",
+    "icon": "\ud83c\udfc3",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "lizardfolk",
+    "title": "Lizardfolk",
+    "icon": "\ud83e\udd8e",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "longtooth_shifter",
+    "title": "Longtooth Shifter",
+    "icon": "\ud83d\udc3a",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "lotusden_halfling",
+    "title": "Lotusden Halfling",
+    "icon": "\ud83c\udf38",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "loxodon",
+    "title": "Loxodon",
+    "icon": "\ud83d\udc18",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "mender_halfling",
+    "title": "Mender Halfling",
+    "icon": "\u2695\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "minotaur",
+    "title": "Minotaur",
+    "icon": "\ud83d\udc02",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "mountain_dwarf",
+    "title": "Mountain Dwarf",
+    "icon": "\u26f0\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "orc",
+    "title": "Orc",
+    "icon": "\ud83d\udcaa",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "pallid_elf",
+    "title": "Pallid Elf",
+    "icon": "\ud83d\udc41\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "pathfinder_half_orc",
+    "title": "Pathfinder Half-Orc",
+    "icon": "\ud83c\udfaf",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": false,
+    "female_ok": false,
+    "img_count": 0
+  },
+  {
+    "id": "plasmoid",
+    "title": "Plasmoid",
+    "icon": "\ud83c\udf00",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "protector_aasimar",
+    "title": "Protector Aasimar",
+    "icon": "\ud83d\ude07",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "ravenite_dragonborn",
+    "title": "Ravenite Dragonborn",
+    "icon": "\ud83d\udc32",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "red_dragonborn",
+    "title": "Red Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "rock_gnome",
+    "title": "Rock Gnome Lineage",
+    "icon": "\u2699\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "runeward_dwarf",
+    "title": "Runeward Dwarf",
+    "icon": "\ud83d\udee1\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "satyr",
+    "title": "Satyr",
+    "icon": "\ud83c\udfb6",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "scourge_aasimar",
+    "title": "Scourge Aasimar",
+    "icon": "\ud83d\udd25",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "sea_elf",
+    "title": "Sea Elf",
+    "icon": "\ud83c\udf0a",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "seersight_half_elf",
+    "title": "Half-Elf (Seersight)",
+    "icon": "\ud83d\udd0d",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "shadar_kai",
+    "title": "Shadar-kai",
+    "icon": "\u26ab",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": false,
+    "female_ok": false,
+    "img_count": 0
+  },
+  {
+    "id": "shadowveil_elf",
+    "title": "Shadowveil Elf",
+    "icon": "\ud83c\udf11",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "silver_dragonborn",
+    "title": "Silver Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "simic_hybrid",
+    "title": "Simic Hybrid",
+    "icon": "\ud83e\uddec",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "spring_eladrin",
+    "title": "Spring Eladrin",
+    "icon": "\ud83c\udf38",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "stone_giant",
+    "title": "Stone Giant Ancestry",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "stone_giant_goliath",
+    "title": "Stone Giant Goliath",
+    "icon": "\ud83d\uddff",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "storm_giant",
+    "title": "Storm Giant Ancestry",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "storm_giant_goliath",
+    "title": "Storm Giant Goliath",
+    "icon": "\u26a1",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "stormborn_half_elf",
+    "title": "Half-Elf (Stormborn)",
+    "icon": "\u26a1",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "stout_halfling",
+    "title": "Stout Halfling",
+    "icon": "\ud83d\udee1\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "summer_eladrin",
+    "title": "Summer Eladrin",
+    "icon": "\u2600\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "swiftstride_shifter",
+    "title": "Swiftstride Shifter",
+    "icon": "\ud83e\udd8c",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "tabaxi",
+    "title": "Tabaxi",
+    "icon": "\ud83d\udc31",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "thri_kreen",
+    "title": "Thri-kreen",
+    "icon": "\ud83d\udd77\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "tiefling",
+    "title": "Tiefling",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "tortle",
+    "title": "Tortle",
+    "icon": "\ud83d\udc22",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "triton",
+    "title": "Triton",
+    "icon": "\ud83d\udd31",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "vedalken",
+    "title": "Vedalken",
+    "icon": "\ud83e\udde0",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "verdan",
+    "title": "Verdan",
+    "icon": "\ud83c\udf31",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "warforged",
+    "title": "Warforged",
+    "icon": "\ud83e\udd16",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "water_genasi",
+    "title": "Water Genasi Lineage",
+    "icon": "\ud83d\udca7",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "wayfarer_human",
+    "title": "Wayfarer Human",
+    "icon": "\ud83c\udfc3",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "white_dragonborn",
+    "title": "White Dragonborn",
+    "icon": "\ud83d\udc09",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "wildhunt_shifter",
+    "title": "Wildhunt Shifter",
+    "icon": "\ud83e\udd89",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "winter_eladrin",
+    "title": "Winter Eladrin",
+    "icon": "\u2744\ufe0f",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "wood_elf",
+    "title": "Wood Elf Lineage",
+    "icon": "\ud83c\udf32",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "wordweaver_gnome",
+    "title": "Wordweaver Gnome",
+    "icon": "\ud83d\udcdc",
+    "in_glossary": true,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  },
+  {
+    "id": "yuan-ti",
+    "title": "Yuan-Ti",
+    "icon": "\u2753",
+    "in_glossary": true,
+    "in_creator": false,
+    "male_ok": false,
+    "female_ok": false,
+    "img_count": 0
+  },
+  {
+    "id": "yuan_ti",
+    "title": "Yuan-Ti",
+    "icon": "\ud83d\udc0d",
+    "in_glossary": false,
+    "in_creator": true,
+    "male_ok": true,
+    "female_ok": true,
+    "img_count": 2
+  }
+]

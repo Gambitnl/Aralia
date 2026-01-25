@@ -1,6 +1,6 @@
 {
   "id": "stormborn_half_elf",
-  "title": "Stormborn Half-Elf",
+  "title": "Half-Elf (Stormborn)",
   "category": "Character Races",
   "entryLore": "The Mark of Storm grants power over wind and weather. House Lyrandar carries this mark, dominating the shipping and transportation industries with their ability to control the elements. Half-elves with the Mark of Storm can call lightning, command the winds, and navigate through the fiercest tempests. They are the masters of the airships and elemental galleons that cross Eberron's skies and seas.",
   "imageUrl": "/assets/images/Placeholder.jpg",
@@ -28,15 +28,15 @@
       "value": "30 feet"
     },
     {
-      "label": "Darkvision",
-      "value": "60 feet"
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
     }
   ],
   "traits": [
     {
-      "name": "Darkvision",
+      "name": "Vision",
       "icon": "eye",
-      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray."
     },
     {
       "name": "Fey Ancestry",

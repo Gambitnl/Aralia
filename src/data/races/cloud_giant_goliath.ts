@@ -22,7 +22,6 @@ export const CLOUD_GIANT_GOLIATH_DATA: Race = {
   ],
   visual: {
     id: 'cloud_giant_goliath',
-    icon: '☁️',
     color: '#B0C4DE',
     maleIllustrationPath: 'assets/images/races/Goliath_Cloud Giant_Male.png',
     femaleIllustrationPath: 'assets/images/races/Goliath_Cloud Giant_Female.png',

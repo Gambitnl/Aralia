@@ -22,7 +22,6 @@ export const FROST_GIANT_GOLIATH_DATA: Race = {
   ],
   visual: {
     id: 'frost_giant_goliath',
-    icon: '❄️',
     color: '#87CEEB',
     maleIllustrationPath: 'assets/images/races/Goliath_Frost Giant_Male.png',
     femaleIllustrationPath: 'assets/images/races/Goliath_Frost Giant_Female.png',

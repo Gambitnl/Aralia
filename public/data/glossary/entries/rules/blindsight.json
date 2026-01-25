@@ -1,0 +1,11 @@
+{
+  "id": "blindsight",
+  "title": "Blindsight",
+  "category": "Rules Glossary",
+  "tags": ["rules", "vision", "special senses"],
+  "excerpt": "Perceiving surroundings without relying on sight.",
+  "aliases": [],
+  "seeAlso": ["vision", "invisible_condition", "special_senses"],
+  "filePath": "/data/glossary/entries/rules/blindsight.json",
+  "markdown": "# Blindsight\n\nA creature with Blindsight can perceive its surroundings without relying on sight, within a specific radius. \n\nCreatures such as bats or dragons use echolocation, heightened hearing, or scent to 'see' their environment. Mechanisms of Blindsight allow a creature to effectively see [[invisible_condition|Invisible]] creatures and function perfectly while having the [[blinded_condition|Blinded]] condition, provided the target is within the Blindsight range."
+}

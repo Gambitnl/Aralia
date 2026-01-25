@@ -14,7 +14,7 @@ export const BUGBEAR_DATA: Race = {
     'Creature Type: Humanoid. You are also considered a goblinoid for any prerequisite or effect that requires you to be a goblinoid.',
     'Size: Medium (Typically 6 to 8 feet tall).',
     'Speed: 30 feet',
-    'Darkvision: You can see in dim light within 60 feet of you as if it were bright light and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray.',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Fey Ancestry: You have advantage on saving throws you make to avoid or end the charmed condition on yourself.',
     'Long-Limbed: When you make a melee attack on your turn, your reach for it is 5 feet greater than normal.',
     'Powerful Build: You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.',
@@ -24,7 +24,6 @@ export const BUGBEAR_DATA: Race = {
   imageUrl: 'https://i.ibb.co/VcWZkK7X/Bugbear.png',
   visual: {
     id: 'bugbear',
-    icon: '🐻',
     color: '#8B4513',
     maleIllustrationPath: 'assets/images/races/Bugbear_Male.png',
     femaleIllustrationPath: 'assets/images/races/Bugbear_Female.png',

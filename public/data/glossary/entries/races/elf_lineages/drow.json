@@ -19,15 +19,15 @@
       "value": "Underdark"
     },
     {
-      "label": "Darkvision",
-      "value": "120 feet"
+      "label": "Vision",
+      "value": "[[darkvision|120 feet]]"
     }
   ],
   "traits": [
     {
-      "name": "Superior Darkvision",
+      "name": "Vision",
       "icon": "eye",
-      "description": "Your [[darkvision|Darkvision]] range is 120 feet, rather than the standard 60 feet for elves."
+      "description": "[[darkvision|Superior Darkvision]]. You can see in [[dim_light|dim light]] within 120 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray."
     },
     {
       "name": "Drow Magic",

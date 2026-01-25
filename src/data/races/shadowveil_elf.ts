@@ -16,7 +16,7 @@ export const MARK_OF_SHADOW_ELF_DATA: Race = {
     'Creature Type: Humanoid',
     'Size: Medium (about 5-6 feet tall)',
     'Speed: 30 feet',
-    'Darkvision: You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Fey Ancestry: You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.',
     'Keen Senses: You have proficiency in the Perception skill.',
     'Trance: You don\'t need to sleep, and magic can\'t put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.',
@@ -27,7 +27,6 @@ export const MARK_OF_SHADOW_ELF_DATA: Race = {
   imageUrl: 'assets/images/races/mark_of_shadow_elf.png',
   visual: {
     id: 'mark_of_shadow_elf',
-    icon: '🌑',
     color: '#191970',
     maleIllustrationPath: 'assets/images/races/Elf_Shadowveil_Male.png',
     femaleIllustrationPath: 'assets/images/races/Elf_Shadowveil_Female.png',

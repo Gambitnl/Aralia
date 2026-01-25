@@ -22,7 +22,6 @@ export const CENTAUR_DATA: Race = {
   imageUrl: 'https://i.ibb.co/pvc3Jkp0/Centaur.png',
   visual: {
     id: 'centaur',
-    icon: '🐴',
     color: '#8B6914',
     maleIllustrationPath: 'assets/images/races/Centaur_Male.png',
     femaleIllustrationPath: 'assets/images/races/Centaur_Female.png',

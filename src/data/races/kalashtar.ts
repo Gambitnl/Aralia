@@ -22,7 +22,6 @@ export const KALASHTAR_DATA: Race = {
   ],
   visual: {
     id: 'kalashtar',
-    icon: '🧘',
     color: '#4b9e95',
     maleIllustrationPath: 'assets/images/races/kalashtar_male.png',
     femaleIllustrationPath: 'assets/images/races/kalashtar_female.png',

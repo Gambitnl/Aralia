@@ -73,7 +73,8 @@ const CharacterCreator = lazy(() => import('./components/CharacterCreator/Charac
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
-const DesignPreviewPage = lazy(() => import('./components/DesignPreview/DesignPreviewPage').then(module => ({ default: module.DesignPreviewPage })));
+// DesignPreviewPage has been decoupled from the main app bundle.
+// Access it directly at: /Aralia/misc/design.html
 
 
 // TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
@@ -511,9 +512,7 @@ const App: React.FC = () => {
       case 'toggle_unified_log_viewer':
         dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' });
         break;
-      case 'design_preview':
-        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.DESIGN_PREVIEW });
-        break;
+      // 'design_preview' removed - access via /Aralia/misc/design.html
       case 'battle_map_demo':
         handleBattleMapDemo();
         break;
@@ -788,12 +787,6 @@ const App: React.FC = () => {
     );
   } else if (gameState.phase === GamePhase.LOAD_TRANSITION) {
     mainContent = <LoadGameTransition character={gameState.party[0]} />;
-  } else if (gameState.phase === GamePhase.DESIGN_PREVIEW) {
-    mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred in the Design Preview.">
-        <DesignPreviewPage />
-      </ErrorBoundary>
-    );
   } else if (gameState.phase === GamePhase.NOT_FOUND) {
     mainContent = (
       <NotFound

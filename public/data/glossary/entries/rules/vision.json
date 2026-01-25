@@ -1,0 +1,11 @@
+{
+  "id": "vision",
+  "title": "Vision",
+  "category": "Rules Glossary",
+  "tags": ["rules", "vision", "light"],
+  "excerpt": "Baseline rules for how creatures perceive the world through sight.",
+  "aliases": ["normal vision"],
+  "seeAlso": ["bright_light", "dim_light", "darkness", "obscured_areas", "darkvision", "special_senses"],
+  "filePath": "/data/glossary/entries/rules/vision.json",
+  "markdown": "# Vision\n\nVision is the primary way most creatures perceive their surroundings. A creature's ability to see is governed by the lighting conditions of its environment.\n\n### Normal Vision\nCreatures without special senses rely on **Normal Vision**. This baseline interaction with light determines what you can see and how well you can see it:\n\n*   **[[bright_light|Bright Light]]**: You see normally. No penalties apply to sight-based checks.\n*   **[[dim_light|Dim Light]]**: Creates a [[obscured_areas|Lightly Obscured]] area. You have **Disadvantage** on Wisdom (Perception) checks that rely on sight.\n*   **[[darkness|Darkness]]**: Creates a [[obscured_areas|Heavily Obscured]] area. You effectively have the [[blinded_condition|Blinded]] condition when trying to see something in this area.\n\n### Enhancing Vision\nMany creatures have traits that upgrade their vision, such as [[darkvision|Darkvision]], which allows them to ignore some of the penalties of low light. Other creatures possess [[special_senses|Special Senses]] like Blindsight or Truesight that allow them to perceive the world without relying on light at all."
+}

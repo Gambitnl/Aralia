@@ -24,7 +24,6 @@ export const HALFLING_DATA: Race = {
   imageUrl: 'https://i.ibb.co/whZmW9dC/Halfling.png',
   visual: {
     id: 'halfling',
-    icon: '🏠',
     color: '#DAA520',
     maleIllustrationPath: 'assets/images/races/Halfling_Male.png',
     femaleIllustrationPath: 'assets/images/races/Halfling_Female.png',

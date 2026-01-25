@@ -10,6 +10,7 @@ import { Race } from '../../types'; // Path relative to src/data/races/
 export const AARAKOCRA_DATA: Race = {
   id: 'aarakocra',
   name: 'Aarakocra',
+  baseRace: 'beastfolk',
   description:
     'A winged people who originated on the Elemental Plane of Air, aarakocra soar through the sky wherever they wander. The first aarakocra served the Wind Dukes of Aaqa—mighty beings of air—and were imbued with a measure of their masters’ power over winds. Their descendants still command echoes of that power.\n\nAasimar can arise among any population of mortals. They resemble their parents, but they live for up to 160 years and often have features that hint at their celestial heritage. These often begin subtle and become more obvious when the aasimar gains the ability to reveal their full celestial nature.',
   abilityBonuses: [], // Flexible ASIs are handled by the Point Buy system.

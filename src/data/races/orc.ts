@@ -22,7 +22,6 @@ export const ORC_DATA: Race = {
   ],
   visual: {
     id: 'orc',
-    icon: '💪',
     color: '#556B2F',
     maleIllustrationPath: 'assets/images/races/Orc_Male.png',
     femaleIllustrationPath: 'assets/images/races/Orc_Female.png',

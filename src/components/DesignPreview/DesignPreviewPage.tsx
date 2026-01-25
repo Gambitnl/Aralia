@@ -36,6 +36,7 @@ import { PreviewThreeDTest } from './steps/PreviewThreeDTest';
 import { PreviewIcons } from './steps/PreviewIcons';
 import { PreviewMissingIcons } from './steps/PreviewMissingIcons';
 import { PreviewEnvironment } from './steps/PreviewEnvironment';
+import { PreviewRaceImages } from './steps/PreviewRaceImages';
 
 export const DesignPreviewPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<string>('race');
@@ -118,6 +119,7 @@ export const DesignPreviewPage: React.FC = () => {
     { id: 'tables', label: 'Tables' },
     { id: 'icons', label: 'Icons' },
     { id: 'missing_icons', label: 'Missing Icons' },
+    { id: 'race_images', label: 'Race Images' },
   ];
 
   // Map of which style is currently live in production for each step
@@ -147,6 +149,7 @@ export const DesignPreviewPage: React.FC = () => {
     tables: 'legacy',
     icons: 'legacy',
     missing_icons: 'legacy',
+    race_images: 'legacy',
   };
 
   return (
@@ -269,6 +272,7 @@ export const DesignPreviewPage: React.FC = () => {
             {currentStep === 'tables' && <PreviewTables variant={variant} />}
             {currentStep === 'icons' && <PreviewIcons variant={variant} />}
             {currentStep === 'missing_icons' && <PreviewMissingIcons variant={variant} />}
+            {currentStep === 'race_images' && <PreviewRaceImages />}
           </WindowFrame>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

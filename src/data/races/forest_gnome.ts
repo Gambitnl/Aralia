@@ -16,7 +16,7 @@ export const FOREST_GNOME_DATA: Race = {
         'Creature Type: Humanoid',
         'Size: Small (about 3-4 feet tall)',
         'Speed: 25 feet',
-        'Darkvision: You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+        "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
         'Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
         'Natural Illusionist: You know the Minor Illusion cantrip. Intelligence is your spellcasting ability for it.',
         'Speak with Small Beasts: Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts. Forest gnomes love animals and often keep squirrels, badgers, rabbits, moles, woodpeckers, and other creatures as beloved pets.',
@@ -24,8 +24,7 @@ export const FOREST_GNOME_DATA: Race = {
     imageUrl: 'assets/images/races/forest_gnome.png',
     visual: {
         id: 'forest_gnome',
-        icon: '🦝',
-        color: '#228B22',
+    color: '#228B22',
         maleIllustrationPath: 'assets/images/races/Gnome_Forest_Male.png',
         femaleIllustrationPath: 'assets/images/races/Gnome_Forest_Female.png',
     },

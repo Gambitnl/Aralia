@@ -26,7 +26,6 @@ export const MARK_OF_MAKING_HUMAN_DATA: Race = {
   ],
   visual: {
     id: 'mark_of_making_human',
-    icon: '🔨',
     color: '#CD7F32',
     maleIllustrationPath: 'assets/images/races/Human_Forgeborn_Male.png',
     femaleIllustrationPath: 'assets/images/races/Human_Forgeborn_Female.png',

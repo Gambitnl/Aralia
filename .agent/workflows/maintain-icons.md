@@ -4,7 +4,7 @@ description: Maintain and update the Aralia icon system
 
 # Maintain Icon System Workflow
 
-> **Reference**: Please read [[.agent/skills/maintain_icon_system/SKILL.md]] for detailed instructions on sourcing and troubleshooting.
+> **Reference**: Please read [[.agent/skills/manage_icons/SKILL.md]] for detailed instructions on sourcing and troubleshooting.
 
 Follow this checklist to safely add or update icons without regressions.
 

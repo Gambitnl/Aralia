@@ -60,7 +60,6 @@ export const GOLIATH_DATA: Race = {
   imageUrl: 'https://i.ibb.co/m5hCjLxW/Goliath.png',
   visual: {
     id: 'goliath',
-    icon: '🏔️',
     color: '#708090',
     maleIllustrationPath: 'assets/images/races/Goliath_Male.png',
     femaleIllustrationPath: 'assets/images/races/Goliath_Female.png',

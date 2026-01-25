@@ -1,6 +1,6 @@
 {
   "id": "seersight_half_elf",
-  "title": "Seersight Half-Elf",
+  "title": "Half-Elf (Seersight)",
   "category": "Character Races",
   "entryLore": "The Mark of Detection grants those who bear it powers of observation and insight. House Medani carries this mark, using its abilities to provide bodyguard services, inquisitive work, and threat assessment. Half-elves with the Mark of Detection are prized for their ability to perceive danger and uncover secrets, making them excellent investigators, spies, and protectors.",
   "imageUrl": "/assets/images/Placeholder.jpg",
@@ -28,15 +28,15 @@
       "value": "30 feet"
     },
     {
-      "label": "Darkvision",
-      "value": "60 feet"
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
     }
   ],
   "traits": [
     {
-      "name": "Darkvision",
+      "name": "Vision",
       "icon": "eye",
-      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray."
     },
     {
       "name": "Fey Ancestry",

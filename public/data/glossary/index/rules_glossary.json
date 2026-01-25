@@ -389,6 +389,24 @@
     "filePath": "/data/glossary/entries/rules/conditions/blinded_condition.json"
   },
   {
+    "id": "blindsight",
+    "title": "Blindsight",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "vision",
+      "special senses"
+    ],
+    "excerpt": "Perceiving surroundings without relying on sight.",
+    "aliases": [],
+    "seeAlso": [
+      "vision",
+      "invisible_condition",
+      "special_senses"
+    ],
+    "filePath": "/data/glossary/entries/rules/blindsight.json"
+  },
+  {
     "id": "bonus_action",
     "title": "Bonus Action",
     "category": "Rules Glossary",
@@ -845,6 +863,27 @@
       "obscured_areas"
     ],
     "filePath": "/data/glossary/entries/rules/darkness.json"
+  },
+  {
+    "id": "darkvision",
+    "title": "Darkvision",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "vision",
+      "special senses"
+    ],
+    "excerpt": "The ability to see in the dark without a light source.",
+    "aliases": [
+      "superior darkvision"
+    ],
+    "seeAlso": [
+      "vision",
+      "dim_light",
+      "darkness",
+      "obscured_areas"
+    ],
+    "filePath": "/data/glossary/entries/rules/darkvision.json"
   },
   {
     "id": "deafened_condition",
@@ -2628,6 +2667,44 @@
     "filePath": "/data/glossary/entries/rules/travel_pace.json"
   },
   {
+    "id": "tremorsense",
+    "title": "Tremorsense",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "vision",
+      "special senses"
+    ],
+    "excerpt": "Detecting vibrations through the ground or other surfaces.",
+    "aliases": [],
+    "seeAlso": [
+      "vision",
+      "special_senses",
+      "stonecunning"
+    ],
+    "filePath": "/data/glossary/entries/rules/tremorsense.json"
+  },
+  {
+    "id": "truesight",
+    "title": "Truesight",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "vision",
+      "special senses",
+      "magic"
+    ],
+    "excerpt": "The ultimate form of vision, piercing through illusions and darkness.",
+    "aliases": [],
+    "seeAlso": [
+      "vision",
+      "darkvision",
+      "special_senses",
+      "ethereal_plane"
+    ],
+    "filePath": "/data/glossary/entries/rules/truesight.json"
+  },
+  {
     "id": "two_handed_property",
     "title": "Two-Handed",
     "category": "Rules Glossary",
@@ -2702,6 +2779,29 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/vex.json"
+  },
+  {
+    "id": "vision",
+    "title": "Vision",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "vision",
+      "light"
+    ],
+    "excerpt": "Baseline rules for how creatures perceive the world through sight.",
+    "aliases": [
+      "normal vision"
+    ],
+    "seeAlso": [
+      "bright_light",
+      "dim_light",
+      "darkness",
+      "obscured_areas",
+      "darkvision",
+      "special_senses"
+    ],
+    "filePath": "/data/glossary/entries/rules/vision.json"
   },
   {
     "id": "vision_and_light",

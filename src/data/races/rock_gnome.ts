@@ -16,7 +16,7 @@ export const ROCK_GNOME_DATA: Race = {
         'Creature Type: Humanoid',
         'Size: Small (about 3-4 feet tall)',
         'Speed: 25 feet',
-        'Darkvision: You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+        "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
         'Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
         'Artificer\'s Lore: Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.',
         'Tinker: You have proficiency with artisan\'s tools (tinker\'s tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: Clockwork Toy (a clockwork animal, monster, or person that moves 5 feet across solid ground when touched), Fire Starter (produces a miniature flame for lighting candles, torches, or campfires), or Music Box (plays a single song at a moderate volume when opened).',
@@ -24,8 +24,7 @@ export const ROCK_GNOME_DATA: Race = {
     imageUrl: 'assets/images/races/rock_gnome.png',
     visual: {
         id: 'rock_gnome',
-        icon: '⚙️',
-        color: '#A0522D',
+    color: '#A0522D',
         maleIllustrationPath: 'assets/images/races/Gnome_Rock_Male.png',
         femaleIllustrationPath: 'assets/images/races/Gnome_Rock_Female.png',
     },

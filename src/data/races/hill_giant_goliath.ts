@@ -22,7 +22,6 @@ export const HILL_GIANT_GOLIATH_DATA: Race = {
   ],
   visual: {
     id: 'hill_giant_goliath',
-    icon: '⛰️',
     color: '#8B7355',
     maleIllustrationPath: 'assets/images/races/Goliath_Hill Giant_Male.png',
     femaleIllustrationPath: 'assets/images/races/Goliath_Hill Giant_Female.png',

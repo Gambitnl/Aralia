@@ -10,8 +10,8 @@
       "value": "Feywild"
     },
     {
-      "label": "Darkvision",
-      "value": "60 feet"
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
     }
   ],
   "traits": [

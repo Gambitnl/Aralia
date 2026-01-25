@@ -11,8 +11,8 @@
       "value": "Underdark"
     },
     {
-      "label": "Darkvision",
-      "value": "120 feet"
+      "label": "Vision",
+      "value": "[[darkvision|120 feet]]"
     }
   ],
   "traits": [

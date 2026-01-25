@@ -11,7 +11,7 @@ export enum GamePhase {
   VILLAGE_VIEW,
   COMBAT,
   NOT_FOUND,
-  DESIGN_PREVIEW,
+  // DESIGN_PREVIEW removed - now a standalone tool at /Aralia/misc/design.html
 }
 
 // Core D&D attributes

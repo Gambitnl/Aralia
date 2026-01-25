@@ -26,7 +26,6 @@ export const MARK_OF_SENTINEL_HUMAN_DATA: Race = {
   ],
   visual: {
     id: 'mark_of_sentinel_human',
-    icon: '🛡️',
     color: '#4169E1',
     maleIllustrationPath: 'assets/images/races/Human_Guardian_Male.png',
     femaleIllustrationPath: 'assets/images/races/Human_Guardian_Female.png',

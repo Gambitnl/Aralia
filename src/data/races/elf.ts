@@ -93,7 +93,7 @@ export const ELF_DATA: Race = {
     'Creature Type: Humanoid',
     'Size: Medium (about 5-6 feet tall)',
     'Speed: 30 feet',
-    'Darkvision: You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can’t discern color in darkness, only shades of gray.',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.',
     'Fey Ancestry: You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.',
     'Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.',
@@ -103,7 +103,6 @@ export const ELF_DATA: Race = {
   imageUrl: 'https://i.ibb.co/MDWPvKPr/Elf.png',
   visual: {
     id: 'elf',
-    icon: '🧝',
     color: '#228B22',
     maleIllustrationPath: 'assets/images/races/Elf_Male.png',
     femaleIllustrationPath: 'assets/images/races/Elf_Female.png',

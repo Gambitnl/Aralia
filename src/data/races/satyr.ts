@@ -22,7 +22,6 @@ export const SATYR_DATA: Race = {
   ],
   visual: {
     id: 'satyr',
-    icon: '🎶',
     color: '#7c6c2b',
     maleIllustrationPath: 'assets/images/races/satyr_male.png',
     femaleIllustrationPath: 'assets/images/races/satyr_female.png',

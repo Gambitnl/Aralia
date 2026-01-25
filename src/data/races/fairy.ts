@@ -20,7 +20,6 @@ export const FAIRY_DATA: Race = {
   ],
   visual: {
     id: 'fairy',
-    icon: '🧚',
     color: '#FF69B4',
     maleIllustrationPath: 'assets/images/races/Fairy_Male.png',
     femaleIllustrationPath: 'assets/images/races/Fairy_Female.png',

@@ -20,7 +20,6 @@ export const KOBOLD_DATA: Race = {
   ],
   visual: {
     id: 'kobold',
-    icon: '🐲',
     color: '#7f3300',
     maleIllustrationPath: 'assets/images/races/kobold_male.png',
     femaleIllustrationPath: 'assets/images/races/kobold_female.png',

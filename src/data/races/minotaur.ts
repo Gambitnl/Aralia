@@ -21,7 +21,6 @@ export const MINOTAUR_DATA: Race = {
   ],
   visual: {
     id: 'minotaur',
-    icon: '🐂',
     color: '#9b4b2f',
     maleIllustrationPath: 'assets/images/Placeholder.jpg',
     femaleIllustrationPath: 'assets/images/Placeholder.jpg',

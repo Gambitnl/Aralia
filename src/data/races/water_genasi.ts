@@ -22,7 +22,6 @@ export const WATER_GENASI_DATA: Race = {
   ],
   visual: {
     id: 'water_genasi',
-    icon: '💧',
     color: '#1E90FF',
     maleIllustrationPath: 'assets/images/races/Genasi_Water_Male.png',
     femaleIllustrationPath: 'assets/images/races/Genasi_Water_Female.png',

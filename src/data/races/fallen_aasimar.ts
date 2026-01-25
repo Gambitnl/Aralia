@@ -10,7 +10,7 @@ export const FALLEN_AASIMAR_DATA: Race = {
     'Creature Type: Humanoid',
     'Size: Medium or Small',
     'Speed: 30 feet',
-    'Darkvision: 60 feet',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Celestial Resistance: You have resistance to necrotic damage and radiant damage.',
     'Healing Hands: As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can\'t use it again until you finish a Long Rest.',
     'Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.',
@@ -18,7 +18,6 @@ export const FALLEN_AASIMAR_DATA: Race = {
   ],
   visual: {
     id: 'fallen_aasimar',
-    icon: '💀',
     color: '#4B0082',
     maleIllustrationPath: 'assets/images/races/Aasimar_Fallen_Male.png',
     femaleIllustrationPath: 'assets/images/races/Aasimar_Fallen_Female.png',

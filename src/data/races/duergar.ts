@@ -17,7 +17,7 @@ export const DUERGAR_DATA: Race = {
     'Creature Type: Humanoid. You are also considered a dwarf for any prerequisite or effect that requires you to be a dwarf.',
     'Size: Medium',
     'Speed: 30 feet',
-    'Darkvision: You can see in dim light within 120 feet of you as if it were bright light and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray.',
+    "Vision: [[darkvision|Superior Darkvision]]. You can see in [[dim_light|dim light]] within 120 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Duergar Magic: Starting at 3rd level, you can cast the Enlarge/Reduce spell on yourself with this trait, without requiring a material component. Starting at 5th level, you can also cast the Invisibility spell on yourself with this trait, without requiring a material component. Once you cast either of these spells with this trait, you can’t cast that spell with it again until you finish a long rest. You can also cast these spells using spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).',
     'Dwarven Resilience: You have advantage on saving throws you make to avoid or end the poisoned condition on yourself. You also have resistance to poison damage.',
     'Psionic Fortitude: You have advantage on saving throws you make to avoid or end the charmed or stunned condition on yourself.',
@@ -25,7 +25,6 @@ export const DUERGAR_DATA: Race = {
   imageUrl: 'assets/images/races/duergar.png',
   visual: {
     id: 'duergar',
-    icon: '⛏️',
     color: '#696969',
     maleIllustrationPath: 'assets/images/races/Duergar_Male.png',
     femaleIllustrationPath: 'assets/images/races/Duergar_Female.png',

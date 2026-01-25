@@ -5,6 +5,7 @@
  */
 import React, { useMemo } from 'react';
 import { GlossarySpellsOfTheMarkTable } from '../../Glossary/GlossarySpellsOfTheMarkTable';
+import { GlossaryContentRenderer } from '../../Glossary/GlossaryContentRenderer';
 
 interface BaseTraits {
     type?: string;
@@ -87,16 +88,19 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
     // Determine vision text
     const visionText = useMemo(() => {
         if (baseTraits?.darkvision && baseTraits.darkvision > 0) {
-            return `Darkvision (${baseTraits.darkvision} feet)`;
+            const isSuperior = baseTraits.darkvision > 60;
+            return isSuperior ? 'Superior Darkvision' : 'Standard Darkvision';
         }
         return 'Normal';
     }, [baseTraits?.darkvision]);
 
     const visionDescription = useMemo(() => {
         if (baseTraits?.darkvision && baseTraits.darkvision > 0) {
-            return `You can see in dim light within ${baseTraits.darkvision} feet of you as if it were bright light, and in darkness as if it were dim light. You discern colors in that darkness only as shades of gray.`;
+            const range = baseTraits.darkvision;
+            const prefix = range > 60 ? '[[darkvision|Superior Darkvision]]. ' : '';
+            return `${prefix}You can see in [[dim_light|dim light]] within ${range} feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.`;
         }
-        return 'You have normal vision.';
+        return 'You have normal [[vision]].';
     }, [baseTraits?.darkvision]);
 
     return (
@@ -115,7 +119,9 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                             <td className="py-3 px-4 align-top">
                                 <span className="text-sky-400 font-semibold">Creature Type</span>
                             </td>
-                            <td className="py-3 px-4 text-gray-300">{baseTraits.type}</td>
+                            <td className="py-3 px-4 text-gray-300">
+                                <GlossaryContentRenderer markdownContent={baseTraits.type} onNavigate={onSpellClick} />
+                            </td>
                         </tr>
                     )}
 
@@ -125,7 +131,9 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                             <td className="py-3 px-4 align-top">
                                 <span className="text-sky-400 font-semibold">Size</span>
                             </td>
-                            <td className="py-3 px-4 text-gray-300">{baseTraits.size}</td>
+                            <td className="py-3 px-4 text-gray-300">
+                                <GlossaryContentRenderer markdownContent={baseTraits.size} onNavigate={onSpellClick} />
+                            </td>
                         </tr>
                     )}
 
@@ -145,8 +153,10 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                             <span className="text-sky-400 font-semibold">Vision</span>
                         </td>
                         <td className="py-3 px-4 text-gray-300">
-                            <div className="font-medium">{visionText}</div>
-                            <div className="text-xs text-gray-400 mt-1">{visionDescription}</div>
+                            <div className="font-medium">{visionText} ({baseTraits?.darkvision || 0} feet)</div>
+                            <div className="text-xs text-gray-400 mt-1">
+                                <GlossaryContentRenderer markdownContent={visionDescription} onNavigate={onSpellClick} />
+                            </div>
                         </td>
                     </tr>
 
@@ -162,7 +172,7 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                                 <td className="py-3 px-4 text-gray-300">
                                     {trait.name === 'Spells of the Mark' && spellsOfTheMark ? (
                                         <>
-                                            <p className="whitespace-pre-wrap mb-2">{trait.description}</p>
+                                            <GlossaryContentRenderer markdownContent={trait.description} onNavigate={onSpellClick} className="mb-2" />
                                             <GlossarySpellsOfTheMarkTable
                                                 spells={spellsOfTheMark}
                                                 onNavigate={(termId) => onSpellClick?.(toKebabCase(termId))}
@@ -201,11 +211,11 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                                                 </tbody>
                                             </table>
                                             {remainingDescription && (
-                                                <p className="mt-2 italic text-xs">{remainingDescription}</p>
+                                                <GlossaryContentRenderer markdownContent={remainingDescription} onNavigate={onSpellClick} className="mt-2 italic text-xs" />
                                             )}
                                         </>
                                     ) : (
-                                        <p className="whitespace-pre-wrap">{trait.description}</p>
+                                        <GlossaryContentRenderer markdownContent={trait.description} onNavigate={onSpellClick} />
                                     )}
                                 </td>
                             </tr>

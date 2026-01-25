@@ -26,7 +26,7 @@ export const HALF_ELF_DROW_DATA: Race = {
     'Creature Type: Humanoid',
     'Size: Medium (about 5-6 feet tall)',
     'Speed: 30 feet',
-    'Darkvision: Thanks to your elf blood, you have superior vision in dark and dim conditions. You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Fey Ancestry: You have advantage on saving throws against being charmed, and magic can\'t put you to sleep.',
     'Skill Versatility: You gain proficiency in one skill of your choice.',
     'Drow Magic: You know the Dancing Lights cantrip. When you reach 3rd level, you can cast the Faerie Fire spell once with this trait, and you regain the ability to do so when you finish a Long Rest. When you reach 5th level, you can cast the Darkness spell once with this trait, and you regain the ability to do so when you finish a Long Rest. Charisma is your spellcasting ability for these spells.',
@@ -34,7 +34,6 @@ export const HALF_ELF_DROW_DATA: Race = {
   imageUrl: 'assets/images/races/half_elf_drow.png',
   visual: {
     id: 'half_elf_drow',
-    icon: '🕸️',
     color: '#663399',
     maleIllustrationPath: 'assets/images/races/half_elf_drow_male.png',
     femaleIllustrationPath: 'assets/images/races/half_elf_drow_female.png',

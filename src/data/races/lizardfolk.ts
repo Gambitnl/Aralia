@@ -22,7 +22,6 @@ export const LIZARDFOLK_DATA: Race = {
   ],
   visual: {
     id: 'lizardfolk',
-    icon: '🦎',
     color: '#4aa02c',
     maleIllustrationPath: 'assets/images/Placeholder.jpg',
     femaleIllustrationPath: 'assets/images/Placeholder.jpg',

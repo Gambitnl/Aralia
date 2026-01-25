@@ -28,20 +28,20 @@
       "value": "25 feet"
     },
     {
-      "label": "Darkvision",
-      "value": "60 feet"
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
     }
   ],
   "traits": [
     {
-      "name": "Darkvision",
+      "name": "Vision",
       "icon": "eye",
-      "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+      "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray."
     },
     {
-      "name": "Gnome Cunning",
+      "name": "Gnomish Cunning",
       "icon": "brain",
-      "description": "You have [[advantage]] on all Intelligence, Wisdom, and Charisma saving throws against magic."
+      "description": "You have [[advantage|Advantage]] on Intelligence, Wisdom, and Charisma [[saving_throw|saving throws]] against magic."
     },
     {
       "name": "Gifted Scribe",

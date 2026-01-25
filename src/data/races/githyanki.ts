@@ -22,7 +22,6 @@ export const GITHYANKI_DATA: Race = {
   ],
   visual: {
     id: 'githyanki',
-    icon: '⚔️',
     color: '#8B0000',
     maleIllustrationPath: 'assets/images/races/githyanki_male.png',
     femaleIllustrationPath: 'assets/images/races/githyanki_female.png',

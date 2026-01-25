@@ -22,7 +22,6 @@ export const GITHZERAI_DATA: Race = {
   ],
   visual: {
     id: 'githzerai',
-    icon: '🧘',
     color: '#4682B4',
     maleIllustrationPath: 'assets/images/races/githzerai_male.png',
     femaleIllustrationPath: 'assets/images/races/githzerai_female.png',

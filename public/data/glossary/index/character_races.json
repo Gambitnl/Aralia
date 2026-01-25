@@ -713,31 +713,6 @@
     "filePath": null,
     "subEntries": [
       {
-        "id": "dwarf",
-        "title": "Dwarf",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "dwarf",
-          "humanoid",
-          "sturdy",
-          "mountain"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "mountain folk",
-          "deep delver",
-          "stout folk"
-        ],
-        "seeAlso": [
-          "darkvision",
-          "humanoid",
-          "hill_dwarf",
-          "duergar"
-        ],
-        "filePath": "/data/glossary/entries/races/dwarf.json"
-      },
-      {
         "id": "duergar",
         "title": "Duergar",
         "category": "Character Races",
@@ -1234,26 +1209,6 @@
     "filePath": null,
     "subEntries": [
       {
-        "id": "genasi",
-        "title": "Genasi",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "genasi",
-          "elemental",
-          "humanoid"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "air_genasi",
-          "earth_genasi",
-          "fire_genasi",
-          "water_genasi"
-        ],
-        "filePath": "/data/glossary/entries/races/genasi.json"
-      },
-      {
         "id": "air_genasi",
         "title": "Air Genasi Lineage",
         "category": "Character Races",
@@ -1395,55 +1350,6 @@
     "excerpt": "Gnome lineages and variants.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "gnome",
-        "title": "Gnome",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "gnome",
-          "fey-touched",
-          "humanoid",
-          "small"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "gnomes",
-          "rock gnome",
-          "forest gnome"
-        ],
-        "seeAlso": [
-          "darkvision",
-          "gnomish_cunning",
-          "forest_gnome",
-          "rock_gnome",
-          "deep_gnome"
-        ],
-        "filePath": "/data/glossary/entries/races/gnome.json"
-      },
-      {
-        "id": "deep_gnome_subrace",
-        "title": "Deep Gnome (Subrace) - DEPRECATED",
-        "category": "Character Races",
-        "tags": [
-          "gnome",
-          "deep gnome",
-          "svirfneblin",
-          "subrace",
-          "lineage",
-          "underdark",
-          "darkvision",
-          "deprecated"
-        ],
-        "excerpt": "This subrace has been promoted to a standalone race. See the 'Deep Gnome (Svirfneblin)' main race entry.",
-        "aliases": [
-          "svirfneblin"
-        ],
-        "seeAlso": [
-          "deep_gnome"
-        ],
-        "filePath": "/data/glossary/entries/races/gnome_subraces/deep_gnome.json"
-      },
       {
         "id": "deep_gnome",
         "title": "Deep Gnome (Svirfneblin)",
@@ -1863,7 +1769,7 @@
       },
       {
         "id": "seersight_half_elf",
-        "title": "Seersight Half-Elf",
+        "title": "Half-Elf (Seersight)",
         "category": "Character Races",
         "tags": [
           "race",
@@ -1888,7 +1794,7 @@
       },
       {
         "id": "stormborn_half_elf",
-        "title": "Stormborn Half-Elf",
+        "title": "Half-Elf (Stormborn)",
         "category": "Character Races",
         "tags": [
           "race",
@@ -2384,28 +2290,6 @@
     "excerpt": "Shifter variants and traits.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "shifter",
-        "title": "Shifter",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "shifter",
-          "lycanthrope",
-          "humanoid",
-          "bestial"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "weretouched"
-        ],
-        "seeAlso": [
-          "humanoid",
-          "darkvision",
-          "shifting"
-        ],
-        "filePath": "/data/glossary/entries/races/shifter.json"
-      },
       {
         "id": "beasthide_shifter",
         "title": "Beasthide Shifter",

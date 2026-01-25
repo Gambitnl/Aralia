@@ -16,7 +16,7 @@ export const DEEP_GNOME_DATA: Race = {
         'Creature Type: Humanoid',
         'Size: Small (about 3 feet tall)',
         'Speed: 25 feet',
-        'Superior Darkvision: You can see in dim light within 120 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+        "Vision: [[darkvision|Superior Darkvision]]. You can see in [[dim_light|dim light]] within 120 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
         'Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
         'Stone Camouflage: You have Advantage on Dexterity (Stealth) checks to hide in rocky terrain.',
         'Gift of the Svirfneblin: Starting at 3rd level, you can cast the Disguise Self spell with this trait. Starting at 5th level, you can also cast the Nondetection spell with it, without requiring a material component. Once you cast either of these spells with this trait, you can\'t cast that spell with it again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).',
@@ -24,8 +24,7 @@ export const DEEP_GNOME_DATA: Race = {
     imageUrl: 'assets/images/races/deep_gnome.png',
     visual: {
         id: 'deep_gnome',
-        icon: '🪨',
-        color: '#696969',
+    color: '#696969',
         maleIllustrationPath: 'assets/images/races/Gnome_Deep_Male.png',
         femaleIllustrationPath: 'assets/images/races/Gnome_Deep_Female.png',
     },

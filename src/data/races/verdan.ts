@@ -24,7 +24,6 @@ export const VERDAN_DATA: Race = {
   ],
   visual: {
     id: 'verdan',
-    icon: '🌱',
     color: '#2b8c45',
     maleIllustrationPath: 'assets/images/races/verdan_male.png',
     femaleIllustrationPath: 'assets/images/races/verdan_female.png',

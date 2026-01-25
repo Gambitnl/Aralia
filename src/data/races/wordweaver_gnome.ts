@@ -16,7 +16,7 @@ export const MARK_OF_SCRIBING_GNOME_DATA: Race = {
         'Creature Type: Humanoid',
         'Size: Small (about 3-4 feet tall)',
         'Speed: 25 feet',
-        'Darkvision: You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+        "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
         'Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
         'Gifted Scribe: When you make an Intelligence (History) check or an ability check using calligrapher\'s supplies, you can roll a d4 and add the number rolled to the ability check.',
         'Scribe\'s Insight: You know the Message cantrip. You can also cast Comprehend Languages once with this trait, and you regain the ability to cast it when you finish a Long Rest. Starting at 3rd level, you can cast the Magic Mouth spell with this trait, and you regain the ability to cast it when you finish a Long Rest. Intelligence is your spellcasting ability for these spells.',
@@ -25,8 +25,7 @@ export const MARK_OF_SCRIBING_GNOME_DATA: Race = {
     imageUrl: 'assets/images/races/mark_of_scribing_gnome.png',
     visual: {
         id: 'mark_of_scribing_gnome',
-        icon: '📜',
-        color: '#4682B4',
+    color: '#4682B4',
         maleIllustrationPath: 'assets/images/races/Gnome_Wordweaver_Male.png',
         femaleIllustrationPath: 'assets/images/races/Gnome_Wordweaver_Female.png',
     },

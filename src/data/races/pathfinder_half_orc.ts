@@ -16,7 +16,7 @@ export const MARK_OF_FINDING_HALF_ORC_DATA: Race = {
     'Creature Type: Humanoid',
     'Size: Medium',
     'Speed: 30 feet',
-    'Darkvision: You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can\'t discern color in darkness, only shades of gray.',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Adrenaline Rush: You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.',
     'Relentless Endurance: When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can\'t do so again until you finish a Long Rest.',
     'Hunter\'s Intuition: When you make a Wisdom (Perception) or Wisdom (Survival) check, you can roll a d4 and add the number rolled to the ability check.',
@@ -25,7 +25,6 @@ export const MARK_OF_FINDING_HALF_ORC_DATA: Race = {
   ],
   visual: {
     id: 'mark_of_finding_half_orc',
-    icon: '🎯',
     color: '#8B4513',
     maleIllustrationPath: 'assets/images/races/mark_of_finding_half_orc_male.png',
     femaleIllustrationPath: 'assets/images/races/mark_of_finding_half_orc_female.png',

@@ -21,7 +21,6 @@ export const WARFORGED_DATA: Race = {
   ],
   visual: {
     id: 'warforged',
-    icon: '🤖',
     color: '#708090',
     maleIllustrationPath: 'assets/images/races/Warforged_Male.png',
     femaleIllustrationPath: 'assets/images/races/Warforged_Female.png',

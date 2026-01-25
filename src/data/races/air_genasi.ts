@@ -25,7 +25,6 @@ export const AIR_GENASI_DATA: Race = {
   ],
   visual: {
     id: 'air_genasi',
-    icon: '💨',
     color: '#E0FFFF',
     maleIllustrationPath: 'assets/images/races/Genasi_Air_Male.png',
     femaleIllustrationPath: 'assets/images/races/Genasi_Air_Female.png',

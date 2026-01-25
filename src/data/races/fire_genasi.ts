@@ -21,7 +21,6 @@ export const FIRE_GENASI_DATA: Race = {
   ],
   visual: {
     id: 'fire_genasi',
-    icon: '🔥',
     color: '#FF4500',
     maleIllustrationPath: 'assets/images/races/Genasi_Fire_Male.png',
     femaleIllustrationPath: 'assets/images/races/Genasi_Fire_Female.png',

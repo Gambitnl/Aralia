@@ -1,0 +1,11 @@
+{
+  "id": "tremorsense",
+  "title": "Tremorsense",
+  "category": "Rules Glossary",
+  "tags": ["rules", "vision", "special senses"],
+  "excerpt": "Detecting vibrations through the ground or other surfaces.",
+  "aliases": [],
+  "seeAlso": ["vision", "special_senses", "stonecunning"],
+  "filePath": "/data/glossary/entries/rules/tremorsense.json",
+  "markdown": "# Tremorsense\n\nA creature with Tremorsense can detect and pinpoint the origin of vibrations within a specific radius, provided that the creature and the source of the vibrations are in contact with the same ground or substance.\n\nTremorsense can't be used to detect flying or incorporeal creatures. This sense is common among burrowing creatures and is also granted to [[dwarf|Dwarves]] through their **Stonecunning** trait."
+}

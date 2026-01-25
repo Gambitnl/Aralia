@@ -22,7 +22,6 @@ export const HARENGON_DATA: Race = {
   ],
   visual: {
     id: 'harengon',
-    icon: '🐇',
     color: '#b98b60',
     maleIllustrationPath: 'assets/images/Placeholder.jpg',
     femaleIllustrationPath: 'assets/images/Placeholder.jpg',

@@ -15,7 +15,7 @@ export const THRI_KREEN_DATA: Race = {
     'Creature Type: Monstrosity',
     'Size: Medium or Small',
     'Speed: 30 feet',
-    'Darkvision: You can see in dim light within 60 feet as bright light and in darkness as dim light.',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Chameleon Carapace: While unarmored, your base AC is 13 + your Dexterity modifier, and you can change color to gain advantage on Stealth checks once per rest.',
     'Secondary Arms: You possess two smaller arms that let you manipulate objects, open doors, or hold tools.',
     'Sleepless: You do not require sleep during a long rest, though you must remain still to gain its benefits.',
@@ -23,7 +23,6 @@ export const THRI_KREEN_DATA: Race = {
   ],
   visual: {
     id: 'thri_kreen',
-    icon: '🕷️',
     color: '#5a7a5a',
     maleIllustrationPath: 'assets/images/Placeholder.jpg',
     femaleIllustrationPath: 'assets/images/Placeholder.jpg',

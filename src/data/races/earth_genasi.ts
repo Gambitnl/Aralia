@@ -21,7 +21,6 @@ export const EARTH_GENASI_DATA: Race = {
   ],
   visual: {
     id: 'earth_genasi',
-    icon: '🌍',
     color: '#8B4513',
     maleIllustrationPath: 'assets/images/races/Genasi_Earth_Male.png',
     femaleIllustrationPath: 'assets/images/races/Genasi_Earth_Female.png',

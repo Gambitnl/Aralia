@@ -7,5 +7,5 @@
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/vision_and_light.json",
-  "markdown": "# Vision and Light\r\n<p class=\"glossary-intro-quote\">\r\nSome adventuring tasks-such as noticing danger, hitting an enemy, and targeting certain spells-are affected by sight, so effects that obscure vision can hinder you, as explained below.\r\n</p>\r\n"
+  "markdown": "# Vision and Light\n<p class=\"glossary-intro-quote\">\nSome adventuring tasks—such as noticing danger, hitting an enemy, and targeting certain spells—are affected by sight, so effects that obscure vision can hinder you, as explained in the **[[vision]]** rules.\n</p>\n\n### Interaction with Light\nThe environment's illumination level—**[[bright_light|Bright Light]]**, **[[dim_light|Dim Light]]**, or **[[darkness|Darkness]]**—directly impacts a creature's ability to see and can create **[[obscured_areas|Obscured Areas]]**. Special abilities like **[[darkvision]]** or **[[special_senses|Special Senses]]** can mitigate these hindrances."
 }

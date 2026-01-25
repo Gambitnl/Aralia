@@ -48,6 +48,7 @@ export const VALID_ICONS = new Set([
     'weather_hail', 'weather_hazy', 'weather_lightning', 'weather_lightning_rainy',
     'weather_pouring', 'weather_cloudy', 'weather_rainy', 'weather_sunny', 'weather_fog',
     'weather_snowy', 'weather_snowy_heavy', 'weather_snowy_rainy',
+    'settings_heart',
     'tree', 'tree_outline',
     'dice_d4', 'dice_d4_outline', 'dice_d6', 'dice_d6_outline', 'dice_d8', 'dice_d8_outline',
     'dice_d10', 'dice_d10_outline', 'dice_d12', 'dice_d12_outline', 'dice_d20', 'dice_d20_outline',
@@ -74,6 +75,7 @@ export const getTraitIcon = (name: string, defaultIcon?: string): string => {
     if (n.includes('attack') || n.includes('combat')) return 'sword';
     if (n.includes('skill') || n.includes('expert')) return 'book';
     if (n.includes('vision') || n.includes('sight')) return 'eye';
+    if (n.includes('heart') || n.includes('compassion') || n.includes('empathy') || n.includes('love')) return 'settings_heart';
 
     // Check if defaultIcon is valid
     if (defaultIcon && VALID_ICONS.has(defaultIcon)) {
@@ -104,42 +106,55 @@ export const GlossaryTraitTable: React.FC<GlossaryTraitTableProps> = ({
     const size = characteristics.find(c => c.label === 'Size');
     const speed = characteristics.find(c => c.label === 'Speed');
 
-    // Find darkvision or special vision traits
-    const darkvisionTrait = traits.find(t => t.name === 'Darkvision' || t.name.includes('Darkvision'));
-    const specialVisionTraits = traits.filter(t =>
-        t.name.includes('vision') ||
-        t.name === 'Tremorsense' ||
-        t.name === 'Blindsight' ||
-        t.name === 'Truesight'
-    );
-
-    // Determine vision text
-    // Determine vision text
-    let visionText = 'Normal';
-    // Use 'eye' for normal/darkvision, or potentially 'eye_mdi' / 'fa_eye' if preferred. 
-    // 'eye' is the standard concept key.
-    let visionIcon = 'eye';
-
-    if (darkvisionTrait) {
-        // Try to extract range from description (e.g., "60 feet" or "120 feet")
-        const rangeMatch = darkvisionTrait.description.match(/(\d+)\s*feet/);
-        const range = rangeMatch ? rangeMatch[1] : '60';
-        visionText = `Darkvision (${range} feet)`;
-    } else if (specialVisionTraits.length > 0) {
-        // Use the first special vision trait found
-        const specialVision = specialVisionTraits[0];
-        const rangeMatch = specialVision.description.match(/(\d+)\s*feet/);
-        const range = rangeMatch ? ` (${rangeMatch[1]} feet)` : '';
-        visionText = `${specialVision.name}${range}`;
-    }
-
-    // Get all other traits (excluding vision-related traits since they're shown in the Vision row)
-    const otherTraits = traits.filter(t =>
-        t.name !== 'Darkvision' &&
-        !t.name.includes('Darkvision') &&
-        !specialVisionTraits.some(sv => sv.name === t.name)
-    );
-
+        // Find primary vision trait (standardized to 'Vision', or legacy 'Darkvision')
+        const primaryVisionTrait = traits.find(t => t.name === 'Vision' || t.name === 'Darkvision' || t.name === 'Superior Darkvision');
+        
+        // Find special vision traits (excluding the primary one)
+        const specialVisionTraits = traits.filter(t => 
+            t !== primaryVisionTrait && (
+                t.name.toLowerCase().includes('vision') ||
+                t.name === 'Tremorsense' ||
+                t.name === 'Blindsight' ||
+                t.name === 'Truesight'
+            )
+        );
+    
+        // Determine vision text and description
+        let visionText = 'Normal';
+        let visionDescription: string | null = null;
+        let visionIcon = 'eye';
+    
+        if (primaryVisionTrait) {
+            visionIcon = primaryVisionTrait.icon || 'eye';
+            
+            // Use the trait name + range for the header if we can find a range
+            const rangeMatch = primaryVisionTrait.description.match(/(\d+)\s*feet/);
+            const range = rangeMatch ? ` (${rangeMatch[1]} feet)` : '';
+            
+            // If it's the standardized "Vision" trait, we determine the label based on the range
+            if (primaryVisionTrait.name === 'Vision') {
+                const isSuperior = primaryVisionTrait.description.toLowerCase().includes('superior');
+                visionText = isSuperior ? 'Superior Darkvision' : 'Standard Darkvision';
+            } else {
+                visionText = primaryVisionTrait.name;
+            }
+            
+            if (range) visionText += range;
+            
+            visionDescription = primaryVisionTrait.description;
+        } else if (specialVisionTraits.length > 0) {
+            const specialVision = specialVisionTraits[0];
+            const rangeMatch = specialVision.description.match(/(\d+)\s*feet/);
+            const range = rangeMatch ? ` (${rangeMatch[1]} feet)` : '';
+            visionText = `${specialVision.name}${range}`;
+            visionDescription = specialVision.description;
+        }
+    
+        // Get all other traits
+        const otherTraits = traits.filter(t => 
+            t !== primaryVisionTrait && 
+            !specialVisionTraits.includes(t)
+        );
     return (
         <TableContainer>
             <Table>
@@ -207,10 +222,10 @@ export const GlossaryTraitTable: React.FC<GlossaryTraitTableProps> = ({
                         </TableCell>
                         <TableCell>
                             {visionText}
-                            {darkvisionTrait && (
+                            {visionDescription && (
                                 <div className="text-xs text-gray-400 mt-1">
                                     <GlossaryContentRenderer
-                                        markdownContent={darkvisionTrait.description}
+                                        markdownContent={visionDescription}
                                         onNavigate={onNavigate}
                                     />
                                 </div>

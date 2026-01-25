@@ -32,9 +32,9 @@
   ],
   "traits": [
     {
-      "name": "Darkvision",
+      "name": "Vision",
       "icon": "eye",
-      "description": "You have [[darkvision|Darkvision]] with a range of 60 feet."
+      "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray."
     },
     {
       "name": "Otherworldly Presence",

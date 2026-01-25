@@ -21,7 +21,6 @@ export const KENDER_DATA: Race = {
   ],
   visual: {
     id: 'kender',
-    icon: '🎒',
     color: '#c38d13',
     maleIllustrationPath: 'assets/images/races/kender_male.png',
     femaleIllustrationPath: 'assets/images/races/kender_female.png',

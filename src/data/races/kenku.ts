@@ -9,6 +9,7 @@ import { Race } from '../../types';
 export const KENKU_DATA: Race = {
   id: 'kenku',
   name: 'Kenku',
+  baseRace: 'beastfolk',
   description:
     'Feathered folk who resemble ravens, kenku are blessed with keen observation and supernaturally accurate memories. None of them can fly, and they often use their talent for mimicry to communicate. They have a reputation for being excellent burglars, scouts, and scribes.',
   abilityBonuses: [], // Flexible ASIs are handled by the Point Buy system.

@@ -24,7 +24,6 @@ export const AUTOGNOME_DATA: Race = {
   ],
   visual: {
     id: 'autognome',
-    icon: '🤖',
     color: '#6c757d',
     maleIllustrationPath: 'assets/images/races/autognome_male.png',
     femaleIllustrationPath: 'assets/images/races/autognome_female.png',

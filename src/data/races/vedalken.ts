@@ -24,7 +24,6 @@ export const VEDALKEN_DATA: Race = {
   ],
   visual: {
     id: 'vedalken',
-    icon: '🧠',
     color: '#3c5a82',
     maleIllustrationPath: 'assets/images/races/vedalken_male.png',
     femaleIllustrationPath: 'assets/images/races/vedalken_female.png',

@@ -8,11 +8,28 @@
  * - Search expands/collapses on click to reveal the search input
  * - Added onSearchChange prop to handle search term updates
  */
+// Import React core functionality and hooks for state management
+// - React: Core React library for component creation
+// - MutableRefObject: TypeScript type for mutable refs that can be updated
+// - useState: Hook for managing component state
 import React, { MutableRefObject, useState } from 'react';
+
+// Import custom types and interfaces for type safety
+// - GlossaryEntry: Type definition for glossary entry data structure
 import { GlossaryEntry } from '../../types';
+
+// Import spell gate check result type for displaying spell status indicators
+// - GateResult: Type containing spell gate check status and reasons
 import { GateResult } from '../../hooks/useSpellGateChecks';
+
+// Import utility functions for glossary UI formatting and styling
+// - getCategoryIcon: Returns appropriate icon for each category
+// - highlightSearchTerm: Wraps search terms in highlighting markup
+// - getCategoryColor: Returns color classes for category headers
 import { getCategoryIcon, highlightSearchTerm, getCategoryColor } from './glossaryUIUtils';
 
+// Define the props interface for the GlossarySidebar component
+// This ensures type safety and documents all expected input properties
 interface GlossarySidebarProps {
     /** Filtered and sorted categories to display */
     sortedCategories: string[];
@@ -47,17 +64,36 @@ interface GlossarySidebarProps {
 }
 
 /**
- * Renders a single entry node with optional sub-entries.
+ * GlossaryEntryNode Component
+ * Renders a single entry node with optional sub-entries (nested structure).
+ * This is a recursive component that can display hierarchies of glossary entries.
  */
 const GlossaryEntryNode: React.FC<{
+    /** The glossary entry data to display */
     entry: GlossaryEntry;
+
+    /** Current nesting level (for indentation calculation) */
     level: number;
+
+    /** Currently selected entry for highlighting */
     selectedEntry: GlossaryEntry | null;
+
+    /** Set of expanded parent entry IDs */
     expandedParentEntries: Set<string>;
+
+    /** Handler for toggling parent entry expansion */
     onToggleParentEntry: (entryId: string) => void;
+
+    /** Handler for entry selection */
     onEntrySelect: (entry: GlossaryEntry) => void;
+
+    /** Current search term for highlighting */
     searchTerm: string;
+
+    /** Spell gate check results */
     gateResults: Record<string, GateResult>;
+
+    /** Refs for entry elements */
     entryRefs: MutableRefObject<Record<string, HTMLLIElement | HTMLButtonElement | null>>;
 }> = ({
     entry,
@@ -70,15 +106,35 @@ const GlossaryEntryNode: React.FC<{
     gateResults,
     entryRefs,
 }) => {
+        // Determine if this entry has sub-entries (is a parent node)
         const isParent = entry.subEntries && entry.subEntries.length > 0;
+
+        // Check if this parent entry is currently expanded
         const isExpanded = isParent && expandedParentEntries.has(entry.id);
+
+        // Calculate indentation class based on nesting level (multiplied by 2 for visual spacing)
         const indentClass = `pl-${level * 2}`;
+
+        // Determine if this entry has content to display
+        // - Spells can be displayed if they're not parent entries
+        // - Other entries need a valid filePath to have content
         const hasContentToDisplay = (entry.category === 'Spells' && !isParent) || !!entry.filePath;
-        // Parents are no longer disabled - we want them to be clickable to toggle expansion
+
+        // Disable the entry button if it's not a parent and has no content to display
+        // Parent entries are always clickable to toggle expansion
         const disabled = !isParent && !hasContentToDisplay;
+
+        // Get gate check result for this entry if it's a spell
+        // Used to display status indicators (pass/gap/fail)
         const gate = entry.category === 'Spells' ? gateResults[entry.id] : undefined;
+
+        // Extract gate reason message for tooltip display
         const gateLabel = gate?.reasons?.join('; ');
 
+        // Create status indicator dot based on gate check result
+        // - Green (bg-emerald-400): Pass - spell meets all requirements
+        // - Amber (bg-amber-400): Gap - spell has some missing information
+        // - Red (bg-red-500): Fail - spell fails gate checks
         const gateDot = gate ? (
             <span
                 className={
@@ -93,12 +149,16 @@ const GlossaryEntryNode: React.FC<{
             />
         ) : null;
 
+        // Render the entry node
         return (
+            // List item with ref for scroll-into-view functionality
             <li key={entry.id} ref={el => { entryRefs.current[entry.id] = el; }}>
+                {/* Container div for entry button with styling */}
                 <div
                     className={`flex items-center rounded-md transition-colors text-sm group
                     ${selectedEntry?.id === entry.id ? 'bg-sky-700 text-white' : 'hover:bg-gray-700/60 text-gray-300'}`}
                 >
+                    {/* Expand/collapse button for parent entries */}
                     {isParent && (
                         <button
                             type="button"
@@ -109,6 +169,9 @@ const GlossaryEntryNode: React.FC<{
                             ▶
                         </button>
                     )}
+
+
+                    {/* Entry selection button with title and optional gate dot */}
                     <button
                         type="button"
                         onClick={() => onEntrySelect(entry)}
@@ -116,10 +179,15 @@ const GlossaryEntryNode: React.FC<{
                         disabled={disabled}
                         title={gateLabel || entry.title}
                     >
+                        {/* Display entry title with search highlighting if search term exists */}
                         {searchTerm.trim() ? highlightSearchTerm(entry.title, searchTerm) : entry.title}
+
+                        {/* Display gate status indicator dot for spells */}
                         {gateDot}
                     </button>
                 </div>
+
+                {/* Recursively render sub-entries if this is a parent and is expanded */}
                 {isParent && isExpanded && (
                     <ul role="group" className="ml-2 mt-0.5 space-y-px border-l border-gray-700">
                         {entry.subEntries!.map(subEntry => (
@@ -143,7 +211,9 @@ const GlossaryEntryNode: React.FC<{
     };
 
 /**
- * Renders the glossary sidebar with category navigation and entry tree.
+ * GlossarySidebar Component
+ * Main sidebar component that displays category navigation and entry tree structure.
+ * Provides search functionality and hierarchical navigation through glossary entries.
  */
 export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
     sortedCategories,
@@ -163,20 +233,24 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
     isColumnResizing,
 }) => {
     /**
-     * Controls whether the search input field is visible.
+     * State: Controls whether the search input field is visible.
      * When true, the search input expands below the "Search" button.
      * This keeps the search functionality accessible without taking constant header space.
      */
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
+    // Determine if there are no entries to display (empty search results)
     const hasNoResults = Object.keys(groupedEntries).length === 0;
 
+    // Render the sidebar container with categories and entries
     return (
         <div
             className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content flex-shrink-0 glossary-list-container"
             style={{ transition: isColumnResizing ? 'none' : 'width 0.2s ease' }}
         >
-            {/* Pinned Search Entry */}
+            {/* Search Section - Pinned at the top of the sidebar */}
             <div className="mb-2">
+                {/* Search toggle button - expands/collapses the search input */}
                 <button
                     type="button"
                     onClick={() => setIsSearchExpanded(!isSearchExpanded)}
@@ -188,6 +262,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                     </span>
                     <span className={`ml-2 transform transition-transform duration-150 ${isSearchExpanded ? 'rotate-90' : ''}`}>▶</span>
                 </button>
+                {/* Search input field - only visible when search is expanded */}
                 {isSearchExpanded && (
                     <div className="mt-1 px-2">
                         <input
@@ -203,17 +278,23 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                 )}
             </div>
 
-            {/* Separator line between search and category list */}
+            {/* Visual separator line between search section and category list */}
             <div className="border-b border-gray-700 mb-2" />
 
+            {/* Display message when search returns no results and there's no error */}
             {hasNoResults && !hasError && (
                 <p className="text-gray-500 italic text-center py-4">No terms match your search.</p>
             )}
 
+            {/* Render each category with its entries */}
             {sortedCategories.map(category => {
+                // Check if this category is currently expanded
                 const isExpanded = expandedCategories.has(category);
+
                 return (
+                    // Category container
                     <div key={category} className="mb-1">
+                        {/* Category header button - toggles category expansion */}
                         <button
                             type="button"
                             className={`w-full p-2 font-semibold cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg flex justify-between items-center text-left ${getCategoryColor(category)}`}
@@ -221,6 +302,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                             aria-expanded={isExpanded}
                         >
                             <span className="flex items-center">
+                                {/* Display category icon and name with entry count */}
                                 {getCategoryIcon(category)}
                                 {category} ({categoryCounts[category] || 0})
                             </span>
@@ -229,6 +311,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
 
                         {isExpanded && (
                             <ul className="space-y-px pl-1 pt-1">
+                                {/* Sort entries alphabetically and render each entry node */}
                                 {groupedEntries[category]?.sort((a, b) => a.title.localeCompare(b.title)).map(entry => (
                                     <GlossaryEntryNode
                                         key={entry.id}

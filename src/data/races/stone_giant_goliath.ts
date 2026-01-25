@@ -22,7 +22,6 @@ export const STONE_GIANT_GOLIATH_DATA: Race = {
   ],
   visual: {
     id: 'stone_giant_goliath',
-    icon: '🗿',
     color: '#808080',
     maleIllustrationPath: 'assets/images/races/Goliath_Stone Giant_Male.png',
     femaleIllustrationPath: 'assets/images/races/Goliath_Stone Giant_Female.png',

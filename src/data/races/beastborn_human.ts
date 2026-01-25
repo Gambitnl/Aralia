@@ -26,7 +26,6 @@ export const MARK_OF_HANDLING_HUMAN_DATA: Race = {
   ],
   visual: {
     id: 'mark_of_handling_human',
-    icon: '🐾',
     color: '#8B4513',
     maleIllustrationPath: 'assets/images/races/Human_Beastborn_Male.png',
     femaleIllustrationPath: 'assets/images/races/Human_Beastborn_Female.png',

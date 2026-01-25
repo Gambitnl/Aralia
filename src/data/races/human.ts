@@ -24,7 +24,6 @@ export const HUMAN_DATA: Race = {
   ],
   visual: {
     id: 'human',
-    icon: '👤',
     color: '#D2B48C',
     maleIllustrationPath: 'assets/images/races/Human_Male.png',
     femaleIllustrationPath: 'assets/images/races/Human_Female.png',

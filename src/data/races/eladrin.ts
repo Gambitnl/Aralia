@@ -14,7 +14,7 @@ export const ELADRIN_DATA: Race = {
     'Creature Type: Humanoid. You are also considered an elf.',
     'Size: Medium',
     'Speed: 30 feet',
-    'Darkvision: 60 feet',
+    "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
     'Fey Ancestry: You have advantage on saving throws you make to avoid or end the charmed condition on yourself.',
     'Fey Step: As a bonus action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. When you reach 3rd level, your Fey Step gains an additional effect based on your season (Autumn, Winter, Spring, or Summer). The save DC for these effects is 8 + your proficiency bonus + your chosen spellcasting modifier (Intelligence, Wisdom, or Charisma).',
     'Keen Senses: You have proficiency in the Perception skill.',
@@ -22,7 +22,6 @@ export const ELADRIN_DATA: Race = {
   ],
   visual: {
     id: 'eladrin',
-    icon: '🍂',
     color: '#DA70D6',
     maleIllustrationPath: 'assets/images/races/Eladrin_Male.png',
     femaleIllustrationPath: 'assets/images/races/Eladrin_Female.png',

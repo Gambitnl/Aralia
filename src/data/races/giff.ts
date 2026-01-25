@@ -21,7 +21,6 @@ export const GIFF_DATA: Race = {
   ],
   visual: {
     id: 'giff',
-    icon: '🔫',
     color: '#c95f4f',
     maleIllustrationPath: 'assets/images/races/giff_male.png',
     femaleIllustrationPath: 'assets/images/races/giff_female.png',

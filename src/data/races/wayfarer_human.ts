@@ -26,7 +26,6 @@ export const MARK_OF_PASSAGE_HUMAN_DATA: Race = {
   ],
   visual: {
     id: 'mark_of_passage_human',
-    icon: '🏃',
     color: '#4682B4',
     maleIllustrationPath: 'assets/images/races/Human_Wayfarer_Male.png',
     femaleIllustrationPath: 'assets/images/races/Human_Wayfarer_Female.png',

@@ -14,8 +14,8 @@ def check_file(filepath):
     # inside that, we look for visual: { ... }
     
     # Check for name first to identify the race
-    name_match = re.search(r"name:\s*['"]([^'"]+)['"]", content)
-    id_match = re.search(r"id:\s*['"]([^'"]+)['"]", content)
+    name_match = re.search(r"name:\s*['\"]([^'\"]+)['\"]", content)
+    id_match = re.search(r"id:\s*['\"]([^'\"]+)['\"]", content)
     
     if not name_match:
         return # Probably not a race definition file
@@ -32,19 +32,34 @@ def check_file(filepath):
     # Let's assume presence of key means it's set, but we should verify value if possible.
     # regex for keys
     
-    male_val_match = re.search(r"maleIllustrationPath:\s*['"]([^'"]+)['"]", content)
-    female_val_match = re.search(r"femaleIllustrationPath:\s*['"]([^'"]+)['"]", content)
+    male_val_match = re.search(r"maleIllustrationPath:\s*['\"]([^'\"]+)['\"]", content)
+    female_val_match = re.search(r"femaleIllustrationPath:\s*['\"]([^'\"]+)['\"]", content)
     
-    male_missing = not male_val_match or not male_val_match.group(1).strip()
-    female_missing = not female_val_match or not female_val_match.group(1).strip()
+    male_path = male_val_match.group(1).strip() if male_val_match else None
+    female_path = female_val_match.group(1).strip() if female_val_match else None
+
+    # Check if paths are defined
+    male_defined = bool(male_path)
+    female_defined = bool(female_path)
+
+    # Check if files exist
+    male_exists = male_defined and os.path.exists(os.path.join('public', male_path))
+    female_exists = female_defined and os.path.exists(os.path.join('public', female_path))
     
-    if male_missing or female_missing:
+    if race_id == 'abyssal_tiefling':
+        print(f"DEBUG: {race_id}")
+        print(f"  Male Path: {os.path.join('public', male_path) if male_path else 'None'}")
+        print(f"  Male Exists: {male_exists}")
+        print(f"  Female Path: {os.path.join('public', female_path) if female_path else 'None'}")
+        print(f"  Female Exists: {female_exists}")
+
+    if not male_exists or not female_exists:
         MISSING_IMAGES.append({
             'name': name,
             'id': race_id,
             'file': filepath,
-            'missing_male': male_missing,
-            'missing_female': female_missing
+            'missing_male': not male_exists,
+            'missing_female': not female_exists
         })
 
 def main():
@@ -55,6 +70,7 @@ def main():
     print(f"Found {len(MISSING_IMAGES)} races with missing images.")
     for item in MISSING_IMAGES:
         print(f"Race: {item['name']} (ID: {item['id']})")
+        print(f"  File: {item['file']}")
         if item['missing_male']: print("  - Missing Male Image")
         if item['missing_female']: print("  - Missing Female Image")
 
