@@ -3,6 +3,7 @@ import { handleShortRest } from '../handleResourceActions';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
 import { getGameDay } from '../../../utils/timeUtils';
 import type { GameState } from '../../../types';
+import type { AddMessageFn } from '../../actions/actionHandlerTypes';
 
 describe('handleShortRest', () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -29,7 +30,7 @@ describe('handleShortRest', () => {
       },
     };
 
-    handleShortRest({ gameState: state, dispatch: mockDispatch, addMessage: mockAddMessage });
+    handleShortRest({ gameState: state, dispatch: mockDispatch, addMessage: mockAddMessage as any as AddMessageFn });
 
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockAddMessage).toHaveBeenCalledWith(expect.stringContaining('short rest'), 'system');
@@ -47,7 +48,7 @@ describe('handleShortRest', () => {
       },
     };
 
-    handleShortRest({ gameState: state, dispatch: mockDispatch, addMessage: mockAddMessage });
+    handleShortRest({ gameState: state, dispatch: mockDispatch, addMessage: mockAddMessage as any as AddMessageFn });
 
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockAddMessage).toHaveBeenCalledWith(expect.stringContaining('short rests today'), 'system');
@@ -65,7 +66,7 @@ describe('handleShortRest', () => {
       },
     };
 
-    handleShortRest({ gameState: state, dispatch: mockDispatch, addMessage: mockAddMessage });
+    handleShortRest({ gameState: state, dispatch: mockDispatch, addMessage: mockAddMessage as any as AddMessageFn });
 
     const shortRestAction = mockDispatch.mock.calls.find(([action]) => action.type === 'SHORT_REST');
     const advanceTimeAction = mockDispatch.mock.calls.find(([action]) => action.type === 'ADVANCE_TIME');

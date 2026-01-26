@@ -40,61 +40,61 @@ interface HandleMovementProps {
  * Helper to apply consequences from meaningful discoveries.
  */
 function applyDiscoveryConsequences(
-    consequences: DiscoveryConsequence[],
-    dispatch: React.Dispatch<AppAction>,
-    addMessage: AddMessageFn,
-    mapData: MapData,
-    currentX: number,
-    currentY: number
+  consequences: DiscoveryConsequence[],
+  dispatch: React.Dispatch<AppAction>,
+  addMessage: AddMessageFn,
+  mapData: MapData,
+  currentX: number,
+  currentY: number
 ) {
-    consequences.forEach(consequence => {
-        switch (consequence.type) {
-            case 'map_reveal':
-                if (consequence.value) {
-                    // Update discovery state for surrounding tiles
-                    const radius = consequence.value;
-                    const newTiles = mapData.tiles.map(row => row.map(tile => ({ ...tile })));
+  consequences.forEach(consequence => {
+    switch (consequence.type) {
+      case 'map_reveal':
+        if (consequence.value) {
+          // Update discovery state for surrounding tiles
+          const radius = consequence.value;
+          const newTiles = mapData.tiles.map(row => row.map(tile => ({ ...tile })));
 
-                    let revealedCount = 0;
-                    for (let y = currentY - radius; y <= currentY + radius; y++) {
-                        for (let x = currentX - radius; x <= currentX + radius; x++) {
-                            if (y >= 0 && y < mapData.gridSize.rows && x >= 0 && x < mapData.gridSize.cols) {
-                                if (!newTiles[y][x].discovered) {
-                                    newTiles[y][x].discovered = true;
-                                    revealedCount++;
-                                }
-                            }
-                        }
-                    }
+          let revealedCount = 0;
+          for (let y = currentY - radius; y <= currentY + radius; y++) {
+            for (let x = currentX - radius; x <= currentX + radius; x++) {
+              if (y >= 0 && y < mapData.gridSize.rows && x >= 0 && x < mapData.gridSize.cols) {
+                if (!newTiles[y][x].discovered) {
+                  newTiles[y][x].discovered = true;
+                  revealedCount++;
+                }
+              }
+            }
+          }
 
-                    if (revealedCount > 0) {
-                         // Modifying mapData in place works here because newMapDataForDispatch is a copy,
-                         // but to be clean we should assign it back or assume mapData passed is the mutable copy.
-                         // In handleMovement, newMapDataForDispatch is already a deep-ish copy of tiles.
-                         // We need to ensure the caller uses the updated tiles.
-                         mapData.tiles = newTiles;
-                         addMessage(`[Effect] Map Revealed (Radius: ${radius}) - ${revealedCount} new tiles charted.`, 'system');
-                    } else {
-                         addMessage(`[Effect] Map Revealed - No new areas found.`, 'system');
-                    }
-                }
-                break;
-            case 'reputation':
-                if (consequence.targetId && consequence.value) {
-                    // TODO(preserve-lint): route reputation changes through a dedicated reputation action once available.
-                    dispatch({
-                        type: 'ADD_DISCOVERY_ENTRY' as any,
-                        payload: {
-                            factionId: consequence.targetId,
-                            change: consequence.value,
-                            source: 'discovery'
-                        }
-                    });
-                    addMessage(`[Effect] Reputation Updated: ${consequence.targetId} ${consequence.value > 0 ? '+' : ''}${consequence.value}`, 'system');
-                }
-                break;
+          if (revealedCount > 0) {
+            // Modifying mapData in place works here because newMapDataForDispatch is a copy,
+            // but to be clean we should assign it back or assume mapData passed is the mutable copy.
+            // In handleMovement, newMapDataForDispatch is already a deep-ish copy of tiles.
+            // We need to ensure the caller uses the updated tiles.
+            mapData.tiles = newTiles;
+            addMessage(`[Effect] Map Revealed (Radius: ${radius}) - ${revealedCount} new tiles charted.`, 'system');
+          } else {
+            addMessage(`[Effect] Map Revealed - No new areas found.`, 'system');
+          }
         }
-    });
+        break;
+      case 'reputation':
+        if (consequence.targetId && consequence.value) {
+          // TODO(preserve-lint): route reputation changes through a dedicated reputation action once available.
+          dispatch({
+            type: 'ADD_DISCOVERY_ENTRY' as any,
+            payload: {
+              factionId: consequence.targetId,
+              change: consequence.value,
+              source: 'discovery'
+            }
+          });
+          addMessage(`[Effect] Reputation Updated: ${consequence.targetId} ${consequence.value > 0 ? '+' : ''}${consequence.value}`, 'system');
+        }
+        break;
+    }
+  });
 }
 
 export async function handleMovement({
@@ -186,11 +186,11 @@ export async function handleMovement({
       addMessage(`[Skill Check] ${check.skill.charAt(0).toUpperCase() + check.skill.slice(1)}: Rolled ${totalRoll} (DC ${check.dc}) - ${passed ? 'Success' : 'Failure'}`, 'system');
 
       if (passed) {
-         finalDescription = `${event.description} ${successDescription}`;
-         if (successEffect) finalEffect = successEffect;
+        finalDescription = `${event.description} ${successDescription}`;
+        if (successEffect) finalEffect = successEffect;
       } else {
-         finalDescription = `${event.description} ${failureDescription || ''}`;
-         if (failureEffect) finalEffect = failureEffect;
+        finalDescription = `${event.description} ${failureDescription || ''}`;
+        if (failureEffect) finalEffect = failureEffect;
       }
     }
 
@@ -248,41 +248,41 @@ export async function handleMovement({
             addMessage(`Map updated: ${finalEffect.data.name} recorded.`, 'system');
 
             if (finalEffect.data.rewards) {
-               finalEffect.data.rewards.forEach(reward => {
-                 switch (reward.type) {
-                    case 'item':
-                      if (reward.resourceId) {
-                        dispatch({ type: 'ADD_ITEM', payload: { itemId: reward.resourceId, count: reward.amount } });
-                        addMessage(`Gained ${reward.amount}x ${reward.description || 'Items'}`, 'system');
-                      }
-                      break;
-                    case 'gold':
-                      dispatch({ type: 'MODIFY_GOLD', payload: { amount: reward.amount } });
-                      addMessage(`Gained ${reward.amount} Gold`, 'system');
-                      break;
-                    case 'xp':
-                      dispatch({ type: 'GRANT_EXPERIENCE', payload: { amount: reward.amount } });
-                      addMessage(`Party gained ${reward.amount} XP`, 'system');
-                      break;
-                    case 'health': {
-                      dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: reward.amount } });
-                      const hpText = reward.amount > 0 ? 'Healed' : 'Took damage';
-                      addMessage(`${hpText} ${Math.abs(reward.amount)} HP`, 'system');
-                      break;
+              finalEffect.data.rewards.forEach(reward => {
+                switch (reward.type) {
+                  case 'item':
+                    if (reward.resourceId) {
+                      dispatch({ type: 'ADD_ITEM', payload: { itemId: reward.resourceId, count: reward.amount } });
+                      addMessage(`Gained ${reward.amount}x ${reward.description || 'Items'}`, 'system');
                     }
-                 }
-               });
+                    break;
+                  case 'gold':
+                    dispatch({ type: 'MODIFY_GOLD', payload: { amount: reward.amount } });
+                    addMessage(`Gained ${reward.amount} Gold`, 'system');
+                    break;
+                  case 'xp':
+                    dispatch({ type: 'GRANT_EXPERIENCE', payload: { amount: reward.amount } });
+                    addMessage(`Party gained ${reward.amount} XP`, 'system');
+                    break;
+                  case 'health': {
+                    dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: reward.amount } });
+                    const hpText = reward.amount > 0 ? 'Healed' : 'Took damage';
+                    addMessage(`${hpText} ${Math.abs(reward.amount)} HP`, 'system');
+                    break;
+                  }
+                }
+              });
             }
 
             if (finalEffect.data.consequences && newMapDataForDispatch) {
-               applyDiscoveryConsequences(
-                   finalEffect.data.consequences,
-                   dispatch,
-                   addMessage,
-                   newMapDataForDispatch,
-                   worldX,
-                   worldY
-               );
+              applyDiscoveryConsequences(
+                finalEffect.data.consequences,
+                dispatch,
+                addMessage,
+                newMapDataForDispatch,
+                worldX,
+                worldY
+              );
             }
           }
           break;
@@ -324,7 +324,7 @@ export async function handleMovement({
       newLocationId = action.targetId;
       newSubMapCoordinates = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
       activeDynamicNpcIdsForNewLocation = determineActiveDynamicNpcsForLocation(newLocationId, LOCATIONS);
-      timeToAdvanceSeconds = action.label.toLowerCase().includes('teleport') ? 0 : 3600;
+      timeToAdvanceSeconds = (action.label || '').toLowerCase().includes('teleport') ? 0 : 3600;
       movedToNewNamedLocation = targetLocation;
       baseDescriptionForFallback = targetLocation.baseDescription;
 
@@ -556,9 +556,9 @@ export async function handleMovement({
 
   // Show seasonal description occasionally if it has a significant effect
   if (seasonalEffects.travelCostMultiplier > 1.0 && timeToAdvanceSeconds > 0) {
-     if (Math.random() < 0.2) {
-         addMessage(seasonalEffects.description, 'system');
-     }
+    if (Math.random() < 0.2) {
+      addMessage(seasonalEffects.description, 'system');
+    }
   }
 
   if (timeToAdvanceSeconds > 0) {

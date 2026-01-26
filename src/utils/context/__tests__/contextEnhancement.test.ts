@@ -29,6 +29,7 @@ vi.mock('../../../data/backgrounds', () => ({
 
 describe('contextUtils (Enhanced)', () => {
   const mockPlayer: PlayerCharacter = {
+    id: 'hero',
     name: 'Hero',
     race: { name: 'Human', id: 'human', description: '', traits: [] },
     class: { name: 'Fighter', id: 'fighter', description: '', hitDie: 10, primaryAbility: [], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] },
@@ -125,7 +126,7 @@ describe('contextUtils (Enhanced)', () => {
   });
 
   it('formats specific rumor types correctly', () => {
-     const context = generateGeneralActionContext({
+    const context = generateGeneralActionContext({
       gameState: mockGameState,
       playerCharacter: mockPlayer,
       currentLocation: mockLocation,
@@ -137,8 +138,8 @@ describe('contextUtils (Enhanced)', () => {
   });
 
   it('falls back gracefully when no environment state is present', () => {
-     const fallbackState = { ...mockGameState, environment: undefined };
-     const context = generateGeneralActionContext({
+    const fallbackState = { ...mockGameState, environment: undefined };
+    const context = generateGeneralActionContext({
       gameState: fallbackState,
       playerCharacter: mockPlayer,
       currentLocation: mockLocation,

@@ -17,7 +17,7 @@ export const DeformableScene = ({ activeTool }: DeformableSceneProps) => {
   const [version, setVersion] = useState(0);
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
-    const { x, z } = event.point;
+    const { x, z } = (event as any).point;
 
     if (activeTool === 'mold_earth') {
       const type = event.shiftKey ? 'lower' : 'raise';
@@ -55,26 +55,26 @@ export const DeformableScene = ({ activeTool }: DeformableSceneProps) => {
     >
       <ambientLight intensity={0.6} />
       <directionalLight position={[50, 100, 50]} intensity={1.5} castShadow />
-      <DeformableTerrain 
-        size={200} 
-        segments={128} 
-        manager={manager} 
-        version={version} 
+      <DeformableTerrain
+        size={200}
+        segments={128}
+        manager={manager}
+        version={version}
       />
-      
+
       {/* Environmental Overlays */}
       {manager.getOverlays().map(overlay => (
-        <OverlayMesh 
-          key={overlay.id} 
-          overlay={overlay} 
-          manager={manager} 
-          version={version} 
+        <OverlayMesh
+          key={overlay.id}
+          overlay={overlay}
+          manager={manager}
+          version={version}
         />
       ))}
 
-      <mesh 
-        rotation={[-Math.PI / 2, 0, 0]} 
-        position={[0, -0.1, 0]} 
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -0.1, 0]}
         onPointerDown={handlePointerDown}
         visible={false}
       >

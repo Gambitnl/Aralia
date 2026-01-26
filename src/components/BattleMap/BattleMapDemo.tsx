@@ -218,7 +218,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
               setBiome(nextBiome);
               setCombatLog([]);
-              setSelectedCharacterId(null);
+              _setSelectedCharacterId(null);
               setSheetCharacter(null);
               setAutoCharacters(new Set());
               setMapData(setup.mapData);
@@ -299,7 +299,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           <CombatLog logEntries={combatLog} />
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

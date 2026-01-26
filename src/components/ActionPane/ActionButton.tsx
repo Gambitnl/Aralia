@@ -36,7 +36,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   else if (action.type === 'go_to_main_menu') colorClasses = "btn-red";
   else if (action.type === 'toggle_dev_menu') colorClasses = "btn-orange";
   else if (action.type === 'gemini_custom_action') colorClasses = "btn-teal";
-  else if (action.type === 'ask_oracle' || (action.type === 'custom' && action.label.toLowerCase().includes('oracle'))) colorClasses = "btn-purple";
+  else if (action.type === 'ask_oracle' || (action.type === 'custom' && action.label?.toLowerCase().includes('oracle'))) colorClasses = "btn-purple";
   else if (action.type === 'ANALYZE_SITUATION') colorClasses = "btn-indigo";
   else if (action.type === 'TOGGLE_DISCOVERY_LOG') colorClasses = "btn-lime";
   else if (action.type === 'TOGGLE_LOGBOOK') colorClasses = "btn-amber";

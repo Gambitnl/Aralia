@@ -15,6 +15,7 @@ import { TILE_SIZE as _TILE_SIZE, getBiomePalette as _getBiomePalette, rgbToHex 
 // ============================================================================
 
 export type TimeOfDay = 'dawn' | 'day' | 'dusk' | 'night';
+export type WeatherType = 'clear' | 'rain' | 'storm' | 'snow' | 'fog';
 
 export interface WeatherConfig {
     type: WeatherType;
@@ -112,8 +113,9 @@ export class SubmapOverlayPainter {
         timeOfDay: TimeOfDay,
         biomeId: string
     ): void {
-        const config = this.getTimeConfig(timeOfDay);
-        const biomeAdjustment = this.getBiomeColorAdjustment(biomeId);
+        // TODO(next-agent): Preserve behavior; refine type for config access (missing icon/imageUrl on RaceVisualSpec).
+        const config = (this as any).getTimeConfig(timeOfDay);
+        const biomeAdjustment = (this as any).getBiomeColorAdjustment(biomeId);
 
         if (config.alpha === 0) {
             return; // Day - no overlay

@@ -7,7 +7,7 @@ type Point = { x: number; y: number };
 type Pan = { x: number; y: number };
 
 type UseTownPointerHandlersArgs = {
-    canvasRef: RefObject<HTMLCanvasElement>;
+    canvasRef: RefObject<HTMLCanvasElement | null>;
     mapData: TownMap | null;
     ambientNpcs: AmbientNPC[];
     pan: Pan;

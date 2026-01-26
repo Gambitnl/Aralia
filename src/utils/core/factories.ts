@@ -291,7 +291,13 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
       numberOfSkillProficiencies: 2,
       armorProficiencies: [],
       weaponProficiencies: [],
-      features: []
+      features: [],
+      spellcasting: {
+        ability: 'Intelligence',
+        knownCantrips: 0,
+        knownSpellsL1: 0,
+        spellList: []
+      }
     };
 
     const mockAbilities: AbilityScores = {
@@ -306,23 +312,23 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
     const level = overrides.level ?? 1;
     // Seed class levels so mock characters have valid Hit Dice pools.
     const baseCharacter: PlayerCharacter = {
-      id: `char-${safeUuid()}`,
-      name: "Mock Hero",
-      race: mockRace,
-      class: mockClass,
+      id: overrides.id ?? `char-${safeUuid()}`,
+      name: overrides.name ?? "Mock Hero",
+      race: overrides.race ?? mockRace,
+      class: overrides.class ?? mockClass,
       level,
-      abilityScores: mockAbilities,
-      finalAbilityScores: mockAbilities,
-      skills: [],
-      hp: 10,
-      maxHp: 10,
-      armorClass: 10,
-      speed: 30,
-      darkvisionRange: 0,
-      transportMode: 'foot' as TransportMode,
-      equippedItems: {},
-      statusEffects: [], // Initialize statusEffects
-      classLevels: { [mockClass.id]: level },
+      abilityScores: overrides.abilityScores ?? mockAbilities,
+      finalAbilityScores: overrides.finalAbilityScores ?? mockAbilities,
+      skills: overrides.skills ?? [],
+      hp: overrides.hp ?? 10,
+      maxHp: overrides.maxHp ?? 10,
+      armorClass: overrides.armorClass ?? 10,
+      speed: overrides.speed ?? 30,
+      darkvisionRange: overrides.darkvisionRange ?? 0,
+      transportMode: (overrides.transportMode ?? 'foot') as TransportMode,
+      equippedItems: overrides.equippedItems ?? {},
+      statusEffects: overrides.statusEffects ?? [], // Initialize statusEffects
+      classLevels: overrides.classLevels ?? { [mockClass.id]: level },
       ...overrides
     };
     if (!baseCharacter.hitPointDice) {
@@ -343,7 +349,13 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
         id: "fighter", name: "Fighter", description: "", hitDie: 10,
         primaryAbility: [], savingThrowProficiencies: [],
         skillProficienciesAvailable: [], numberOfSkillProficiencies: 0,
-        armorProficiencies: [], weaponProficiencies: [], features: []
+        armorProficiencies: [], weaponProficiencies: [], features: [],
+        spellcasting: {
+          ability: 'Intelligence',
+          knownCantrips: 0,
+          knownSpellsL1: 0,
+          spellList: []
+        }
       },
       level: 1,
       classLevels: { fighter: 1 },
@@ -680,7 +692,13 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       numberOfSkillProficiencies: 2,
       armorProficiencies: [],
       weaponProficiencies: [],
-      features: []
+      features: [],
+      spellcasting: {
+        ability: 'Intelligence',
+        knownCantrips: 0,
+        knownSpellsL1: 0,
+        spellList: []
+      }
     };
 
     const defaults: CombatCharacter = {
@@ -754,7 +772,13 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
         numberOfSkillProficiencies: 0,
         armorProficiencies: [],
         weaponProficiencies: [],
-        features: []
+        features: [],
+        spellcasting: {
+          ability: 'Intelligence',
+          knownCantrips: 0,
+          knownSpellsL1: 0,
+          spellList: []
+        }
       },
       conditions: [], activeEffects: [], riders: [], savePenaltyRiders: [], resistances: [], immunities: [], vulnerabilities: [], damageDealt: [], healingDone: []
     } as CombatCharacter;

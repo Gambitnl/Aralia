@@ -167,7 +167,8 @@ export interface StartGameSuccessPayload {
 
 export interface Action {
   type: ActionType;
-  label: string;
+  // TODO(next-agent): Preserve behavior; refine type for label (was any/undefined).
+  label?: string;
   targetId?: string;
   payload?: {
     query?: string;

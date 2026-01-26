@@ -36,10 +36,11 @@ import { PreviewThreeDTest } from './steps/PreviewThreeDTest';
 import { PreviewIcons } from './steps/PreviewIcons';
 import { PreviewMissingIcons } from './steps/PreviewMissingIcons';
 import { PreviewEnvironment } from './steps/PreviewEnvironment';
+import { PreviewBiome } from './steps/PreviewBiome';
 import { PreviewRaceImages } from './steps/PreviewRaceImages';
 
 export const DesignPreviewPage: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState<string>('race');
+  const [currentStep, setCurrentStep] = useState<string>('biome'); // Default to new track for convenience
   const [variant, setVariant] = useState<string>('unified');
   const [isWindowOpen, setIsWindowOpen] = useState(true);
   // Track visualizer server status: 'unknown' | 'running' | 'stopped'
@@ -114,6 +115,7 @@ export const DesignPreviewPage: React.FC = () => {
     { id: 'sandbox', label: 'Sandbox' },
     { id: '3d', label: '3D Test' },
     { id: 'environment', label: 'Environment' },
+    { id: 'biome', label: 'Biome Gen' },
     { id: 'frame', label: 'Window' },
     { id: 'imagegen', label: 'ImageGen' },
     { id: 'tables', label: 'Tables' },
@@ -144,6 +146,7 @@ export const DesignPreviewPage: React.FC = () => {
     sandbox: 'sandbox',
     '3d': 'sandbox',
     environment: 'sandbox',
+    biome: 'sandbox',
     frame: 'window',
     imagegen: 'imagegen',
     tables: 'legacy',
@@ -266,6 +269,7 @@ export const DesignPreviewPage: React.FC = () => {
             {currentStep === 'sandbox' && <PreviewCombatSandbox variant={variant} />}
             {currentStep === '3d' && <PreviewThreeDTest variant={variant} />}
             {currentStep === 'environment' && <PreviewEnvironment />}
+            {currentStep === 'biome' && <PreviewBiome />}
             {currentStep === 'review' && <PreviewReview variant={variant} />}
             {currentStep === 'frame' && <PreviewWindowFrame variant={variant} />}
             {currentStep === 'imagegen' && <PreviewImageGen variant={variant} />}

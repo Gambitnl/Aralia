@@ -9,7 +9,7 @@ type UseTownCameraArgs = {
     animatedPosition: TownPosition | null;
     effectivePlayerPosition: TownPosition | null;
     mapData: TownMap | null;
-    canvasRef: RefObject<HTMLCanvasElement>;
+    canvasRef: RefObject<HTMLCanvasElement | null>;
     zoom: number;
     setPan: (action: Pan | ((prev: Pan) => Pan)) => void;
     resetView: () => void;

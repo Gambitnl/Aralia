@@ -45,9 +45,9 @@ export async function handleLookAround({
     'Player looks around the area.',
     lookContext
   );
-  
+
   addGeminiLog('generateActionOutcome (look_around)', lookDescResult.data?.promptSent || lookDescResult.metadata?.promptSent || "", lookDescResult.data?.rawResponse || lookDescResult.metadata?.rawResponse || lookDescResult.error || "");
-  
+
   if (lookDescResult.data?.rateLimitHit || lookDescResult.metadata?.rateLimitHit) {
     dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
   }
@@ -60,26 +60,26 @@ export async function handleLookAround({
     await resolveAndRegisterEntities(descText, gameState, dispatch, addGeminiLog);
 
     const customActionsResult = await GeminiService.generateCustomActions(descText, generalActionContext, gameState.devModelOverride);
-    
+
     addGeminiLog('generateCustomActions', customActionsResult.data?.promptSent || customActionsResult.metadata?.promptSent || "", customActionsResult.data?.rawResponse || customActionsResult.metadata?.rawResponse || customActionsResult.error || "");
-    
+
     if (customActionsResult.data?.rateLimitHit || customActionsResult.metadata?.rateLimitHit) {
       dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
     }
-    
+
     if (customActionsResult.data?.actions) {
-        const existingCompassDirections = Object.keys(DIRECTION_VECTORS);
-        const filteredActions = customActionsResult.data.actions.filter(action => {
-            const labelLower = action.label.toLowerCase();
-            const promptLower = action.payload?.geminiPrompt?.toLowerCase() || "";
-            return !existingCompassDirections.some(dir =>
-                labelLower.includes(dir.toLowerCase()) || promptLower.includes(dir.toLowerCase())
-            );
-        });
-        dispatch({ type: 'SET_GEMINI_ACTIONS', payload: filteredActions.length > 0 ? filteredActions : null });
+      const existingCompassDirections = Object.keys(DIRECTION_VECTORS);
+      const filteredActions = customActionsResult.data.actions.filter(action => {
+        const labelLower = (action.label || '').toLowerCase();
+        const promptLower = action.payload?.geminiPrompt?.toLowerCase() || "";
+        return !existingCompassDirections.some(dir =>
+          labelLower.includes(dir.toLowerCase()) || promptLower.includes(dir.toLowerCase())
+        );
+      });
+      dispatch({ type: 'SET_GEMINI_ACTIONS', payload: filteredActions.length > 0 ? filteredActions : null });
     } else {
-        // If actions failed to generate, just clear custom actions
-        dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+      // If actions failed to generate, just clear custom actions
+      dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
     }
 
   } else {
@@ -114,12 +114,11 @@ export async function handleInspectSubmapTile({
 
   const inspectionResult = await OllamaTextService.generateTileInspectionDetails(
     inspectTileDetails as InspectSubmapTilePayload,
-    generalActionContext,
-    gameState.devModelOverride,
+    generalActionContext
   );
-  
+
   addGeminiLog('generateTileInspectionDetails', inspectionResult.data?.promptSent || inspectionResult.metadata?.promptSent || "", inspectionResult.data?.rawResponse || inspectionResult.metadata?.rawResponse || inspectionResult.error || "");
-  
+
   if (inspectionResult.data?.rateLimitHit || inspectionResult.metadata?.rateLimitHit) {
     dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
   }
@@ -146,35 +145,35 @@ export async function handleInspectSubmapTile({
 }
 
 interface HandleAnalyzeSituationProps {
-    gameState: GameState;
-    dispatch: React.Dispatch<AppAction>;
-    addMessage: AddMessageFn;
-    addGeminiLog: AddGeminiLogFn;
-    generalActionContext: string;
+  gameState: GameState;
+  dispatch: React.Dispatch<AppAction>;
+  addMessage: AddMessageFn;
+  addGeminiLog: AddGeminiLogFn;
+  generalActionContext: string;
 }
 
 export async function handleAnalyzeSituation({
-    gameState,
-    dispatch,
-    addMessage,
-    addGeminiLog,
-    generalActionContext
+  gameState,
+  dispatch,
+  addMessage,
+  addGeminiLog,
+  generalActionContext
 }: HandleAnalyzeSituationProps): Promise<void> {
-    const analysisResult = await OllamaTextService.generateSituationAnalysis(generalActionContext);
-    
-    addGeminiLog('generateSituationAnalysis', analysisResult.data?.promptSent || analysisResult.metadata?.promptSent || "", analysisResult.data?.rawResponse || analysisResult.metadata?.rawResponse || analysisResult.error || "");
-    
-    if (analysisResult.data?.rateLimitHit || analysisResult.metadata?.rateLimitHit) {
-        dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
-    }
+  const analysisResult = await OllamaTextService.generateSituationAnalysis(generalActionContext);
 
-    if (analysisResult.data?.text) {
-        addMessage(`DM Insight: "${analysisResult.data.text}"`, 'system');
-        // We don't resolve entities from Analysis - it's meta-game advice.
-    } else {
-        addMessage("The spirits are silent.", 'system');
-    }
-    
-    dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
-    dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
+  addGeminiLog('generateSituationAnalysis', analysisResult.data?.promptSent || analysisResult.metadata?.promptSent || "", analysisResult.data?.rawResponse || analysisResult.metadata?.rawResponse || analysisResult.error || "");
+
+  if (analysisResult.data?.rateLimitHit || analysisResult.metadata?.rateLimitHit) {
+    dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
+  }
+
+  if (analysisResult.data?.text) {
+    addMessage(`DM Insight: "${analysisResult.data.text}"`, 'system');
+    // We don't resolve entities from Analysis - it's meta-game advice.
+  } else {
+    addMessage("The spirits are silent.", 'system');
+  }
+
+  dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+  dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
 }

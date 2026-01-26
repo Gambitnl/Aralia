@@ -51,6 +51,7 @@ vi.mock('../../../data/classes', () => ({
 
 describe('contextUtils', () => {
   const mockPlayer: PlayerCharacter = {
+    id: 'hero-123',
     name: 'Hero',
     age: 30,
     race: { name: 'Human', id: 'human', description: '', traits: [] },
@@ -140,8 +141,8 @@ describe('contextUtils', () => {
         description: 'A lost relic.',
         status: 'Active',
         objectives: [
-            { id: 'o1', description: 'Search the ruins', isCompleted: false },
-            { id: 'o2', description: 'Return to town', isCompleted: false }
+          { id: 'o1', description: 'Search the ruins', isCompleted: false },
+          { id: 'o2', description: 'Return to town', isCompleted: false }
         ],
         dateStarted: 0,
         giverId: 'npc1'
@@ -191,9 +192,9 @@ describe('contextUtils', () => {
 
   it('generates fallback implicit appearance if visualDescription is missing', () => {
     const fallbackPlayer = {
-        ...mockPlayer,
-        visualDescription: undefined,
-        visuals: { gender: 'Female', skinColor: 0 }
+      ...mockPlayer,
+      visualDescription: undefined,
+      visuals: { gender: 'Female', skinColor: 0 }
     } as PlayerCharacter;
 
     const context = generateGeneralActionContext({
@@ -220,8 +221,8 @@ describe('contextUtils', () => {
   });
 
   it('formats NPCs correctly', () => {
-     const mockNPC: NPC = { id: 'npc1', name: 'Gandalf', baseDescription: '', initialPersonalityPrompt: '', role: 'unique' };
-     const context = generateGeneralActionContext({
+    const mockNPC: NPC = { id: 'npc1', name: 'Gandalf', baseDescription: '', initialPersonalityPrompt: '', role: 'unique' };
+    const context = generateGeneralActionContext({
       gameState: mockGameState,
       playerCharacter: mockPlayer,
       currentLocation: mockLocation,

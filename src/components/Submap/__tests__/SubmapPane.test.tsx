@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SubmapPane from '../SubmapPane';
 import { BIOMES } from '../../../constants';
-import type { Location } from '../../../types';
+import type { Location, PlayerCharacter } from '../../../types';
 
 // Mock all the hooks and utilities that SubmapPane depends on
 vi.mock('../useSubmapProceduralData', () => ({
@@ -101,10 +101,11 @@ const originalConsoleWarn = console.warn;
 
 describe('SubmapPane', () => {
     const mockLocation: Location = {
-        x: 5,
-        y: 5,
-        description: 'Test Location',
-        discovered: true,
+        id: 'test-loc',
+        name: 'Test Location',
+        baseDescription: 'Test Location',
+        exits: {},
+        mapCoordinates: { x: 5, y: 5 },
         biomeId: 'forest'
     };
 
@@ -120,6 +121,7 @@ describe('SubmapPane', () => {
         inspectedTileDescriptions: {},
         mapData: null,
         gameTime: new Date(),
+        // TODO(next-agent): Preserve behavior; refine type for playerCharacter mock (missing many properties like finalAbilityScores, darkvision, etc).
         playerCharacter: {
             id: 'test-player',
             name: 'Test Player',
@@ -143,13 +145,15 @@ describe('SubmapPane', () => {
             inventory: [],
             spells: [],
             features: []
-        },
+        } as any as PlayerCharacter,
         partyMembers: [],
         worldSeed: 12345,
         npcsInLocation: [],
         itemsInLocation: [],
         geminiGeneratedActions: null,
-        isDevDummyActive: false
+        isDevDummyActive: false,
+        unreadDiscoveryCount: 0,
+        hasNewRateLimitError: false
     };
 
     let consoleErrors: string[] = [];

@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react';
-import { cn } from '../../utils/cn'; // Assuming we have a cn utility, or I will use standard template literals if not
 
 // Since I haven't confirmed 'cn' exists, I will use a simple helper or just template literals if I can't find it.
 // Checking file listing earlier, I didn't verify utils. Let me check for a utils folder or just use simple string concat for now to be safe,

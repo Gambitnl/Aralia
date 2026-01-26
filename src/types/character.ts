@@ -203,6 +203,11 @@ export interface Class {
   statRecommendationFocus?: AbilityScoreName[];
   statRecommendationDetails?: string;
   recommendedPointBuyPriorities?: AbilityScoreName[];
+  /** Optional subclass data for specialized casters (e.g., Eldritch Knight) */
+  subclass?: {
+    id: string;
+    name: string;
+  };
 }
 
 // -----------------------------------------------------------------------------
@@ -383,7 +388,7 @@ export type TransportMode = 'foot' | 'mounted';
 // Characters
 // -----------------------------------------------------------------------------
 export interface PlayerCharacter {
-  id?: string;
+  id: string;
   name: string;
   soul?: any; // CompanionSoul; - defined as any to avoid circular deps
   age?: number;

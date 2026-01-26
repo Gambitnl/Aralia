@@ -175,6 +175,9 @@ export interface RaceVisualSpec {
   /** Unique ID for the race visual (usually matches race ID). */
   id: string;
 
+  /** Primary icon for the race (emoji or character). */
+  icon?: string;
+
   /** Theme color (hex code). */
   color: string;
 

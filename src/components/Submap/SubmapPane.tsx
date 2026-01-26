@@ -156,6 +156,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         submapDimensions,
         currentWorldBiomeId,
         parentWorldMapCoords,
+        worldSeed
     });
 
 

@@ -14,7 +14,7 @@ This guide tracks common issues encountered when running terminal commands and p
     1. Ensure installation was successful.
     2. Check npm global binary directory or project-local `node_modules/.bin`.
     3. Use absolute paths if necessary.
-    4. **Fallback:** If a command like `rg` (ripgrep) is missing, use `git grep` or PowerShell's `Select-String`.
+    4. **Fallback:** If a command like `rg` (ripgrep) is missing, use `git grep` or PowerShell's `Select-String`. Note that `rg` may be missing from the path in background terminal environments even if available in the VS Code integrated terminal.
 
 - **Error: `fatal: unable to resolve revision: src` (Git Grep)**
   - **Cause:** Occurs when mixing Windows path separators or specific pathspec syntax that PowerShell misinterprets.
@@ -47,6 +47,11 @@ This guide tracks common issues encountered when running terminal commands and p
   - PowerShell to null: `command | Out-Null` or `command > $null 2>&1`
 - **Async Management:** For long-running commands (like `gemini --yolo`), use the background execution capability and monitor status via `command_status` helper tools.
 - **Exit Code Interpretation:** Some commands (like `npx tsc --noEmit`) may return non-zero exit codes due to pre-existing errors. Filter the output with `Select-String` to focus on your changes rather than relying solely on the exit code.
+  - **TSC Formatting:** Use `--pretty false` when redirecting `tsc` output to a file (e.g., `npx tsc --noEmit --pretty false > tsc.log`) to avoid ANSI escape codes in the log file.
 - **Tool Issues:** If a specific tool like `grep_search` fails with internal OS errors (e.g., missing `.antigravityignore` or special files like `nul`), fallback to `run_command` with native CLI tools.
+- **Log Encoding (UTF-16LE):** Files like `test_output.log` are often encoded in `UTF-16LE` (Unicode). standard `view_file` or `type` commands may fail or show scramble.
+  - **Solution:** Use PowerShell with the encoding flag: `Get-Content -Path "test_output.log" -Encoding Unicode`.
+- **Special File Conflicts (nul):** The `nul` file in the project root causes `Select-String` and other recursive PowerShell commands to fail.
+  - **Solution:** Explicitly exclude `nul` or use `git grep` which respects `.gitignore`.
 - **Node Spawn on Windows:** When using `child_process.spawn` or `exec` on Windows, ALWAYS set `{ shell: true }` to avoid `ENOENT` errors when calling `.cmd` or `.ps1` wrappers (like `npx`).
 

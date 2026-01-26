@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { canEquipItem, performLevelUp, applyFeatToCharacter, buildHitPointDicePools } from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
 // TODO(lint-intent): 'ArmorCategory' is unused in this test; use it in the assertion path or remove it.
-import { Item, ArmorCategory as _ArmorCategory, Feat } from '../../../types';
+import { Item, ArmorCategory as _ArmorCategory, Feat, AbilityScoreName, Class } from '../../../types';
 // The module is mocked below, so we don't import the real data for use, but we might import types if needed.
 
 // Mock the feats data to control what performLevelUp sees
@@ -17,12 +17,12 @@ vi.mock('../../data/feats/featsData', () => ({
       }
     },
     {
-        id: 'resilient',
-        name: 'Resilient',
-        benefits: {
-            selectableAbilityScores: ['Strength', 'Constitution'],
-            savingThrowLinkedToAbility: true
-        }
+      id: 'resilient',
+      name: 'Resilient',
+      benefits: {
+        selectableAbilityScores: ['Strength', 'Constitution'],
+        savingThrowLinkedToAbility: true
+      }
     }
   ]
 }));
@@ -71,17 +71,17 @@ describe('characterUtils', () => {
     it('should check armor proficiency', () => {
       const character = createMockPlayerCharacter({
         class: {
-            id: 'wizard',
-            name: 'Wizard',
-            hitDie: 6,
-            primaryAbility: ['Intelligence'],
-            savingThrowProficiencies: ['Intelligence', 'Wisdom'],
-            skillProficienciesAvailable: [],
-            numberOfSkillProficiencies: 2,
-            armorProficiencies: [], // No armor
-            weaponProficiencies: [],
-            features: [],
-            description: 'Wizard'
+          id: 'wizard',
+          name: 'Wizard',
+          hitDie: 6,
+          primaryAbility: ['Intelligence'] as AbilityScoreName[],
+          savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+          skillProficienciesAvailable: [],
+          numberOfSkillProficiencies: 2,
+          armorProficiencies: [], // No armor
+          weaponProficiencies: [],
+          features: [],
+          description: 'Wizard'
         }
       });
 
@@ -98,17 +98,17 @@ describe('characterUtils', () => {
     it('should allow armor if proficient', () => {
       const character = createMockPlayerCharacter({
         class: {
-            id: 'fighter',
-            name: 'Fighter',
-            hitDie: 10,
-            primaryAbility: ['Strength'],
-            savingThrowProficiencies: ['Strength', 'Constitution'],
-            skillProficienciesAvailable: [],
-            numberOfSkillProficiencies: 2,
-            armorProficiencies: ['heavy armor', 'medium armor', 'light armor', 'shields'],
-            weaponProficiencies: [],
-            features: [],
-            description: 'Fighter'
+          id: 'fighter',
+          name: 'Fighter',
+          hitDie: 10,
+          primaryAbility: ['Strength'] as AbilityScoreName[],
+          savingThrowProficiencies: ['Strength', 'Constitution'],
+          skillProficienciesAvailable: [],
+          numberOfSkillProficiencies: 2,
+          armorProficiencies: ['heavy armor', 'medium armor', 'light armor', 'shields'],
+          weaponProficiencies: [],
+          features: [],
+          description: 'Fighter'
         }
       });
 
@@ -122,19 +122,19 @@ describe('characterUtils', () => {
     });
 
     it('should check shield proficiency explicitly', () => {
-       const character = createMockPlayerCharacter({
+      const character = createMockPlayerCharacter({
         class: {
-            id: 'rogue',
-            name: 'Rogue',
-            hitDie: 8,
-            primaryAbility: ['Dexterity'],
-            savingThrowProficiencies: ['Dexterity'],
-            skillProficienciesAvailable: [],
-            numberOfSkillProficiencies: 4,
-            armorProficiencies: ['light armor'], // No shields
-            weaponProficiencies: [],
-            features: [],
-            description: 'Rogue'
+          id: 'rogue',
+          name: 'Rogue',
+          hitDie: 8,
+          primaryAbility: ['Dexterity'] as AbilityScoreName[],
+          savingThrowProficiencies: ['Dexterity'] as AbilityScoreName[],
+          skillProficienciesAvailable: [],
+          numberOfSkillProficiencies: 4,
+          armorProficiencies: ['light armor'], // No shields
+          weaponProficiencies: [],
+          features: [],
+          description: 'Rogue'
         }
       });
 
@@ -149,34 +149,34 @@ describe('characterUtils', () => {
     });
 
     it('should allow weapon equip even if not proficient, but warn', () => {
-        const character = createMockPlayerCharacter({
-            class: {
-                id: 'wizard',
-                name: 'Wizard',
-                hitDie: 6,
-                primaryAbility: ['Intelligence'],
-                savingThrowProficiencies: ['Intelligence', 'Wisdom'],
-                skillProficienciesAvailable: [],
-                numberOfSkillProficiencies: 2,
-                armorProficiencies: [],
-                weaponProficiencies: ['dagger', 'dart', 'sling', 'quarterstaff', 'light crossbow'],
-                features: [],
-                description: 'Wizard'
-            }
-        });
+      const character = createMockPlayerCharacter({
+        class: {
+          id: 'wizard',
+          name: 'Wizard',
+          hitDie: 6,
+          primaryAbility: ['Intelligence'] as AbilityScoreName[],
+          savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+          skillProficienciesAvailable: [],
+          numberOfSkillProficiencies: 2,
+          armorProficiencies: [],
+          weaponProficiencies: ['dagger', 'dart', 'sling', 'quarterstaff', 'light crossbow'],
+          features: [],
+          description: 'Wizard'
+        }
+      });
 
-        // Greatsword is martial, wizard not proficient
-        const greatsword = createMockItem({
-            type: 'weapon',
-            id: 'greatsword',
-            category: 'Martial Weapon'
-        });
+      // Greatsword is martial, wizard not proficient
+      const greatsword = createMockItem({
+        type: 'weapon',
+        id: 'greatsword',
+        category: 'Martial Weapon'
+      });
 
-        const result = canEquipItem(character, greatsword);
+      const result = canEquipItem(character, greatsword);
 
-        // Should return true (can equip) but with a reason (warning)
-        expect(result.can).toBe(true);
-        expect(result.reason).toContain('Not proficient with Martial weapons');
+      // Should return true (can equip) but with a reason (warning)
+      expect(result.can).toBe(true);
+      expect(result.reason).toContain('Not proficient with Martial weapons');
     });
   });
 
@@ -192,7 +192,7 @@ describe('characterUtils', () => {
           id: 'fighter',
           name: 'Fighter',
           hitDie: 10, // Average roll is 5 + 1 = 6
-          primaryAbility: ['Strength'],
+          primaryAbility: ['Strength'] as AbilityScoreName[],
           savingThrowProficiencies: ['Strength', 'Constitution'],
           skillProficienciesAvailable: [],
           numberOfSkillProficiencies: 2,
@@ -241,7 +241,7 @@ describe('characterUtils', () => {
           id: 'fighter',
           name: 'Fighter',
           hitDie: 10,
-          primaryAbility: ['Strength'],
+          primaryAbility: ['Strength'] as AbilityScoreName[],
           savingThrowProficiencies: ['Strength', 'Constitution'],
           skillProficienciesAvailable: [],
           numberOfSkillProficiencies: 2,
@@ -276,7 +276,7 @@ describe('characterUtils', () => {
     });
 
     it('uses the chosen class hit die when leveling a multiclass character', () => {
-      const fighterClass = {
+      const fighterClass: Class = {
         id: 'fighter',
         name: 'Fighter',
         hitDie: 10,
@@ -289,7 +289,7 @@ describe('characterUtils', () => {
         features: [],
         description: 'Fighter'
       };
-      const wizardClass = {
+      const wizardClass: Class = {
         id: 'wizard',
         name: 'Wizard',
         hitDie: 6,
@@ -344,15 +344,15 @@ describe('characterUtils', () => {
     });
 
     it('should apply Ability Score Improvements at level 4', () => {
-       const character = createMockPlayerCharacter({
+      const character = createMockPlayerCharacter({
         level: 3,
         xp: 2700,
         class: {
           id: 'fighter',
           name: 'Fighter',
           hitDie: 10,
-          primaryAbility: ['Strength'],
-          savingThrowProficiencies: [],
+          primaryAbility: ['Strength'] as AbilityScoreName[],
+          savingThrowProficiencies: [] as AbilityScoreName[],
           skillProficienciesAvailable: [],
           numberOfSkillProficiencies: 2,
           armorProficiencies: [],
@@ -403,8 +403,8 @@ describe('characterUtils', () => {
           id: 'fighter',
           name: 'Fighter',
           hitDie: 10,
-          primaryAbility: ['Strength'],
-          savingThrowProficiencies: [],
+          primaryAbility: ['Strength'] as AbilityScoreName[],
+          savingThrowProficiencies: [] as AbilityScoreName[],
           skillProficienciesAvailable: [],
           numberOfSkillProficiencies: 2,
           armorProficiencies: [],
@@ -413,10 +413,10 @@ describe('characterUtils', () => {
           description: 'Fighter'
         },
         abilityScores: {
-            Strength: 10, Dexterity: 10, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 10
+          Strength: 10, Dexterity: 10, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 10
         },
         finalAbilityScores: {
-            Strength: 10, Dexterity: 10, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 10
+          Strength: 10, Dexterity: 10, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 10
         }
       });
 
@@ -446,8 +446,8 @@ describe('characterUtils', () => {
           id: 'fighter',
           name: 'Fighter',
           hitDie: 10,
-          primaryAbility: ['Strength'],
-          savingThrowProficiencies: ['Strength', 'Constitution'],
+          primaryAbility: ['Strength'] as AbilityScoreName[],
+          savingThrowProficiencies: ['Strength', 'Constitution'] as AbilityScoreName[],
           skillProficienciesAvailable: [],
           numberOfSkillProficiencies: 2,
           armorProficiencies: [],
@@ -456,10 +456,10 @@ describe('characterUtils', () => {
           description: 'Fighter'
         },
         abilityScores: {
-            Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
+          Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
         },
         finalAbilityScores: {
-            Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
+          Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
         },
         feats: [] // No prior feats
       });
@@ -493,7 +493,7 @@ describe('characterUtils', () => {
         Wisdom: 10,
         Charisma: 10
       };
-      const fighterClass = {
+      const fighterClass: Class = {
         id: 'fighter',
         name: 'Fighter',
         hitDie: 10,
@@ -506,7 +506,7 @@ describe('characterUtils', () => {
         features: [],
         description: 'Fighter'
       };
-      const wizardClass = {
+      const wizardClass: Class = {
         id: 'wizard',
         name: 'Wizard',
         hitDie: 6,
@@ -559,80 +559,80 @@ describe('characterUtils', () => {
     });
 
     it('should apply selectable ability score increases', () => {
-        const character = createMockPlayerCharacter({
-            abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 }
-        });
+      const character = createMockPlayerCharacter({
+        abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 }
+      });
 
-        const feat: Feat = {
-            id: 'resilient',
-            name: 'Resilient',
-            description: '...',
-            benefits: {
-                selectableAbilityScores: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma']
-            }
-        };
+      const feat: Feat = {
+        id: 'resilient',
+        name: 'Resilient',
+        description: '...',
+        benefits: {
+          selectableAbilityScores: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma']
+        }
+      };
 
-        const result = applyFeatToCharacter(character, feat, {
-            selectedAbilityScore: 'Constitution'
-        });
+      const result = applyFeatToCharacter(character, feat, {
+        selectedAbilityScore: 'Constitution'
+      });
 
-        expect(result.abilityScores.Constitution).toBe(11);
+      expect(result.abilityScores.Constitution).toBe(11);
     });
 
     it('should warn if selectable ability score is required but missing', () => {
-        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const character = createMockPlayerCharacter();
-        const feat: Feat = {
-            id: 'resilient',
-            name: 'Resilient',
-            description: '...',
-            benefits: {
-                selectableAbilityScores: ['Strength']
-            }
-        };
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      const character = createMockPlayerCharacter();
+      const feat: Feat = {
+        id: 'resilient',
+        name: 'Resilient',
+        description: '...',
+        benefits: {
+          selectableAbilityScores: ['Strength']
+        }
+      };
 
-        // No selection provided
-        applyFeatToCharacter(character, feat);
+      // No selection provided
+      applyFeatToCharacter(character, feat);
 
-        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('requires an ability score selection'));
-        consoleSpy.mockRestore();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('requires an ability score selection'));
+      consoleSpy.mockRestore();
     });
 
     it('should apply speed bonus', () => {
-        const character = createMockPlayerCharacter({ speed: 30 });
-        const feat: Feat = {
-            id: 'mobile',
-            name: 'Mobile',
-            description: '...',
-            benefits: {
-                speedIncrease: 10
-            }
-        };
+      const character = createMockPlayerCharacter({ speed: 30 });
+      const feat: Feat = {
+        id: 'mobile',
+        name: 'Mobile',
+        description: '...',
+        benefits: {
+          speedIncrease: 10
+        }
+      };
 
-        const result = applyFeatToCharacter(character, feat);
-        expect(result.speed).toBe(40);
+      const result = applyFeatToCharacter(character, feat);
+      expect(result.speed).toBe(40);
     });
 
     it('should apply saving throw proficiency based on selection', () => {
-        const character = createMockPlayerCharacter({
-            savingThrowProficiencies: []
-        });
+      const character = createMockPlayerCharacter({
+        savingThrowProficiencies: []
+      });
 
-        const feat: Feat = {
-            id: 'resilient',
-            name: 'Resilient',
-            description: '...',
-            benefits: {
-                savingThrowLinkedToAbility: true,
-                selectableAbilityScores: ['Wisdom']
-            }
-        };
+      const feat: Feat = {
+        id: 'resilient',
+        name: 'Resilient',
+        description: '...',
+        benefits: {
+          savingThrowLinkedToAbility: true,
+          selectableAbilityScores: ['Wisdom']
+        }
+      };
 
-        const result = applyFeatToCharacter(character, feat, {
-            selectedAbilityScore: 'Wisdom'
-        });
+      const result = applyFeatToCharacter(character, feat, {
+        selectedAbilityScore: 'Wisdom'
+      });
 
-        expect(result.savingThrowProficiencies).toContain('Wisdom');
+      expect(result.savingThrowProficiencies).toContain('Wisdom');
     });
   });
 });

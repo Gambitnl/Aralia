@@ -35,7 +35,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
         const data = await fetchWithTimeout<GlossaryIndexFile | GlossaryEntry[]>(filePath);
 
         // Validate that we actually received data (not null, undefined, or empty string)
-        if (data === null || data === undefined || data === '') {
+        if (data === null || data === undefined) {
           throw new Error(`Glossary file at ${filePath} is empty or contains no valid JSON data`);
         }
 
