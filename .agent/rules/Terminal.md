@@ -48,4 +48,5 @@ This guide tracks common issues encountered when running terminal commands and p
 - **Async Management:** For long-running commands (like `gemini --yolo`), use the background execution capability and monitor status via `command_status` helper tools.
 - **Exit Code Interpretation:** Some commands (like `npx tsc --noEmit`) may return non-zero exit codes due to pre-existing errors. Filter the output with `Select-String` to focus on your changes rather than relying solely on the exit code.
 - **Tool Issues:** If a specific tool like `grep_search` fails with internal OS errors (e.g., missing `.antigravityignore` or special files like `nul`), fallback to `run_command` with native CLI tools.
+- **Node Spawn on Windows:** When using `child_process.spawn` or `exec` on Windows, ALWAYS set `{ shell: true }` to avoid `ENOENT` errors when calling `.cmd` or `.ps1` wrappers (like `npx`).
 

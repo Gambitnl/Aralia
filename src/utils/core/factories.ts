@@ -1,3 +1,16 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file is part of a complex dependency web.
+ * 
+ * Last Sync: 26/01/2026, 01:19:56
+ * Dependents: core/index.ts, factories.ts
+ * Imports: 7 files
+ * 
+ * Tool: Codebase Visualizer (Headless Sync)
+ */
+// @dependencies-end
+
 import {
   Spell,
   SpellSchool,

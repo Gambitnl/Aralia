@@ -1,3 +1,16 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file is part of a complex dependency web.
+ * 
+ * Last Sync: 26/01/2026, 01:19:59
+ * Dependents: core/index.ts, i18n.ts
+ * Imports: None
+ * 
+ * Tool: Codebase Visualizer (Headless Sync)
+ */
+// @dependencies-end
+
 /**
  * @file i18n.ts
  * Simple internationalization utility for retrieving localized strings.

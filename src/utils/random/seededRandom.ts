@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ * 
+ * Last Sync: 26/01/2026, 01:39:49
+ * Dependents: LabGrass.tsx, LabRocks.tsx, PropField.tsx, PropsLayer.tsx, Scene3D.tsx, marketEvents.ts, nobleHouseGenerator.ts, perlinNoise.ts, random/index.ts, secretGenerator.ts, templeUtils.ts
+ * Imports: None
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file seededRandom.ts
  * A simple seeded pseudo-random number generator (PRNG).

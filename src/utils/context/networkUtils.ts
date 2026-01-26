@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file is part of a complex dependency web.
+ * 
+ * Last Sync: 26/01/2026, 01:38:49
+ * Dependents: context/index.ts, networkUtils.ts
+ * Imports: None
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Network utilities for consistent API handling.
  * Implements Diplomat's philosophy: resilience, typing, and timeouts.

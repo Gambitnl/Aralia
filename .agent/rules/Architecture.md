@@ -28,6 +28,7 @@ When requested by the user, the AI can maintain a "Dependency Block" at the top 
 
 ## Solo Architect Modus Operandi
 - **Verification over Assumption**: Even if a file *seems* isolated, always run a quick `grep` for its path before making structural changes.
+- **Surgical Sync**: Whenever modifying an internal file (especially in `utils`, `hooks`, or `state`), you MUST run the headless sync command: `npx tsx scripts/codebase-visualizer-server.ts --sync path/to/file.ts`. This ensures the "Stop Sign" header is accurate for future tasks.
 
 ## Nominal Clarity & Naming
 To prevent collisions and AI confusion:

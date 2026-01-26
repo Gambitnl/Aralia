@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ * 
+ * Last Sync: 26/01/2026, 01:39:12
+ * Dependents: contextUtils.ts, core/index.ts, factionUtils.ts, timeUtils.ts
+ * Imports: None
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 export const GAME_EPOCH_YEAR = 351;
 export const GAME_EPOCH_MONTH = 0; // January
 export const GAME_EPOCH_DAY = 1;

@@ -38,6 +38,7 @@ interface FileNode {
   codeBlocks: CodeBlock[];
   connectionCount: number;
   category: string;
+  role: 'normal' | 'bridge' | 'orphan';
 }
 
 interface FileEdge {
@@ -356,7 +357,8 @@ async function generateGraphData(): Promise<GraphData> {
       importedBy: [],
       codeBlocks: extractCodeBlocks(content),
       connectionCount: 0,
-      category: getFileCategory(normalizedFile)
+      category: getFileCategory(normalizedFile),
+      role: 'normal'
     };
 
     nodeMap.set(normalizedFile, node);
@@ -382,6 +384,19 @@ async function generateGraphData(): Promise<GraphData> {
 
   for (const node of nodeMap.values()) {
     node.connectionCount = node.imports.length + node.importedBy.length;
+
+    // Identify Bridge and Orphan roles
+    const content = fs.readFileSync(node.fullPath, 'utf8');
+    const isBridge = (content.includes('export * from') || content.includes('export {')) &&
+      (content.includes('@deprecated') || content.length < 500);
+
+    if (isBridge) {
+      node.role = 'bridge';
+    } else if (node.connectionCount === 0) {
+      node.role = 'orphan';
+    } else {
+      node.role = 'normal';
+    }
   }
 
   const nodes = Array.from(nodeMap.values()).sort((a, b) => b.connectionCount - a.connectionCount);
@@ -393,7 +408,19 @@ async function generateGraphData(): Promise<GraphData> {
 // HTTP SERVER
 // ============================================================================
 
+// ============================================================================
+// CONSTANTS & CONFIG
+// ============================================================================
+
 const PORT = 3847;
+const BASE_DIR = process.cwd();
+const SRC_DIR = path.join(BASE_DIR, 'src');
+
+const SYNC_MARKER_START = '// @dependencies-start';
+const SYNC_MARKER_END = '// @dependencies-end';
+
+const INCLUDED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
+const EXCLUDED_DIRS = ['node_modules', '.git', 'dist', 'build', 'scripts'];
 
 /**
  * Kills any existing process using the specified port.
@@ -462,88 +489,222 @@ function killProcessOnPort(port: number): void {
   }
 }
 
-// Kill any existing process on the port before starting
-killProcessOnPort(PORT);
+// ========================================================================
+// HEADLESS SYNC LOGIC
+// ========================================================================
 
-const server = http.createServer(async (req, res) => {
-  // Enable CORS for local development
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+/**
+ * Synchronizes the dependency header for a specific file.
+ * Safely wraps the block in markers to prevent overwriting code.
+ */
+async function syncFileDependencies(targetPath: string) {
+  const fullPath = path.resolve(targetPath);
+  const ext = path.extname(fullPath).toLowerCase();
 
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
+  // 1. Safety Filter
+  if (!INCLUDED_EXTENSIONS.includes(ext)) {
+    console.warn(`[sync] Skipping ${targetPath}: Only ${INCLUDED_EXTENSIONS.join(', ')} files are supported.`);
     return;
   }
 
-  const url = req.url || '/';
-
-  // API endpoint to check if server is running (health check)
-  if (url === '/api/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', port: PORT }));
+  const isScript = fullPath.includes(path.sep + 'scripts' + path.sep) || fullPath.includes(path.sep + 'scripts/');
+  if (isScript) {
+    console.warn(`[sync] Skipping ${targetPath}: Scripts are excluded.`);
     return;
   }
 
-  // API endpoint to gracefully shutdown the server
-  if (url === '/api/shutdown') {
-    console.log('[' + new Date().toLocaleTimeString() + '] Shutdown requested via API');
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'shutting_down' }));
-    // Give the response time to send before closing
-    setTimeout(() => {
-      server.close(() => {
-        console.log('Server shut down gracefully');
-        process.exit(0);
-      });
-    }, 100);
+  console.info(`[sync] Analyzing dependency web for ${targetPath}...`);
+
+  // 2. Full codebase scan (necessary to get accurate "importedBy" data)
+  const data = await generateGraphData();
+  const nodes = data.nodes;
+
+  // 3. Find our target node in the graph
+  const relativeTarget = path.relative(SRC_DIR, fullPath).replace(/\\/g, '/');
+  const targetNode = nodes.find(n => n.id === relativeTarget || n.relativePath === relativeTarget);
+
+  if (!targetNode) {
+    console.error(`[sync] Could not find ${targetPath} in the dependency map. (Is it inside src/?)`);
     return;
   }
 
-  // API endpoint to get fresh graph data
-  if (url === '/api/graph') {
-    console.log('[' + new Date().toLocaleTimeString() + '] Regenerating graph data...');
-    try {
-      const data = await generateGraphData();
-      console.log('[' + new Date().toLocaleTimeString() + '] Done: ' + data.nodes.length + ' nodes, ' + data.edges.length + ' edges');
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(data));
-    } catch (err) {
-      console.error('Error generating graph:', err);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Failed to generate graph data' }));
+  // 4. Read content early to check for Bridge status
+  const content = fs.readFileSync(fullPath, 'utf8');
+  const isBridge = (content.includes('export * from') || content.includes('export {')) &&
+    (content.includes('@deprecated') || content.length < 500);
+
+  // 5. Determine "Honest Label"
+  const importsCount = targetNode.imports.length;
+  const dependentsCount = targetNode.importedBy.length;
+  let advisoryLabel = "This file is part of a complex dependency web."; // Default
+
+  if (isBridge) {
+    advisoryLabel = "DEPRECATED BRIDGE / MIDDLEMAN: Redirects to a new location. (Clean me up!)";
+  } else if (dependentsCount === 0) {
+    advisoryLabel = "This file appears to be an ISOLATED UTILITY or ORPHAN.";
+  } else if (dependentsCount > 10) {
+    advisoryLabel = "CRITICAL CORE SYSTEM: Changes here ripple across the entire city.";
+  } else if (dependentsCount > 3) {
+    advisoryLabel = "SHARED UTILITY: Multiple systems rely on these exports.";
+  } else {
+    advisoryLabel = "LOCAL HELPER: This file has a small, manageable dependency footprint.";
+  }
+
+  // 5. Format the "Stop Sign" block
+  const timestamp = new Date().toLocaleString('en-GB', { timeZone: 'Europe/Amsterdam' });
+
+  const dependentsStr = targetNode.importedBy
+    .map(id => {
+      const parts = id.split('/');
+      const fileName = parts[parts.length - 1];
+      // Provide folder context for index files
+      if ((fileName === 'index.ts' || fileName === 'index.tsx') && parts.length > 1) {
+        return `${parts[parts.length - 2]}/${fileName}`;
+      }
+      return fileName;
+    })
+    .sort()
+    .join(', ');
+
+  const syncBlock = `${SYNC_MARKER_START}
+/**
+ * ARCHITECTURAL ADVISORY:
+ * ${advisoryLabel}
+ * 
+ * Last Sync: ${timestamp}
+ * Dependents: ${dependentsCount > 0 ? dependentsStr : 'None (Orphan)'}
+ * Imports: ${importsCount === 0 ? 'None' : importsCount + ' files'}
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+${SYNC_MARKER_END}`;
+
+  // 5. Read and Replace using markers
+  try {
+    let content = fs.readFileSync(fullPath, 'utf8');
+    const startIdx = content.indexOf(SYNC_MARKER_START);
+    const endIdx = content.indexOf(SYNC_MARKER_END);
+
+    if (startIdx !== -1 && endIdx !== -1) {
+      // Overwrite exactly what is between markers
+      const before = content.substring(0, startIdx);
+      const after = content.substring(endIdx + SYNC_MARKER_END.length).trimStart();
+      content = before + syncBlock + (after ? '\n\n' + after : '');
+    } else {
+      // Prepend to top of file
+      content = syncBlock + '\n\n' + content.trimStart();
     }
-    return;
+
+    fs.writeFileSync(fullPath, content, 'utf8');
+    console.info(`[sync] Successfully updated ${targetPath}`);
+  } catch (err) {
+    console.error(`[sync] Failed to write to ${targetPath}:`, err);
   }
+}
 
-  // Serve the main HTML page
-  if (url === '/' || url === '/index.html') {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(getHTMLPage());
-    return;
+// ========================================================================
+// CLI ENTRY POINT
+// ========================================================================
+
+const args = process.argv.slice(2);
+if (args.includes('--sync')) {
+  const syncIdx = args.indexOf('--sync');
+  const target = args[syncIdx + 1];
+  if (target) {
+    syncFileDependencies(target).catch(err => {
+      console.error('[sync] Fatal Error:', err);
+      process.exit(1);
+    });
+  } else {
+    console.error('Error: Please provide a file path. Usage: npx tsx scripts/visualizer-server.ts --sync path/to/file.ts');
+    process.exit(1);
   }
+} else {
+  // Kill any existing process on the port before starting the server
+  killProcessOnPort(PORT);
 
-  // 404 for everything else
-  res.writeHead(404, { 'Content-Type': 'text/plain' });
-  res.end('Not Found');
-});
+  const server = http.createServer(async (req, res) => {
+    // Enable CORS for local development
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-server.listen(PORT, () => {
-  console.log('');
-  console.log('Codebase Visualizer Server running at:');
-  console.log('  http://localhost:' + PORT);
-  console.log('');
-  console.log('Press Ctrl+C to stop');
-  console.log('');
-});
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200);
+      res.end();
+      return;
+    }
 
-// ============================================================================
-// HTML PAGE WITH REFRESH BUTTON
-// ============================================================================
+    const url = req.url || '/';
 
-function getHTMLPage(): string {
-  return `<!DOCTYPE html>
+    // API endpoint to check if server is running (health check)
+    if (url === '/api/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ok', port: PORT }));
+      return;
+    }
+
+    // API endpoint to gracefully shutdown the server
+    if (url === '/api/shutdown') {
+      console.log('[' + new Date().toLocaleTimeString() + '] Shutdown requested via API');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'shutting_down' }));
+      // Give the response time to send before closing
+      setTimeout(() => {
+        server.close(() => {
+          console.log('Server shut down gracefully');
+          process.exit(0);
+        });
+      }, 100);
+      return;
+    }
+
+    // API endpoint to get fresh graph data
+    if (url === '/api/graph') {
+      console.log('[' + new Date().toLocaleTimeString() + '] Regenerating graph data...');
+      try {
+        const data = await generateGraphData();
+        console.log('[' + new Date().toLocaleTimeString() + '] Done: ' + data.nodes.length + ' nodes, ' + data.edges.length + ' edges');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(data));
+      } catch (err) {
+        console.error('Error generating graph:', err);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Failed to generate graph data' }));
+      }
+      return;
+    }
+
+    // Serve the main HTML page
+    if (url === '/' || url === '/index.html') {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(getHTMLPage());
+      return;
+    }
+
+    // 404 for everything else
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  });
+
+  server.listen(PORT, () => {
+    console.log('');
+    console.log('Codebase Visualizer Server running at:');
+    console.log('  http://localhost:' + PORT);
+    console.log('');
+    console.log('Press Ctrl+C to stop');
+    console.log('');
+  });
+
+  // ============================================================================
+  // HTML PAGE WITH REFRESH BUTTON
+  // ============================================================================
+
+  function getHTMLPage(): string {
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -672,10 +833,10 @@ function getHTMLPage(): string {
     .graph-container { flex: 1; position: relative; overflow: hidden; }
     #graph { width: 100%; height: 100%; }
     .node { cursor: pointer; transition: opacity 0.3s; }
-    .node circle { stroke: #fff; stroke-width: 1.5px; transition: all 0.3s; }
-    .node:hover circle { stroke-width: 3px; }
-    .node.selected circle { stroke: #7dd3fc; stroke-width: 4px; }
-    .node.highlighted circle { stroke: #fbbf24; stroke-width: 3px; }
+    .node > circle, .node > rect, .node > path { stroke: #fff; stroke-width: 1.5px; transition: all 0.3s; }
+    .node:hover > circle, .node:hover > rect, .node:hover > path { stroke-width: 3px; }
+    .node.selected > circle, .node.selected > rect, .node.selected > path { stroke: #7dd3fc; stroke-width: 4px; }
+    .node.highlighted > circle, .node.highlighted > rect, .node.highlighted > path { stroke: #fbbf24; stroke-width: 3px; }
     .node.dimmed { opacity: 0.15; }
     .node-label { font-size: 10px; fill: #fff; text-anchor: middle; pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
     .link { fill: none; stroke-opacity: 0.4; transition: all 0.3s; }
@@ -794,6 +955,23 @@ function getHTMLPage(): string {
         <div class="control-group">
           <label>Search Files</label>
           <input type="text" class="search-input" placeholder="Type to filter files...">
+        </div>
+        <div class="control-group">
+          <label>Legend</label>
+          <div style="font-size: 0.75em; color: #888; display: flex; flex-direction: column; gap: 6px; padding: 5px 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="#555" /></svg>
+              <span>Normal Node</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#555" stroke="#4ade80" /></svg>
+              <span>Bridge (Re-export)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg width="12" height="12"><path d="M6,1 L11,10 L1,10 Z" fill="#555" stroke="#f87171" /></svg>
+              <span>Orphan (Disconnected)</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="file-list" id="fileList"></div>
@@ -1258,14 +1436,43 @@ function getHTMLPage(): string {
           .on('drag', dragged)
           .on('end', dragEnded));
 
-      // Add circle for each node, colored by category
-      nodes.append('circle')
-        .attr('r', function(d) { return sizeScale(d.connectionCount); })
-        .attr('fill', function(d) { return categoryColors[d.category] || '#888'; })
-        // Add subtle red outline for orphan nodes so they're identifiable
-        .attr('stroke', function(d) { return d.connectionCount === 0 ? '#f87171' : null; })
-        .attr('stroke-width', function(d) { return d.connectionCount === 0 ? 2 : 0; })
-        .attr('stroke-dasharray', function(d) { return d.connectionCount === 0 ? '3,2' : null; });
+      // Add shape for each node based on its role
+      nodes.each(function(d) {
+        var el = d3.select(this);
+        var r = sizeScale(d.connectionCount);
+        var color = categoryColors[d.category] || '#888';
+        
+        if (d.role === 'orphan') {
+          // Triangle for Orphans
+          // A triangle centered at 0,0 with "radius" r
+          var points = [
+            [0, -r * 1.2],           // Top
+            [-r * 1.1, r * 0.8],     // Bottom Left
+            [r * 1.1, r * 0.8]       // Bottom Right
+          ];
+          el.append('path')
+            .attr('d', d3.line()(points) + 'Z')
+            .attr('fill', color)
+            .attr('stroke', '#f87171')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '3,2');
+        } else if (d.role === 'bridge') {
+          // Square for Bridges
+          el.append('rect')
+            .attr('x', -r)
+            .attr('y', -r)
+            .attr('width', r * 2)
+            .attr('height', r * 2)
+            .attr('fill', color)
+            .attr('stroke', '#4ade80')
+            .attr('stroke-width', 1);
+        } else {
+          // Circle for Normal nodes
+          el.append('circle')
+            .attr('r', r)
+            .attr('fill', color);
+        }
+      });
 
       // Add text labels for nodes with enough connections (to reduce clutter)
       nodes.append('text')
@@ -1589,4 +1796,5 @@ function getHTMLPage(): string {
   </script>
 </body>
 </html>`;
+  }
 }

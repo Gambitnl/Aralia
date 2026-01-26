@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file is part of a complex dependency web.
+ * 
+ * Last Sync: 26/01/2026, 01:36:35
+ * Dependents: AISpellArbitrator.ts, AbyssalMechanics.ts, AstralMechanics.ts, BattleMapDemo.tsx, CombatReligionAdapter.ts, CombatView.tsx, CommandExecutor.ts, FeywildMechanics.ts, InfernalMechanics.ts, PlanarHazardSystem.ts, PlanarService.ts, ReactiveEffectCommand.ts, ShadowfellMechanics.ts, SpellService.ts, TempleSystem.ts, TradeRouteSystem.ts, appState.ts, combatAI.ts, core.ts, encounters.ts, geminiServiceFallback.ts, items.ts, lootService.ts, rest.ts, saveLoadService.ts, travelService.ts, useActionGeneration.ts, useSpellGateChecks.ts
+ * Imports: 1 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @deprecated Import from '@/utils/core' or '@/utils/core/logger' instead.
  * This file will be removed in a future version.
