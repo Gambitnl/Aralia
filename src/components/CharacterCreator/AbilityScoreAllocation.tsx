@@ -1,31 +1,30 @@
 /**
  * @file AbilityScoreAllocation.tsx
- * This component allows the player to assign ability scores using a Point Buy system.
- * Players have a pool of points to spend, increasing scores from a base of 8 up to 15.
- * It displays the base scores, racial bonuses, final calculated scores, and remaining points.
- * It also includes a Stat Recommender section based on the selected class and a button
- * to apply class-recommended stats.
+ * Refactored to use Split Config Style (Calculator vs Stat Preview).
  */
 import React, { useState, useEffect, useCallback } from 'react';
-import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../../types'; // Path relative to src/components/CharacterCreator/
-import { ABILITY_SCORE_NAMES } from '../../constants'; // Path relative to src/components/CharacterCreator/
+import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../../types';
+import { ABILITY_SCORE_NAMES } from '../../constants';
 import { POINT_BUY_TOTAL_POINTS, POINT_BUY_MIN_SCORE, POINT_BUY_MAX_SCORE, ABILITY_SCORE_COST } from '../../config/characterCreationConfig';
 import { Sparkles } from 'lucide-react';
 import { CreationStepLayout } from './ui/CreationStepLayout';
+import { SplitPaneLayout } from './ui/SplitPaneLayout';
 
 interface AbilityScoreAllocationProps {
   race: Race;
-  selectedClass: CharClass | null; 
+  selectedClass: CharClass | null;
   onAbilityScoresSet: (scores: AbilityScores) => void;
-  onBack: () => void; 
+  onBack: () => void;
 }
 
-const STANDARD_RECOMMENDED_POINT_BUY_ARRAY = [15, 14, 13, 12, 10, 8]; // Costs 27 points
+const STANDARD_RECOMMENDED_POINT_BUY_ARRAY = [15, 14, 13, 12, 10, 8];
 
-/**
- * AbilityScoreAllocation component.
- * Implements D&D 5e Point Buy system for ability scores.
- */
+const getAbilityModifier = (score: number) => Math.floor((score - 10) / 2);
+const getAbilityModifierString = (score: number) => {
+  const mod = getAbilityModifier(score);
+  return mod >= 0 ? `+${mod}` : `${mod}`;
+};
+
 const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
   race,
   selectedClass,
@@ -34,7 +33,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
 }) => {
   const initialScores = ABILITY_SCORE_NAMES.reduce(
     (acc, name) => {
-      acc[name] = POINT_BUY_MIN_SCORE; 
+      acc[name] = POINT_BUY_MIN_SCORE;
       return acc;
     },
     {} as AbilityScores,
@@ -43,11 +42,9 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
   const [baseScores, setBaseScores] = useState<AbilityScores>(initialScores);
   const [pointsRemaining, setPointsRemaining] = useState<number>(POINT_BUY_TOTAL_POINTS);
   const [firstUnaffordableScore, setFirstUnaffordableScore] = useState<number | null>(null);
-  // Replace disruptive alerts with a lightweight inline status so the user can keep adjusting scores without breaking flow.
   const [feedback, setFeedback] = useState<{ type: 'info' | 'error' | 'success'; message: string; targetAbility?: AbilityScoreName } | null>(null);
 
   useEffect(() => {
-    // Recalculate points spent if baseScores change
     let spentPoints = 0;
     for (const ability of ABILITY_SCORE_NAMES) {
       spentPoints += ABILITY_SCORE_COST[baseScores[ability]];
@@ -55,69 +52,45 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
     const newPointsRemaining = POINT_BUY_TOTAL_POINTS - spentPoints;
     setPointsRemaining(newPointsRemaining);
 
-    // Scan for the first score that is no longer affordable and highlight it in the dropdowns.
-    // This reduces the user's cognitive load by pointing them directly to the boundary they've hit.
     const currentHighestScore = Math.max(...Object.values(baseScores));
     let firstUnaffordable = null;
     for (let score = currentHighestScore + 1; score <= POINT_BUY_MAX_SCORE; score++) {
-        const costToReach = ABILITY_SCORE_COST[score] - ABILITY_SCORE_COST[score - 1];
-        if (newPointsRemaining < costToReach) {
-            firstUnaffordable = score;
-            break;
-        }
+      const costToReach = ABILITY_SCORE_COST[score] - ABILITY_SCORE_COST[score - 1];
+      if (newPointsRemaining < costToReach) {
+        firstUnaffordable = score;
+        break;
+      }
     }
     setFirstUnaffordableScore(firstUnaffordable);
   }, [baseScores]);
-
-  const _calculateFinalScore = useCallback(
-    (abilityName: AbilityScoreName, baseVal: number): number => {
-      const racialBonus = race.abilityBonuses?.find((b) => b.ability === abilityName)?.bonus || 0;
-      return baseVal + racialBonus;
-    },
-    [race.abilityBonuses],
-  );
 
   const handleScoreChange = (abilityName: AbilityScoreName, change: 1 | -1) => {
     const currentScore = baseScores[abilityName];
     const newScore = currentScore + change;
 
-    if (newScore < POINT_BUY_MIN_SCORE || newScore > POINT_BUY_MAX_SCORE) {
-      return; // Score out of bounds
-    }
+    if (newScore < POINT_BUY_MIN_SCORE || newScore > POINT_BUY_MAX_SCORE) return;
 
-    const oldCostForAbility = ABILITY_SCORE_COST[currentScore];
-    const newCostForAbility = ABILITY_SCORE_COST[newScore];
-    const costDifference = newCostForAbility - oldCostForAbility;
+    const costDiff = ABILITY_SCORE_COST[newScore] - ABILITY_SCORE_COST[currentScore];
 
-    if (change === 1) { // Incrementing
-      if (pointsRemaining >= costDifference) {
-        setBaseScores(prev => ({ ...prev, [abilityName]: newScore }));
-        setFeedback(null); // Clear stale warnings once the move is confirmed affordable.
-      }
-    } else { // Decrementing
-      setBaseScores(prev => ({ ...prev, [abilityName]: newScore }));
-      setFeedback(null);
-    }
+    if (change === 1 && pointsRemaining < costDiff) return;
+
+    setBaseScores(prev => ({ ...prev, [abilityName]: newScore }));
+    setFeedback(null);
   };
 
-  // New handler for dropdown selection
   const handleScoreSelect = (abilityName: AbilityScoreName, newScoreValue: number) => {
     const currentScore = baseScores[abilityName];
-    if (newScoreValue === currentScore) return; // No change
+    if (newScoreValue === currentScore) return;
 
-    const oldCostForAbility = ABILITY_SCORE_COST[currentScore];
-    const newCostForAbility = ABILITY_SCORE_COST[newScoreValue];
-    const costDifference = newCostForAbility - oldCostForAbility;
+    const costDiff = ABILITY_SCORE_COST[newScoreValue] - ABILITY_SCORE_COST[currentScore];
 
-    // Check if the change is affordable
-    if (pointsRemaining >= costDifference) {
+    if (pointsRemaining >= costDiff) {
       setBaseScores(prev => ({ ...prev, [abilityName]: newScoreValue }));
       setFeedback(null);
     } else {
-      // Surface inline guidance instead of disruptive alerts so the user can immediately adjust another score.
       setFeedback({
         type: 'error',
-        message: `Cannot afford to set ${abilityName} to ${newScoreValue}. You need ${Math.abs(costDifference)} more point${Math.abs(costDifference) === 1 ? '' : 's'}.`,
+        message: `Cannot afford ${abilityName} at ${newScoreValue}. Need ${Math.abs(costDiff)} more point${Math.abs(costDiff) === 1 ? '' : 's'}.`,
         targetAbility: abilityName,
       });
     }
@@ -126,213 +99,189 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
   const handleSubmit = () => {
     if (pointsRemaining === 0) {
       onAbilityScoresSet(baseScores);
-      setFeedback({ type: 'success', message: 'Attributes confirmed. You may return to adjust them if needed.' });
-    } else {
-      // Point people toward a concrete next move instead of leaving them to hunt for an under-spent stat.
-      const candidateToBoost = ABILITY_SCORE_NAMES.find(name => baseScores[name] < POINT_BUY_MAX_SCORE);
-      const suggestedScore = candidateToBoost ? baseScores[candidateToBoost] + 1 : POINT_BUY_MIN_SCORE;
-      const suggestedCost = candidateToBoost ? ABILITY_SCORE_COST[suggestedScore] - ABILITY_SCORE_COST[baseScores[candidateToBoost]] : 0;
-
-      setFeedback({
-        type: 'error',
-        message: candidateToBoost
-          ? `You must spend all ${POINT_BUY_TOTAL_POINTS} points. ${pointsRemaining} remain. Consider raising ${candidateToBoost} to ${suggestedScore} (costs ${suggestedCost}).`
-          : `You must spend all ${POINT_BUY_TOTAL_POINTS} points. ${pointsRemaining} remain.`,
-        targetAbility: candidateToBoost,
-      });
     }
   };
 
   const handleSetRecommendedStats = () => {
-    if (!selectedClass || !selectedClass.recommendedPointBuyPriorities) {
-      setFeedback({ type: 'info', message: 'No recommended stat priorities defined for this class.' });
-      return;
-    }
+    if (!selectedClass?.recommendedPointBuyPriorities) return;
 
-    const recommendedPriorities = selectedClass.recommendedPointBuyPriorities;
-    const scoresToAssign = [...STANDARD_RECOMMENDED_POINT_BUY_ARRAY]; 
-    
-    const newBaseScores = { ...initialScores }; 
+    const newBaseScores = { ...initialScores };
+    const priorities = selectedClass.recommendedPointBuyPriorities;
+    const scoresToAssign = [...STANDARD_RECOMMENDED_POINT_BUY_ARRAY];
 
-    recommendedPriorities.forEach((abilityName, index) => {
-      if (index < scoresToAssign.length) {
-        newBaseScores[abilityName] = scoresToAssign[index];
-      } else {
-        newBaseScores[abilityName] = POINT_BUY_MIN_SCORE;
-      }
+    priorities.forEach((ability, idx) => {
+      if (idx < scoresToAssign.length) newBaseScores[ability] = scoresToAssign[idx];
     });
-    
-    const assignedAbilities = new Set(recommendedPriorities);
-    let remainingScoresIndex = recommendedPriorities.length;
-    ABILITY_SCORE_NAMES.forEach(abilityName => {
-        if (!assignedAbilities.has(abilityName)) {
-            if (remainingScoresIndex < scoresToAssign.length) {
-                 newBaseScores[abilityName] = scoresToAssign[remainingScoresIndex++];
-            } else {
-                 newBaseScores[abilityName] = POINT_BUY_MIN_SCORE;
+
+    // Assign remaining standard array scores to remaining abilities arbitrarily
+    const assignedAbilities = new Set(priorities);
+    let remainingIdx = priorities.length;
+    ABILITY_SCORE_NAMES.forEach(ability => {
+        if (!assignedAbilities.has(ability)) {
+            if (remainingIdx < scoresToAssign.length) {
+                newBaseScores[ability] = scoresToAssign[remainingIdx++];
             }
         }
     });
 
     setBaseScores(newBaseScores);
-    setFeedback({ type: 'success', message: 'Applied recommended spread. Feel free to fine-tune further.' });
-  };
-
-  const getScoreCostFromBase = (score: number): number => {
-    return ABILITY_SCORE_COST[score] || 0;
+    setFeedback({ type: 'success', message: 'Applied recommended spread.' });
   };
 
   const canSetRecommended = !!selectedClass?.recommendedPointBuyPriorities;
 
   return (
     <CreationStepLayout
-      title="Assign Ability Scores (Point Buy)"
+      title="Assign Ability Scores"
       onBack={onBack}
       onNext={handleSubmit}
       canProceed={pointsRemaining === 0}
       nextLabel={pointsRemaining === 0 ? 'Confirm Attributes' : `Spend ${pointsRemaining} more`}
+      bodyScrollable={false}
     >
-      <div className="text-center mb-6">
-        <p className="text-sm text-gray-400 mb-1">
-          You have <span className="font-bold text-amber-300">{POINT_BUY_TOTAL_POINTS}</span> points to assign to your ability scores. All abilities begin at a base of 8.
-        </p>
-        <p className="text-xs text-gray-500">
-          Ability scores up to 13 cost 1 point per increase. Scores of 14 and 15 cost 2 points. The maximum base score is 15.
-        </p>
-      </div>
-      
-      {selectedClass && (selectedClass.statRecommendationFocus || selectedClass.statRecommendationDetails) && (
-        <div className="mb-4 p-3 bg-gray-700/70 rounded-lg border border-sky-700 shadow">
-          <h3 className="text-lg font-semibold text-sky-300 mb-1.5">
-            Archetype Guidance: {selectedClass.name}
-          </h3>
-          {selectedClass.statRecommendationFocus && selectedClass.statRecommendationFocus.length > 0 && (
-            <p className="text-sm text-gray-300 mb-0.5">
-              Prioritize: <strong className="text-amber-300">{selectedClass.statRecommendationFocus.join(', ')}</strong>
-            </p>
-          )}
-          {selectedClass.statRecommendationDetails && (
-            <p className="text-xs text-gray-400 italic">{selectedClass.statRecommendationDetails}</p>
-          )}
-        </div>
-      )}
-
-      <div className="mb-4">
-        <button
-          onClick={handleSetRecommendedStats}
-          disabled={!canSetRecommended}
-          className="w-full bg-sky-700 hover:bg-sky-600 disabled:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors"
-          aria-label={canSetRecommended ? `Channel ${selectedClass?.name} Archetype` : "Archetype guidance not available for this class"}
-          title={canSetRecommended ? `Channel ${selectedClass?.name} Archetype` : "Archetype guidance not available for this class"}
-        >
-          Channel {selectedClass?.name || "Class"} Archetype
-        </button>
-      </div>
-
-      <div className="sticky top-0 z-10 mb-4 p-3 bg-gray-700 rounded-lg shadow-lg border-b border-gray-600">
-        {feedback && (
-          <div
-            className={`mb-3 text-center text-sm px-3 py-2 rounded-md ${
-              feedback.type === 'error'
-                ? 'bg-red-900/60 text-red-200 border border-red-500/50'
-                : feedback.type === 'success'
-                ? 'bg-emerald-900/50 text-emerald-100 border border-emerald-500/40'
-                : 'bg-sky-900/40 text-sky-100 border border-sky-600/50'
-            }`}
-            role="status"
-            aria-live="polite"
-          >
-            {feedback.message}
-          </div>
-        )}
-        <h3 className="text-xl text-center font-semibold text-amber-300">
-          Points Remaining: <span className={`text-2xl ${pointsRemaining < 0 ? 'text-red-400' : 'text-green-400'}`}>{pointsRemaining}</span> / {POINT_BUY_TOTAL_POINTS}
-        </h3>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3 mb-4">
-        {ABILITY_SCORE_NAMES.map((abilityName) => {
-          const currentBaseScore = baseScores[abilityName];
-          const racialBonus = race.abilityBonuses?.find(b => b.ability === abilityName)?.bonus || 0;
-          const finalScore = currentBaseScore + racialBonus;
-          const costToIncrement = currentBaseScore < POINT_BUY_MAX_SCORE ? (ABILITY_SCORE_COST[currentBaseScore + 1] - ABILITY_SCORE_COST[currentBaseScore]) : Infinity;
-          const isFeedbackTarget = feedback?.targetAbility === abilityName;
-          
-          const isSpellcastingAbility = selectedClass?.spellcasting?.ability === abilityName;
-
-          return (
-            <div
-              key={abilityName}
-              className={`p-3 bg-gray-700 rounded-lg shadow-md flex flex-col items-center text-center ${isFeedbackTarget ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-gray-800' : ''}`}
-            >
-              <h4 className={`text-lg font-semibold mb-1.5 flex items-center gap-1 ${isSpellcastingAbility ? 'text-purple-300' : 'text-amber-400'}`}>
-                {abilityName}
-                {isSpellcastingAbility && (
-                  <span title="Spellcasting Ability">
-                    <Sparkles size={16} className="text-purple-400" aria-label="Spellcasting Ability" />
+      <div className="h-full min-h-0">
+        <SplitPaneLayout
+          controls={
+            <div className="space-y-4">
+              {/* Header / Points Display */}
+              <div className="sticky top-0 bg-gray-900/90 backdrop-blur-sm z-10 pb-4 border-b border-gray-700 -mx-4 px-4 pt-2">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-400 text-sm">Points Available</span>
+                  <span className={`text-2xl font-bold ${pointsRemaining < 0 ? 'text-red-400' : 'text-amber-400'}`}>
+                    {pointsRemaining} <span className="text-sm text-gray-500 font-normal">/ {POINT_BUY_TOTAL_POINTS}</span>
                   </span>
+                </div>
+                
+                <button
+                  onClick={handleSetRecommendedStats}
+                  disabled={!canSetRecommended}
+                  className="w-full py-2 px-3 bg-sky-700/50 hover:bg-sky-600/50 border border-sky-600/50 rounded-lg text-sky-200 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Sparkles size={14} />
+                  Apply {selectedClass?.name || 'Class'} Recommended
+                </button>
+
+                {feedback && (
+                  <div className={`mt-2 text-xs text-center px-2 py-1 rounded border ${
+                    feedback.type === 'error' ? 'bg-red-900/30 border-red-500/50 text-red-200' :
+                    feedback.type === 'success' ? 'bg-green-900/30 border-green-500/50 text-green-200' :
+                    'bg-blue-900/30 border-blue-500/50 text-blue-200'
+                  }`}>
+                    {feedback.message}
+                  </div>
                 )}
-              </h4>
-              
-              <div className="flex items-center justify-center space-x-2 my-1">
-                <button
-                  onClick={() => handleScoreChange(abilityName, -1)}
-                  disabled={currentBaseScore <= POINT_BUY_MIN_SCORE}
-                  className="w-6 h-6 bg-red-600 hover:bg-red-500 disabled:bg-gray-500 text-white font-bold rounded text-sm flex items-center justify-center transition-colors"
-                  aria-label={`Decrease ${abilityName} score`}
-                >
-                  -
-                </button>
-                <select
-                  value={currentBaseScore}
-                  onChange={(e) => handleScoreSelect(abilityName, parseInt(e.target.value, 10))}
-                  className="text-xl font-bold text-sky-300 bg-gray-800 border border-gray-600 rounded-md px-2 py-1 focus:ring-sky-500 focus:border-sky-500 focus:outline-none min-w-0 text-center"
-                  aria-label={`Select score for ${abilityName}`}
-                >
-                  {Object.keys(ABILITY_SCORE_COST).map(scoreStr => {
-                    const score = parseInt(scoreStr, 10);
-                    const costDiff = ABILITY_SCORE_COST[score] - ABILITY_SCORE_COST[currentBaseScore];
-                    const isAffordable = pointsRemaining >= costDiff;
-                    const isFirstUnaffordable = firstUnaffordableScore !== null && score === firstUnaffordableScore;
-                    return (
-                      <option
-                        key={score}
-                        value={score}
-                        disabled={!isAffordable && score !== currentBaseScore}
-                        className={isFirstUnaffordable ? 'text-red-400 font-bold' : ''}
-                        title={
-                          score === currentBaseScore
-                            ? 'Current score'
-                            : isAffordable
-                            ? `Costs ${ABILITY_SCORE_COST[score]} total points`
-                            : `Need ${Math.abs(costDiff)} more point${Math.abs(costDiff) === 1 ? '' : 's'} to reach this score`
-                        }
-                      >
-                        {`${score} (${ABILITY_SCORE_COST[score]} pts)`}
-                      </option>
-                    );
-                  })}
-                </select>
-                <button
-                  onClick={() => handleScoreChange(abilityName, 1)}
-                  disabled={currentBaseScore >= POINT_BUY_MAX_SCORE || pointsRemaining < costToIncrement}
-                  className="w-6 h-6 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-bold rounded text-sm flex items-center justify-center transition-colors"
-                  aria-label={`Increase ${abilityName} score`}
-                >
-                  +
-                </button>
               </div>
 
-              <p className="text-xs text-gray-400 mt-1 mb-0.5">
-                Cost: {getScoreCostFromBase(currentBaseScore)} pts
-              </p>
-              {racialBonus !== 0 && (
-                <p className="text-xs text-sky-200">{race.name} Bonus: {racialBonus > 0 ? `+${racialBonus}` : racialBonus}</p>
-              )}
-              <p className="text-md text-green-400 font-bold mt-0.5">Final: {finalScore}</p>
+              {/* Controls Grid */}
+              <div className="space-y-3">
+                {ABILITY_SCORE_NAMES.map((abilityName) => {
+                  const currentBaseScore = baseScores[abilityName];
+                  const costToIncrement = currentBaseScore < POINT_BUY_MAX_SCORE ? (ABILITY_SCORE_COST[currentBaseScore + 1] - ABILITY_SCORE_COST[currentBaseScore]) : Infinity;
+                  const isFeedbackTarget = feedback?.targetAbility === abilityName;
+                  const isSpellcastingAbility = selectedClass?.spellcasting?.ability === abilityName;
+
+                  return (
+                    <div
+                      key={abilityName}
+                      className={`p-3 bg-gray-800 rounded-lg border ${isFeedbackTarget ? 'border-amber-500 ring-1 ring-amber-500' : 'border-gray-700'}`}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`font-semibold ${isSpellcastingAbility ? 'text-purple-300' : 'text-gray-300'}`}>
+                          {abilityName}
+                        </span>
+                        <span className="text-xs text-gray-500 font-mono">
+                          {ABILITY_SCORE_COST[currentBaseScore]} pts
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleScoreChange(abilityName, -1)}
+                          disabled={currentBaseScore <= POINT_BUY_MIN_SCORE}
+                          className="w-8 h-8 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white font-bold"
+                        >
+                          -
+                        </button>
+                        
+                        <div className="flex-1 text-center font-bold text-xl text-sky-300 bg-black/20 rounded py-0.5">
+                          {currentBaseScore}
+                        </div>
+
+                        <button
+                          onClick={() => handleScoreChange(abilityName, 1)}
+                          disabled={currentBaseScore >= POINT_BUY_MAX_SCORE || pointsRemaining < costToIncrement}
+                          className="w-8 h-8 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          );
-        })}
+          }
+          preview={
+            <div className="flex flex-col h-full">
+              <div className="border-b border-gray-700 pb-4 mb-6">
+                <h2 className="text-3xl font-bold text-amber-400 font-cinzel">Ability Snapshot</h2>
+                <p className="text-sm text-gray-400">Final scores include racial bonuses.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {ABILITY_SCORE_NAMES.map((ability) => {
+                  const base = baseScores[ability];
+                  const racial = race.abilityBonuses?.find(b => b.ability === ability)?.bonus || 0;
+                  const final = base + racial;
+                  const mod = getAbilityModifierString(final);
+                  const isPrimary = selectedClass?.primaryAbility.includes(ability);
+                  const isSave = selectedClass?.savingThrowProficiencies.includes(ability);
+
+                  return (
+                    <div key={ability} className="bg-gray-900/40 border border-gray-700 rounded-xl p-4 flex flex-col items-center relative overflow-hidden group">
+                      {/* Background "watermark" letter */}
+                      <span className="absolute -bottom-4 -right-2 text-6xl font-black text-gray-800/50 select-none group-hover:text-gray-800/80 transition-colors">
+                        {ability.charAt(0)}
+                      </span>
+
+                      <h3 className={`font-cinzel font-bold text-lg mb-1 z-10 ${isPrimary ? 'text-amber-400' : 'text-gray-400'}`}>
+                        {ability.toUpperCase()}
+                      </h3>
+                      
+                      <div className="text-4xl font-black text-white z-10 mb-1">
+                        {final}
+                      </div>
+                      
+                      <div className={`px-3 py-0.5 rounded-full text-sm font-bold z-10 ${
+                        parseInt(mod) >= 0 ? 'bg-green-900/60 text-green-300' : 'bg-red-900/60 text-red-300'
+                      }`}>
+                        {mod}
+                      </div>
+
+                      <div className="w-full mt-4 pt-3 border-t border-gray-700/50 z-10 text-xs space-y-1">
+                        <div className="flex justify-between text-gray-500">
+                          <span>Base</span>
+                          <span>{base}</span>
+                        </div>
+                        {racial !== 0 && (
+                          <div className="flex justify-between text-sky-400">
+                            <span>{race.name}</span>
+                            <span>+{racial}</span>
+                          </div>
+                        )}
+                        {isSave && (
+                          <div className="mt-2 text-center text-purple-300 font-medium bg-purple-900/20 rounded py-1 border border-purple-500/20">
+                            Saving Throw Prof.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          }
+        />
       </div>
     </CreationStepLayout>
   );
