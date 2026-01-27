@@ -11,7 +11,7 @@ import { BIOMES, LOCATIONS } from '../constants'; // To get biome details like c
 // Icon legend for the world map lives under the Glossary folder
 import GlossaryDisplay from './Glossary/GlossaryDisplay';
 import { POIS } from '../data/world/pois';
-import { buildPoiMarkers } from '../utils/locationUtils';
+import { buildPoiMarkers } from '@/utils/spatial';
 import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';

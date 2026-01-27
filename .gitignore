@@ -20,6 +20,13 @@ dist-ssr
 .cursor/
 
 # AI Agent local configs
+# Conductor (AI Agent Tracking)
+conductor/
+
+# Experimental 3D POCs
+src/components/ThreeDModal/Experimental/
+
+# local env files
 .agent_tools/
 .claude/
 .codex/skills/
@@ -74,7 +81,7 @@ pnpm-lock.yaml
 # Design Preview Tool (local-only developer tool)
 src/components/DesignPreview/
 src/design-preview.tsx
-misc/design.html
+misc/
 png_collection/
 playwright-report/
 playwright/

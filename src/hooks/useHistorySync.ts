@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { GamePhase, GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { LOCATIONS } from '../constants';
-import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
+import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 
 // Helper to convert GamePhase enum <-> URL slug
 const getPhaseSlug = (phase: GamePhase): string => GamePhase[phase]?.toLowerCase() || '';

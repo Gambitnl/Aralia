@@ -53,6 +53,8 @@ The JSON must match this schema:
   "waveIntensity": "number (0.0 to 1.0)",
   "fogDensity": "number (0.0 to 0.1)",
   "fogHeight": "number (0.0 to 20.0, higher means the fog layer is deeper)",
+  "weatherType": "string ('clear', 'rain', 'snow', 'ash', 'spores')",
+  "weatherIntensity": "number (0.0 to 1.0)",
   "scatter": [
     {
       "id": "string",
@@ -62,7 +64,9 @@ The JSON must match this schema:
       "minSlope": "number (0.0 to 1.0, default 0)",
       "maxSlope": "number (0.0 to 1.0, default 1)",
       "scaleMean": "number (default 1.0)",
-      "scaleVar": "number (0.0 to 0.5)"
+      "scaleVar": "number (0.0 to 0.5)",
+      "clusterScale": "number (optional, 0.0 to 0.2)",
+      "clusterThreshold": "number (optional, 0.0 to 0.8)"
     }
   ]
 }
@@ -85,33 +89,45 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
       let resultJSON: any;
 
       if (provider === 'ollama') {
-        // ------------------------------------------------------------------
-        // OLLAMA (Local)
-        // ------------------------------------------------------------------
-        // We use the 'generate' endpoint which is good for one-off completions.
-        // We force 'json' format if the model supports it (Llama3, Mistral usually do).
+        // Models to try in order based on actually installed list
+        const models = ['mistral:instruct', 'phi4-mini:3.8b', 'gemma3:1b'];
         
-        const response = await fetch('/api/ollama/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'mistral', // Fallback to 'llama3' or 'phi3' if needed; mistral is a good default
-            system: SYSTEM_PROMPT,
-            prompt: `Generate a biome based on: "${userPrompt}"`,
-            stream: false,
-            format: 'json', 
-            options: {
-              temperature: 0.7 // Creativity allowed, but grounded
-            }
-          }),
-        });
+        let response: Response | null = null;
+        let usedModel = '';
 
-        if (!response.ok) {
-          throw new Error(`Ollama API failed: ${response.status} ${response.statusText}`);
+        for (const model of models) {
+            try {
+                console.log(`Attempting generation with model: ${model}`);
+                response = await fetch('/api/ollama/generate', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    model: model,
+                    system: SYSTEM_PROMPT,
+                    prompt: `Generate a biome based on: "${userPrompt}"`,
+                    stream: false,
+                    format: 'json', 
+                    options: { temperature: 0.7 }
+                  }),
+                });
+
+                if (response.ok) {
+                    usedModel = model;
+                    break;
+                } else {
+                    console.warn(`Model ${model} failed with ${response.status}`);
+                }
+            } catch (e) {
+                console.warn(`Connection error with ${model}`, e);
+            }
+        }
+
+        if (!response || !response.ok) {
+          throw new Error(`Ollama API failed. Ensure you have 'mistral' or 'llama3' pulled via 'ollama pull mistral'.`);
         }
 
         const data = await response.json();
-        // Ollama returns the string in 'response' field
+        console.log(`Success with model: ${usedModel}`);
         resultJSON = JSON.parse(data.response);
 
       } else {
@@ -151,6 +167,8 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
         waveIntensity: typeof resultJSON.waveIntensity === 'number' ? resultJSON.waveIntensity : 0.3,
         fogDensity: typeof resultJSON.fogDensity === 'number' ? resultJSON.fogDensity : 0.02,
         fogHeight: typeof resultJSON.fogHeight === 'number' ? resultJSON.fogHeight : 10.0,
+        weatherType: ['clear', 'rain', 'snow', 'ash', 'spores'].includes(resultJSON.weatherType) ? resultJSON.weatherType : 'clear',
+        weatherIntensity: typeof resultJSON.weatherIntensity === 'number' ? resultJSON.weatherIntensity : 0.0,
         scatter: Array.isArray(resultJSON.scatter) ? resultJSON.scatter : []
       };
 

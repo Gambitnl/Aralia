@@ -35,7 +35,7 @@ import { t } from './utils/i18n';
 import { generateCompanion } from './services/CompanionGenerator';
 
 // Utility functions
-import { determineActiveDynamicNpcsForLocation } from './utils/locationUtils';
+import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 
 // Context providers - wrap the app to provide glossary and spell data to all child components
 import { AppProviders } from './components/providers/AppProviders';

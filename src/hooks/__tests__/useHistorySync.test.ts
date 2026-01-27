@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHistorySync } from '../useHistorySync';
 import { GamePhase, GameState } from '../../types';
-import * as locationUtils from '../../utils/locationUtils';
+import * as locationUtils from '@/utils/spatial';
 
 // Mock dependencies
 vi.mock('../../constants', () => ({
@@ -22,7 +22,7 @@ vi.mock('../../data/dev/dummyCharacter', () => ({
     initialInventoryForDummyCharacter: [],
 }));
 
-vi.mock('../../utils/locationUtils');
+vi.mock('@/utils/spatial');
 
 import { initialGameState } from '../../state/appState';
 

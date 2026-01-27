@@ -10,7 +10,7 @@ import * as OllamaTextService from '../../services/ollamaTextService';
 import { AddMessageFn, AddGeminiLogFn, LogDiscoveryFn, GetTileTooltipTextFn } from './actionHandlerTypes';
 import { LOCATIONS, BIOMES } from '../../constants';
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
-import { determineActiveDynamicNpcsForLocation } from '../../utils/locationUtils';
+import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { handleGossipEvent } from './handleWorldEvents';
 import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';

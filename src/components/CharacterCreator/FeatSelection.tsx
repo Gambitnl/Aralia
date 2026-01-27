@@ -30,7 +30,7 @@ import { getSchoolIcon } from '../../utils/spellFilterUtils';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from './ui/SplitPaneLayout';
 import { SKILLS_DATA } from '../../data/skills';
-import { BTN_PRIMARY } from '../../../styles/buttonStyles';
+import { BTN_PRIMARY } from '../../styles/buttonStyles';
 
 interface FeatOption extends Feat {
   isEligible: boolean;

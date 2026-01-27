@@ -14,7 +14,7 @@ import { getDummyParty } from '../data/dev/dummyCharacter';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { generateMap } from '../services/mapService';
 import * as SaveLoadService from '../services/saveLoadService';
-import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
+import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { SeededRandom } from '@/utils/random';
 import { generateCompanion } from '../services/CompanionGenerator';
 

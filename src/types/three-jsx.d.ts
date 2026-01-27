@@ -40,6 +40,10 @@ declare module 'react' {
       fog: any;
       biomeFogMaterial: any;
       cylinderGeometry: any;
+      biomeWeatherMaterial: any;
+      points: any;
+      biomeFaunaMaterial: any;
+      gridHelper: any;
     }
   }
 }

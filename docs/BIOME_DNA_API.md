@@ -14,12 +14,24 @@ export interface BiomeDNA {
   name: string;           // Descriptive name (e.g., "The Ashen Reach")
   descriptor: string;     // The original input prompt
   
-  // Visuals (GPU Shader)
-  primaryColor: string;   // Hex color for the base terrain
-  secondaryColor: string; // Hex color for the underlayer/disturbed terrain
+  // -- Visuals (GPU Shader) --
+  primaryColor: string;   // Hex color for the base terrain (Top/Grass)
+  secondaryColor: string; // Hex color for the underlayer/disturbed terrain (Side/Dirt)
   roughness: number;      // 0.0 (smooth) to 1.0 (chaotic) noise scale
   
-  // Scatter (Instanced Placement)
+  // -- Atmospherics --
+  waterColor?: string;    // Hex color for water
+  waterClarity?: number;  // 0.0 (opaque) to 1.0 (clear)
+  waveIntensity?: number; // 0.0 to 1.0
+  fogDensity?: number;    // 0.0 to 0.1 (Exponential fog)
+  fogHeight?: number;     // Vertical fog cutoff height
+  
+  // -- Weather --
+  weatherType?: 'clear' | 'rain' | 'snow' | 'ash' | 'spores';
+  weatherIntensity?: number; // 0.0 to 1.0
+  windSpeed?: [number, number]; 
+
+  // -- Scatter (Instanced Placement) --
   scatter: ScatterRule[];
 }
 ```
@@ -32,17 +44,38 @@ export interface ScatterRule {
   assetType: 'tree' | 'rock' | 'grass';
   preset?: string;        // Optional specific asset preset (e.g., 'pine', 'dead')
   density: number;        // Probability per area (0.0 to 1.0)
-  minSlope?: number;      // Placement filter: minimum slope steepness
-  maxSlope?: number;      // Placement filter: maximum slope steepness
+  
+  // Placement Constraints
+  minSlope?: number;      // Minimum slope steepness (0-1)
+  maxSlope?: number;      // Maximum slope steepness (0-1)
+  minHeight?: number;     // Minimum Y height
+  maxHeight?: number;     // Maximum Y height
+  
+  // Scale
   scaleMean: number;      // Average base scale
   scaleVar: number;       // Random variance applied to scale
+  
+  // Clustering (Ecosystem)
+  clusterScale?: number;     // Noise scale for patches (0.05 = large forests)
+  clusterThreshold?: number; // Threshold (0-1). Higher = sparser, more defined patches.
 }
 ```
 
-## Integration Flow
+## Systems Integration
 
 1. **Generation**: `useBiomeGenerator` hook sends a prompt to Ollama/Gemini.
 2. **Parsing**: The JSON response is validated and mapped to the `BiomeDNA` interface.
 3. **Surface Rendering**: `DeformableTerrain` passes colors and roughness as uniforms to the `BiomeShader`.
+    *   **Tri-Planar Mapping:** Blends Grass/Dirt textures based on normal.
+    *   **Blending:** Supports mixing two DNA profiles (`targetDna`) via `uBlendFactor`.
 4. **Environment Sculpting**: `DeformationManager` writes `aDisturbance` attributes to the terrain, which the shader uses to reveal `secondaryColor`.
-5. **Object Placement**: `ProceduralScatter` uses the rules to randomly place instanced meshes, sampling height and slope from the `DeformationManager`.
+5. **Object Placement**: `ProceduralScatter` uses the rules to randomly place instanced meshes.
+    *   **Physics:** Registers circular colliders with `DeformationManager`.
+    *   **Clustering:** Uses Simplex noise to create organic groves.
+6. **Atmospherics**:
+    *   **Water**: `BiomeWater` shader with dynamic waves and depth.
+    *   **Fog**: `BiomeHeightFog` gradient shader for ground mist.
+    *   **Weather**: `BiomeWeather` GPU particle system for Rain/Snow/Ash.
+7. **Life**:
+    *   **Fauna**: `BiomeFauna` GPU boids that react to Day/Night cycles.
+    *   **Day/Night**: Dynamic lighting and sun positioning.
