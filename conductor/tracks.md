@@ -8,8 +8,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [ ] **Track: Procedural Biome Evolution**
   *Link: [./tracks/biome_evolution_20260121/](./tracks/biome_evolution_20260121/)*
-
----
-
-- [x] **Track: Remove Stitch Track Artifacts**
-  *Link: [./tracks/stitch_cleanup_20260126/](./tracks/stitch_cleanup_20260126/)*
