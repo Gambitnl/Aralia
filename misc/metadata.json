@@ -1,7 +1,0 @@
-{
-  "_comment": "This file contains metadata for the Aralia RPG application. The `requestFramePermissions` key can include values like 'camera' or 'microphone' to request device access. The `prompt` key can be used for system-level instructions or context.",
-  "name": "Aralia RPG v0.3.21 (village)",
-  "description": "A text-based fantasy RPG powered by Gemini, where your choices shape the adventure in the world of Krynn. This version adds the 'Levitate' spell to the game's data and glossary.",
-  "requestFramePermissions": [],
-  "prompt": ""
-}
