@@ -11,10 +11,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Stitch AI-Driven UI & Asset Pipeline**
-  *Link: [./tracks/stitch_pipeline_20260121/](./tracks/stitch_pipeline_20260121/)*
-
----
-
 - [~] **Track: Remove Stitch Track Artifacts**
   *Link: [./tracks/stitch_cleanup_20260126/](./tracks/stitch_cleanup_20260126/)*
