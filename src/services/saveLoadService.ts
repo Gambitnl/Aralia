@@ -9,7 +9,7 @@
  */
 import { GameState, GamePhase, NotificationType } from '../types';
 import { buildHitPointDicePools, normalizeClassLevels } from '../utils/characterUtils';
-import { getGameDay } from '../utils/timeUtils';
+import { getGameDay } from '../utils/core';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
 import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';

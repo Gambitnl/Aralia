@@ -4,7 +4,7 @@ import { rollSavingThrow } from '../../utils/savingThrowUtils';
 import { createPlayerCombatCharacter, rollDice } from '../../utils/combatUtils'; // Using standard factory
 import { logger } from '../../utils/logger';
 import { generateId } from '../../utils/idGenerator';
-import { formatDuration } from '../../utils/timeUtils';
+import { formatDuration } from '../../utils/core';
 
 export interface MemoryLossResult {
   lostMemory: boolean;

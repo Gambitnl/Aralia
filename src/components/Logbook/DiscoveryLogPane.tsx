@@ -5,7 +5,7 @@
  */
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { GameState, DiscoveryEntry, DiscoveryType, NPC, KnownFact } from '../../types';
-import { formatGameDate, formatGameDateTime } from '@/utils/timeUtils';
+import { formatGameDate, formatGameDateTime } from '@/utils/core';
 import Tooltip from '../ui/Tooltip';
 
 interface DiscoveryLogPaneProps {

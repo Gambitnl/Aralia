@@ -20,7 +20,7 @@ import {
   DamageType
 } from '@/types/spells';
 
-import { getGameEpoch, getGameDay } from '@/utils/timeUtils';
+import { getGameEpoch, getGameDay } from '@/utils/core/timeUtils';
 import {
   GameState,
   GamePhase,

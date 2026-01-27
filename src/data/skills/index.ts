@@ -7,6 +7,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { Skill, AbilityScoreName as _AbilityScoreName } from '../../types';
 
+// TODO: Add 'description' field to Skill type and populate SKILLS_DATA with lore/mechanics text.
 export const SKILLS_DATA: Record<string, Skill> = {
   'acrobatics': { id: 'acrobatics', name: 'Acrobatics', ability: 'Dexterity' },
   'animal_handling': { id: 'animal_handling', name: 'Animal Handling', ability: 'Wisdom' },

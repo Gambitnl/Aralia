@@ -11,7 +11,7 @@ import {
 import { GameState, QuestStatus, Item, NPC, WorldRumor } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
 import { INITIAL_TOPICS } from '../data/dialogue/topics';
-import { getGameDay } from '../utils/timeUtils';
+import { getGameDay } from '../utils/core';
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:42:06
+ * Dependents: PreviewBiome.tsx, PreviewEnvironment.tsx
+ * Imports: 7 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useRef, useState } from 'react';
 import { Canvas, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -5,10 +21,13 @@ import { DeformableTerrain } from './DeformableTerrain';
 import { DeformationManager } from './DeformationManager';
 import { OverlayMesh } from './OverlayMesh';
 import { ProceduralScatter } from './ProceduralScatter';
+import { BiomeWater } from './BiomeWater';
+import { BiomeHeightFog } from './BiomeHeightFog';
 import { BiomeDNA } from '@/components/DesignPreview/steps/PreviewBiome';
 
 export type ToolType = 'mold_earth' | 'create_bonfire' | 'grease' | 'clear';
 
+// TODO: Add a 'Plant Seed' tool that lets the user grow specific scatter items (trees/rocks) on click
 interface DeformableSceneProps {
   activeTool: ToolType;
   dna?: BiomeDNA;
@@ -56,6 +75,9 @@ export const DeformableScene: React.FC<DeformableSceneProps> = ({ activeTool, dn
       camera={{ position: [0, 80, 80], fov: 50 }}
       className="w-full h-full"
     >
+      {dna?.fogDensity && (
+        <fog attach="fog" args={[dna.secondaryColor, 0, 100 / dna.fogDensity]} />
+      )}
       <ambientLight intensity={0.6} />
       <directionalLight position={[50, 100, 50]} intensity={1.5} castShadow />
       <DeformableTerrain
@@ -67,12 +89,18 @@ export const DeformableScene: React.FC<DeformableSceneProps> = ({ activeTool, dn
       />
 
       {dna && (
-        <ProceduralScatter 
-          dna={dna} 
-          manager={manager} 
-          size={50} 
-          version={version} 
-        />
+        <>
+          <BiomeWater size={50} dna={dna} />
+          {dna.fogDensity && dna.fogDensity > 0 && (
+             <BiomeHeightFog size={50} dna={dna} />
+          )}
+          <ProceduralScatter 
+            dna={dna} 
+            manager={manager} 
+            size={50} 
+            version={version} 
+          />
+        </>
       )}
 
       {/* Environmental Overlays */}

@@ -16,7 +16,7 @@ import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getSeasonalEffects } from '../../systems/time/SeasonalSystem';
-import { getTimeModifiers } from '../../utils/timeUtils';
+import { getTimeModifiers } from '../../utils/core';
 // TODO(lint-intent): 'TravelEvent' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.

@@ -1,38 +1,49 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:42:00
+ * Dependents: CharacterCreator.tsx
+ * Imports: 10 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file NameAndReview.tsx
- * This component is the final step in character creation. It allows the player
- * to name their character and review all their selections (race, class, ability scores,
- * skills, features, spells) before finalizing the character.
+ * Refactored to use Split Config Style (Name Entry vs Character Summary).
  */
 import React, { useState, useContext } from 'react';
+import { motion } from 'framer-motion';
 import { PlayerCharacter, AbilityScoreName, DraconicAncestryInfo } from '../../types';
-import { RACES_DATA, WEAPONS_DATA, MASTERY_DATA, DRAGONBORN_ANCESTRIES } from '../../constants'; // For lineage/subrace name & item names
+import { RACES_DATA, WEAPONS_DATA, MASTERY_DATA, DRAGONBORN_ANCESTRIES } from '../../constants';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { getCharacterSpells } from '../../utils/spellUtils';
 import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/characterUtils';
 import { validateCharacterName } from '../../utils/securityUtils';
-import SpellContext from '../../context/SpellContext'; // Import the new context
-import Tooltip from '../ui/Tooltip'; // Build failed because '../Tooltip' breaks on case-sensitive bundlers; use the ui folder path instead.
+import SpellContext from '../../context/SpellContext';
+import Tooltip from '../ui/Tooltip';
 import { CreationStepLayout } from './ui/CreationStepLayout';
+import { SplitPaneLayout } from './ui/SplitPaneLayout';
+import { User, Shield, Zap, BookOpen } from 'lucide-react';
 
 interface NameAndReviewProps {
-  characterPreview: PlayerCharacter; // A temporary PlayerCharacter object with all selections made so far
-  onConfirm: (name: string) => void; // Callback when character is confirmed
-  onBack: () => void; // Function to go back to the previous step
-  initialName?: string; // Optional initial name for the input field
+  characterPreview: PlayerCharacter;
+  onConfirm: (name: string) => void;
+  onBack: () => void;
+  initialName?: string;
   featStepSkipped?: boolean;
 }
 
-/**
- * NameAndReview component.
- * Allows final review of character details and naming before creation.
- */
 const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', featStepSkipped }) => {
   const [name, setName] = useState(initialName);
   const [validationError, setValidationError] = useState<string | null>(() => {
-    if (!initialName) {
-      return null;
-    }
+    if (!initialName) return null;
     const { valid, error } = validateCharacterName(initialName);
     return valid ? null : (error || 'Invalid name');
   });
@@ -52,211 +63,216 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
   } = characterPreview;
 
   const allSpells = useContext(SpellContext);
-  if (!allSpells) return <div>Loading spell details for review...</div>;
-
-  // Use the new centralized utility to get all spells
-  const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);
-
+  
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setName(newName);
-
-    // Validate on change for immediate feedback
     const { valid, error } = validateCharacterName(newName);
     setValidationError(valid ? null : (error || 'Invalid name'));
   };
 
   const handleConfirm = () => {
     const { valid, error } = validateCharacterName(name);
-
     if (valid) {
       onConfirm(name.trim());
     } else {
       setValidationError(error || 'Invalid name');
     }
   };
+
+  if (!allSpells) return <div className="p-8 text-center text-gray-500 italic">Loading character details...</div>;
+
+  const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);
   
   const selectedDraconicAncestryId = racialSelections?.['dragonborn']?.choiceId;
   const selectedDraconicAncestry = selectedDraconicAncestryId ? (DRAGONBORN_ANCESTRIES as Record<string, DraconicAncestryInfo>)[selectedDraconicAncestryId] : null;
-
   const selectedElvenLineageId = racialSelections?.['elf']?.choiceId;
-  const elvenLineageSpellcastingAbility = racialSelections?.['elf']?.spellAbility;
   const elvenLineageDetails = selectedElvenLineageId ? RACES_DATA['elf']?.elvenLineages?.find(l => l.id === selectedElvenLineageId) : null;
-  
   const selectedGnomeSubraceId = racialSelections?.['gnome']?.choiceId;
-  const gnomeSubraceSpellcastingAbility = racialSelections?.['gnome']?.spellAbility;
   const gnomeSubraceDetails = selectedGnomeSubraceId ? RACES_DATA['gnome']?.gnomeSubraces?.find(sr => sr.id === selectedGnomeSubraceId) : null;
-
 
   return (
     <CreationStepLayout
-      title="Name Your Character & Review"
+      title="Finalize Legend"
       onBack={onBack}
       onNext={handleConfirm}
       canProceed={!validationError && !!name.trim()}
       nextLabel="Begin Adventure!"
+      bodyScrollable={false}
     >
-      {featStepSkipped && (
-        <div className="mb-4 text-center text-sm text-sky-200 bg-sky-900/30 border border-sky-700/60 rounded-lg px-3 py-2">
-          The optional Feat selection step was bypassed because your character doesn&apos;t qualify for any feats at 1st level.
-        </div>
-      )}
-      
-      <div className="bg-gray-700 p-4 rounded-lg mb-6 border border-gray-600">
-        <h3 className="text-xl font-semibold text-amber-400 mb-3">Character Summary</h3>
-        <p><strong>Race:</strong> {getCharacterRaceDisplayString(characterPreview)}</p>
-        <p><strong>Age:</strong> {characterPreview.age || 25} years</p>
+      <div className="h-full min-h-0">
+        <SplitPaneLayout
+          controls={
+            <div className="space-y-6">
+              <div className="p-4 bg-gray-900/40 border border-gray-700 rounded-xl flex flex-col items-center text-center">
+                {/* TODO: Add "Generate Portrait" button here using the Stitch/AI backend to create a custom avatar based on race/class/description. */}
+                <div className="w-24 h-24 rounded-full bg-gray-800 border-2 border-amber-500/50 flex items-center justify-center mb-4 shadow-lg overflow-hidden relative group">
+                  {characterPreview.portraitUrl ? (
+                    <img src={characterPreview.portraitUrl} alt="Portrait" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={48} className="text-gray-600 group-hover:text-amber-500/50 transition-colors" />
+                  )}
+                </div>
+                <h3 className="font-cinzel font-bold text-amber-400">The Legend Begins</h3>
+                <p className="text-xs text-gray-500 mt-1 uppercase tracking-tighter">Enter a name to seal your fate</p>
+              </div>
 
-        {selectedDraconicAncestry && (
-          <p className="text-sm ml-2">
-            <strong>Draconic Ancestry:</strong> {selectedDraconicAncestry.type} Dragon ({selectedDraconicAncestry.damageType} resistance)
-          </p>
-        )}
-        {elvenLineageDetails && (
-          <div className="text-sm ml-2">
-            <p><strong>Elven Lineage:</strong> {elvenLineageDetails.name}</p>
-            {elvenLineageSpellcastingAbility && <p className="text-xs"> (Spellcasting Ability: {elvenLineageSpellcastingAbility})</p>}
-            {elvenLineageDetails.benefits.filter(b => b.level === 1).map(benefit => (
-              <p key={`${elvenLineageDetails.id}-${benefit.cantripId || benefit.description}`} className="text-xs text-gray-400">
-                - {benefit.description}
-                {benefit.cantripId && ` Cantrip: ${allSpells[benefit.cantripId]?.name || benefit.cantripId}.`}
-                {benefit.speedIncrease && ` Speed increased by ${benefit.speedIncrease}ft.`}
-                {benefit.darkvisionRange && ` Darkvision ${benefit.darkvisionRange}ft.`}
-              </p>
-            ))}
-          </div>
-        )}
-        {gnomeSubraceDetails && (
-          <div className="text-sm ml-2">
-            <p><strong>Gnome Subrace:</strong> {gnomeSubraceDetails.name}</p>
-            {(gnomeSubraceDetails.grantedCantrip || gnomeSubraceDetails.grantedSpell) && gnomeSubraceSpellcastingAbility &&
-              <p className="text-xs"> (Spellcasting Ability: {gnomeSubraceSpellcastingAbility})</p>
-            }
-            {gnomeSubraceDetails.traits.map(trait => (
-              <p key={`${gnomeSubraceDetails.id}-${trait}`} className="text-xs text-gray-400" title={trait.length > 50 ? trait : undefined}>
-                - {trait.length > 50 ? trait.substring(0, 47) + "..." : trait}
-              </p>
-            ))}
-             {gnomeSubraceDetails.superiorDarkvision && <p className="text-xs text-gray-400">- Darkvision: 120ft</p>}
-             {/* Base Gnome traits like Gnomish Cunning are part of characterPreview.race.traits and not explicitly iterated here but are included in the final character object */}
-          </div>
-        )}
+              <div className="space-y-2">
+                <label htmlFor="characterName" className="block text-sm font-bold text-gray-400 uppercase tracking-wide px-1">
+                  Character Name
+                </label>
+                <input
+                  type="text"
+                  id="characterName"
+                  value={name}
+                  onChange={handleNameChange}
+                  autoFocus
+                  className={`w-full px-4 py-3 bg-gray-800 border rounded-xl text-white focus:ring-2 outline-none transition-all shadow-inner ${
+                    validationError
+                      ? 'border-red-500/50 focus:ring-red-500/20'
+                      : 'border-gray-700 focus:ring-amber-500/20 focus:border-amber-500/50'
+                  }`}
+                  placeholder="E.g., Valerius Stonebeard"
+                />
+                {validationError && (
+                  <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-400 px-1">
+                    {validationError}
+                  </motion.p>
+                )}
+              </div>
 
-        <p><strong>Class:</strong> {charClass.name}</p>
-        <div className="my-2">
-            <strong>Ability Scores:</strong>
-            <ul className="list-disc list-inside ml-4 text-sm">
-            {Object.entries(finalAbilityScores).map(([key, value]: [string, number]) => (
-                <li key={key}>{key as AbilityScoreName}: {value} ({getAbilityModifierString(value)})</li>
-            ))}
-            </ul>
-        </div>
-        <div className="my-2">
-            <strong>Skills:</strong> {skills.length > 0 ? skills.map(s => `${s.name} (${s.ability.substring(0,3)})`).join(', ') : 'None selected'}
-        </div>
-        {selectedFightingStyle && <p><strong>Fighting Style:</strong> {selectedFightingStyle.name}</p>}
-        {feats && feats.length > 0 && (
-            <div className="my-2">
-                <strong>Feats:</strong>
-                <ul className="list-disc list-inside ml-4 text-sm">
-                    {feats.map(featId => {
-                        const feat = FEATS_DATA.find(f => f.id === featId);
-                        if (!feat) return null;
-                        
-                        const featChoice = characterPreview.featChoices?.[featId];
-                        const selectedASI = featChoice?.selectedAbilityScore;
-                        
-                        // Build display text with choices
-                        let displayText = feat.name;
-                        if (selectedASI && feat.benefits?.selectableAbilityScores) {
-                            displayText += ` (${selectedASI} +1)`;
-                        }
-                        
-                        return (
-                            <li key={featId}>
-                                <Tooltip content={feat.description}>
-                                    <span className="cursor-help underline decoration-dotted">{displayText}</span>
-                                </Tooltip>
-                            </li>
-                        );
+              {featStepSkipped && (
+                <div className="p-3 bg-sky-900/20 border border-sky-700/30 rounded-lg">
+                  <p className="text-[10px] leading-tight text-sky-300/70 italic text-center">
+                    Feat selection was bypassed (no eligibility at level 1).
+                  </p>
+                </div>
+              )}
+            </div>
+          }
+          preview={
+            <div className="flex flex-col h-full">
+              <div className="flex justify-between items-end mb-6 border-b border-gray-700 pb-4">
+                <div>
+                  <h2 className="text-3xl font-bold text-amber-400 font-cinzel">{name || 'Unnamed Hero'}</h2>
+                  <p className="text-gray-400 font-medium">
+                    Level 1 {getCharacterRaceDisplayString(characterPreview)} {charClass.name}
+                  </p>
+                </div>
+                <div className="flex gap-4 mb-1">
+                  <div className="text-center">
+                    <span className="block text-[10px] text-gray-500 uppercase font-bold">HP</span>
+                    <span className="text-xl font-black text-green-400">{characterPreview.maxHp}</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-[10px] text-gray-500 uppercase font-bold">AC</span>
+                    <span className="text-xl font-black text-sky-400">{characterPreview.armorClass}</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-[10px] text-gray-500 uppercase font-bold">SPD</span>
+                    <span className="text-xl font-black text-amber-400">{speed}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-y-auto pr-2 custom-scrollbar">
+                {/* Attributes Column */}
+                <section>
+                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Shield size={14} /> Core Attributes
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(finalAbilityScores).map(([ability, value]) => (
+                      <div key={ability} className="bg-gray-900/40 border border-gray-700/50 rounded-lg p-2 text-center">
+                        <div className="text-[9px] text-gray-500 uppercase font-bold mb-0.5">{ability.substring(0, 3)}</div>
+                        <div className="text-lg font-bold text-white leading-none">{value}</div>
+                        <div className="text-xs font-medium text-gray-400 mt-0.5">{getAbilityModifierString(value as number)}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mt-6 mb-3 flex items-center gap-2">
+                    <Zap size={14} /> Proficiencies
+                  </h3>
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap gap-1.5">
+                      {skills.map(s => (
+                        <span key={s.id} className="text-[11px] bg-sky-900/30 text-sky-300 px-2 py-0.5 rounded border border-sky-700/30">
+                          {s.name}
+                        </span>
+                      ))}
+                      {selectedWeaponMasteries?.map(id => {
+                        const w = WEAPONS_DATA[id];
+                        return w ? (
+                          <span key={id} className="text-[11px] bg-amber-900/20 text-amber-200 px-2 py-0.5 rounded border border-amber-700/30">
+                            {w.name} ({MASTERY_DATA[w.mastery!]?.name})
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Features & Spells Column */}
+                <section>
+                  <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <BookOpen size={14} /> Class & Racial Features
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    {selectedFightingStyle && (
+                      <div className="text-gray-300">
+                        <span className="text-amber-500/80 font-semibold mr-2">Fighting Style:</span> {selectedFightingStyle.name}
+                      </div>
+                    )}
+                    {feats && feats.length > 0 && feats.map(featId => {
+                      const feat = FEATS_DATA.find(f => f.id === featId);
+                      return feat ? (
+                        <div key={featId} className="text-gray-300">
+                          <span className="text-amber-500/80 font-semibold mr-2">Feat:</span> {feat.name}
+                        </div>
+                      ) : null;
                     })}
-                </ul>
-            </div>
-        )}
-        {!feats?.length && (
-          <div className="my-2 text-sm text-gray-300">
-            <strong>Feats:</strong> <span className="text-gray-400">None chosen at level 1. Many builds unlock feats later, so skipping here is expected.</span>
-          </div>
-        )}
-        {selectedWeaponMasteries && selectedWeaponMasteries.length > 0 && (
-          <div className="my-2">
-            <strong>Weapon Masteries:</strong>
-            <ul className="list-disc list-inside ml-4 text-sm">
-              {selectedWeaponMasteries.map(id => {
-                const weapon = WEAPONS_DATA[id];
-                if (!weapon || !weapon.mastery) return null;
-                const mastery = MASTERY_DATA[weapon.mastery];
-                if (!mastery) return null;
-                return (
-                  <li key={id}>
-                    <Tooltip content={mastery.description}>
-                      <span className="cursor-help underline decoration-dotted">{weapon.name} ({mastery.name})</span>
-                    </Tooltip>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-        {selectedDivineOrder && 
-            <p><strong>Divine Order:</strong> {selectedDivineOrder}</p>
-        }
-        {selectedDruidOrder && 
-            <p><strong>Primal Order:</strong> {selectedDruidOrder}</p>
-        }
-        {selectedWarlockPatron && 
-            <p><strong>Otherworldly Patron:</strong> {selectedWarlockPatron}</p>
-        }
-        { (allKnownCantrips.length > 0 || allKnownSpells.length > 0) &&
-            <div className="my-2">
-                <strong>Spells:</strong>
-                {allKnownCantrips.length > 0 && <p className="text-xs">Cantrips: {allKnownCantrips.map(s => s.name).join(', ')}</p>}
-                {allKnownSpells.length > 0 && <p className="text-xs">Known Spells: {allKnownSpells.map(s => `${s.name} (L${s.level})`).join(', ')}</p>}
-            </div>
-        }
-         <p className="text-sm mt-1"><strong>Hit Points:</strong> {characterPreview.maxHp}</p>
-         <p className="text-sm"><strong>Armor Class:</strong> {characterPreview.armorClass}</p>
-         <p className="text-sm"><strong>Speed:</strong> {speed}ft</p>
-      </div>
+                    {selectedDivineOrder && <div className="text-gray-300"><span className="text-purple-400 font-semibold mr-2">Divine Order:</span> {selectedDivineOrder}</div>}
+                    {selectedDruidOrder && <div className="text-gray-300"><span className="text-emerald-400 font-semibold mr-2">Primal Order:</span> {selectedDruidOrder}</div>}
+                    {selectedWarlockPatron && <div className="text-gray-300"><span className="text-pink-400 font-semibold mr-2">Patron:</span> {selectedWarlockPatron}</div>}
+                  </div>
 
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="characterName" className="block text-md font-medium text-gray-300 mb-1">
-            Character Name:
-          </label>
-          <input
-            type="text"
-            id="characterName"
-            value={name}
-            onChange={handleNameChange}
-            className={`w-full px-4 py-2 bg-gray-900 border rounded-lg text-gray-200 focus:ring-2 outline-none transition-all ${
-              validationError
-                ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                : 'border-gray-600 focus:ring-amber-500 focus:border-amber-500'
-            }`}
-            placeholder="E.g., Valerius Stonebeard"
-            required
-            aria-required="true"
-            aria-invalid={!!validationError}
-            aria-label="Enter your character's name"
-            aria-describedby={validationError ? "name-error" : undefined}
-          />
-          {validationError && (
-            <p id="name-error" className="mt-1 text-sm text-red-400" role="alert">
-              {validationError}
-            </p>
-          )}
-        </div>
+                  {(allKnownCantrips.length > 0 || allKnownSpells.length > 0) && (
+                    <>
+                      <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest mt-6 mb-3">Magic Manifest</h3>
+                      <div className="space-y-3">
+                        {allKnownCantrips.length > 0 && (
+                          <div>
+                            <span className="text-[10px] text-gray-500 uppercase font-bold block mb-1">Cantrips</span>
+                            <div className="flex flex-wrap gap-1">
+                              {allKnownCantrips.map(s => (
+                                <span key={s.id} className="text-[10px] bg-purple-900/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-700/30">
+                                  {s.name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {allKnownSpells.length > 0 && (
+                          <div>
+                            <span className="text-[10px] text-gray-500 uppercase font-bold block mb-1">1st Level Spells</span>
+                            <div className="flex flex-wrap gap-1">
+                              {allKnownSpells.map(s => (
+                                <span key={s.id} className="text-[10px] bg-indigo-900/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-700/30">
+                                  {s.name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </section>
+              </div>
+            </div>
+          }
+        />
       </div>
     </CreationStepLayout>
   );

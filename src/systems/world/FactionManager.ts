@@ -11,7 +11,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, GameMessage, WorldRumor, Faction as _Faction, PlayerFactionStanding } from '../../types';
 import { calculateRippleEffects, calculateNewStanding, formatReputationChangeMessage } from '../../utils/factionUtils';
-import { getGameDay } from '../../utils/timeUtils';
+import { getGameDay } from '../../utils/core';
 
 export interface ApplyReputationResult {
     standings: Record<string, PlayerFactionStanding>;

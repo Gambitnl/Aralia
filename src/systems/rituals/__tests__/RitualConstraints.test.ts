@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { validateRitualRequirements } from '../RitualManager';
 import { RitualRequirement, RitualContext } from '../../../types/rituals';
 // TODO(lint-intent): 'TimeOfDay' is unused in this test; use it in the assertion path or remove it.
-import { TimeOfDay as _TimeOfDay } from '../../../utils/timeUtils';
+import { TimeOfDay as _TimeOfDay } from '../../../utils/core';
 
 describe('RitualConstraints', () => {
   // Setup standard dates for testing

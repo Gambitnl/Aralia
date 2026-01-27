@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { PlayerCharacter, MissingChoice } from '../../../types';
 import Tooltip from '../../Tooltip';
-import { validateCharacterChoices } from '../../../utils/characterValidation';
+import { validateCharacterChoices } from '@/utils/character';
 
 interface PartyCharacterButtonProps {
     character: PlayerCharacter;

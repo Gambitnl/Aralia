@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:42:04
+ * Dependents: design-preview.tsx
+ * Imports: 30 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState, useCallback } from 'react';
 import { WindowFrame } from '../ui/WindowFrame';
 import { VariantSwitcher } from './VariantSwitcher';

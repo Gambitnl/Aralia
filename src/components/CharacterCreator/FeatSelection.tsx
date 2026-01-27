@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:41:52
+ * Dependents: CharacterCreator.tsx, LevelUpModal.tsx
+ * Imports: 10 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file FeatSelection.tsx
  * Refactored to use Split Config Style (List vs Detail).
@@ -152,6 +168,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
   const viewedFeat = viewedFeatId ? availableFeats.find(f => f.id === viewedFeatId) : null;
   
+  // TODO: Create a strongly-typed helper (renderFeatPrerequisites) to handle the 'prerequisites' object safely.
   // Logic for validation (reused from previous implementation)
   const selectedFeat = selectedFeatId ? availableFeats.find(f => f.id === selectedFeatId) : null;
   const selectableASIs = selectedFeat?.benefits?.selectableAbilityScores ?? [];

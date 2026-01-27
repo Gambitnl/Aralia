@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:42:18
+ * Dependents: DeformableTerrain.tsx
+ * Imports: None
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import * as THREE from 'three';
 import { extend } from '@react-three/fiber';
 
@@ -31,6 +47,7 @@ const fragmentShader = `
   uniform vec3 uSecondaryColor;
   uniform float uRoughness;
   uniform float uTime;
+  // TODO: Add support for noise texture maps for more organic biome transitions
 
   varying vec2 vUv;
   varying vec3 vPosition;
@@ -60,26 +77,57 @@ const fragmentShader = `
   }
 
   void main() {
-    // 1. Base Noise Texture
-    // We scale the UVs by roughness to make the pattern more chaotic
-    float n = noise(vUv * (10.0 + uRoughness * 20.0));
-    
-    // 2. Disturbance Mixing
-    // Where disturbance is high (digging), we show the secondary (dirt/underlayer) color.
-    // We smoothstep it to give it a nice edge.
-    float dirtFactor = smoothstep(0.2, 0.8, vDisturbance / 5.0); 
-    
-    // 3. Color Mixing
-    // Mix primary and secondary based on dirtFactor + some noise variation
-    vec3 finalColor = mix(uPrimaryColor, uSecondaryColor, dirtFactor);
-    
-    // Add some noise variation to the base color itself so it's not flat
-    float colorNoise = noise(vUv * 50.0) * 0.1;
-    finalColor += vec3(colorNoise);
+    // 1. TRI-PLANAR MAPPING
+    // Calculate blend weights based on normal
+    vec3 blend = abs(vNormal);
+    // Tighten the blend to reduce blur on corners
+    blend = pow(blend, vec3(4.0));
+    blend /= dot(blend, vec3(1.0));
 
-    // Simple lighting (fake diffuse)
+    // Sample textures
+    // Top (Y-axis) -> Grass
+    vec3 texTop = texture2D(uTexTop, vPosition.xz * uTextureScale).rgb;
+    
+    // Sides (X/Z-axis) -> Dirt
+    vec3 texSideX = texture2D(uTexSide, vPosition.yz * uTextureScale).rgb;
+    vec3 texSideZ = texture2D(uTexSide, vPosition.xy * uTextureScale).rgb;
+    
+    // Combine side textures
+    vec3 texSide = texSideX * blend.x + texSideZ * blend.z;
+
+    // 2. MIXING LOGIC
+    // Base mix is determined by the normal (Y-up is top, others are side)
+    // But we also have vDisturbance which forces "dirt" (side texture)
+    
+    // Determine how much "Top" texture to show. 
+    // Usually it's just blend.y, but disturbance eats away at it.
+    float topFactor = blend.y;
+    
+    // Disturbance masking
+    float dirtiness = smoothstep(0.2, 0.8, vDisturbance / 5.0);
+    topFactor = mix(topFactor, 0.0, dirtiness); // If disturbed, reduce top factor
+
+    // Final texture Color
+    // We mix the RAW texture samples based on the calculated topFactor
+    // However, since we blended X/Z into 'texSide' already, we need to blend Top vs Side
+    vec3 baseTexture = mix(texSide, texTop, topFactor);
+
+    // 3. TINTING (DNA)
+    // We multiply the texture by the DNA colors to allow biome variation
+    // Primary (Green) tints the Top, Secondary (Brown) tints the Side
+    vec3 tintColor = mix(uSecondaryColor, uPrimaryColor, topFactor);
+    
+    // Blend mode: Multiply (Texture * DNA Color)
+    // We brighten the texture slightly so multiply doesn't get too dark
+    vec3 finalColor = baseTexture * tintColor * 1.5;
+
+    // Add noise variation
+    float n = noise(vUv * (10.0 + uRoughness * 20.0));
+    finalColor += vec3(n * 0.05);
+
+    // Simple lighting
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.5));
-    float diff = max(dot(vNormal, lightDir), 0.2); // 0.2 ambient
+    float diff = max(dot(vNormal, lightDir), 0.2); 
     
     gl_FragColor = vec4(finalColor * diff, 1.0);
   }
@@ -95,6 +143,9 @@ export class BiomeShaderMaterial extends ((THREE as any)['ShaderMaterial']) {
         uSecondaryColor: { value: new THREE.Color('#8b5a2b') },
         uRoughness: { value: 0.5 },
         uTime: { value: 0 },
+        uTexTop: { value: null },
+        uTexSide: { value: null },
+        uTextureScale: { value: 0.2 },
       },
     });
   }
@@ -110,6 +161,13 @@ export class BiomeShaderMaterial extends ((THREE as any)['ShaderMaterial']) {
 
   updateRoughness(val: number) {
     (this as any).uniforms.uRoughness.value = val;
+  }
+  
+  updateTextures(top: THREE.Texture, side: THREE.Texture) {
+    (this as any).uniforms.uTexTop.value = top;
+    (this as any).uniforms.uTexSide.value = side;
+    top.wrapS = top.wrapT = THREE.RepeatWrapping;
+    side.wrapS = side.wrapT = THREE.RepeatWrapping;
   }
 }
 

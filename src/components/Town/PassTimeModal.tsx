@@ -4,7 +4,7 @@
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { formatGameTime, getGameDay, addGameTime, getTimeModifiers } from '@/utils/timeUtils';
+import { formatGameTime, getGameDay, addGameTime, getTimeModifiers } from '@/utils/core';
 import { getCalendarDescription } from '@/systems/time/CalendarSystem';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 

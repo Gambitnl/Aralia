@@ -11,7 +11,7 @@ import {
 import { ConversationTopic, DialogueSession, NPCKnowledgeProfile } from '../../types/dialogue';
 import { GameState, SuspicionLevel, Item, NPC, WorldRumor } from '../../types/index';
 import * as combatUtils from '../../utils/combatUtils';
-import * as timeUtils from '../../utils/timeUtils';
+import * as timeUtils from '../../utils/core';
 
 // Mock rollDice
 vi.mock('../../utils/combatUtils', () => ({
@@ -19,8 +19,8 @@ vi.mock('../../utils/combatUtils', () => ({
 }));
 
 // Mock time utils for expiration check
-vi.mock('../../utils/timeUtils', async () => {
-    const actual = await vi.importActual('../../utils/timeUtils');
+vi.mock('../../utils/core', async () => {
+    const actual = await vi.importActual('../../utils/core');
     return {
         ...actual,
         getGameDay: vi.fn()

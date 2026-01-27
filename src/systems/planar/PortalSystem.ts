@@ -1,7 +1,7 @@
 
 import { Portal, PortalRequirement } from '../../types/planes';
 import { GameState } from '../../types/index';
-import { getTimeOfDay, TimeOfDay } from '../../utils/timeUtils';
+import { getTimeOfDay, TimeOfDay } from '../../utils/core';
 
 export interface PortalActivationResult {
   success: boolean;

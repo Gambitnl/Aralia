@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:42:11
+ * Dependents: PreviewBiome.tsx
+ * Imports: 1 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useState, useCallback } from 'react';
 import { BiomeDNA } from '@/components/DesignPreview/steps/PreviewBiome';
 
@@ -30,8 +46,13 @@ The JSON must match this schema:
   "name": "string (A creative name for this biome)",
   "descriptor": "string (The original user prompt)",
   "primaryColor": "hex string (e.g. #2d5a27)",
-  "secondaryColor": "hex string (e.g. #8fbc8f)",
+  "secondaryColor": "hex string (e.g. #8b5a2b)",
   "roughness": "number (0.0 to 1.0, where 0.0 is flat/smooth and 1.0 is jagged/chaotic)",
+  "waterColor": "hex string (e.g. #1e3a8a)",
+  "waterClarity": "number (0.0 to 1.0)",
+  "waveIntensity": "number (0.0 to 1.0)",
+  "fogDensity": "number (0.0 to 0.1)",
+  "fogHeight": "number (0.0 to 20.0, higher means the fog layer is deeper)",
   "scatter": [
     {
       "id": "string",
@@ -125,6 +146,11 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
         primaryColor: resultJSON.primaryColor || '#000000',
         secondaryColor: resultJSON.secondaryColor || '#ffffff',
         roughness: typeof resultJSON.roughness === 'number' ? resultJSON.roughness : 0.5,
+        waterColor: resultJSON.waterColor || '#1e3a8a',
+        waterClarity: typeof resultJSON.waterClarity === 'number' ? resultJSON.waterClarity : 0.6,
+        waveIntensity: typeof resultJSON.waveIntensity === 'number' ? resultJSON.waveIntensity : 0.3,
+        fogDensity: typeof resultJSON.fogDensity === 'number' ? resultJSON.fogDensity : 0.02,
+        fogHeight: typeof resultJSON.fogHeight === 'number' ? resultJSON.fogHeight : 10.0,
         scatter: Array.isArray(resultJSON.scatter) ? resultJSON.scatter : []
       };
 

@@ -9,7 +9,7 @@
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
 import { MarketEventType } from '../../types/economy';
 import { modifyFactionRelationship } from '../../utils/factionUtils';
-import { getGameDay } from '../../utils/timeUtils';
+import { getGameDay } from '../../utils/core';
 import { SeededRandom } from '@/utils/random';
 import { processDailyRoutes } from '../economy/TradeRouteManager';
 import { FactionManager } from './FactionManager';

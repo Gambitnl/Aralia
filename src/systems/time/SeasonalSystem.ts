@@ -6,7 +6,7 @@
  * Manages seasonal environmental effects, resource scarcity, and survival mechanics.
  */
 
-import { Season, getSeason } from '../../utils/timeUtils';
+import { Season, getSeason } from '../../utils/core';
 
 export interface SeasonalEffect {
   season: Season;

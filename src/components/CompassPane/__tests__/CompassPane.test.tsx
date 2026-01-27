@@ -21,7 +21,7 @@ enum _TimeOfDay {
 }
 
 // Mock dependencies
-vi.mock('@/utils/timeUtils', () => ({
+vi.mock('@/utils/core', () => ({
   formatGameTime: vi.fn(() => '12:00 PM'),
   getGameDay: vi.fn(() => 1),
   getSeason: vi.fn(() => 'Winter'),

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:42:02
+ * Dependents: CharacterCreator.tsx
+ * Imports: 6 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file SkillSelection.tsx
  * Refactored to use Split Config Style (List vs Detail).
@@ -14,8 +30,9 @@ import {
 import { SKILLS_DATA } from '../../data/skills';
 import Tooltip from '../ui/Tooltip';
 import { CreationStepLayout } from './ui/CreationStepLayout';
+// TODO: Move SplitPaneLayout to a shared UI barrel file (e.g., src/components/CharacterCreator/ui/index.ts) to simplify imports.
 import { SplitPaneLayout } from './ui/SplitPaneLayout';
-import { BTN_PRIMARY } from '../../../styles/buttonStyles';
+import { BTN_PRIMARY } from '../../styles/buttonStyles';
 
 interface SkillSelectionProps {
   charClass: CharClass;
@@ -156,6 +173,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
     (!selectedClassSkillIds.has(viewedSkillId) && selectedClassSkillIds.size >= charClass.numberOfSkillProficiencies)
   );
 
+  // TODO: Add visual 'Proficiency Bonus' indicator next to mod calculations
   return (
     <CreationStepLayout
       title="Select Skills"

@@ -10,7 +10,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { WorldHistoryEvent, WorldHistoryEventType, HistoricalParticipant as _HistoricalParticipant } from '../../types/history';
 import { GameState } from '../../types';
-import { getGameDay } from '../../utils/timeUtils';
+import { getGameDay } from '../../utils/core';
 
 export class HistoryService {
   /**

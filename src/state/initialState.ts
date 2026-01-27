@@ -17,7 +17,7 @@ import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
 import { NavalState } from '../types/naval';
 import type { DivineFavor } from '../types/religion';
-import { getGameDay } from '../utils/timeUtils';
+import { getGameDay } from '../utils/core';
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {

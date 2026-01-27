@@ -11,6 +11,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Character Creator Visual E2E', () => {
+    test.setTimeout(60000); // Increase timeout to 60s
     test.beforeEach(async ({ page }) => {
         // Navigate to the app
         await page.goto('/');

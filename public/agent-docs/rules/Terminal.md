@@ -28,6 +28,11 @@ This guide tracks common issues encountered when running terminal commands and p
   - **Cause:** Sandboxing restrictions or OS-level file permissions.
   - **Solution:** Check if you are attempting to write outside allowed directories. Review [Sandboxing Docs](./cli/configuration.md#sandboxing).
 
+- **Error: `File path ... is ignored by configured ignore patterns`**
+  - **Cause:** The `read_file` tool cannot access files listed in `.gitignore` or `.geminiignore` (e.g., log files, build artifacts).
+  - **Solution:** Use `run_shell_command` with `type` (Windows) or `cat` (Linux/Mac) to read the file content directly from the terminal.
+    - Example: `type tsc_output.log`
+
 ## Windows & PowerShell Caveats
 
 - **Path Separators:** Always use backslashes `\` for Windows-native commands, but remember that many tools (including Git and Node.js) handle forward slashes `/` correctly.
@@ -37,11 +42,15 @@ This guide tracks common issues encountered when running terminal commands and p
   - Be careful with complex JSON strings in `run_command`; prefer writing to a temp file and reading it if escaping becomes too complex.
   - **PowerShell Command Invocation**: When running an executable via an absolute path that contains spaces, use the call operator `&`: `& "C:\Path With Spaces\app.exe"`.
   - **Pathspec Exclusions:** In PowerShell, use `: (exclude)` with careful quoting: `git grep "pattern" -- "." ":(exclude)node_modules/*"`.
+- **Chaining Commands:** The `&&` operator is not supported as a statement separator in all PowerShell versions. Use `;` instead to chain multiple commands.
+  - Example: `git add . ; git commit -m "message"`
 - **Execution Policy:** If scripts fail to run, check the PowerShell Execution Policy (`Get-ExecutionPolicy`).
 - **Spawning Shell Processes:** When using Node's `child_process.spawn` or `exec` on Windows to run commands like `npx`, always set `{ shell: true }` in the options. This ensures that `.cmd` and `.ps1` wrappers are correctly handled by the system shell.
 
 ## Execution Best Practices
 
+- **Verify Project Type:** Before running framework-specific tools (like Flutter or Playwright), check `package.json` or `pubspec.yaml` to confirm the project stack. Don't assume the presence of an MCP server implies a valid project environment.
+- **Staging Changes:** Avoid `git add .` if you have not run `git status` first. This prevents accidentally staging unrelated manual changes or artifacts. Prefer `git add path/to/file`.
 - **Non-Watch Mode:** When running tests or build tools, always use non-watch mode (e.g., `npm test -- --run`) to prevent the terminal from hanging.
 - **Hanging Processes:** If a command hangs, redirect output to a log file or null to avoid filling the buffer and to preserve a record of the output.
   - PowerShell to file: `command > output.log 2>&1`
@@ -55,4 +64,3 @@ This guide tracks common issues encountered when running terminal commands and p
 - **Special File Conflicts (nul):** The `nul` file in the project root causes `Select-String` and other recursive PowerShell commands to fail.
   - **Solution:** Explicitly exclude `nul` or use `git grep` which respects `.gitignore`.
 - **Node Spawn on Windows:** When using `child_process.spawn` or `exec` on Windows, ALWAYS set `{ shell: true }` to avoid `ENOENT` errors when calling `.cmd` or `.ps1` wrappers (like `npx`).
-

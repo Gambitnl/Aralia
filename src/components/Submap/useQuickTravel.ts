@@ -6,7 +6,7 @@
 import { useMemo } from 'react';
 import { BattleMapData, BattleMapTile } from '../../types/combat';
 import { PlayerCharacter } from '../../types';
-import { getTimeModifiers } from '../../utils/timeUtils';
+import { getTimeModifiers } from '../../utils/core';
 import { findPath } from '../../utils/pathfinding';
 
 export interface SubmapPathNode {

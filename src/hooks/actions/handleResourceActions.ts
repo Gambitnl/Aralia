@@ -10,7 +10,7 @@ import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents } fro
 import { checkPlanarRestRules } from '../../systems/planar/rest';
 import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/characterUtils';
 import { rollDice } from '../../utils/combatUtils';
-import { formatDuration, getGameDay } from '../../utils/timeUtils';
+import { formatDuration, getGameDay } from '../../utils/core';
 
 interface HandleRestProps {
     gameState: GameState; // Pass full gameState for context

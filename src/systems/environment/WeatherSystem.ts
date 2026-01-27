@@ -6,7 +6,7 @@
  */
 
 import { WeatherState, Precipitation, WindSpeed, Temperature, VisibilityLevel } from '../../types/environment';
-import { TimeOfDay } from '../../utils/timeUtils';
+import { TimeOfDay } from '../../utils/core';
 
 /**
  * Defines the probability distribution for weather in a specific climate.

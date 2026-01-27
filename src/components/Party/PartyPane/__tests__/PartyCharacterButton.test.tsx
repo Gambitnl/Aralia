@@ -7,7 +7,7 @@ import PartyCharacterButton from '../PartyCharacterButton';
 import { PlayerCharacter, MissingChoice as _MissingChoice } from '../../../../types';
 
 // Mock validation
-vi.mock('../../../../utils/characterValidation', () => ({
+vi.mock('@/utils/character', () => ({
   validateCharacterChoices: (char: PlayerCharacter) => {
     if (char.name === 'Incomplete') {
         return [{ label: 'Missing Feat', type: 'feat' }];

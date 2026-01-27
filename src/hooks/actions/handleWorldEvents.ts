@@ -10,7 +10,7 @@ import * as OllamaTextService from '../../services/ollamaTextService';
 import { AddGeminiLogFn } from './actionHandlerTypes';
 import { NPCS, LOCATIONS } from '../../constants';
 import * as NpcBehaviorConfig from '../../config/npcBehaviorConfig';
-import { formatGameTime } from '../../utils/timeUtils';
+import { formatGameTime } from '../../utils/core';
 
 // TODO(FEATURES): Add NPC daily routines and faction-driven schedules to world events (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 

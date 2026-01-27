@@ -9,7 +9,7 @@ import { GameState, DiscoveryResidue as _DiscoveryResidue, Location as _Location
 import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
-import { getGameDay } from '../../utils/timeUtils';
+import { getGameDay } from '../../utils/core';
 import { ritualReducer } from './ritualReducer';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/historyUtils';
 

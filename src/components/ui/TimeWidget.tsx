@@ -1,5 +1,5 @@
 import React from 'react';
-import { Season, TimeOfDay, getTimeOfDay, getSeason, getTimeModifiers } from '@/utils/timeUtils';
+import { Season, TimeOfDay, getTimeOfDay, getSeason, getTimeModifiers } from '@/utils/core';
 import { getMoonPhase, MoonPhase, getHoliday, getMonthName } from '@/systems/time/CalendarSystem';
 import { motion } from 'framer-motion';
 import Tooltip from './Tooltip';

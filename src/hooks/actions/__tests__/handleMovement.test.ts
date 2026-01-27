@@ -3,7 +3,7 @@ import { handleMovement } from '../handleMovement';
 import * as GeminiService from '../../../services/geminiService';
 import { GameState, Action, PlayerCharacter } from '../../../types';
 import * as SeasonalSystem from '../../../systems/time/SeasonalSystem';
-import { Season } from '../../../utils/timeUtils';
+import { Season } from '../../../utils/core';
 import { initialGameState } from '../../../state/appState';
 
 // Mocks
@@ -23,8 +23,8 @@ vi.mock('../../../utils/submapUtils', async (importOriginal) => {
 });
 
 // Mock timeUtils
-vi.mock('../../../utils/timeUtils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../utils/timeUtils')>();
+vi.mock('../../../utils/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../utils/core')>();
   return {
     ...actual,
     getTimeModifiers: vi.fn(() => ({

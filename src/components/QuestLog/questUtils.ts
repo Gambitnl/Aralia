@@ -1,4 +1,4 @@
-import { formatGameDateTime } from '@/utils/timeUtils';
+import { formatGameDateTime } from '@/utils/core';
 
 export const formatQuestDate = (timestamp?: number): string => {
   if (!timestamp) return '—';

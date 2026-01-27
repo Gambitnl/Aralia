@@ -3,7 +3,7 @@
  * Tiny helper to keep the day/night overlay logic reusable and isolated from SubmapPane.
  * Dependencies: relies on time utilities to translate Date -> TimeOfDay enum.
  */
-import { getTimeOfDay, TimeOfDay } from '../../utils/timeUtils';
+import { getTimeOfDay, TimeOfDay } from '../../utils/core';
 
 export const getDayNightOverlayClass = (gameTime: Date): string => {
   const timeOfDay = getTimeOfDay(gameTime);

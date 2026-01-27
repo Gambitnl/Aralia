@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useRef, useContext } from 'react';
 import { GameMessage } from '../types'; // Path relative to src/components/
-import { formatGameTime } from '@/utils/timeUtils';
+import { formatGameTime } from '@/utils/core';
 import Tooltip from './ui/Tooltip'; // Import the new Tooltip component
 import GlossaryContext from '../context/GlossaryContext';
 

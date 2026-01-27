@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:35:18
+ * Dependents: CharacterCreator.tsx
+ * Imports: 5 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file AbilityScoreAllocation.tsx
  * Refactored to use Split Config Style (Calculator vs Stat Preview).
@@ -222,6 +238,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
             </div>
           }
           preview={
+            // TODO: Extract this Stat Snapshot visualization into a reusable component (e.g., <CharacterStatBlock />).
             <div className="flex flex-col h-full">
               <div className="border-b border-gray-700 pb-4 mb-6">
                 <h2 className="text-3xl font-bold text-amber-400 font-cinzel">Ability Snapshot</h2>

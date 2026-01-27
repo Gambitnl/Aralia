@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 27/01/2026, 01:42:20
+ * Dependents: DeformableScene.tsx
+ * Imports: 2 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useMemo, useEffect, useState } from 'react';
 import { Instance, Instances } from '@react-three/drei';
 import { DoubleSide, Object3D, Vector3 } from 'three';
@@ -20,6 +36,7 @@ export const ProceduralScatter: React.FC<ProceduralScatterProps> = ({ dna, manag
 
     const area = size * size;
     // Simple slope estimator
+    // TODO: Implement more robust normal-based slope calculation for precision
     const getSlope = (x: number, z: number): number => {
        const h0 = manager.getHeightOffset(x, z);
        const h1 = manager.getHeightOffset(x + 1, z);

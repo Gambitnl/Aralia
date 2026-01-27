@@ -29,7 +29,7 @@ import type {
 import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
 import { ITEMS, WEAPONS_DATA } from '../../constants';
-import { formatDuration } from '../../utils/timeUtils';
+import { formatDuration } from '../../utils/core';
 import type {
   AddGeminiLogFn,
   AddMessageFn,

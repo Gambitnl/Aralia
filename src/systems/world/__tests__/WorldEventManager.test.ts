@@ -12,7 +12,7 @@ import { processWorldEvents } from '../WorldEventManager';
 import { GameState, GamePhase as _GamePhase } from '../../../types';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../../../data/factions';
 import { createMockGameState } from '../../../utils/factories';
-import { getGameDay } from '../../../utils/timeUtils';
+import { getGameDay } from '../../../utils/core';
 
 describe('WorldEventManager', () => {
     const mockDate = new Date('2024-01-01T12:00:00Z');

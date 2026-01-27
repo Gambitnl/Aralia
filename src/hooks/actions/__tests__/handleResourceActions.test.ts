@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleShortRest } from '../handleResourceActions';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
-import { getGameDay } from '../../../utils/timeUtils';
+import { getGameDay } from '../../../utils/core';
 import type { GameState } from '../../../types';
 import type { AddMessageFn } from '../../actions/actionHandlerTypes';
 

@@ -12,7 +12,7 @@ import React, { useMemo } from 'react';
 import { PlayerCharacter, MissingChoice, HitDieSize } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
 import { GlossaryIcon } from '../../Glossary/IconRegistry';
-import { validateCharacterChoices } from '../../../utils/characterValidation';
+import { validateCharacterChoices } from '@/utils/character';
 import { getAbilityModifierValue, getAbilityModifierString } from '../../../utils/character/statUtils';
 import { buildHitPointDicePools } from '../../../utils/character/characterUtils';
 import {
