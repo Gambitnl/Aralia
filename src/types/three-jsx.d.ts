@@ -17,6 +17,9 @@ declare module 'react' {
       meshStandardMaterial: any;
       planeGeometry: any;
       sphereGeometry: any;
+      biomeShaderMaterial: any;
+      coneGeometry: any;
+      dodecahedronGeometry: any;
     }
   }
 }

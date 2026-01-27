@@ -1,22 +1,25 @@
-import { useState, useMemo } from 'react';
+import React, { useRef, useState } from 'react';
 import { Canvas, ThreeEvent } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
 import { DeformableTerrain } from './DeformableTerrain';
-import { SimpleControls } from './SimpleControls';
 import { DeformationManager } from './DeformationManager';
 import { OverlayMesh } from './OverlayMesh';
-import { EnvironmentalEffectType } from './types';
+import { ProceduralScatter } from './ProceduralScatter';
+import { BiomeDNA } from '@/components/DesignPreview/steps/PreviewBiome';
 
-export type ToolType = 'mold_earth' | 'create_bonfire' | 'grease' | 'ice' | 'clear';
+export type ToolType = 'mold_earth' | 'create_bonfire' | 'grease' | 'clear';
 
 interface DeformableSceneProps {
   activeTool: ToolType;
+  dna?: BiomeDNA;
 }
 
-export const DeformableScene = ({ activeTool }: DeformableSceneProps) => {
-  const manager = useMemo(() => new DeformationManager(), []);
-  const [version, setVersion] = useState(0);
+export const DeformableScene: React.FC<DeformableSceneProps> = ({ activeTool, dna }) => {
+  const manager = useRef(new DeformationManager()).current;
+  const [version, setVersion] = useState(0); // Tick to trigger re-renders
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
+    // Cast to any to access 'point' which is present in R3F events but missing in some strict type definitions
     const { x, z } = (event as any).point;
 
     if (activeTool === 'mold_earth') {
@@ -56,11 +59,21 @@ export const DeformableScene = ({ activeTool }: DeformableSceneProps) => {
       <ambientLight intensity={0.6} />
       <directionalLight position={[50, 100, 50]} intensity={1.5} castShadow />
       <DeformableTerrain
-        size={200}
-        segments={128}
+        size={50}
+        segments={64}
         manager={manager}
         version={version}
+        dna={dna}
       />
+
+      {dna && (
+        <ProceduralScatter 
+          dna={dna} 
+          manager={manager} 
+          size={50} 
+          version={version} 
+        />
+      )}
 
       {/* Environmental Overlays */}
       {manager.getOverlays().map(overlay => (
@@ -80,7 +93,7 @@ export const DeformableScene = ({ activeTool }: DeformableSceneProps) => {
       >
         <planeGeometry args={[1000, 1000]} />
       </mesh>
-      <SimpleControls />
+      <OrbitControls />
     </Canvas>
   );
 };

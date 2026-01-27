@@ -202,11 +202,10 @@ export const DesignPreviewPage: React.FC = () => {
             </button>
             {/* Status indicator dot */}
             <div
-              className={`w-2 h-2 rounded-full ${
-                visualizerStatus === 'running' ? 'bg-green-500' :
+              className={`w-2 h-2 rounded-full ${visualizerStatus === 'running' ? 'bg-green-500' :
                 visualizerStatus === 'stopped' ? 'bg-red-500' :
-                'bg-gray-500'
-              }`}
+                  'bg-gray-500'
+                }`}
               title={`Server status: ${visualizerStatus}`}
             />
           </div>

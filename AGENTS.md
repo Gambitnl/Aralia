@@ -34,3 +34,16 @@ In a multi-agent environment, different agents run in different shells. If you a
 - Scan conversation history for CLI runs to capture errors, workarounds, or environment quirks.
 - Update `.agent/rules/Terminal.md` with the new insights, grouping them under the existing sections and using code blocks for concrete commands/examples.
 - If no fresh terminal learnings emerge, explicitly tell the user instead of editing the file.
+
+## Implementation Plan Standards
+When writing an `implementation_plan.md`, always include the following in the **Verification Plan** section:
+
+```markdown
+### Session Hygiene
+After verification completes, execute `/session-ritual` to:
+- Sync modified file dependencies via the Codebase Visualizer.
+- Extract terminal learnings discovered during this task.
+- Review and propose inline TODOs for future work.
+```
+
+This ensures codebase hygiene is maintained after every task and that architectural "Stop Signs" stay accurate.

@@ -140,6 +140,12 @@ export default defineConfig(({ mode, command }) => {
           // TODO(2026-01-03 pass 5 Codex-CLI): misc/design.html is local-only and ignored, so guard its entry to keep CI builds green.
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'design.html'))
             ? { design: path.resolve(__dirname, 'misc', 'design.html') }
+            : {}),
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'dev_hub.html'))
+            ? { dev_hub: path.resolve(__dirname, 'misc', 'dev_hub.html') }
+            : {}),
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'agent_docs.html'))
+            ? { agent_docs: path.resolve(__dirname, 'misc', 'agent_docs.html') }
             : {})
         },
         output: {

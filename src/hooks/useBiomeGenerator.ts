@@ -31,7 +31,19 @@ The JSON must match this schema:
   "descriptor": "string (The original user prompt)",
   "primaryColor": "hex string (e.g. #2d5a27)",
   "secondaryColor": "hex string (e.g. #8fbc8f)",
-  "roughness": "number (0.0 to 1.0, where 0.0 is flat/smooth and 1.0 is jagged/chaotic)"
+  "roughness": "number (0.0 to 1.0, where 0.0 is flat/smooth and 1.0 is jagged/chaotic)",
+  "scatter": [
+    {
+      "id": "string",
+      "assetType": "tree" | "rock" | "grass",
+      "preset": "string (optional, for trees: 'pine', 'oak', 'willow', 'dead')",
+      "density": "number (0.0 to 0.2 is reasonable for trees/rocks, up to 0.8 for grass)",
+      "minSlope": "number (0.0 to 1.0, default 0)",
+      "maxSlope": "number (0.0 to 1.0, default 1)",
+      "scaleMean": "number (default 1.0)",
+      "scaleVar": "number (0.0 to 0.5)"
+    }
+  ]
 }
 `;
 
@@ -95,7 +107,10 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
           descriptor: userPrompt,
           primaryColor: '#4b0082',
           secondaryColor: '#dda0dd',
-          roughness: 0.8
+          roughness: 0.8,
+          scatter: [
+            { id: 'gemini_tree', assetType: 'tree', preset: 'pine', density: 0.1, scaleMean: 1.2, scaleVar: 0.3 }
+          ]
         };
       }
 
@@ -110,6 +125,7 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
         primaryColor: resultJSON.primaryColor || '#000000',
         secondaryColor: resultJSON.secondaryColor || '#ffffff',
         roughness: typeof resultJSON.roughness === 'number' ? resultJSON.roughness : 0.5,
+        scatter: Array.isArray(resultJSON.scatter) ? resultJSON.scatter : []
       };
 
       setDna(newDna);

@@ -11,6 +11,7 @@ import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../..
 import { ABILITY_SCORE_NAMES } from '../../constants'; // Path relative to src/components/CharacterCreator/
 import { POINT_BUY_TOTAL_POINTS, POINT_BUY_MIN_SCORE, POINT_BUY_MAX_SCORE, ABILITY_SCORE_COST } from '../../config/characterCreationConfig';
 import { Sparkles } from 'lucide-react';
+import { CreationStepLayout } from './ui/CreationStepLayout';
 
 interface AbilityScoreAllocationProps {
   race: Race;
@@ -184,16 +185,21 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
   const canSetRecommended = !!selectedClass?.recommendedPointBuyPriorities;
 
   return (
-    <div>
-      <h2 className="text-2xl text-sky-300 mb-2 text-center">
-        Assign Ability Scores (Point Buy)
-      </h2>
-      <p className="text-sm text-gray-400 mb-1 text-center">
-        You have <span className="font-bold text-amber-300">{POINT_BUY_TOTAL_POINTS}</span> points to assign to your ability scores. All abilities begin at a base of 8.
-      </p>
-      <p className="text-xs text-gray-500 mb-4 text-center">
-        Ability scores up to 13 cost 1 point per increase. Scores of 14 and 15 cost 2 points. The maximum base score is 15.
-      </p>
+    <CreationStepLayout
+      title="Assign Ability Scores (Point Buy)"
+      onBack={onBack}
+      onNext={handleSubmit}
+      canProceed={pointsRemaining === 0}
+      nextLabel={pointsRemaining === 0 ? 'Confirm Attributes' : `Spend ${pointsRemaining} more`}
+    >
+      <div className="text-center mb-6">
+        <p className="text-sm text-gray-400 mb-1">
+          You have <span className="font-bold text-amber-300">{POINT_BUY_TOTAL_POINTS}</span> points to assign to your ability scores. All abilities begin at a base of 8.
+        </p>
+        <p className="text-xs text-gray-500">
+          Ability scores up to 13 cost 1 point per increase. Scores of 14 and 15 cost 2 points. The maximum base score is 15.
+        </p>
+      </div>
       
       {selectedClass && (selectedClass.statRecommendationFocus || selectedClass.statRecommendationDetails) && (
         <div className="mb-4 p-3 bg-gray-700/70 rounded-lg border border-sky-700 shadow">
@@ -328,25 +334,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
           );
         })}
       </div>
-
-      <div className="flex gap-4 mt-6">
-        <button
-          onClick={onBack}
-          className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors"
-          aria-label="Go back to class selection"
-        >
-          Back
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={pointsRemaining !== 0}
-          className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors"
-          aria-label="Confirm attributes"
-        >
-          {pointsRemaining === 0 ? 'Confirm Attributes' : `Spend ${pointsRemaining} more points`}
-        </button>
-      </div>
-    </div>
+    </CreationStepLayout>
   );
 };
 

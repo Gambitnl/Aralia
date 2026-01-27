@@ -1,63 +1,78 @@
 import { useMemo, useRef, useEffect } from 'react';
 import { PlaneGeometry, Mesh, BufferAttribute, Color } from 'three';
 import { DeformationManager } from './DeformationManager';
+import './BiomeShaderMaterial'; // Ensure registration happens
+import { BiomeDNA } from '@/components/DesignPreview/steps/PreviewBiome';
 
 interface DeformableTerrainProps {
   size: number;
   segments: number;
-  color?: string | number;
+  color?: string | number; // Deprecated but kept for compat
   manager: DeformationManager;
   version: number;
+  dna?: BiomeDNA;
 }
 
-const GRASS_COLOR = new Color(0x4ade80);
-const DIRT_COLOR = new Color(0x8b5a2b);
-
-export const DeformableTerrain = ({ size, segments, color = 0x4ade80, manager, version }: DeformableTerrainProps) => {
+export const DeformableTerrain = ({ 
+  size, 
+  segments, 
+  manager, 
+  version,
+  dna 
+}: DeformableTerrainProps) => {
   const meshRef = useRef<Mesh>(null);
+  const materialRef = useRef<any>(null); // Ref to our custom shader material
+
   const geometry = useMemo(() => {
     const geo = new PlaneGeometry(size, size, segments, segments);
-    // Initialize vertex colors
+    
+    // Instead of 'color', we now track 'disturbance' as a float attribute
     const count = geo.attributes.position.count;
-    geo.setAttribute('color', new BufferAttribute(new Float32Array(count * 3), 3));
+    geo.setAttribute('aDisturbance', new BufferAttribute(new Float32Array(count), 1));
+    
     return geo;
   }, [size, segments]);
   
+  // UPDATE LOOP: Physics/Height/Disturbance
   useEffect(() => {
     if (!meshRef.current) return;
     
     const positions = meshRef.current.geometry.attributes.position;
-    const colors = meshRef.current.geometry.attributes.color;
+    const disturbances = meshRef.current.geometry.attributes.aDisturbance as BufferAttribute;
 
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i);
       const y = positions.getY(i);
       
       const offset = manager.getHeightOffset(x, y);
-      const disturbance = manager.getDisturbance(x, y);
+      const distVal = manager.getDisturbance(x, y);
       
       positions.setZ(i, offset);
-
-      // Simple visual logic: If disturbed > 1.0, look like dirt.
-      // Lerp between Grass and Dirt based on disturbance.
-      const t = Math.min(disturbance / 5.0, 1.0); // Full dirt at 5ft disturbance
-      const c = GRASS_COLOR.clone().lerp(DIRT_COLOR, t);
-      
-      colors.setXYZ(i, c.r, c.g, c.b);
+      disturbances.setX(i, distVal);
     }
     
     positions.needsUpdate = true;
-    colors.needsUpdate = true;
+    disturbances.needsUpdate = true;
     meshRef.current.geometry.computeVertexNormals();
   }, [manager, version, geometry]);
+
+  // UNIFORM UPDATE: DNA Properties
+  useEffect(() => {
+    if (materialRef.current && dna) {
+      materialRef.current.updatePrimaryColor(dna.primaryColor);
+      materialRef.current.updateSecondaryColor(dna.secondaryColor);
+      materialRef.current.updateRoughness(dna.roughness);
+    }
+  }, [dna]);
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <primitive object={geometry} attach="geometry" />
-      <meshStandardMaterial 
-        vertexColors 
-        roughness={0.8} 
-        metalness={0.1} 
+      <biomeShaderMaterial 
+        ref={materialRef}
+        primaryColor={dna?.primaryColor ?? '#4ade80'}
+        secondaryColor={dna?.secondaryColor ?? '#8b5a2b'}
+        roughness={dna?.roughness ?? 0.5}
       />
     </mesh>
   );

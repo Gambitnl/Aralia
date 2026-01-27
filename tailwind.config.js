@@ -7,6 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: "#EAB308", // Golden Yellow
+        "background-dark": "#0B0E14",
+        "sidebar-dark": "#11141D",
+        "card-dark": "#161B22",
+        "border-dark": "#21262D",
         gray: {
           850: '#1a1d23',
         }

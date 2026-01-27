@@ -13,6 +13,7 @@ import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../u
 import { validateCharacterName } from '../../utils/securityUtils';
 import SpellContext from '../../context/SpellContext'; // Import the new context
 import Tooltip from '../ui/Tooltip'; // Build failed because '../Tooltip' breaks on case-sensitive bundlers; use the ui folder path instead.
+import { CreationStepLayout } from './ui/CreationStepLayout';
 
 interface NameAndReviewProps {
   characterPreview: PlayerCharacter; // A temporary PlayerCharacter object with all selections made so far
@@ -42,7 +43,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
     skills, 
     selectedFightingStyle, 
     selectedDivineOrder, 
-    selectedDruidOrder,
+    selectedDruidOrder, 
     selectedWarlockPatron,
     racialSelections,
     selectedWeaponMasteries,
@@ -65,8 +66,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
     setValidationError(valid ? null : (error || 'Invalid name'));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirm = () => {
     const { valid, error } = validateCharacterName(name);
 
     if (valid) {
@@ -89,16 +89,20 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
 
 
   return (
-    <div>
-      <h2 className="text-2xl text-sky-300 mb-6 text-center">Name Your Character & Review</h2>
-
+    <CreationStepLayout
+      title="Name Your Character & Review"
+      onBack={onBack}
+      onNext={handleConfirm}
+      canProceed={!validationError && !!name.trim()}
+      nextLabel="Begin Adventure!"
+    >
       {featStepSkipped && (
         <div className="mb-4 text-center text-sm text-sky-200 bg-sky-900/30 border border-sky-700/60 rounded-lg px-3 py-2">
           The optional Feat selection step was bypassed because your character doesn&apos;t qualify for any feats at 1st level.
         </div>
       )}
       
-      <div className="bg-gray-700 p-4 rounded-lg mb-6 max-h-72 overflow-y-auto scrollable-content border border-gray-600">
+      <div className="bg-gray-700 p-4 rounded-lg mb-6 border border-gray-600">
         <h3 className="text-xl font-semibold text-amber-400 mb-3">Character Summary</h3>
         <p><strong>Race:</strong> {getCharacterRaceDisplayString(characterPreview)}</p>
         <p><strong>Age:</strong> {characterPreview.age || 25} years</p>
@@ -225,7 +229,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
          <p className="text-sm"><strong>Speed:</strong> {speed}ft</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <div>
           <label htmlFor="characterName" className="block text-md font-medium text-gray-300 mb-1">
             Character Name:
@@ -253,28 +257,8 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
             </p>
           )}
         </div>
-
-        
-        <div className="flex gap-4 pt-2">
-            <button
-                type="button"
-                onClick={onBack}
-                className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
-                aria-label="Go back to previous step"
-            >
-                Back
-            </button>
-            <button
-                type="submit"
-                disabled={!!validationError || !name.trim()}
-                className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg shadow transition-all duration-150 ease-in-out"
-                aria-label="Confirm character and begin adventure"
-            >
-                Begin Adventure!
-            </button>
-        </div>
-      </form>
-    </div>
+      </div>
+    </CreationStepLayout>
   );
 };
 

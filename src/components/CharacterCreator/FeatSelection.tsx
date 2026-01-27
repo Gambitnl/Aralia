@@ -1,7 +1,9 @@
 /**
  * @file FeatSelection.tsx
+ * Refactored to use Split Config Style (List vs Detail).
  */
-import React, { useContext, useCallback } from 'react';
+import React, { useContext, useCallback, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Feat, MagicInitiateSource, FeatGrantedSpell } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
 import type { FeatChoiceState, FeatChoiceValue } from './state/characterCreatorState';
@@ -9,13 +11,15 @@ import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
 import { getSchoolIcon } from '../../utils/spellFilterUtils';
+import { CreationStepLayout } from './ui/CreationStepLayout';
+import { SplitPaneLayout } from './ui/SplitPaneLayout';
+import { SKILLS_DATA } from '../../data/skills';
+import { BTN_PRIMARY } from '../../../styles/buttonStyles';
 
 interface FeatOption extends Feat {
   isEligible: boolean;
   unmet: string[];
 }
-
-import { SKILLS_DATA } from '../../data/skills';
 
 interface FeatSelectionProps {
   availableFeats: FeatOption[];
@@ -53,9 +57,9 @@ const GrantedSpellsDisplay: React.FC<{ grantedSpells: FeatGrantedSpell[] }> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <h4 className="text-amber-300/80 text-sm font-medium">Automatically Granted:</h4>
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-2 mt-4">
+      <h4 className="text-amber-300/80 text-sm font-medium border-b border-gray-700 pb-1">Automatically Granted Spells</h4>
+      <div className="flex flex-wrap gap-2 pt-1">
         {grantedSpells.map((granted) => {
           const spell = allSpells[granted.spellId];
 
@@ -66,11 +70,11 @@ const GrantedSpellsDisplay: React.FC<{ grantedSpells: FeatGrantedSpell[] }> = ({
             >
               <span className="text-lg">{spell ? getSchoolIcon(spell.school || '') : '\u{1F4DC}'}</span>
               <div>
-                <span className="text-green-300 font-medium">
+                <span className="text-green-300 font-medium text-sm block">
                   {spell?.name || granted.spellId}
                 </span>
-                <span className="text-xs text-green-500/80 ml-2">
-                  ({getCastingLabel(granted.castingMethod)})
+                <span className="text-xs text-green-500/80 block">
+                  {getCastingLabel(granted.castingMethod)}
                 </span>
               </div>
               {granted.specialNotes && (
@@ -99,12 +103,24 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   knownSkillIds = [],
   allowSkip = true,
 }) => {
-  // When skip is disabled (e.g., level-up flow), require an explicit feat selection.
-  const selectionRequired = !allowSkip;
-  // We allow deselection so the feat step behaves like a voluntary choice rather than a hard blocker.
-  const handleToggle = useCallback((featId: string, isDisabled: boolean) => {
-    if (isDisabled) return;
+  // Local state to track which feat is being viewed in the detail pane.
+  // Initialize with the selected feat if any, otherwise the first available one.
+  const [viewedFeatId, setViewedFeatId] = useState<string | null>(selectedFeatId || availableFeats[0]?.id || null);
 
+  // Sync viewed feat if selection changes externally
+  useEffect(() => {
+    if (selectedFeatId) {
+      setViewedFeatId(selectedFeatId);
+    }
+  }, [selectedFeatId]);
+
+  const selectionRequired = !allowSkip;
+
+  const handleSelect = (featId: string) => {
+    // If selecting the same feat, toggle it off (unless required? No, allow toggle off to clear state)
+    // Actually, UI pattern usually implies selection replaces previous.
+    // Let's stick to standard behavior: Clicking "Confirm" or "Select" on the detail pane selects it.
+    
     const newFeatId = selectedFeatId === featId ? '' : featId;
 
     // Clear spell and skill choices when feat changes
@@ -116,57 +132,72 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     }
 
     onSelectFeat(newFeatId);
-  }, [onSelectFeat, selectedFeatId, onSetFeatChoice]);
+  };
 
+  const handleSkip = () => {
+    const featCleared = !!selectedFeatId;
+    onSelectFeat('');
+    if (featCleared && dispatch) {
+      dispatch({
+        type: 'ADD_NOTIFICATION',
+        payload: {
+          message: 'Feat selection skipped.',
+          type: 'info',
+          duration: 3000,
+        },
+      });
+    }
+    onConfirm();
+  };
+
+  const viewedFeat = viewedFeatId ? availableFeats.find(f => f.id === viewedFeatId) : null;
+  
+  // Logic for validation (reused from previous implementation)
   const selectedFeat = selectedFeatId ? availableFeats.find(f => f.id === selectedFeatId) : null;
   const selectableASIs = selectedFeat?.benefits?.selectableAbilityScores ?? [];
   const hasSelectableASI = selectableASIs.length > 0;
   const selectedASI = selectedFeatId ? featChoices[selectedFeatId]?.selectedAbilityScore : undefined;
-
-  // Damage type selection (Elemental Adept)
   const selectableDamageTypes = selectedFeat?.benefits?.selectableDamageTypes ?? [];
   const hasSelectableDamageType = selectableDamageTypes.length > 0;
   const selectedDamageType = selectedFeatId ? featChoices[selectedFeatId]?.selectedDamageType : undefined;
-
-  // Skill Selection (Skilled, etc.)
   const selectableSkillCount = selectedFeat?.benefits?.selectableSkillCount ?? 0;
   const hasSelectableSkills = selectableSkillCount > 0;
   const selectedSkills = (selectedFeatId ? featChoices[selectedFeatId]?.selectedSkills : []) || [];
   const areSkillChoicesComplete = selectedSkills.length === selectableSkillCount;
-
-  // Spell benefits
   const spellBenefits = selectedFeat?.benefits?.spellBenefits;
   const hasSpellBenefits = !!spellBenefits;
   const currentChoices = selectedFeatId ? featChoices[selectedFeatId] : undefined;
   const selectedSpellSource = currentChoices?.selectedSpellSource as MagicInitiateSource | undefined;
 
-  // Helper to check if all spell choices are complete
-  // Compute inline to keep React Compiler-friendly behavior without manual memoization.
   const areSpellChoicesComplete = (() => {
     if (!spellBenefits) return true;
-
-    // Check if source is needed and selected (for Magic Initiate)
-    if (spellBenefits.selectableSpellSource && !selectedSpellSource) {
-      return false;
-    }
-
-    // Check each spell requirement
+    if (spellBenefits.selectableSpellSource && !selectedSpellSource) return false;
     for (const requirement of spellBenefits.spellChoices || []) {
       const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';
       const selections = (currentChoices?.[choiceKey] as string[]) || [];
-      if (selections.length !== requirement.count) {
-        return false;
-      }
+      if (selections.length !== requirement.count) return false;
     }
-
     return true;
   })();
 
-  // Handle spell source change - clear spell selections
+  const canProceed = !(
+    (selectionRequired && !selectedFeatId) ||
+    (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
+    (hasSelectableASI && !selectedASI) ||
+    (hasSelectableDamageType && !selectedDamageType) ||
+    (hasSpellBenefits && !areSpellChoicesComplete) ||
+    (hasSelectableSkills && !areSkillChoicesComplete)
+  );
+
+  // Helper for viewing logic (viewed feat vs selected feat)
+  // We need to show interactive choices ONLY if the viewed feat matches the selected feat.
+  // Otherwise, we just show the static description.
+  const isViewingSelected = viewedFeatId === selectedFeatId;
+
+  // -- Render Helpers for Detail Pane --
+
   const handleSpellSourceChange = useCallback((source: MagicInitiateSource) => {
     if (!selectedFeatId) return;
-
-    // Clear existing spell selections when source changes
     if (selectedSpellSource !== source) {
       onSetFeatChoice(selectedFeatId, 'selectedCantrips', []);
       onSetFeatChoice(selectedFeatId, 'selectedLeveledSpells', []);
@@ -174,351 +205,257 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     onSetFeatChoice(selectedFeatId, 'selectedSpellSource', source);
   }, [selectedFeatId, selectedSpellSource, onSetFeatChoice]);
 
-  // Handle Skill Toggle
-  // Keep this as a plain function to avoid manual memoization warnings from the React Compiler lint.
-  // TODO(next-agent): Preserve behavior; revisit memoization if compiler support improves or this becomes a hotspot.
   const handleSkillToggle = (skillId: string) => {
     if (!selectedFeatId) return;
-
     const currentList = (featChoices[selectedFeatId]?.selectedSkills as string[]) || [];
     let newList: string[];
-
     if (currentList.includes(skillId)) {
       newList = currentList.filter(id => id !== skillId);
     } else {
-      if (currentList.length >= selectableSkillCount) return; // Limit reached
+      if (currentList.length >= selectableSkillCount) return;
       newList = [...currentList, skillId];
     }
     onSetFeatChoice(selectedFeatId, 'selectedSkills', newList);
-
   };
 
+  const skipButton = allowSkip ? (
+    <button
+      onClick={handleSkip}
+      className="text-gray-400 hover:text-white text-sm font-medium px-3 py-1 rounded hover:bg-gray-700/50 transition-colors"
+    >
+      Skip
+    </button>
+  ) : null;
+
   return (
-    <div className="flex flex-col h-full">
-      <h2 className="text-2xl text-sky-300 mb-6 text-center">Select a Feat</h2>
-      <p className="text-gray-400 text-center mb-6">
-        {selectionRequired
-          ? 'Choose a feat to gain at this level.'
-          : "Choose a feat to customize your character's abilities. This step is optional; continue without a selection if no feat fits your build."}
-      </p>
-      {!hasEligibleFeats && (
-        <div className="mb-4 text-center text-sm text-amber-200 bg-amber-900/30 border border-amber-700/60 rounded-lg px-3 py-2">
-          {selectionRequired
-            ? 'No eligible feats are available right now. Go back and choose an Ability Score Improvement instead.'
-            : 'At 1st level none of your prerequisites are met yet, so skipping is expected. You can always add a feat later once you qualify.'}
-        </div>
-      )}
-      {selectionRequired && !selectedFeatId && (
-        <div className="mb-4 text-center text-xs text-gray-400">
-          Select a feat to continue.
-        </div>
-      )}
+    <CreationStepLayout
+      title="Select a Feat"
+      onBack={onBack}
+      onNext={onConfirm}
+      canProceed={canProceed}
+      nextLabel="Confirm Feat"
+      raceConfirmButton={skipButton}
+      bodyScrollable={false} // Important for SplitPaneLayout to handle scrolling
+    >
+        <div className="h-full min-h-0">
+            <SplitPaneLayout
+                controls={
+                    <div className="space-y-1">
+                        {!hasEligibleFeats && (
+                            <div className="mb-2 text-xs text-amber-200 bg-amber-900/30 border border-amber-700/60 rounded p-2">
+                                No eligible feats available.
+                            </div>
+                        )}
+                        {availableFeats.map(feat => {
+                            const isSelected = feat.id === selectedFeatId;
+                            const isViewed = feat.id === viewedFeatId;
+                            const disabled = !feat.isEligible;
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto mb-6 p-2">
-        {availableFeats.map((feat) => {
-          const isSelected = feat.id === selectedFeatId;
-          const disabled = !feat.isEligible;
-          return (
-            <div
-              key={feat.id}
-              onClick={() => handleToggle(feat.id, disabled)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  handleToggle(feat.id, disabled);
+                            return (
+                                <button
+                                    key={feat.id}
+                                    onClick={() => setViewedFeatId(feat.id)}
+                                    disabled={disabled && !isViewed} // Allow viewing disabled feats to see why
+                                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex flex-col gap-0.5 ${
+                                        isViewed
+                                            ? 'bg-amber-900/20 border-amber-500/50 text-white shadow-md'
+                                            : disabled 
+                                                ? 'bg-gray-800/50 text-gray-500'
+                                                : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
+                                    }`}
+                                >
+                                    <div className="flex justify-between items-center w-full">
+                                        <span className={`font-medium ${isSelected ? 'text-amber-400' : ''}`}>{feat.name}</span>
+                                        {isSelected && (
+                                            <span className="text-amber-500 text-xs font-bold uppercase tracking-wider bg-amber-900/40 px-1.5 py-0.5 rounded">Selected</span>
+                                        )}
+                                    </div>
+                                    {disabled && (
+                                        <span className="text-xs text-red-400/80 italic">Prerequisites not met</span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 }
-              }}
-              role="button"
-              tabIndex={disabled ? -1 : 0}
-              aria-disabled={disabled}
-              className={`
-                p-4 rounded-lg border cursor-pointer transition-all duration-200 relative
-                ${disabled ? 'bg-gray-900 border-gray-800 cursor-not-allowed opacity-70'
-                  : isSelected
-                    ? 'bg-amber-900/40 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
-                    : 'bg-gray-700 border-gray-700 hover:border-gray-500 hover:bg-gray-600 shadow'
+                preview={
+                    viewedFeat ? (
+                        <motion.div
+                            key={viewedFeat.id}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex flex-col h-full"
+                        >
+                            <div className="flex justify-between items-start mb-4 border-b border-gray-700 pb-4">
+                                <div>
+                                    <h2 className="text-3xl font-bold text-amber-400 font-cinzel mb-2">{viewedFeat.name}</h2>
+                                    {viewedFeat.prerequisites && viewedFeat.prerequisites.length > 0 && (
+                                        <div className="text-sm text-gray-400">
+                                            <span className="font-semibold text-gray-500 uppercase text-xs tracking-wider mr-2">Prerequisite:</span>
+                                            {viewedFeat.prerequisites.join(', ')}
+                                        </div>
+                                    )}
+                                </div>
+                                {!viewedFeat.isEligible ? (
+                                    <div className="px-3 py-1 bg-red-900/30 border border-red-700/50 rounded text-red-300 text-sm">
+                                        Unavailable
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => handleSelect(viewedFeat.id)}
+                                        className={`px-4 py-2 rounded-lg font-bold shadow-md transition-all ${
+                                            selectedFeatId === viewedFeat.id
+                                                ? 'bg-green-600 hover:bg-green-500 text-white ring-2 ring-green-400 ring-offset-2 ring-offset-gray-800'
+                                                : BTN_PRIMARY
+                                        }`}
+                                    >
+                                        {selectedFeatId === viewedFeat.id ? 'Selected' : 'Select Feat'}
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="prose prose-invert max-w-none text-gray-300 text-sm leading-relaxed mb-6">
+                                <p>{viewedFeat.description}</p>
+                            </div>
+
+                            {/* Unmet Reasons */}
+                            {!viewedFeat.isEligible && viewedFeat.unmet.length > 0 && (
+                                <div className="mb-6 p-4 bg-red-900/20 border border-red-700/50 rounded-lg">
+                                    <h4 className="text-red-400 font-bold mb-2">Prerequisites Not Met:</h4>
+                                    <ul className="list-disc list-inside text-red-300/80 text-sm">
+                                        {viewedFeat.unmet.map(reason => <li key={reason}>{reason}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Benefits Table / Configuration Area */}
+                            {viewedFeat.benefits && (
+                                <div className="space-y-6 flex-grow overflow-y-auto pr-2">
+                                    <h3 className="text-lg font-cinzel text-sky-400 border-b border-gray-700 pb-1">Feat Features</h3>
+                                    
+                                    {/* Static Benefits List */}
+                                    <ul className="space-y-2 text-sm text-gray-300">
+                                        {viewedFeat.benefits.speedIncrease && (
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-green-400">✓</span> Speed increases by {viewedFeat.benefits.speedIncrease} feet.
+                                            </li>
+                                        )}
+                                        {viewedFeat.benefits.initiativeBonus && (
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-green-400">✓</span> Gain a +{viewedFeat.benefits.initiativeBonus} bonus to initiative rolls.
+                                            </li>
+                                        )}
+                                        {/* Add other static benefits here as simple list items */}
+                                    </ul>
+
+                                    {/* Interactive Selections - Only show if this feat is SELECTED */}
+                                    {isViewingSelected ? (
+                                        <div className="bg-gray-900/40 border border-gray-700 rounded-xl p-4 space-y-6">
+                                            {/* ASI Selection */}
+                                            {hasSelectableASI && (
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-gray-300 mb-2">Ability Score Increase</h4>
+                                                    <div className="flex gap-2">
+                                                        {selectableASIs.map(ability => (
+                                                            <button
+                                                                key={ability}
+                                                                onClick={() => onSetFeatChoice(selectedFeatId!, 'selectedAbilityScore', ability)}
+                                                                className={`px-3 py-2 rounded border text-sm transition-colors ${
+                                                                    selectedASI === ability
+                                                                        ? 'bg-amber-600 border-amber-400 text-white'
+                                                                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                                                                }`}
+                                                            >
+                                                                {ability} +1
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Skill Selection */}
+                                            {hasSelectableSkills && (
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-gray-300 mb-2">
+                                                        Select {selectableSkillCount} Skill{selectableSkillCount > 1 ? 's' : ''} ({selectedSkills.length}/{selectableSkillCount})
+                                                    </h4>
+                                                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-900/50 rounded border border-gray-700">
+                                                        {Object.values(SKILLS_DATA).map(skill => {
+                                                            const isKnown = knownSkillIds.includes(skill.id);
+                                                            const isSelected = selectedSkills.includes(skill.id);
+                                                            const isMaxed = selectedSkills.length >= selectableSkillCount;
+                                                            return (
+                                                                <button
+                                                                    key={skill.id}
+                                                                    disabled={isKnown || (!isSelected && isMaxed)}
+                                                                    onClick={() => handleSkillToggle(skill.id)}
+                                                                    className={`px-2 py-1.5 rounded text-xs text-left border ${
+                                                                        isKnown ? 'bg-gray-800/50 border-gray-800 text-gray-600 opacity-50' :
+                                                                        isSelected ? 'bg-amber-700 border-amber-500 text-white' :
+                                                                        'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                                                                    }`}
+                                                                >
+                                                                    {skill.name} {isKnown && '✓'}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Spell Selections */}
+                                            {hasSpellBenefits && spellBenefits && (
+                                                <div className="space-y-4">
+                                                    {spellBenefits.selectableSpellSource && (
+                                                        <SpellSourceSelector
+                                                            availableSources={spellBenefits.selectableSpellSource}
+                                                            selectedSource={selectedSpellSource}
+                                                            onSourceSelect={handleSpellSourceChange}
+                                                        />
+                                                    )}
+                                                    
+                                                    {spellBenefits.grantedSpells && spellBenefits.grantedSpells.length > 0 && (
+                                                        <GrantedSpellsDisplay grantedSpells={spellBenefits.grantedSpells} />
+                                                    )}
+
+                                                    {spellBenefits.spellChoices?.map((requirement, index) => {
+                                                        const needsSource = !!spellBenefits.selectableSpellSource;
+                                                        if (needsSource && !selectedSpellSource) return null;
+
+                                                        const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';
+                                                        const selections = (currentChoices?.[choiceKey] as string[]) || [];
+
+                                                        return (
+                                                            <FeatSpellPicker
+                                                                key={index}
+                                                                requirement={requirement}
+                                                                selectedSpellIds={selections}
+                                                                onSelectionChange={(ids) => onSetFeatChoice(selectedFeatId!, choiceKey, ids)}
+                                                                selectedSpellSource={selectedSpellSource}
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-gray-800/50 border border-dashed border-gray-600 rounded-xl text-center text-gray-400 text-sm">
+                                            Select this feat to configure options.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </motion.div>
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500 italic">
+                            Select a feat to view details
+                        </div>
+                    )
                 }
-              `}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <h3 className={`font-cinzel font-bold text-lg ${isSelected ? 'text-amber-400' : 'text-gray-200'}`}>
-                  {feat.name}
-                </h3>
-              </div>
-
-              <p className="text-sm text-gray-400 mb-2">{feat.description}</p>
-
-              {/* Feature Benefit Summary */}
-              {feat.benefits && (
-                <div className="text-xs text-gray-500 mt-2">
-                  <strong className="text-gray-400">Benefits:</strong>
-                  <ul className="list-disc list-inside mt-1">
-                    {feat.benefits.selectableAbilityScores && feat.benefits.selectableAbilityScores.length > 0 && (
-                      <li>
-                        Ability Score Increase: Choose one ({feat.benefits.selectableAbilityScores.join(', ')}) +1
-                      </li>
-                    )}
-                    {feat.benefits.abilityScoreIncrease && Object.entries(feat.benefits.abilityScoreIncrease)
-                      .filter(([, value]) => (value || 0) > 0)
-                      .length > 0 && !feat.benefits.selectableAbilityScores && (
-                        <li>
-                          Ability Score Increase: {Object.entries(feat.benefits.abilityScoreIncrease)
-                            .filter(([, value]) => (value || 0) > 0)
-                            .map(([k, v]) => `${k} +${v}`).join(', ')}
-                        </li>
-                      )}
-                    {feat.benefits.selectableSkillCount !== undefined && feat.benefits.selectableSkillCount > 0 && (
-                      <li>Gain proficiency in {feat.benefits.selectableSkillCount} skill{feat.benefits.selectableSkillCount > 1 ? 's' : ''} of your choice.</li>
-                    )}
-                    {feat.benefits.speedIncrease && <li>Speed +{feat.benefits.speedIncrease} ft</li>}
-                    {feat.benefits.initiativeBonus && <li>Initiative +{feat.benefits.initiativeBonus}</li>}
-                    {feat.benefits.hpMaxIncreasePerLevel && <li>Hit Point Maximum +{feat.benefits.hpMaxIncreasePerLevel} per level</li>}
-                    {feat.benefits.resistance && <li>Resistance: {feat.benefits.resistance.join(', ')}</li>}
-                    {feat.benefits.skillProficiencies && <li>Skills: {feat.benefits.skillProficiencies.join(', ')}</li>}
-                    {feat.benefits.savingThrowProficiencies && <li>Saving Throws: {feat.benefits.savingThrowProficiencies.join(', ')}</li>}
-                  </ul>
-                </div>
-              )}
-
-              {!feat.isEligible && (
-                <div className="text-xs text-red-400 mt-3">
-                  <strong>Unavailable:</strong>
-                  <ul className="list-disc list-inside">
-                    {feat.unmet.map(reason => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {isSelected && (
-                <div className="absolute top-2 right-2 text-amber-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {selectedFeatId && (
-        <div className="mb-4 p-4 bg-gray-800/50 border border-amber-500/30 rounded-lg">
-          <div className="text-center text-sm text-amber-200 mb-3">
-            <span className="font-semibold">Chosen feat:</span> {selectedFeat?.name}
-          </div>
-          {hasSelectableASI && (
-            <div className="mt-3">
-              <p className="block text-sm text-gray-300 mb-2">
-                Select Ability Score to Increase:
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {selectableASIs.map((ability) => (
-                  <button
-                    key={ability}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSetFeatChoice(selectedFeatId, 'selectedAbilityScore', ability);
-                    }}
-                    className={`
-                      px-3 py-2 rounded border text-sm transition-colors
-                      ${selectedASI === ability
-                        ? 'bg-amber-600 border-amber-400 text-white'
-                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                      }
-                    `}
-                  >
-                    {ability} +1
-                  </button>
-                ))}
-              </div>
-              {!selectedASI && (
-                <p className="text-xs text-amber-300 mt-2">
-                  Please select an ability score to increase.
-                </p>
-              )}
-            </div>
-          )}
-
-          {hasSelectableDamageType && (
-            <div className="mt-3">
-              <p className="block text-sm text-gray-300 mb-2">
-                Select Damage Type:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {selectableDamageTypes.map((damageType) => (
-                  <button
-                    key={damageType}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSetFeatChoice(selectedFeatId, 'selectedDamageType', damageType);
-                    }}
-                    className={`
-                      px-3 py-2 rounded border text-sm transition-colors
-                      ${selectedDamageType === damageType
-                        ? 'bg-red-900 border-red-500 text-white'
-                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                      }
-                    `}
-                  >
-                    {damageType}
-                  </button>
-                ))}
-              </div>
-              {!selectedDamageType && (
-                <p className="text-xs text-amber-300 mt-2">
-                  Please select a damage type.
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Skill Selection Section */}
-          {hasSelectableSkills && (
-            <div className="mt-3">
-              <p className="block text-sm text-gray-300 mb-2">
-                Select {selectableSkillCount} Skills:
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1 border border-gray-700/50 rounded">
-                {Object.values(SKILLS_DATA).map((skill) => {
-                  const isKnown = knownSkillIds.includes(skill.id);
-                  const isSelected = selectedSkills.includes(skill.id);
-                  const isMaxed = selectedSkills.length >= selectableSkillCount;
-
-                  return (
-                    <button
-                      key={skill.id}
-                      disabled={isKnown || (!isSelected && isMaxed)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSkillToggle(skill.id);
-                      }}
-                      className={`
-                            px-2 py-1.5 rounded text-xs transition-colors border text-left
-                            ${isKnown
-                          ? 'bg-gray-900/50 border-gray-800 text-gray-600 cursor-not-allowed opacity-60'
-                          : isSelected
-                            ? 'bg-amber-700 border-amber-500 text-white'
-                            : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                        }
-                        `}
-                      title={isKnown ? "Already proficient" : skill.name}
-                    >
-                      {skill.name} {isKnown && '✓'}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-amber-300 mt-2">
-                Selected {selectedSkills.length}/{selectableSkillCount}
-              </p>
-            </div>
-          )}
-
-          {/* Spell Benefits Section */}
-          {hasSpellBenefits && spellBenefits && (
-            <div className="mt-4 pt-4 border-t border-gray-700/50 space-y-6">
-              <h3 className="text-lg text-sky-300 font-cinzel">Spell Benefits</h3>
-
-              {/* Spell Source Selector (for Magic Initiate) */}
-              {spellBenefits.selectableSpellSource && (
-                <SpellSourceSelector
-                  availableSources={spellBenefits.selectableSpellSource}
-                  selectedSource={selectedSpellSource}
-                  onSourceSelect={handleSpellSourceChange}
-                />
-              )}
-
-              {/* Granted Spells Display */}
-              {spellBenefits.grantedSpells && spellBenefits.grantedSpells.length > 0 && (
-                <GrantedSpellsDisplay grantedSpells={spellBenefits.grantedSpells} />
-              )}
-
-              {/* Spell Choices */}
-              {spellBenefits.spellChoices?.map((requirement, index) => {
-                // For Magic Initiate, only show spell choices after source is selected
-                const needsSource = !!spellBenefits.selectableSpellSource;
-                if (needsSource && !selectedSpellSource) return null;
-
-                const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';
-                const currentSelections = (currentChoices?.[choiceKey] as string[]) || [];
-
-                return (
-                  <FeatSpellPicker
-                    key={`spell-choice-${index}`}
-                    requirement={requirement}
-                    selectedSpellIds={currentSelections}
-                    onSelectionChange={(spellIds) => onSetFeatChoice(selectedFeatId, choiceKey, spellIds)}
-                    selectedSpellSource={selectedSpellSource}
-                  />
-                );
-              })}
-
-              {/* Completion indicator */}
-              {!areSpellChoicesComplete && (
-                <p className="text-xs text-amber-300">
-                  Please complete all spell selections above.
-                </p>
-              )}
-            </div>
-          )}
+            />
         </div>
-      )}
-
-      <div className="mt-auto flex justify-between border-t border-gray-700 pt-4 gap-3 flex-wrap">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
-            Back
-          </button>
-        )}
-        <div className="flex-1 flex justify-end gap-3">
-          {allowSkip && (
-            <button
-              onClick={() => {
-                const featCleared = !!selectedFeatId;
-                onSelectFeat('');
-                if (featCleared && dispatch) {
-                  // We only surface the toast if a choice was actively cleared, not if the user just clicked past an empty selection.
-                  // This keeps the feedback relevant and avoids penalizing players for exploring.
-                  dispatch({
-                    type: 'ADD_NOTIFICATION',
-                    payload: {
-                      message: 'Feat selection skipped.',
-                      type: 'info',
-                      duration: 3000,
-                    },
-                  });
-                }
-                onConfirm();
-              }}
-              className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-              aria-label="Skip feat selection and continue"
-            >
-              Skip
-            </button>
-          )}
-          <button
-            onClick={onConfirm}
-            className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-            aria-label="Confirm feat choice and continue"
-            disabled={
-              (selectionRequired && !selectedFeatId) ||
-              (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
-              (hasSelectableASI && !selectedASI) ||
-              (hasSelectableDamageType && !selectedDamageType) ||
-              (hasSpellBenefits && !areSpellChoicesComplete) ||
-              (hasSelectableSkills && !areSkillChoicesComplete)
-            }
-          >
-            Continue
-          </button>
-        </div>
-      </div>
-    </div>
+    </CreationStepLayout>
   );
 };
 
