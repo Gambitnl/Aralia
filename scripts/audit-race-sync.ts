@@ -71,23 +71,45 @@ function getCharacterCreatorRaces(): RaceInfo[] {
   const races: RaceInfo[] = [];
 
   // Parse each file to extract race data
+  // We need to find exports that end with _DATA and contain a Race object
   for (const file of files) {
     const filePath = path.join(racesDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    // Extract id from the file using regex
-    // Pattern: id: 'race_id' or id: "race_id"
-    const idMatch = content.match(/id:\s*['"]([^'"]+)['"]/);
-    const nameMatch = content.match(/name:\s*['"]([^'"]+)['"]/);
-    const baseRaceMatch = content.match(/baseRace:\s*['"]([^'"]+)['"]/);
+    // Look for Race exports (pattern: export const XXX_DATA: Race = { ... })
+    // A real Race object must have a 'traits:' field (array of trait strings)
+    // This distinguishes races from subraces/benefits which don't have traits
 
-    if (idMatch && nameMatch) {
-      races.push({
-        id: idMatch[1],
-        name: nameMatch[1],
-        baseRace: baseRaceMatch?.[1],
-        filename: file,
-      });
+    // Find all DATA exports that look like races
+    // Match the pattern: export const XXX_DATA: Race = {
+    const raceExportMatches = content.matchAll(
+      /export\s+const\s+(\w+_DATA):\s*Race\s*=\s*\{/g
+    );
+
+    for (const exportMatch of raceExportMatches) {
+      const exportName = exportMatch[1];
+
+      // Find the block for this export and extract id/name/baseRace
+      // We look for the id: field that appears after this export and before the next export or EOF
+      const exportIndex = exportMatch.index!;
+      const remainingContent = content.slice(exportIndex);
+
+      // Extract fields from this race block
+      // Use a simpler approach: find id/name right after the export
+      const idMatch = remainingContent.match(/id:\s*['"]([^'"]+)['"]/);
+      const nameMatch = remainingContent.match(/name:\s*['"]([^'"]+)['"]/);
+      const baseRaceMatch = remainingContent.match(/baseRace:\s*['"]([^'"]+)['"]/);
+      const hasTraits = remainingContent.includes('traits:');
+
+      // Only add if it has traits (real race, not a subrace/benefit helper)
+      if (idMatch && nameMatch && hasTraits) {
+        races.push({
+          id: idMatch[1],
+          name: nameMatch[1],
+          baseRace: baseRaceMatch?.[1],
+          filename: file,
+        });
+      }
     }
   }
 
@@ -96,7 +118,34 @@ function getCharacterCreatorRaces(): RaceInfo[] {
 }
 
 /**
- * Scans the glossary entries directory for race JSON files.
+ * Recursively finds all JSON files in a directory.
+ *
+ * @param dir - Directory to scan
+ * @returns Array of file paths
+ */
+function findJsonFilesRecursively(dir: string): string[] {
+  const results: string[] = [];
+
+  if (!fs.existsSync(dir)) return results;
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      // Recurse into subdirectories
+      results.push(...findJsonFilesRecursively(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith('.json')) {
+      results.push(fullPath);
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Scans the glossary entries directory for race JSON files (including subdirectories).
+ * Parses each JSON file to extract the actual 'id' field.
  *
  * @returns Set of glossary entry IDs (normalized)
  */
@@ -117,28 +166,41 @@ function getGlossaryEntryIds(): Set<string> {
     return new Set();
   }
 
-  // Get all JSON files
-  const files = fs.readdirSync(glossaryDir).filter((file) =>
-    file.endsWith('.json')
-  );
+  // Get all JSON files recursively (including subdirectories)
+  const files = findJsonFilesRecursively(glossaryDir);
 
   const entryIds = new Set<string>();
 
-  for (const file of files) {
-    // Extract ID from filename: "elf.json" -> "elf"
-    const id = file.replace('.json', '');
+  for (const filePath of files) {
+    try {
+      // Parse JSON to get the actual ID field
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(content);
 
-    // Add both original and normalized versions
-    entryIds.add(id);
-    entryIds.add(id.replace(/-/g, '_')); // half-elf -> half_elf
-    entryIds.add(id.replace(/_/g, '-')); // half_elf -> half-elf
+      if (data.id) {
+        // Add the actual ID from the JSON
+        entryIds.add(data.id);
+        // Also add normalized versions
+        entryIds.add(data.id.replace(/-/g, '_'));
+        entryIds.add(data.id.replace(/_/g, '-'));
+      }
+
+      // Also add filename-based ID as fallback
+      const filename = path.basename(filePath, '.json');
+      entryIds.add(filename);
+      entryIds.add(filename.replace(/-/g, '_'));
+      entryIds.add(filename.replace(/_/g, '-'));
+    } catch {
+      // Skip files that can't be parsed
+      console.warn(`⚠️  Could not parse: ${filePath}`);
+    }
   }
 
   return entryIds;
 }
 
 /**
- * Counts the actual number of glossary files.
+ * Counts the actual number of glossary files (including subdirectories).
  */
 function getGlossaryFileCount(): number {
   const glossaryDir = path.join(
@@ -150,9 +212,7 @@ function getGlossaryFileCount(): number {
     'races'
   );
 
-  if (!fs.existsSync(glossaryDir)) return 0;
-
-  return fs.readdirSync(glossaryDir).filter((f) => f.endsWith('.json')).length;
+  return findJsonFilesRecursively(glossaryDir).length;
 }
 
 // ============================================================================
@@ -161,6 +221,7 @@ function getGlossaryFileCount(): number {
 
 /**
  * Checks if a race has a matching glossary entry.
+ * Handles various naming conventions between character creator and glossary.
  *
  * @param raceId - The character creator race ID
  * @param glossaryIds - Set of known glossary IDs
@@ -170,9 +231,66 @@ function hasGlossaryEntry(raceId: string, glossaryIds: Set<string>): boolean {
   // Direct match
   if (glossaryIds.has(raceId)) return true;
 
-  // Try different formats
+  // Try different formats (hyphen vs underscore)
   if (glossaryIds.has(raceId.replace(/_/g, '-'))) return true;
   if (glossaryIds.has(raceId.replace(/-/g, '_'))) return true;
+
+  // Handle goliath ancestry naming: cloud_giant_goliath -> cloud_giant
+  if (raceId.endsWith('_goliath')) {
+    const ancestryId = raceId.replace('_goliath', '');
+    if (glossaryIds.has(ancestryId)) return true;
+    if (glossaryIds.has(ancestryId.replace(/_/g, '-'))) return true;
+  }
+
+  // Handle aasimar variants: fallen_aasimar -> fallen
+  if (raceId.endsWith('_aasimar')) {
+    const variantId = raceId.replace('_aasimar', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle tiefling variants: abyssal_tiefling -> abyssal
+  if (raceId.endsWith('_tiefling')) {
+    const variantId = raceId.replace('_tiefling', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle dragonborn colors: black_dragonborn -> black
+  if (raceId.endsWith('_dragonborn')) {
+    const colorId = raceId.replace('_dragonborn', '');
+    if (glossaryIds.has(colorId)) return true;
+  }
+
+  // Handle halfling subraces: lightfoot_halfling -> lightfoot
+  if (raceId.endsWith('_halfling')) {
+    const subraceId = raceId.replace('_halfling', '');
+    if (glossaryIds.has(subraceId)) return true;
+  }
+
+  // Handle elf lineages: high_elf -> high_elf (already covered by direct match)
+  // but also astral_elf etc.
+
+  // Handle gnome subraces: forest_gnome -> forest_gnome (already covered)
+
+  // Handle shifter variants: beasthide_shifter -> beasthide
+  if (raceId.endsWith('_shifter')) {
+    const variantId = raceId.replace('_shifter', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle half_elf variants: half_elf_aquatic -> aquatic
+  if (raceId.startsWith('half_elf_')) {
+    const variantId = raceId.replace('half_elf_', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle eladrin seasons: autumn_eladrin -> autumn
+  if (raceId.endsWith('_eladrin')) {
+    const seasonId = raceId.replace('_eladrin', '');
+    if (glossaryIds.has(seasonId)) return true;
+  }
+
+  // Handle dwarf subraces: mountain_dwarf -> mountain_dwarf (already covered)
+  // but also hill_dwarf etc.
 
   return false;
 }
