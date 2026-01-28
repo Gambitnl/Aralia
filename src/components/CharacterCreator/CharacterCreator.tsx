@@ -58,6 +58,7 @@ import { CharacterVisualConfig } from '../../services/CharacterAssetService';
 import SpellContext from '../../context/SpellContext';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { WindowFrame } from '../ui/WindowFrame';
+import { Button } from '../ui/Button';
 
 // Helper function to determine the next step
 const getNextStep = (state: CharacterCreationState): CreationStep => {
@@ -240,14 +241,14 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       onClose={onExitToMainMenu}
       storageKey="character-creator-window"
       headerActions={
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowSidebar(!showSidebar)}
-          className="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-700 transition-colors mr-2"
           title={showSidebar ? 'Hide Sidebar' : 'Show Sidebar'}
         >
           {showSidebar ? '◧' : '☐'}
-        </button>
+        </Button>
       }
     >
       <div className="flex h-full bg-gray-900 text-gray-200">

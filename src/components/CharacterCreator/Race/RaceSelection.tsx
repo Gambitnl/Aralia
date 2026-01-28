@@ -10,7 +10,7 @@ import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { RaceDetailPane, RaceDetailData, RacialChoiceData } from './RaceDetailPane';
 import { getRaceGroupById } from '../../../data/races/raceGroups';
-import { BTN_PRIMARY } from '../../../styles/buttonStyles';
+import { Button } from '../../ui/Button';
 
 // Helper to transform raw Race data into the detail pane format
 const transformRaceData = (race: Race): RaceDetailData => {
@@ -201,7 +201,8 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
   };
 
   const raceConfirmButton = selectedRace ? (
-    <button
+    <Button
+      variant="primary"
       onClick={() => {
         const choices: RacialChoiceData = {};
         if (selectedSpellAbility) {
@@ -209,16 +210,11 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
         }
         onRaceSelect(selectedRace.id, choices);
       }}
-      className={`px-6 py-2 text-sm rounded-lg shadow-md transition-all ${
-        selectedRace.racialSpellChoice && !selectedSpellAbility
-          ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-          : BTN_PRIMARY
-      }`}
       disabled={!!(selectedRace.racialSpellChoice && !selectedSpellAbility)}
       title={selectedRace.racialSpellChoice && !selectedSpellAbility ? 'Please select a spellcasting ability first' : `Confirm ${selectedRace.name}`}
     >
       Confirm {selectedRace.name}
-    </button>
+    </Button>
   ) : null;
 
   return (

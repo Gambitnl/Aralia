@@ -75,6 +75,65 @@ const visualizerManager = () => ({
   },
 });
 
+const conductorManager = () => ({
+  name: 'conductor-manager',
+  configureServer(server: any) {
+    server.middlewares.use((req: any, res: any, next: any) => {
+      // 1. List Tracks
+      if (req.url === '/api/conductor/list') {
+        try {
+          const tracksPath = path.resolve(process.cwd(), 'conductor/tracks.md');
+          if (!fs.existsSync(tracksPath)) {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: 'tracks.md not found' }));
+            return;
+          }
+          const content = fs.readFileSync(tracksPath, 'utf-8');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ content }));
+        } catch (e) {
+          res.writeHead(500);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // 2. Read File
+      if (req.url.startsWith('/api/conductor/read')) {
+        try {
+          const url = new URL(req.url, 'http://localhost');
+          const relativePath = url.searchParams.get('path');
+          
+          if (!relativePath) {
+            res.writeHead(400);
+            res.end(JSON.stringify({ error: 'Missing path param' }));
+            return;
+          }
+
+          // Security: Prevent directory traversal up
+          const safePath = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, '');
+          const fullPath = path.resolve(process.cwd(), 'conductor', safePath);
+
+          if (!fs.existsSync(fullPath)) {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: 'File not found' }));
+            return;
+          }
+
+          const content = fs.readFileSync(fullPath, 'utf-8');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ content }));
+        } catch (e) {
+          res.writeHead(500);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+      next();
+    });
+  }
+});
+
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
   const isDevServer = command === 'serve';
@@ -121,7 +180,7 @@ export default defineConfig(({ mode, command }) => {
         )
       }
     },
-    plugins: [react(), visualizerManager()],
+    plugins: [react(), visualizerManager(), conductorManager()],
     define: {
       // Shim process.env for legacy support (allows process.env.API_KEY to work).
       // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.

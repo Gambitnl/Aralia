@@ -8,6 +8,7 @@ import { Class as CharClass } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { ClassDetailPane } from './ClassDetailPane';
+import { SelectionListItem } from '../../ui/SelectionList';
 
 interface ClassSelectionProps {
   classes: CharClass[];
@@ -34,24 +35,12 @@ const ClassSelection: React.FC<ClassSelectionProps> = ({
         controls={
           <div className="space-y-2">
             {sortedClasses.map((charClass) => (
-              <button
+              <SelectionListItem
                 key={charClass.id}
+                label={charClass.name}
+                selected={effectiveClassId === charClass.id}
                 onClick={() => setSelectedClassId(charClass.id)}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent ${
-                  effectiveClassId === charClass.id
-                    ? 'bg-sky-900/40 border-sky-500/50 text-sky-300 shadow-md font-semibold'
-                    : 'bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white hover:border-gray-600'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{charClass.name}</span>
-                  {effectiveClassId === charClass.id && (
-                    <motion.span layoutId="active-indicator-class" className="text-sky-400 text-sm">
-                      ▶
-                    </motion.span>
-                  )}
-                </div>
-              </button>
+              />
             ))}
           </div>
         }
