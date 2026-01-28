@@ -5,6 +5,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Race } from '../../types';
+import { CreationStepLayout } from './ui/CreationStepLayout';
+import { SectionTitle, SubsectionTitle, BodyText, Label, Description } from '../ui/Typography';
 
 interface AgeSelectionProps {
   selectedRace: Race | null;
@@ -298,25 +300,22 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
   const isValidAge = parseInt(ageInput) >= ageData.min && parseInt(ageInput) <= ageData.max;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
+    <CreationStepLayout
+      title="Age Selection"
+      onBack={onBack}
+      onNext={handleSubmit}
+      canProceed={isValidAge}
     >
-      <h2 className="text-2xl text-sky-300 mb-6 text-center">
-        Age Selection
-      </h2>
-
       <div className="mb-6 max-w-2xl mx-auto">
-        <p className="text-gray-300 text-center mb-4">
+        <BodyText className="text-center mb-4">
           Choose your {selectedRace?.name}{"'"}s age. Age affects ability scores, size, hit points, and armor class.
-        </p>
+        </BodyText>
 
-        <div className="bg-gray-700 p-4 rounded-lg mb-6 border border-gray-600">
-          <h3 className="font-semibold text-amber-400 mb-2">Age Range for {selectedRace?.name}s</h3>
-          <p className="text-gray-200 mb-2">
+        <div className="bg-gray-700/50 p-4 rounded-lg mb-6 border border-gray-600">
+          <SubsectionTitle className="text-amber-400 mb-2">Age Range for {selectedRace?.name}s</SubsectionTitle>
+          <BodyText className="mb-2">
             Total lifespan: {ageData.min}-{ageData.max} years
-          </p>
+          </BodyText>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-300">
             <div><strong>Child:</strong> {ageData.min}-{ageData.categories.child.max}y</div>
             <div><strong>Adolescent:</strong> {ageData.categories.child.max + 1}-{ageData.categories.adolescent.max}y</div>
@@ -332,13 +331,13 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
               ? 'bg-green-900 bg-opacity-30 border-green-800'
               : 'bg-orange-900 bg-opacity-30 border-orange-800'
           }`}>
-            <h3 className="font-semibold text-gray-200 mb-2">
+            <SubsectionTitle className="text-gray-200 mb-2">
               Current Age Category: <span className={`font-bold ${
                 ageCategory.statPenalty === 0 ? 'text-green-400' : 'text-orange-400'
               }`}>
                 {ageCategory.name}
               </span>
-            </h3>
+            </SubsectionTitle>
             <div className="text-sm text-gray-300 space-y-1">
               {ageCategory.sizeModifier && (
                 <p><strong>Size:</strong> {ageCategory.sizeModifier} (normally {selectedRace?.traits.find(t => t.includes('Size:'))?.split(':')[1]?.trim() || 'Medium'})</p>
@@ -346,22 +345,22 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
               <p><strong>Ability Scores:</strong> {ageCategory.statPenalty >= 0 ? '+' : ''}{ageCategory.statPenalty} to all (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma)</p>
               <p><strong>Hit Points:</strong> Recalculated based on modified Constitution</p>
               <p><strong>Armor Class:</strong> Recalculated if Dexterity is modified</p>
-              <div className="mt-2 p-2 bg-black bg-opacity-30 rounded text-xs text-gray-300">
+              <Description className="mt-2 p-2 bg-black bg-opacity-30 rounded text-gray-300">
                 {ageCategory.statPenalty === 0
                   ? "✅ Adult characters have full ability scores and are at peak physical/mental condition."
                   : ageCategory.statPenalty === -1
                   ? "⚠️ This age applies -1 to all ability scores, representing reduced physical/mental capabilities."
                   : "⚠️ This age applies -2 to all ability scores, representing significantly reduced capabilities."
                 }
-              </div>
+              </Description>
             </div>
           </div>
         )}
 
         <div className="flex flex-col items-center space-y-4">
-          <label htmlFor="age" className="text-lg font-medium text-gray-300">
+          <Label htmlFor="age" className="text-lg font-medium text-gray-300">
             Character Age (years):
-          </label>
+          </Label>
 
           <input
             id="age"
@@ -380,24 +379,7 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
           )}
         </div>
       </div>
-
-      <div className="flex justify-between max-w-2xl mx-auto">
-        <button
-          onClick={onBack}
-          className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
-        >
-          Back
-        </button>
-
-        <button
-          onClick={handleSubmit}
-          disabled={!isValidAge}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-        >
-          Next
-        </button>
-      </div>
-    </motion.div>
+    </CreationStepLayout>
   );
 };
 

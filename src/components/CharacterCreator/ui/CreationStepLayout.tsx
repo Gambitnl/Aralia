@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BTN_PRIMARY, BTN_SECONDARY } from '../../../styles/buttonStyles';
+import { Button } from '../../ui/Button';
 
 export interface CreationStepLayoutProps {
   title: string;
@@ -72,21 +72,25 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
         <div className="flex-shrink-0 p-4 sm:p-6 pt-4 border-t border-gray-700/50 bg-gray-800/95 backdrop-blur-sm mt-auto">
           <div className="flex gap-4 max-w-2xl mx-auto">
             {onBack && (
-              <button
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={onBack}
-                className={`${BTN_SECONDARY} flex-1 py-3 text-lg rounded-xl shadow-lg hover:shadow-gray-900/50 transition-all`}
+                className="flex-1 shadow-lg hover:shadow-gray-900/50"
               >
                 {backLabel}
-              </button>
+              </Button>
             )}
             {onNext && (
-              <button
+              <Button
+                variant="primary"
+                size="lg"
                 onClick={onNext}
                 disabled={!canProceed}
-                className={`${BTN_PRIMARY} flex-[2] py-3 text-lg rounded-xl shadow-lg hover:shadow-green-900/50 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.98] transition-all`}
+                className="flex-[2] shadow-lg hover:shadow-green-900/50"
               >
                 {nextLabel}
-              </button>
+              </Button>
             )}
           </div>
         </div>

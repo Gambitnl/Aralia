@@ -21,7 +21,7 @@ export const SectionTitle: React.FC<TextProps> = ({ className = '', children, ..
 export const SubsectionTitle: React.FC<TextProps> = ({ className = '', children, ...props }) => (
   <h3 className={`text-lg font-semibold text-sky-400 mb-2 ${className}`} {...props}>
     {children}
-  </h2>
+  </h3>
 );
 
 /**

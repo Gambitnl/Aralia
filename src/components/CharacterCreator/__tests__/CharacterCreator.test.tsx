@@ -66,7 +66,7 @@ describe('CharacterCreator Flow', () => {
     fireEvent.click(nextButtonAfterInstincts);
 
     // 4. Advance past Age Selection
-    await screen.findByText(/Character Age/i);
+    await screen.findByRole('heading', { name: /Age Selection/i });
     const nextButtonAfterAge = await screen.findByRole('button', { name: /^Next$/i });
     fireEvent.click(nextButtonAfterAge);
 

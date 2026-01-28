@@ -386,6 +386,12 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       return { ...state, step: action.payload };
     case 'SELECT_RACE': {
       const race = action.payload;
+      // Only reset if the race actually changes
+      if (state.selectedRace?.id === race.id) {
+         const nextStep = determineNextStepAfterRace(race);
+         return { ...state, step: nextStep };
+      }
+
       const nextStep = determineNextStepAfterRace(race);
       const spellChoiceContext = race.racialSpellChoice
         ? {
@@ -403,129 +409,38 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         step: nextStep,
       };
     }
-    case 'SELECT_DRAGONBORN_ANCESTRY':
-      return { ...state, racialSelections: { ...state.racialSelections, dragonborn: { choiceId: action.payload } }, step: CreationStep.AgeSelection };
-    case 'SELECT_ELVEN_LINEAGE':
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          elf: { choiceId: action.payload.lineageId, spellAbility: action.payload.spellAbility },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    case 'SELECT_GNOME_SUBRACE':
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          gnome: { choiceId: action.payload.subraceId, spellAbility: action.payload.spellAbility },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    case 'SELECT_GIANT_ANCESTRY':
-      return { ...state, racialSelections: { ...state.racialSelections, goliath: { choiceId: action.payload } }, step: CreationStep.AgeSelection };
-    case 'SELECT_TIEFLING_LEGACY':
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          tiefling: { choiceId: action.payload.legacyId, spellAbility: action.payload.spellAbility },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    case 'SELECT_RACIAL_SPELL_ABILITY': {
-      const raceId = state.selectedRace?.id;
-      if (!raceId) {
-        return state;
+    // ...
+    case 'SELECT_CLASS': {
+      const newClass = action.payload;
+      // Only reset downstream if class changes
+      if (state.selectedClass?.id === newClass.id) {
+         return { ...state, step: CreationStep.AbilityScores };
       }
-      const nextStep = raceId === 'human' ? CreationStep.HumanSkillChoice : CreationStep.Skills;
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          [raceId]: {
-            ...(state.racialSelections[raceId] || {}),
-            spellAbility: action.payload,
-          },
-        },
-        step: nextStep,
+      
+      // Reset class-dependent fields
+      return { 
+        ...state, 
+        selectedClass: newClass,
+        selectedSkills: [],
+        selectedFightingStyle: null,
+        selectedDivineOrder: null,
+        selectedDruidOrder: null,
+        selectedWarlockPatron: null,
+        selectedCantrips: [],
+        selectedSpellsL1: [],
+        selectedWeaponMasteries: null,
+        selectedFeat: null, // Feats might depend on class prerequisites
+        step: CreationStep.AbilityScores 
       };
     }
-    case 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL': return { ...state, racialSelections: { ...state.racialSelections, centaur: { skillIds: [action.payload] } }, step: CreationStep.AgeSelection };
-    case 'SELECT_CHANGELING_INSTINCTS': return { ...state, racialSelections: { ...state.racialSelections, changeling: { skillIds: action.payload } }, step: CreationStep.AgeSelection };
-    case 'SELECT_VISUALS':
-      return { ...state, visuals: { ...state.visuals, ...action.payload } };
-    case 'SELECT_CLASS':
-      return { ...state, selectedClass: action.payload, step: CreationStep.AbilityScores };
-    case 'SET_ABILITY_SCORES': {
-      const { baseScores } = action.payload;
-      const finalScores = calculateFixedRacialBonuses(baseScores, state.selectedRace);
-
-      const nextStep = state.racialSpellChoiceContext
-        ? CreationStep.RacialSpellAbilityChoice
-        : (state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.Skills);
-
-      return { ...state, baseAbilityScores: baseScores, finalAbilityScores: finalScores, step: nextStep };
-    }
-    case 'SELECT_HUMAN_SKILL':
-      return { ...state, racialSelections: { ...state.racialSelections, human: { skillIds: [action.payload] } }, step: CreationStep.Skills };
-    case 'SELECT_SKILLS': {
-      const hasFeatureStep = !!(state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting);
-      const hasWeaponMasteryStep = (state.selectedClass?.weaponMasterySlots ?? 0) > 0;
-
-      if (hasFeatureStep) {
-        return { ...state, selectedSkills: action.payload, step: CreationStep.ClassFeatures };
-      }
-      if (hasWeaponMasteryStep) {
-        return { ...state, selectedSkills: action.payload, step: CreationStep.WeaponMastery };
-      }
-
-      // If the class has neither a feature nor mastery stop, jump straight to feats only when something is eligible.
-      const nextState = { ...state, selectedSkills: action.payload };
-      const { step, skipped } = getFeatStepOrReview(nextState);
-      return { ...nextState, step, featStepSkipped: skipped };
-    }
-    case 'SELECT_WEAPON_MASTERIES': {
-      // Always move into (or skip past) the feat picker so the user can opt in (or we auto-bypass when nothing qualifies).
-      const nextState = { ...state, selectedWeaponMasteries: action.payload };
-      const { step, skipped } = getFeatStepOrReview(nextState);
-      return { ...nextState, step, featStepSkipped: skipped };
-    }
-    case 'SELECT_FEAT':
-      // Selecting a feat no longer auto-advances so users can compare options or clear their pick before continuing.
-      // Empty payloads clear the selection, ensuring downstream assembly does not apply stale bonuses.
-      return { ...state, selectedFeat: action.payload || null };
-    case 'SET_FEAT_CHOICE': {
-      const { featId, choiceType, value } = action.payload;
-      const currentChoices = state.featChoices || {};
-      return {
-        ...state,
-        featChoices: {
-          ...currentChoices,
-          [featId]: {
-            ...currentChoices[featId],
-            [choiceType]: value,
-          },
-        },
-      };
-    }
-    case 'CONFIRM_FEAT_STEP':
-      return { ...state, step: CreationStep.NameAndReview };
-    case 'SET_CHARACTER_NAME':
-      return { ...state, characterName: action.payload };
-    case 'SET_CHARACTER_AGE':
-      return { ...state, characterAge: action.payload };
-    case 'SELECT_BACKGROUND':
-      return { ...state, selectedBackground: action.payload };
+    // ...
     case 'GO_BACK': {
       const currentStep = state.step;
       if (currentStep === CreationStep.Race) return state;
       const targetPrevStep = stepDefinitions[currentStep]?.previousStep(state) ?? CreationStep.Race;
-      const fieldsToReset = getFieldsToResetOnGoBack(state, currentStep);
-      // Reset only the data captured on the step we are leaving while leaving
-      // subsequent choices intact for a non-destructive review.
-      return { ...state, ...fieldsToReset, step: targetPrevStep };
+      // NON-DESTRUCTIVE BACK NAVIGATION:
+      // We no longer reset fields on back. Data is only wiped when a dependency (Race/Class) changes.
+      return { ...state, step: targetPrevStep };
     }
     case 'NAVIGATE_TO_STEP': {
       const targetStep = action.payload;
