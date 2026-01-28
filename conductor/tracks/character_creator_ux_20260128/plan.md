@@ -35,18 +35,18 @@ Goal: Fix the wizard's progression, navigation, and broken steps while preservin
 ## Phase 3: Persistent State & UX Enhancements
 Goal: Add the summary sidebar, auto-save, and polish.
 
-- [ ] Task: Implement Persistent Summary Sidebar:
-    - [ ] Design sidebar layout.
-    - [ ] Wire up real-time updates from the character creation state.
-- [ ] Task: Implement Save & Resume:
-    - [ ] Add LocalStorage persistence for current creation state.
-    - [ ] Implement state restoration on page load/refresh.
-- [ ] Task: Implement Contextual Help & Smart Defaults:
-    - [ ] Add tooltips/details for complex choices (Preserve all existing tooltip text).
-    - [ ] Apply "Recommended" defaults to friction points.
-- [ ] Task: Implement Final Review Step:
-    - [ ] Create a comprehensive summary page before final confirmation.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Persistent State & UX Enhancements' (Protocol in workflow.md)
+- [x] Task: Implement Persistent Summary Sidebar:
+    - [x] Design sidebar layout.
+    - [x] Wire up real-time updates from the character creation state.
+- [x] Task: Implement Save & Resume:
+    - [x] Add LocalStorage persistence for current creation state.
+    - [x] Implement state restoration on page load/refresh.
+- [x] Task: Implement Contextual Help & Smart Defaults:
+    - [x] Add tooltips/details for complex choices (Preserve all existing tooltip text).
+    - [x] Apply "Recommended" defaults to friction points.
+- [x] Task: Implement Final Review Step:
+    - [x] Create a comprehensive summary page before final confirmation.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Persistent State & UX Enhancements' (Protocol in workflow.md) [checkpoint: 1aa05f6]
 
 ## Phase 4: Verification & Cleanup
 Goal: Ensure stability, accessibility, and ZERO content loss.
