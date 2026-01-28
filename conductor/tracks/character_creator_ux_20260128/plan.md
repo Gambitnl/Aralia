@@ -20,17 +20,17 @@ Goal: Identify current inconsistencies and extract reusable UI components.
 ## Phase 2: Logical Flow & Navigation Refactor
 Goal: Fix the wizard's progression, navigation, and broken steps while preserving all existing logic.
 
-- [ ] Task: Implement Global Stepper:
-    - [ ] Create a visual progress indicator.
-    - [ ] Implement non-destructive step switching logic.
-- [ ] Task: Standardize Navigation Controls:
-    - [ ] Move "Back" and "Next" to fixed positions.
-    - [ ] Implement step-level validation to enable/disable "Next".
-- [ ] Task: Fix Core Logic & Broken Steps:
-    - [ ] Resolve "Step 7" (Skills) transition issues (Ensure NO skill options are lost).
-    - [ ] Fix the "Loop Back" bug (prevent reset at end).
-    - [ ] Ensure Step 8 (Class Features) updates dynamically based on Class selection (Verify all class features are preserved).
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Logical Flow & Navigation Refactor' (Protocol in workflow.md)
+- [x] Task: Implement Global Stepper:
+    - [x] Create a visual progress indicator.
+    - [x] Implement non-destructive step switching logic.
+- [x] Task: Standardize Navigation Controls:
+    - [x] Move "Back" and "Next" to fixed positions.
+    - [x] Implement step-level validation to enable/disable "Next".
+- [x] Task: Fix Core Logic & Broken Steps:
+    - [x] Resolve "Step 7" (Skills) transition issues (Ensure NO skill options are lost).
+    - [x] Fix the "Loop Back" bug (prevent reset at end).
+    - [x] Ensure Step 8 (Class Features) updates dynamically based on Class selection (Verify all class features are preserved).
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Logical Flow & Navigation Refactor' (Protocol in workflow.md) [checkpoint: ea94de6]
 
 ## Phase 3: Persistent State & UX Enhancements
 Goal: Add the summary sidebar, auto-save, and polish.
