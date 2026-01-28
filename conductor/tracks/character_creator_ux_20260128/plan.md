@@ -51,7 +51,7 @@ Goal: Add the summary sidebar, auto-save, and polish.
 ## Phase 4: Verification & Cleanup
 Goal: Ensure stability, accessibility, and ZERO content loss.
 
-- [ ] Task: Verify Keyboard Navigation across all steps.
-- [ ] Task: **Content Audit:** Verify that every race, class, skill, and feature present at the start of the track is still accessible.
-- [ ] Task: Conduct a final "Mop-up" of any lingering UI inconsistencies.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Verification & Cleanup' (Protocol in workflow.md)
+- [x] Task: Verify Keyboard Navigation across all steps.
+- [x] Task: **Content Audit:** Verify that every race, class, skill, and feature present at the start of the track is still accessible.
+- [x] Task: Conduct a final "Mop-up" of any lingering UI inconsistencies.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Verification & Cleanup' (Protocol in workflow.md)
