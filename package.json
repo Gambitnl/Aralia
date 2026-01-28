@@ -14,13 +14,14 @@
     "test": "vitest",
     "test:types": "tsd src/types/__tests__/spells.test-d.ts",
     "test:mcp": "tsx scripts/test-mcp-servers.ts",
-    "mcp:chrome": "start chrome --remote-debugging-port=9222",
+    "mcp:chrome": "tsx scripts/launch-debug-chrome.js",
     "typecheck": "tsc -b",
     "lint": "eslint src scripts tests",
     "mcp": "tsx scripts/mcp-util.ts",
     "stitch:init": "npx @_davideast/stitch-mcp init",
     "stitch:doctor": "npx @_davideast/stitch-mcp doctor --verbose",
-    "generate:race-images": "tsx scripts/generate-race-images.ts"
+    "generate:race-images": "tsx scripts/generate-race-images.ts",
+    "audit:races": "tsx scripts/audit-race-sync.ts"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
