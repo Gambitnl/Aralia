@@ -79,31 +79,37 @@ export interface RaceSyncAuditResult {
 /**
  * Scans for glossary entry files using Vite's import.meta.glob.
  * This matches the pattern used in the character creator for race loading.
+ * Uses **\/*.json to include subdirectories (e.g., elf_lineages/, dragonborn_ancestries/).
  *
- * @returns A set of glossary entry IDs (derived from filenames)
+ * @returns A set of glossary entry IDs (derived from JSON id field and filenames)
  */
 function getGlossaryEntryIds(): Set<string> {
   // Use import.meta.glob to scan glossary entry files
-  // The glob pattern matches all JSON files in the races directory
+  // The glob pattern matches all JSON files in the races directory AND subdirectories
   const glossaryModules = import.meta.glob<{ id?: string }>(
-    '/public/data/glossary/entries/races/*.json',
+    '/public/data/glossary/entries/races/**/*.json',
     { eager: true }
   );
 
   const entryIds = new Set<string>();
 
-  // Extract IDs from the file paths or file contents
-  for (const path in glossaryModules) {
-    // Extract filename from path: "/public/data/glossary/entries/races/elf.json" -> "elf"
-    const filename = path.split('/').pop()?.replace('.json', '') ?? '';
+  // Extract IDs from the file contents (primary) and paths (fallback)
+  for (const filePath in glossaryModules) {
+    const module = glossaryModules[filePath];
 
+    // Primary: use the 'id' field from the JSON file
+    if (module && module.id) {
+      entryIds.add(module.id);
+      entryIds.add(module.id.replace(/-/g, '_'));
+      entryIds.add(module.id.replace(/_/g, '-'));
+    }
+
+    // Fallback: extract from filename
+    const filename = filePath.split('/').pop()?.replace('.json', '') ?? '';
     if (filename) {
-      // Normalize the ID (replace hyphens with underscores to match race ID format)
-      const normalizedId = filename.replace(/-/g, '_');
-      entryIds.add(normalizedId);
-
-      // Also add the original filename format for matching
       entryIds.add(filename);
+      entryIds.add(filename.replace(/-/g, '_'));
+      entryIds.add(filename.replace(/_/g, '-'));
     }
   }
 
@@ -111,13 +117,13 @@ function getGlossaryEntryIds(): Set<string> {
 }
 
 /**
- * Gets the count of glossary entry files.
+ * Gets the count of glossary entry files (including subdirectories).
  *
  * @returns The number of glossary entry JSON files
  */
 function getGlossaryEntryCount(): number {
   const glossaryModules = import.meta.glob(
-    '/public/data/glossary/entries/races/*.json',
+    '/public/data/glossary/entries/races/**/*.json',
     { eager: true }
   );
   return Object.keys(glossaryModules).length;
@@ -143,7 +149,8 @@ function shouldHaveGlossaryEntry(race: Race): boolean {
 
 /**
  * Checks if a glossary entry exists for a given race.
- * Handles various ID format differences (underscores vs hyphens).
+ * Handles various ID format differences and naming conventions between
+ * character creator and glossary systems.
  *
  * @param raceId - The race ID to look for
  * @param glossaryIds - Set of known glossary entry IDs
@@ -160,6 +167,55 @@ function hasGlossaryEntry(raceId: string, glossaryIds: Set<string>): boolean {
   // Try underscore format (race-id -> race_id)
   const underscoreFormat = raceId.replace(/-/g, '_');
   if (glossaryIds.has(underscoreFormat)) return true;
+
+  // Handle goliath ancestry naming: cloud_giant_goliath -> cloud_giant
+  if (raceId.endsWith('_goliath')) {
+    const ancestryId = raceId.replace('_goliath', '');
+    if (glossaryIds.has(ancestryId)) return true;
+    if (glossaryIds.has(ancestryId.replace(/_/g, '-'))) return true;
+  }
+
+  // Handle aasimar variants: fallen_aasimar -> fallen
+  if (raceId.endsWith('_aasimar')) {
+    const variantId = raceId.replace('_aasimar', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle tiefling variants: abyssal_tiefling -> abyssal
+  if (raceId.endsWith('_tiefling')) {
+    const variantId = raceId.replace('_tiefling', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle dragonborn colors: black_dragonborn -> black
+  if (raceId.endsWith('_dragonborn')) {
+    const colorId = raceId.replace('_dragonborn', '');
+    if (glossaryIds.has(colorId)) return true;
+  }
+
+  // Handle halfling subraces: lightfoot_halfling -> lightfoot
+  if (raceId.endsWith('_halfling')) {
+    const subraceId = raceId.replace('_halfling', '');
+    if (glossaryIds.has(subraceId)) return true;
+  }
+
+  // Handle shifter variants: beasthide_shifter -> beasthide
+  if (raceId.endsWith('_shifter')) {
+    const variantId = raceId.replace('_shifter', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle half_elf variants: half_elf_aquatic -> aquatic
+  if (raceId.startsWith('half_elf_')) {
+    const variantId = raceId.replace('half_elf_', '');
+    if (glossaryIds.has(variantId)) return true;
+  }
+
+  // Handle eladrin seasons: autumn_eladrin -> autumn
+  if (raceId.endsWith('_eladrin')) {
+    const seasonId = raceId.replace('_eladrin', '');
+    if (glossaryIds.has(seasonId)) return true;
+  }
 
   return false;
 }

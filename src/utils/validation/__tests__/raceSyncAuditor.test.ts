@@ -47,13 +47,13 @@ describe('raceSyncAuditor', () => {
 
   /**
    * Test that the auditor correctly identifies the count of glossary entries.
-   * We expect around 50 based on our exploration.
+   * We expect around 109 based on exploration (including subdirectories).
    */
   it('reports correct count of glossary entries', () => {
     const result = auditRaceSync();
 
-    // We know there are ~50 glossary entry files
-    expect(result.totalGlossaryEntries).toBeGreaterThanOrEqual(40);
+    // We know there are ~109 glossary entry files (including subdirectories)
+    expect(result.totalGlossaryEntries).toBeGreaterThanOrEqual(100);
   });
 
   /**
