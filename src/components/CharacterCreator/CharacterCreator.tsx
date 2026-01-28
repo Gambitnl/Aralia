@@ -61,6 +61,7 @@ import { WindowFrame } from '../ui/WindowFrame';
 import { Button } from '../ui/Button';
 import { WizardStepper } from '../ui/WizardStepper';
 import { SIDEBAR_STEPS, isStepCompleted } from './config/sidebarSteps';
+import { SafeStorage } from '../../utils/storageUtils';
 
 // Helper function to determine the next step
 const getNextStep = (state: CharacterCreationState): CreationStep => {
@@ -82,8 +83,24 @@ interface CharacterCreatorProps {
   dispatch: React.Dispatch<AppAction>;
 }
 
+const STORAGE_KEY = 'aralia_character_creation_state';
+
 const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, onExitToMainMenu, dispatch: appDispatch }) => {
-  const [state, dispatch] = useReducer(characterCreatorReducer, initialCharacterCreatorState);
+  const [state, dispatch] = useReducer(characterCreatorReducer, initialCharacterCreatorState, (initial) => {
+    try {
+      const persisted = SafeStorage.getItem(STORAGE_KEY);
+      return persisted ? JSON.parse(persisted) : initial;
+    } catch (e) {
+      console.warn('Failed to load character creation state', e);
+      return initial;
+    }
+  });
+
+  // Persist state on change
+  React.useEffect(() => {
+    SafeStorage.trySetItem(STORAGE_KEY, JSON.stringify(state));
+  }, [state]);
+
   const allSpells = useContext(SpellContext);
   const [showSidebar, setShowSidebar] = useState(true);
 
@@ -154,6 +171,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleNameAndReviewSubmit = useCallback((name: string) => {
     dispatch({ type: 'SET_CHARACTER_NAME', payload: name });
     assembleAndSubmitCharacter(state, name);
+    SafeStorage.removeItem(STORAGE_KEY);
   }, [state, assembleAndSubmitCharacter, dispatch]);
 
   const handleAgeChange = useCallback((age: number) => {

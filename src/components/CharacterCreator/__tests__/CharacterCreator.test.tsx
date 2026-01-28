@@ -30,6 +30,11 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 
 describe('CharacterCreator Flow', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
   it('renders race selection, selects changeling, selects skills, and proceeds', async () => {
     render(
       <TestWrapper>
