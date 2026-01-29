@@ -1,0 +1,66 @@
+{
+  "id": "draconblood_dragonborn",
+  "title": "Draconblood Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Draconblood dragonborn are the product of selective breeding by the draconic sorcerers of ancient Draconia in the world of Exandria. They possess refined features and an innate connection to arcane magic. Unlike other dragonborn, they lack breath weapons but compensate with enhanced mental capabilities and magical talent.",
+  "source": "Explorer's Guide to Wildemount",
+  "lore": {
+    "typicalDwelling": "Draconblood dragonborn traditionally dwelt in the floating city-state of Draconia before its fall. Those who survived now live in scholarly enclaves, arcane academies, or noble courts where their magical talents are valued. They favor elegant stone towers, libraries filled with ancient texts, and chambers adorned with draconic artifacts. Their homes reflect their aristocratic heritage—refined, orderly, and filled with magical conveniences.",
+    "typicalAttire": "Draconblood dragonborn favor refined, elegant clothing that reflects their noble heritage. They wear flowing robes in rich jewel tones—deep purples, royal blues, and burnished golds—often embroidered with arcane sigils or draconic motifs. Their attire tends toward the formal, with high collars, ornate clasps, and subtle magical enchantments. Many wear rings, amulets, or circlets that serve as arcane focuses or symbols of their lineage.",
+    "typicalEnvironment": "Draconblood dragonborn thrive in centers of magical learning, political power, and cultural refinement. They gravitate toward universities, wizard towers, diplomatic courts, and any place where intellect and magical prowess are valued. They prefer temperate climates and well-ordered urban environments where they can pursue their scholarly and political interests.",
+    "societyType": "Draconblood society was historically hierarchical and aristocratic, with bloodlines traced back to the founding sorcerers of Draconia. They valued magical talent, political acumen, and refined bearing. Leadership was determined by a combination of arcane power and noble birth. Since Draconia's fall, surviving draconbloods have had to adapt, but many still cling to their traditions of refinement and magical study.",
+    "typicalAssociation": "Draconblood dragonborn tend toward lawful alignments, valuing order, tradition, and the pursuit of knowledge. They can be haughty and condescending toward those they consider less refined, but they are also capable of great loyalty to those who earn their respect. Their aristocratic bearing can make them seem cold or distant, but beneath the formal exterior lies a fierce pride in their heritage.",
+    "physicalAppearance": "Draconblood dragonborn stand 6 to 6.5 feet tall with refined, almost elegant builds compared to other dragonborn. Their scales tend toward noble colors—deep purples, burnished golds, silver-blues, and pristine whites. Their features are more angular and refined, with swept-back horns that curve gracefully. Their eyes often glow with an inner arcane light, and their movements carry an aristocratic grace. They lack the muscular bulk of ravenite dragonborn, instead possessing a lean, dignified bearing."
+  },
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Draconblood)"
+    },
+    {
+      "label": "Origin",
+      "value": "Exandria (Wildemount)"
+    },
+    {
+      "label": "Special Ability",
+      "value": "Arcane Magic"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in [[dim_light|dim light]] within 60 feet as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Forceful Presence",
+      "icon": "crown",
+      "description": "You can use your understanding of creative diplomacy or intimidation to guide a conversation in your favor. When you make a Charisma ([[intimidation|Intimidation]] or [[persuasion|Persuasion]]) check, you can do so with [[advantage|Advantage]]. Once you use this trait, you can't do so again until you finish a [[short_rest|Short]] or [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Draconic Ancestral Legacy",
+      "icon": "magic",
+      "description": "You inherit the might of your dragon ancestors. You know the [[thaumaturgy|Thaumaturgy]] cantrip. You can cast [[comprehend_languages|Comprehend Languages]] once with this trait. At 5th level, you can cast [[detect_magic|Detect Magic]] once with this trait. You regain the ability to cast these spells when you finish a [[long_rest|Long Rest]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "draconblood",
+    "exandria",
+    "wildemount",
+    "arcane"
+  ],
+  "aliases": [
+    "draconblood"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "ravenite_dragonborn",
+    "thaumaturgy",
+    "comprehend_languages",
+    "detect_magic"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/draconblood.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Draconblood_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Draconblood_Female.png"
+}

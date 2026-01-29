@@ -1,0 +1,59 @@
+{
+  "id": "ravenite_dragonborn",
+  "title": "Ravenite Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Ravenite dragonborn were once enslaved by the draconblood aristocracy but rose up to destroy the nation of Draconia. They are a proud warrior culture from Exandria that values freedom, strength, and vengeance. Unlike other dragonborn, they lack breath weapons but possess fierce combat abilities forged in the fires of rebellion.",
+  "source": "Explorer's Guide to Wildemount",
+  "lore": {
+    "typicalDwelling": "Ravenite dragonborn live in rugged, defensible settlements built for survival rather than comfort. After Draconia's fall, many established communities in the Dreemoth Ravine and other harsh terrains of Wildemount. Their homes are practical and fortified—stone longhouses, communal halls, and warrior barracks. They favor locations that are easily defended and difficult for enemies to approach, reflecting their history as a people who fought for their freedom.",
+    "typicalAttire": "Ravenite dragonborn wear practical, durable clothing suited for combat and hard labor. They favor dark leathers, reinforced fabrics, and functional armor in muted colors—charcoals, deep reds, and weathered browns. Their clothing often bears the scars of battle and hard use, which they wear as badges of honor. Many adorn themselves with trophies taken from fallen enemies or symbols commemorating their ancestors' struggle for freedom.",
+    "typicalEnvironment": "Ravenite dragonborn thrive in harsh, unforgiving environments that test their strength and resolve. They are drawn to mountainous regions, rocky badlands, and frontier territories where they can live free from the yoke of tyranny. They excel as mercenaries, frontier guards, and adventurers, always seeking to prove their worth through action rather than words.",
+    "societyType": "Ravenite society is egalitarian and merit-based, a direct rejection of the draconblood aristocracy that once enslaved them. Leadership is earned through deeds, not bloodlines. They value strength, loyalty, and the willingness to fight for one's freedom. Their communities are tight-knit, with deep bonds forged through shared struggle. They hold no tolerance for slavery or oppression in any form.",
+    "typicalAssociation": "Ravenite dragonborn tend toward chaotic alignments, valuing personal freedom and the right to determine one's own destiny. They can be fierce and uncompromising, but their anger is directed at tyrants and oppressors rather than the innocent. They are intensely loyal to their comrades and will fight to the death to protect those they consider family. Their vengeful nature is legendary—they never forget a wrong done to them or their people.",
+    "physicalAppearance": "Ravenite dragonborn stand 6 to 7 feet tall with powerful, muscular builds honed by generations of hard labor and combat. Their scales tend toward darker, more practical colors—deep charcoals, blood reds, storm grays, and weathered browns. Their features are rugged and battle-scarred, with heavy brows and fierce eyes that burn with an inner fire. Many bear ritual scars or brands commemorating their ancestors' liberation. They move with a predatory grace and carry themselves with the coiled tension of warriors always ready for battle."
+  },
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Ravenite)"
+    },
+    {
+      "label": "Origin",
+      "value": "Exandria (Wildemount)"
+    },
+    {
+      "label": "Special Ability",
+      "value": "Vengeful Combat"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Darkvision",
+      "icon": "eye",
+      "description": "You can see in [[dim_light|dim light]] within 60 feet as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in darkness, only shades of gray."
+    },
+    {
+      "name": "Vengeful Assault",
+      "icon": "sword",
+      "description": "When you take damage from a creature in range of a weapon you are wielding, you can use your [[reaction|Reaction]] to make an attack with the weapon against that creature. Once you use this trait, you can't do so again until you finish a [[short_rest|Short]] or [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "ravenite",
+    "exandria",
+    "wildemount",
+    "warrior"
+  ],
+  "aliases": [
+    "ravenite"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "draconblood_dragonborn",
+    "reaction"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/ravenite.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Ravenite_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Ravenite_Female.png"
+}
