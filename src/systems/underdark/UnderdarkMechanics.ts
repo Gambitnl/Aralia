@@ -84,6 +84,12 @@ export class UnderdarkMechanics {
 
         // 3. Process Sanity Decay (Affected by Biome & Light)
         if (isInUnderdark) {
+            // RALPH: Horror Mechanics.
+            // Sanity decays in Darkness (1pt / 30m) but recovers in Light.
+            // Multiplier logic:
+            // - Scary Biome: Light only STOPS decay (mult 0).
+            // - Safe Biome: Light allows RECOVERY (mult -1.0).
+            // - Darkness: Base decay, doubled in Magical Darkness.
             const currentBiome = UNDERDARK_BIOMES[nextUnderdark.currentBiomeId] || UNDERDARK_BIOMES['cavern_standard'];
 
             // Base decay rate: 1 sanity point per 30 minutes in darkness

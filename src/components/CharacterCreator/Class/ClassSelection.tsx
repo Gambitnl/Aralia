@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Class as CharClass } from '../../../types'; 
 import { CreationStepLayout } from '../ui/CreationStepLayout';
-import { SplitPaneLayout } from '../ui/SplitPaneLayout';
+import { SplitPaneLayout } from '../../ui/SplitPaneLayout';
 import { ClassDetailPane } from './ClassDetailPane';
 import { SelectionListItem } from '../../ui/SelectionList';
 

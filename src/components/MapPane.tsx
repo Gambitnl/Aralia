@@ -12,6 +12,7 @@ import { BIOMES, LOCATIONS } from '../constants'; // To get biome details like c
 import GlossaryDisplay from './Glossary/GlossaryDisplay';
 import { POIS } from '../data/world/pois';
 import { buildPoiMarkers } from '@/utils/spatial';
+import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
 import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';
@@ -25,6 +26,28 @@ interface MapPaneProps {
 const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   const { gridSize, tiles } = mapData;
   const [focusedCoords, setFocusedCoords] = useState<{ x: number; y: number } | null>(null);
+
+  const gridRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null); // Ref for the close button
+
+  // RALPH: Logic Extraction.
+  // Centralizes grid navigation logic into a reusable hook.
+  // Handles Arrow keys, Enter/Space activation, and Escape to close.
+  const { handleKeyDown } = useKeyboardNavigation({
+    containerRef: gridRef,
+    gridSize,
+    currentCoords: focusedCoords || { x: 0, y: 0 },
+    onCoordsChange: (coords) => setFocusedCoords(coords),
+    onActivate: (coords) => {
+      const { x, y } = coords || { x: 0, y: 0 };
+      const currentTile = tiles[y]?.[x];
+      if (currentTile && (currentTile.discovered || currentTile.isPlayerCurrent)) {
+        onTileClick(x, y, currentTile);
+      }
+    },
+    onClose
+  });
 
   /**
    * Precompute POI markers using shared logic so both the main map and
@@ -114,76 +137,11 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     setScale(1);
   };
 
-
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // If modifier key is pressed, don't interfere (allows browser shortcuts)
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-
-    const { x, y } = focusedCoords || { x: 0, y: 0 }; // Default to 0,0 if null
-    let newX = x;
-    let newY = y;
-    let handled = false;
-
-    switch (event.key) {
-      case 'ArrowUp':
-        handled = true;
-        newY = Math.max(0, y - 1);
-        break;
-      case 'ArrowDown':
-        handled = true;
-        newY = Math.min(gridSize.rows - 1, y + 1);
-        break;
-      case 'ArrowLeft':
-        handled = true;
-        newX = Math.max(0, x - 1);
-        break;
-      case 'ArrowRight':
-        handled = true;
-        newX = Math.min(gridSize.cols - 1, x + 1);
-        break;
-      case 'Enter':
-      case ' ': {
-        handled = true;
-        // TODO(lint-intent): If this interaction grows (tooltips, context menus), extract a helper for tile activation.
-        const currentTile = tiles[y]?.[x];
-        if (currentTile && (currentTile.discovered || currentTile.isPlayerCurrent)) {
-          onTileClick(x, y, currentTile);
-        }
-        break;
-      }
-      case 'Escape':
-        handled = true;
-        onClose();
-        break;
-      case '+':
-      case '=':
-        handled = true;
-        setScale(s => Math.min(3, s + 0.1));
-        break;
-      case '-':
-      case '_':
-        handled = true;
-        setScale(s => Math.max(0.5, s - 0.1));
-        break;
-      case '0':
-        handled = true;
-        handleRecenter();
-        break;
-    }
-
-    if (handled) {
-      event.preventDefault();
-    }
-
-    if (newX !== x || newY !== y) {
-      setFocusedCoords({ x: newX, y: newY });
-    }
-  }, [focusedCoords, gridSize, tiles, onTileClick, onClose]);
-
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
   // TODO(lint-intent): 'getTileStyle' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.

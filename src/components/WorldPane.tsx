@@ -5,9 +5,10 @@
  */
 import React, { useEffect, useRef, useContext } from 'react';
 import { GameMessage } from '../types'; // Path relative to src/components/
-import { formatGameTime } from '@/utils/core';
+import { formatGameTime, getGameDay } from '@/utils/core';
 import Tooltip from './ui/Tooltip'; // Import the new Tooltip component
 import GlossaryContext from '../context/GlossaryContext';
+import { LoreService } from '../services/LoreService';
 
 interface WorldPaneProps {
   messages: GameMessage[];
@@ -22,7 +23,7 @@ interface WorldPaneProps {
  */
 const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const glossaryIndex = useContext(GlossaryContext);
+  const glossaryEntries = useContext(GlossaryContext);
 
   /**
    * Scrolls the message container to the bottom.
@@ -57,30 +58,33 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
    * @returns {React.ReactNode} The message text, potentially with Tooltip components.
    */
   const processMessageText = (text: string): React.ReactNode => {
-    const tooltipKeywords: Record<string, string> = {
-      'Aralia': 'The vibrant world where your adventure unfolds.',
-      'Oracle': 'A mysterious entity offering cryptic guidance.',
-      'Gemini': 'The advanced AI model powering this world\'s narrative and interactions.',
-      'NPC': 'Non-Player Character: Any character in the game not controlled by you.',
-      'HP': 'Hit Points: A measure of your character\'s health and vitality.',
-      'AC': 'Armor Class: Represents how difficult it is to hit your character in combat.',
-      'clearing': 'A sun-dappled opening in the forest, often a place of peace or transition.',
-      'ruins': 'The crumbling remnants of ancient structures, hinting at a forgotten past.'
-    };
+    // RALPH: Knowledge Injector.
+    // Uses the LoreService to dynamically match text against the full game glossary.
+    // This provides on-demand help for rules, items, and lore.
+    if (!glossaryEntries || glossaryEntries.length === 0) return text;
 
-    const regex = new RegExp(`\\b(${Object.keys(tooltipKeywords).join('|')})\\b`, 'gi');
+    const matchedEntries = LoreService.findTermsInText(text, glossaryEntries);
+    if (matchedEntries.length === 0) return text;
+
+    // Create regex from matched entry titles and aliases
+    const terms = matchedEntries.flatMap(e => [e.title, ...(e.aliases || [])]);
+    const regex = LoreService.getTermsRegex(terms);
 
     const parts = text.split(regex);
 
     return parts.map((part, index) => {
       const lowerPart = part.toLowerCase();
-      const matchedKeyword = Object.keys(tooltipKeywords).find(kw => kw.toLowerCase() === lowerPart);
+      // Find which entry matched this specific part
+      const entry = matchedEntries.find(e => 
+        e.title.toLowerCase() === lowerPart || 
+        e.aliases?.some(a => a.toLowerCase() === lowerPart)
+      );
 
-      if (matchedKeyword) {
+      if (entry) {
         return (
           <Tooltip
             key={`${part}-${index}-tooltip`}
-            content={tooltipKeywords[matchedKeyword]}
+            content={entry.excerpt || entry.title}
           >
             <button
               type="button"

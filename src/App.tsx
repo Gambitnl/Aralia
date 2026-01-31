@@ -20,7 +20,8 @@ import { AnimatePresence } from 'framer-motion';
 // These define the structure of locations, messages, NPCs, items, characters, game phases, etc.
 import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification } from './types';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
-import { appReducer, initialGameState } from './state/appState';
+import { appReducer } from './state/appState';
+import { initialGameState } from './state/initialState';
 // Custom hooks - encapsulate reusable logic for audio, game actions, and initialization
 import { useAudio } from './hooks/useAudio';
 import { useGameActions } from './hooks/useGameActions';

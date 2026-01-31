@@ -31,6 +31,9 @@ const RANK_VETERAN: FactionRank = {
     perks: ['command_subordinates', 'access_vault']
 };
 
+// RALPH: Static Database of Factions.
+// Each faction has specific "Values" and "Hates" which the AI uses to drive dialogue and reactions.
+// "Power" (0-100) determines their global influence and the impact of their events.
 export const FACTIONS: Record<string, Faction> = {
     'iron_ledger': {
         id: 'iron_ledger',
@@ -138,6 +141,8 @@ export const FACTIONS: Record<string, Faction> = {
     }
 };
 
+// RALPH: State Initialization.
+// Automatically seeds the player's reputation at 0 for every defined faction.
 export const INITIAL_FACTION_STANDINGS: Record<string, PlayerFactionStanding> = Object.keys(FACTIONS).reduce((acc, factionId) => {
     acc[factionId] = {
         factionId,

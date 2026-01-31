@@ -1,6 +1,7 @@
 /**
  * @file src/state/initialState.ts
  * Defines the initial state for the application.
+ * Unified source of truth for the starting GameState.
  */
 
 import { GameState, GamePhase, SuspicionLevel, UnderdarkState } from '../types';
@@ -60,6 +61,9 @@ const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, d
     return acc;
 }, {} as Record<string, DivineFavor>);
 
+// RALPH: The Genesis State.
+// Defines the exact starting conditions for a new game.
+// It uses "Dummy" data if dev tools are enabled and no save exists to facilitate rapid testing.
 export const initialGameState: GameState = {
     phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
     party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
@@ -148,6 +152,9 @@ export const initialGameState: GameState = {
     selectedGlossaryTermForModal: undefined,
 
     // NPC Memory
+    // RALPH: Socio-Cognitive Hub.
+    // Seeds the "Memory" of every static NPC. 
+    // Tracking disposition, secrets, goals, and interaction history.
     npcMemory: Object.keys(NPCS).reduce((acc, npcId) => {
         const npcData = NPCS[npcId];
         acc[npcId] = {

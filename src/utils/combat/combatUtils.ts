@@ -184,6 +184,9 @@ export function rollDice(diceString: string): number {
  * rollDamage('2d6', true)    // Returns 4-24 (4d6)
  */
 export function rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
+  // RALPH: Damage Resolver.
+  // Uses a global regex to scan the formula for dice (XdY) and flat numbers (Z).
+  // Doubling dice for Critical Hits happens BEFORE the roll to ensure consistent 5e logic.
   if (!diceString || diceString === '0') return 0;
 
   // Remove spaces for easier parsing
@@ -212,6 +215,7 @@ export function rollDamage(diceString: string, isCritical: boolean, minRoll: num
       const dieSize = parseInt(match[3], 10);
 
       // CRITICAL HIT LOGIC: Roll dice twice
+      // RALPH: 5e rule - double the NUMBER of dice rolled, not the total result.
       const actualNumDice = isCritical ? numDice * 2 : numDice;
 
       const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll);

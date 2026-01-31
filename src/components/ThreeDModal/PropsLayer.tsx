@@ -314,7 +314,7 @@ const PropsLayer = ({
 
   const rockMaterial = useMemo(() => {
     const base = new ThreeColor(0x6b7280).lerp(tint, 0.15);
-    return new MeshStandardMaterial({ color: base, roughness: 0.95, metalness: 0.1 });
+    return new MeshStandardMaterial({ color: base, roughness: 0.95, metalness: 0.1, map: null });
   }, [tint]);
 
   const treePlan = useMemo(() => {

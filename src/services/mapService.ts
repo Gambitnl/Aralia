@@ -22,6 +22,10 @@ export function generateMap(
   biomes: Record<string, Biome>,
   worldSeed: number,
 ): MapData {
+  // RALPH: World Forge.
+  // Uses a two-step process:
+  // 1. Stochastic Filling: Fill grid based on Biome "Weights" (e.g. Grassland is common, Lava is rare).
+  // 2. Cellular Automata: Smoothing passes to clump similar biomes together.
   const tiles: MapTile[][] = [];
   const random = new SeededRandom(worldSeed);
   const passableBiomes = Object.values(biomes).filter(b => b.passable);
@@ -86,6 +90,9 @@ export function generateMap(
   // Basic biome clustering pass (simple iteration)
   // This is a very naive approach, more advanced algorithms (Perlin noise, cellular automata) would be better for real zones.
   // TODO(FEATURES): Replace naive clustering with richer biome generation (Perlin/cellular automata) for contiguous regions (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // RALPH: Smoothing Logic.
+  // Checks neighbors. If a dominant neighbor exists, 50% chance to flip to it.
+  // Creates organic-looking blobs instead of TV static.
   for (let i = 0; i < 3; i++) { // Multiple passes for slightly better clustering
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {

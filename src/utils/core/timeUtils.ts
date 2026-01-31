@@ -146,6 +146,9 @@ export const getTimeOfDay = (date: Date): TimeOfDay => {
 
 // TODO(FEATURES): Extend season/time modifiers beyond travel cost (encounters, visuals, resource yields) and surface them in UI (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 export const getTimeModifiers = (date: Date): TimeModifiers => {
+  // RALPH: Environmental Difficulty Engine.
+  // Combines Season + Time of Day into a single cost multiplier.
+  // Night + Winter = 1.25 * 1.5 = ~1.87x Travel Cost.
   const season = getSeason(date);
   const timeOfDay = getTimeOfDay(date);
   let travelCostMultiplier = 1.0;
@@ -154,6 +157,7 @@ export const getTimeModifiers = (date: Date): TimeModifiers => {
   // Season Modifiers
   switch (season) {
     case Season.Winter:
+      // RALPH: Snow and cold impact movement efficiency.
       travelCostMultiplier *= 1.25; // Snow/Cold slows travel
       description += 'The air is biting cold. ';
       break;
@@ -172,6 +176,7 @@ export const getTimeModifiers = (date: Date): TimeModifiers => {
   // Time of Day Modifiers
   switch (timeOfDay) {
     case TimeOfDay.Night:
+      // RALPH: Visibility penalty. Lack of light slows navigation significantly.
       travelCostMultiplier *= 1.5; // Difficult to navigate in dark
       description += 'Darkness covers the land.';
       break;

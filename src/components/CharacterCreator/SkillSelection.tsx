@@ -30,8 +30,7 @@ import {
 import { SKILLS_DATA } from '../../data/skills';
 import Tooltip from '../ui/Tooltip';
 import { CreationStepLayout } from './ui/CreationStepLayout';
-// TODO: Move SplitPaneLayout to a shared UI barrel file (e.g., src/components/CharacterCreator/ui/index.ts) to simplify imports.
-import { SplitPaneLayout } from './ui/SplitPaneLayout';
+import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { BTN_PRIMARY } from '../../styles/buttonStyles';
 
 interface SkillSelectionProps {
@@ -289,7 +288,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                   {!viewedGrantInfo.granted && (
                     <button
                       onClick={() => handleClassSkillToggle(viewedSkill.id)}
-                      disabled={isViewedDisabled && !isViewedSelected}
+                      disabled={!!(isViewedDisabled && !isViewedSelected)}
                       className={`px-4 py-2 rounded-lg font-bold shadow-md transition-all ${
                         isViewedSelected
                           ? 'bg-red-900/80 hover:bg-red-800 text-red-100 border border-red-700'

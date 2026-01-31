@@ -11,15 +11,16 @@ export interface CreationStepLayoutProps {
   nextLabel?: string;
   backLabel?: string;
   className?: string;
-  /** Optional custom confirm button (e.g., for Race selection) */
-  raceConfirmButton?: React.ReactNode;
+  /** Optional custom confirm button (replaces default Next button in header) */
+  customNextButton?: React.ReactNode;
   /** Allow disabling the outer scroll container so inner panes can scroll independently. */
   bodyScrollable?: boolean;
 }
 
 /**
  * Standard layout for Character Creation steps.
- * Provides a consistent Header (Title) - Body (Scrollable) - Footer (Buttons) structure.
+ * Header-based navigation: Back button (left), Title (center), Next button (right).
+ * No footer - all navigation is in the header to maximize content space.
  */
 export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
   title,
@@ -30,28 +31,54 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
   nextLabel = 'Next',
   backLabel = 'Back',
   className = '',
-  raceConfirmButton,
+  customNextButton,
   bodyScrollable = true,
 }) => {
   return (
     <div className={`flex flex-col h-full w-full ${className}`}>
-      {/* Header */}
+      {/* Header with Navigation */}
       <div className="flex-shrink-0 p-4 sm:p-6 pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex-1" /> {/* Spacer for centering */}
-          <div className="text-center">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left: Back Button */}
+          <div className="flex-1 flex justify-start">
+            {onBack && (
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={onBack}
+              >
+                {backLabel}
+              </Button>
+            )}
+          </div>
+
+          {/* Center: Title */}
+          <div className="text-center flex-shrink-0">
             <h2 className="text-2xl sm:text-3xl text-sky-300 font-cinzel font-bold tracking-wide drop-shadow-sm">
               {title}
             </h2>
             <div className="h-0.5 w-24 sm:w-32 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent mx-auto mt-2" />
           </div>
+
+          {/* Right: Next Button or Custom Button */}
           <div className="flex-1 flex justify-end">
-            {raceConfirmButton}
+            {customNextButton ? (
+              customNextButton
+            ) : onNext ? (
+              <Button
+                variant="primary"
+                size="md"
+                onClick={onNext}
+                disabled={!canProceed}
+              >
+                {nextLabel}
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>
 
-      {/* Scrollable Body */}
+      {/* Scrollable Body - maximized space without footer */}
       <div
         className={`flex-grow px-4 sm:px-6 py-4 scrollable-content border border-gray-700 rounded-xl ${
           bodyScrollable ? 'overflow-y-auto' : 'overflow-hidden'
@@ -66,35 +93,6 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
           {children}
         </motion.div>
       </div>
-
-      {/* Footer Controls */}
-      {(onBack || onNext) && (
-        <div className="flex-shrink-0 p-4 sm:p-6 pt-4 border-t border-gray-700/50 bg-gray-800/95 backdrop-blur-sm mt-auto">
-          <div className="flex gap-4 max-w-2xl mx-auto">
-            {onBack && (
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={onBack}
-                className="flex-1 shadow-lg hover:shadow-gray-900/50"
-              >
-                {backLabel}
-              </Button>
-            )}
-            {onNext && (
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={onNext}
-                disabled={!canProceed}
-                className="flex-[2] shadow-lg hover:shadow-green-900/50"
-              >
-                {nextLabel}
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

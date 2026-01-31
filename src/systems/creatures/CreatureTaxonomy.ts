@@ -30,10 +30,15 @@ export class CreatureTaxonomy {
    * isValidTarget(['Undead'], { excludeCreatureTypes: ['Undead'] }) // false
    */
   static isValidTarget(targetTypes: string[], filter: TargetConditionFilter): boolean {
+    // RALPH: Creature Validator.
+    // Enforces mechanical restrictions on spells (e.g. "Hold Person" only works on Humanoids).
+    // Uses a two-phase check: 1. Blacklist (Exclusion) -> 2. Whitelist (Inclusion).
+    
     // Normalize input types to ensure case-insensitivity matches
     const normalizedTargetTypes = targetTypes.map(t => t.toLowerCase());
 
     // 1. Check Exclusion (Blacklist)
+    // RALPH: Hard-fails if the creature is in the "No Fly List" for this spell.
     if (filter.excludeCreatureTypes && filter.excludeCreatureTypes.length > 0) {
       const isExcluded = filter.excludeCreatureTypes.some(excluded =>
         normalizedTargetTypes.includes(excluded.toLowerCase())

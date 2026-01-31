@@ -155,3 +155,33 @@ export function getEventPriceModifier(category: string, events: MarketEvent[]): 
 
   return modifier;
 }
+
+/**
+ * RALPH: Market Intelligence.
+ * Derives current scarcity/surplus factors directly from active events.
+ * This eliminates the risk of desynchronized manual lists in the state.
+ */
+export function calculateMarketFactors(events: MarketEvent[]): { scarcity: string[], surplus: string[] } {
+    const scarcity = new Set<string>();
+    const surplus = new Set<string>();
+
+    events.forEach(event => {
+        // Handle both Enriched and base events
+        const enriched = event as any;
+        const tags = enriched.affectedCategories || enriched.affectedTags || [];
+        const type = enriched.type;
+
+        tags.forEach((tag: string) => {
+            if (type === MarketEventType.SHORTAGE || type === MarketEventType.BUST) {
+                scarcity.add(tag);
+            } else if (type === MarketEventType.SURPLUS || type === MarketEventType.FESTIVAL) {
+                surplus.add(tag);
+            }
+        });
+    });
+
+    return {
+        scarcity: Array.from(scarcity),
+        surplus: Array.from(surplus)
+    };
+}

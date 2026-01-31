@@ -11,8 +11,8 @@ interface SplitPaneLayoutProps {
  * - Desktop: Controls (List) on Left (1/3), Preview (Details) on Right (2/3).
  * - Mobile: Stacked vertically.
  */
-export const SplitPaneLayout: React.FC<SplitPaneLayoutProps> = ({ 
-  controls, 
+export const SplitPaneLayout: React.FC<SplitPaneLayoutProps> = ({
+  controls,
   preview,
   className = ''
 }) => {

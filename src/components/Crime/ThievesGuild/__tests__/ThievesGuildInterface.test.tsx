@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ThievesGuildInterface from '../ThievesGuildInterface';
 import { GameProvider } from '../../../../state/GameContext';
-import { initialGameState } from '../../../../state/appState';
+import { initialGameState } from '../../../../state/initialState';
 import { GuildJob, GuildJobType } from '../../../../types/crime';
 import { GuildMembership } from '../../../../types';
 import { createMockPlayerCharacter } from '../../../../utils/factories';

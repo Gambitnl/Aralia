@@ -6,7 +6,7 @@ The `App.tsx` component is the root React component for the Aralia RPG. It serve
 
 ## State Management (`gameState` with `useReducer`)
 
-The `App` component manages a comprehensive `gameState` object using the `useReducer` hook. The reducer logic (`appReducer`), initial state (`initialGameState`), and action types (`AppAction`) are now defined in **`src/state/appState.ts`**.
+The `App` component manages a comprehensive `gameState` object using the `useReducer` hook. The reducer logic (`appReducer`) is defined in **`src/state/appState.ts`**, and the initial state (`initialGameState`) is defined in **`src/state/initialState.ts`**. Action types (`AppAction`) are defined in **`src/state/actionTypes.ts`**.
 
 The `gameState` (defined in `src/types.ts`) includes:
 *   Party composition, inventory, location, submap coordinates.
@@ -50,7 +50,8 @@ The `gameState` (defined in `src/types.ts`) includes:
 
 ## Data Dependencies & Hooks
 
-*   `src/state/appState.ts`: For `appReducer`, `initialGameState`.
+*   `src/state/appState.ts`: For `appReducer`.
+*   `src/state/initialState.ts`: For `initialGameState`.
 *   `src/hooks/useAudio.ts`: For audio playback.
 *   `src/hooks/useGameActions.ts`: For processing player actions.
 *   `src/hooks/useGameInitialization.ts`: For game setup and loading.

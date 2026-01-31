@@ -26,6 +26,9 @@ export interface CharacterGenerationConfig {
  * Automatically handles derived stats, equipment (Option A defaults), and resource setup.
  */
 export function generateCharacterFromConfig(config: CharacterGenerationConfig): PlayerCharacter | null {
+    // RALPH: Character Factory.
+    // Takes a "Blueprint" (Config) and manufactures a "Character Instance" (Object).
+    // Validates inputs against Static Data (RACES_DATA, CLASSES_DATA) to prevent invalid state.
     const race = ALL_RACES_DATA[config.raceId];
     const charClass = CLASSES_DATA[config.classId];
 
@@ -37,6 +40,8 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     // 1. Handle Ability Scores
     // Default to Standard Array if not provided: 15, 14, 13, 12, 10, 8
     // We assign them based on class recommendations if available, otherwise generic order.
+    // RALPH: Intelligence Fallback.
+    // If specific stats aren't provided, it uses a heuristic (Class Priorities) to assign the Standard Array intelligently.
     let baseScores: AbilityScores;
     
     if (config.abilityScores) {

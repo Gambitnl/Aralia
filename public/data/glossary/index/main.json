@@ -4,6 +4,7 @@
     "/data/glossary/index/character_classes.json",
     "/data/glossary/index/character_races.json",
     "/data/glossary/index/crafting.json",
+    "/data/glossary/index/lore.json",
     "/data/glossary/index/magic_items.json",
     "/data/glossary/index/rules_glossary.json",
     "/data/glossary/index/spellcasting_mechanics.json",

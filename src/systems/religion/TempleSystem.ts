@@ -28,6 +28,9 @@ export class TempleSystem {
     gameState: GameState,
     deityId: string
   ): { allowed: boolean; reason?: string } {
+    // RALPH: Divine Gatekeeper.
+    // Checks both "Material Wealth" (Gold) and "Spiritual Standing" (Favor).
+    // Some high-tier services (Resurrection, Greater Blessing) require specific reputation levels (e.g. 'Devoted').
 
     // 1. Check Gold & Favor (using utility)
     const currentFavor = gameState.divineFavor[deityId]?.score || 0;

@@ -20,10 +20,13 @@ const platform = os.platform();
 
 if (platform === 'win32') {
   const suffixes = [
-    `${process.env.LOCALAPPDATA}\Google\Chrome\Application\chrome.exe`,
-    `${process.env.PROGRAMFILES}\Google\Chrome\Application\chrome.exe`,
-    `${process.env['PROGRAMFILES(X86)']}\Google\Chrome\Application\chrome.exe`
-  ];
+    process.env.LOCALAPPDATA &&
+      path.join(process.env.LOCALAPPDATA, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    process.env.PROGRAMFILES &&
+      path.join(process.env.PROGRAMFILES, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    process.env['PROGRAMFILES(X86)'] &&
+      path.join(process.env['PROGRAMFILES(X86)'], 'Google', 'Chrome', 'Application', 'chrome.exe')
+  ].filter(Boolean);
   chromePath = suffixes.find(p => fs.existsSync(p)) || 'chrome';
 } else if (platform === 'darwin') {
   chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';

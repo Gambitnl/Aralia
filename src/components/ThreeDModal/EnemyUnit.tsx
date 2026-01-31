@@ -22,11 +22,10 @@ const EnemyUnit = ({
 
   return (
     <>
-      <mesh ref={enemyRef} position={[position.x, height + 3, position.z]} castShadow>
-        <sphereGeometry args={[4, 16, 16]} />
-        <meshStandardMaterial color={bodyColor} roughness={0.45} />
-      </mesh>
-      <GridCellOutline
+              <mesh ref={enemyRef} position={[position.x, height + 3, position.z]} castShadow>
+                <sphereGeometry args={[4, 16, 16]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.45} map={null} />
+              </mesh>      <GridCellOutline
         playerRef={enemyRef}
         gridSize={5}
         heightSampler={heightSampler}

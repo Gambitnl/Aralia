@@ -54,10 +54,15 @@ import { PreviewMissingIcons } from './steps/PreviewMissingIcons';
 import { PreviewEnvironment } from './steps/PreviewEnvironment';
 import { PreviewBiome } from './steps/PreviewBiome';
 import { PreviewRaceImages } from './steps/PreviewRaceImages';
+import { PreviewComponents } from './steps/PreviewComponents';
 
 export const DesignPreviewPage: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState<string>('biome'); // Default to new track for convenience
+  const [currentStep, setCurrentStep] = useState<string>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('step') || 'biome';
+  });
   const [variant, setVariant] = useState<string>('unified');
+// ... (rest of the component state)
   const [isWindowOpen, setIsWindowOpen] = useState(true);
   // Track visualizer server status: 'unknown' | 'running' | 'stopped'
   const [visualizerStatus, setVisualizerStatus] = useState<string>('unknown');
@@ -138,6 +143,7 @@ export const DesignPreviewPage: React.FC = () => {
     { id: 'icons', label: 'Icons' },
     { id: 'missing_icons', label: 'Missing Icons' },
     { id: 'race_images', label: 'Race Images' },
+    { id: 'components', label: 'Atomic UI' },
   ];
 
   // Map of which style is currently live in production for each step
@@ -169,6 +175,7 @@ export const DesignPreviewPage: React.FC = () => {
     icons: 'legacy',
     missing_icons: 'legacy',
     race_images: 'legacy',
+    components: 'unified',
   };
 
   return (
@@ -292,6 +299,7 @@ export const DesignPreviewPage: React.FC = () => {
             {currentStep === 'icons' && <PreviewIcons variant={variant} />}
             {currentStep === 'missing_icons' && <PreviewMissingIcons variant={variant} />}
             {currentStep === 'race_images' && <PreviewRaceImages />}
+            {currentStep === 'components' && <PreviewComponents />}
           </WindowFrame>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

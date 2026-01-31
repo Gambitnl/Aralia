@@ -157,6 +157,7 @@ const LabGround = ({ size, tint = new ThreeColor(0xffffff), noiseScale = 100, pa
         normalMap={dirtNormal}
         roughness={0.92}
         metalness={0.02}
+        map={null}
       />
     </mesh>
   );

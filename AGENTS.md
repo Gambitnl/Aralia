@@ -4,6 +4,7 @@ In a multi-agent environment, different agents run in different shells. If you a
 - Shell: use `powershell -NoLogo -Command` patterns; `pwsh` is not installed. Slice files with `Get-Content | Select-Object -Skip/-First`.
 - TODO(2026-01-03 pass 3 Codex-CLI): When iterating lines with PowerShell, avoid inline for-loops that trip the parser; prefer `Get-Content | Select-Object` or a tiny Python snippet for indexed slices.
 - Docs: start with `.uplink/workflow/protocols/README.md` as the shared protocol entry point, then open the relevant flow doc for the active role (e.g., scout/core). 
+- Conductor: follow `conductor/codex-bridge.md` to apply the Conductor workflow to Codex without touching the Gemini CLI extension.
 - Tools: prefer `rg` for search. `apply_patch` for small edits; if it fails on big blocks, write a tiny temp Python script to rewrite and delete it.
 - Browser use is permitted when helpful; prefer DevTools MCP snapshots for UI context and headless browsing where appropriate.
 - PowerShell quirks: no POSIX head/tail/heredocs; use `Select-Object` for slicing and stick to `powershell` (not `pwsh`). Typecheck output is large - fix in batches directly in terminal.

@@ -62,11 +62,14 @@ export class SavingThrowResolver {
     character: CombatCharacter,
     saveType: SavingThrowAbility
   ): number {
+    // RALPH: Calculates the total bonus to the d20 roll.
+    // Base Stat Mod + Proficiency Bonus (if applicable).
     const abilityScore = this.getAbilityScore(character, saveType)
     const abilityModifier = Math.floor((abilityScore - 10) / 2)
 
     let proficiency = 0
     // Check if character has a class and if that class has proficiency in this save
+    // RALPH: Checks both Class-granted proficiencies (e.g. Fighter -> Str/Con) and intrinsic ones.
     const classHasProficiency = character.class?.savingThrowProficiencies?.includes(saveType);
     const charHasProficiency = character.savingThrowProficiencies?.includes(saveType);
 

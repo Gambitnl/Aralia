@@ -138,10 +138,13 @@ export interface CargoManifest {
 
 export type VoyageStatus = 'Docked' | 'Sailing' | 'Lost' | 'Combat' | 'Storm';
 
+export type RationingLevel = 'normal' | 'half' | 'starvation';
+
 export interface VoyageState {
   shipId: string;
   destinationId?: string; // Optional for now
   status: VoyageStatus;
+  rationingLevel?: RationingLevel; // Added for survival mechanics
   daysAtSea: number;
   distanceTraveled: number; // Miles
   distanceToDestination: number; // Miles

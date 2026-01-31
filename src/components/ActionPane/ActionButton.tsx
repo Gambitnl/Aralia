@@ -28,6 +28,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 }) => {
   const baseClasses = `${BTN_BASE} ${BTN_SIZE_LG}`;
 
+  // RALPH: Visual Semantics.
+  // Color-codes actions by "Impact" and "Category" to help players build muscle memory.
+  // Green = Social/Party, Yellow = Save, Red = Danger/Exit, Teal = Gemini AI.
   let colorClasses = "btn-primary";
 
   // Determine color based on action type
@@ -48,6 +51,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   }
 
   const handleClick = () => {
+    // RALPH: Type Safety Patch.
+    // Coordinates (x,y) are sometimes sent as numbers via generic AI payloads.
+    // We normalize to string here to satisfy the `Action` interface expectation.
     // Ensure targetId for movement actions is a string to avoid type errors, without mutating prop
     if (action.type === 'move' && action.targetId && typeof action.targetId !== 'string') {
       onClick({ ...action, targetId: String(action.targetId) });

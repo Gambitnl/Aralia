@@ -42,6 +42,8 @@ export class RelationshipManager {
     change: number,
     reason: string
   ): Companion {
+    // RALPH: Core state mutation for relationships.
+    // Handles arithmetic, clamping (-500 to 500), and level transitions.
     const currentRelationship = companion.relationships[targetId] || {
       targetId,
       level: 'stranger',
@@ -55,6 +57,8 @@ export class RelationshipManager {
     // Determine new level based on approval
     // Note: We don't automatically switch to 'romance', that requires explicit triggers.
     // We strictly map based on thresholds unless current state is 'romance'.
+    // RALPH: "Hysteresis-like" logic: once in 'romance', you stay there unless (presumably) a specific breakup event occurs,
+    // though this code implies approval drops won't auto-downgrade 'romance' back to 'devoted' automatically here.
     let newLevel: RelationshipLevel = currentRelationship.level;
 
     if (newLevel !== 'romance') {

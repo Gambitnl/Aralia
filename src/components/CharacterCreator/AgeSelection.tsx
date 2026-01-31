@@ -358,7 +358,7 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
         )}
 
         <div className="flex flex-col items-center space-y-4">
-          <Label htmlFor="age" className="text-lg font-medium text-gray-300">
+          <Label className="text-lg font-medium text-gray-300">
             Character Age (years):
           </Label>
 

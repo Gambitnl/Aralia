@@ -199,7 +199,7 @@ const Terrain = ({
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <primitive object={geometry} attach="geometry" />
-      <meshStandardMaterial ref={materialRef} color={color} roughness={0.92} metalness={0.05} />
+      <meshStandardMaterial ref={materialRef} color={color} roughness={0.92} metalness={0.05} map={null} />
     </mesh>
   );
 };

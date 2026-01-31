@@ -28,7 +28,7 @@ import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
 import { getSchoolIcon } from '../../utils/spellFilterUtils';
 import { CreationStepLayout } from './ui/CreationStepLayout';
-import { SplitPaneLayout } from './ui/SplitPaneLayout';
+import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { SKILLS_DATA } from '../../data/skills';
 import { BTN_PRIMARY } from '../../styles/buttonStyles';
 
@@ -251,7 +251,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
       onNext={onConfirm}
       canProceed={canProceed}
       nextLabel="Confirm Feat"
-      raceConfirmButton={skipButton}
+      customNextButton={skipButton}
       bodyScrollable={false} // Important for SplitPaneLayout to handle scrolling
     >
         <div className="h-full min-h-0">
@@ -307,10 +307,23 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                             <div className="flex justify-between items-start mb-4 border-b border-gray-700 pb-4">
                                 <div>
                                     <h2 className="text-3xl font-bold text-amber-400 font-cinzel mb-2">{viewedFeat.name}</h2>
-                                    {viewedFeat.prerequisites && viewedFeat.prerequisites.length > 0 && (
+                                    {viewedFeat.prerequisites && (
                                         <div className="text-sm text-gray-400">
                                             <span className="font-semibold text-gray-500 uppercase text-xs tracking-wider mr-2">Prerequisite:</span>
-                                            {viewedFeat.prerequisites.join(', ')}
+                                            {(() => {
+                                                const p = viewedFeat.prerequisites;
+                                                const list: string[] = [];
+                                                if (p.minLevel) list.push(`Level ${p.minLevel}`);
+                                                if (p.abilityScores) {
+                                                    Object.entries(p.abilityScores).forEach(([k, v]) => 
+                                                        list.push(`${k.substring(0, 3).toUpperCase()} ${v}`)
+                                                    );
+                                                }
+                                                if (p.raceId) list.push(`Race: ${p.raceId}`);
+                                                if (p.classId) list.push(`Class: ${p.classId}`);
+                                                if (p.requiresFightingStyle) list.push(`Fighting Style`);
+                                                return list.length > 0 ? list.join(', ') : 'None';
+                                            })()}
                                         </div>
                                     )}
                                 </div>

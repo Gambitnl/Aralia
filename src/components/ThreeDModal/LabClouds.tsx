@@ -110,7 +110,7 @@ const LabClouds = ({ size = 2000, height = 200 }: LabCloudsProps) => {
   return (
     <mesh position={[0, height, 0]} rotation={[Math.PI / 2, 0, 0]}>
       <primitive object={geometry} attach="geometry" />
-      <meshBasicMaterial ref={materialRef} transparent opacity={0.9} fog />
+      <meshBasicMaterial ref={materialRef} transparent opacity={0.9} fog map={null} />
     </mesh>
   );
 };

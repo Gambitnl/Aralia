@@ -43,11 +43,15 @@ export function checkNavigation(
   intendedDirection: TravelDirection,
   rng: SeededRandom = new SeededRandom(Math.random())
 ): NavigationResult {
+  // RALPH: Navigation Logic.
+  // Compares Survival Roll vs Terrain DC.
+  // Applies standard 5e modifiers (+5 for Map, +/-5 for Pace).
 
   // 1. Determine DC
   const dc = TERRAIN_NAVIGATION_DCS[terrain];
 
   // If DC is 0, auto-success (following a road)
+  // RALPH: You can't get lost on a Road (usually).
   if (dc === 0) {
     return {
       success: true,
@@ -95,6 +99,7 @@ export function checkNavigation(
 
     // Time Penalty: 1d6 hours before realizing/correcting?
     // DMG says they travel in that direction for 1d6 hours before checking again.
+    // RALPH: Failure Cost = Time (1d6 hours) + Drift (Wrong Direction).
     const timePenalty = rng.nextInt(1, 6);
 
     return {

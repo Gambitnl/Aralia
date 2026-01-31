@@ -36,6 +36,8 @@ export const initializeTradeRoutes = (state: GameState): EconomyState => {
  * - Routes can enter a "booming" state.
  */
 export const processDailyRoutes = (state: GameState, daysPassed: number, rng: SeededRandom): TradeRouteUpdateResult => {
+  // RALPH: Simulation Engine.
+  // Iterates "daysPassed" instantly using probability math rather than looping day-by-day.
   if (daysPassed <= 0) return { state, logs: [] };
 
   // Ensure routes are initialized
@@ -60,6 +62,9 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
     // Simulate risk/recovery over the passed days
     // Instead of rolling once, we check probability for the whole period.
     // P(event) = 1 - (1 - daily_probability)^days
+    // RALPH: "At least one event happened" probability calculation.
+    // If daily risk is 10%, and 7 days pass, chance of NO block is 0.9^7 = ~48%.
+    // So chance of block is ~52%.
 
     // Recovery Chance Calculation
     // Base 20% + 5% per day waiting

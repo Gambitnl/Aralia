@@ -75,6 +75,9 @@ export const getSeasonalEffects = (date: Date): SeasonalEffect => {
  * @returns Modified DC
  */
 export const getForagingDC = (baseDC: number, date: Date): number => {
+  // RALPH: Modifies survival difficulty dynamically.
+  // Winter = High DC (Scarcity 1.5x + Flat 2).
+  // Autumn = Low DC (Scarcity 0.8x).
   const effects = getSeasonalEffects(date);
   // Apply scarcity multiplier to base DC, then add flat modifier
   return Math.ceil(baseDC * effects.resourceScarcity) + effects.survivalDCModifier;

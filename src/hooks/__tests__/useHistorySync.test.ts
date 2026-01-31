@@ -24,7 +24,7 @@ vi.mock('../../data/dev/dummyCharacter', () => ({
 
 vi.mock('@/utils/spatial');
 
-import { initialGameState } from '../../state/appState';
+import { initialGameState } from '../../state/initialState';
 
 // Mock window.history and window.location
 const pushStateMock = vi.fn();

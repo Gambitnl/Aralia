@@ -106,6 +106,25 @@ export interface GlossaryTooltipProps {
 // Notifications
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
+export enum UIToggleAction {
+  MAP = 'toggle_map',
+  SUBMAP = 'toggle_submap_visibility',
+  THREE_D = 'toggle_three_d',
+  DEV_MENU = 'toggle_dev_menu',
+  GEMINI_LOG = 'toggle_gemini_log_viewer',
+  DISCOVERY_LOG = 'TOGGLE_DISCOVERY_LOG',
+  GLOSSARY = 'TOGGLE_GLOSSARY_VISIBILITY',
+  ENCOUNTER_MODAL = 'HIDE_ENCOUNTER_MODAL',
+  PARTY_EDITOR = 'toggle_party_editor',
+  PARTY_OVERLAY = 'toggle_party_overlay',
+  CHARACTER_SHEET = 'CLOSE_CHARACTER_SHEET',
+  NPC_TEST = 'TOGGLE_NPC_TEST_MODAL',
+  LOGBOOK = 'TOGGLE_LOGBOOK',
+  MERCHANT = 'CLOSE_MERCHANT',
+  GAME_GUIDE = 'TOGGLE_GAME_GUIDE',
+  QUEST_LOG = 'TOGGLE_QUEST_LOG',
+}
+
 export interface Notification {
   id: string;
   message: string;

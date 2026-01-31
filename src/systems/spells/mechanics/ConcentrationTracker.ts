@@ -41,13 +41,15 @@ export class ConcentrationTracker {
     spell: Spell,
     gameState: CombatState
   ): CombatState {
-    // 1. Break existing concentration if any
+    // RALPH: Enforces the "One Concentration Spell" rule.
+    // 1. Break existing concentration if any (clean up old effects).
     let currentState = gameState
     if (character.concentratingOn) {
       currentState = this.breakConcentration(character, gameState)
     }
 
     // 2. Create new concentration state
+    // RALPH: Data object linking the caster to the spell ID.
     const concentrationState: ConcentrationState = {
       spellId: spell.id,
       spellName: spell.name,
@@ -58,6 +60,8 @@ export class ConcentrationTracker {
     }
 
     // 3. Apply to character
+    // RALPH: Immutable update pattern.
+    // We map over the array to produce a NEW array with the modified character.
     const newCharacters = currentState.characters.map(c => {
       if (c.id === character.id) {
         return {

@@ -8,6 +8,10 @@
 
 import { TradeRoute } from '../types/economy';
 
+// RALPH: Static Database of Trade Routes.
+// These are used by the Economy System to simulate daily price fluctuations.
+// "Risk Level" (0-1) affects the chance of blockade.
+// "Profitability" (0-100) affects the chance of a "Boom" state and determines regional price modifiers.
 export const INITIAL_TRADE_ROUTES: TradeRoute[] = [
   {
     id: 'route_golden_road',

@@ -863,6 +863,51 @@ const buildAutomaticAbilityScoreChoice = (character: PlayerCharacter, budget: nu
 };
 
 /**
+ * Fully recalculates all derived properties for a character based on their
+ * current base ability scores, equipment, and level.
+ * Consolidates logic that was previously duplicated across multiple reducers.
+ */
+export const updateDerivedStats = (character: PlayerCharacter): PlayerCharacter => {
+  const updated = { ...character };
+
+  // 1. Ability Scores (Final = Base + Racial + Equipment)
+  updated.finalAbilityScores = calculateFinalAbilityScores(
+    updated.abilityScores,
+    updated.race,
+    updated.equippedItems
+  );
+
+  // 2. Max HP (Base + Con Mod * Level + Feat Bonuses)
+  const conMod = getAbilityModifierValue(updated.finalAbilityScores.Constitution);
+  const hpBonusPerLevel = getHpBonusPerLevelFromFeats(updated.feats || []);
+  const hitDie = updated.class.hitDie;
+  const level = updated.level || 1;
+
+  // PHB Logic: Level 1 is full die, subsequent levels are average (die/2 + 1).
+  const hpGainFirstLevel = hitDie + conMod + hpBonusPerLevel;
+  const hpGainSubseqLevels = (level - 1) * (Math.floor(hitDie / 2) + 1 + conMod + hpBonusPerLevel);
+  const newMaxHp = Math.max(1, hpGainFirstLevel + hpGainSubseqLevels);
+
+  // Maintain current HP ratio or clamp to new max
+  const oldMaxHp = updated.maxHp || newMaxHp;
+  if (newMaxHp !== oldMaxHp) {
+    updated.maxHp = newMaxHp;
+    updated.hp = Math.min(updated.hp, updated.maxHp);
+  }
+
+  // 3. Armor Class
+  updated.armorClass = calculateArmorClass(updated, updated.activeEffects);
+
+  // 4. Proficiency Bonus
+  updated.proficiencyBonus = Math.floor((level - 1) / 4) + 2;
+
+  // 5. Hit Dice Pools
+  updated.hitPointDice = buildHitPointDicePools(updated);
+
+  return updated;
+};
+
+/**
  * Performs a full level up on a character, honoring ability score improvements
  * and optional feat selections. Defaults to an auto-allocation when no choice
  * data is supplied so simulation loops can still progress.
@@ -871,6 +916,10 @@ export const performLevelUp = (
   character: PlayerCharacter,
   choices?: LevelUpChoices,
 ): PlayerCharacter => {
+  // RALPH: Progression Engine.
+  // 1. Validation: Checks if XP budget is met.
+  // 2. Budgeting: Calculates ASI (Ability Score Improvement) allowance (levels 4, 8, etc).
+  // 3. Logic: If no choice provided, it "Autosuggests" improvements based on Class Primary stats.
   if (!canLevelUp(character)) return character;
 
   const previousLevel = character.level || 1;
@@ -929,6 +978,8 @@ export const performLevelUp = (
 
   // Calculate HP increase (Average of Hit Die + Con Mod) plus any feat bonuses.
   // Use the chosen class hit die for multiclass level-ups.
+  // RALPH: Retroactive HP math.
+  // If CON increases, we gain +1 HP for EVERY level we already have.
   const leveledClassId = choices?.classId || updatedCharacter.class?.id;
   const hitDie = leveledClassId ? resolveClassHitDie(updatedCharacter, leveledClassId) : updatedCharacter.class.hitDie;
   const hpIncreaseBase = (hitDie / 2) + 1;

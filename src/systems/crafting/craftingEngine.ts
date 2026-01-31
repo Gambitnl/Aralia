@@ -71,7 +71,11 @@ export function checkRecipeCraftability(
     toolProficiencies: string[] = [],
     knownRecipes?: Set<string>
 ): RecipeCraftability {
+    // RALPH: Validates all constraints: Tools, Knowledge, Money, Materials.
+    // This is a "dry run" used by UI to enable/disable buttons.
+
     // Check tool proficiency
+    // RALPH: Fuzzy string matching for tools is brittle but flexible for now.
     const toolMap: Record<CraftingTool, string> = {
         'alchemist_supplies': "Alchemist's Supplies",
         'herbalism_kit': 'Herbalism Kit',
@@ -195,6 +199,8 @@ export function attemptCrafting(
     }
 
     // Roll the crafting check: d20 + modifier + progression bonus
+    // RALPH: Core mechanics loop.
+    // Roll = d20 + Stat + Progression Bonus.
     const rawRoll = rollDice('1d20');
     const progressionBonus = progression?.bonusModifier || 0;
     const totalRoll = rawRoll + crafterModifier + progressionBonus;
@@ -203,10 +209,12 @@ export function attemptCrafting(
     const isNat1 = rawRoll === 1;
 
     // Determine quality based on roll
+    // RALPH: Success isn't binary. Quality tiers (flawed, standard, masterwork) affect yield/xp.
     const qualityResult = determineCraftingQuality(totalRoll, recipe.craftingDC, isNat20, isNat1);
     const quality = qualityResult.quality;
 
     // Materials are consumed regardless (unless crafting wasn't attempted)
+    // RALPH: "Risk" factor - failure still costs mats/gold.
     const materialsConsumed = true;
     const goldSpent = recipe.goldCost;
 

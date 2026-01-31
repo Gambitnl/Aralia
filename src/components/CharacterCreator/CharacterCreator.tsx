@@ -59,7 +59,6 @@ import SpellContext from '../../context/SpellContext';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { WindowFrame } from '../ui/WindowFrame';
 import { Button } from '../ui/Button';
-import { WizardStepper } from '../ui/WizardStepper';
 import { SIDEBAR_STEPS, isStepCompleted } from './config/sidebarSteps';
 import { SafeStorage } from '../../utils/storageUtils';
 
@@ -271,54 +270,31 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         </Button>
       }
     >
-      <div className="flex flex-col h-full bg-gray-900 text-gray-200">
-        {/* Global Stepper */}
-        <div className="bg-gray-800 border-b border-gray-700">
-          <WizardStepper
-            steps={SIDEBAR_STEPS.filter(s => s.isVisible(state)).map((config, index, array) => {
-               // Determine lock status: Locked if previous step is incomplete AND this step is not active
-               // This is a simplification; we might want to allow jumping back always.
-               const isPreviousComplete = index === 0 || isStepCompleted(array[index - 1].step, state);
-               const isUnlocked = isPreviousComplete || config.step === state.step || isStepCompleted(config.step, state);
-               
-               return {
-                id: config.step,
-                label: config.label,
-                isCompleted: isStepCompleted(config.step, state),
-                isActive: state.step === config.step,
-                isLocked: !isUnlocked
-              };
-            })}
-            onStepClick={(stepId) => handleNavigateToStep(stepId as CreationStep)}
+      <div className="flex h-full bg-gray-900 text-gray-200">
+        {/* Sidebar */}
+        {showSidebar && (
+          <CreationSidebar
+            currentStep={state.step}
+            state={state}
+            onNavigateToStep={handleNavigateToStep}
           />
-        </div>
+        )}
 
-        <div className="flex flex-1 min-h-0">
-          {/* Sidebar */}
-          {showSidebar && (
-            <CreationSidebar
-              currentStep={state.step}
-              state={state}
-              onNavigateToStep={handleNavigateToStep}
-            />
-          )}
-
-          {/* Main content area */}
-          <div className="flex-1 flex flex-col min-w-0 bg-gray-800">
-            <div className="flex-grow overflow-hidden relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={state.step}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full"
-                >
-                  {renderStep()}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col min-w-0 bg-gray-800">
+          <div className="flex-grow overflow-hidden relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={state.step}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                {renderStep()}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>

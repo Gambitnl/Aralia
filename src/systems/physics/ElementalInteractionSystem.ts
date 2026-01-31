@@ -26,6 +26,11 @@ export function applyStateToTags(currentStates: StateTag[], newState: StateTag):
     newStates: StateTag[];
     result: StateApplicationResult;
 } {
+    // RALPH: Chemistry Engine.
+    // Implements "Larian-style" elemental reactions.
+    // Wet + Cold = Frozen. Wet + Fire = Neutralized (Steam).
+    // Uses an alphabetical sort-and-join key ("Cold+Wet") to lookup interactions in a static registry.
+    
     // Clone to avoid mutating the input immediately
     const nextStates = [...currentStates];
     const removedStates: StateTag[] = [];
@@ -67,6 +72,7 @@ export function applyStateToTags(currentStates: StateTag[], newState: StateTag):
                 };
             } else {
                 // Cancellation
+                // RALPH: Neutralization logic. Both states are destroyed.
                 return {
                     newStates: nextStates,
                     result: {

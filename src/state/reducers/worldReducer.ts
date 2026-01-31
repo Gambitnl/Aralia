@@ -52,6 +52,11 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return { geminiGeneratedActions: action.payload as GameState['geminiGeneratedActions'] };
 
     case 'ADVANCE_TIME': {
+      // RALPH: The Chronos Loop.
+      // Advancing time isn't just updating a clock; it triggers a chain reaction:
+      // 1. Ritual Progression: Some spells tick down per second.
+      // 2. Underdark Survival: Sanity/Light levels decay.
+      // 3. World Events: If a day passes, Factions gain power and Trade Routes fluctuate.
       const oldTime = state.gameTime;
       const newTime = new Date(oldTime.getTime());
       newTime.setSeconds(newTime.getSeconds() + action.payload.seconds);
@@ -68,63 +73,52 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       const newDay = getGameDay(newTime);
       const daysPassed = newDay - oldDay;
 
-      let partialUpdate: Partial<GameState> = { gameTime: newTime };
-      let currentMessages = state.messages;
+      // RALPH: Pipeline Logic.
+      // We start with a base update (the time itself) and then pass it through sub-handlers.
+      let nextState: GameState = { ...state, gameTime: newTime };
 
-      // RITUALIST: Delegate ritual advancement to ritualReducer
-      // We pass the new time to the ritualReducer via state, but ritualReducer mostly cares about minutes passed
-      // which it can calculate from payload if we pass the action, OR we just let it handle ADVANCE_TIME directly.
-      // Since worldReducer is handling ADVANCE_TIME, we can call ritualReducer with the same action.
-      const ritualUpdates = ritualReducer({ ...state, gameTime: newTime }, action);
-      if (ritualUpdates.activeRitual) {
-        partialUpdate.activeRitual = ritualUpdates.activeRitual;
-      }
-      if (ritualUpdates.messages) {
-        // If ritualReducer added messages, append them.
-        // Note: ritualReducer.ts returns the *new full list* of messages based on state.messages.
-        // So we should use that list, but we also have other updates pending (Underdark).
-        // We need to be careful about merging message arrays.
+      // 1. Ritual Advancement
+      // We apply the ritualReducer directly to our accumulating nextState.
+      nextState = { ...nextState, ...ritualReducer(nextState, action) };
 
-        // Strategy: Calculate ritual messages diff or just trust the latest list if we chain updates.
-        // Simpler: Let's extract the *new* messages from ritualReducer if possible, or just use its result as the base
-        // for the next step.
-        currentMessages = ritualUpdates.messages;
-      }
+      // 2. Underdark Mechanics
+      // Processes light decay and sanity.
+      const { underdark: newUnderdark, messages: underdarkMessages } = UnderdarkMechanics.processTime(nextState, action.payload.seconds);
+      nextState = { 
+        ...nextState, 
+        underdark: newUnderdark,
+        messages: [...nextState.messages, ...underdarkMessages]
+      };
 
-      // Process Underdark Mechanics (Light/Sanity)
-      // We pass the potentially modified state so it has the latest time, but other state properties (like Underdark)
-      // are taken from 'state' and updated in the returned object.
-      const { underdark: newUnderdark, messages: underdarkMessages } = UnderdarkMechanics.processTime(state, action.payload.seconds);
-
-      partialUpdate.underdark = newUnderdark;
-      if (underdarkMessages.length > 0) {
-        currentMessages = [...currentMessages, ...underdarkMessages];
-        partialUpdate.messages = currentMessages;
-      }
-
+      // 3. Daily World Simulation
       if (daysPassed > 0) {
         // Reset daily short rest counts when the in-game day ticks over.
         if (newDay !== currentRestTracker.lastRestDay) {
-          partialUpdate.shortRestTracker = {
-            ...currentRestTracker,
-            restsTakenToday: 0,
-            lastRestDay: newDay,
+          nextState = {
+            ...nextState,
+            shortRestTracker: {
+                ...currentRestTracker,
+                restsTakenToday: 0,
+                lastRestDay: newDay,
+            }
           };
         }
-        // Note: processWorldEvents expects the full state, so we ideally merge our partial updates first
-        // But since processWorldEvents mostly cares about factions/history, passing state with just updated time is OK for now.
-        const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
+        
+        const { state: simulatedWorldState, logs: worldLogs } = processWorldEvents(nextState, daysPassed);
 
-        // Merge world event changes
-        partialUpdate = {
-          ...partialUpdate,
-          factions: newState.factions,
-          playerFactionStandings: newState.playerFactionStandings,
-          messages: [...currentMessages, ...logs] // Append logs to whatever we already had
+        // Merge world event changes (Factions, Economy, standigs) and append logs.
+        nextState = {
+          ...nextState,
+          factions: simulatedWorldState.factions,
+          playerFactionStandings: simulatedWorldState.playerFactionStandings,
+          messages: [...nextState.messages, ...worldLogs]
         };
       }
 
-      return partialUpdate;
+      // Return ONLY the fields that changed to satisfy the slice reducer contract
+      // Actually, since we produced a full state, we could return it all, 
+      // but Partial<GameState> is expected.
+      return nextState;
     }
 
     case 'SHORT_REST': {

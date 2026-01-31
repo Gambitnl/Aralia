@@ -1,0 +1,93 @@
+[
+  {
+    "category": "NPM Scripts",
+    "name": "dev",
+    "command": "npm run dev",
+    "description": "Start the Vite development server.",
+    "path": "package.json"
+  },
+  {
+    "category": "NPM Scripts",
+    "name": "build",
+    "command": "npm run build",
+    "description": "Clean and build the project for production.",
+    "path": "package.json"
+  },
+  {
+    "category": "NPM Scripts",
+    "name": "validate",
+    "command": "npm run validate",
+    "description": "Run character set checks and data validation.",
+    "path": "package.json"
+  },
+  {
+    "category": "NPM Scripts",
+    "name": "test",
+    "command": "npm run test",
+    "description": "Run Vitest unit tests.",
+    "path": "package.json"
+  },
+  {
+    "category": "Validation",
+    "name": "Audit Race Sync",
+    "command": "npx tsx scripts/audit-race-sync.ts",
+    "description": "Audits race data synchronization.",
+    "path": "scripts/audit-race-sync.ts"
+  },
+  {
+    "category": "Validation",
+    "name": "Check Non-ASCII",
+    "command": "npx tsx scripts/check-non-ascii.ts",
+    "description": "Checks for non-ASCII characters in source files.",
+    "path": "scripts/check-non-ascii.ts"
+  },
+  {
+    "category": "Generators",
+    "name": "Generate Race Images",
+    "command": "npx tsx scripts/generate-race-images.ts",
+    "description": "Generates images for races.",
+    "path": "scripts/generate-race-images.ts"
+  },
+  {
+    "category": "Generators",
+    "name": "Generate NPC",
+    "command": "npx tsx scripts/generate-npc.ts",
+    "description": "Generates a new NPC entity.",
+    "path": "scripts/generate-npc.ts"
+  },
+  {
+    "category": "Utilities",
+    "name": "Tidy Up (PS1)",
+    "command": "powershell -File scripts/tidy-up.ps1",
+    "description": "General cleanup script for the repo.",
+    "path": "scripts/tidy-up.ps1"
+  },
+  {
+    "category": "Agent Workflows",
+    "name": "Maintain Icons",
+    "command": "/maintain-icons",
+    "description": "Workflow to audit and update MDI icons.",
+    "path": ".agent/workflows/maintain-icons.md"
+  },
+  {
+    "category": "Agent Workflows",
+    "name": "Stitch Generate",
+    "command": "/stitch-generate",
+    "description": "Workflow to generate UI using Google Stitch.",
+    "path": ".agent/workflows/stitch-generate.md"
+  },
+  {
+    "category": "Agent Workflows",
+    "name": "Extract Terminal Learnings",
+    "command": "/extract-terminal-learnings",
+    "description": "Scans history to update Terminal.md rules.",
+    "path": ".agent/workflows/extract-terminal-learnings.md"
+  },
+  {
+    "category": "Debugging",
+    "name": "Map R: Drive",
+    "command": "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\MapRDrive.cmd",
+    "description": "Re-maps the R: drive if disconnected.",
+    "path": "External (Startup)"
+  }
+]

@@ -25,6 +25,13 @@ import type {
   Quest,
   GoalStatus,
   HitPointDiceSpendMap,
+  UpdateInspectedTileDescriptionPayload,
+  AddLocationResiduePayload,
+  RemoveLocationResiduePayload,
+  GossipUpdatePayload,
+  DialogueSession,
+  Location,
+  Faction,
 } from '../../types';
 import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
@@ -56,7 +63,7 @@ import { handleGenerateEncounter, handleShowEncounterModal, handleHideEncounterM
 // Resource and spell handlers are implemented in src/hooks/actions/handleResourceActions.ts.
 import { handleCastSpell, handleUseLimitedAbility, handleTogglePreparedSpell, handleLongRest, handleShortRest } from './handleResourceActions';
 // Merchant handlers are implemented in src/hooks/actions/handleMerchantInteraction.ts.
-import { handleOpenDynamicMerchant, validateMerchantTransaction } from './handleMerchantInteraction';
+import { handleOpenDynamicMerchant, handleMerchantAction, validateMerchantTransaction } from './handleMerchantInteraction';
 // System/UI handlers are implemented in src/hooks/actions/handleSystemAndUi.ts.
 import {
   handleSaveGame,
@@ -111,7 +118,7 @@ export function buildActionHandlers({
   playerContext,
   generalActionContext,
 }: ActionHandlerContext): Record<ActionType, ActionHandler> {
-  
+
   const handlers: Record<ActionType, ActionHandler> = {
     // Movement and settlement flow (handleMovement.ts).
     move: async (action) => {
@@ -122,7 +129,7 @@ export function buildActionHandlers({
       await handleQuickTravel({ action, gameState, dispatch, addMessage });
     },
     ENTER_VILLAGE: (action) => {
-      const entryDirection = action.payload?.entryDirection as 'north' | 'east' | 'south' | 'west' | undefined;
+      const entryDirection = (action.payload as { entryDirection?: string })?.entryDirection as 'north' | 'east' | 'south' | 'west' | undefined;
       if (entryDirection) {
         dispatch({ type: 'SET_TOWN_ENTRY_DIRECTION', payload: { direction: entryDirection } });
       }
@@ -191,13 +198,13 @@ export function buildActionHandlers({
       await handleGenerateEncounter({ gameState, dispatch });
     },
     SHOW_ENCOUNTER_MODAL: (action) => {
-      handleShowEncounterModal(dispatch, action.payload?.encounterData as ShowEncounterModalPayload);
+      handleShowEncounterModal(dispatch, (action.payload as { encounterData: ShowEncounterModalPayload }).encounterData);
     },
     HIDE_ENCOUNTER_MODAL: () => {
       handleHideEncounterModal(dispatch);
     },
     START_BATTLE_MAP_ENCOUNTER: (action) => {
-      handleStartBattleMapEncounter(dispatch, action.payload?.startBattleMapEncounterData as StartBattleMapEncounterPayload);
+      handleStartBattleMapEncounter(dispatch, (action.payload as { startBattleMapEncounterData: StartBattleMapEncounterPayload }).startBattleMapEncounterData);
     },
     END_BATTLE: () => {
       handleEndBattle(dispatch);
@@ -253,7 +260,7 @@ export function buildActionHandlers({
       handleToggleLogbook(dispatch);
     },
     TOGGLE_GLOSSARY_VISIBILITY: (action) => {
-      handleToggleGlossary(dispatch, action.payload?.initialTermId);
+      handleToggleGlossary(dispatch, (action.payload as { initialTermId?: string })?.initialTermId);
     },
     toggle_dev_menu: () => {
       handleToggleDevMenu(dispatch);
@@ -274,7 +281,7 @@ export function buildActionHandlers({
       handleToggleQuestLog(dispatch);
     },
     SET_DEV_MODE_ENABLED: (action) => {
-      dispatch({ type: 'SET_DEV_MODE_ENABLED', payload: action.payload?.enabled as boolean });
+      dispatch({ type: 'SET_DEV_MODE_ENABLED', payload: (action.payload as { enabled: boolean }).enabled });
     },
 
     // Merchant actions.
@@ -286,6 +293,18 @@ export function buildActionHandlers({
     },
     OPEN_DYNAMIC_MERCHANT: async (action) => {
       await handleOpenDynamicMerchant({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
+    },
+    BUY_ITEM: async (action) => {
+      await handleMerchantAction({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
+    },
+    SELL_ITEM: async (action) => {
+      await handleMerchantAction({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
+    },
+    BARTER_ITEMS: async (action) => {
+      await handleMerchantAction({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
+    },
+    HAGGLE_ITEM: async (action) => {
+      await handleMerchantAction({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
 
     // Village-specific actions (migrated from label-based custom actions).
@@ -307,22 +326,6 @@ export function buildActionHandlers({
       dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "The Anvil (Legacy)", inventory } });
       addMessage('You step into the sweltering heat of the Blacksmith.', 'system');
     },
-    BUY_ITEM: (action) => {
-      const validation = validateMerchantTransaction('buy', action.payload || {}, gameState);
-      if (validation.valid) {
-        dispatch({ type: 'BUY_ITEM', payload: action.payload as { item: Item; cost: number } });
-      } else {
-        addMessage(validation.error || "Purchase failed.", "system");
-      }
-    },
-    SELL_ITEM: (action) => {
-      const validation = validateMerchantTransaction('sell', action.payload || {}, gameState);
-      if (validation.valid) {
-        dispatch({ type: 'SELL_ITEM', payload: action.payload as { itemId: string; value: number } });
-      } else {
-        addMessage(validation.error || "Sale failed.", "system");
-      }
-    },
 
     // Custom and narrative actions.
     // This handler now focuses on village context actions and generic custom actions.
@@ -330,8 +333,9 @@ export function buildActionHandlers({
     // has been migrated to explicit action types (EXIT_VILLAGE, VISIT_GENERAL_STORE, etc.).
     custom: (action) => {
       // Handle village context actions with integration prompts.
-      if (action.payload?.villageContext) {
-        const villageContext = action.payload.villageContext as VillageActionContext;
+      const payload = action.payload as { villageContext?: VillageActionContext };
+      if (payload?.villageContext) {
+        const villageContext = payload.villageContext;
         const detailText = villageContext.description || `You take in the details of the ${villageContext.buildingType ?? 'building'}.`;
         addMessage(detailText, 'system');
         if (villageContext.integrationPrompt) {
@@ -350,28 +354,29 @@ export function buildActionHandlers({
 
     // Minimal inline dispatches.
     ADD_MET_NPC: (action) => {
-      if (action.payload?.npcId) {
-        dispatch({ type: 'ADD_MET_NPC', payload: { npcId: action.payload.npcId } });
+      const payload = action.payload as { npcId: string };
+      if (payload?.npcId) {
+        dispatch({ type: 'ADD_MET_NPC', payload: { npcId: payload.npcId } });
       }
     },
     UPDATE_INSPECTED_TILE_DESCRIPTION: (action) => {
-      dispatch({ type: 'UPDATE_INSPECTED_TILE_DESCRIPTION', payload: action.payload as any });
+      dispatch({ type: 'UPDATE_INSPECTED_TILE_DESCRIPTION', payload: (action.payload as any) });
     },
     ADD_LOCATION_RESIDUE: (action) => {
-      dispatch({ type: 'ADD_LOCATION_RESIDUE', payload: action.payload as any });
+      dispatch({ type: 'ADD_LOCATION_RESIDUE', payload: (action.payload as any) });
     },
     REMOVE_LOCATION_RESIDUE: (action) => {
-      dispatch({ type: 'REMOVE_LOCATION_RESIDUE', payload: action.payload as any });
+      dispatch({ type: 'REMOVE_LOCATION_RESIDUE', payload: (action.payload as any) });
     },
     UPDATE_NPC_GOAL_STATUS: (action) => {
       const payload = action.payload as { npcId: string; goalId: string; status: GoalStatus };
       dispatch({ type: 'UPDATE_NPC_GOAL_STATUS', payload: { npcId: payload.npcId, goalId: payload.goalId, newStatus: payload.status } });
     },
     PROCESS_GOSSIP_UPDATES: (action) => {
-      dispatch({ type: 'PROCESS_GOSSIP_UPDATES', payload: action.payload as any });
+      dispatch({ type: 'PROCESS_GOSSIP_UPDATES', payload: action.payload as GossipUpdatePayload });
     },
     OPEN_TEMPLE: (action) => {
-      dispatch({ type: 'OPEN_TEMPLE', payload: action.payload as any });
+      dispatch({ type: 'OPEN_TEMPLE', payload: action.payload as { villageContext: VillageActionContext } });
     },
     CLOSE_TEMPLE: () => {
       dispatch({ type: 'CLOSE_TEMPLE' });
@@ -381,31 +386,31 @@ export function buildActionHandlers({
       dispatch({ type: 'USE_TEMPLE_SERVICE', payload });
     },
     UPDATE_CHARACTER_CHOICE: (action) => {
-      dispatch({ type: 'UPDATE_CHARACTER_CHOICE', payload: action.payload as any });
+      dispatch({ type: 'UPDATE_CHARACTER_CHOICE', payload: (action.payload as any) });
     },
     ACCEPT_QUEST: (action) => {
-      dispatch({ type: 'ACCEPT_QUEST', payload: action.payload as any });
+      dispatch({ type: 'ACCEPT_QUEST', payload: action.payload as Quest });
     },
     UPDATE_QUEST_OBJECTIVE: (action) => {
-      dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: action.payload as any });
+      dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: action.payload as { questId: string; objectiveId: string; isCompleted: boolean } });
     },
     COMPLETE_QUEST: (action) => {
-      dispatch({ type: 'COMPLETE_QUEST', payload: action.payload as any });
+      dispatch({ type: 'COMPLETE_QUEST', payload: action.payload as { questId: string } });
     },
     PRAY: (action) => {
-      dispatch({ type: 'PRAY', payload: action.payload as any });
+      dispatch({ type: 'PRAY', payload: (action.payload as any) });
     },
     TOGGLE_THIEVES_GUILD: () => {
       dispatch({ type: 'TOGGLE_THIEVES_GUILD' });
     },
     REGISTER_DYNAMIC_ENTITY: (action) => {
-      dispatch({ type: 'REGISTER_DYNAMIC_ENTITY', payload: action.payload as any });
+      dispatch({ type: 'REGISTER_DYNAMIC_ENTITY', payload: (action.payload as any) });
     },
     START_DIALOGUE_SESSION: async (action) => {
       await handleStartDialogue({ action, gameState, dispatch, addMessage, addGeminiLog, playPcmAudio, playerContext, generalActionContext });
     },
     UPDATE_DIALOGUE_SESSION: (action) => {
-      dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: action.payload as any });
+      dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: (action.payload as any)?.session });
     },
     END_DIALOGUE_SESSION: () => {
       dispatch({ type: 'END_DIALOGUE_SESSION' });

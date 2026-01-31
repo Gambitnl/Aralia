@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { UnderdarkMechanics } from '../UnderdarkMechanics';
 import { GameState, UnderdarkState, LightSource } from '../../../types';
-import { initialGameState } from '../../../state/appState';
+import { initialGameState } from '../../../state/initialState';
 
 describe('UnderdarkMechanics', () => {
 

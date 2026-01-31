@@ -113,6 +113,9 @@ export const useAbilitySystem = ({
       castAtLevel: number,
       playerInput?: string
     ) {
+      // RALPH: Stability Pattern.
+      // We access `charactersRef.current` instead of `characters` from props to avoid re-creating this function on every render.
+      // This prevents the UI from "flickering" or losing focus during rapid updates.
       // Access latest data from refs
       const currentCharacters = charactersRef.current;
       const currentTriggers = reactiveTriggersRef.current;

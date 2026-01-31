@@ -1,0 +1,11 @@
+{
+  "id": "oracle",
+  "title": "Oracle",
+  "category": "Lore",
+  "tags": ["entity", "lore"],
+  "excerpt": "A mysterious entity offering cryptic guidance.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/lore/oracle.json",
+  "markdown": "# The Oracle\n\nA mysterious entity that exists beyond the veil of reality, offering cryptic guidance to those who seek it. Some say the Oracle is a manifestation of the world's collective wisdom, while others believe it to be something far more ancient and powerful."
+}

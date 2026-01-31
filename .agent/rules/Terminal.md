@@ -64,3 +64,5 @@ This guide tracks common issues encountered when running terminal commands and p
 - **Special File Conflicts (nul):** The `nul` file in the project root causes `Select-String` and other recursive PowerShell commands to fail.
   - **Solution:** Explicitly exclude `nul` or use `git grep` which respects `.gitignore`.
 - **Node Spawn on Windows:** When using `child_process.spawn` or `exec` on Windows, ALWAYS set `{ shell: true }` to avoid `ENOENT` errors when calling `.cmd` or `.ps1` wrappers (like `npx`).
+- **Rapid-Fire File Edits:** When performing multiple `multi_replace_file_content` calls on a single file, ensure each call is followed by a `view_file` to resync line numbers. Overlapping or rapid non-atomic edits can lead to catastrophic file corruption if internal line-tracking state desyncs from the actual file state.
+- **TSC Exit Codes:** `npx tsc --noEmit` on this project often returns exit code 1 due to pre-existing `node_modules` (Zod/fa) interop issues. Focus on specific file errors in the output rather than the final exit code.

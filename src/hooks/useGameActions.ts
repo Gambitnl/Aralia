@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 31/01/2026, 17:14:14
+ * Dependents: App.tsx
+ * Imports: 7 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/useGameActions.ts
@@ -5,13 +20,14 @@
  * This is the refactored version that orchestrates calls to specific action handlers.
  */
 import React, { useCallback } from 'react';
-import { GameState, Action, Location, GeminiLogEntry, DiscoveryType } from '../types';
+import { GameState, Action, Location, GeminiLogEntry, DiscoveryType, ACTION_METADATA } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { LOCATIONS, NPCS } from '../constants';
 import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, GetTileTooltipTextFn, AddGeminiLogFn, LogDiscoveryFn } from './actions/actionHandlerTypes';
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
 import { generateGeneralActionContext } from '../utils/contextUtils';
 import { buildActionHandlers } from './actions/actionHandlers';
+import { UIToggleAction } from '../types/ui';
 
 
 interface UseGameActionsProps {
@@ -71,8 +87,10 @@ export function useGameActions({
 
   const processAction = useCallback(
     async (action: Action) => {
-      // TODO: Derive this UI-toggle list from the action registry/shared enum to avoid drift; see docs/QOL_TODO.md (update that entry if this block is moved).
-      const isUiToggle = ['toggle_map', 'toggle_submap_visibility', 'toggle_three_d', 'toggle_dev_menu', 'toggle_gemini_log_viewer', 'TOGGLE_DISCOVERY_LOG', 'TOGGLE_GLOSSARY_VISIBILITY', 'HIDE_ENCOUNTER_MODAL', 'SHOW_ENCOUNTER_MODAL', 'toggle_party_editor', 'toggle_party_overlay', 'CLOSE_CHARACTER_SHEET', 'TOGGLE_NPC_TEST_MODAL', 'TOGGLE_LOGBOOK', 'CLOSE_MERCHANT', 'BUY_ITEM', 'SELL_ITEM', 'TOGGLE_GAME_GUIDE', 'TOGGLE_QUEST_LOG', 'SET_DEV_MODE_ENABLED'].includes(action.type);
+      // RALPH: UI Toggle Gate.
+      // Uses the centralized UIToggleAction enum to determine if an action should trigger
+      // the global loading spinner. This prevents "Ghost Spinners" during pure UI transitions.
+      const isUiToggle = Object.values(UIToggleAction).includes(action.type as any);
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }
@@ -131,24 +149,27 @@ export function useGameActions({
         if (handler) {
           await handler(action);
         } else {
-          // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-          // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-          // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
           addMessage(`Action type ${action.type} not recognized.`, 'system');
           dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
           dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
         }
-        // TODO(lint-intent): The any on 'err' hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
-        addMessage(`Error processing action: ${msg}`, 'system');        
+        console.error(`[useGameActions] Error in ${action.type}:`, err);
+        addMessage(`Error processing action: ${msg}`, 'system');
         dispatch({ type: 'SET_ERROR', payload: msg });
         dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
         dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
       } finally {
-        if (!isUiToggle && action.type !== 'save_game' && action.type !== 'GENERATE_ENCOUNTER' && !action.type.includes('_MERCHANT') && !action.type.includes('_ITEM')) {
+        // Clear loading state if it was set initially.
+        // handlers for complex actions (like save_game or encounter generation) 
+        // manage their own loading lifecycle and should not be reset here.
+        const handledByComponent = action.type === 'save_game' ||
+          action.type === 'GENERATE_ENCOUNTER' ||
+          action.type.includes('_MERCHANT') ||
+          action.type.includes('_ITEM');
+
+        if (!isUiToggle && !handledByComponent) {
           dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
         }
       }

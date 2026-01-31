@@ -29,7 +29,7 @@ import { validateCharacterName } from '../../utils/securityUtils';
 import SpellContext from '../../context/SpellContext';
 import Tooltip from '../ui/Tooltip';
 import { CreationStepLayout } from './ui/CreationStepLayout';
-import { SplitPaneLayout } from './ui/SplitPaneLayout';
+import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { User, Shield, Zap, BookOpen } from 'lucide-react';
 
 interface NameAndReviewProps {

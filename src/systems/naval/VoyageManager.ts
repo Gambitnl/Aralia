@@ -8,9 +8,10 @@
 // TODO(lint-intent): 'VoyageEvent' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Ship, VoyageState, VoyageEvent as _VoyageEvent } from '../../types/naval';
+import { Ship, VoyageState, VoyageEvent as _VoyageEvent, RationingLevel } from '../../types/naval';
 import { VOYAGE_EVENTS } from '../../data/naval/voyageEvents';
 import { CrewManager } from './CrewManager';
+import { WeatherState } from '../../types/environment';
 
 export class VoyageManager {
     /**
@@ -20,6 +21,7 @@ export class VoyageManager {
         return {
             shipId: ship.id,
             status: 'Sailing',
+            rationingLevel: 'normal',
             daysAtSea: 0,
             distanceTraveled: 0,
             distanceToDestination,
@@ -35,16 +37,25 @@ export class VoyageManager {
 
     /**
      * Advances the voyage by one day.
-     * 1. Updates distance based on speed.
-     * 2. Consumes supplies from ship cargo.
+     * 1. Updates distance based on speed and weather.
+     * 2. Consumes supplies from ship cargo based on rationing.
      * 3. Triggers random event.
      * 4. Updates crew (daily wage/morale).
      */
-    static advanceDay(state: VoyageState, ship: Ship, availableFunds: number = 1000): {
+    static advanceDay(
+        state: VoyageState, 
+        ship: Ship, 
+        weather: WeatherState,
+        availableFunds: number = 1000
+    ): {
         newState: VoyageState;
         updatedShip: Ship;
         remainingFunds: number;
     } {
+        // RALPH: The Voyage Heartbeat.
+        // Runs every 24 in-game hours while at sea.
+        // Calculates progress, processes the "Supply Tax" (Food/Water), and rolls for random encounters.
+        
         // Clone ship to avoid mutating input directly
         let currentShip = JSON.parse(JSON.stringify(ship)) as Ship;
 
@@ -57,14 +68,27 @@ export class VoyageManager {
         let dailyLog = '';
         let dailyLogType: VoyageState['log'][0]['type'] = 'Info';
 
-        // 1. Calculate Base Movement
-        const milesPerDay = (currentShip.stats.speed / 10) * 24;
-        // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
-        // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
-        // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
-        const actualDistance = milesPerDay;
+        // 1. Calculate Base Movement with Weather Modifiers
+        // RALPH: Nautical Math. Speed / 10 = Knots (roughly). * 24h = Daily Range.
+        const baseMilesPerDay = (currentShip.stats.speed / 10) * 24;
+        let weatherModifier = 1.0;
+
+        // RALPH: Deterministic movement.
+        // Wind speed directly affects progress. Storms force anchors or slow progress.
+        if (weather.wind.speed === 'strong' || weather.wind.speed === 'gale') {
+            weatherModifier *= 1.25; // Good winds boost speed
+        } else if (weather.wind.speed === 'calm') {
+            weatherModifier *= 0.75; // Lack of wind slows sailing ships
+        }
+
+        if (weather.precipitation === 'storm' || weather.precipitation === 'blizzard') {
+            weatherModifier *= 0.5; // Heavy storms are dangerous and slow
+        }
+
+        const actualDistance = baseMilesPerDay * weatherModifier;
 
         // 2. Event Trigger
+        // RALPH: Chaos Factor. 40% chance of a random event (Storm, Kraken, Ghost Ship).
         const possibleEvents = VOYAGE_EVENTS.filter(e => !e.conditions || e.conditions(state));
 
         // Simple weighted choice
@@ -96,9 +120,68 @@ export class VoyageManager {
         const funds = crewUpdate.remainingFunds;
 
         // 4. Consume Supplies
+        // RALPH: Survival Mechanics. Crew consumes 1 Food / 2 Water per day base.
+        // Rationing Level affects consumption and Morale.
         const crewCount = currentShip.crew.members.length;
-        const foodNeeded = crewCount * 1;
-        const waterNeeded = crewCount * 2;
+        const rationing = state.rationingLevel || 'normal';
+        
+        let foodMultiplier = 1.0;
+        let waterMultiplier = 1.0;
+        let moralePenalty = 0;
+
+        if (rationing === 'half') {
+            foodMultiplier = 0.5;
+            moralePenalty = -5;
+            dailyLog += ' Crew is on half-rations.';
+        } else if (rationing === 'starvation') {
+            foodMultiplier = 0;
+            waterMultiplier = 0.5;
+            moralePenalty = -15;
+            dailyLog += ' Crew is starving!';
+        }
+
+        const foodNeeded = crewCount * 1 * foodMultiplier;
+        const waterNeeded = crewCount * 2 * waterMultiplier;
+
+        let starving = false;
+        let thirsty = false;
+
+        // Deduct Food
+        if (currentShip.cargo.supplies.food >= foodNeeded) {
+            currentShip.cargo.supplies.food -= foodNeeded;
+            state.suppliesConsumed.food += foodNeeded;
+        } else {
+            // Consume remainder
+            state.suppliesConsumed.food += currentShip.cargo.supplies.food;
+            currentShip.cargo.supplies.food = 0;
+            starving = true;
+        }
+
+        // Deduct Water
+        if (currentShip.cargo.supplies.water >= waterNeeded) {
+            currentShip.cargo.supplies.water -= waterNeeded;
+            state.suppliesConsumed.water += waterNeeded;
+        } else {
+             state.suppliesConsumed.water += currentShip.cargo.supplies.water;
+             currentShip.cargo.supplies.water = 0;
+             thirsty = true;
+        }
+
+        // Apply morale penalty from rationing OR scarcity
+        if (moralePenalty < 0) {
+            CrewManager.modifyCrewMorale(currentShip.crew, moralePenalty, 'rationing');
+        }
+
+        // Starvation/Thirst Consequences
+        if (starving || thirsty) {
+            const reason = starving && thirsty ? 'Starvation & Thirst' : (starving ? 'Starvation' : 'Thirst');
+            CrewManager.modifyCrewMorale(currentShip.crew, -10, reason);
+            dailyLog += ` CRITICAL: Crew is suffering from ${reason.toLowerCase()}!`;
+            dailyLogType = 'Warning';
+
+            // Recalculate crew stats after modification
+            currentShip.crew = CrewManager.calculateCrewStats(currentShip.crew.members);
+        }
 
         let starving = false;
         let thirsty = false;

@@ -1,0 +1,11 @@
+{
+  "id": "gemini",
+  "title": "Gemini",
+  "category": "Technology",
+  "tags": ["ai", "system"],
+  "excerpt": "The advanced AI model powering this world's narrative and interactions.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/lore/gemini.json",
+  "markdown": "# Gemini\n\nThe advanced AI model powering Aralia's narrative and interactions. Gemini acts as the Dungeon Master, the storyteller, and the architect of the world, weaving together the threads of player choices and procedural generation to create a unique and immersive experience."
+}

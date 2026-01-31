@@ -43,6 +43,9 @@ export function useGameInitialization({
   }, [dispatch]);
 
   const handleSkipCharacterCreator = useCallback(async () => {
+    // RALPH: Dev/Fast-Start Flow.
+    // bypasses the UI wizard to generate a predefined "Classic Party" (Fighter, Cleric, Rogue).
+    // Uses `generateCompanion` to hydrate them with full stats/backstory as if they were real companions.
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating party with full backstories..." } });
 
     const newWorldSeed = new SeededRandom(Date.now()).next() * 1000000;
@@ -61,6 +64,7 @@ export function useGameInitialization({
         const companion = await generateCompanion(config);
         if (companion) {
           // Mark the first member as the player
+          // RALPH: The first generated NPC becomes the "Main Character" (Player ID).
           if (generatedParty.length === 0) {
             companion.id = 'player';
           } else {

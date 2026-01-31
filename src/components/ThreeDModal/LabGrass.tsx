@@ -236,7 +236,7 @@ const LabGrass = ({
   const grassMaterial = useMemo(() => {
     const map = grassMesh.material?.map;
     const mat = new MeshStandardMaterial({
-      map,
+      map: map || null,
       emissive: new ThreeColor(0x308040),
       emissiveIntensity: 0.05,
       transparent: false,
@@ -253,7 +253,7 @@ const LabGrass = ({
   const makeFlowerMaterial = (mesh: any, tint: number) => {
     const map = mesh.material?.map;
     const mat = new MeshStandardMaterial({
-      map,
+      map: map || null,
       transparent: true,
       alphaTest: 0.5,
       side: DoubleSide,

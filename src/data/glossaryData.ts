@@ -4,6 +4,9 @@
  * Defines predefined meanings for common icons used in submap visuals.
  */
 
+// RALPH: Visual Legend.
+// Maps Emoji/Characters used in the Procedural Submap to human-readable labels.
+// This is used by the UI tooltips and the AI DM to describe the environment to the player.
 export const SUBMAP_ICON_MEANINGS: Record<string, string> = {
   // General Terrain & Flora
   '🌲': 'Tree / Forest Element',
@@ -37,9 +40,12 @@ export const SUBMAP_ICON_MEANINGS: Record<string, string> = {
   '🐙': 'Octopus / Cephalopod',
   '🐡': 'Pufferfish / Marine Creature',
   '🐬': 'Dolphin / Marine Mammal',
+  '🐠': 'Tropical Fish',
   '🦗': 'Cricket / Grasshopper',
   '🐞': 'Ladybug',
   '🪱': 'Worm / Grub',
+  '🦇': 'Bat / Cave Dweller',
+  '👻': 'Spectral Presence / Ghost',
   
   // Features & Structures
   '💧': 'Water Feature / Pond / Oasis / Murky Pool',
@@ -48,6 +54,8 @@ export const SUBMAP_ICON_MEANINGS: Record<string, string> = {
   '🏘️': 'Village / Settlement / Buildings',
   '🏕️': 'Campsite / Remains of Camp',
   '⛰️': 'Rocky Outcrop / Peak Detail',
+  '🌄': 'Hill / Rising Ground',
+  '🏜️': 'Mesa / Rocky Plateau',
   '❄️': 'Snow / Ice Patch',
   '💎': 'Mineral Vein / Gemstone Deposit',
   '♨️': 'Geothermal Vent / Hot Spring / Steam',
@@ -57,6 +65,12 @@ export const SUBMAP_ICON_MEANINGS: Record<string, string> = {
   ' M ': 'Burial Mound / Earthen Structure', // Assuming M is for Mound
   '·': 'Dirt Patch / Sparse Ground',
   '〃': 'Pebbles / Gravel',
+  '🧱': 'Brick Wall / Masonry',
+  '💀': 'Skull / Remains',
+  '🕯️': 'Candle / Small Light Source',
+  '⛓️': 'Chains / Iron Shackles',
+  '🕸️': 'Spider Web',
+  '🏺': 'Ancient Urn / Pottery',
 
 
   // Path & Travel Related

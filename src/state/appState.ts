@@ -84,242 +84,12 @@ const INITIAL_NAVAL_STATE: NavalState = {
     knownPorts: [],
 };
 
-const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, deity) => {
-    acc[deity.id] = {
-        score: 0,
-        rank: 'Neutral',
-        consecutiveDaysPrayed: 0,
-        history: [],
-        blessings: []
-    };
-    return acc;
-}, {} as Record<string, DivineFavor>);
+import { initialGameState } from './initialState';
 
-export const initialGameState: GameState = {
-    phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
-    party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
-    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty().map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })) : null,
-    inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
-    gold: 10, // Default starting gold
-    currentLocationId: STARTING_LOCATION_ID,
-    subMapCoordinates: canUseDevTools() && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
-    messages: [],
-    isLoading: canUseDevTools() && !!getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame(),
-    loadingMessage: canUseDevTools() && !!getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
-    isImageLoading: false,
-    error: null,
-    worldSeed: Date.now(), // Default seed, will be overwritten on new game
-    mapData: null,
-    isMapVisible: false,
-    isSubmapVisible: false,
-    isThreeDVisible: false,
-    isPartyOverlayVisible: false,
-    isNpcTestModalVisible: false,
-    isLogbookVisible: false,
-    isGameGuideVisible: false,
-    isThievesGuildVisible: false,
-    dynamicLocationItemIds: {},
-    currentLocationActiveDynamicNpcIds: null,
-    geminiGeneratedActions: null,
-    characterSheetModal: {
-        isOpen: false,
-        character: null,
-    },
-    gameTime: initialGameTime,
-    // Track party-wide short rest pacing (max rests per day + cooldown).
-    shortRestTracker: {
-        restsTakenToday: 0,
-        lastRestDay: getGameDay(initialGameTime),
-        lastRestEndedAtMs: null,
-    },
-
-    // Dev Mode specific state
-    isDevMenuVisible: false,
-    isPartyEditorVisible: false,
-    isGeminiLogViewerVisible: false,
-    geminiInteractionLog: [],
-    isOllamaLogViewerVisible: false,
-    isUnifiedLogViewerVisible: false,
-    ollamaInteractionLog: [],
-    hasNewRateLimitError: false,
-    devModelOverride: null,
-    isDevModeEnabled: false,
-    banterDebugLog: [],
-    // TODO(2026-01-03 pass 5 Codex-CLI): archived banters placeholder until companion log persistence is aligned with UI.
-    archivedBanters: [],
-
-    // Encounter Modal State
-    isEncounterModalVisible: false,
-    generatedEncounter: null,
-    encounterSources: null,
-    encounterError: null,
-
-    // Battle Map State
-    currentEnemies: null,
-
-    // Fields for save/load
-    saveVersion: undefined,
-    saveTimestamp: undefined,
-
-    // NPC interaction context
-    lastInteractedNpcId: null,
-    lastNpcResponse: null,
-
-    inspectedTileDescriptions: {},
-
-    // Discovery Journal State
-    discoveryLog: [],
-    unreadDiscoveryCount: 0,
-    isDiscoveryLogVisible: false,
-    isGlossaryVisible: false,
-    selectedGlossaryTermForModal: undefined,
-
-    // NPC Memory
-    npcMemory: Object.keys(NPCS).reduce((acc, npcId) => {
-        const npcData = NPCS[npcId];
-        acc[npcId] = {
-            disposition: 0,
-            knownFacts: [],
-            suspicion: SuspicionLevel.Unaware,
-            goals: npcData?.goals ? [...npcData.goals] : [],
-        };
-        return acc;
-    }, {} as GameState['npcMemory']),
-
-    // World State
-    locationResidues: {},
-
-    // Character Logbook
-    metNpcIds: [],
-
-    // Merchant State
-    merchantModal: {
-        isOpen: false,
-        merchantName: '',
-        merchantInventory: [],
-    },
-
-    economy: {
-        marketEvents: [],
-        globalInflation: 0,
-        regionalWealth: {},
-        tradeRoutes: INITIAL_TRADE_ROUTES,
-        // Legacy fields for backward compatibility
-        marketFactors: {
-            scarcity: [],
-            surplus: []
-        },
-        buyMultiplier: 1.0,
-        sellMultiplier: 0.5,
-        activeEvents: []
-    },
-
-    // Quest System
-    questLog: [],
-    isQuestLogVisible: false,
-
-    // Notoriety System
-    notoriety: {
-        globalHeat: 0,
-        localHeat: {},
-        knownCrimes: [],
-        // TODO(2026-01-03 pass 4 Codex-CLI): bounties placeholder keeps NotorietyState satisfied; populate from crime system when available.
-        bounties: [],
-    },
-
-    worldHistory: createEmptyHistory(),
-
-    // Town Exploration
-    townState: null,
-    townEntryDirection: null,
-
-    // Notification System
-    notifications: [],
-
-    // Faction System
-    factions: FACTIONS,
-    playerFactionStandings: INITIAL_FACTION_STANDINGS,
-
-    // Companion System
-    companions: COMPANIONS,
-
-    // Religion System
-    religion: {
-        discoveredDeities: [],
-        divineFavor: DEITIES.reduce((acc, deity) => {
-            acc[deity.id] = {
-                score: 0,
-                rank: 'Neutral',
-                consecutiveDaysPrayed: 0,
-                history: [],
-                blessings: []
-            };
-            return acc;
-        }, {} as Record<string, import('../types').DivineFavor>),
-        activeBlessings: []
-    },
-    // Legacy: keep flat map for compatibility with flows expecting root-level favor
-    divineFavor: { ...INITIAL_DIVINE_FAVOR },
-    temples: TEMPLES.reduce((acc, temple) => {
-        acc[temple.id] = temple;
-        return acc;
-    }, {} as GameState['temples']),
-
-    // Shadowbroker: Crime System
-    fences: {},
-    thievesGuild: {
-        memberId: 'player',
-        guildId: 'shadow_hands',
-        rank: 0,
-        reputation: 0,
-        activeJobs: [],
-        availableJobs: [],
-        completedJobs: [],
-        servicesUnlocked: []
-    },
-
-    // Linker: World Coherence System
-    dynamicLocations: {},
-    // Registry for procedurally generated NPCs.
-    generatedNpcs: {},
-
-    // Depthcrawler: Underdark System
-    // Identity System (initialized lazily or on demand)
-    playerIdentity: undefined,
-
-    // Underdark System
-    underdark: INITIAL_UNDERDARK_STATE,
-
-    // Environment System
-    environment: DEFAULT_WEATHER,
-
-    // Dialogist: Dialogue System
-    activeDialogueSession: null,
-    isDialogueInterfaceOpen: false,
-
-    // Lockpicking Modal State
-    isLockpickingModalVisible: false,
-    activeLock: null,
-
-    // Dice Roller Modal State
-    isDiceRollerVisible: false,
-
-    // User Preferences
-    visualDiceEnabled: true,
-
-    // Ollama Dependency Modal
-    isOllamaDependencyModalVisible: false,
-
-    // Naval System
-    naval: INITIAL_NAVAL_STATE,
-    isNavalDashboardVisible: false,
-    isNobleHouseListVisible: false,
-    isTradeRouteDashboardVisible: false,
-
-    banterCooldowns: {}
-};
-
-
+// RALPH: The Root Brain.
+// Orchestrates the "Big Bang" of state updates.
+// 1. Cross-Cutting Concerns: Handles actions that affect multiple systems (e.g. SET_GAME_PHASE, START_BATTLE).
+// 2. Delegation: Forwards single-domain actions to specialized slice reducers.
 export function appReducer(state: GameState, action: AppAction): GameState {
     // 1. Handle actions with cross-cutting concerns first
     switch (action.type) {
@@ -995,34 +765,34 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             };
 
         // 2. Delegate to slice reducers for single-domain actions
+        // RALPH: Pipeline Pattern.
+        // We sequentially apply each slice reducer to the state.
+        // This ensures that if multiple reducers react to the same action, their changes are combined
+        // rather than overwritten by the last spread operator.
         default: {
-            const changes = {
-                ...uiReducer(state, action),
-                ...religionReducer(state, action),
-                ...characterReducer(state, action),
-                ...worldReducer(state, action),
-                ...logReducer(state, action),
-                ...encounterReducer(state, action),
-                ...npcReducer(state, action),
-                ...questReducer(state, action),
-                ...townReducer(state, action),
-                ...crimeReducer(state, action),
-                ...companionReducer(state, action),
-                ...identityReducer(state, action),
-                ...dialogueReducer(state, action),
-                ...craftingReducer(state, action),
-                ...conversationReducer(state, action),
-                ...journalReducer(state, action),
-            };
+            let nextState = { ...state };
+            
+            // Core UI & Systems
+            nextState = { ...nextState, ...uiReducer(nextState, action) };
+            nextState = { ...nextState, ...religionReducer(nextState, action) };
+            nextState = { ...nextState, ...characterReducer(nextState, action) };
+            nextState = { ...nextState, ...worldReducer(nextState, action) };
+            nextState = { ...nextState, ...logReducer(nextState, action) };
+            
+            // Specific Domain Systems
+            nextState = { ...nextState, ...encounterReducer(nextState, action) };
+            nextState = { ...nextState, ...npcReducer(nextState, action) };
+            nextState = { ...nextState, ...questReducer(nextState, action) };
+            nextState = { ...nextState, ...townReducer(nextState, action) };
+            nextState = { ...nextState, ...crimeReducer(nextState, action) };
+            nextState = { ...nextState, ...companionReducer(nextState, action) };
+            nextState = { ...nextState, ...identityReducer(nextState, action) };
+            nextState = { ...nextState, ...dialogueReducer(nextState, action) };
+            nextState = { ...nextState, ...craftingReducer(nextState, action) };
+            nextState = { ...nextState, ...conversationReducer(nextState, action) };
+            nextState = { ...nextState, ...journalReducer(nextState, action) };
 
-            if (Object.keys(changes).length === 0) {
-                return state;
-            }
-
-            return {
-                ...state,
-                ...changes,
-            };
+            return nextState;
         }
     }
 }

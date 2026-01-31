@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { Race } from '../../types';
 import { BACKGROUNDS, AGE_APPROPRIATE_BACKGROUNDS } from '../../data/backgrounds';
 import { CreationStepLayout } from './ui/CreationStepLayout';
-import { SplitPaneLayout } from './ui/SplitPaneLayout';
+import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { BackgroundDetailPane } from './BackgroundDetailPane';
 
 interface BackgroundSelectionProps {

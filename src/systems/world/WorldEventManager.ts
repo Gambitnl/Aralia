@@ -16,20 +16,11 @@ import { FactionManager } from './FactionManager';
 import { generateNobleIntrigue } from './NobleIntrigueManager';
 import { checkQuestDeadlines } from '../quests/QuestManager';
 import { SecretGenerator } from '../intrigue/SecretGenerator';
-// TODO(lint-intent): 'Secret' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Secret as _Secret } from '../../types/identity';
+import { WorldHistoryService } from '../../services/WorldHistoryService';
+import { addHistoryEvent, createEmptyHistory } from '../../utils/world/historyUtils';
+import { calculateMarketFactors } from '../../utils/economy/marketEvents';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
-
-export interface WorldEventResult {
-  state: GameState;
-  logs: GameMessage[];
-}
-
-// Probability of an event occurring per day (0.0 to 1.0)
-const DAILY_EVENT_CHANCE = 0.2;
 
 /**
  * Handles Faction Skirmish events.
@@ -37,7 +28,8 @@ const DAILY_EVENT_CHANCE = 0.2;
  * Relationships ripple outward.
  */
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
-  // Weather Check: Armies don't march in storms
+  // RALPH: Geopolitical Simulation.
+  // 1. Weather Check: Logic-gate. Military activity is hindered by storms (90% cancellation).
   const weather = (state as any).weather;
   if (weather) {
      const p = weather.precipitation;
@@ -57,6 +49,9 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
   const factionA = state.factions[factionAId];
 
   // 2. SELECT VICTIM (Prefer enemies)
+  // RALPH: Aggression Weighting.
+  // Factions are more likely to attack official enemies (-50 relation weight) 
+  // or weaker targets (Power-based opportunism).
   let factionBId: string | null = null;
 
   // Create candidate list: [id, weight]
@@ -148,8 +143,10 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
   let newState = { ...state };
   const newFactions = { ...newState.factions };
 
-  // TODO(Recorder): Convert this Skirmish event into a persistent WorldHistoryEvent using ADD_WORLD_HISTORY_EVENT action or by updating state directly here.
-  // Currently, it only creates ephemeral rumors and logs.
+  // RALPH: Permanent Record.
+  // Converts the ephemeral skirmish rumor into a permanent World History event.
+  const historyEvent = WorldHistoryService.createSkirmishEvent(winner, loser, timestamp);
+  newState.worldHistory = addHistoryEvent(newState.worldHistory || createEmptyHistory(), historyEvent);
 
   // Update Faction Power
   const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
@@ -570,17 +567,9 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
      }
 
      if (eventsChanged) {
-        const newScarcity = new Set<string>();
-        const newSurplus = new Set<string>();
-
-        newActiveEvents.forEach((e: any) => {
-            if (!Array.isArray(e.affectedTags)) return;
-            if (e.effect === 'scarcity') {
-                e.affectedTags.forEach((tag: string) => newScarcity.add(tag));
-            } else {
-                e.affectedTags.forEach((tag: string) => newSurplus.add(tag));
-            }
-        });
+        // RALPH: Logic Unification.
+        // Uses the centralized selector to ensure state factors match active events.
+        const { scarcity, surplus } = calculateMarketFactors(newActiveEvents);
 
         currentState = {
             ...currentState,
@@ -588,8 +577,8 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
                 ...currentState.economy,
                 activeEvents: newActiveEvents,
                 marketFactors: {
-                    scarcity: Array.from(newScarcity),
-                    surplus: Array.from(newSurplus)
+                    scarcity,
+                    surplus
                 }
             }
         };

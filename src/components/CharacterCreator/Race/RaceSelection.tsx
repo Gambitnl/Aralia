@@ -7,7 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Race } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
-import { SplitPaneLayout } from '../ui/SplitPaneLayout';
+import { SplitPaneLayout } from '../../ui/SplitPaneLayout';
 import { RaceDetailPane, RaceDetailData, RacialChoiceData } from './RaceDetailPane';
 import { getRaceGroupById } from '../../../data/races/raceGroups';
 import { Button } from '../../ui/Button';
@@ -200,7 +200,7 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
     setSelectedSpellAbility(null);
   };
 
-  const raceConfirmButton = selectedRace ? (
+  const customConfirmButton = selectedRace ? (
     <Button
       variant="primary"
       onClick={() => {
@@ -218,7 +218,7 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
   ) : null;
 
   return (
-    <CreationStepLayout title="Choose Your Race" raceConfirmButton={raceConfirmButton} bodyScrollable={false}>
+    <CreationStepLayout title="Choose Your Race" customNextButton={customConfirmButton} bodyScrollable={false}>
       <div className="h-full min-h-0">
         <SplitPaneLayout
           className="h-full min-h-0"

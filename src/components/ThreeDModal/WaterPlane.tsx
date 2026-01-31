@@ -16,6 +16,7 @@ const WaterPlane = ({ size, level, color, opacity = 0.65 }: WaterPlaneProps) => 
     opacity,
     roughness: 0.2,
     metalness: 0.1,
+    map: null
   }), [color, opacity]);
 
   useEffect(() => () => {

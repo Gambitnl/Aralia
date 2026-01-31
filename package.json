@@ -81,5 +81,15 @@
     "typescript-eslint": "^8.50.1",
     "vite": "^7.3.0",
     "vitest": "^4.0.16"
+  },
+  "gemini": {
+    "mcpServers": {
+      "chrome-devtools": {
+        "command": "C:/Program Files/nodejs/node.exe",
+        "args": [
+          "C:/Users/gambi/Documents/Git/AraliaV4/Aralia/.agent_tools/chrome-devtools-mcp/wrapper.cjs"
+        ]
+      }
+    }
   }
 }

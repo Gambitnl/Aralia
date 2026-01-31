@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import { Action } from '../../types';
 import { canUseDevTools } from '../../utils/permissions';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
 import { ActionButton } from './ActionButton';
 
 interface SystemMenuProps {
@@ -37,8 +38,18 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
 
   const focusTrapRef = useFocusTrap<HTMLDivElement>(isMenuOpen, handleCloseMenu);
 
+  // RALPH: Logic Extraction.
+  // Uses the centralized keyboard nav hook to handle ArrowUp/ArrowDown within the menu.
+  const { handleKeyDown: handleMenuKeyDown } = useKeyboardNavigation({
+    containerRef: focusTrapRef,
+    orientation: 'vertical',
+    onClose: handleCloseMenu
+  });
+
   const systemMenuActions = useMemo(
     () => [
+      // RALPH: Functional Grouping.
+      // Top section: Gameplay Logs & Journaling.
       { action: { type: 'TOGGLE_DISCOVERY_LOG', label: 'Discoveries' }, badgeCount: unreadDiscoveryCount },
       { action: { type: 'TOGGLE_QUEST_LOG', label: 'Quests' } },
       { action: { type: 'TOGGLE_LOGBOOK', label: 'Dossiers' } },
@@ -46,9 +57,12 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       { action: { type: 'toggle_party_overlay', label: 'Party' } },
       { action: { type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' } },
 
+      // Middle section: Persistence (Save/Quit).
       { action: { type: 'save_game', label: 'Save Game' } },
       { action: { type: 'go_to_main_menu', label: 'Main Menu' } },
 
+      // RALPH: Dev-Only Guard.
+      // Logic-gated options that only appear for internal builds or dev mode.
       // Developer Mode Toggle
       canUseDevTools()
         ? { action: { type: 'SET_DEV_MODE_ENABLED', label: isDevModeEnabled ? 'Disable Dev Mode' : 'Enable Dev Mode', payload: { enabled: !isDevModeEnabled } } }
@@ -80,31 +94,6 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
-
-  // Handle arrow key navigation within the menu
-  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
-    if (!isMenuOpen) return;
-
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      const focusable = focusTrapRef.current?.querySelectorAll('button');
-      if (!focusable || focusable.length === 0) return;
-
-      const focusableArray = Array.from(focusable) as HTMLElement[];
-      const currentIndex = focusableArray.indexOf(document.activeElement as HTMLElement);
-
-      let nextIndex = 0;
-      if (currentIndex !== -1) {
-        if (e.key === 'ArrowDown') {
-          nextIndex = (currentIndex + 1) % focusableArray.length;
-        } else {
-          nextIndex = (currentIndex - 1 + focusableArray.length) % focusableArray.length;
-        }
-      }
-
-      focusableArray[nextIndex].focus();
-    }
-  };
 
   return (
     <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuContainerRef}>

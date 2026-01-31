@@ -412,11 +412,10 @@ const SceneContents = ({
           showOutline={showGrid}
         />
       ))}
-      <mesh ref={playerRef} position={[0, 3, 0]} castShadow>
-        <boxGeometry args={[3, 6, 3]} />
-        <meshStandardMaterial color={0xf59e0b} roughness={0.45} />
-      </mesh>
-      <PlayerController
+              <mesh ref={playerRef} position={[0, 3, 0]} castShadow>
+                <boxGeometry args={[3, 6, 3]} />
+                <meshStandardMaterial color={0xf59e0b} roughness={0.45} map={null} />
+              </mesh>      <PlayerController
         playerRef={playerRef}
         speedFeetPerRound={playerSpeed}
         submapHalfSize={submapHalfSize}

@@ -24,7 +24,7 @@ import { ABILITY_SCORE_NAMES } from '../../constants';
 import { POINT_BUY_TOTAL_POINTS, POINT_BUY_MIN_SCORE, POINT_BUY_MAX_SCORE, ABILITY_SCORE_COST } from '../../config/characterCreationConfig';
 import { Sparkles } from 'lucide-react';
 import { CreationStepLayout } from './ui/CreationStepLayout';
-import { SplitPaneLayout } from './ui/SplitPaneLayout';
+import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 
 interface AbilityScoreAllocationProps {
   race: Race;

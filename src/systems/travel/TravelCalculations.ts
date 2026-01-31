@@ -68,6 +68,14 @@ export function calculateForcedMarchStatus(hoursTraveled: number): ForcedMarchSt
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
   const _isForcedMarch = hoursTraveled > SAFE_TRAVEL_HOURS;
 
+  // RALPH: Exhaustion Risk Calculation.
+  // 5e Rules: DC starts at 10 + 1 for each hour *past* 8.
+  // Hour 9 (1st hour over): DC 11.
+  // Hour 10 (2nd hour over): DC 12.
+  // We use floor() because the check happens at the *end* of the hour.
+  // Traveling 8.5 hours puts you in "Forced March" mode conceptually,
+  // but you haven't completed the 9th hour to trigger the DC 11 save yet.
+
   // Per 5e rules, the check is made at the end of each hour traveled beyond 8.
   // We floor the hours over limit to ensure we only count full hours completed past the limit for the DC scaling.
   // Example: 8.5 hours -> 0.5 hours over -> floor(0.5) = 0 -> No DC increase yet (or DC 10 base if we consider it forced).

@@ -38,6 +38,8 @@ export function canCraft(crafter: Crafter, recipe: Recipe): boolean {
  * Attempts to craft an item using the provided recipe.
  */
 export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
+  // RALPH: Legacy/Simplified crafting path.
+  // Differs from craftingEngine by using a callback `rollSkill` instead of internal dice logic.
   // 1. Validate Materials
   if (!canCraft(crafter, recipe)) {
     return {
@@ -66,6 +68,7 @@ export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
     const dc = recipe.skillCheck.dc;
 
     // Use custom outcomes if available
+    // RALPH: Supports custom "Success Tables" (e.g., DC 15 = Good, DC 20 = Great).
     if (recipe.qualityOutcomes && recipe.qualityOutcomes.length > 0) {
       // Sort by threshold descending to find best match
       const outcomes = [...recipe.qualityOutcomes].sort((a, b) => b.threshold - a.threshold);
@@ -101,6 +104,7 @@ export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
 
     } else {
       // Default logic
+      // RALPH: Fallback standard DC logic.
       if (roll < dc) {
         success = false;
         materialsLost = true;

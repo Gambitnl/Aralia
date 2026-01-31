@@ -4,7 +4,7 @@ import * as GeminiService from '../../../services/geminiService';
 import { GameState, Action, PlayerCharacter } from '../../../types';
 import * as SeasonalSystem from '../../../systems/time/SeasonalSystem';
 import { Season } from '../../../utils/core';
-import { initialGameState } from '../../../state/appState';
+import { initialGameState } from '../../../state/initialState';
 
 // Mocks
 vi.mock('../../../services/geminiService');
@@ -54,19 +54,18 @@ describe('handleMovement - Seasonal Effects', () => {
 
     mockPlayerCharacter = {
       id: 'player1',
-      name: 'Hero',
+      name: 'Test Character',
       transportMode: 'foot',
       skills: [],
-      // Minimal stats to satisfy travel event skill checks.
       abilityScores: {
         strength: 10,
         dexterity: 10,
         constitution: 10,
         intelligence: 10,
         wisdom: 10,
-        charisma: 10
+        charisma: 10,
       }
-    } as PlayerCharacter;
+    } as any;
 
     mockGameState = {
       ...initialGameState,

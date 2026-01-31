@@ -37,7 +37,7 @@ const GridCellOutline = ({
   const lineRef = useRef<LineSegments>(null);
 
   const geometry = useMemo(() => buildSquareGeometry(gridSize), [gridSize]);
-  const material = useMemo<Material>(() => new LineBasicMaterial({ color: new Color(color) }), [color]);
+  const material = useMemo<Material>(() => new LineBasicMaterial({ color: new Color(color), map: null }), [color]);
 
   useEffect(() => () => {
     geometry.dispose();

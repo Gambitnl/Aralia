@@ -105,6 +105,9 @@ export async function saveGame(
   options?: SaveGameOptions,
 ): Promise<SaveLoadResult> {
   try {
+    // RALPH: Data Persistence Layer.
+    // 1. Sanitization: We create a "stateToSave" copy where transient flags (isLoading, isError) are reset.
+    //    We don't want to load into a broken state.
     const stateToSave: GameState = {
       ...gameState,
       saveVersion: SAVE_GAME_VERSION,
@@ -132,6 +135,9 @@ export async function saveGame(
     const existingSlotSummary = getSaveSlots().find(slot => slot.slotId === storageKey);
     const playtimeSeconds = calculatePlaytimeSeconds(existingSlotSummary);
     // Calculate checksum of the state to save for integrity check
+    // RALPH: Data Integrity.
+    // We hash the serialized JSON. On load, we re-hash and compare.
+    // This detects if localStorage was manually tampered with or corrupted.
     const serializedStateForHash = JSON.stringify(stateToSave);
     const checksum = simpleHash(serializedStateForHash);
 

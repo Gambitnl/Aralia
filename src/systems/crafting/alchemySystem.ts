@@ -152,6 +152,8 @@ export function getReagentProperties(item: Item): ReagentProperty[] {
  * It derives the result from the combined properties of the inputs.
  */
 export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResult {
+  // RALPH: Discovery-based crafting.
+  // Instead of Recipe ID, takes raw ingredients and infers result from property sums.
   // 1. Validation
   if (reagents.length === 0) {
     return {
@@ -178,6 +180,7 @@ export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResul
   // 3. Skill Check
   // Alchemy is volatile. High skill = stability + potency.
   // Prefer tool skill, fallback to raw intelligence. Handle 0 as a valid roll result.
+  // RALPH: Dynamic DC based on complexity (more reagents = harder).
   const toolRoll = crafter.rollSkill('Alchemist\'s Supplies');
   const roll = toolRoll > 0 ? toolRoll : crafter.rollSkill('Intelligence');
   const dc = BASE_ALCHEMY_DC + (reagents.length * DC_INCREASE_PER_REAGENT); // Harder with more ingredients
@@ -189,6 +192,7 @@ export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResul
 
   // 4. Reaction Logic
   // Count properties
+  // RALPH: Histogram of properties (e.g., { 'curative': 2, 'toxic': 1 }).
   const counts = inputProps.reduce((acc, prop) => {
     acc[prop] = (acc[prop] || 0) + 1;
     return acc;

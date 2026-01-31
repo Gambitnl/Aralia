@@ -34,11 +34,14 @@ export class BanterManager {
    * Uses gameState.banterCooldowns for persistence.
    */
   static selectBanter(gameState: GameState): BanterDefinition | null {
+    // RALPH: Validates if any banter is eligible to play right now.
+    // Filters based on Cooldowns -> Participants -> Location -> Relationship Levels -> Random Chance.
     const now = Date.now();
     const cooldowns = gameState.banterCooldowns || {};
 
     const validBanters = BANTER_DEFINITIONS.filter(banter => {
       // 1. Check Cooldown
+      // RALPH: Prevents the same banter from spamming repeatedly.
       if (cooldowns[banter.id]) {
         const cooldownMs = (banter.conditions?.cooldown || 5) * 60 * 1000;
         if (now - cooldowns[banter.id] < cooldownMs) return false;
@@ -46,15 +49,18 @@ export class BanterManager {
 
       // 2. Check Participants
       // Ensure all participants are in the party
+      // RALPH: Essential validation - can't banter if the characters aren't there.
       const allPresent = banter.participants.every(id => gameState.companions && gameState.companions[id]);
       if (!allPresent) return false;
 
       // 3. Check Location
+      // RALPH: Context-sensitivity check (e.g., commenting on a specific dungeon).
       if (banter.conditions?.locationId && banter.conditions.locationId !== gameState.currentLocationId) {
         return false;
       }
 
       // 4. Check Relationships
+      // RALPH: Checks if the dynamic relationship state meets the requirements for this specific line.
       if (banter.conditions?.minRelationship && gameState.companions) {
         for (const [charId, requiredLevel] of Object.entries(banter.conditions.minRelationship)) {
           // Identify who we are checking relationship FOR.
@@ -76,6 +82,7 @@ export class BanterManager {
       }
 
       // 5. Check Chance (Increased frequency: default 30% if not specified)
+      // RALPH: Probabilistic gate to make banter feel organic rather than deterministic.
       const chance = banter.conditions?.chance ?? 0.3;
       if (Math.random() > chance) {
         return false;

@@ -141,6 +141,11 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'EQUIP_ITEM': {
+            // RALPH: Equipment Adapter.
+            // When an item moves from Inventory -> Slot, we must recalculate EVERY derived stat.
+            // 1. Ability Scores (from magic items).
+            // 2. Armor Class (Base AC + Dex Mod + Shield).
+            // 3. Max HP (if Constitution changed).
             // TODO(2026-01-03 pass 4 Codex-CLI): Equip payload is still loosely typed; tighten once action payloads are formalized.
             const payload = action.payload as { itemId?: string; characterId?: string };
             const itemId = payload.itemId;
@@ -170,24 +175,9 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const itemIndexInInventory = newInventory.findIndex(item => item.id === itemId);
             if (itemIndexInInventory > -1) newInventory.splice(itemIndexInInventory, 1);
 
-            const updatedPlayerCharacter = { ...charToUpdate, equippedItems: newEquippedItems };
-
-            // Recalculate Stats
-            updatedPlayerCharacter.finalAbilityScores = calculateFinalAbilityScores(
-                updatedPlayerCharacter.abilityScores,
-                updatedPlayerCharacter.race,
-                updatedPlayerCharacter.equippedItems
-            );
-
-            // Recalculate Max HP (if Con changed)
-            const conMod = getAbilityModifierValue(updatedPlayerCharacter.finalAbilityScores.Constitution);
-            updatedPlayerCharacter.maxHp = updatedPlayerCharacter.class.hitDie + conMod + (updatedPlayerCharacter.level! - 1) * (Math.floor(updatedPlayerCharacter.class.hitDie / 2) + 1 + conMod);
-            // Ensure current HP doesn't exceed new Max HP
-            if (updatedPlayerCharacter.hp > updatedPlayerCharacter.maxHp) {
-                updatedPlayerCharacter.hp = updatedPlayerCharacter.maxHp;
-            }
-
-            updatedPlayerCharacter.armorClass = calculateArmorClass(updatedPlayerCharacter);
+            // RALPH: Logic Extraction.
+            // Uses centralized utility to recalculate AC, HP, and Ability Scores.
+            const updatedPlayerCharacter = updateDerivedStats({ ...charToUpdate, equippedItems: newEquippedItems });
 
             const newParty = [...state.party];
             newParty[charIndex] = updatedPlayerCharacter;
@@ -214,24 +204,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const newEquippedItems = { ...charToUpdate.equippedItems };
             delete newEquippedItems[slot];
 
-            const updatedPlayerCharacter = { ...charToUpdate, equippedItems: newEquippedItems };
-
-            // Recalculate Stats
-            updatedPlayerCharacter.finalAbilityScores = calculateFinalAbilityScores(
-                updatedPlayerCharacter.abilityScores,
-                updatedPlayerCharacter.race,
-                updatedPlayerCharacter.equippedItems
-            );
-
-            // Recalculate Max HP (if Con changed)
-            const conMod = getAbilityModifierValue(updatedPlayerCharacter.finalAbilityScores.Constitution);
-            updatedPlayerCharacter.maxHp = updatedPlayerCharacter.class.hitDie + conMod + (updatedPlayerCharacter.level! - 1) * (Math.floor(updatedPlayerCharacter.class.hitDie / 2) + 1 + conMod);
-            // Ensure current HP doesn't exceed new Max HP
-            if (updatedPlayerCharacter.hp > updatedPlayerCharacter.maxHp) {
-                updatedPlayerCharacter.hp = updatedPlayerCharacter.maxHp;
-            }
-
-            updatedPlayerCharacter.armorClass = calculateArmorClass(updatedPlayerCharacter);
+            const updatedPlayerCharacter = updateDerivedStats({ ...charToUpdate, equippedItems: newEquippedItems });
 
             const newParty = [...state.party];
             newParty[charIndex] = updatedPlayerCharacter;
@@ -541,8 +514,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                     charToUpdate = performLevelUp(charToUpdate, levelChoices);
                 }
 
-                // Always refresh AC in case ability scores shifted.
-                charToUpdate.armorClass = calculateArmorClass(charToUpdate);
+                // RALPH: Logic Extraction.
+                // Ensures all derived stats (HP, AC, Proficiency) are recalculated after level-up choices.
+                charToUpdate = updateDerivedStats(charToUpdate);
+                
                 const leveledParty = [...state.party];
                 leveledParty[charIndex] = charToUpdate;
 
@@ -735,29 +710,13 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             }
 
             // Update character with new equipment
-            charToUpdate.equippedItems = newEquippedItems;
-
-            // Recalculate Stats
-            charToUpdate.finalAbilityScores = calculateFinalAbilityScores(
-                charToUpdate.abilityScores,
-                charToUpdate.race,
-                charToUpdate.equippedItems
-            );
-
-            // Recalculate Max HP (if Con changed)
-            const conMod = getAbilityModifierValue(charToUpdate.finalAbilityScores.Constitution);
-            charToUpdate.maxHp = charToUpdate.class.hitDie + conMod + (charToUpdate.level! - 1) * (Math.floor(charToUpdate.class.hitDie / 2) + 1 + conMod);
-            if (charToUpdate.hp > charToUpdate.maxHp) {
-                charToUpdate.hp = charToUpdate.maxHp;
-            }
-
-            charToUpdate.armorClass = calculateArmorClass(charToUpdate);
+            const updatedCharWithGear = updateDerivedStats({ ...charToUpdate, equippedItems: newEquippedItems });
 
             const newParty = [...state.party];
-            newParty[charIndex] = charToUpdate;
+            newParty[charIndex] = updatedCharWithGear;
 
-            const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === charToUpdate.id
-                ? { ...state.characterSheetModal, character: charToUpdate }
+            const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === updatedCharWithGear.id
+                ? { ...state.characterSheetModal, character: updatedCharWithGear }
                 : state.characterSheetModal;
 
             return { party: newParty, inventory: newInventory, characterSheetModal: newCharacterSheetModalState };

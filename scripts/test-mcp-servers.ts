@@ -33,7 +33,10 @@ interface TestResult {
   error?: string;
 }
 
-const MCP_CLI = path.resolve(process.cwd(), 'node_modules/.bin/mcp-cli');
+const MCP_CLI = path.resolve(
+  process.cwd(),
+  process.platform === 'win32' ? 'node_modules/.bin/mcp-cli.cmd' : 'node_modules/.bin/mcp-cli'
+);
 const MCP_CONFIG = path.resolve(process.cwd(), '.mcp.json');
 
 async function loadMcpConfig(): Promise<McpConfig> {

@@ -59,7 +59,8 @@ const SidebarStepRow: React.FC<{
   currentStep: CreationStep;
   state: CharacterCreationState;
   onNavigate: (step: CreationStep) => void;
-}> = ({ config, currentStep, state, onNavigate }) => {
+  index: number;
+}> = ({ config, currentStep, state, onNavigate, index }) => {
   const isComplete = isStepCompleted(config.step, state);
   const isCurrent = currentStep === config.step;
   const isNested = config.parentStep !== undefined;
@@ -86,7 +87,7 @@ const SidebarStepRow: React.FC<{
 	        ${canNavigate ? 'hover:bg-gray-700/70 cursor-pointer' : 'cursor-default'}
 	      `}
       aria-current={isCurrent ? 'step' : undefined}
-      aria-label={`${config.label}${summary ? `: ${summary}` : ''}${isComplete ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+      aria-label={`${index}. ${config.label}${summary ? `: ${summary}` : ''}${isComplete ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
     >
       <StepIndicator
         isComplete={isComplete}
@@ -97,10 +98,10 @@ const SidebarStepRow: React.FC<{
         <div className={`text-sm font-medium truncate ${
           isCurrent ? 'text-sky-300' : isComplete ? 'text-gray-200' : 'text-gray-400'
         }`}>
-          {config.label}
+          {index}. {config.label}
         </div>
         {summary && (
-          <div className="text-xs text-gray-400 truncate">
+          <div className="text-xs text-gray-400 truncate ml-1 opacity-80">
             {summary}
           </div>
         )}
@@ -133,20 +134,6 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
   // Get visible steps
   const visibleSteps = SIDEBAR_STEPS.filter(step => step.isVisible(state));
 
-  // Group steps by their group
-  const groupedSteps = new Map<StepGroup, SidebarStepConfig[]>();
-  for (const group of Object.keys(STEP_GROUPS) as StepGroup[]) {
-    const stepsInGroup = visibleSteps.filter(s => s.group === group);
-    if (stepsInGroup.length > 0) {
-      groupedSteps.set(group, stepsInGroup);
-    }
-  }
-
-  // Sort groups by order
-  const sortedGroups = Array.from(groupedSteps.entries()).sort(
-    ([a], [b]) => STEP_GROUPS[a].order - STEP_GROUPS[b].order
-  );
-
   return (
     <aside
       className="w-64 bg-gray-850 border-r border-gray-700 flex flex-col h-full hidden md:flex"
@@ -158,22 +145,16 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
       </div>
 
       {/* Step list */}
-      <nav className="flex-1 overflow-y-auto p-2 space-y-4">
-        {sortedGroups.map(([group, steps]) => (
-          <div key={group}>
-            <GroupHeader group={group} />
-            <div className="space-y-1">
-              {steps.map((stepConfig) => (
-                <SidebarStepRow
-                  key={stepConfig.step}
-                  config={stepConfig}
-                  currentStep={currentStep}
-                  state={state}
-                  onNavigate={onNavigateToStep}
-                />
-              ))}
-            </div>
-          </div>
+      <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+        {visibleSteps.map((stepConfig, index) => (
+          <SidebarStepRow
+            key={stepConfig.step}
+            config={stepConfig}
+            currentStep={currentStep}
+            state={state}
+            onNavigate={onNavigateToStep}
+            index={index + 1}
+          />
         ))}
       </nav>
 

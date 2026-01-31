@@ -8,6 +8,7 @@ import { generateId } from '../../utils/idGenerator';
 import { TradeRoute, MarketEventType, MarketEvent } from '../../types/economy';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
 import { getEventPriceModifier } from '../../utils/economy/marketEvents';
+import { ECONOMY_CONFIG } from '../../data/economy/economyConfig';
 
 /**
  * System for managing trade routes between locations
@@ -29,51 +30,58 @@ export class TradeRouteSystem {
    * @returns A score from 0-100 representing profit margin
    */
   static calculateProfitability(route: TradeRoute, marketEvents: MarketEvent[] = []): number {
+    // RALPH: Economic brain.
+    // Scores routes 0-100.
+    // High Score = Origin Exports it (Cheap) -> Destination Imports it (Expensive).
     const origin = REGIONAL_ECONOMIES[route.originId];
     const destination = REGIONAL_ECONOMIES[route.destinationId];
+    const cfg = ECONOMY_CONFIG.profitability;
 
     if (!origin || !destination) {
       this.log.warn(`Invalid regions for route ${route.id}: ${route.originId} -> ${route.destinationId}`);
-      return 50; // Default if data missing
+      return cfg.baseScore; // Default if data missing
     }
 
     let totalScore = 0;
 
     // Evaluate each good category on the route
     for (const goodCategory of route.goods) {
-      let score = 50; // Base baseline
+      let score = cfg.baseScore; // Base baseline
 
       // SUPPLY: Is it cheap at origin?
+      // RALPH: Buy Low...
       if (origin.exports.includes(goodCategory)) {
-        score += 20; // Buying cheap
+        score += cfg.originExportBonus; // Buying cheap
       } else if (origin.imports.includes(goodCategory)) {
-        score -= 20; // Buying expensive
+        score += cfg.originImportPenalty; // Buying expensive
       }
 
       // DEMAND: Is it wanted at destination?
+      // RALPH: Sell High.
       if (destination.imports.includes(goodCategory)) {
-        score += 30; // Selling high
+        score += cfg.destinationImportBonus; // Selling high
       } else if (destination.exports.includes(goodCategory)) {
-        score -= 10; // Selling to a producer
+        score += cfg.destinationExportPenalty; // Selling to a producer
       }
 
       // EVENTS: Check for global events affecting this category
+      // RALPH: Market volatility.
       const eventMod = getEventPriceModifier(goodCategory, marketEvents);
       // If eventMod > 1 (High Price), it's good for the seller (Destination)
       if (eventMod > 1.0) {
-        score += (eventMod - 1.0) * 40; // Significant boost
+        score += (eventMod - 1.0) * cfg.eventHighPriceWeight; // Significant boost
       } else if (eventMod < 1.0) {
-        score -= (1.0 - eventMod) * 20; // Dampened profit
+        score -= (1.0 - eventMod) * cfg.eventLowPriceWeight; // Dampened profit
       }
 
       totalScore += score;
     }
 
     // Average across goods
-    let avgScore = route.goods.length > 0 ? totalScore / route.goods.length : 50;
+    let avgScore = route.goods.length > 0 ? totalScore / route.goods.length : cfg.baseScore;
 
     // RISK FACTOR deduction
-    avgScore -= (route.riskLevel * 20);
+    avgScore -= (route.riskLevel * cfg.riskDeductionMultiplier);
 
     // Clamp 0-100
     return Math.max(0, Math.min(100, Math.round(avgScore)));
@@ -84,6 +92,7 @@ export class TradeRouteSystem {
    */
   static calculateRisk(route: TradeRoute, marketEvents: MarketEvent[] = []): number {
     let risk = route.riskLevel;
+    const cfg = ECONOMY_CONFIG.risk;
 
     // Use MarketEventType and name/desc keywords for risk
     for (const event of marketEvents) {
@@ -91,11 +100,11 @@ export class TradeRouteSystem {
       if (event.type === MarketEventType.WAR_TAX ||
           (event.name && event.name.toLowerCase().includes('bandit')) ||
           (event.name && event.name.toLowerCase().includes('war'))) {
-        risk += 0.2;
+        risk += cfg.combatEventPenalty;
       }
 
       if (event.type === MarketEventType.FESTIVAL) {
-        risk -= 0.1;
+        risk += cfg.festivalBonus;
       }
     }
 

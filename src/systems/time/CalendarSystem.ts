@@ -115,6 +115,9 @@ export const getMonthName = (monthIndex: number): string => {
 };
 
 export const getMoonPhase = (date: Date): MoonPhase => {
+  // RALPH: Calculates moon phase based on a 28-day cycle.
+  // Assumes Epoch 0 was a New Moon.
+  // Returns deterministic phase enum based on modulo math.
   const day = getGameDay(date);
   const cycleDay = day % 28;
 

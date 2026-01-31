@@ -16,6 +16,7 @@ export class CompanionReactionSystem {
    */
   static evaluateReaction(companion: Companion, context: DecisionContext): ReactionResult | null {
     // 1. Find matching rules
+    // RALPH: Matches player decision "Tags" (e.g., 'aggressive', 'greedy') against Companion Rules.
     // A rule matches if ANY of its triggerTags are present in the decision's tags.
     const matchingRules = companion.reactionRules.filter(rule =>
       rule.triggerTags.some(tag => context.tags.includes(tag))
@@ -27,6 +28,7 @@ export class CompanionReactionSystem {
 
     // 2. Aggregate effects
     // Strategy: Sum approval changes. Use the dialogue from the "strongest" rule (highest absolute approval change).
+    // RALPH: Calculates total approval impact but only selects the most "intense" dialogue response.
     let totalApproval = 0;
     let strongestRule: CompanionReactionRule | null = null;
     let maxAbsChange = -1;

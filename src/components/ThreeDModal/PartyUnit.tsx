@@ -152,11 +152,10 @@ const PartyUnit = ({
 
   return (
     <>
-      <mesh ref={unitRef} position={[offsetVector.x, 3, offsetVector.z]} castShadow>
-        <boxGeometry args={[3, 6, 3]} />
-        <meshStandardMaterial color={bodyColor} roughness={0.5} />
-      </mesh>
-      <GridCellOutline
+              <mesh ref={unitRef} position={[offsetVector.x, 3, offsetVector.z]} castShadow>
+                <boxGeometry args={[3, 6, 3]} />
+                <meshStandardMaterial color={bodyColor} roughness={0.5} map={null} />
+              </mesh>      <GridCellOutline
         playerRef={unitRef}
         gridSize={5}
         heightSampler={heightSampler}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "aralia",
+    "title": "Aralia",
+    "category": "Lore",
+    "tags": ["world", "lore"],
+    "excerpt": "The vibrant world where your adventure unfolds.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/lore/aralia.json"
+  },
+  {
+    "id": "oracle",
+    "title": "Oracle",
+    "category": "Lore",
+    "tags": ["entity", "lore"],
+    "excerpt": "A mysterious entity offering cryptic guidance.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/lore/oracle.json"
+  },
+  {
+    "id": "gemini",
+    "title": "Gemini",
+    "category": "Technology",
+    "tags": ["ai", "system"],
+    "excerpt": "The advanced AI model powering this world's narrative and interactions.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/lore/gemini.json"
+  }
+]
