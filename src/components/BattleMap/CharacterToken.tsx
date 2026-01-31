@@ -7,6 +7,7 @@ import { CombatCharacter } from '../../types/combat';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import Tooltip from '../Tooltip';
 import { getStatusEffectIcon } from '../../utils/combatUtils';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface CharacterTokenProps {
   character: CombatCharacter;
@@ -34,7 +35,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
     width: `${TILE_SIZE_PX}px`,
     height: `${TILE_SIZE_PX}px`,
     transition: 'all 0.2s ease-in-out',
-    zIndex: 10,
+    zIndex: Z_INDEX.CONTENT_OVERLAY_LOW,
     cursor: 'pointer',
   };
 
@@ -108,8 +109,8 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
       {character.concentratingOn && (
         <Tooltip content={`Concentrating on ${character.concentratingOn.spellName}`}>
           <div
-            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-xs shadow-md z-20"
-            style={{ animation: 'pulse 2s infinite' }}
+            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-xs shadow-md"
+            style={{ animation: 'pulse 2s infinite', zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM }}
           >
             🔮
           </div>

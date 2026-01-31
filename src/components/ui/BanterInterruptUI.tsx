@@ -40,7 +40,7 @@ export const BanterInterruptUI: React.FC<BanterInterruptUIProps> = ({
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 50 }}
-                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
+                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[var(--z-index-modal-background)]"
             >
                 <div className="bg-gray-800/95 backdrop-blur-sm border border-amber-500/50 rounded-xl shadow-2xl overflow-hidden">
                     {/* Collapsed State: Show countdown + Join button */}

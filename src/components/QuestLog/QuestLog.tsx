@@ -17,7 +17,7 @@ const QuestLog: React.FC<QuestLogProps> = ({ isOpen, onClose, quests }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+    <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black bg-opacity-75 p-4">
       <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-gray-900 border-2 border-amber-700 rounded-lg shadow-2xl p-6 text-amber-100 font-serif">
         <button
           onClick={onClose}

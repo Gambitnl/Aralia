@@ -9,5 +9,5 @@ This folder contains the "Global Simulation" logic. It handles events that occur
 - **NobleIntrigueManager.ts**: (Not yet commented) Generates political events between noble houses.
 
 ## Issues & Opportunities
-- **Ephemeral History**: Skirmishes currently generate rumors but are not converted into permanent `WorldHistoryEvent` entries. Major battles could be forgotten by the system after the rumor expires.
+- **Ephemeral History**: Skirmishes currently generate rumors but are not converted into permanent `WorldHistoryEvent` entries. Major battles could be forgotten by the system after the rumor expires. **(RESOLVED: Implemented `WorldHistoryService` in `world_sim_hardening_20260131`)**
 - **Weather Coupling**: Skirmishes check weather but use a loose `(state as any).weather` cast, indicating a lack of strong typing for the environment slice in this manager.

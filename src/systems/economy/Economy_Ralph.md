@@ -9,5 +9,5 @@ This folder contains the Global Trade Simulation logic. It models trade routes b
 
 ## Issues & Opportunities
 - **Type Safety**: `TradeRouteManager.ts` has defensive coding for `gameTime` (`typeof state.gameTime === 'number' ? ...`) which suggests the Redux state type for `gameTime` is inconsistent across the app (Date vs Number).
-- **Legacy Debt**: `processDailyRoutes` manually maintains `marketFactors` (scarcity/surplus sets) alongside `marketEvents`. This duplication risks desynchronization.
-- **Hardcoded Values**: `TradeRouteSystem.ts` uses hardcoded scoring (+20, -10, etc.) for profitability. Moving these to a config/constants file would make balancing easier.
+- **Legacy Debt**: `processDailyRoutes` manually maintains `marketFactors` (scarcity/surplus sets) alongside `marketEvents`. This duplication risks desynchronization. **(RESOLVED: Implemented `calculateMarketFactors` selector in `world_sim_hardening_20260131`)**
+- **Hardcoded Values**: `TradeRouteSystem.ts` uses hardcoded scoring (+20, -10, etc.) for profitability. Moving these to a config/constants file would make balancing easier. **(RESOLVED: Moved to `ECONOMY_CONFIG` in `world_sim_hardening_20260131`)**

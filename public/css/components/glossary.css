@@ -240,7 +240,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 70;
+  z-index: var(--z-index-content-overlay-top);
 }
 
 .glossary-entry-modal-content {

@@ -141,7 +141,7 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
 
         {/* Grid Overlay */}
         <div
-          className="relative z-10 grid gap-3 p-4 h-full place-items-center"
+          className="relative z-[var(--z-index-content-overlay-low)] grid gap-3 p-4 h-full place-items-center"
           style={{
             gridTemplateAreas: `
               ". head ."

@@ -84,6 +84,21 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             };
         }
 
+        case 'SELECT_HEIST_APPROACH': {
+            const { approachType } = action.payload;
+            if (!state.activeHeist) return {};
+
+            const selectedApproach = state.activeHeist.approaches.find(a => a.type === approachType);
+            if (!selectedApproach) return {};
+
+            return {
+                activeHeist: {
+                    ...state.activeHeist,
+                    selectedApproach
+                }
+            };
+        }
+
         case 'ADVANCE_HEIST_PHASE': {
             if (!state.activeHeist) return {};
             const updatedPlan = HeistManager.advancePhase(state.activeHeist);
@@ -108,25 +123,29 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
             let outcomeMessage = '';
 
+            // Calculate dynamic risk based on current alert level
+            // We use a mock action type 'Sneak' as a baseline if specific action type isn't passed
+            // Ideally, payload should include the HeistAction object itself
+            const mockAction: HeistAction = {
+                type: HeistActionType.Sneak, 
+                description,
+                difficulty: actionDifficulty,
+                risk: 0,
+                noise: 0
+            };
+            const successChance = HeistManager.calculateActionSuccessChance(state.activeHeist, mockAction);
+
             if (skillCheckResult) {
-                outcomeMessage = `${description} - ${skillCheckResult}`;
+                outcomeMessage = `${description} - ${skillCheckResult} (Chance: ${Math.round(successChance)}%)`;
             } else {
-                // Use a default message if no skill check string provided
-                // Use the calculated chance just for display if needed, but success is pre-determined
-                const heistAction: HeistAction = {
-                    type: HeistActionType.PickLock,
-                    description,
-                    difficulty: actionDifficulty,
-                    risk: 0,
-                    noise: 0,
-                };
-                const chance = HeistManager.calculateActionSuccessChance(state.activeHeist, heistAction);
                 outcomeMessage = success
-                    ? `${description} - Success! (Risk: ${100 - chance}%)`
-                    : `${description} - Failed! (Risk: ${100 - chance}%)`;
+                    ? `${description} - Success! (Risk: ${100 - Math.round(successChance)}%)`
+                    : `${description} - Failed! (Risk: ${100 - Math.round(successChance)}%)`;
             }
 
-            const newAlertLevel = Math.min(100, state.activeHeist.alertLevel + alertChange);
+            // Alert increases more if the action failed
+            const actualAlertChange = success ? alertChange : Math.max(5, alertChange * 2);
+            const newAlertLevel = Math.min(100, state.activeHeist.alertLevel + actualAlertChange);
             const turnsElapsed = state.activeHeist.turnsElapsed + 1;
 
             return {
@@ -319,19 +338,21 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // Rank up logic? (Simple threshold for now)
             let newRank = guild.rank;
             let rankUpMsg = '';
+            // RALPH: Progression System.
+            // Hardcoded thresholds for now. Ideally this should come from a ThievesGuildConfig.
             if (newRep >= 100 && newRank < 2) { newRank = 2; rankUpMsg = 'You have been promoted to Footpad!'; }
             else if (newRep >= 300 && newRank < 3) { newRank = 3; rankUpMsg = 'You have been promoted to Prowler!'; }
             else if (newRep >= 600 && newRank < 4) { newRank = 4; rankUpMsg = 'You have been promoted to Shadow!'; }
             else if (newRep >= 1000 && newRank < 5) { newRank = 5; rankUpMsg = 'You have been promoted to Master Thief!'; }
 
-            const msgs = [
+            const msgs: GameMessage[] = [
                 ...state.messages,
                 {
                     id: Date.now(),
                     text: success
                         ? `Job completed! Earned ${rewardGold}gp and ${rewardRep} rep.`
                         : `Job failed. Reputation change: ${rewardRep}.`,
-                    sender: 'system' as const,
+                    sender: 'system',
                     timestamp: state.gameTime
                 }
             ];
@@ -340,7 +361,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                 msgs.push({
                     id: Date.now() + 1,
                     text: rankUpMsg,
-                    sender: 'system' as const,
+                    sender: 'system',
                     timestamp: state.gameTime
                 });
             }

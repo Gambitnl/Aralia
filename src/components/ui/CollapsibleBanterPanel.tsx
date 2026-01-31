@@ -266,7 +266,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
-                className="fixed right-0 top-1/4 bottom-1/4 w-96 bg-gray-800 border-l border-amber-500/50 shadow-2xl z-40 flex flex-col"
+                className="fixed right-0 top-1/4 bottom-1/4 w-96 bg-gray-800 border-l border-amber-500/50 shadow-2xl z-[var(--z-index-content-overlay-medium)] flex flex-col"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-2 bg-gray-900/80 border-b border-gray-700 shrink-0">
@@ -307,7 +307,7 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
         <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            className="fixed right-0 top-1/3 z-40"
+            className="fixed right-0 top-1/3 z-[var(--z-index-content-overlay-medium)]"
         >
             <button
                 onClick={() => setMode('EXPANDED')}

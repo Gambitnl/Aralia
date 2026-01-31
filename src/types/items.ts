@@ -333,6 +333,9 @@ export interface Item {
 
   /** Optional history and origin tracking for the item. */
   provenance?: ItemProvenance;
+
+  /** If true, this item is stolen and can only be sold to a Fence. */
+  isStolen?: boolean;
 }
 
 /**

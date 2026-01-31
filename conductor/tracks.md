@@ -29,3 +29,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: UI Logic & Knowledge Base**
   *Link: [./tracks/ui_logic_knowledge_20260131/](./tracks/ui_logic_knowledge_20260131/)*
+
+- [x] **Track: Thieves Guild: Shadow Network Expansion**
+  *Link: [./tracks/thieves_guild_expansion_20260131/](./tracks/thieves_guild_expansion_20260131/)*

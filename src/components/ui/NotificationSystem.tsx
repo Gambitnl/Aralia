@@ -88,7 +88,7 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
   return (
     <div
       aria-live="assertive"
-      className="pointer-events-none fixed inset-0 flex flex-col items-end px-4 py-6 sm:items-start sm:p-6 z-50 gap-2"
+      className="pointer-events-none fixed inset-0 flex flex-col items-end px-4 py-6 sm:items-start sm:p-6 z-[var(--z-index-modal-background)] gap-2"
     >
       <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
         <AnimatePresence mode="popLayout" initial={false}>

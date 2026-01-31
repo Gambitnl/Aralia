@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DamageNumber } from '../../types/combat';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface DamageNumberOverlayProps {
   damageNumbers: DamageNumber[];
@@ -32,7 +33,7 @@ const DamageNumberOverlay: React.FC<DamageNumberOverlayProps> = ({ damageNumbers
   }, [damageNumbers, activeMap]);
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 100 }}>
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_HIGH }}>
       {damageNumbers.map((dn) => {
         const active = !!activeMap[dn.id];
         const baseLeft = dn.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;

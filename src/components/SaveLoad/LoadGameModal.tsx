@@ -75,7 +75,7 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]">
       <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl p-6 text-gray-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <div>

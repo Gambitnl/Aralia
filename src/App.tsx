@@ -52,7 +52,7 @@ import { SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
-import { Z_INDEX } from './styles/zIndex';
+import { Z_INDEX, applyZIndexCssVariables } from './styles/zIndex';
 
 import { NotificationSystem } from './components/ui/NotificationSystem';
 import { GameProvider } from './state/GameContext';
@@ -92,6 +92,10 @@ const App: React.FC = () => {
   // Validate environment variables on startup
   useEffect(() => {
     validateEnv();
+  }, []);
+
+  useEffect(() => {
+    applyZIndexCssVariables();
   }, []);
 
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);

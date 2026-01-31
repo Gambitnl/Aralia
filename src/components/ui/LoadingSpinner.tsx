@@ -30,7 +30,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   return (
     <motion.div
       {...overlayMotion}
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)]"
       aria-label="Loading content"
       role="status"
     >

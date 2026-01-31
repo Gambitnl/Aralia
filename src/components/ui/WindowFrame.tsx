@@ -47,7 +47,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
         top: position ? `${position.top}px` : '50%',
         transform: position ? 'none' : 'translate(-50%, -50%)',
         margin: position ? '0' : undefined,
-        zIndex: 100,
+        zIndex: Z_INDEX.WINDOW_FRAME,
         userSelect: resizeState.isResizing || dragState.isDragging ? 'none' : undefined,
     };
 

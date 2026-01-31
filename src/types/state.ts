@@ -243,6 +243,7 @@ export interface GameState {
   environment?: import('./environment').WeatherState;
 
   isThievesGuildVisible: boolean;
+  isThievesGuildSafehouseVisible?: boolean; // New flag for Safehouse UI
   naval: NavalState;
   isNavalDashboardVisible: boolean;
   isNobleHouseListVisible: boolean;

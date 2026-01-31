@@ -48,6 +48,8 @@ const TempleModal = lazy(() => import('../Religion/TempleModal'));
 // REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
+const ThievesGuildSafehouse = lazy(() => import('../Crime/ThievesGuild/ThievesGuildSafehouse').then(module => ({ default: module.ThievesGuildSafehouse })));
+const HeistPlanningModal = lazy(() => import('../Crime/ThievesGuild/HeistPlanningModal').then(module => ({ default: module.HeistPlanningModal })));
 const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ default: module.ShipPane })));
 const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
@@ -461,6 +463,35 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </Suspense>
             )}
 
+            {/* Thieves Guild Safehouse */}
+            {gameState.isThievesGuildSafehouseVisible && gameState.thievesGuild && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Safehouse.">
+                        <ThievesGuildSafehouse
+                            membership={gameState.thievesGuild}
+                            onUseService={(serviceId, cost, description) => dispatch({ type: 'USE_GUILD_SERVICE', payload: { serviceId, cost, description } })}
+                            onClose={() => dispatch({ type: 'TOGGLE_THIEVES_GUILD_SAFEHOUSE' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Heist Planning Modal */}
+            {gameState.activeHeist && gameState.activeHeist.phase === 'Planning' && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Heist Planning.">
+                        <HeistPlanningModal
+                            plan={gameState.activeHeist}
+                            onSelectApproach={(approach) => {
+                                dispatch({ type: 'SELECT_HEIST_APPROACH', payload: { approachType: approach.type } });
+                            }}
+                            onStartHeist={() => dispatch({ type: 'ADVANCE_HEIST_PHASE' })}
+                            onClose={() => dispatch({ type: 'ABORT_HEIST' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
             {/* Naval Dashboard */}
             {gameState.isNavalDashboardVisible && (
                 gameState.ship ? (
@@ -475,7 +506,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                 ) : (
                     // TODO: Extract this inline "No Data" error UI into a reusable <ModalErrorState message="" /> component.
                     // Similar error states (missing data, loading failures) will likely be needed for other dashboards (Treasure, Trade, etc.) as we expand.
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+                    <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80">
                         <div className="bg-gray-800 p-6 rounded border border-red-500 text-center shadow-xl max-w-md">
                             <h2 className="text-xl font-bold text-red-500 mb-2">No Active Ship</h2>
                             <p className="text-gray-300 mb-4">You do not have an active ship to display.</p>

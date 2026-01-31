@@ -87,7 +87,7 @@ const PartyCharacterButton: React.FC<PartyCharacterButtonProps> = ({ character, 
                 TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
                 */
                 <div
-                    className="absolute -top-1 -right-1 z-10"
+                    className="absolute -top-1 -right-1 z-[var(--z-index-content-overlay-low)]"
                 >
                     <Tooltip content={`Missing Selection: ${missingChoices[0].label}. Click to fix.`}>
                         <button

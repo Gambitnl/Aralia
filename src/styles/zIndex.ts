@@ -9,8 +9,13 @@
  * ### 0-99: Base Content & Infrastructure
  * - `BASE` (0): Default content layer
  * - `CONTENT` (1): Content above base
+ * - `CONTENT_OVERLAY_BASE` (5): Low-priority content overlays
+ * - `CONTENT_OVERLAY_LOW` (10): Local UI elements above content
  * - `SUBMAP_OVERLAY` (20): SVG overlays on submaps
  * - `MINIMAP` (30): Minimap component (above game content, below modals)
+ * - `CONTENT_OVERLAY_MEDIUM` (40): Content overlays above standard UI
+ * - `CONTENT_OVERLAY_HIGH` (60): Prominent content overlays
+ * - `CONTENT_OVERLAY_TOP` (70): Topmost content overlays below modals
  *
  * ### 100-299: Modal System
  * - `MODAL_BACKGROUND` (100): Modal backdrop (blocks interaction)
@@ -95,11 +100,26 @@ export const Z_INDEX = {
   /** Regular content above base */
   CONTENT: 1,
 
+  /** Low-priority content overlays (background effects) */
+  CONTENT_OVERLAY_BASE: 5,
+
+  /** Local UI elements above base content */
+  CONTENT_OVERLAY_LOW: 10,
+
   /** Submap content overlay */
   SUBMAP_OVERLAY: 20,
 
   /** Minimap component (shows above game content but below modals/windows) */
   MINIMAP: 30,
+
+  /** Content overlays above standard UI */
+  CONTENT_OVERLAY_MEDIUM: 40,
+
+  /** Prominent content overlays */
+  CONTENT_OVERLAY_HIGH: 60,
+
+  /** Topmost content overlays below modals */
+  CONTENT_OVERLAY_TOP: 70,
 
   // ============================================================================
   // MODAL SYSTEM (100-299)
@@ -308,4 +328,16 @@ export function getZIndexDebugInfo() {
       emergency: getLayersInRange(9999, 9999),
     },
   };
+}
+
+/**
+ * Apply Z-Index registry values as CSS variables on the document root.
+ * This allows non-TS stylesheets to stay aligned with the registry.
+ */
+export function applyZIndexCssVariables(target: HTMLElement = document.documentElement): void {
+  const entries = Object.entries(Z_INDEX) as [ZIndexLayer, number][];
+  entries.forEach(([layer, value]) => {
+    const cssVarName = `--z-index-${layer.toLowerCase().replace(/_/g, '-')}`;
+    target.style.setProperty(cssVarName, String(value));
+  });
 }

@@ -94,7 +94,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
     <div className="relative">
        {/* UI for current turn actions */}
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-700 p-2 rounded-md shadow-lg flex gap-2 z-20">
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-700 p-2 rounded-md shadow-lg flex gap-2 z-[var(--z-index-submap-overlay)]">
           <button 
             onClick={() => setActionMode('move')}
             className={`px-3 py-1 text-sm rounded transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}

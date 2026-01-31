@@ -22,7 +22,7 @@ const FavorBar = ({ favor }: { favor: number }) => {
   return (
     <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden relative border border-gray-600">
       {/* Center Marker */}
-      <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white z-10 opacity-50" />
+      <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white z-[var(--z-index-content-overlay-low)] opacity-50" />
 
       {/* Bar */}
       <motion.div
@@ -59,7 +59,7 @@ export const DivineFavorPanel: React.FC<DivineFavorPanelProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

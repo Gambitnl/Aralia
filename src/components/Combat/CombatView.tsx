@@ -235,7 +235,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4 relative">
       {/* Victory / Defeat Modal */}
       {battleState !== 'active' && (
-        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/80 z-[var(--z-index-modal-background)] flex items-center justify-center">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

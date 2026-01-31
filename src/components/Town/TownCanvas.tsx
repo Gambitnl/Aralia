@@ -373,7 +373,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         <div className="relative w-full h-full bg-gray-900 text-gray-100 overflow-hidden">
             {/* Dev Controls Panel (Slide-in) */}
             {isDevDummyActive && showDevControls && (
-                <div className="absolute top-0 left-0 z-50 h-full w-80 bg-gray-900/95 border-r border-gray-700 shadow-2xl p-4 overflow-y-auto">
+                <div className="absolute top-0 left-0 z-[var(--z-index-modal-background)] h-full w-80 bg-gray-900/95 border-r border-gray-700 shadow-2xl p-4 overflow-y-auto">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-bold text-white">Dev Controls</h2>
                         <button
@@ -420,7 +420,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 aria-label="Town map viewport"
             >
                 {loading && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-30 bg-opacity-90">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-[var(--z-index-minimap)] bg-opacity-90">
                         <RefreshCw size={48} className="animate-spin text-blue-500 mb-4" />
                         <h2 className="text-xl font-serif animate-pulse">Forging World...</h2>
                     </div>
@@ -429,7 +429,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 {/* Tooltip */}
                 {hoveredBuilding && hoverPos && (
                     <div
-                        className="absolute z-40 pointer-events-none bg-gray-900/95 border border-gray-600 rounded-lg shadow-xl p-3 text-left min-w-[200px]"
+                        className="absolute z-[var(--z-index-content-overlay-medium)] pointer-events-none bg-gray-900/95 border border-gray-600 rounded-lg shadow-xl p-3 text-left min-w-[200px]"
                         style={{
                             top: hoverPos.y + 15,
                             left: hoverPos.x + 15,
@@ -454,7 +454,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 )}
 
                 {/* Top Left Controls - Dev Toggle + Info */}
-                <div className="fixed top-4 left-4 z-20 flex gap-2" data-no-pan>
+                <div className="fixed top-4 left-4 z-[var(--z-index-submap-overlay)] flex gap-2" data-no-pan>
                     {isDevDummyActive && (
                         <button
                             type="button"
@@ -471,7 +471,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 </div>
 
                 {/* Map Toggles (Top Right) */}
-                <div className="fixed top-4 right-4 flex gap-2 z-20" data-no-pan>
+                <div className="fixed top-4 right-4 flex gap-2 z-[var(--z-index-submap-overlay)]" data-no-pan>
                     <button
                         type="button"
                         onClick={() => setIsNight(!isNight)}
@@ -491,7 +491,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 </div>
 
                 {/* Zoom Controls (Bottom Right) */}
-                <div className="fixed bottom-4 right-4 flex flex-col gap-1 z-20 bg-gray-800/80 backdrop-blur p-1.5 rounded-lg border border-gray-700" data-no-pan>
+                <div className="fixed bottom-4 right-4 flex flex-col gap-1 z-[var(--z-index-submap-overlay)] bg-gray-800/80 backdrop-blur p-1.5 rounded-lg border border-gray-700" data-no-pan>
                     <button type="button" onClick={() => setZoom(z => Math.min(z + 0.2, 3))} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom In">
                         <ZoomIn size={18} />
                     </button>
@@ -525,7 +525,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
             {/* Navigation Controls - shown when player position is available */}
             {effectivePlayerPosition && (
-                <div className="fixed bottom-4 left-4 z-30" data-no-pan>
+                <div className="fixed bottom-4 left-4 z-[var(--z-index-minimap)]" data-no-pan>
                     <TownNavigationControls
                         onMove={handleMove}
                         onExit={onExitTown ?? (() => { })}

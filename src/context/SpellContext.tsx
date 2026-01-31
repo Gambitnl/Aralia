@@ -114,7 +114,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <>
       {issues.length > 0 && (
-        <div className="fixed top-4 right-4 z-50 max-w-md bg-amber-900/95 text-amber-50 border border-amber-500 rounded shadow-lg p-3 text-sm space-y-2">
+        <div className="fixed top-4 right-4 z-[var(--z-index-modal-background)] max-w-md bg-amber-900/95 text-amber-50 border border-amber-500 rounded shadow-lg p-3 text-sm space-y-2">
           <div className="font-semibold">Spell load issues</div>
           <ul className="list-disc list-inside space-y-1 max-h-32 overflow-auto">
             {issues.slice(0, 3).map((msg, idx) => (

@@ -7,22 +7,38 @@ import {
 } from '../../types/crime';
 import { Location } from '../../types';
 import { SeededRandom } from '@/utils/random';
+import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
 
 export class ThievesGuildSystem {
 
     /**
      * Generates a list of available jobs for a player based on their rank.
+     * Uses Regional Economies to provide context-aware targets.
      * @param seed Optional seed for deterministic generation
      */
     static generateJobs(
         guildId: string,
         playerRank: number,
-        availableLocations: Location[],
+        availableLocations: Location[], // Deprecated in favor of regional logic, but kept for interface compat
         seed?: number
     ): GuildJob[] {
         const rng = new SeededRandom(seed || Date.now());
         const jobs: GuildJob[] = [];
         const jobCount = 3 + rng.nextInt(0, 3); // 3-5 jobs
+
+        // Convert regions to potential targets
+        const regionalTargets = Object.values(REGIONAL_ECONOMIES).map(r => ({
+            id: r.id,
+            name: r.name,
+            // Mock other location props for now, or fetch real Location if linked
+            baseDescription: `A wealthy region known for ${r.exports.join(', ')}.`,
+            mapCoordinates: { x: 0, y: 0 },
+            biomeId: 'city',
+            exits: {}
+        } as Location));
+
+        // Merge with passed locations if any
+        const allTargets = [...availableLocations, ...regionalTargets];
 
         for (let i = 0; i < jobCount; i++) {
             // Determine difficulty based on rank +/- 1
@@ -30,10 +46,9 @@ export class ThievesGuildSystem {
             // Difficulty = base + (-1 to 1)
             const difficulty = Math.max(1, Math.min(10, difficultyBase + rng.nextInt(0, 3) - 1));
 
-            // Filter locations appropriate for difficulty (mock logic for now)
-            const targetLoc = availableLocations.length > 0
-                ? rng.pick(availableLocations)
-                : { id: 'loc_unknown', name: 'Unknown Location' } as Location;
+            const targetLoc = allTargets.length > 0
+                ? rng.pick(allTargets)
+                : { id: 'loc_capital', name: 'The Capital', baseDescription: 'The seat of power.', mapCoordinates: {x:0,y:0}, biomeId: 'city', exits: {} } as Location;
 
             jobs.push(this.createProceduralJob(guildId, difficulty, targetLoc, rng));
         }

@@ -169,7 +169,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                         </div>
 
                         {/* Controls - Single Row: Scale Slider | Dice Pool | Roll Controls */}
-                        <div className="p-3 border-t border-gray-700 bg-gray-800/80 flex-shrink-0 relative z-10">
+                        <div className="p-3 border-t border-gray-700 bg-gray-800/80 flex-shrink-0 relative z-[var(--z-index-content-overlay-low)]">
                             <div className="flex gap-3 items-center">
                                 {/* Scale Slider */}
                                 <div className="flex-shrink-0">

@@ -100,7 +100,7 @@
   position: sticky; 
   top: 0;
   background: rgb(30,30,30); 
-  z-index: 1;
+  z-index: var(--z-index-content);
 }
 .prose tbody {
   background-color: rgba(31, 41, 55, 0.7); /* Tailwind gray-800 with 70% opacity */

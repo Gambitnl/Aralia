@@ -125,6 +125,13 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false
       };
 
+    case 'TOGGLE_THIEVES_GUILD_SAFEHOUSE':
+        return {
+            isThievesGuildSafehouseVisible: !state.isThievesGuildSafehouseVisible,
+            isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
+            characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false
+        };
+
     case 'TOGGLE_UNIFIED_LOG_VIEWER':
       return {
         isUnifiedLogViewerVisible: !state.isUnifiedLogViewerVisible,
@@ -251,6 +258,16 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         },
         economy: state.economy,
       };
+
+    case 'START_HEIST_PLANNING':
+        // Close other UIs to focus on Heist Planning
+        return {
+            isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }
+        };
+
+    case 'ABORT_HEIST':
+        // Return to normal view
+        return {}; 
 
     default:
       return {};

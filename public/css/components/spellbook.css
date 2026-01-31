@@ -6,7 +6,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 60;
+  z-index: var(--z-index-content-overlay-high);
 }
 .spellbook-container {
   background-image: url('https://i.pinimg.com/1200x/29/e7/a9/29e7a9a59566717fd845e8d6cfa3353a.jpg');
@@ -32,7 +32,7 @@
   width: 20px;
   background: linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 100%);
   transform: translateX(-10px);
-  z-index: 1;
+  z-index: var(--z-index-content);
 }
 .spellbook-page {
   flex: 1;
@@ -194,7 +194,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  z-index: 11;
+  z-index: calc(var(--z-index-content-overlay-low) + 1);
 }
 .spellbook-close-button:hover {
   background: #4a2c1a;
@@ -273,7 +273,7 @@
   position: absolute;
   top: 1.5rem;
   left: 1.5rem;
-  z-index: 10;
+  z-index: var(--z-index-content-overlay-low);
 }
 .toggle-spells-label {
   display: flex;

@@ -25,7 +25,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
             role="dialog"
             aria-modal="true"
             aria-labelledby="reaction-title"
@@ -62,7 +62,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                             className="w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <div className="flex items-center justify-between relative z-10">
+                            <div className="flex items-center justify-between relative z-[var(--z-index-content-overlay-low)]">
                                 <span className="font-semibold text-purple-300 group-hover:text-purple-200 transition-colors">
                                     Cast {spell.name}
                                 </span>

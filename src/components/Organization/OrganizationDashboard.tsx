@@ -75,7 +75,7 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
         };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+    <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black bg-opacity-75 p-4">
       <div className="bg-gray-900 w-full max-w-4xl max-h-[90vh] rounded-xl shadow-2xl flex flex-col border border-gray-700">
 
         {/* Header */}

@@ -165,6 +165,7 @@ export type AppAction =
   | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } }
   // Thieves Guild Actions
   | { type: 'TOGGLE_THIEVES_GUILD' }
+  | { type: 'TOGGLE_THIEVES_GUILD_SAFEHOUSE' }
   | { type: 'JOIN_GUILD'; payload: { guildId: string } }
   | { type: 'ACCEPT_GUILD_JOB'; payload: { job: GuildJob } }
   | { type: 'COMPLETE_GUILD_JOB'; payload: { jobId: string; success: boolean; rewardGold: number; rewardRep: number } }
@@ -174,6 +175,7 @@ export type AppAction =
   // Heist Actions
   | { type: 'START_HEIST_PLANNING'; payload: { targetLocationId: string; leaderId: string; guildJobId?: string } }
   | { type: 'ADD_HEIST_INTEL'; payload: { intel: HeistIntel } }
+  | { type: 'SELECT_HEIST_APPROACH'; payload: { approachType: string } }
   | { type: 'ADVANCE_HEIST_PHASE' }
   | { type: 'PERFORM_HEIST_ACTION'; payload: { actionDifficulty: number; description: string; success: boolean; alertChange: number; skillCheckResult?: string } }
   | { type: 'ABORT_HEIST' }

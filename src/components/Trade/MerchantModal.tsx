@@ -90,7 +90,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     return (
         <motion.div
             {...overlayMotion}
-            className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
             onClick={onClose}
         >
             <motion.div

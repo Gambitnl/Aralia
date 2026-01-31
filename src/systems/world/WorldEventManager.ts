@@ -19,8 +19,17 @@ import { SecretGenerator } from '../intrigue/SecretGenerator';
 import { WorldHistoryService } from '../../services/WorldHistoryService';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/world/historyUtils';
 import { calculateMarketFactors } from '../../utils/economy/marketEvents';
+import { BountyHunterSystem } from '../crime/BountyHunterSystem';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
+
+export interface WorldEventResult {
+  state: GameState;
+  logs: GameMessage[];
+}
+
+// Probability of an event occurring per day (0.0 to 1.0)
+const DAILY_EVENT_CHANCE = 0.2;
 
 /**
  * Handles Faction Skirmish events.
@@ -206,17 +215,7 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
       // Secret about the Loser being weak/corrupt, or the Winner using dark magic?
       // For simplicity, let's just generate a faction secret about the loser.
       // We pass 'others' as just the winner to create conflict-specific secrets.
-      // TODO(lint-intent): 'secret' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
       const _secret = secretGen.generateFactionSecret(loser, [winner]);
-
-      // Store it in the world state?
-      // Currently, Secrets are player-centric resources.
-      // We can add it to a global "available secrets" pool or just add it to the player's potential knowledge.
-      // But for now, let's just assume it's 'out there' and add it to the loser's held secrets if we had that.
-      // Actually, let's just log it for now or add it to a 'worldSecrets' if we had one.
-      // Since we don't have a global secret pool yet, we'll skip persisting it unless the player is involved.
   }
 
   // Apply Player Reputation ripple
@@ -247,9 +246,6 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // Define potential market events with actual gameplay effects
-    // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
-    // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
-    // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
     const events: Array<{ text: string; event: MarketEvent & { affectedTags?: string[]; effect?: string; duration: number }, weight?: number }> = [
         {
             text: "A surplus of iron from the mines has lowered weapon prices.",        
@@ -378,7 +374,6 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     const rumor: WorldRumor = {
         id: `market-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
         text: selection.text,
-        // TODO(2026-01-03 Codex-CLI): Carry specific MarketEventType through rumor taxonomy; using generic 'market' for now to satisfy union.
         type: 'market',
         timestamp: gameDay,
         expiration: gameDay + selection.event.duration,
@@ -387,31 +382,19 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     };
 
     // Update Economy State
-    // 1. Add new event to activeEvents
-    // 2. Re-calculate scarcity/surplus lists based on ALL active events
     const currentActiveEvents = state.economy.activeEvents || [];
     const newActiveEvents = [...currentActiveEvents, selection.event];
 
-    const newScarcity = new Set<string>();
-    const newSurplus = new Set<string>();
-
-    newActiveEvents.forEach(e => {
-        if (!Array.isArray((e as any).affectedTags)) {
-            return;
-        }
-        if ((e as any).effect === 'scarcity') {
-            (e as any).affectedTags.forEach((tag: string) => newScarcity.add(tag));
-        } else {
-            (e as any).affectedTags.forEach((tag: string) => newSurplus.add(tag));
-        }
-    });
+    // RALPH: Logic Unification.
+    // Uses the centralized selector to ensure state factors match active events.
+    const { scarcity, surplus } = calculateMarketFactors(newActiveEvents);
 
     const newEconomy: EconomyState = {
         ...state.economy,
         activeEvents: newActiveEvents,
         marketFactors: {
-            scarcity: Array.from(newScarcity),
-            surplus: Array.from(newSurplus)
+            scarcity,
+            surplus
         }
     };
 
@@ -468,8 +451,6 @@ const handleRumorSpread = (state: GameState, rng: SeededRandom): WorldEventResul
 
 /**
  * Propagates rumors to new locations based on virality.
- * Simplified model: Rumors clone themselves with increased spreadDistance.
- * In a real graph, we'd check adjacent locations. Here, we simulate "word of mouth" traveling.
  */
 const propagateRumors = (state: GameState, rng: SeededRandom): GameState => {
     if (!state.activeRumors || state.activeRumors.length === 0) return state;
@@ -481,17 +462,11 @@ const propagateRumors = (state: GameState, rng: SeededRandom): GameState => {
     const currentRumors = [...state.activeRumors];
 
     for (const rumor of currentRumors) {
-        // Chance to spread decreases with distance
-        // Distance 0: 100% of virality
-        // Distance 1: 50% of virality
         const virality = rumor.virality ?? 0.5;
         const currentDistance = rumor.spreadDistance ?? 0;
         const spreadChance = virality * (1 / (currentDistance + 1));
 
         if (rng.next() < spreadChance) {
-            // Create a "child" rumor representing spread
-            // We assign a random mock location ID to simulate geographical spread
-            // In a future graph system, this would be a real neighbor ID
             const newDistance = currentDistance + 1;
 
             if (newDistance < 3) {
@@ -600,7 +575,6 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
       const roll = rng.next();
       let result: WorldEventResult;
 
-      // TODO(Worldsmith): Use HistoryService to generate WorldHistoryEvents for major outcomes (Wars, Political Shifts) and include them in the result.
       if (roll < 0.4) {
           result = handleFactionSkirmish(currentState, rng);
       } else if (roll < 0.6) {
@@ -621,11 +595,34 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
 
   // 4. Check Quest Deadlines
   // Only check once per batch (at the end), or check after time advance.
-  // Since time advanced before this function call usually, checking now is correct.
   const questResult = checkQuestDeadlines(currentState);
   if (questResult.state !== currentState || questResult.logs.length > 0) {
       currentState = questResult.state;
       allLogs = [...allLogs, ...questResult.logs];
+  }
+
+  // 5. Bounty Hunter Check (Daily)
+  // RALPH: Law & Order.
+  // High heat attracts trouble. We check once per day passed.
+  for (let i = 0; i < daysPassed; i++) {
+      const hunterResult = BountyHunterSystem.checkForHunterSpawn(currentState, rng);
+      if (hunterResult) {
+          // Spawn the hunter as a dynamic NPC
+          const { npc, message } = hunterResult;
+          currentState = {
+              ...currentState,
+              dynamicNPCs: {
+                  ...currentState.dynamicNPCs,
+                  [npc.id]: npc
+              }
+          };
+          allLogs.push({
+              id: Date.now() + rng.next(),
+              text: message,
+              sender: 'system',
+              timestamp: currentState.gameTime
+          });
+      }
   }
 
   return { state: currentState, logs: allLogs };

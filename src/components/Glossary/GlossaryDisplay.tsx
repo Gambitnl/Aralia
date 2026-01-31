@@ -27,7 +27,7 @@ const GlossaryDisplay: React.FC<GlossaryDisplayProps> = ({ items, title = "Icon 
 
   return (
     <div className="bg-gray-700 bg-opacity-80 p-3 rounded-md shadow-lg mt-2 text-xs border border-gray-600">
-      <h4 className="text-sm font-semibold text-amber-300 mb-2 sticky top-0 bg-gray-700 bg-opacity-95 py-1 z-10">{title}</h4>
+      <h4 className="text-sm font-semibold text-amber-300 mb-2 sticky top-0 bg-gray-700 bg-opacity-95 py-1 z-[var(--z-index-content-overlay-low)]">{title}</h4>
       <ul className="space-y-1.5 columns-2 gap-x-4"> {/* Added columns-2 and gap-x-4 */}
         {uniqueItems.map((item, index) => (
           <li 

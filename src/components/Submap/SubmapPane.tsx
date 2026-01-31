@@ -591,7 +591,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 {isQuickTravelMode && (
                     <div
                         className="fixed bg-gray-900/80 text-white text-xs px-2 py-1 rounded-md shadow-lg pointer-events-none"
-                        style={{ top: mousePosition.y + 20, left: mousePosition.x + 20, zIndex: 100 }}
+                        style={{ top: mousePosition.y + 20, left: mousePosition.x + 20, zIndex: Z_INDEX.TOOLTIP }}
                     >
                         {quickTravelData.isBlocked ? (
                             <span className="text-red-400 font-bold">Path Blocked</span>

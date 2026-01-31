@@ -3,6 +3,7 @@ import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber, Posit
 import DamageNumberOverlay from './DamageNumberOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { getStatusEffectIcon } from '../../utils/combatUtils';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface BattleMapOverlayProps {
   mapData: BattleMapData;
@@ -53,7 +54,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
       style={{
         width: mapData.dimensions.width * TILE_SIZE_PX,
         height: mapData.dimensions.height * TILE_SIZE_PX,
-        zIndex: 30,
+        zIndex: Z_INDEX.MINIMAP,
       }}
     >
       {/* Floating damage/heal numbers */}
@@ -70,7 +71,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
             transform: 'translate(-50%, -100%)',
             transition: 'opacity 200ms ease-out',
             opacity: character.statusEffects.length ? 1 : 0,
-            zIndex: 40,
+            zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
           }}
         >
           {character.statusEffects.map((effect) => (

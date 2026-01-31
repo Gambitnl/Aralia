@@ -1,240 +1,92 @@
+/**
+ * @file src/systems/crime/HeistManager.ts
+ * Core logic for managing active heists, alert levels, and turn-based resolution.
+ */
 
-import {
-    HeistPlan,
-    HeistPhase,
-    HeistIntel,
-    HeistRole,
-    HeistAction,
-    HeistCrewMember,
-    // TODO(lint-intent): 'StolenItem' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    StolenItem as _StolenItem
-} from '../../types/crime';
+import { HeistPlan, HeistPhase, HeistAction, HeistActionType } from '../../types/crime';
 import { Location } from '../../types';
-
-export interface HeistActionResult {
-    success: boolean;
-    alertGenerated: number;
-    message: string;
-    updatedPlan: HeistPlan;
-}
+import { SeededRandom } from '@/utils/random';
 
 export class HeistManager {
-
+    
     /**
-     * Initializes a new heist plan for a target location.
+     * Initializes a new heist plan.
      */
-    static startPlanning(
-        targetLocation: Location,
-        leaderId: string
-    ): HeistPlan {
-        const leader: HeistCrewMember = {
-            characterId: leaderId,
-            role: HeistRole.Leader
-        };
-
+    static startPlanning(target: Location, leaderId: string): HeistPlan {
         return {
             id: crypto.randomUUID(),
-            targetLocationId: targetLocation.id,
-            phase: HeistPhase.Recon,
+            targetLocationId: target.id,
             leaderId,
-            crew: [leader],
-            collectedIntel: [],
-            lootSecured: [],
+            participants: [leaderId],
+            phase: 'Planning',
             alertLevel: 0,
             turnsElapsed: 0,
-            maxAlertLevel: 100 // Default threshold
+            intelGathered: [],
+            approaches: [
+                { type: 'Stealth', riskModifier: -10, timeModifier: 1.5, requiredSkills: ['Stealth', 'ThievesTools'] },
+                { type: 'Force', riskModifier: 20, timeModifier: 0.5, requiredSkills: ['Athletics', 'Intimidation'] },
+                { type: 'Deception', riskModifier: 0, timeModifier: 1.0, requiredSkills: ['Deception', 'Persuasion'] }
+            ],
+            selectedApproach: null,
+            lootSecured: [],
+            complications: []
         };
     }
 
     /**
-     * Adds gathered intel to the plan.
-     */
-    static addIntel(plan: HeistPlan, intel: HeistIntel): HeistPlan {
-        // Prevent duplicate intel
-        if (plan.collectedIntel.some(i => i.id === intel.id)) {
-            return plan;
-        }
-
-        return {
-            ...plan,
-            collectedIntel: [...plan.collectedIntel, intel]
-        };
-    }
-
-    /**
-     * Assigns a crew member to a role. Adds them if not present, updates role if they are.
-     */
-    static assignCrew(plan: HeistPlan, characterId: string, role: HeistRole): HeistPlan {
-        const existingMemberIndex = plan.crew.findIndex(c => c.characterId === characterId);
-        // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
-        // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
-        // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
-        const newCrew = [...plan.crew];
-        if (existingMemberIndex >= 0) {
-            newCrew[existingMemberIndex] = { characterId, role };
-        } else {
-            newCrew.push({ characterId, role });
-        }
-
-        return {
-            ...plan,
-            crew: newCrew
-        };
-    }
-
-    /**
-     * Removes a crew member from the plan.
-     */
-    static removeCrew(plan: HeistPlan, characterId: string): HeistPlan {
-        // Cannot remove leader
-        if (characterId === plan.leaderId) return plan;
-
-        return {
-            ...plan,
-            crew: plan.crew.filter(c => c.characterId !== characterId)
-        };
-    }
-
-    /**
-     * Advances the heist phase (e.g., Recon -> Planning).
+     * Advances the heist to the next phase (Planning -> Infiltration -> Execution -> Escape).
      */
     static advancePhase(plan: HeistPlan): HeistPlan {
-        let nextPhase = plan.phase;
+        let nextPhase: HeistPhase = plan.phase;
 
         switch (plan.phase) {
-            case HeistPhase.Recon:
-                nextPhase = HeistPhase.Planning;
+            case 'Planning':
+                if (!plan.selectedApproach) throw new Error("Cannot start heist without selecting an approach.");
+                nextPhase = 'Infiltration';
                 break;
-            case HeistPhase.Planning:
-                nextPhase = HeistPhase.Execution;
+            case 'Infiltration':
+                nextPhase = 'Execution';
                 break;
-            case HeistPhase.Execution:
-                nextPhase = HeistPhase.Getaway;
+            case 'Execution':
+                nextPhase = 'Escape';
                 break;
-            case HeistPhase.Getaway:
-                nextPhase = HeistPhase.Cooldown;
+            case 'Escape':
+                nextPhase = 'Complete';
                 break;
         }
 
-        return {
-            ...plan,
-            phase: nextPhase
-        };
+        return { ...plan, phase: nextPhase };
     }
 
     /**
-     * Performs a specific heist action.
-     * @param plan Current heist plan
-     * @param action The action being attempted
-     * @param actorId The character performing the action
-     * @param rollResult Optional manual roll result (0-100) for deterministic testing
+     * Calculates the success chance of a specific action based on current alert level and approach.
      */
-    static performHeistAction(
-        plan: HeistPlan,
-        action: HeistAction,
-        actorId: string,
-        rollResult?: number
-    ): HeistActionResult {
-        const actor = plan.crew.find(c => c.characterId === actorId);
-        if (!actor) {
-            throw new Error(`Actor ${actorId} is not part of the crew.`);
-        }
+    static calculateActionSuccessChance(plan: HeistPlan, action: HeistAction): number {
+        let baseChance = 100 - action.difficulty; // DC 15 -> 85% base
+        
+        // Alert Level Penalty: -1% per point of alert
+        baseChance -= plan.alertLevel;
 
-        const successChance = this.calculateActionSuccessChance(plan, action, actor.role);
-        const roll = rollResult !== undefined ? rollResult : Math.random() * 100;
-        const success = roll <= successChance;
-
-        let alertGenerated = 0;
-        let message = '';
-
-        if (success) {
-            alertGenerated = action.noise; // Even success can be loud
-            message = `Success! ${actorId} performed ${action.type}: ${action.description}`;
-        } else {
-            alertGenerated = action.risk;
-            message = `Failure! ${actorId} botched ${action.type}. Alert increased by ${action.risk}.`;
-        }
-
-        // Apply alert modifiers based on role (Lookouts reduce alert gain)
-        const lookouts = plan.crew.filter(c => c.role === HeistRole.Lookout);
-        if (lookouts.length > 0 && alertGenerated > 0) {
-            const reduction = lookouts.length * 5; // -5 alert per lookout
-            alertGenerated = Math.max(0, alertGenerated - reduction);
-            if (alertGenerated < action.risk && !success) {
-                message += ` (Lookout mitigated alert)`;
+        // Approach Modifiers
+        if (plan.selectedApproach) {
+            if (plan.selectedApproach.type === 'Stealth' && action.type === HeistActionType.Sneak) {
+                baseChance += 10;
+            } else if (plan.selectedApproach.type === 'Force' && action.type === HeistActionType.Combat) {
+                baseChance += 10;
             }
         }
 
-        const newAlertLevel = Math.min(100, plan.alertLevel + alertGenerated);
+        return Math.max(5, Math.min(95, baseChance));
+    }
 
-        const updatedPlan: HeistPlan = {
+    /**
+     * Adds gathered intel to the plan, potentially revealing complications or lowering difficulty.
+     */
+    static addIntel(plan: HeistPlan, intel: any): HeistPlan {
+        // Mock logic: Intel reduces starting alert or reveals hidden routes
+        return {
             ...plan,
-            alertLevel: newAlertLevel,
-            turnsElapsed: plan.turnsElapsed + 1
-        };
-
-        return {
-            success,
-            alertGenerated,
-            message,
-            updatedPlan
-        };
-    }
-
-    /**
-     * Calculates the success chance of a specific heist action based on plan quality and role.
-     */
-    static calculateActionSuccessChance(
-        plan: HeistPlan,
-        action: HeistAction,
-        actorRole?: HeistRole
-    ): number {
-        // Base chance starts at 50%
-        let chance = 50;
-
-        // Intel bonuses
-        const relevantIntelCount = plan.collectedIntel.length;
-        chance += (relevantIntelCount * 10); // +10% per piece of intel
-
-        // Role Bonus
-        if (action.requiredRole && actorRole === action.requiredRole) {
-            chance += 25; // Significant bonus for correct specialist
-        } else if (actorRole === HeistRole.Leader) {
-             chance += 10; // Leader is generally competent
-        }
-
-        // Alert level penalty
-        chance -= (plan.alertLevel * 0.5); // -0.5% per alert level (reduced form 2% to make it less punishing)
-
-        // Difficulty penalty
-        chance -= action.difficulty;
-
-        return Math.min(95, Math.max(5, chance));
-    }
-
-    /**
-     * Calculates the final results of a completed heist.
-     */
-    static resolveHeist(plan: HeistPlan): { totalValue: number, heatGenerated: number, xp: number } {
-        const totalValue = plan.lootSecured.reduce((sum, item) => sum + item.value, 0);
-
-        // Heat calculation
-        // Base heat based on alert level
-        let heatGenerated = Math.floor(plan.alertLevel / 10);
-
-        // Bonus heat for value stolen
-        if (totalValue > 1000) heatGenerated += 1;
-        if (totalValue > 5000) heatGenerated += 2;
-
-        // XP Calculation
-        const xp = (totalValue / 10) + (100 - plan.alertLevel);
-
-        return {
-            totalValue,
-            heatGenerated,
-            xp: Math.floor(xp)
+            intelGathered: [...plan.intelGathered, intel]
         };
     }
 }

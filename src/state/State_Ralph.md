@@ -10,6 +10,6 @@ This folder contains the Redux-like State Management logic. It defines the "Sing
 - **reducers/worldReducer.ts**: Manages time, map data, and global events. Cascades `ADVANCE_TIME` actions into Ritual and Underdark mechanics.
 
 ## Issues & Opportunities
-- **Redundancy**: `appState.ts` and `initialState.ts` both define `initialGameState`. They have drifted apart (one has `npcMemory` with interactions, the other doesn't). This is a high-risk technical debt item.
-- **Action Complexity**: Several reducers (e.g. `characterReducer`) perform complex calculations (AC, HP) *inside* the reducer. This is generally anti-pattern in Redux; calculations should happen in utilities or selectors to keep reducers pure and predictable.
-- **Loose Typing**: Many actions use `action.payload as any` or partial types, leading to defensive code like `if (!itemId || !characterId) return {}`.
+- **Redundancy**: `appState.ts` and `initialState.ts` both define `initialGameState`. They have drifted apart (one has `npcMemory` with interactions, the other doesn't). This is a high-risk technical debt item. **(RESOLVED: Unified in `state_arch_refactor_20260131`)**
+- **Action Complexity**: Several reducers (e.g. `characterReducer`) perform complex calculations (AC, HP) *inside* the reducer. This is generally anti-pattern in Redux; calculations should happen in utilities or selectors to keep reducers pure and predictable. **(RESOLVED: Extracted to `updateDerivedStats` in `state_arch_refactor_20260131`)**
+- **Loose Typing**: Many actions use `action.payload as any` or partial types, leading to defensive code like `if (!itemId || !characterId) return {}`. **(RESOLVED: Strict types applied in `state_arch_refactor_20260131`)**

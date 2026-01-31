@@ -114,7 +114,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   );
 
   return (
-    <div ref={rootRef} className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div ref={rootRef} className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]">
       <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl p-6 text-gray-100">
         <div className="flex items-center justify-between mb-4">
           <div>

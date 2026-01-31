@@ -1,6 +1,7 @@
 import React from 'react';
 import { CharacterVisualConfig, CharacterGender } from '../../services/CharacterAssetService';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface VisualsSelectionProps {
     visuals: CharacterVisualConfig;
@@ -193,7 +194,7 @@ const LayeredPreview: React.FC<{ visuals: CharacterVisualConfig }> = ({ visuals 
                         src={path}
                         alt=""
                         className="absolute inset-0 w-full h-full object-contain pixelated"
-                        style={{ zIndex: i }}
+                        style={{ zIndex: Z_INDEX.BASE + i }}
                     />
                 ))}
             </div>

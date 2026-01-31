@@ -160,7 +160,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
           controls={
             <div className="space-y-4">
               {/* Header / Points Display */}
-              <div className="sticky top-0 bg-gray-900/90 backdrop-blur-sm z-10 pb-4 border-b border-gray-700 -mx-4 px-4 pt-2">
+              <div className="sticky top-0 bg-gray-900/90 backdrop-blur-sm z-[var(--z-index-content-overlay-low)] pb-4 border-b border-gray-700 -mx-4 px-4 pt-2">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-400 text-sm">Points Available</span>
                   <span className={`text-2xl font-bold ${pointsRemaining < 0 ? 'text-red-400' : 'text-amber-400'}`}>
@@ -261,21 +261,21 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
                         {ability.charAt(0)}
                       </span>
 
-                      <h3 className={`font-cinzel font-bold text-lg mb-1 z-10 ${isPrimary ? 'text-amber-400' : 'text-gray-400'}`}>
+                      <h3 className={`font-cinzel font-bold text-lg mb-1 z-[var(--z-index-content-overlay-low)] ${isPrimary ? 'text-amber-400' : 'text-gray-400'}`}>
                         {ability.toUpperCase()}
                       </h3>
                       
-                      <div className="text-4xl font-black text-white z-10 mb-1">
+                      <div className="text-4xl font-black text-white z-[var(--z-index-content-overlay-low)] mb-1">
                         {final}
                       </div>
                       
-                      <div className={`px-3 py-0.5 rounded-full text-sm font-bold z-10 ${
+                      <div className={`px-3 py-0.5 rounded-full text-sm font-bold z-[var(--z-index-content-overlay-low)] ${
                         parseInt(mod) >= 0 ? 'bg-green-900/60 text-green-300' : 'bg-red-900/60 text-red-300'
                       }`}>
                         {mod}
                       </div>
 
-                      <div className="w-full mt-4 pt-3 border-t border-gray-700/50 z-10 text-xs space-y-1">
+                      <div className="w-full mt-4 pt-3 border-t border-gray-700/50 z-[var(--z-index-content-overlay-low)] text-xs space-y-1">
                         <div className="flex justify-between text-gray-500">
                           <span>Base</span>
                           <span>{base}</span>

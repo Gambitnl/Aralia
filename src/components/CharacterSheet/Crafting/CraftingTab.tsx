@@ -19,14 +19,14 @@ export const CraftingTab: React.FC<CraftingTabProps> = ({ disabled = false }) =>
         <>
             {/* Gathering Panel Modal Overlay */}
             {isGatheringPanelOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/60 backdrop-blur-sm">
                     <GatheringPanel onClose={() => setIsGatheringPanelOpen(false)} />
                 </div>
             )}
 
             {/* Alchemy Bench Modal Overlay */}
             {isAlchemyBenchOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/60 backdrop-blur-sm">
                     <AlchemyBenchPanel onClose={() => setIsAlchemyBenchOpen(false)} />
                 </div>
             )}

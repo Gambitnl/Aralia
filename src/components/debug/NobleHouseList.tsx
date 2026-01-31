@@ -135,7 +135,7 @@ const NobleHouseList: React.FC<NobleHouseListProps> = ({ worldSeed, onClose }) =
                                 <div className="p-4 flex gap-4 items-start bg-gray-800/50 relative">
                                     <HeraldryDisplay heraldry={heraldry} size={80} />
 
-                                    <div className="flex-1 min-w-0 z-10">
+                                    <div className="flex-1 min-w-0 z-[var(--z-index-content-overlay-low)]">
                                         <h3 className="text-xl font-bold text-white font-cinzel truncate">{house.name}</h3>
                                         <p className="text-amber-200 italic font-serif text-sm opacity-90">&quot;{house.motto}&quot;</p>
                                         <div className="flex flex-wrap gap-2 mt-2">

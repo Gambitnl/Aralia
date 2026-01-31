@@ -120,7 +120,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-20 flex flex-col p-2 gap-2"
+            className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-[var(--z-index-submap-overlay)] flex flex-col p-2 gap-2"
             role="menu"
             onKeyDown={handleMenuKeyDown}
           >

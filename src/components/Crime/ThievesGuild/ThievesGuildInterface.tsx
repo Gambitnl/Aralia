@@ -95,7 +95,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
     if (guild.rank === 0) {
         return (
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4">
                 <div className="bg-gray-900 border border-purple-900 p-6 rounded-lg max-w-md w-full shadow-2xl">
                     <h2 className="text-2xl font-bold text-purple-400 mb-4">The Shadows Watch</h2>
                     <p className="text-gray-300 mb-6">

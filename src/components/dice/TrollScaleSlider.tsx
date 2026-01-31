@@ -227,7 +227,7 @@ export const TrollScaleSlider: React.FC<TrollScaleSliderProps> = ({
                         step={1}
                         value={value}
                         onChange={(e) => onChange(Number(e.target.value))}
-                        className="absolute left-1/2 top-1/2 h-8 opacity-0 cursor-pointer z-10 origin-center -rotate-90 -translate-x-1/2 -translate-y-1/2"
+                        className="absolute left-1/2 top-1/2 h-8 opacity-0 cursor-pointer z-[var(--z-index-content-overlay-low)] origin-center -rotate-90 -translate-x-1/2 -translate-y-1/2"
                         style={{ width: '100px' }}
                     />
 
@@ -268,7 +268,7 @@ export const TrollScaleSlider: React.FC<TrollScaleSliderProps> = ({
                 {flyingSheep.map(sheep => (
                     <motion.div
                         key={sheep.id}
-                        className="absolute pointer-events-none z-20"
+                        className="absolute pointer-events-none z-[var(--z-index-submap-overlay)]"
                         initial={{
                             // Start at sheep button (top-left) or troll mouth (right)
                             x: sheep.direction === 'in' ? 20 : 70,

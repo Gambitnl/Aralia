@@ -253,7 +253,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   if (glossaryIndex === null && !error) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4">
         <div className="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-2xl border border-gray-700">
           <p className="text-gray-400 italic">Loading glossary...</p>
         </div>
@@ -263,7 +263,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   if ((glossaryIndex && glossaryIndex.length === 0 && !error) || error) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4">
         <div className="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-2xl border border-gray-700">
           <p className="text-red-400">{error || "Glossary index is empty or failed to load. Please check console."}</p>
           <button ref={firstFocusableElementRef} onClick={onClose} className="mt-4 px-4 py-2 bg-sky-600 text-white rounded">Close</button>

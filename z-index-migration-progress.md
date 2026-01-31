@@ -14,34 +14,12 @@
 - No type errors introduced by registry usage
 - Template literal syntax working correctly with Tailwind CSS
 
-## Remaining Migrations Needed
-
-### Modal System (High Priority)
-- RestModal.tsx: `z-[120]` → `Z_INDEX.MODAL_INTERACTIVE`
-- LevelUpModal.tsx: `z-[120]` → `Z_INDEX.MODAL_INTERACTIVE`
-- ImageModal.tsx: `z-[100]` → `Z_INDEX.MODAL_CONTENT`
-- MissingChoiceModal.tsx: `z-[80]` → `Z_INDEX.MODAL_CONTENT`
-- OllamaDependencyModal.tsx: `z-[60]` → `Z_INDEX.MODAL_BACKGROUND`
-- FenceInterface.tsx: `z-[60]` → `Z_INDEX.MODAL_BACKGROUND`
-
-### Overlays & Specialized Components
-- DiceOverlay.tsx: `z-[80]` → `Z_INDEX.DICE_OVERLAY`
-- SpellbookOverlay.tsx: `z-[200]` → `Z_INDEX.MODAL_SPECIALIZED_OVERLAY`
-- ThreeDModal.tsx: `z-[150]` + `z-[200]` → `Z_INDEX.MODAL_IMMERSIVE_*`
-- CombatView.tsx: `z-[60]` → `Z_INDEX.COMBAT_OVERLAY`
-- DevMenu.tsx: `z-[60]` → `Z_INDEX.DEBUG_OVERLAY`
-
-### Infrastructure & Base Layers
-- SubmapPane.tsx: `z-[20]` + `z-[60]` → `Z_INDEX.SUBMAP_OVERLAY` + `Z_INDEX.MODAL_BACKGROUND`
-- SubmapTile.tsx: `z-[100]` → `Z_INDEX.CONTENT`
-- LoadGameTransition.tsx: `z-[100]` → `Z_INDEX.LOADING_TRANSITION`
-- App.tsx: `z-[100]` → `Z_INDEX.ERROR_OVERLAY`
-
-### Interactive Elements
-- GlossaryResizeHandles.tsx: `z-[110]` + `z-[120]` → `Z_INDEX.RESIZE_HANDLES_*`
+## Current Status (2026-01-31)
+- No hardcoded `z-[number]` values remain in runtime source (`src/**`).
+- Remaining occurrences are limited to docs/tests/examples (e.g., READMEs, archived docs, test fixtures).
 
 ## Migration Statistics
-- **Total z-index instances**: 42
+- **Historical hardcoded instances migrated**: 42
 - **Completed migrations**: 42 instances (100%)
 - **Remaining migrations**: 0 instances (0%)
 - **Components migrated**: 19/19 (100%)
@@ -50,9 +28,9 @@
 
 ### All Components Migrated:
 - **Modal System**: 11 components (ConfirmationModal, GameGuideModal, RestModal, LevelUpModal, ImageModal, MissingChoiceModal, OllamaDependencyModal, FenceInterface, SpellbookOverlay, ThreeDModal, DevMenu)
-- **Overlay Components**: 4 components (DiceOverlay, CombatView, SubmapPane glossary)
+- **Overlay Components**: 3 components (DiceOverlay, CombatView, SubmapPane glossary)
 - **Interactive Elements**: 2 components (ResizeHandles, GlossaryResizeHandles)
-- **Infrastructure**: 4 components (WindowFrame, SubmapPane overlay, SubmapTile, LoadGameTransition, App error)
+- **Infrastructure**: 5 components (WindowFrame, SubmapPane overlay, SubmapTile, LoadGameTransition, App error)
 - **Always-on-top**: 1 component (Tooltip)
 
 ### Migration Quality:

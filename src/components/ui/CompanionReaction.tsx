@@ -59,7 +59,7 @@ export const CompanionReaction: React.FC<CompanionReactionProps> = ({ companions
         initial={{ opacity: 0, y: 20, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.9 }}
-        className="fixed bottom-32 left-8 z-50 flex items-end gap-3 pointer-events-none"
+        className="fixed bottom-32 left-8 z-[var(--z-index-modal-background)] flex items-end gap-3 pointer-events-none"
       >
         <div className="w-16 h-16 rounded-full border-2 border-amber-500 bg-gray-800 overflow-hidden shadow-lg">
              {/* Placeholder for avatar if url is missing */}

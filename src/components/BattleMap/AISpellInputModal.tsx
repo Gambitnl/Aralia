@@ -56,7 +56,7 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/70 z-[var(--z-index-modal-background)] flex items-center justify-center p-4">
             <div className="bg-gray-800 border-2 border-amber-500 rounded-lg p-6 max-w-lg w-full shadow-2xl">
                 <h2 className="text-2xl font-cinzel text-amber-500 mb-4">Cast {spell.name}</h2>
 

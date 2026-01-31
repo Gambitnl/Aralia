@@ -9,5 +9,5 @@ This folder contains the Maritime Simulation logic. It handles the management of
 - **NavalCombatSystem.ts**: (Not yet commented) Turn-based logic for ship-to-ship combat.
 
 ## Issues & Opportunities
-- **Movement Determinism**: `milesPerDay` is a flat calculation based on base speed. It doesn't currently account for Weather (Tailwinds/Storms) or Sea Currents which would add significant depth to navigation.
-- **Supply Logic**: The supply consumption uses `Math.random()` for some checks, but the logic for starvation is binary. There is no concept of "Rationing" to extend supplies at the cost of morale.
+- **Movement Determinism**: `milesPerDay` is a flat calculation based on base speed. It doesn't currently account for Weather (Tailwinds/Storms) or Sea Currents which would add significant depth to navigation. **(RESOLVED: Integrated WeatherSystem in `world_sim_hardening_20260131`)**
+- **Supply Logic**: The supply consumption uses `Math.random()` for some checks, but the logic for starvation is binary. There is no concept of "Rationing" to extend supplies at the cost of morale. **(RESOLVED: Added RationingLevel state in `world_sim_hardening_20260131`)**

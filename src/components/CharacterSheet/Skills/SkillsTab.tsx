@@ -29,7 +29,7 @@ const SkillsTab: React.FC<SkillsTabProps> = ({ character, onNavigateToGlossary }
                 <h3 className="text-xl font-cinzel text-amber-400 mb-4">Skill Statistics</h3>
 
                 <table className="min-w-full divide-y divide-gray-600 border border-gray-600 rounded-lg">
-                    <thead className="bg-gray-700 sticky top-0 z-10">
+                    <thead className="bg-gray-700 sticky top-0 z-[var(--z-index-content-overlay-low)]">
                         <tr>
                             <th scope="col" className={tableHeaderClass}>Skill</th>
                             <th scope="col" className={`${tableHeaderClass} text-center`}>Mod</th>

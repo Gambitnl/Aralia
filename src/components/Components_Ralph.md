@@ -13,6 +13,6 @@ This folder contains the React UI layer. It follows a modular structure where ma
 - **BattleMap/**: (Directory) The turn-based combat engine UI.
 
 ## Issues & Opportunities
-- **Tooltip Fragility**: `WorldPane.tsx` hardcodes the `tooltipKeywords` dictionary. This should be moved to a centralized lore database or the `GlossaryContext` to avoid duplication.
-- **Roving Focus Complexity**: `MapPane.tsx` and `SystemMenu.tsx` both implement custom keyboard navigation logic. This could be abstracted into a shared `useKeyboardGridNav` hook.
+- **Tooltip Fragility**: `WorldPane.tsx` hardcodes the `tooltipKeywords` dictionary. This should be moved to a centralized lore database or the `GlossaryContext` to avoid duplication. **(RESOLVED: Migrated to LoreService in `ui_logic_knowledge_20260131`)**
+- **Roving Focus Complexity**: `MapPane.tsx` and `SystemMenu.tsx` both implement custom keyboard navigation logic. This could be abstracted into a shared `useKeyboardGridNav` hook. **(RESOLVED: Created `useKeyboardNavigation` hook in `ui_logic_knowledge_20260131`)**
 - **Prop Drilling**: Deeply nested components (like `MapTile` inside `MapPane`) receive many props. Moving to a Tile-specific context might improve performance and readability.

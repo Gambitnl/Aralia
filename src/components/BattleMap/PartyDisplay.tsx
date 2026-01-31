@@ -44,7 +44,7 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
 
         <button
             onClick={onToggleAuto}
-            className={`absolute top-2 right-2 px-2 py-0.5 text-xs rounded border ${isAuto ? 'bg-purple-600 border-purple-400 text-white' : 'bg-gray-800 border-gray-500 text-gray-400'} hover:bg-opacity-80 transition-colors z-10`}
+            className={`absolute top-2 right-2 px-2 py-0.5 text-xs rounded border ${isAuto ? 'bg-purple-600 border-purple-400 text-white' : 'bg-gray-800 border-gray-500 text-gray-400'} hover:bg-opacity-80 transition-colors z-[var(--z-index-content-overlay-low)]`}
             title="Toggle AI Control"
         >
             {isAuto ? 'AI: ON' : 'AI: OFF'}

@@ -288,6 +288,7 @@ export const initialGameState: GameState = {
 
     // UI
     isNavalDashboardVisible: false,
+    isThievesGuildSafehouseVisible: false,
     isNobleHouseListVisible: false,
     isTradeRouteDashboardVisible: false,
 };
