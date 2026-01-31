@@ -30,8 +30,9 @@ export async function handleOracle({
   playPcmAudio,
   generalActionContext,
 }: HandleOracleProps): Promise<void> {
-  if (action.payload?.query) {
-    const playerQuery = action.payload.query as string;
+  const payload = (action as any).payload;
+  if (payload?.query) {
+    const playerQuery = payload.query as string;
     addMessage(`You approach the Oracle and ask: "${playerQuery}"`, 'player');
     dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 3600 } });
 

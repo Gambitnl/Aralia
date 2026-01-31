@@ -26,13 +26,13 @@ export const useActionGeneration = ({
     // Populate interactions for NPCs and Items in current location
     if (!currentLocation.id.startsWith('coord_')) {
       npcsInLocation.forEach((npc) => {
-        actions.push({ type: 'talk', label: `Talk to ${npc.name}`, targetId: npc.id });
+        actions.push({ type: 'talk', label: `Talk to ${npc.name}`, payload: { targetNpcId: npc.id }, targetId: npc.id });
       });
     }
 
     if (!currentLocation.id.startsWith('coord_')) {
       itemsInLocation.forEach((item) => {
-        actions.push({ type: 'take_item', label: `Take ${item.name}`, targetId: item.id });
+        actions.push({ type: 'take_item', label: `Take ${item.name}`, payload: { itemId: item.id }, targetId: item.id });
       });
     }
 
@@ -44,7 +44,7 @@ export const useActionGeneration = ({
           const targetId = typeof exit === 'string' ? exit : exit.targetId;
           // Optionally verify exit is visible if it's an object
           if (typeof exit === 'string' || !exit.isHidden) {
-            actions.push({ type: 'move', label: `Go ${direction}`, targetId: targetId });
+            actions.push({ type: 'move', label: `Go ${direction}`, payload: { query: `Go ${direction}` }, targetId: targetId });
           }
         }
       });

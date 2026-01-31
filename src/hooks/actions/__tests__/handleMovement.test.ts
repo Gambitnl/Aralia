@@ -85,6 +85,7 @@ describe('handleMovement - Seasonal Effects', () => {
       type: 'move',
       label: 'North',
       targetId: 'North',
+      payload: { query: 'North' },
     };
 
     // Fix: Mock Gemini Service response to return expected structure

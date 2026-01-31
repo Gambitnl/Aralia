@@ -20,6 +20,13 @@ import { WorldHistoryService } from '../../services/WorldHistoryService';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/world/historyUtils';
 import { calculateMarketFactors } from '../../utils/economy/marketEvents';
 
+export const DAILY_EVENT_CHANCE = 0.1;
+
+export interface WorldEventResult {
+    state: GameState;
+    logs: GameMessage[];
+}
+
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
 /**

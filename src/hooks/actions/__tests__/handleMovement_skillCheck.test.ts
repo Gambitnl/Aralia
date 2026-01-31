@@ -83,7 +83,7 @@ describe('handleMovement - Skill Check Events', () => {
     (generateTravelEvent as Mock).mockReturnValue(skillEvent);
 
     await handleMovement({
-      action: { type: 'move', targetId: 'North', label: 'Move North' }, // Use 'North' (capitalized) to match DIRECTION_VECTORS keys
+      action: { type: 'move', targetId: 'North', label: 'Move North', payload: { query: 'Move North' } }, // Use 'North' (capitalized) to match DIRECTION_VECTORS keys
       gameState: mockGameState,
       dispatch: mockDispatch as any,
       addMessage: mockAddMessage as any,
@@ -117,7 +117,7 @@ describe('handleMovement - Skill Check Events', () => {
     (generateTravelEvent as Mock).mockReturnValue(skillEvent);
 
     await handleMovement({
-      action: { type: 'move', targetId: 'North', label: 'Move North' }, // Use 'North'
+      action: { type: 'move', targetId: 'North', label: 'Move North', payload: { query: 'Move North' } }, // Use 'North'
       gameState: mockGameState,
       dispatch: mockDispatch as any,
       addMessage: mockAddMessage as any,

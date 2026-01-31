@@ -52,6 +52,7 @@ export function parseJsonRobustly<T = any>(text: string): T | null {
 
     // 4. Try stripping invalid control characters which can break JSON.parse
     try {
+        // eslint-disable-next-line no-control-regex
         const cleaned = text.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
         return JSON.parse(cleaned) as T;
     } catch {

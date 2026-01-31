@@ -27,12 +27,14 @@ export async function handleTakeItem({
   dispatch,
   addMessage,
 }: HandleTakeItemProps): Promise<void> {
-  if (!action.targetId) {
+  const targetId = 'targetId' in action ? (action as any).targetId : undefined;
+
+  if (!targetId) {
     addMessage("Invalid item target.", "system");
     dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
     return;
   }
-  const itemToTake = ITEMS[action.targetId];
+  const itemToTake = ITEMS[targetId];
   const currentLocId = gameState.currentLocationId;
   if (currentLocId.startsWith('coord_')) {
     addMessage(`There are no specific items to take in this wilderness area.`, 'system');
@@ -41,7 +43,7 @@ export async function handleTakeItem({
   }
   const itemsCurrentlyInLoc = gameState.dynamicLocationItemIds[currentLocId] || [];
   
-  if (itemToTake && itemsCurrentlyInLoc.includes(action.targetId)) {
+  if (itemToTake && itemsCurrentlyInLoc.includes(targetId)) {
     // Create the discovery entry here in the handler
     const newDiscoveryEntry: DiscoveryEntry = {
         id: crypto.randomUUID(),
@@ -68,7 +70,7 @@ export async function handleTakeItem({
 
     // TODO(FEATURES): Swap hardcoded item quest triggers for data-driven quest hooks tied to item metadata (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     // Check for quest triggers based on item ID
-    if (action.targetId === 'old_map_fragment') {
+    if (targetId === 'old_map_fragment') {
        // Trigger 'The Lost Map' quest if not already active/completed
        const questId = 'lost_map';
        const quest = INITIAL_QUESTS[questId];
@@ -81,7 +83,7 @@ export async function handleTakeItem({
        }
     }
   } else {
-    addMessage(`Cannot take ${ITEMS[action.targetId]?.name || action.targetId}. It's not here or doesn't exist.`, 'system');
+    addMessage(`Cannot take ${ITEMS[targetId]?.name || targetId}. It's not here or doesn't exist.`, 'system');
   }
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
   dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
@@ -119,7 +121,8 @@ export async function handleHarvestResource({
     addMessage,
     addGeminiLog
 }: HandleHarvestProps): Promise<void> {
-    const { harvestContext } = action.payload || {};
+    const payload = (action as any).payload;
+    const harvestContext = payload?.harvestContext;
     const player = gameState.party[0];
     
     if (!player) return;

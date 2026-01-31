@@ -183,41 +183,6 @@ export class VoyageManager {
             currentShip.crew = CrewManager.calculateCrewStats(currentShip.crew.members);
         }
 
-        let starving = false;
-        let thirsty = false;
-
-        // Deduct Food
-        if (currentShip.cargo.supplies.food >= foodNeeded) {
-            currentShip.cargo.supplies.food -= foodNeeded;
-            state.suppliesConsumed.food += foodNeeded;
-        } else {
-            // Consume remainder
-            state.suppliesConsumed.food += currentShip.cargo.supplies.food;
-            currentShip.cargo.supplies.food = 0;
-            starving = true;
-        }
-
-        // Deduct Water
-        if (currentShip.cargo.supplies.water >= waterNeeded) {
-            currentShip.cargo.supplies.water -= waterNeeded;
-            state.suppliesConsumed.water += waterNeeded;
-        } else {
-             state.suppliesConsumed.water += currentShip.cargo.supplies.water;
-             currentShip.cargo.supplies.water = 0;
-             thirsty = true;
-        }
-
-        // Starvation/Thirst Consequences
-        if (starving || thirsty) {
-            const reason = starving && thirsty ? 'Starvation & Thirst' : (starving ? 'Starvation' : 'Thirst');
-            CrewManager.modifyCrewMorale(currentShip.crew, -10, reason);
-            dailyLog += ` CRITICAL: Crew is suffering from ${reason.toLowerCase()}!`;
-            dailyLogType = 'Warning';
-
-            // Recalculate crew stats after modification
-            currentShip.crew = CrewManager.calculateCrewStats(currentShip.crew.members);
-        }
-
         // 5. Finalize Log
         if (!dailyLog) {
             dailyLog = `Day ${day}: Sailed ${Math.round(actualDistance)} miles. Calm seas.`;

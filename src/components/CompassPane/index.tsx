@@ -1,10 +1,4 @@
-/**
- * @file CompassPane.tsx
- * This component displays the 8-directional compass for movement and a central "Look Around" button.
- * Movement options are dynamically enabled/disabled based on game state and map data.
- * It now also displays the player's current world and submap coordinates, and the current game time.
- * It also includes icon buttons to toggle the World Map and Submap views.
- * The submap toggle button is hidden if the compass is being shown within the SubmapPane itself.
+
 /**
  * @file CompassPane.tsx
  * This component displays the 8-directional compass for movement and a central "Look Around" button.
@@ -135,7 +129,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
             {compassLayout.map((point) => {
               const actionToPerform: Action | null =
                 point.actionType === 'look_around' ? { type: 'look_around', label: 'Look Around' } :
-                  point.actionType === 'move' && point.directionKey ? { type: 'move', label: `Move ${point.directionKey}`, targetId: point.directionKey } :
+                  point.actionType === 'move' && point.directionKey ? { type: 'move', label: `Move ${point.directionKey}`, payload: { query: `Move ${point.directionKey}` }, targetId: point.directionKey } :
                     null;
 
               const isDisabledBySystem = isCompassActionDisabled(point);

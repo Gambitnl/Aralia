@@ -18,7 +18,7 @@ export const ORC_DATA: Race = {
     'Speed: 30 feet',
     'Adrenaline Rush: You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest. (Note: Mechanical effects like THP gain, usage tracking, and bonus action not yet fully implemented).',
     'Darkvision (120ft)',
-    "Relentless Endurance: When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can\'t do so again until you finish a Long Rest. (Note: Mechanical implementation not yet in place).",
+    "Relentless Endurance: When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest. (Note: Mechanical implementation not yet in place).",
   ],
   visual: {
     id: 'orc',

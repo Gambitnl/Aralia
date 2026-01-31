@@ -8,7 +8,8 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp, getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, buildHitPointDicePools } from '../../utils/characterUtils';
+import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp, getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, buildHitPointDicePools, updateDerivedStats } from '../../utils/characterUtils';
+import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
 import { isWeaponProficient } from '../../utils/weaponUtils';
 // TODO(lint-intent): 'LOCATIONS' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -300,7 +301,6 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 preparedSpells.delete(spellId);
             } else {
                 // Check limit before adding
-                const { getMaxPreparedSpells } = require('../../utils/character/getMaxPreparedSpells');
                 const maxPrepared = getMaxPreparedSpells(charToUpdate);
 
                 // If maxPrepared is null (known caster), no limit applies
