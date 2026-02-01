@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const SILVER_DRAGONBORN_DATA: Race = {
   id: 'silver_dragonborn',
   name: 'Silver Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from silver dragons, these dragonborn carry the legacy of cloud-dwelling protectors. Their scales shimmer like polished silver, reflecting light beautifully, and they wield the power of frost. Silver dragonborn are often compassionate and altruistic, embodying the benevolent nature of their draconic ancestors.',
   abilityBonuses: [],

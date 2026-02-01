@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const AUTOGNOME_DATA: Race = {
   id: 'autognome',
   name: 'Autognome',
-  baseRace: 'autognome',
+  baseRace: 'constructed',
   description:
     'Autognomes are mechanical beings built by rock gnome inventors with a spark of sentience, programmed for loyalty but capable of forging their own personalities.',
   abilityBonuses: [],

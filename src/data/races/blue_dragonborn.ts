@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const BLUE_DRAGONBORN_DATA: Race = {
   id: 'blue_dragonborn',
   name: 'Blue Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from blue dragons, these dragonborn carry the legacy of desert storm lords. Their scales shimmer in shades of sapphire and cobalt, and they command the power of lightning. Blue dragonborn are often proud and territorial, reflecting the commanding presence of their draconic ancestors.',
   abilityBonuses: [],

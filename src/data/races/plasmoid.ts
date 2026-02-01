@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const PLASMOID_DATA: Race = {
   id: 'plasmoid',
   name: 'Plasmoid',
-  baseRace: 'plasmoid',
+  baseRace: 'shapeshifters',
   description:
     'Plasmoids are amorphous ooze beings from Wildspace that can reshape their bodies at will while retaining a curious intelligence.',
   abilityBonuses: [],

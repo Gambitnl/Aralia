@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const HOBGOBLIN_DATA: Race = {
   id: 'hobgoblin',
   name: 'Hobgoblin',
-  baseRace: 'hobgoblin',
+  baseRace: 'greenskins',
   description:
     'Hobgoblins are disciplined and militant humanoids with a strong sense of hierarchy, trained for organized warfare and ritual obedience.',
   abilityBonuses: [],

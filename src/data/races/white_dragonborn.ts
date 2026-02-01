@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const WHITE_DRAGONBORN_DATA: Race = {
   id: 'white_dragonborn',
   name: 'White Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from white dragons, these dragonborn carry the legacy of arctic hunters. Their scales are pristine white or pale blue, like fresh snow and ice, and they command freezing cold. White dragonborn are often direct and primal, embodying the savage nature of their draconic ancestors.',
   abilityBonuses: [],

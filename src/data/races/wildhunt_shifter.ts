@@ -3,7 +3,7 @@ import { Race } from '../../types';
 export const WILDHUNT_SHIFTER_DATA: Race = {
   id: 'wildhunt_shifter',
   name: 'Wildhunt Shifter',
-  baseRace: 'shifter',
+  baseRace: 'shapeshifters',
   description: 'Wildhunt shifters are the most in tune with their animal nature, their lycanthropic heritage tied to creatures known for their keen senses and tracking ability like wolves and bloodhounds. Sharp-eyed and perceptive, these shifters make excellent trackers and hunters. When they shift, their senses sharpen to supernatural levels, allowing them to detect hidden foes and react to threats before they manifest. Wildhunt shifters often serve as scouts, rangers, and sentries, their enhanced awareness making them nearly impossible to ambush or deceive.',
   abilityBonuses: [],
   traits: [

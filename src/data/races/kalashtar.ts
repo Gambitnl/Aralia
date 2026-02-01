@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const KALASHTAR_DATA: Race = {
   id: 'kalashtar',
   name: 'Kalashtar',
-  baseRace: 'kalashtar',
+  baseRace: 'planar_travelers',
   description:
     'Kalashtar are a compound people, born of human hosts joined with dream spirits, who march toward enlightenment with calm minds and psychic discipline.',
   abilityBonuses: [],

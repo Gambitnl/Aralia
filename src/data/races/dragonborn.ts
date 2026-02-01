@@ -37,6 +37,7 @@ export const DRAGONBORN_ANCESTRIES_DATA: Record<
 export const DRAGONBORN_DATA: Race = {
   id: 'dragonborn',
   name: 'Dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Born of dragons, dragonborn are proud and honorable, with innate draconic abilities. Their appearance reflects their chosen ancestry.',
   abilityBonuses: [

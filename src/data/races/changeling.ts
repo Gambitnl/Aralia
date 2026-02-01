@@ -7,6 +7,7 @@ import { Race } from '../../types'; // Path relative to src/data/races/
 export const CHANGELING_DATA: Race = {
   id: 'changeling',
   name: 'Changeling',
+  baseRace: 'shapeshifters',
   description:
     'With ever-changing appearances, changelings reside in many societies undetected. Each changeling can supernaturally adopt any face they like. For some changelings, a new face is only a disguise. For other changelings, a new face may reveal an aspect of their soul.',
   abilityBonuses: [], // Flexible ASIs are handled by Point Buy.

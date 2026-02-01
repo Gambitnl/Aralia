@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const SIMIC_HYBRID_DATA: Race = {
   id: 'simic_hybrid',
   name: 'Simic Hybrid',
-  baseRace: 'simic_hybrid',
+  baseRace: 'planar_travelers',
   description:
     'Simic Hybrids are biologically altered beings from the Simic Combine, combining traits from multiple creatures.',
   abilityBonuses: [],

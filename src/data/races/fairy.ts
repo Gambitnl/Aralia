@@ -8,6 +8,7 @@ import { Race } from '../../types';
 export const FAIRY_DATA: Race = {
   id: 'fairy',
   name: 'Fairy',
+  baseRace: 'feyfolk',
   description:
     'The Feywild is home to many fantastic peoples, including fairies. Fairies are a wee folk, but not nearly as much so as their pixie and sprite friends. The first fairies spoke Elvish, Goblin, or Sylvan, and encounters with human visitors prompted many of them to learn Common as well. Infused with the magic of the Feywild, most fairies look like Small elves with insectile wings, but each fairy has a special physical characteristic that sets the fairy apart.',
   abilityBonuses: [],

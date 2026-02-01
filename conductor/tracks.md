@@ -32,3 +32,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Thieves Guild: Shadow Network Expansion**
   *Link: [./tracks/thieves_guild_expansion_20260131/](./tracks/thieves_guild_expansion_20260131/)*
+
+- [ ] **Track: Thieves Guild: Organic Entry**
+  *Link: [./tracks/thieves_guild_organic_entry_20260131/](./tracks/thieves_guild_organic_entry_20260131/)*

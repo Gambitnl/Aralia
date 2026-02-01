@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const BLACK_DRAGONBORN_DATA: Race = {
   id: 'black_dragonborn',
   name: 'Black Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from black dragons, these dragonborn carry the legacy of swamp-dwelling predators. Their scales range from charcoal to deep obsidian, and they possess an affinity for acid. Black dragonborn are often cunning and patient hunters, embodying the methodical nature of their draconic ancestors.',
   abilityBonuses: [],

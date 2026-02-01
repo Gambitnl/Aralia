@@ -7,6 +7,7 @@ import { Race } from '../../types';
 export const VERDAN_DATA: Race = {
   id: 'verdan',
   name: 'Verdan',
+  baseRace: 'greenskins',
   description:
     'Verdan are former goblins and hobgoblins who were transformed by chaotic magic and now continually evolve as they grow. Driven by curiosity, empathy, and a desire to carve out a kinder place in the world, they embrace change and the communities they build.',
   abilityBonuses: [

@@ -7,6 +7,7 @@ import { Race } from '../../types'; // Path relative to src/data/races/
 export const CENTAUR_DATA: Race = {
   id: 'centaur',
   name: 'Centaur',
+  baseRace: 'feyfolk',
   description:
     'Centaurs gallop throughout the multiverse and trace their origins to many different realms. The centaurs presented here hail from the Feywild and mystically resonate with the natural world. From the waist up, they resemble elves, displaying all the elf varieties of skin tone. From the waist down, they have the bodies of horses.',
   abilityBonuses: [], // Flexible ASIs are handled by Point Buy system.

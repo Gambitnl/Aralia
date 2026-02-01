@@ -21,7 +21,7 @@ The `LoadingSpinner.tsx` component provides a full-screen overlay with an animat
 ## Styling
 
 *   Uses Tailwind CSS for layout, positioning, background color/opacity, and the spinner animation.
-*   High `z-index` (e.g., `z-50`) ensures it appears on top of all other UI elements.
+*   High `z-index` (e.g., `z-[var(--z-index-modal-background)]`) ensures it appears on top of all other UI elements.
 
 ## Accessibility
 

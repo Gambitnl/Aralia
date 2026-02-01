@@ -3,7 +3,7 @@ import { Race } from '../../types';
 export const LONGTOOTH_SHIFTER_DATA: Race = {
   id: 'longtooth_shifter',
   name: 'Longtooth Shifter',
-  baseRace: 'shifter',
+  baseRace: 'shapeshifters',
   description: 'Longtooth shifters are fierce and aggressive, their lycanthropic heritage tied to fierce predators like wolves and tigers. When they shift, they grow elongated fangs capable of tearing through flesh with ease. These shifters embody the hunter\'s fury, channeling their bestial nature into devastating attacks. Longtooth shifters are often drawn to martial pursuits, their natural aggression making them formidable warriors who revel in close combat where they can put their fangs to use.',
   abilityBonuses: [],
   traits: [

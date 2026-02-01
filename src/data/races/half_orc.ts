@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const HALF_ORC_DATA: Race = {
   id: 'half_orc',
   name: 'Half-Orc',
-  baseRace: 'half_orc',
+  baseRace: 'greenskins',
   description:
     'Half-orcs walk between civilized and wild worlds, channeling human adaptability and orcish ferocity. They are resilient survivors who learn to feed their passions without letting them consume their better judgment.',
   abilityBonuses: [

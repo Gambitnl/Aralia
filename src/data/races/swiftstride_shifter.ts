@@ -3,7 +3,7 @@ import { Race } from '../../types';
 export const SWIFTSTRIDE_SHIFTER_DATA: Race = {
   id: 'swiftstride_shifter',
   name: 'Swiftstride Shifter',
-  baseRace: 'shifter',
+  baseRace: 'shapeshifters',
   description: 'Swiftstride shifters are graceful and quick, their lycanthropic heritage tied to swift and elusive creatures like cats, rats, and ravens. They are often characterized by feline features or sleek, streamlined builds. When shifted, these shifters move with supernatural speed and grace, able to dart away from danger in the blink of an eye. Swiftstride shifters excel as scouts, rogues, and skirmishers, using their enhanced mobility to strike quickly and retreat before enemies can retaliate.',
   abilityBonuses: [],
   traits: [

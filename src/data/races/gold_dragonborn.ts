@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const GOLD_DRAGONBORN_DATA: Race = {
   id: 'gold_dragonborn',
   name: 'Gold Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from gold dragons, these dragonborn carry the legacy of the most majestic and wise dragons. Their scales gleam like polished gold, radiating regal authority, and they wield the power of fire. Gold dragonborn are often wise and just, embodying the noble nature of their draconic ancestors.',
   abilityBonuses: [],

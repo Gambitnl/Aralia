@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const GREEN_DRAGONBORN_DATA: Race = {
   id: 'green_dragonborn',
   name: 'Green Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from green dragons, these dragonborn carry the legacy of forest manipulators and schemers. Their scales range from emerald to forest green, and they possess an affinity for poison. Green dragonborn are often cunning and persuasive, embodying the devious nature of their draconic ancestors.',
   abilityBonuses: [],

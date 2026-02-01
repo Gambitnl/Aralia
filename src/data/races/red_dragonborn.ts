@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const RED_DRAGONBORN_DATA: Race = {
   id: 'red_dragonborn',
   name: 'Red Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from red dragons, these dragonborn carry the legacy of the most powerful and arrogant chromatic dragons. Their scales blaze in shades of crimson and scarlet, and they command devastating fire. Red dragonborn are often ambitious and fierce, embodying the dominant nature of their draconic ancestors.',
   abilityBonuses: [],

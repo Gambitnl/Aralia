@@ -7,6 +7,7 @@ import { Race } from '../../types'; // Path relative to src/data/races/
 export const WARFORGED_DATA: Race = {
   id: 'warforged',
   name: 'Warforged',
+  baseRace: 'constructed',
   description:
     'Warforged are living constructs created during the Last War of Eberron to serve as soldiers. They are composed of wood, metal, and stone, with a body of plant-like organic material that flows around their mechanical components. Each warforged has a unique pattern of protective plates and sigils. Though built for war, many warforged have found purpose beyond battle, seeking meaning and identity in a world that often views them as weapons.',
   abilityBonuses: [], // Flexible ASIs are handled by Point Buy system.

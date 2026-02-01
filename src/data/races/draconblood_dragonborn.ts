@@ -9,7 +9,7 @@ import { Race } from '../../types';
 export const DRACONBLOOD_DRAGONBORN_DATA: Race = {
   id: 'draconblood_dragonborn',
   name: 'Draconblood Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Draconblood dragonborn are the product of selective breeding by the draconic sorcerers of ancient Draconia. They possess refined features and an innate connection to arcane magic. Unlike other dragonborn, they lack breath weapons but compensate with enhanced mental capabilities and magical talent. Their scales tend toward refined, noble colors, and they carry themselves with aristocratic bearing.',
   abilityBonuses: [],

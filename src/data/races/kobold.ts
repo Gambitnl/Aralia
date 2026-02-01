@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const KOBOLD_DATA: Race = {
   id: 'kobold',
   name: 'Kobold',
-  baseRace: 'kobold',
+  baseRace: 'draconic_kin',
   description:
     'Kobolds are clever, draconic cousins with a strong communal spirit who rely on cunning tactics more than brute force in battle.',
   abilityBonuses: [],

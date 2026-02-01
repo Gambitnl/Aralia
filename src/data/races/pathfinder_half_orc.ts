@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const MARK_OF_FINDING_HALF_ORC_DATA: Race = {
   id: 'pathfinder_half_orc',
   name: 'Pathfinder Half-Orc',
-  baseRace: 'half_orc',
+  baseRace: 'greenskins',
   description:
     'Inscribed with a sigil resembling a compass or eye, half-orcs bearing the Mark of Finding are blessed with an uncanny ability to locate people, objects, and hidden treasures. This hereditary gift grants them supernatural tracking skills and the power to sense the presence of their quarry across vast distances. Their mark glows when they focus on a target or uncover something hidden. These finder-touched individuals become legendary bounty hunters, prospectors, and seekers, their ability to find what others cannot making them invaluable trackers and guides.',
   abilityBonuses: [],

@@ -9,7 +9,7 @@ import { Race } from '../../types';
 export const RAVENITE_DRAGONBORN_DATA: Race = {
   id: 'ravenite_dragonborn',
   name: 'Ravenite Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Ravenite dragonborn were once enslaved by the draconblood but rose up to destroy the nation of Draconia. They are a proud warrior culture that values freedom, strength, and vengeance. Unlike other dragonborn, they lack breath weapons but possess fierce combat abilities. Their scales tend toward darker, more practical colors, and they bear the scars of their ancestors\' struggles.',
   abilityBonuses: [],

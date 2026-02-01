@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const COPPER_DRAGONBORN_DATA: Race = {
   id: 'copper_dragonborn',
   name: 'Copper Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from copper dragons, these dragonborn carry the legacy of witty hillside dwellers. Their scales gleam in rich copper tones with hints of green patina, and they possess an affinity for acid. Copper dragonborn are often playful and clever, embodying the mischievous nature of their draconic ancestors.',
   abilityBonuses: [],

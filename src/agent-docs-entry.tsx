@@ -39,7 +39,7 @@ const AgentDocsPage: React.FC = () => {
                     <h1 className="text-lg font-cinzel font-bold text-gray-200">Agent Documentation</h1>
                 </div>
                 <div className="text-xs text-gray-500 font-mono">
-                    AntiGravity IDE • Local Environment
+                    AntiGravity IDE • VSCode Terminal
                 </div>
             </header>
 

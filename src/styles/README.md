@@ -76,6 +76,15 @@ import { Z_INDEX } from '../styles/zIndex';
 </div>
 ```
 
+#### Plain CSS (no TS imports)
+Use the registry-backed CSS variables that are applied on app startup:
+
+```css
+.my-overlay {
+  z-index: var(--z-index-modal-background);
+}
+```
+
 #### Using Utility Functions
 ```tsx
 import { getZIndexClass, getZIndexValue, isValidZIndex } from '../styles/zIndex';
@@ -139,6 +148,14 @@ import { Z_INDEX } from '../styles/zIndex';
 <div className={`fixed inset-0 z-[${Z_INDEX.MODAL_BACKGROUND}] bg-black/70`}>
 ```
 
+#### After (Plain CSS)
+```css
+/* ✅ Do this instead */
+.overlay {
+  z-index: var(--z-index-modal-background);
+}
+```
+
 #### Batch Migration Script
 For migrating multiple files, you can use this pattern:
 
@@ -157,6 +174,7 @@ sed -i 's/z-\[100\]/z-[${Z_INDEX.MODAL_BACKGROUND}]/g' file.tsx
 - Use template literals: `` `z-[${Z_INDEX.LAYER_NAME}]` ``
 - Import only what you need: `import { Z_INDEX } from '../styles/zIndex'`
 - Use utility functions for complex scenarios
+- For plain CSS, use `var(--z-index-*)` variables
 - Document new layers when adding them
 
 #### Don'ts ❌

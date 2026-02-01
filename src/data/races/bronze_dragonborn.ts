@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const BRONZE_DRAGONBORN_DATA: Race = {
   id: 'bronze_dragonborn',
   name: 'Bronze Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from bronze dragons, these dragonborn carry the legacy of coastal guardians. Their scales shimmer with metallic bronze hues, reminiscent of polished armor, and they command the power of lightning. Bronze dragonborn are often noble and dutiful, embodying the protective nature of their draconic ancestors.',
   abilityBonuses: [],

@@ -3,7 +3,7 @@ import { Race } from '../../types';
 export const BEASTHIDE_SHIFTER_DATA: Race = {
   id: 'beasthide_shifter',
   name: 'Beasthide Shifter',
-  baseRace: 'shifter',
+  baseRace: 'shapeshifters',
   description: 'Beasthide shifters are typically tied to the bear or the boar, animals known for their tough hides and ferocious strength when cornered. These shifters are among the most resilient of their kind, able to shrug off blows that would fell lesser warriors. When they shift, their skin thickens and their features become more bestial, granting them remarkable durability. Beasthide shifters often find roles as front-line fighters, bodyguards, and protectors, using their enhanced endurance to shield their allies from harm.',
   abilityBonuses: [],
   traits: [

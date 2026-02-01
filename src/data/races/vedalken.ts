@@ -7,6 +7,7 @@ import { Race } from '../../types';
 export const VEDALKEN_DATA: Race = {
   id: 'vedalken',
   name: 'Vedalken',
+  baseRace: 'planar_travelers',
   description:
     'Vedalken are blue-skinned, calm thinkers from the plane of Ravnica who strive for constant improvement in everything they touch. They prize logic, precision, and intellect, and their communities are built around self-discipline and collective advancement.',
   abilityBonuses: [

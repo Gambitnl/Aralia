@@ -8,6 +8,7 @@ import { Race } from '../../types';
 export const TRITON_DATA: Race = {
   id: 'triton',
   name: 'Triton',
+  baseRace: 'planar_travelers',
   description:
     'Originally from the Elemental Plane of Water, many tritons entered the Material Plane centuries ago to protect it from the growing threat of evil elementals. They spread across the worlds’ oceans, establishing deep-sea settlements to guard the surface from terrors in the deep. With their webbed hands and feet and small fins on their calves, they are perfectly adapted for aquatic life.',
   abilityBonuses: [], // Flexible ASIs are handled by the Point Buy system.

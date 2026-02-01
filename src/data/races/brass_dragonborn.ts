@@ -8,7 +8,7 @@ import { Race } from '../../types';
 export const BRASS_DRAGONBORN_DATA: Race = {
   id: 'brass_dragonborn',
   name: 'Brass Dragonborn',
-  baseRace: 'dragonborn',
+  baseRace: 'draconic_kin',
   description:
     'Descended from brass dragons, these dragonborn carry the legacy of talkative desert dwellers. Their scales gleam in warm metallic hues of bronze and gold, and they wield the power of fire. Brass dragonborn are often sociable and curious, embodying the gregarious nature of their draconic ancestors.',
   abilityBonuses: [],

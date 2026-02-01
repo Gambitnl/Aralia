@@ -35,11 +35,11 @@ export const RACE_GROUPS: RaceGroupMeta[] = [
         comparisonTraits: ['Speed', 'Size', 'Natural Abilities', 'Special Movement', 'Key Traits'],
     },
     {
-        id: 'dragonborn',
-        name: 'Dragonborn',
+        id: 'draconic_kin',
+        name: 'Draconic Kin',
         description:
-            'Dragonborn are proud dragon-blooded humanoids who walk in two worlds. Their draconic ancestry grants them powerful breath weapons and resistance to elemental damage.',
-        comparisonTraits: ['Damage Type', 'Breath Weapon', 'Damage Resistance', 'Draconic Ancestry'],
+            'Draconic Kin are humanoids touched by dragon blood. From the proud dragonborn to the cunning kobolds, they share a connection to dragonkind that grants them breath weapons, elemental resistance, or draconic cunning.',
+        comparisonTraits: ['Damage Type', 'Breath Weapon', 'Damage Resistance', 'Draconic Ancestry', 'Kobold Legacy'],
     },
     {
         id: 'dwarf',
@@ -98,11 +98,11 @@ export const RACE_GROUPS: RaceGroupMeta[] = [
         comparisonTraits: ['Speed', 'Darkvision', 'Fey Ancestry', 'Heritage Ability', 'Versatility'],
     },
     {
-        id: 'half_orc',
-        name: 'Half-Orc',
+        id: 'greenskins',
+        name: 'Greenskins',
         description:
-            'Half-orcs combine orcish power and resilience with human adaptability. They possess remarkable endurance and strength.',
-        comparisonTraits: ['Darkvision', 'Relentless Endurance', 'Special Abilities', 'Key Traits'],
+            'Greenskins are a diverse group of humanoids united by their orcish or goblinoid heritage. From the cunning goblins to the mighty orcs and half-orcs, they share a resilient nature and adaptability.',
+        comparisonTraits: ['Darkvision', 'Special Abilities', 'Fury of the Small', 'Relentless Endurance', 'Key Traits'],
     },
     {
         id: 'halfling',
@@ -119,11 +119,11 @@ export const RACE_GROUPS: RaceGroupMeta[] = [
         comparisonTraits: ['Versatility', 'Skills', 'Special Abilities', 'Dragonmark Powers'],
     },
     {
-        id: 'shifter',
-        name: 'Shifter',
+        id: 'shapeshifters',
+        name: 'Shapeshifters',
         description:
-            'Shifters are weretouched humanoids who can temporarily enhance their animalistic features. Each shifter variant manifests different bestial traits from their lycanthropic heritage.',
-        comparisonTraits: ['Darkvision', 'Shifting Ability', 'Shifting Benefit', 'Bestial Nature'],
+            'Shapeshifters are beings with the innate ability to alter their physical form. From the weretouched shifters to the amorphous plasmoids and identity-fluid changelings, they share a mutable nature that defies fixed shape.',
+        comparisonTraits: ['Shapechanger', 'Form Ability', 'Darkvision', 'Special Movement', 'Key Traits'],
     },
     {
         id: 'tiefling',
@@ -132,139 +132,26 @@ export const RACE_GROUPS: RaceGroupMeta[] = [
             'Tieflings carry the blood of the Lower Planes, manifesting fiendish traits. Each legacy reflects a different fiendish origin and grants unique magical abilities.',
         comparisonTraits: ['Legacy', 'Damage Resistance', 'Innate Spells', 'Fiendish Power'],
     },
-    // Standalone races (single-variant accordions for consistency)
     {
-        id: 'autognome',
-        name: 'Autognome',
+        id: 'feyfolk',
+        name: 'Feyfolk',
         description:
-            'Autognomes are mechanical beings created by rock gnome inventors, imbued with sentience through a spark of the Positive Plane. They are Constructs with remarkable durability.',
-        comparisonTraits: ['Creature Type', 'Armored Casing', 'Built for Success', 'Mechanical Nature'],
+            'Feyfolk are creatures with deep ties to the Feywild or fey nature. From tiny fairies to towering firbolgs, they share an innate connection to wild magic and the natural world.',
+        comparisonTraits: ['Size', 'Fey Ancestry', 'Special Movement', 'Nature Magic', 'Key Traits'],
     },
     {
-        id: 'bugbear',
-        name: 'Bugbear',
+        id: 'constructed',
+        name: 'Constructed',
         description:
-            'Bugbears are hulking cousins of goblins, combining great strength with a fey gift for stealth. They excel at ambush tactics and surprise attacks.',
-        comparisonTraits: ['Long-Limbed', 'Powerful Build', 'Sneaky', 'Surprise Attack'],
+            'Constructed beings are sentient creatures built rather than born. Whether forged for war or crafted by gnomish ingenuity, they possess mechanical bodies animated by magic or the spark of life.',
+        comparisonTraits: ['Creature Type', 'Constructed Resilience', 'Rest Requirements', 'Key Traits'],
     },
     {
-        id: 'centaur',
-        name: 'Centaur',
+        id: 'planar_travelers',
+        name: 'Planar Travelers',
         description:
-            'Centaurs are fey creatures with the upper body of a humanoid and the lower body of a horse. They are swift, strong, and deeply connected to nature.',
-        comparisonTraits: ['Speed', 'Charge', 'Hooves', 'Natural Affinity'],
-    },
-    {
-        id: 'changeling',
-        name: 'Changeling',
-        description:
-            'Changelings are shapeshifters descended from doppelgangers. They can alter their appearance at will, adapting to any situation with supernatural ease.',
-        comparisonTraits: ['Shapechanger', 'Change Appearance', 'Instincts', 'Divergent Persona'],
-    },
-    {
-        id: 'fairy',
-        name: 'Fairy',
-        description:
-            'Fairies are Small fey creatures infused with the magic of the Feywild. Despite their size, they possess flight and innate spellcasting.',
-        comparisonTraits: ['Size', 'Flight', 'Fairy Magic', 'Fey Passage'],
-    },
-    {
-        id: 'firbolg',
-        name: 'Firbolg',
-        description:
-            'Firbolgs are gentle forest-dwelling giants with druidic magic and a deep connection to nature. They value community and harmony with the natural world.',
-        comparisonTraits: ['Powerful Build', 'Firbolg Magic', 'Hidden Step', 'Speech of Beast and Leaf'],
-    },
-    {
-        id: 'goblin',
-        name: 'Goblin',
-        description:
-            'Goblins are small, scrappy survivors with fey origins. Quick and cunning, they excel at hit-and-run tactics and evading danger.',
-        comparisonTraits: ['Size', 'Fury of the Small', 'Nimble Escape', 'Darkvision'],
-    },
-    {
-        id: 'hobgoblin',
-        name: 'Hobgoblin',
-        description:
-            'Hobgoblins are disciplined warriors with fey heritage, known for their tactical acumen and martial prowess. They excel in organized combat.',
-        comparisonTraits: ['Darkvision', 'Fey Gift', 'Fortune from the Many', 'Martial Training'],
-    },
-    {
-        id: 'kalashtar',
-        name: 'Kalashtar',
-        description:
-            'Kalashtar are humanoids bound to spirits from the plane of dreams. This union grants them psionic abilities and resistance to psychic intrusion.',
-        comparisonTraits: ['Dual Mind', 'Mental Discipline', 'Mind Link', 'Psychic Resistance'],
-    },
-    {
-        id: 'kender',
-        name: 'Kender',
-        description:
-            'Kender are fearless, curious Small folk from the world of Krynn. Their insatiable curiosity and complete lack of fear make them uniquely bold.',
-        comparisonTraits: ['Size', 'Fearless', 'Taunt', 'Kender Skill Versatility'],
-    },
-    {
-        id: 'kobold',
-        name: 'Kobold',
-        description:
-            'Kobolds are Small draconic humanoids who thrive in groups. Though individually weak, they are clever trap-makers and loyal to their dragon kin.',
-        comparisonTraits: ['Size', 'Darkvision', 'Draconic Cry', 'Kobold Legacy'],
-    },
-    {
-        id: 'orc',
-        name: 'Orc',
-        description:
-            'Orcs are powerful warriors blessed by the god Gruumsh with remarkable endurance. They can push through pain and fight beyond normal limits.',
-        comparisonTraits: ['Darkvision', 'Adrenaline Rush', 'Relentless Endurance', 'Powerful Build'],
-    },
-    {
-        id: 'plasmoid',
-        name: 'Plasmoid',
-        description:
-            'Plasmoids are amorphous ooze-like beings who can shape their bodies at will. They can squeeze through tiny spaces and reshape their forms.',
-        comparisonTraits: ['Amorphous', 'Darkvision', 'Hold Breath', 'Shape Self'],
-    },
-    {
-        id: 'satyr',
-        name: 'Satyr',
-        description:
-            'Satyrs are fey creatures known for their love of revelry and music. Their magical resistance and natural charisma make them captivating companions.',
-        comparisonTraits: ['Fey', 'Ram', 'Magic Resistance', 'Mirthful Leaps'],
-    },
-    {
-        id: 'simic_hybrid',
-        name: 'Simic Hybrid',
-        description:
-            'Simic Hybrids are magically enhanced beings created by the Simic Combine. They possess animal enhancements that grant unique physical abilities.',
-        comparisonTraits: ['Animal Enhancement', 'Darkvision', 'Enhancement Options', 'Adaptive Nature'],
-    },
-    {
-        id: 'triton',
-        name: 'Triton',
-        description:
-            'Tritons are aquatic guardians from the Elemental Plane of Water. They possess innate magic and the ability to breathe both air and water.',
-        comparisonTraits: ['Amphibious', 'Control Air and Water', 'Darkvision', 'Guardian of the Depths'],
-    },
-    {
-        id: 'vedalken',
-        name: 'Vedalken',
-        description:
-            'Vedalken are blue-skinned perfectionists who strive for constant improvement. Their logical minds and tireless dedication make them exceptional scholars.',
-        comparisonTraits: ['Vedalken Dispassion', 'Tireless Precision', 'Partially Amphibious', 'Intellect'],
-    },
-    {
-        id: 'verdan',
-        name: 'Verdan',
-        description:
-            'Verdans are goblinoids transformed by wild magic. They continue to grow and change throughout their lives, adapting to new circumstances.',
-        comparisonTraits: ['Black Blood Healing', 'Limited Telepathy', 'Persuasive', 'Telepathic Insight'],
-    },
-    {
-        id: 'warforged',
-        name: 'Warforged',
-        description:
-            'Warforged are living constructs created for war. Though built as soldiers, they possess free will and seek purpose beyond battle.',
-        comparisonTraits: ['Constructed Resilience', 'Sentry\'s Rest', 'Integrated Protection', 'Specialized Design'],
+            'Planar Travelers are beings with origins beyond the Material Plane or who possess unusual connections to other realms. They bring exotic abilities and unique perspectives.',
+        comparisonTraits: ['Origin Plane', 'Special Abilities', 'Amphibious', 'Psionic Powers', 'Key Traits'],
     },
 ];
 

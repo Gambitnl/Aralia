@@ -3,6 +3,10 @@
 - When posting timestamps, use NL Amsterdam time (CEST in summer, CET in winter).
 - **Automatic Task Hygiene**: At the end of every significant task (during the final steps of the `VERIFICATION` phase), automatically run the logic from `/extract-terminal-learnings` to keep `.agent/rules/Terminal.md` up-to-date with environment-specific CLI quirks or fixes discovered during the session.
 
+## Codex CLI (VS Code Terminal)
+- [VSCODE_TERMINAL.md](VSCODE_TERMINAL.md) — Codex CLI context, skills, and environment notes.
+- [AGENTS.md](AGENTS.md) — Root instruction file used by Codex CLI in this repo.
+
 ## System Assets Inventory
 
 ### 🛡️ Custom Rules
@@ -35,5 +39,4 @@ Manual procedures triggered via slash commands (e.g., `/extract-terminal-learnin
 | [/stitch-prompt](file:///C:/Users/gambi/Documents/Git/AraliaV4/Aralia/.agent/workflows/stitch-prompt.md) | Helper for crafting effective prompts for UI generation. |
 | [/maintain-icons](file:///C:/Users/gambi/Documents/Git/AraliaV4/Aralia/.agent/workflows/maintain-icons.md) | End-to-end icon audit and update procedure. |
 | [/check-doc-naming](file:///C:/Users/gambi/Documents/Git/AraliaV4/Aralia/.agent/workflows/check-doc-naming.md) | Enforces naming conventions before creating documentation. |
-
 

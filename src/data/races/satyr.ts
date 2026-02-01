@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const SATYR_DATA: Race = {
   id: 'satyr',
   name: 'Satyr',
-  baseRace: 'satyr',
+  baseRace: 'feyfolk',
   description:
     'Satyrs are fey revelers whose goat-like lower halves and innate magic make them natural performers and tricksters.',
   abilityBonuses: [],

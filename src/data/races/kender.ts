@@ -7,7 +7,7 @@ import { Race } from '../../types';
 export const KENDER_DATA: Race = {
   id: 'kender',
   name: 'Kender',
-  baseRace: 'kender',
+  baseRace: 'planar_travelers',
   description:
     'Kender are fearless smallfolk from Krynn, defined by their infectious curiosity, knack for finding things, and carefree approach to danger.',
   abilityBonuses: [],
