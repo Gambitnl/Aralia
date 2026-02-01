@@ -11,13 +11,6 @@
     ],
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": [
-      "node",
-      "vitest/globals",
-      "react",
-      "react-dom",
-      "@react-three/fiber"
-    ],
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
