@@ -13,6 +13,21 @@ This folder contains the React UI layer. It follows a modular structure where ma
 - **BattleMap/**: (Directory) The turn-based combat engine UI.
 
 ## Issues & Opportunities
-- **Tooltip Fragility**: `WorldPane.tsx` hardcodes the `tooltipKeywords` dictionary. This should be moved to a centralized lore database or the `GlossaryContext` to avoid duplication. **(RESOLVED: Migrated to LoreService in `ui_logic_knowledge_20260131`)**
-- **Roving Focus Complexity**: `MapPane.tsx` and `SystemMenu.tsx` both implement custom keyboard navigation logic. This could be abstracted into a shared `useKeyboardGridNav` hook. **(RESOLVED: Created `useKeyboardNavigation` hook in `ui_logic_knowledge_20260131`)**
-- **Prop Drilling**: Deeply nested components (like `MapTile` inside `MapPane`) receive many props. Moving to a Tile-specific context might improve performance and readability.
+
+### Resolved
+- **Tooltip Fragility**: `WorldPane.tsx` hardcoded the `tooltipKeywords` dictionary. **RESOLVED**: Migrated to `LoreService` in `ui_logic_knowledge_20260131`.
+- **Roving Focus Complexity**: `MapPane.tsx` and `SystemMenu.tsx` both implemented custom keyboard navigation. **RESOLVED**: Created reusable `useKeyboardNavigation` hook in `ui_logic_knowledge_20260131`.
+
+### Active: MapPane/MapTile Architecture
+**Location**: `MapPane.tsx` (lines 30-32, 82-84, 148-197) and `MapTile.tsx`
+
+**Findings**:
+1. **Duplicate Ref Declarations**: `gridRef`, `containerRef`, and `closeButtonRef` are declared twice in the same component (lines 30-32 and 82-84), causing potential runtime issues.
+2. **Dead Code**: `_getTileStyle` and `_getTileTooltip` functions (lines 148-197) are prefixed with underscore but never used - this logic was duplicated into `MapTile.tsx`.
+3. **Prop Drilling Assessment**: The concern is overstated. `MapPane` → `MapTile` is only 1 level with 4 props (`tile`, `isFocused`, `markers`, `onClick`). This is acceptable; no context refactor needed unless nesting increases.
+
+**Recommendations**:
+- **Immediate**: Remove duplicate ref declarations and dead `_getTile*` functions.
+- **Future**: If `MapTile` nesting exceeds 2 levels, create a `MapTileContext` for `focusedCoords` and `markersByCoordinate`.
+
+**Priority**: Low-Medium. Fix the duplicates; skip the context refactor for now.
