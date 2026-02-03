@@ -28,6 +28,13 @@ export interface WorldEventResult {
     logs: GameMessage[];
 }
 
+export const DAILY_EVENT_CHANCE = 0.1;
+
+export interface WorldEventResult {
+    state: GameState;
+    logs: GameMessage[];
+}
+
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
 
