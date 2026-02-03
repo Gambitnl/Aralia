@@ -279,6 +279,22 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             };
         }
 
+        case 'INCREMENT_LOCAL_HEAT': {
+            const { locationId, amount } = action.payload;
+            const current = state.notoriety.localHeat[locationId] || 0;
+            const newLocalHeat = Math.min(100, current + amount);
+
+            return {
+                notoriety: {
+                    ...state.notoriety,
+                    localHeat: {
+                        ...state.notoriety.localHeat,
+                        [locationId]: newLocalHeat,
+                    },
+                },
+            };
+        }
+
         case 'JOIN_GUILD': {
             const { guildId } = action.payload;
             const guild = getGuildMembershipOrDefault(state.thievesGuild);

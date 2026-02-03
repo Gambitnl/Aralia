@@ -163,6 +163,7 @@ export type AppAction =
   // Notoriety Actions
   | { type: 'COMMIT_CRIME'; payload: { type: CrimeType; locationId: string; severity: number; witnessed: boolean } }
   | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } }
+  | { type: 'INCREMENT_LOCAL_HEAT'; payload: { locationId: string; amount: number } }
   // Thieves Guild Actions
   | { type: 'TOGGLE_THIEVES_GUILD' }
   | { type: 'TOGGLE_THIEVES_GUILD_SAFEHOUSE' }

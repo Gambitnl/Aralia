@@ -8,6 +8,7 @@ import { useGameState } from '../../state/GameContext';
 import { generateVillageTemple } from '../../utils/templeUtils';
 import { VillageActionContext, VillagePersonality } from '../../types';
 import { Z_INDEX } from '../../styles/zIndex';
+import StateViewer from './StateViewer';
 
 type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party';
 
@@ -198,6 +199,9 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
             ))}
           </select>
         </div>
+
+        {/* State Viewer */}
+        <StateViewer state={_state} />
 
         <button
           onClick={onClose}
