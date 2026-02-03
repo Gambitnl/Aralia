@@ -11,6 +11,48 @@ import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { calculatePrice } from '../../utils/economy/economyUtils';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function roundToCopper(gpValue: number): number {
+  return Math.round(gpValue * 100) / 100;
+}
+
+function getMerchantLevel(gameState: GameState, merchantId: string | undefined): number {
+  if (!merchantId) return 1;
+  const generatedNpc = gameState.generatedNpcs?.[merchantId];
+  const level = generatedNpc?.biography?.level;
+  return typeof level === 'number' && level > 0 ? level : 1;
+}
+
+function getLocalHeatPenalty(gameState: GameState): number {
+  const heat = gameState.notoriety?.localHeat?.[gameState.currentLocationId] || 0;
+  return Math.floor(heat / 20);
+}
+
+function getReputationBonus(gameState: GameState): number {
+  const rep = gameState.thievesGuild?.reputation ?? 0;
+  return Math.floor(rep / 50);
+}
+
+function findActiveRecentHaggleFact(memory: GameState['npcMemory'][string] | undefined, nowMs: number) {
+  if (!memory) return undefined;
+  return memory.knownFacts.find(fact => {
+    if (!fact?.text?.includes('recent_haggle')) return false;
+    const expiresAt = (fact.timestamp || 0) + (fact.lifespan || 0);
+    return expiresAt > nowMs;
+  });
+}
+
+function getPriceMultiplierFromHaggleFactText(text: string | undefined): number | undefined {
+  if (!text) return undefined;
+  const match = text.match(/priceMultiplier=([0-9]+(?:\.[0-9]+)?)/);
+  if (!match?.[1]) return undefined;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 /**
  * Validates a merchant transaction (buy/sell) before dispatching to the reducer.
  * Ensures the player has enough gold for purchases and the item exists for sales.
@@ -202,83 +244,81 @@ export async function handleMerchantAction({
   const { strategy, transaction, merchantId, priceMultiplier } = payload;
 
   if (action.type === 'HAGGLE_ITEM') {
-    // Validate merchantId is present for haggle persistence
-    if (!merchantId) {
-      addMessage('Cannot haggle: merchant identification failed.', 'system');
-      return;
+    const nowMs = gameState.gameTime.getTime();
+    const merchantId = payload.merchantId;
+    const merchantMemory = merchantId ? gameState.npcMemory?.[merchantId] : undefined;
+
+    if (merchantId && merchantMemory) {
+      const recentHaggle = findActiveRecentHaggleFact(merchantMemory, nowMs);
+      if (recentHaggle) {
+        addMessage("You've already haggled with this merchant recently. Give it some time.", 'system');
+        return;
+      }
     }
 
-    // HAGGLE PERSISTENCE: Check for recent_haggle in npcMemory
-    const npcMemory = gameState.npcMemory?.[merchantId];
-    const hasRecentHaggle = npcMemory?.knownFacts?.some(
-      (fact) => fact.id === 'recent_haggle'
-    );
-    if (hasRecentHaggle) {
-      addMessage(
-        'You already haggled with this merchant recently. Give them time to forget.',
-        'system'
-      );
-      return;
-    }
-
-    const interactor =
-      gameState.party.find((p) => p.id === payload.interactorId) ||
-      gameState.party[0];
-    const skillName =
-      strategy === 'intimidate'
-        ? 'Intimidation'
-        : strategy === 'insight'
-          ? 'Insight'
-          : strategy === 'appraise'
-            ? 'Investigation'
-            : 'Persuasion';
+    const interactor = gameState.party.find(p => p.id === payload.interactorId) || gameState.party[0];
+    const skillName = strategy === 'intimidate' ? 'Intimidation' :
+      strategy === 'insight' ? 'Insight' :
+        strategy === 'appraise' ? 'Investigation' : 'Persuasion';
 
     const modifier = calculateSkillModifier(interactor, skillName);
     const roll = Math.floor(Math.random() * 20) + 1;
     const total = roll + modifier;
 
-    // DYNAMIC DC: Calculate based on merchant level, local heat, and reputation
-    const merchantNpc = gameState.generatedNpcs?.[merchantId];
-    const merchantLevel = merchantNpc?.biography?.level ?? 1;
-    const localHeat =
-      gameState.notoriety?.localHeat?.[gameState.currentLocationId] ?? 0;
-    const localHeatPenalty = Math.floor(localHeat / 10);
-
-    // Calculate reputation bonus from faction standings (average standing / 10)
-    const factionStandings = Object.values(
-      gameState.playerFactionStandings ?? {}
-    );
-    const avgReputation =
-      factionStandings.length > 0
-        ? factionStandings.reduce((sum, fs) => sum + (fs.publicStanding ?? 0), 0) /
-          factionStandings.length
-        : 0;
-    const reputationBonus = Math.floor(avgReputation / 10);
-
-    const dc = 10 + merchantLevel * 2 + localHeatPenalty - reputationBonus;
+    const merchantLevel = getMerchantLevel(gameState, merchantId);
+    const localHeatPenalty = getLocalHeatPenalty(gameState);
+    const reputationBonus = getReputationBonus(gameState);
+    const dc = 10 + (merchantLevel * 2) + localHeatPenalty - reputationBonus;
 
     const success = total >= dc;
     const margin = total - dc;
 
-    // Calculate price multiplier based on strategy and success
-    let calculatedPriceMultiplier = 1.0;
-    if (success) {
-      if (strategy === 'intimidate') {
-        calculatedPriceMultiplier = 0.8; // 20% discount
-      } else if (strategy === 'insight') {
-        calculatedPriceMultiplier = 0.9; // 10% discount
-      } else {
-        calculatedPriceMultiplier = 0.9; // 10% discount for persuade
-      }
-    } else {
-      if (strategy === 'intimidate') {
-        calculatedPriceMultiplier = 1.1; // 10% price increase
-      }
+    if (strategy === 'intimidate') {
+      dispatch({
+        type: 'INCREMENT_LOCAL_HEAT',
+        payload: { locationId: gameState.currentLocationId, amount: 5 },
+      });
+      // Also commit crime for intimidation
+      dispatch({
+        type: 'COMMIT_CRIME',
+        payload: {
+          type: 'intimidation',
+          locationId: gameState.currentLocationId,
+          severity: 20,
+          witnessed: true,
+        },
+      });
     }
 
-    // Store haggle result in payload for BUY_ITEM to use
-    (payload as { hagglePriceMultiplier?: number }).hagglePriceMultiplier =
-      calculatedPriceMultiplier;
+    const dispositionNudge = success
+      ? Math.min(10, Math.max(2, margin))
+      : Math.max(-10, Math.min(-2, margin));
+
+    if (merchantId && merchantMemory && dispositionNudge !== 0) {
+      dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId: merchantId, amount: dispositionNudge } });
+    }
+
+    const calculatedPriceMultiplier = success
+      ? (strategy === 'intimidate' ? 0.8 : 0.9)
+      : (strategy === 'intimidate' ? 1.1 : 1.0);
+
+    if (merchantId && merchantMemory) {
+      dispatch({
+        type: 'ADD_NPC_KNOWN_FACT',
+        payload: {
+          npcId: merchantId,
+          fact: {
+            id: 'recent_haggle', // Keep it stable for easy lookup or use UUID if multiple allowed
+            text: `recent_haggle priceMultiplier=${calculatedPriceMultiplier}`,
+            source: 'direct',
+            isPublic: false,
+            timestamp: nowMs,
+            strength: 1,
+            lifespan: 86400000, // 24 hours
+          },
+        },
+      });
+    }
 
     if (success) {
       let benefit = '';
@@ -306,58 +346,26 @@ export async function handleMerchantAction({
       );
     }
 
-    // Record recent haggle in NPC memory
-    const haggleFact: import('../../types').KnownFact = {
-      id: 'recent_haggle',
-      text: `Haggled with ${interactor.name} on ${new Date().toLocaleDateString()}`,
-      source: 'direct',
-      isPublic: false,
-      timestamp: Date.now(),
-      strength: 5,
-      lifespan: 86400000, // 24 hours in milliseconds
-    };
-    dispatch({
-      type: 'ADD_NPC_KNOWN_FACT',
-      payload: { npcId: merchantId, fact: haggleFact },
-    });
-
-    // CONSEQUENCES: Intimidation increases localHeat regardless of success
-    if (strategy === 'intimidate') {
-      dispatch({
-        type: 'COMMIT_CRIME',
-        payload: {
-          type: 'intimidation',
-          locationId: gameState.currentLocationId,
-          severity: 20,
-          witnessed: true,
-        },
-      });
-    }
-
-    // DISPOSITION: Apply nudge based on success margin
-    const dispositionNudge = success
-      ? Math.min(10, Math.max(2, margin))
-      : Math.max(-10, Math.min(-2, margin));
-    dispatch({
-      type: 'UPDATE_NPC_DISPOSITION',
-      payload: { npcId: merchantId, amount: dispositionNudge },
-    });
-
     return;
   }
 
   if (transaction?.buy) {
     const { item, cost } = transaction.buy;
-    // GOLD WIRING: Apply priceMultiplier to calculate final cost
-    const haggleMultiplier =
-      (payload as { hagglePriceMultiplier?: number }).hagglePriceMultiplier ?? priceMultiplier ?? 1.0;
-    const finalCost = Math.floor(cost * haggleMultiplier);
+    const nowMs = gameState.gameTime.getTime();
+    const merchantId = payload.merchantId;
+    const merchantMemory = merchantId ? gameState.npcMemory?.[merchantId] : undefined;
+    const recentHaggle = findActiveRecentHaggleFact(merchantMemory, nowMs);
+    const haggleMultiplier = getPriceMultiplierFromHaggleFactText(recentHaggle?.text);
 
+    const activePriceMultiplier = typeof payload.priceMultiplier === 'number'
+      ? payload.priceMultiplier
+      : (haggleMultiplier ?? 1);
+    const finalCost = roundToCopper(cost * activePriceMultiplier);
     const validation = validateMerchantTransaction('buy', { item, cost: finalCost }, gameState);
     if (validation.valid) {
       dispatch({ type: 'BUY_ITEM', payload: { item, cost: finalCost } });
       addMessage(
-        `You purchased ${item.name} for ${finalCost} gold${haggleMultiplier < 1 ? ' (discounted)' : haggleMultiplier > 1 ? ' (increased)' : ''}.`,
+        `You purchased ${item.name} for ${finalCost} gold${activePriceMultiplier < 1 ? ' (discounted)' : activePriceMultiplier > 1 ? ' (increased)' : ''}.`,
         'system'
       );
     } else {

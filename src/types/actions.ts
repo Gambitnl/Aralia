@@ -156,6 +156,7 @@ export interface MerchantActionPayload {
   interactorId?: string; // Which party member is talking
   strategy?: 'persuade' | 'intimidate' | 'insight' | 'appraise' | 'barter' | 'deceive' | 'lore_check';
   priceMultiplier?: number; // Applied to item cost after successful haggle
+
   transaction?: {
     buy?: { item: Item; cost: number; quantity?: number };
     sell?: { itemId: string; value: number; quantity?: number };
