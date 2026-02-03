@@ -14,6 +14,7 @@
       "type": "number"
     },
     "school": {
+<<<<<<< HEAD
       "type": "string",
       "enum": [
         "Abjuration",
@@ -32,6 +33,10 @@
     "legacy": {
       "type": "boolean"
     },
+=======
+      "type": "string"
+    },
+>>>>>>> feat-spell-type-patches
     "classes": {
       "type": "array",
       "items": {
@@ -43,6 +48,7 @@
     },
     "rarity": {
       "type": "string",
+<<<<<<< HEAD
       "enum": [
         "common",
         "uncommon",
@@ -57,6 +63,9 @@
         "melee",
         "ranged"
       ]
+=======
+      "enum": ["common", "uncommon", "rare", "very_rare", "legendary"]
+>>>>>>> feat-spell-type-patches
     },
     "castingTime": {
       "type": "object",
@@ -66,6 +75,7 @@
         },
         "unit": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "action",
             "bonus_action",
@@ -90,6 +100,13 @@
               "type": "string"
             }
           }
+=======
+          "enum": ["action", "bonus_action", "reaction", "minute", "hour", "special"]
+        },
+        "combatCost": {
+          "type": "string",
+          "enum": ["action", "bonus_action", "reaction"]
+>>>>>>> feat-spell-type-patches
         },
         "explorationCost": {
           "type": "object",
@@ -99,10 +116,14 @@
             },
             "unit": {
               "type": "string",
+<<<<<<< HEAD
               "enum": [
                 "minute",
                 "hour"
               ]
+=======
+              "enum": ["minute", "hour"]
+>>>>>>> feat-spell-type-patches
             }
           }
         }
@@ -113,12 +134,16 @@
       "properties": {
         "type": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "self",
             "touch",
             "ranged",
             "special"
           ]
+=======
+          "enum": ["self", "touch", "ranged", "special"]
+>>>>>>> feat-spell-type-patches
         },
         "distance": {
           "type": "number"
@@ -153,6 +178,7 @@
       "properties": {
         "type": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "instantaneous",
             "timed",
@@ -160,18 +186,25 @@
             "until_dispelled",
             "until_dispelled_or_triggered"
           ]
+=======
+          "enum": ["instantaneous", "timed", "special", "until_dispelled", "until_dispelled_or_triggered"]
+>>>>>>> feat-spell-type-patches
         },
         "value": {
           "type": "number"
         },
         "unit": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "round",
             "minute",
             "hour",
             "day"
           ]
+=======
+          "enum": ["round", "minute", "hour"]
+>>>>>>> feat-spell-type-patches
         },
         "concentration": {
           "type": "boolean"
@@ -179,6 +212,7 @@
       }
     },
     "targeting": {
+<<<<<<< HEAD
       "type": "object",
       "properties": {
         "type": {
@@ -362,6 +396,9 @@
         "type",
         "validTargets"
       ]
+=======
+      "type": "object"
+>>>>>>> feat-spell-type-patches
     },
     "effects": {
       "type": "array",
@@ -410,6 +447,7 @@
       }
     }
   },
+<<<<<<< HEAD
   "required": [
     "id",
     "name",
@@ -424,6 +462,9 @@
     "effects",
     "description"
   ],
+=======
+  "required": ["id", "name", "level", "school", "classes", "castingTime", "range", "components", "duration", "targeting", "effects", "description"],
+>>>>>>> feat-spell-type-patches
   "definitions": {
     "DamageEffect": {
       "type": "object",
@@ -432,6 +473,7 @@
           "const": "DAMAGE"
         },
         "damage": {
+<<<<<<< HEAD
           "type": "object",
           "properties": {
             "dice": {
@@ -451,6 +493,21 @@
         "type",
         "damage"
       ]
+=======
+            "type": "object",
+            "properties": {
+                "dice": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "required": ["dice", "type"]
+        }
+      },
+      "required": ["type", "damage"]
+>>>>>>> feat-spell-type-patches
     },
     "HealingEffect": {
       "type": "object",
@@ -459,6 +516,7 @@
           "const": "HEALING"
         },
         "healing": {
+<<<<<<< HEAD
           "type": "object",
           "properties": {
             "dice": {
@@ -477,6 +535,21 @@
         "type",
         "healing"
       ]
+=======
+            "type": "object",
+            "properties": {
+                "dice": {
+                    "type": "string"
+                },
+                "isTemporaryHp": {
+                    "type": "boolean"
+                }
+            },
+            "required": ["dice"]
+        }
+      },
+      "required": ["type", "healing"]
+>>>>>>> feat-spell-type-patches
     },
     "StatusConditionEffect": {
       "type": "object",
@@ -485,6 +558,7 @@
           "const": "STATUS_CONDITION"
         },
         "statusCondition": {
+<<<<<<< HEAD
           "type": "object",
           "properties": {
             "name": {
@@ -507,6 +581,21 @@
         "type",
         "statusCondition"
       ]
+=======
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "object"
+                }
+            },
+            "required": ["name", "duration"]
+        }
+      },
+      "required": ["type", "statusCondition"]
+>>>>>>> feat-spell-type-patches
     },
     "MovementEffect": {
       "type": "object",
@@ -516,6 +605,7 @@
         },
         "movementType": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "push",
             "pull",
@@ -523,6 +613,9 @@
             "speed_change",
             "stop"
           ]
+=======
+          "enum": ["push", "pull", "teleport", "speed_change", "stop"]
+>>>>>>> feat-spell-type-patches
         },
         "distance": {
           "type": "number"
@@ -547,11 +640,15 @@
           "type": "object"
         }
       },
+<<<<<<< HEAD
       "required": [
         "type",
         "movementType",
         "duration"
       ]
+=======
+      "required": ["type", "movementType", "duration"]
+>>>>>>> feat-spell-type-patches
     },
     "SummoningEffect": {
       "type": "object",
@@ -561,10 +658,14 @@
         },
         "summonType": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "creature",
             "object"
           ]
+=======
+          "enum": ["creature", "object"]
+>>>>>>> feat-spell-type-patches
         },
         "creatureId": {
           "type": "string"
@@ -579,12 +680,16 @@
           "type": "object"
         }
       },
+<<<<<<< HEAD
       "required": [
         "type",
         "summonType",
         "count",
         "duration"
       ]
+=======
+      "required": ["type", "summonType", "count", "duration"]
+>>>>>>> feat-spell-type-patches
     },
     "TerrainEffect": {
       "type": "object",
@@ -594,6 +699,7 @@
         },
         "terrainType": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "difficult",
             "obscuring",
@@ -601,6 +707,9 @@
             "blocking",
             "wall"
           ]
+=======
+          "enum": ["difficult", "obscuring", "damaging", "blocking", "wall"]
+>>>>>>> feat-spell-type-patches
         },
         "areaOfEffect": {
           "type": "object"
@@ -615,12 +724,16 @@
           "type": "object"
         }
       },
+<<<<<<< HEAD
       "required": [
         "type",
         "terrainType",
         "areaOfEffect",
         "duration"
       ]
+=======
+      "required": ["type", "terrainType", "areaOfEffect", "duration"]
+>>>>>>> feat-spell-type-patches
     },
     "UtilityEffect": {
       "type": "object",
@@ -630,6 +743,7 @@
         },
         "utilityType": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "light",
             "communication",
@@ -639,16 +753,23 @@
             "sensory",
             "other"
           ]
+=======
+          "enum": ["light", "communication", "creation", "information", "control", "sensory", "other"]
+>>>>>>> feat-spell-type-patches
         },
         "description": {
           "type": "string"
         }
       },
+<<<<<<< HEAD
       "required": [
         "type",
         "utilityType",
         "description"
       ]
+=======
+      "required": ["type", "utilityType", "description"]
+>>>>>>> feat-spell-type-patches
     },
     "DefensiveEffect": {
       "type": "object",
@@ -658,6 +779,7 @@
         },
         "defenseType": {
           "type": "string",
+<<<<<<< HEAD
           "enum": [
             "ac_bonus",
             "resistance",
@@ -665,6 +787,9 @@
             "temporary_hp",
             "advantage_on_saves"
           ]
+=======
+          "enum": ["ac_bonus", "resistance", "immunity", "temporary_hp", "advantage_on_saves"]
+>>>>>>> feat-spell-type-patches
         },
         "value": {
           "type": "number"
@@ -685,6 +810,7 @@
           "type": "object"
         }
       },
+<<<<<<< HEAD
       "required": [
         "type",
         "defenseType",
@@ -693,3 +819,9 @@
     }
   }
 }
+=======
+      "required": ["type", "defenseType", "duration"]
+    }
+  }
+}
+>>>>>>> feat-spell-type-patches

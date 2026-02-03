@@ -10,6 +10,7 @@ This file tracks **active** planned features, enhancements, and tasks for the Ar
 
 TODOs are moved from this file to [archive/@FEATURES-COMPLETED.md](./archive/@FEATURES-COMPLETED.md) when:
 
+<<<<<<< HEAD
 1. **Standalone Task Complete**: A single, independent task is marked `[DONE]` and has no dependencies
 2. **Project Fully Complete**: ALL sub-tasks within a larger project group are marked `[DONE]`
 
@@ -24,6 +25,32 @@ TODOs remain in this file when:
 3. **Dependencies**: Tasks that are complete but blocked waiting for dependent work
 
 ### Status Markers
+=======
+1.  **[DONE]** **Battle XP Rewards Applied** *(PR #11 - VERIFIED FIXED)*
+    *   **Status**: ✅ WORKING - `END_BATTLE` handler (lines 398-451) properly checks `action.payload?.rewards` and applies XP/gold/items to party.
+    *   **Verification**: Code review shows `applyXpAndHandleLevelUps` called for each party member, level-up messages generated, inventory updated.
+    *   **Verified**: 2025-11-28
+
+2.  **[DONE]** **Save Slot Overwrite Logic Fixed** *(PR #15 - VERIFIED FIXED)*
+    *   **Status**: ✅ NO VULNERABILITY - No "overwrite" logic found in saveLoadService.ts. Likely refactored or removed.
+    *   **Verification**: Grep search for "overwrite" returned no results in file.
+    *   **Verified**: 2025-11-28
+
+3.  **[NEEDS VERIFICATION]** **Village Generation Tile Assignments** *(PR #14)*
+    *   **Status**: ⚠️ NEEDS MANUAL CHECK - Cannot auto-verify via code search. Requires testing village generation.
+    *   **Action**: Generate multiple villages and verify buildings render correctly.
+
+4.  **[DONE]** **Village Type Safety Fixed** *(PR #14 - VERIFIED FIXED)*
+    *   **Status**: ✅ TYPE SAFE - No `as any` casts found in VillageScene.tsx or villageGenerator.ts.
+    *   **Verification**: Grep search for "as any" in both files returned no results.
+    *   **Verified**: 2025-11-28
+
+5.  **[NEEDS VERIFICATION]** **Village Building Selection Logic** *(PR #14)*
+    *   **Issue**: Multiple uses of `as any` to bypass TypeScript, indicating state management issues
+    *   **Location**: `src/components/VillageScene.tsx`, `src/services/villageGenerator.ts`
+    *   **Impact**: MEDIUM - Potential runtime errors
+    *   **Fix**: Add proper type definitions to `src/types.ts`, remove all `as any` casts
+>>>>>>> feat-spell-type-patches
 
 *   `[TODO]` - Not yet started
 *   `[PARTIALLY DONE]` - In progress, significant work remaining
@@ -90,7 +117,55 @@ TODOs remain in this file when:
 
 ## 📚 See Also
 
+<<<<<<< HEAD
 *   **[Completed Features Archive](./archive/@FEATURES-COMPLETED.md)** - All finished features and tasks
 *   **[QOL_TODO.md](./QOL_TODO.md)** - Quality of Life improvements and technical debt
 *   **[SPELL_INTEGRATION_STATUS.md](./SPELL_INTEGRATION_STATUS.md)** - Spell system migration tracking
 *   **[CHANGELOG.md](./CHANGELOG.md)** - Project history and release notes
+=======
+13. **[TODO]** **Character Age Selection** *(Lane 1 Incomplete)*
+    *   Add `age` field to `PlayerCharacter` type
+    *   Define logical age ranges for each race
+    *   Add age selection step to CharacterCreator
+
+14. **[TODO]** **Quest System Implementation** *(Lane 1 Incomplete)*
+    *   Define Quest, QuestObjective, QuestReward types
+    *   Implement quest tracking in `questReducer`
+    *   Create QuestLogOverlay component
+    *   Add quest completion rewards
+
+15. **[TODO]** **Item Containers & Comparison UI** *(Lane 1 Incomplete)*
+    *   Add container properties to Item type
+    *   Implement nested inventory logic
+    *   Create ItemComparisonTooltip component
+
+16. **[TODO]** **NPC Routines & Factions** *(Lane 1 Incomplete)*
+    *   Add faction and dailyRoutine to NPC type
+    *   Define faction data structures
+    *   Implement routine scheduling system
+
+17. **[TODO]** **Notification System** *(Lane 1 Incomplete)*
+    *   Add notifications array to GameState
+    *   Create NotificationToast component
+    *   Replace all `alert()` calls with notification dispatches
+
+### 🧹 Priority 4: Incomplete Lane 5 Cleanup
+
+18. **[DONE]** **Obsolete Component Files Deleted** *(Lane 5 - VERIFIED COMPLETE)*
+    *   **Status**: ✅ ALL DELETED - File system search confirmed removal:
+        - ✓ PlayerPane.tsx (deleted)
+        - ✓ StartScreen.tsx (deleted)
+        - ✓ Spellbook.tsx (deleted)
+        - ✓ OLD_useGameActions.ts (deleted)
+        - ✓ Old racial spellcasting components (deleted in PR #13)
+    *   **Verified**: 2025-11-28
+
+19. **[TODO]** **Delete Obsolete Documentation Files** *(Lane 5 Incomplete)*
+    *   Delete corresponding README files for above components
+    *   Update `docs/README_INDEX.md` to remove references
+
+20. **[TODO]** **Verify No Import References Remain** *(Lane 5 Incomplete)*
+    *   Global search for imports of deleted files
+    *   Remove any remaining import statements
+    *   Test application build
+>>>>>>> feat-spell-type-patches

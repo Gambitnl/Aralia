@@ -8,6 +8,21 @@
 
 ---
 
+## 🔴 CRITICAL: Task 01.5 Must Complete First
+
+**BLOCKING TASK**: [TASK-01.5-TYPE-PATCHES.md](./TASK-01.5-TYPE-PATCHES.md)
+
+Before ANY spell data migration begins, complete Task 01.5 to patch critical gaps in `src/types/spells.ts`:
+- Add `ritual?: boolean` property (prevents data loss for ~30 ritual spells)
+- Add `rarity?: SpellRarity` property (needed for spell scroll economy)
+- Implement `combatCost`/`explorationCost` on CastingTime (documented but not implemented)
+- Define properties for stubbed effect types (MOVEMENT, DEFENSIVE, SUMMONING, TERRAIN, UTILITY)
+
+**Estimated Time**: 2-3 hours
+**Why Critical**: Missing properties cause data loss and force brittle text parsing instead of structured data
+
+---
+
 ## Quick Start
 
 ### For Orchestrator
