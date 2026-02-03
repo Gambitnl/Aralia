@@ -12,7 +12,7 @@ import { BIOMES, LOCATIONS } from '../constants'; // To get biome details like c
 import GlossaryDisplay from './Glossary/GlossaryDisplay';
 import { POIS } from '../data/world/pois';
 import { buildPoiMarkers } from '@/utils/spatial';
-import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
+import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';
@@ -79,9 +79,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  const gridRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null); // Ref for the close button
+
 
   // Set initial focus when map opens
   useEffect(() => {

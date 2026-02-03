@@ -30,13 +30,10 @@ export interface WorldEventResult {
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
-export interface WorldEventResult {
-  state: GameState;
-  logs: GameMessage[];
-}
+
 
 // Probability of an event occurring per day (0.0 to 1.0)
-const DAILY_EVENT_CHANCE = 0.2;
+
 
 /**
  * Handles Faction Skirmish events.
@@ -44,207 +41,207 @@ const DAILY_EVENT_CHANCE = 0.2;
  * Relationships ripple outward.
  */
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
-  // RALPH: Geopolitical Simulation.
-  // 1. Weather Check: Logic-gate. Military activity is hindered by storms (90% cancellation).
-  const weather = (state as any).weather;
-  if (weather) {
-     const p = weather.precipitation;
-     if (p === 'storm' || p === 'blizzard') {
-         // 90% chance to cancel event due to weather
-         if (rng.next() > 0.1) {
-             return { state, logs: [] };
-         }
-     }
-  }
+    // RALPH: Geopolitical Simulation.
+    // 1. Weather Check: Logic-gate. Military activity is hindered by storms (90% cancellation).
+    const weather = (state as any).weather;
+    if (weather) {
+        const p = weather.precipitation;
+        if (p === 'storm' || p === 'blizzard') {
+            // 90% chance to cancel event due to weather
+            if (rng.next() > 0.1) {
+                return { state, logs: [] };
+            }
+        }
+    }
 
-  const factionIds = Object.keys(state.factions);
-  if (factionIds.length < 2) return { state, logs: [] };
+    const factionIds = Object.keys(state.factions);
+    if (factionIds.length < 2) return { state, logs: [] };
 
-  // 1. SELECT AGGRESSOR
-  const factionAId = factionIds[Math.floor(rng.next() * factionIds.length)];
-  const factionA = state.factions[factionAId];
+    // 1. SELECT AGGRESSOR
+    const factionAId = factionIds[Math.floor(rng.next() * factionIds.length)];
+    const factionA = state.factions[factionAId];
 
-  // 2. SELECT VICTIM (Prefer enemies)
-  // RALPH: Aggression Weighting.
-  // Factions are more likely to attack official enemies (-50 relation weight) 
-  // or weaker targets (Power-based opportunism).
-  let factionBId: string | null = null;
+    // 2. SELECT VICTIM (Prefer enemies)
+    // RALPH: Aggression Weighting.
+    // Factions are more likely to attack official enemies (-50 relation weight) 
+    // or weaker targets (Power-based opportunism).
+    let factionBId: string | null = null;
 
-  // Create candidate list: [id, weight]
-  const candidates: { id: string; weight: number }[] = [];
+    // Create candidate list: [id, weight]
+    const candidates: { id: string; weight: number }[] = [];
 
-  factionIds.forEach(id => {
-      if (id === factionAId) return;
+    factionIds.forEach(id => {
+        if (id === factionAId) return;
 
-      const relation = factionA.relationships[id] || 0;
-      // Lower relation = Higher chance of attack
-      // -100 relation -> weight 200
-      // 0 relation -> weight 100
-      // +100 relation -> weight 0
-      let weight = 100 - relation;
+        const relation = factionA.relationships[id] || 0;
+        // Lower relation = Higher chance of attack
+        // -100 relation -> weight 200
+        // 0 relation -> weight 100
+        // +100 relation -> weight 0
+        let weight = 100 - relation;
 
-      // Bonus weight if they are officially listed as enemies in static data
-      if (factionA.enemies.includes(id)) weight += 50;
+        // Bonus weight if they are officially listed as enemies in static data
+        if (factionA.enemies.includes(id)) weight += 50;
 
-      // Bonus weight for opportunism (if target is weak)
-      const target = state.factions[id];
-      if (target.power < factionA.power) weight += 20;
+        // Bonus weight for opportunism (if target is weak)
+        const target = state.factions[id];
+        if (target.power < factionA.power) weight += 20;
 
-      if (weight > 0) {
-          candidates.push({ id, weight });
-      }
-  });
+        if (weight > 0) {
+            candidates.push({ id, weight });
+        }
+    });
 
-  // Weighted selection
-  const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0);
-  let roll = rng.next() * totalWeight;
+    // Weighted selection
+    const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0);
+    let roll = rng.next() * totalWeight;
 
-  for (const candidate of candidates) {
-      if (roll < candidate.weight) {
-          factionBId = candidate.id;
-          break;
-      }
-      roll -= candidate.weight;
-  }
+    for (const candidate of candidates) {
+        if (roll < candidate.weight) {
+            factionBId = candidate.id;
+            break;
+        }
+        roll -= candidate.weight;
+    }
 
-  // Fallback if something went wrong
-  if (!factionBId) {
-      // Pick random
-       do {
-        factionBId = factionIds[Math.floor(rng.next() * factionIds.length)];
-       } while (factionBId === factionAId);
-  }
+    // Fallback if something went wrong
+    if (!factionBId) {
+        // Pick random
+        do {
+            factionBId = factionIds[Math.floor(rng.next() * factionIds.length)];
+        } while (factionBId === factionAId);
+    }
 
-  const factionB = state.factions[factionBId];
+    const factionB = state.factions[factionBId];
 
-  // 3. RESOLVE COMBAT
-  // Decide winner based on power (plus randomness)
-  const powerA = (factionA.power || 50) + (rng.next() * 40 - 20);
-  const powerB = (factionB.power || 50) + (rng.next() * 40 - 20);
+    // 3. RESOLVE COMBAT
+    // Decide winner based on power (plus randomness)
+    const powerA = (factionA.power || 50) + (rng.next() * 40 - 20);
+    const powerB = (factionB.power || 50) + (rng.next() * 40 - 20);
 
-  const winnerId = powerA > powerB ? factionAId : factionBId!;
-  const loserId = winnerId === factionAId ? factionBId! : factionAId;
+    const winnerId = powerA > powerB ? factionAId : factionBId!;
+    const loserId = winnerId === factionAId ? factionBId! : factionAId;
 
-  const winner = state.factions[winnerId];
-  const loser = state.factions[loserId];
+    const winner = state.factions[winnerId];
+    const loser = state.factions[loserId];
 
-  // 4. GENERATE LOGS
-  const logs: GameMessage[] = [];
-  const timestamp = state.gameTime || new Date();
-  const gameDay = getGameDay(timestamp);
+    // 4. GENERATE LOGS
+    const logs: GameMessage[] = [];
+    const timestamp = state.gameTime || new Date();
+    const gameDay = getGameDay(timestamp);
 
-  const text = `Rumors arrive: Skirmish between ${factionA.name} and ${factionB.name}. ${winner.name} claimed victory.`;
+    const text = `Rumors arrive: Skirmish between ${factionA.name} and ${factionB.name}. ${winner.name} claimed victory.`;
 
-  logs.push({
-    id: Date.now() + rng.next(),
-    text,
-    sender: 'system',
-    timestamp: timestamp
-  });
+    logs.push({
+        id: Date.now() + rng.next(),
+        text,
+        sender: 'system',
+        timestamp: timestamp
+    });
 
-  // Create persistent rumor
-  const rumor: WorldRumor = {
-      id: `skirmish-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
-      text,
-      sourceFactionId: winnerId,
-      targetFactionId: loserId,
-      type: 'skirmish',
-      timestamp: gameDay,
-      expiration: gameDay + 7, // Lasts a week
-      spreadDistance: 0,
-      virality: 1.0 // High virality for war
-  };
+    // Create persistent rumor
+    const rumor: WorldRumor = {
+        id: `skirmish-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
+        text,
+        sourceFactionId: winnerId,
+        targetFactionId: loserId,
+        type: 'skirmish',
+        timestamp: gameDay,
+        expiration: gameDay + 7, // Lasts a week
+        spreadDistance: 0,
+        virality: 1.0 // High virality for war
+    };
 
-  // 5. UPDATE STATE
-  let newState = { ...state };
-  const newFactions = { ...newState.factions };
+    // 5. UPDATE STATE
+    let newState = { ...state };
+    const newFactions = { ...newState.factions };
 
-  // RALPH: Permanent Record.
-  // Converts the ephemeral skirmish rumor into a permanent World History event.
-  const historyEvent = WorldHistoryService.createSkirmishEvent(winner, loser, timestamp);
-  newState.worldHistory = addHistoryEvent(newState.worldHistory || createEmptyHistory(), historyEvent);
+    // RALPH: Permanent Record.
+    // Converts the ephemeral skirmish rumor into a permanent World History event.
+    const historyEvent = WorldHistoryService.createSkirmishEvent(winner, loser, timestamp);
+    newState.worldHistory = addHistoryEvent(newState.worldHistory || createEmptyHistory(), historyEvent);
 
-  // Update Faction Power
-  const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
+    // Update Faction Power
+    const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
 
-  newFactions[winnerId] = { ...winner, power: Math.min(100, (winner.power || 50) + powerChange) };
-  newFactions[loserId] = { ...loser, power: Math.max(0, (loser.power || 50) - powerChange) };
+    newFactions[winnerId] = { ...winner, power: Math.min(100, (winner.power || 50) + powerChange) };
+    newFactions[loserId] = { ...loser, power: Math.max(0, (loser.power || 50) - powerChange) };
 
-  // Update Inter-Faction Relationships (Combatants)
-  // Winner and Loser dislike each other more (-15)
-  const updateRelation = (aId: string, bId: string, amount: number) => {
-      const res1 = modifyFactionRelationship(newFactions, aId, bId, amount);
-      if (res1) newFactions[aId] = res1.actor;
+    // Update Inter-Faction Relationships (Combatants)
+    // Winner and Loser dislike each other more (-15)
+    const updateRelation = (aId: string, bId: string, amount: number) => {
+        const res1 = modifyFactionRelationship(newFactions, aId, bId, amount);
+        if (res1) newFactions[aId] = res1.actor;
 
-      const res2 = modifyFactionRelationship(newFactions, bId, aId, amount);
-      if (res2) newFactions[bId] = res2.actor;
-  };
+        const res2 = modifyFactionRelationship(newFactions, bId, aId, amount);
+        if (res2) newFactions[bId] = res2.actor;
+    };
 
-  updateRelation(winnerId, loserId, -15);
+    updateRelation(winnerId, loserId, -15);
 
-  // Update Ripple Effects (Allies/Enemies)
-  factionIds.forEach(otherId => {
-      if (otherId === winnerId || otherId === loserId) return;
+    // Update Ripple Effects (Allies/Enemies)
+    factionIds.forEach(otherId => {
+        if (otherId === winnerId || otherId === loserId) return;
 
-      const other = newFactions[otherId];
-      // Check existing relationship with Winner
-      const relWinner = other.relationships[winnerId] || 0;
-      // Check existing relationship with Loser
-      const relLoser = other.relationships[loserId] || 0;
+        const other = newFactions[otherId];
+        // Check existing relationship with Winner
+        const relWinner = other.relationships[winnerId] || 0;
+        // Check existing relationship with Loser
+        const relLoser = other.relationships[loserId] || 0;
 
-      // If Friend of Winner: Likes Winner (+5), Dislikes Loser (-10)
-      if (relWinner > 20) {
-          updateRelation(otherId, winnerId, 5);
-          updateRelation(otherId, loserId, -10);
-      }
+        // If Friend of Winner: Likes Winner (+5), Dislikes Loser (-10)
+        if (relWinner > 20) {
+            updateRelation(otherId, winnerId, 5);
+            updateRelation(otherId, loserId, -10);
+        }
 
-      // If Friend of Loser: Dislikes Winner (-15), Likes Loser (+5 sympathy)
-      if (relLoser > 20) {
-          updateRelation(otherId, winnerId, -15);
-          updateRelation(otherId, loserId, 5);
-      }
+        // If Friend of Loser: Dislikes Winner (-15), Likes Loser (+5 sympathy)
+        if (relLoser > 20) {
+            updateRelation(otherId, winnerId, -15);
+            updateRelation(otherId, loserId, 5);
+        }
 
-      // If Enemy of Winner: Likes Loser (+10 enemy of my enemy)
-      if (relWinner < -20) {
-           updateRelation(otherId, loserId, 10);
-      }
-  });
+        // If Enemy of Winner: Likes Loser (+10 enemy of my enemy)
+        if (relWinner < -20) {
+            updateRelation(otherId, loserId, 10);
+        }
+    });
 
-  newState.factions = newFactions;
+    newState.factions = newFactions;
 
-  // Add rumor
-  newState.activeRumors = [...(newState.activeRumors || []), rumor];
+    // Add rumor
+    newState.activeRumors = [...(newState.activeRumors || []), rumor];
 
-  // Intriguer Add: Generate a Secret from this conflict?
-  // 20% chance the skirmish reveals a secret about the Loser (their weakness) or Winner (their brutality/cheating)
-  if (rng.next() < 0.2) {
-      const secretGen = new SecretGenerator(rng.next() * 1000);
-      // Secret about the Loser being weak/corrupt, or the Winner using dark magic?
-      // For simplicity, let's just generate a faction secret about the loser.
-      // We pass 'others' as just the winner to create conflict-specific secrets.
-      const _secret = secretGen.generateFactionSecret(loser, [winner]);
-  }
+    // Intriguer Add: Generate a Secret from this conflict?
+    // 20% chance the skirmish reveals a secret about the Loser (their weakness) or Winner (their brutality/cheating)
+    if (rng.next() < 0.2) {
+        const secretGen = new SecretGenerator(rng.next() * 1000);
+        // Secret about the Loser being weak/corrupt, or the Winner using dark magic?
+        // For simplicity, let's just generate a faction secret about the loser.
+        // We pass 'others' as just the winner to create conflict-specific secrets.
+        const _secret = secretGen.generateFactionSecret(loser, [winner]);
+    }
 
-  // Apply Player Reputation ripple
-  const winnerStanding = state.playerFactionStandings[winnerId]?.publicStanding || 0;
+    // Apply Player Reputation ripple
+    const winnerStanding = state.playerFactionStandings[winnerId]?.publicStanding || 0;
 
-  if (winnerStanding > 20) { // If player is friendly with winner
-     const penalty = -5;
-     const reason = `your association with their rival, ${winner.name}`;
-     // Use new FactionManager
-     const result = FactionManager.applyReputationChange(newState, loserId, penalty, reason);
-     newState = { ...newState, playerFactionStandings: result.standings };
+    if (winnerStanding > 20) { // If player is friendly with winner
+        const penalty = -5;
+        const reason = `your association with their rival, ${winner.name}`;
+        // Use new FactionManager
+        const result = FactionManager.applyReputationChange(newState, loserId, penalty, reason);
+        newState = { ...newState, playerFactionStandings: result.standings };
 
-     // Add new logs
-     logs.push(...result.logs);
+        // Add new logs
+        logs.push(...result.logs);
 
-     // Add new rumors generated from this reputation change
-     if (result.rumors.length > 0) {
-         newState.activeRumors = [...(newState.activeRumors || []), ...result.rumors];
-     }
-  }
+        // Add new rumors generated from this reputation change
+        if (result.rumors.length > 0) {
+            newState.activeRumors = [...(newState.activeRumors || []), ...result.rumors];
+        }
+    }
 
-  return { state: newState, logs };
+    return { state: newState, logs };
 };
 
 /**
@@ -255,7 +252,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     // Define potential market events with actual gameplay effects
     const events: Array<{ text: string; event: MarketEvent & { affectedTags?: string[]; effect?: string; duration: number }, weight?: number }> = [
         {
-            text: "A surplus of iron from the mines has lowered weapon prices.",        
+            text: "A surplus of iron from the mines has lowered weapon prices.",
             event: {
                 id: 'surplus_iron',
                 name: 'Iron Surplus',
@@ -335,10 +332,10 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
         }
 
         if (p === 'none' && t === 'temperate') {
-             // Good weather -> Surplus Food
-             events.push({
-                 text: "Excellent weather has resulted in a bumper harvest.",
-                 event: {
+            // Good weather -> Surplus Food
+            events.push({
+                text: "Excellent weather has resulted in a bumper harvest.",
+                event: {
                     id: 'surplus_food',
                     name: 'Bumper Harvest',
                     description: 'Food is plentiful and cheap.',
@@ -348,9 +345,9 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                     type: MarketEventType.SURPLUS,
                     intensity: 1,
                     startTime: Date.now()
-                 },
-                 weight: 4
-             });
+                },
+                weight: 4
+            });
         }
     }
 
@@ -419,7 +416,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
  * Handles general Rumor Spreading (flavor).
  */
 const handleRumorSpread = (state: GameState, rng: SeededRandom): WorldEventResult => {
-     const rumors = [
+    const rumors = [
         "Travelers speak of strange lights in the northern sky.",
         "A wandering bard claims to have seen a dragon near the peaks.",
         "Whispers say the King is ill.",
@@ -501,136 +498,136 @@ const propagateRumors = (state: GameState, rng: SeededRandom): GameState => {
  * Main entry point for processing daily world events.
  */
 export const processWorldEvents = (state: GameState, daysPassed: number): WorldEventResult => {
-  if (daysPassed <= 0) {
-      return { state, logs: [] };
-  }
-
-  const rng = new SeededRandom(state.worldSeed + getGameDay(state.gameTime));
-  const safeEconomy = {
-      marketEvents: state.economy?.marketEvents ?? [],
-      tradeRoutes: state.economy?.tradeRoutes ?? [],
-      globalInflation: state.economy?.globalInflation ?? 0,
-      regionalWealth: state.economy?.regionalWealth ?? {},
-      marketFactors: state.economy?.marketFactors ?? { scarcity: [], surplus: [] },
-      buyMultiplier: state.economy?.buyMultiplier ?? 1,
-      sellMultiplier: state.economy?.sellMultiplier ?? 1,
-      activeEvents: (state.economy?.activeEvents as any) ?? []
-  } as EconomyState;
-
-  let currentState = { ...state, economy: safeEconomy }; // Start with reference, only clone on change
-  let allLogs: GameMessage[] = [];
-
-  // 0. Propagate Rumors (Daily Step)
-  for (let i = 0; i < daysPassed; i++) {
-     currentState = propagateRumors(currentState, rng);
-  }
-
-  // 1. Event Cleanup (Rumors & Economy)
-  // Clean up expired rumors
-  const currentDay = getGameDay(state.gameTime);
-  if (currentState.activeRumors) {
-      const activeRumors = currentState.activeRumors.filter(r => r.expiration >= currentDay);
-      if (activeRumors.length !== currentState.activeRumors.length) {
-          currentState = { ...currentState, activeRumors };
-      }
-  } else {
-      currentState = { ...currentState, activeRumors: [] };
-  }
-
-  // Clean up expired market events
-  if (currentState.economy && currentState.economy.activeEvents) {
-     let eventsChanged = false;
-     const newActiveEvents = (currentState.economy.activeEvents as any[])
-        .map(e => ({...e, duration: e.duration - 1}))
-        .filter((e: any) => e.duration > 0);
-
-     if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
-         eventsChanged = true;
-     }
-
-     if (eventsChanged) {
-        // RALPH: Logic Unification.
-        // Uses the centralized selector to ensure state factors match active events.
-        const { scarcity, surplus } = calculateMarketFactors(newActiveEvents);
-
-        currentState = {
-            ...currentState,
-            economy: {
-                ...currentState.economy,
-                activeEvents: newActiveEvents,
-                marketFactors: {
-                    scarcity,
-                    surplus
-                }
-            }
-        };
-     }
-  }
-
-  // 2. Process Trade Routes (Regenerate Route Events)
-  // This comes AFTER cleanup so previous day's events are gone, and new ones are added.
-  const routeResult = processDailyRoutes(currentState, daysPassed, rng);
-  if (routeResult.logs.length > 0 || routeResult.state !== currentState) {
-      currentState = routeResult.state;
-      allLogs = [...allLogs, ...routeResult.logs];
-  }
-
-  // 3. Random Daily Events
-  // Iterate for each day passed
-  for (let i = 0; i < daysPassed; i++) {
-    if (rng.next() < DAILY_EVENT_CHANCE) {
-      const roll = rng.next();
-      let result: WorldEventResult;
-
-      if (roll < 0.4) {
-          result = handleFactionSkirmish(currentState, rng);
-      } else if (roll < 0.6) {
-          result = generateNobleIntrigue(currentState, rng);
-      } else if (roll < 0.85) {
-          result = handleMarketShift(currentState, rng);
-      } else {
-          result = handleRumorSpread(currentState, rng);
-      }
-
-      // If the event actually did something (changed state or produced logs)
-      if (result.logs.length > 0 || result.state !== currentState) {
-          currentState = result.state;
-          allLogs = [...allLogs, ...result.logs];
-      }
+    if (daysPassed <= 0) {
+        return { state, logs: [] };
     }
-  }
 
-  // 4. Check Quest Deadlines
-  // Only check once per batch (at the end), or check after time advance.
-  const questResult = checkQuestDeadlines(currentState);
-  if (questResult.state !== currentState || questResult.logs.length > 0) {
-      currentState = questResult.state;
-      allLogs = [...allLogs, ...questResult.logs];
-  }
+    const rng = new SeededRandom(state.worldSeed + getGameDay(state.gameTime));
+    const safeEconomy = {
+        marketEvents: state.economy?.marketEvents ?? [],
+        tradeRoutes: state.economy?.tradeRoutes ?? [],
+        globalInflation: state.economy?.globalInflation ?? 0,
+        regionalWealth: state.economy?.regionalWealth ?? {},
+        marketFactors: state.economy?.marketFactors ?? { scarcity: [], surplus: [] },
+        buyMultiplier: state.economy?.buyMultiplier ?? 1,
+        sellMultiplier: state.economy?.sellMultiplier ?? 1,
+        activeEvents: (state.economy?.activeEvents as any) ?? []
+    } as EconomyState;
 
-  // 5. Bounty Hunter Check (Daily)
-  // RALPH: Law & Order.
-  // High heat attracts trouble. We check once per day passed.
-  for (let i = 0; i < daysPassed; i++) {
-      const hunterResult = BountyHunterSystem.checkForHunterSpawn(currentState, rng);
-      if (hunterResult) {
-          // Spawn the hunter as a dynamic NPC
-          const { npc, message } = hunterResult;
-          currentState = {
-              ...currentState,
-              dynamicNPCs: {
-                  ...currentState.dynamicNPCs,
-                  [npc.id]: npc
-              }
-          };
-          allLogs.push({
-              id: Date.now() + rng.next(),
-              text: message,
-              sender: 'system',
-              timestamp: currentState.gameTime
-          });
-      }
-  }
+    let currentState = { ...state, economy: safeEconomy }; // Start with reference, only clone on change
+    let allLogs: GameMessage[] = [];
 
-  return { state: currentState, logs: allLogs };
+    // 0. Propagate Rumors (Daily Step)
+    for (let i = 0; i < daysPassed; i++) {
+        currentState = propagateRumors(currentState, rng);
+    }
+
+    // 1. Event Cleanup (Rumors & Economy)
+    // Clean up expired rumors
+    const currentDay = getGameDay(state.gameTime);
+    if (currentState.activeRumors) {
+        const activeRumors = currentState.activeRumors.filter(r => r.expiration >= currentDay);
+        if (activeRumors.length !== currentState.activeRumors.length) {
+            currentState = { ...currentState, activeRumors };
+        }
+    } else {
+        currentState = { ...currentState, activeRumors: [] };
+    }
+
+    // Clean up expired market events
+    if (currentState.economy && currentState.economy.activeEvents) {
+        let eventsChanged = false;
+        const newActiveEvents = (currentState.economy.activeEvents as any[])
+            .map(e => ({ ...e, duration: e.duration - 1 }))
+            .filter((e: any) => e.duration > 0);
+
+        if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
+            eventsChanged = true;
+        }
+
+        if (eventsChanged) {
+            // RALPH: Logic Unification.
+            // Uses the centralized selector to ensure state factors match active events.
+            const { scarcity, surplus } = calculateMarketFactors(newActiveEvents);
+
+            currentState = {
+                ...currentState,
+                economy: {
+                    ...currentState.economy,
+                    activeEvents: newActiveEvents,
+                    marketFactors: {
+                        scarcity,
+                        surplus
+                    }
+                }
+            };
+        }
+    }
+
+    // 2. Process Trade Routes (Regenerate Route Events)
+    // This comes AFTER cleanup so previous day's events are gone, and new ones are added.
+    const routeResult = processDailyRoutes(currentState, daysPassed, rng);
+    if (routeResult.logs.length > 0 || routeResult.state !== currentState) {
+        currentState = routeResult.state;
+        allLogs = [...allLogs, ...routeResult.logs];
+    }
+
+    // 3. Random Daily Events
+    // Iterate for each day passed
+    for (let i = 0; i < daysPassed; i++) {
+        if (rng.next() < DAILY_EVENT_CHANCE) {
+            const roll = rng.next();
+            let result: WorldEventResult;
+
+            if (roll < 0.4) {
+                result = handleFactionSkirmish(currentState, rng);
+            } else if (roll < 0.6) {
+                result = generateNobleIntrigue(currentState, rng);
+            } else if (roll < 0.85) {
+                result = handleMarketShift(currentState, rng);
+            } else {
+                result = handleRumorSpread(currentState, rng);
+            }
+
+            // If the event actually did something (changed state or produced logs)
+            if (result.logs.length > 0 || result.state !== currentState) {
+                currentState = result.state;
+                allLogs = [...allLogs, ...result.logs];
+            }
+        }
+    }
+
+    // 4. Check Quest Deadlines
+    // Only check once per batch (at the end), or check after time advance.
+    const questResult = checkQuestDeadlines(currentState);
+    if (questResult.state !== currentState || questResult.logs.length > 0) {
+        currentState = questResult.state;
+        allLogs = [...allLogs, ...questResult.logs];
+    }
+
+    // 5. Bounty Hunter Check (Daily)
+    // RALPH: Law & Order.
+    // High heat attracts trouble. We check once per day passed.
+    for (let i = 0; i < daysPassed; i++) {
+        const hunterResult = BountyHunterSystem.checkForHunterSpawn(currentState, rng);
+        if (hunterResult) {
+            // Spawn the hunter as a dynamic NPC
+            const { npc, message } = hunterResult;
+            currentState = {
+                ...currentState,
+                dynamicNPCs: {
+                    ...currentState.dynamicNPCs,
+                    [npc.id]: npc
+                }
+            };
+            allLogs.push({
+                id: Date.now() + rng.next(),
+                text: message,
+                sender: 'system',
+                timestamp: currentState.gameTime
+            });
+        }
+    }
+
+    return { state: currentState, logs: allLogs };
 };

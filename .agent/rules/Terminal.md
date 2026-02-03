@@ -14,7 +14,7 @@ This guide tracks common issues encountered when running terminal commands and p
     1. Ensure installation was successful.
     2. Check npm global binary directory or project-local `node_modules/.bin`.
     3. Use absolute paths if necessary.
-    4. **Fallback:** If a command like `rg` (ripgrep) is missing, use `git grep` or PowerShell's `Select-String`. Note that `rg` may be missing from the path in background terminal environments even if available in the VS Code integrated terminal.
+    4. **Fallback:** If a command like `rg` (ripgrep) is missing or behaves inconsistently, use `git grep`, PowerShell's `Select-String`, or the native `findstr /S /I "pattern" *.ext` (reliable for recursive search on Windows). Note that `rg` may be missing from the path in background terminal environments even if available in the VS Code integrated terminal.
 
 - **Error: `fatal: unable to resolve revision: src` (Git Grep)**
   - **Cause:** Occurs when mixing Windows path separators or specific pathspec syntax that PowerShell misinterprets.
