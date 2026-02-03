@@ -22,14 +22,19 @@ interface WorldPaneProps {
  * @returns {React.FC} The rendered WorldPane component.
  */
 const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const glossaryEntries = useContext(GlossaryContext);
 
   /**
    * Scrolls the message container to the bottom.
    */
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   };
 
   useEffect(scrollToBottom, [messages]); // Scroll when messages change
@@ -75,8 +80,8 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
     return parts.map((part, index) => {
       const lowerPart = part.toLowerCase();
       // Find which entry matched this specific part
-      const entry = matchedEntries.find(e => 
-        e.title.toLowerCase() === lowerPart || 
+      const entry = matchedEntries.find(e =>
+        e.title.toLowerCase() === lowerPart ||
         e.aliases?.some(a => a.toLowerCase() === lowerPart)
       );
 
@@ -101,7 +106,10 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
 
 
   return (
-    <div className="flex-grow bg-gray-800 p-6 rounded-lg shadow-xl overflow-y-auto scrollable-content border border-gray-700 min-h-0">
+    <div
+      ref={scrollContainerRef}
+      className="flex-grow bg-gray-800 p-6 rounded-lg shadow-xl overflow-y-auto scrollable-content border border-gray-700 min-h-0"
+    >
       {' '}
       {/* Added min-h-0 for flex-grow with overflow */}
       <h2 className="text-2xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">
@@ -158,7 +166,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
             </div>
           );
         })}
-        <div ref={messagesEndRef} /> {/* Anchor for scrolling to bottom */}
+
       </div>
     </div>
   );

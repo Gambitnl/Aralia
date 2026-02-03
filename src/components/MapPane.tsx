@@ -29,7 +29,6 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
 
   const gridRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null); // Ref for the close button
 
   // RALPH: Logic Extraction.
   // Centralizes grid navigation logic into a reusable hook.
@@ -90,14 +89,13 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     } else if (tiles.length > 0 && tiles[0].length > 0) {
       setFocusedCoords({ x: tiles[0][0].x, y: tiles[0][0].y });
     }
-    closeButtonRef.current?.focus();
   }, [flattenedTiles, tiles]); // Updated dependency
 
   // Focus the specific tile when focusedCoords change
   useEffect(() => {
     if (focusedCoords && gridRef.current) {
       const tileButton = gridRef.current.querySelector(`button[data-x='${focusedCoords.x}'][data-y='${focusedCoords.y}']`) as HTMLButtonElement;
-      tileButton?.focus();
+      tileButton?.focus({ preventScroll: true });
     }
   }, [focusedCoords]);
 
