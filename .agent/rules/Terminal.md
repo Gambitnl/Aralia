@@ -44,6 +44,10 @@ This guide tracks common issues encountered when running terminal commands and p
   - **Pathspec Exclusions:** In PowerShell, use `: (exclude)` with careful quoting: `git grep "pattern" -- "." ":(exclude)node_modules/*"`.
 - **Chaining Commands:** The `&&` operator is not supported as a statement separator in all PowerShell versions. Use `;` instead to chain multiple commands.
   - Example: `git add . ; git commit -m "message"`
+- **Sorting:** PowerShell's `sort` (alias for `Sort-Object`) does not use `-r` for reverse. Use `-Descending` or its shorthand `-desc`.
+  - Example: `git for-each-ref ... | sort -Descending`
+- **File Encoding & Redirection:** PowerShell's `>` redirection often defaults to `UTF-16LE`. Tools like `view_file` might fail with "unsupported mime type".
+  - **Solution:** Use `Out-File -Encoding utf8` or `Set-Content -Encoding utf8` if the file must be read by environment tools, or use `Get-Content` to view it in the terminal.
 - **Execution Policy:** If scripts fail to run, check the PowerShell Execution Policy (`Get-ExecutionPolicy`).
 - **Spawning Shell Processes:** When using Node's `child_process.spawn` or `exec` on Windows to run commands like `npx`, always set `{ shell: true }` in the options. This ensures that `.cmd` and `.ps1` wrappers are correctly handled by the system shell.
 
