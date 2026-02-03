@@ -241,17 +241,17 @@ export interface StartGameSuccessPayload {
 }
 
 export type Action =
-  | { type: 'move'; payload: { query?: string; geminiPrompt?: string }; label?: string }
+  | { type: 'move'; payload: { query?: string; geminiPrompt?: string }; label?: string; targetId?: string }
   | { type: 'look_around'; payload?: { query?: string }; label?: string }
-  | { type: 'talk'; payload: { targetNpcId?: string; query?: string; isEgregious?: boolean }; label?: string }
-  | { type: 'take_item'; payload: { itemId: string }; label?: string }
+  | { type: 'talk'; payload: { targetNpcId?: string; query?: string; isEgregious?: boolean }; label?: string; targetId?: string }
+  | { type: 'take_item'; payload: { itemId: string }; label?: string; targetId?: string }
   | { type: 'use_item'; payload: UseItemPayload; label?: string }
   | { type: 'custom'; payload?: { villageContext?: VillageActionContext }; label?: string }
   | { type: 'ask_oracle'; payload: { query: string }; label?: string }
   | { type: 'toggle_map'; payload?: never; label?: string }
   | { type: 'toggle_submap_visibility'; payload?: never; label?: string }
   | { type: 'toggle_three_d'; payload?: never; label?: string }
-  | { type: 'gemini_custom_action'; payload: { query: string }; label?: string }
+  | { type: 'gemini_custom_action'; payload: { query?: string; geminiPrompt?: string; check?: string; targetNpcId?: string; eventResidue?: unknown; isEgregious?: boolean }; label?: string }
   | { type: 'save_game'; payload?: never; label?: string }
   | { type: 'go_to_main_menu'; payload?: never; label?: string }
   | { type: 'inspect_submap_tile'; payload: { inspectTileDetails: InspectSubmapTilePayload }; label?: string }

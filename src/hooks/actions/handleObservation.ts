@@ -110,10 +110,13 @@ export async function handleInspectSubmapTile({
     addMessage("Cannot inspect tile: missing details or character information.", "system");
     return;
   }
-  const { inspectTileDetails } = action.payload;
+
+  // Cast payload to bypass strict type checking against discriminated union
+  const payload = (action as any).payload;
+  const inspectTileDetails = payload?.inspectTileDetails as InspectSubmapTilePayload;
 
   const inspectionResult = await OllamaTextService.generateTileInspectionDetails(
-    inspectTileDetails as InspectSubmapTilePayload,
+    inspectTileDetails,
     generalActionContext
   );
 

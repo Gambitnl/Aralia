@@ -59,7 +59,7 @@ export function handleHideEncounterModal(dispatch: React.Dispatch<AppAction>): v
 }
 
 export function handleStartBattleMapEncounter(dispatch: React.Dispatch<AppAction>, payload: StartBattleMapEncounterPayload): void {
-    dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload });
+    dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload: { startBattleMapEncounterData: payload } });
 }
 
 export function handleEndBattle(dispatch: React.Dispatch<AppAction>, rewards?: { gold: number; items: Item[]; xp: number }): void {

@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-/// <reference path="./types/three-jsx.d.ts" />
+import './types/three-jsx.d.ts';
 
 interface ImportMetaEnv {
   readonly VITE_GEMINI_API_KEY: string;

@@ -83,11 +83,13 @@ export async function handleTalk({
   playerContext,
   generalActionContext,
 }: HandleTalkProps): Promise<void> {
-  if (!action.targetId) {
+  const targetId = 'targetId' in action ? (action as any).targetId : undefined;
+
+  if (!targetId) {
     addMessage("Invalid talk target.", "system");
     return;
   }
-  const targetId = action.targetId as string;
+
   const npc = NPCS[targetId];
   if (npc) {
     // Add NPC to met list on first successful interaction

@@ -50,7 +50,7 @@ const INITIAL_NAVAL_STATE: NavalState = {
     knownPorts: [],
 };
 
-const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, deity) => {
+export const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, deity) => {
     acc[deity.id] = {
         score: 0,
         rank: 'Neutral',

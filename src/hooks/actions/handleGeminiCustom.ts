@@ -36,7 +36,7 @@ export async function handleGeminiCustom({
   getCurrentLocation,
   getCurrentNPCs,
 }: HandleGeminiCustomProps): Promise<void> {
-  const { payload } = action;
+  const payload = (action as any).payload;
   let outcomeFact: KnownFact | null = null;
   const targetNpcIdForGossip = payload?.targetNpcId || null;
   

@@ -108,13 +108,15 @@ export async function handleMovement({
   playerContext,
   playerCharacter,
 }: HandleMovementProps): Promise<void> {
-  if (!action.targetId || !gameState.subMapCoordinates || !gameState.mapData) {
+  const targetId = 'targetId' in action ? (action as any).targetId : undefined;
+
+  if (!targetId || !gameState.subMapCoordinates || !gameState.mapData) {
     addMessage("Cannot determine movement destination.", "system");
     dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
     return;
   }
 
-  const directionKey = action.targetId as keyof typeof DIRECTION_VECTORS;
+  const directionKey = targetId as keyof typeof DIRECTION_VECTORS;
 
   const currentLocData = LOCATIONS[gameState.currentLocationId];
   const currentLoc = currentLocData || {
@@ -298,9 +300,9 @@ export async function handleMovement({
     // We need to find if this targetId corresponds to an exit in the current location to check for travel time/description/etc.
     // But standard 'move' action usually just passes the destination ID as targetId.
 
-    const targetLocation = LOCATIONS[action.targetId];
+    const targetLocation = LOCATIONS[targetId];
     if (targetLocation) {
-      if (action.targetId === 'aralia_town_center') {
+      if (targetId === 'aralia_town_center') {
         const villageLocationId = 'aralia_town_center';
         activeDynamicNpcIdsForNewLocation = determineActiveDynamicNpcsForLocation(villageLocationId, LOCATIONS);
 
@@ -321,7 +323,7 @@ export async function handleMovement({
         return;
       }
 
-      newLocationId = action.targetId;
+      newLocationId = targetId;
       newSubMapCoordinates = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
       activeDynamicNpcIdsForNewLocation = determineActiveDynamicNpcsForLocation(newLocationId, LOCATIONS);
       timeToAdvanceSeconds = (action.label || '').toLowerCase().includes('teleport') ? 0 : 3600;
@@ -350,7 +352,7 @@ export async function handleMovement({
 
       // TODO(FEATURES): Replace hardcoded quest triggers with data-driven location metadata so quests can be discovered from any map tile (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
       // Quest Triggers for named locations
-      if (action.targetId === 'ancient_ruins_entrance' || action.targetId === 'ruins_courtyard') {
+      if (targetId === 'ancient_ruins_entrance' || targetId === 'ruins_courtyard') {
         const questId = 'explore_ruins';
         const quest = INITIAL_QUESTS[questId];
         // Auto-accept if not present
@@ -358,15 +360,15 @@ export async function handleMovement({
           dispatch({ type: 'ACCEPT_QUEST', payload: quest });
         }
 
-        if (action.targetId === 'ancient_ruins_entrance') {
+        if (targetId === 'ancient_ruins_entrance') {
           dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_ruins', isCompleted: true } });
-        } else if (action.targetId === 'ruins_courtyard') {
+        } else if (targetId === 'ruins_courtyard') {
           dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'enter_courtyard', isCompleted: true } });
         }
       }
 
     } else {
-      addMessage(`Cannot move to ${action.targetId}. Location does not exist.`, 'system');
+      addMessage(`Cannot move to ${targetId}. Location does not exist.`, 'system');
       dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
       return;
     }
@@ -602,12 +604,13 @@ export async function handleQuickTravel({
   dispatch,
   addMessage,
 }: HandleQuickTravelProps): Promise<void> {
-  if (!action.payload?.quickTravel) {
+  const payload = (action as any).payload;
+  if (!payload?.quickTravel) {
     addMessage("Quick travel failed: missing data.", 'system');
     return;
   }
 
-  const { destination, durationSeconds } = action.payload.quickTravel;
+  const { destination, durationSeconds } = payload.quickTravel;
 
   // Calculate tile info for the destination to check for special terrain types (like villages)
   // TODO[LOCATION-PARSING]: Consolidate coord_X_Y parsing into a shared utility
