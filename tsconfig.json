@@ -15,8 +15,7 @@
       "node",
       "vitest/globals",
       "react",
-      "react-dom",
-      "@react-three/fiber"
+      "react-dom"
     ],
     "moduleResolution": "bundler",
     "isolatedModules": true,
