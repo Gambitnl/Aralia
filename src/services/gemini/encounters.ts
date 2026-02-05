@@ -269,17 +269,26 @@ export async function generateCustomActions(
     if (!parsedActions) throw new Error("Parsed JSON is null");
     const validatedActions = CustomActionSchema.array().parse(parsedActions);
 
-    actions = validatedActions.map(a => ({
-      type: a.type === 'ENTER_VILLAGE' ? 'ENTER_VILLAGE' : 'gemini_custom_action',
-      label: a.label,
-      payload: {
-        geminiPrompt: a.geminiPrompt,
-        check: a.check,
-        targetNpcId: a.targetNpcId,
-        eventResidue: a.eventResidue,
-        isEgregious: a.isEgregious
+    actions = validatedActions.map(a => {
+      if (a.type === 'ENTER_VILLAGE') {
+        return {
+          type: 'ENTER_VILLAGE',
+          label: a.label
+        };
       }
-    }));
+
+      return {
+        type: 'gemini_custom_action',
+        label: a.label,
+        payload: {
+          geminiPrompt: a.geminiPrompt,
+          check: a.check,
+          targetNpcId: a.targetNpcId,
+          eventResidue: a.eventResidue,
+          isEgregious: a.isEgregious
+        }
+      };
+    });
   } catch {
     logger.error("Failed to parse AI response for custom actions. Using fallback.", { response: result.data.text });
     actions = fallbackActions;

@@ -393,7 +393,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
 
     // RALPH: Logic Unification.
     // Uses the centralized selector to ensure state factors match active events.
-    const { scarcity, surplus } = calculateMarketFactors(newActiveEvents);
+    const { scarcity, surplus } = calculateMarketFactors(newActiveEvents as MarketEvent[]);
 
     const newEconomy: EconomyState = {
         ...state.economy,

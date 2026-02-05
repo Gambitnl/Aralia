@@ -4,6 +4,7 @@
  */
 import { AppAction } from '../actionTypes';
 import { GameState } from '../../types';
+import type { WeatherState } from '../../types';
 import { VoyageManager } from '../../systems/naval/VoyageManager';
 import { CrewManager } from '../../systems/naval/CrewManager';
 import { createShip } from '../../utils/navalUtils';
@@ -52,7 +53,18 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       if (!ship) return state;
 
       // Calculate logic for a day at sea
-      const { newState: updatedVoyage, updatedShip } = VoyageManager.advanceDay(state.naval.currentVoyage, ship);
+      const currentWeather: WeatherState = state.environment ?? {
+        precipitation: 'none',
+        temperature: 'temperate',
+        wind: { direction: 'variable', speed: 'calm' },
+        visibility: 'clear',
+      };
+      const { newState: updatedVoyage, updatedShip } = VoyageManager.advanceDay(
+        state.naval.currentVoyage,
+        ship,
+        currentWeather,
+        state.gold
+      );
 
       // Check for arrival
       if (updatedVoyage.distanceTraveled >= updatedVoyage.distanceToDestination) {

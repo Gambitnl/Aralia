@@ -86,7 +86,10 @@ export interface HeistIntel {
 export enum HeistPhase {
   Recon = 'Recon',
   Planning = 'Planning',
+  Infiltration = 'Infiltration',
   Execution = 'Execution',
+  Escape = 'Escape',
+  Complete = 'Complete',
   Getaway = 'Getaway',
   Cooldown = 'Cooldown'
 }
@@ -110,6 +113,8 @@ export enum HeistActionType {
   DisableTrap = 'DisableTrap',
   KnockoutGuard = 'KnockoutGuard',
   Distract = 'Distract',
+  Sneak = 'Sneak',
+  Combat = 'Combat',
   Hack = 'Hack',
   SecureLoot = 'SecureLoot'
 }
@@ -123,15 +128,27 @@ export interface HeistAction {
   description: string;
 }
 
+export interface HeistApproach {
+  type: string;
+  riskModifier: number;
+  timeModifier: number;
+  requiredSkills: string[];
+}
+
 export interface HeistPlan {
   id: string;
   targetLocationId: string;
-  phase: HeistPhase;
+  phase: HeistPhase | `${HeistPhase}`;
   leaderId: string;
+  participants?: string[]; // Character IDs participating in the heist
   crew: HeistCrewMember[]; // Character IDs with Roles
   entryPoint?: string; // Location Exit ID
   escapeRoute?: string;
   collectedIntel: HeistIntel[];
+  intelGathered?: HeistIntel[];
+  approaches?: HeistApproach[];
+  selectedApproach?: HeistApproach | null;
+  complications?: string[];
   lootSecured: StolenItem[];
   alertLevel: number; // 0-100 during the heist
   turnsElapsed: number;

@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { VoyageManager } from '../VoyageManager';
 import { Ship } from '../../../types/naval';
 import { CrewManager } from '../CrewManager';
+import { WeatherState } from '../../../types/environment';
 
 describe('VoyageManager', () => {
     // Mock Ship
@@ -51,6 +52,13 @@ describe('VoyageManager', () => {
     });
     };
 
+    const mockWeather: WeatherState = {
+        precipitation: 'none',
+        temperature: 'temperate',
+        wind: { direction: 'north', speed: 'moderate' },
+        visibility: 'clear'
+    };
+
     it('should initialize a voyage correctly', () => {
         const ship = createMockShip();
         const voyage = VoyageManager.startVoyage(ship, 500);
@@ -62,7 +70,7 @@ describe('VoyageManager', () => {
     it('should advance the day and move the ship', () => {
         const ship = createMockShip();
         let voyage = VoyageManager.startVoyage(ship, 500);
-        const result = VoyageManager.advanceDay(voyage, ship, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
 
         voyage = result.newState;
 
@@ -80,7 +88,7 @@ describe('VoyageManager', () => {
         const initialFood = ship.cargo.supplies.food;
         const initialWater = ship.cargo.supplies.water;
 
-        const result = VoyageManager.advanceDay(voyage, ship, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
         const updatedShip = result.updatedShip;
 
         // 1 food per person, 2 water per person
@@ -95,7 +103,7 @@ describe('VoyageManager', () => {
         ship.cargo.supplies.water = 0;
         // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 500);
-        const result = VoyageManager.advanceDay(voyage, ship, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
         const updatedShip = result.updatedShip;
 
         // Check logs for warning
@@ -111,7 +119,7 @@ describe('VoyageManager', () => {
         const ship = createMockShip();
         // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 50); // Short trip
-        const result = VoyageManager.advanceDay(voyage, ship, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
 
         expect(result.newState.status).toBe('Docked');
         expect(result.newState.log[result.newState.log.length - 1].event).toContain('Land ho');

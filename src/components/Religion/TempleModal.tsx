@@ -59,7 +59,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
                     serviceId: service.id,
                     cost,
                     effect: effectDescription,
-                }
+                } as any
             });
             setLastActionMessage(`Purchased ${service.name}`);
             setTimeout(() => setLastActionMessage(null), 3000);

@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
  * 
- * Last Sync: 27/01/2026, 01:42:11
- * Dependents: PreviewBiome.tsx
- * Imports: 1 files
+ * Last Sync: 04/02/2026, 14:13:59
+ * Dependents: None (Orphan)
+ * Imports: None
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -15,7 +15,6 @@
 // @dependencies-end
 
 import { useState, useCallback } from 'react';
-import { BiomeDNA } from '@/components/DesignPreview/steps/PreviewBiome';
 
 // ============================================================================
 // TYPES
@@ -23,6 +22,23 @@ import { BiomeDNA } from '@/components/DesignPreview/steps/PreviewBiome';
 
 type GeneratorStatus = 'idle' | 'generating' | 'success' | 'error';
 type Provider = 'ollama' | 'gemini';
+
+interface BiomeDNA {
+  id: string;
+  name: string;
+  descriptor: string;
+  primaryColor: string;
+  secondaryColor: string;
+  roughness: number;
+  waterColor: string;
+  waterClarity: number;
+  waveIntensity: number;
+  fogDensity: number;
+  fogHeight: number;
+  weatherType: 'clear' | 'rain' | 'snow' | 'ash' | 'spores';
+  weatherIntensity: number;
+  scatter: unknown[];
+}
 
 interface UseBiomeGeneratorResult {
   generate: (prompt: string, provider?: Provider) => Promise<void>;

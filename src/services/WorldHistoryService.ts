@@ -38,7 +38,7 @@ export class WorldHistoryService {
         ];
 
         return {
-            id: generateId('hist'),
+            id: `hist-${generateId()}`,
             timestamp: gameDay,
             realtime: Date.now(),
             type: 'MAJOR_BATTLE',

@@ -30,7 +30,7 @@ export async function handleStartDialogue({
   dispatch,
   addMessage
 }: HandleTalkProps): Promise<void> {
-  const { npcId } = action.payload || {};
+  const { npcId } = (action.payload as { npcId?: string } | undefined) || {};
   if (!npcId) return;
 
   // Check if NPC exists in static or generated registries

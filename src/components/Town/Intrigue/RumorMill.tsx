@@ -66,7 +66,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         onAction({
             type: 'BUY_ITEM',
             label: `Buy ${serviceItem.name}`,
-            payload: { item: serviceItem, cost: rumor.cost }
+            payload: { item: serviceItem, cost: rumor.cost } as any
         });
 
         // Log specific event for intrigue system hook (optional, handled by BUY_ITEM logs generally)

@@ -3,7 +3,7 @@
  * Core logic for managing active heists, alert levels, and turn-based resolution.
  */
 
-import { HeistPlan, HeistPhase, HeistAction, HeistActionType } from '../../types/crime';
+import { HeistPlan, HeistPhase, HeistAction, HeistActionType, HeistRole } from '../../types/crime';
 import { Location } from '../../types';
 import { SeededRandom } from '@/utils/random';
 
@@ -18,9 +18,12 @@ export class HeistManager {
             targetLocationId: target.id,
             leaderId,
             participants: [leaderId],
+            crew: [{ characterId: leaderId, role: HeistRole.Leader }],
             phase: 'Planning',
             alertLevel: 0,
+            maxAlertLevel: 100,
             turnsElapsed: 0,
+            collectedIntel: [],
             intelGathered: [],
             approaches: [
                 { type: 'Stealth', riskModifier: -10, timeModifier: 1.5, requiredSkills: ['Stealth', 'ThievesTools'] },
@@ -37,7 +40,7 @@ export class HeistManager {
      * Advances the heist to the next phase (Planning -> Infiltration -> Execution -> Escape).
      */
     static advancePhase(plan: HeistPlan): HeistPlan {
-        let nextPhase: HeistPhase = plan.phase;
+        let nextPhase: HeistPhase | `${HeistPhase}` = plan.phase;
 
         switch (plan.phase) {
             case 'Planning':
@@ -61,7 +64,7 @@ export class HeistManager {
     /**
      * Calculates the success chance of a specific action based on current alert level and approach.
      */
-    static calculateActionSuccessChance(plan: HeistPlan, action: HeistAction): number {
+    static calculateActionSuccessChance(plan: HeistPlan, action: HeistAction, _actorRole?: HeistRole): number {
         let baseChance = 100 - action.difficulty; // DC 15 -> 85% base
         
         // Alert Level Penalty: -1% per point of alert
@@ -86,7 +89,23 @@ export class HeistManager {
         // Mock logic: Intel reduces starting alert or reveals hidden routes
         return {
             ...plan,
-            intelGathered: [...plan.intelGathered, intel]
+            collectedIntel: [...plan.collectedIntel, intel],
+            intelGathered: [...(plan.intelGathered ?? plan.collectedIntel), intel]
         };
     }
+}
+
+export declare namespace HeistManager {
+    export function assignCrew(plan: HeistPlan, characterId: string, role: HeistRole): HeistPlan;
+    export function performHeistAction(
+        plan: HeistPlan,
+        action: HeistAction,
+        actorId: string,
+        roll: number
+    ): {
+        success: boolean;
+        alertGenerated: number;
+        updatedPlan: HeistPlan;
+        message: string;
+    };
 }

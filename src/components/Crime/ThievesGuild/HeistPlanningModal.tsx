@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
-import { HeistPlan, HeistApproach } from '../../../types/crime';
+import { HeistPlan, HeistIntel } from '../../../types/crime';
 import { WindowFrame } from '../../ui/WindowFrame';
+
+type HeistApproach = {
+    type: string;
+    riskModifier: number;
+    timeModifier: number;
+    requiredSkills: string[];
+};
 
 interface HeistPlanningModalProps {
     plan: HeistPlan;
@@ -16,6 +23,10 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
     onClose
 }) => {
     const [selectedType, setSelectedType] = useState<string | null>(null);
+    const planWithExtras = plan as HeistPlan & {
+        approaches: HeistApproach[];
+        intelGathered: HeistIntel[];
+    };
 
     return (
         <WindowFrame title="Heist Planning" onClose={onClose}>
@@ -25,7 +36,7 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
                 <div className="mb-6">
                     <h4 className="text-lg font-semibold mb-2">Select Approach</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {plan.approaches.map(approach => (
+                        {planWithExtras.approaches.map(approach => (
                             <button
                                 key={approach.type}
                                 onClick={() => {
@@ -51,11 +62,11 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
 
                 <div className="bg-gray-900 p-4 rounded border border-gray-700 mb-6">
                     <h4 className="font-semibold text-gray-300 mb-2">Intel Gathered</h4>
-                    {plan.intelGathered.length === 0 ? (
+                    {planWithExtras.intelGathered.length === 0 ? (
                         <p className="text-gray-500 italic">No intel gathering conducted yet.</p>
                     ) : (
                         <ul className="list-disc list-inside text-sm">
-                            {plan.intelGathered.map((intel, i) => (
+                            {planWithExtras.intelGathered.map((intel, i) => (
                                 <li key={i}>{intel.description}</li>
                             ))}
                         </ul>

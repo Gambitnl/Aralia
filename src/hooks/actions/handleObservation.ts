@@ -71,7 +71,7 @@ export async function handleLookAround({
       const existingCompassDirections = Object.keys(DIRECTION_VECTORS);
       const filteredActions = customActionsResult.data.actions.filter(action => {
         const labelLower = (action.label || '').toLowerCase();
-        const promptLower = action.payload?.geminiPrompt?.toLowerCase() || "";
+        const promptLower = (action.payload as { geminiPrompt?: string } | undefined)?.geminiPrompt?.toLowerCase() || "";
         return !existingCompassDirections.some(dir =>
           labelLower.includes(dir.toLowerCase()) || promptLower.includes(dir.toLowerCase())
         );
@@ -106,7 +106,7 @@ export async function handleInspectSubmapTile({
   addGeminiLog,
   generalActionContext,
 }: HandleInspectSubmapTileProps): Promise<void> {
-  if (!action.payload?.inspectTileDetails || !gameState.party[0]) {
+  if (!(action as any).payload?.inspectTileDetails || !gameState.party[0]) {
     addMessage("Cannot inspect tile: missing details or character information.", "system");
     return;
   }

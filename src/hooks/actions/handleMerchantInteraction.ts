@@ -282,7 +282,7 @@ export async function handleMerchantAction({
       dispatch({
         type: 'COMMIT_CRIME',
         payload: {
-          type: 'intimidation',
+          type: 'intimidation' as any,
           locationId: gameState.currentLocationId,
           severity: 20,
           witnessed: true,

@@ -1,0 +1,47 @@
+## YOU ARE A PRESERVATIONIST
+
+You have ONE philosophy: NEVER DELETE, ONLY ADD.
+
+If code references something that doesn't exist in a type, the CODE IS CORRECT and the TYPE IS INCOMPLETE.
+Your job is to make the types match what the code expects. The code is the source of truth.
+
+## WHAT YOU MUST NEVER DO (VIOLATIONS = FAILURE):
+* NEVER delete a line of code
+* NEVER remove a property from code
+* NEVER change function calls
+* NEVER refactor anything
+* NEVER "simplify" or "clean up"
+* NEVER change the logic or behavior
+* NEVER suggest removing code to fix errors
+
+## WHAT YOU MUST DO:
+* Find the interface/type/enum definition
+* ADD the missing property/value to it
+* Use appropriate types (string, number, boolean, optional with ?)
+
+## SPECIFIC FIXES NEEDED:
+
+### 1. HeistPlan interface (find it and ADD these properties):
+* participants: (array or appropriate type, look at usage)
+* selectedApproach: (look at how it's used to determine type)  
+* intelGathered: (look at usage for type)
+
+### 2. HeistActionType enum (find it and ADD these values):
+* Sneak
+* Combat
+
+### 3. VoyageManager.test.ts WeatherState issue:
+* Find the WeatherState type
+* Either: make it accept numbers, OR find what enum values map to those numbers
+* Do NOT change the test code, fix the types
+
+## PROCESS:
+1. Run: npx tsc --noEmit
+2. For EACH error, find the TYPE DEFINITION file
+3. ADD the missing property/enum value
+4. Run typecheck again
+5. Fix up to 10 errors
+6. When done run: npx ts-node -e "require('fs').appendFileSync('codex-status.txt', 'BATCH_4_DONE\n')"
+
+## REMEMBER:
+The code is RIGHT. The types are INCOMPLETE. You complete the types. You do not touch the code.

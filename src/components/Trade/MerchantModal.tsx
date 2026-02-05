@@ -74,14 +74,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     const handleBuy = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'buy', regionId);
         if (finalPrice > 0 && playerGold >= finalPrice) {
-            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { item, cost: finalPrice } });
+            onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { item, cost: finalPrice } as any });
         }
     };
 
     const handleSell = (item: Item) => {
         const { finalPrice } = calculatePrice(item, economy, 'sell', regionId);
         if (finalPrice > 0) {
-            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { itemId: item.id, value: finalPrice } });
+            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { itemId: item.id, value: finalPrice } as any });
         }
     };
 

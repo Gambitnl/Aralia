@@ -2,6 +2,7 @@ import React from 'react';
 import { CharacterVisualConfig, CharacterGender } from '../../services/CharacterAssetService';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Z_INDEX } from '../../styles/zIndex';
+import { CreationStepLayout } from './ui/CreationStepLayout';
 
 interface VisualsSelectionProps {
     visuals: CharacterVisualConfig;
@@ -44,10 +45,13 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
     };
 
     return (
-        <div className="flex flex-col items-center">
-            <h2 className="text-2xl font-cinzel text-amber-500 mb-6 uppercase tracking-widest">Customize Appearance</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl px-4">
+        <CreationStepLayout
+            title="Customize Appearance"
+            onBack={onBack}
+            onNext={onNext}
+        >
+            <div className="flex flex-col items-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl px-4">
                 {/* Controls Area */}
                 <div className="space-y-8 bg-black/40 p-8 rounded-2xl border border-gray-700 shadow-xl">
                     {/* Gender Selection */}
@@ -146,21 +150,8 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
                 </div>
             </div>
 
-            <div className="mt-12 flex gap-6 w-full max-w-lg">
-                <button
-                    onClick={onBack}
-                    className="flex-1 py-4 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-300 font-bold rounded-xl transition-all uppercase tracking-widest"
-                >
-                    Back
-                </button>
-                <button
-                    onClick={onNext}
-                    className="flex-1 py-4 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold rounded-xl shadow-lg transition-all uppercase tracking-widest"
-                >
-                    Continue
-                </button>
             </div>
-        </div>
+        </CreationStepLayout>
     );
 };
 

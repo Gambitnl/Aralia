@@ -43,7 +43,7 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
   if (!isOpen) return null;
 
   const handleTeleportAndClose = () => {
-    onAction({ type: 'move', label: 'Teleport to Hermit', targetId: 'ruins_courtyard' });
+    onAction({ type: 'move', label: 'Teleport to Hermit', targetId: 'ruins_courtyard', payload: {} });
     onClose();
   };
 

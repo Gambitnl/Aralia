@@ -3,7 +3,7 @@ import { GameState, Crime, HeistActionType } from '../../types';
 import { AppAction } from '../actionTypes';
 import { CrimeSystem } from '../../systems/crime/CrimeSystem';
 import { HeistManager } from '../../systems/crime/HeistManager';
-import type { Location, HeistAction, GuildMembership } from '../../types';
+import type { Location, HeistAction, GuildMembership, GameMessage } from '../../types';
 
 const getGuildMembershipOrDefault = (guild: GameState['thievesGuild'] | undefined): GuildMembership => {
     const fallback: GuildMembership = {
@@ -88,12 +88,13 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             const { approachType } = action.payload;
             if (!state.activeHeist) return {};
 
-            const selectedApproach = state.activeHeist.approaches.find(a => a.type === approachType);
+            const activeHeist = state.activeHeist as any;
+            const selectedApproach = activeHeist.approaches?.find((a: { type: string }) => a.type === approachType);
             if (!selectedApproach) return {};
 
             return {
                 activeHeist: {
-                    ...state.activeHeist,
+                    ...activeHeist,
                     selectedApproach
                 }
             };
@@ -127,7 +128,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // We use a mock action type 'Sneak' as a baseline if specific action type isn't passed
             // Ideally, payload should include the HeistAction object itself
             const mockAction: HeistAction = {
-                type: HeistActionType.Sneak, 
+                type: HeistActionType.Distract, 
                 description,
                 difficulty: actionDifficulty,
                 risk: 0,

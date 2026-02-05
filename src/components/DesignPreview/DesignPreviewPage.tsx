@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
  * 
- * Last Sync: 27/01/2026, 01:42:04
- * Dependents: design-preview.tsx
- * Imports: 30 files
+ * Last Sync: 04/02/2026, 13:19:16
+ * Dependents: None (Orphan)
+ * Imports: 3 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,7 +16,6 @@
 
 import React, { useState, useCallback } from 'react';
 import { WindowFrame } from '../ui/WindowFrame';
-import { VariantSwitcher } from './VariantSwitcher';
 import { Z_INDEX } from '../../styles/zIndex';
 // import { PreviewRace } from './steps/PreviewRace'; // Missing
 

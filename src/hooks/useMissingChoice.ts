@@ -50,7 +50,7 @@ export const useMissingChoice = (
           characterId: missingChoiceModal.character.id!,
           choiceType: missingChoiceModal.missingChoice.id,
           choiceId: choiceId,
-          secondaryValue: extraData,
+          secondaryValue: extraData as { choices?: import('../types').LevelUpChoices; xpGained?: number; isCantrip?: boolean } | undefined,
         }
       });
       addMessage(`Updated ${missingChoiceModal.character.name}: Selected ${choiceId}.`, 'system');

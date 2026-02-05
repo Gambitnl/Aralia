@@ -88,7 +88,7 @@ function applyDiscoveryConsequences(
               factionId: consequence.targetId,
               change: consequence.value,
               source: 'discovery'
-            }
+            } as any
           });
           addMessage(`[Effect] Reputation Updated: ${consequence.targetId} ${consequence.value > 0 ? '+' : ''}${consequence.value}`, 'system');
         }
