@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * 
+ * Last Sync: 06/02/2026, 03:31:43
+ * Dependents: None (Orphan)
+ * Imports: 37 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file CharacterCreator.tsx
  * Main character creation component wrapped in a resizable window frame.
@@ -41,8 +57,7 @@ import FeatSelection from './FeatSelection';
 // Deprecated: DragonbornAncestrySelection, ElfLineageSelection, GnomeSubraceSelection,
 // GiantAncestrySelection, TieflingLegacySelection, RacialSpellAbilitySelection
 // These have been replaced by inline race variant selection in RaceDetailPane
-import CentaurNaturalAffinitySkillSelection from './Race/CentaurNaturalAffinitySkillSelection';
-import ChangelingInstinctsSelection from './Race/ChangelingInstinctsSelection';
+import type { RacialChoiceData } from './Race/RaceDetailPane';
 import VisualsSelection from './VisualsSelection';
 import NameAndReview from './NameAndReview';
 import CreationSidebar from './CreationSidebar';
@@ -131,15 +146,28 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const hasEligibleFeats = useMemo(() => featOptions.some(option => option.isEligible), [featOptions]);
 
   // Handlers (kept same as before)
-  const handleRaceSelect = useCallback((raceId: string, choices?: { spellAbility?: 'Intelligence' | 'Wisdom' | 'Charisma' }) => {
+  const handleRaceSelect = useCallback((raceId: string, choices?: RacialChoiceData) => {
     dispatch({ type: 'SELECT_RACE', payload: RACES_DATA[raceId] });
-    // Spell ability choices are now handled inline within the SELECT_RACE action via racialSelections
+
+    if (choices?.spellAbility) {
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId, patch: { spellAbility: choices.spellAbility } } });
+    }
+
+    if (choices?.keenSensesSkillId) {
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId: 'elf', patch: { skillIds: [choices.keenSensesSkillId] } } });
+    }
+
+    if (choices?.centaurNaturalAffinitySkillId) {
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId: 'centaur', patch: { skillIds: [choices.centaurNaturalAffinitySkillId] } } });
+    }
+
+    if (choices?.changelingInstinctSkillIds) {
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId: 'changeling', patch: { skillIds: choices.changelingInstinctSkillIds } } });
+    }
   }, [dispatch]);
   // Deprecated handlers removed: handleDragonbornAncestrySelect, handleElvenLineageSelect,
   // handleGnomeSubraceSelect, handleGiantAncestrySelect, handleTieflingLegacySelect, handleRacialSpellAbilitySelect
   // These are now handled inline via handleRaceSelect with RacialChoiceData
-  const handleCentaurNaturalAffinitySkillSelect = useCallback((skillId: string) => dispatch({ type: 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL', payload: skillId }), [dispatch]);
-  const handleChangelingInstinctsSelect = useCallback((skillIds: string[]) => dispatch({ type: 'SELECT_CHANGELING_INSTINCTS', payload: skillIds }), [dispatch]);
   const handleClassSelect = useCallback((classId: string) => dispatch({ type: 'SELECT_CLASS', payload: CLASSES_DATA[classId] }), [dispatch]);
   const handleAbilityScoresSet = useCallback((scores: AbilityScores) => dispatch({ type: 'SET_ABILITY_SCORES', payload: { baseScores: scores } }), [dispatch]);
   const handleHumanSkillSelect = useCallback((skillId: string) => dispatch({ type: 'SELECT_HUMAN_SKILL', payload: skillId }), [dispatch]);
@@ -189,7 +217,14 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     // Note: I'm abbreviating here for clarity, but in the real write I must include the full switch
     switch (state.step) {
       case CreationStep.Race:
-        return <RaceSelection races={Object.values(RACES_DATA)} onRaceSelect={handleRaceSelect} />;
+        return (
+          <RaceSelection
+            races={Object.values(RACES_DATA)}
+            onRaceSelect={handleRaceSelect}
+            selectedRaceId={state.selectedRace?.id ?? null}
+            racialSelections={state.racialSelections}
+          />
+        );
       case CreationStep.AgeSelection:
         if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <AgeSelection selectedRace={selectedRace} currentAge={state.characterAge} onAgeChange={handleAgeChange} onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state) })} onBack={goBack} />;
@@ -200,10 +235,6 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         return <VisualsSelection visuals={state.visuals} onVisualsChange={handleVisualsChange} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Class })} onBack={goBack} />;
       // Deprecated steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace, GiantAncestry, TieflingLegacy
       // These are now handled inline in RaceDetailPane
-      case CreationStep.CentaurNaturalAffinitySkill:
-        return <CentaurNaturalAffinitySkillSelection onSkillSelect={handleCentaurNaturalAffinitySkillSelect} onBack={goBack} />;
-      case CreationStep.ChangelingInstincts:
-        return <ChangelingInstinctsSelection onSkillsSelect={handleChangelingInstinctsSelect} onBack={goBack} />;
       // Deprecated step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
       case CreationStep.Class:
         return <ClassSelection classes={Object.values(CLASSES_DATA)} onClassSelect={handleClassSelect} onBack={goBack} />;

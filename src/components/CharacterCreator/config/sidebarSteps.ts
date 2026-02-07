@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 06/02/2026, 03:31:43
+ * Dependents: CharacterCreator.tsx, CreationSidebar.tsx
+ * Imports: 1 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file sidebarSteps.ts
  * Configuration for the character creation sidebar - defines step metadata,
@@ -25,7 +41,26 @@ export interface SidebarStepConfig {
 export const isStepCompleted = (step: CreationStep, state: CharacterCreationState): boolean => {
   switch (step) {
     case CreationStep.Race:
-      return state.selectedRace !== null;
+      if (!state.selectedRace) return false;
+      // Races that require spell ability choice must have it set.
+      if (state.selectedRace.racialSpellChoice) {
+        const ability = state.racialSelections[state.selectedRace.id]?.spellAbility;
+        if (!ability) return false;
+      }
+      // Races with required skill picks.
+      if (state.selectedRace.id === 'elf') {
+        const keen = state.racialSelections['elf']?.skillIds?.[0];
+        if (!keen) return false;
+      }
+      if (state.selectedRace.id === 'centaur') {
+        const nat = state.racialSelections['centaur']?.skillIds?.[0];
+        if (!nat) return false;
+      }
+      if (state.selectedRace.id === 'changeling') {
+        const ids = state.racialSelections['changeling']?.skillIds ?? [];
+        if (ids.length !== 2) return false;
+      }
+      return true;
     case CreationStep.AgeSelection:
       return state.characterAge > 0 && state.selectedRace !== null;
     case CreationStep.BackgroundSelection:
@@ -35,10 +70,6 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
 
     // Deprecated steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace, GiantAncestry, TieflingLegacy
     // These are now handled inline in RaceDetailPane
-    case CreationStep.CentaurNaturalAffinitySkill:
-      return !!state.racialSelections['centaur']?.skillIds?.length;
-    case CreationStep.ChangelingInstincts:
-      return !!state.racialSelections['changeling']?.skillIds?.length;
     // Deprecated step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
     case CreationStep.Class:
       return state.selectedClass !== null;
@@ -90,28 +121,6 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
   },
   // Deprecated sidebar steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace,
   // GiantAncestry, TieflingLegacy - now handled inline in RaceDetailPane
-  {
-    step: CreationStep.CentaurNaturalAffinitySkill,
-    label: 'Natural Affinity',
-    group: 'origin',
-    parentStep: CreationStep.Race,
-    getSelectionSummary: (state) => {
-      const skills = state.racialSelections['centaur']?.skillIds;
-      return skills?.length ? skills[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
-    },
-    isVisible: (state) => state.selectedRace?.id === 'centaur',
-  },
-  {
-    step: CreationStep.ChangelingInstincts,
-    label: 'Changeling Instincts',
-    group: 'origin',
-    parentStep: CreationStep.Race,
-    getSelectionSummary: (state) => {
-      const skills = state.racialSelections['changeling']?.skillIds;
-      return skills?.length ? `${skills.length} skills` : null;
-    },
-    isVisible: (state) => state.selectedRace?.id === 'changeling',
-  },
   {
     step: CreationStep.AgeSelection,
     label: 'Age',

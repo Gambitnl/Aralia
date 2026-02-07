@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 05/02/2026, 16:17:03
+ * Last Sync: 05/02/2026, 21:41:47
  * Dependents: CharacterCreator.tsx
- * Imports: 6 files
+ * Imports: 11 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,14 +17,8 @@
 /**
  * @file SkillSelection.tsx
  * Refactored to use Split Config Style (List vs Detail).
- * 
- * TODO(QOL): Consider extracting the skill calculation utilities into a separate utility module
- * for better reusability across character creation components.
- * 
- * TODO(PERFORMANCE): Memoize expensive calculations like skill lists and modifiers
- * to prevent unnecessary recalculations during re-renders.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Class as CharClass,
@@ -38,9 +32,17 @@ import Tooltip from '../ui/Tooltip';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { BTN_PRIMARY } from '../../styles/buttonStyles';
+import { getAbilityModifierValue } from '../../utils/character/statUtils';
+import { calculateProficiencyBonus } from '../../utils/character/savingThrowUtils';
+import { calculateTotalSkillModifier } from '../../utils/character/skillModifierUtils';
+import { useSkillSelectionState } from './hooks/useSkillSelectionState';
+import {
+  buildSkillsForSubmit,
+  deriveRacialSkillGrants,
+  getKeenSensesOptions,
+  isSkillSelectionValid,
+} from './utils/skillSelectionUtils';
 
-// TODO(TYPES): Consider creating a dedicated interface for skill selection props
-// to improve type safety and documentation
 interface SkillSelectionProps {
   charClass: CharClass;
   abilityScores: AbilityScores;
@@ -50,20 +52,10 @@ interface SkillSelectionProps {
   onBack: () => void;
 }
 
-// Constants for racial skill mechanics
-// TODO(CONFIG): Move these constants to a centralized configuration file
-// for easier maintenance and consistency across the codebase
-const KEEN_SENSES_SKILL_IDS = ['insight', 'perception', 'survival'];
-const BUGBEAR_AUTO_SKILL_ID = 'stealth';
-
 /**
  * SkillSelection component.
  * Allows player to choose skill proficiencies based on their class and race.
  * Uses a Split Config layout for consistency with Race/Feat selection.
- * 
- * TODO(UI): Add keyboard navigation support for better accessibility
- * TODO(UI): Consider adding skill search/filter functionality for large skill lists
- * TODO(TESTING): Add comprehensive unit tests for skill selection logic
  */
 const SkillSelection: React.FC<SkillSelectionProps> = ({
   charClass,
@@ -73,185 +65,145 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
   onSkillsSelect,
   onBack,
 }) => {
-  // State management for skill selection
-  // TODO(PERFORMANCE): Consider using useReducer for complex state logic
-  // if the state management becomes more complex
-  const [selectedClassSkillIds, setSelectedClassSkillIds] = useState<Set<string>>(new Set());
-  const [selectedKeenSensesSkillId, setSelectedKeenSensesSkillId] = useState<string | null>(null);
-  const [viewedSkillId, setViewedSkillId] = useState<string | null>(null);
+  const assumedCharacterLevel = 1;
+  const listKeyNavRef = useRef<HTMLDivElement | null>(null);
+  const [skillSearchQuery, setSkillSearchQuery] = useState('');
+
+  const {
+    selectedClassSkillIds,
+    selectedKeenSensesSkillId,
+    viewedSkillId,
+    toggleClassSkill,
+    setSelectedKeenSensesSkillId,
+    setViewedSkillId,
+  } = useSkillSelectionState();
 
   // Filter and map available skills from class data
-  // TODO(PERFORMANCE): Memoize this computation with useMemo to avoid recalculation
-  const availableSkillsFromClass = charClass.skillProficienciesAvailable
-    .map((id) => SKILLS_DATA[id])
-    .filter((skill) => skill);
+  const availableSkillsFromClass = useMemo(() => {
+    return charClass.skillProficienciesAvailable
+      .map((id) => SKILLS_DATA[id])
+      .filter((skill): skill is Skill => !!skill);
+  }, [charClass.skillProficienciesAvailable]);
+
+  const filteredSkillsFromClass = useMemo(() => {
+    const q = skillSearchQuery.trim().toLowerCase();
+    if (!q) return availableSkillsFromClass;
+    return availableSkillsFromClass.filter((skill) => {
+      return (
+        skill.name.toLowerCase().includes(q) ||
+        skill.ability.toLowerCase().includes(q) ||
+        skill.id.toLowerCase().includes(q)
+      );
+    });
+  }, [availableSkillsFromClass, skillSearchQuery]);
 
   // Set initial viewed skill when component mounts or available skills change
-  // TODO(EFFECTS): Consider adding dependency array optimization
   useEffect(() => {
     if (!viewedSkillId && availableSkillsFromClass.length > 0) {
       setViewedSkillId(availableSkillsFromClass[0].id);
     }
-  }, [availableSkillsFromClass, viewedSkillId]);
+  }, [availableSkillsFromClass, setViewedSkillId, viewedSkillId]);
+
+  useEffect(() => {
+    if (filteredSkillsFromClass.length === 0) return;
+    const stillVisible = viewedSkillId && filteredSkillsFromClass.some((s) => s.id === viewedSkillId);
+    if (!stillVisible) {
+      setViewedSkillId(filteredSkillsFromClass[0].id);
+    }
+  }, [filteredSkillsFromClass, setViewedSkillId, viewedSkillId]);
 
   // Prepare options for Elf Keen Senses racial feature
-  // TODO(CONFIG): Move this mapping logic to a utility function or data file
-  const keenSensesOptions = KEEN_SENSES_SKILL_IDS.map((id) => SKILLS_DATA[id]).filter((skill) => skill);
+  const keenSensesOptions = useMemo(() => getKeenSensesOptions(SKILLS_DATA), []);
 
-  /**
-   * Calculate ability modifier using standard D&D 5e formula
-   * Formula: (ability_score - 10) / 2, rounded down
-   * 
-   * TODO(UTILS): This function is duplicated in multiple places - consider
-   * creating a shared utility module for common character calculations
-   */
-  const getAbilityModifier = (score: number): number => Math.floor((score - 10) / 2);
-
-  // Calculate proficiency bonus based on character level (assumed to be 1 during character creation)
-  // D&D 5e formula: PB = floor((level + 7) / 4)
-  // Level 1-4: +2, Level 5-8: +3, Level 9-12: +4, Level 13-16: +5, Level 17-20: +6
-  const calculateProficiencyBonus = (level: number = 1): number => {
-    return Math.floor((level + 7) / 4);
-  };
-
-  // Calculate total skill modifier combining ability modifier and proficiency bonus
-  // Returns: ability modifier + (proficiency bonus if character is proficient in this skill)
-  // Used to show players their actual skill check modifier
-  const calculateTotalSkillModifier = (
-    abilityScore: number, 
-    hasProficiency: boolean, 
-    level: number = 1
-  ): number => {
-    const abilityMod = getAbilityModifier(abilityScore);
-    const proficiencyBonus = hasProficiency ? calculateProficiencyBonus(level) : 0;
-    return abilityMod + proficiencyBonus;
-  };
-
-  /**
-   * Handle toggling of class skill selections
-   * Manages the selection state while respecting class skill limits
-   * 
-   * TODO(STATE): Consider extracting this logic into a custom hook for
-   * better separation of concerns and reusability
-   */
-  const handleClassSkillToggle = (skillId: string) => {
-    setSelectedClassSkillIds((prev) => {
-      const newSelected = new Set(prev);
-      if (newSelected.has(skillId)) {
-        newSelected.delete(skillId);
-      } else {
-        if (newSelected.size < charClass.numberOfSkillProficiencies) {
-          newSelected.add(skillId);
-        }
-      }
-      return newSelected;
+  const racialGrantsBySkillId = useMemo(() => {
+    return deriveRacialSkillGrants({
+      raceId: race.id,
+      racialSelections,
+      selectedKeenSensesSkillId,
     });
-  };
+  }, [race.id, racialSelections, selectedKeenSensesSkillId]);
 
-  /**
-   * Handle selection of Elf Keen Senses skill
-   * Elves must choose one skill from Insight, Perception, or Survival
-   * 
-   * TODO(VALIDATION): Add validation to ensure only one keen senses skill is selected
-   */
-  const handleKeenSensesSelect = (skillId: string) => {
-    setSelectedKeenSensesSkillId(skillId);
+  const EMPTY_GRANT_INFO = useMemo(() => ({ granted: false as const, source: '' as const }), []);
+
+  const onListKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (filteredSkillsFromClass.length === 0) return;
+
+    const currentIndex = viewedSkillId
+      ? filteredSkillsFromClass.findIndex((s) => s.id === viewedSkillId)
+      : -1;
+
+    const clampIndex = (i: number) => Math.max(0, Math.min(filteredSkillsFromClass.length - 1, i));
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = clampIndex((currentIndex === -1 ? 0 : currentIndex) + 1);
+      setViewedSkillId(filteredSkillsFromClass[nextIndex].id);
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const nextIndex = clampIndex((currentIndex === -1 ? 0 : currentIndex) - 1);
+      setViewedSkillId(filteredSkillsFromClass[nextIndex].id);
+      return;
+    }
+
+    if (e.key === 'Home') {
+      e.preventDefault();
+      setViewedSkillId(filteredSkillsFromClass[0].id);
+      return;
+    }
+
+    if (e.key === 'End') {
+      e.preventDefault();
+      setViewedSkillId(filteredSkillsFromClass[filteredSkillsFromClass.length - 1].id);
+      return;
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (!viewedSkillId) return;
+      const grantInfo = racialGrantsBySkillId[viewedSkillId] ?? EMPTY_GRANT_INFO;
+      if (grantInfo.granted) return;
+      toggleClassSkill(viewedSkillId, charClass.numberOfSkillProficiencies);
+    }
   };
 
   /**
    * Handle form submission and prepare selected skills for character creation
    * Aggregates all selected skills including racial bonuses
-   * 
-   * TODO(COMPOSITION): This function is quite long - consider breaking it into
-   * smaller helper functions for better readability and maintainability
    */
   const handleSubmit = () => {
-    const allSelectedSkills: Skill[] = Array.from(selectedClassSkillIds).map(
-      (id: string) => SKILLS_DATA[id],
-    );
+    const isValid = isSkillSelectionValid({
+      selectedClassSkillIds,
+      requiredClassSkillCount: charClass.numberOfSkillProficiencies,
+      raceId: race.id,
+      selectedKeenSensesSkillId,
+    });
+    if (!isValid) return;
 
-    // Add Human racial skill bonus if selected
-    const humanSkillId = racialSelections['human']?.skillIds?.[0];
-    if (humanSkillId) {
-      const humanSkill = SKILLS_DATA[humanSkillId];
-      if (humanSkill && !allSelectedSkills.some(s => s.id === humanSkill.id)) {
-        allSelectedSkills.push(humanSkill);
-      }
-    }
-
-    // Add Elf Keen Senses skill if selected
-    if (race.id === 'elf' && selectedKeenSensesSkillId) {
-      const keenSensesSkill = SKILLS_DATA[selectedKeenSensesSkillId];
-      if (keenSensesSkill && !allSelectedSkills.some((s) => s.id === keenSensesSkill.id)) {
-        allSelectedSkills.push(keenSensesSkill);
-      }
-    }
-
-    // Add Bugbear automatic Stealth proficiency
-    if (race.id === 'bugbear') {
-      const stealthSkill = SKILLS_DATA[BUGBEAR_AUTO_SKILL_ID];
-      if (stealthSkill && !allSelectedSkills.some(s => s.id === stealthSkill.id)) {
-        allSelectedSkills.push(stealthSkill);
-      }
-    }
-
-    // Add Centaur Natural Affinity skill if selected
-    const centaurSkillId = racialSelections['centaur']?.skillIds?.[0];
-    if (centaurSkillId) {
-      const naturalAffinitySkill = SKILLS_DATA[centaurSkillId];
-      if (naturalAffinitySkill && !allSelectedSkills.some(s => s.id === naturalAffinitySkill.id)) {
-        allSelectedSkills.push(naturalAffinitySkill);
-      }
-    }
-
-    // Add Changeling Instincts skills if selected
-    const changelingSkillIds = racialSelections['changeling']?.skillIds;
-    if (changelingSkillIds) {
-      changelingSkillIds.forEach(skillId => {
-        const instinctSkill = SKILLS_DATA[skillId];
-        if (instinctSkill && !allSelectedSkills.some(s => s.id === instinctSkill.id)) {
-          allSelectedSkills.push(instinctSkill);
-        }
-      });
-    }
-
-    // Final validation before submission
-    if (selectedClassSkillIds.size !== charClass.numberOfSkillProficiencies) return;
-    if (race.id === 'elf' && !selectedKeenSensesSkillId) return;
+    const allSelectedSkills = buildSkillsForSubmit({
+      skillsById: SKILLS_DATA,
+      selectedClassSkillIds,
+      raceId: race.id,
+      racialSelections,
+      selectedKeenSensesSkillId,
+    });
 
     onSkillsSelect(allSelectedSkills);
   };
 
   // Determine if submission is disabled based on selection requirements
-  // TODO(VALIDATION): Consider moving validation logic to a separate validation function
-  const isSubmitDisabled =
-    selectedClassSkillIds.size !== charClass.numberOfSkillProficiencies ||
-    (race.id === 'elf' && !selectedKeenSensesSkillId);
-
-  // Extract racial selection data for easier access
-  const humanSkillId = racialSelections['human']?.skillIds?.[0];
-  const centaurSkillId = racialSelections['centaur']?.skillIds?.[0];
-  const changelingSkillIds = racialSelections['changeling']?.skillIds;
-
-  /**
-   * Determine racial grant information for a given skill
-   * Maps skill IDs to their racial source and grant status
-   * 
-   * TODO(PERFORMANCE): Memoize this function to avoid recalculating on each render
-   * TODO(DATA): Consider moving this logic to a dedicated racial mechanics utility
-   */
-  const getRacialGrantInfo = (skillId: string) => {
-    if (humanSkillId === skillId) return { granted: true, source: "Human 'Skillful' trait" };
-    if (race.id === 'elf' && selectedKeenSensesSkillId === skillId) return { granted: true, source: "Elf 'Keen Senses' trait" };
-    if (race.id === 'bugbear' && skillId === BUGBEAR_AUTO_SKILL_ID) return { granted: true, source: "Bugbear 'Sneaky' trait" };
-    if (centaurSkillId === skillId) return { granted: true, source: "Centaur 'Natural Affinity' trait" };
-    if (changelingSkillIds?.includes(skillId)) return { granted: true, source: "Changeling 'Instincts' trait" };
-    return { granted: false, source: '' };
-  };
+  const isSubmitDisabled = !isSkillSelectionValid({
+    selectedClassSkillIds,
+    requiredClassSkillCount: charClass.numberOfSkillProficiencies,
+    raceId: race.id,
+    selectedKeenSensesSkillId,
+  });
 
   // Current skill being viewed in detail panel
   const viewedSkill = viewedSkillId ? SKILLS_DATA[viewedSkillId] : null;
-  const viewedGrantInfo = viewedSkillId ? getRacialGrantInfo(viewedSkillId) : { granted: false, source: '' };
+  const viewedGrantInfo = viewedSkillId ? (racialGrantsBySkillId[viewedSkillId] ?? EMPTY_GRANT_INFO) : EMPTY_GRANT_INFO;
   const isViewedSelected = viewedSkillId && selectedClassSkillIds.has(viewedSkillId);
   const isViewedDisabled = viewedSkillId && (
     viewedGrantInfo.granted ||
@@ -273,6 +225,18 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
           controls={
             // Left panel: Skill selection list
             <div className="space-y-4">
+              {/* Skill list search */}
+              <div className="px-2">
+                <label htmlFor="skill-search" className="sr-only">Search skills</label>
+                <input
+                  id="skill-search"
+                  value={skillSearchQuery}
+                  onChange={(e) => setSkillSearchQuery(e.target.value)}
+                  placeholder="Search skills..."
+                  className="w-full px-3 py-2 rounded-lg bg-gray-900/60 border border-gray-700 text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                />
+              </div>
+
               {/* Skill selection header with progress indicator */}
               <div className="px-2">
                 <p className="text-sm text-gray-400 text-center">
@@ -285,18 +249,27 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
               </div>
 
               {/* Main skill list from class */}
-              <div className="space-y-1">
-                {availableSkillsFromClass.map((skill) => {
-                  const { granted, source } = getRacialGrantInfo(skill.id);
+              <div
+                className="space-y-1 outline-none"
+                ref={listKeyNavRef}
+                tabIndex={0}
+                onKeyDown={onListKeyDown}
+                aria-label="Skill list"
+              >
+                {filteredSkillsFromClass.map((skill) => {
+                  const grantInfo = racialGrantsBySkillId[skill.id] ?? EMPTY_GRANT_INFO;
+                  const granted = grantInfo.granted;
                   const isSelected = selectedClassSkillIds.has(skill.id);
                   const isViewed = viewedSkillId === skill.id;
-                  const isDisabled = granted || (!isSelected && selectedClassSkillIds.size >= charClass.numberOfSkillProficiencies);
 
                   return (
                     // Individual skill selection button
                     <button
                       key={skill.id}
                       onClick={() => setViewedSkillId(skill.id)}
+                      onDoubleClick={() => {
+                        if (!granted) toggleClassSkill(skill.id, charClass.numberOfSkillProficiencies);
+                      }}
                       className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 border border-transparent flex items-center justify-between ${
                         isViewed
                           ? 'bg-amber-900/20 border-amber-500/50 text-white shadow-md'
@@ -325,13 +298,21 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                       
                       {/* Racial grant indicator */}
                       {granted && (
-                        <span className="text-[10px] bg-yellow-900/40 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-700/30">
-                          Racial
-                        </span>
+                        <Tooltip content={grantInfo.source}>
+                          <span className="text-[10px] bg-yellow-900/40 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-700/30">
+                            Racial
+                          </span>
+                        </Tooltip>
                       )}
                     </button>
                   );
                 })}
+
+                {filteredSkillsFromClass.length === 0 && (
+                  <div className="text-xs text-gray-500 text-center py-3 italic">
+                    No skills match "{skillSearchQuery.trim()}"
+                  </div>
+                )}
               </div>
 
               {/* Elf Keen Senses Section within List */}
@@ -383,7 +364,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                   {/* Selection toggle button (hidden for racial grants) */}
                   {!viewedGrantInfo.granted && (
                     <button
-                      onClick={() => handleClassSkillToggle(viewedSkill.id)}
+                      onClick={() => toggleClassSkill(viewedSkill.id, charClass.numberOfSkillProficiencies)}
                       disabled={!!(isViewedDisabled && !isViewedSelected)}
                       className={`px-4 py-2 rounded-lg font-bold shadow-md transition-all ${
                         isViewedSelected
@@ -409,9 +390,9 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                       <p className="text-gray-300 text-sm">
                         Your <strong>{viewedSkill.ability}</strong> modifier is:
                       </p>
-                      <p className={`text-2xl font-bold ${getAbilityModifier(abilityScores[viewedSkill.ability]) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {getAbilityModifier(abilityScores[viewedSkill.ability]) >= 0 ? '+' : ''}
-                        {getAbilityModifier(abilityScores[viewedSkill.ability])}
+                      <p className={`text-2xl font-bold ${getAbilityModifierValue(abilityScores[viewedSkill.ability]) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {getAbilityModifierValue(abilityScores[viewedSkill.ability]) >= 0 ? '+' : ''}
+                        {getAbilityModifierValue(abilityScores[viewedSkill.ability])}
                       </p>
                     </div>
                   </div>
@@ -421,7 +402,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                   {(isViewedSelected || viewedGrantInfo.granted) && (
                     <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
                       <span className="text-blue-200">Proficiency Bonus:</span>
-                      <span className="text-blue-400 font-bold">+{calculateProficiencyBonus()}</span>
+                      <span className="text-blue-400 font-bold">+{calculateProficiencyBonus(assumedCharacterLevel)}</span>
                     </div>
                   )}
 
@@ -430,14 +411,16 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                   <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-700/50 rounded-lg">
                     <span className="text-green-200">Total Modifier:</span>
                     <span className="text-green-400 font-bold text-xl">
-                      {calculateTotalSkillModifier(
-                        abilityScores[viewedSkill.ability], 
-                        isViewedSelected || viewedGrantInfo.granted
-                      ) >= 0 ? '+' : ''}
-                      {calculateTotalSkillModifier(
-                        abilityScores[viewedSkill.ability], 
-                        isViewedSelected || viewedGrantInfo.granted
-                      )}
+                      {calculateTotalSkillModifier({
+                        abilityScore: abilityScores[viewedSkill.ability],
+                        hasProficiency: isViewedSelected || viewedGrantInfo.granted,
+                        level: assumedCharacterLevel,
+                      }) >= 0 ? '+' : ''}
+                      {calculateTotalSkillModifier({
+                        abilityScore: abilityScores[viewedSkill.ability],
+                        hasProficiency: isViewedSelected || viewedGrantInfo.granted,
+                        level: assumedCharacterLevel,
+                      })}
                     </span>
                   </div>
 

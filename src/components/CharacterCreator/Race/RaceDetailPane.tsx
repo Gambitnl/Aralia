@@ -1,13 +1,30 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 06/02/2026, 03:31:43
+ * Dependents: CharacterCreator.tsx, RaceSelection.tsx
+ * Imports: 6 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file RaceDetailPane.tsx
  * Detailed view of a selected race, designed for the right pane of the Split Config layout.
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import ImageModal from '../../ImageModal';
 import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
 import { GlossarySpellsOfTheMarkTable } from '../../Glossary/GlossarySpellsOfTheMarkTable';
 import { CharacterCreatorTraitsTable } from '../shared/CharacterCreatorTraitsTable';
 import { BTN_PRIMARY } from '../../../styles/buttonStyles';
+import { SKILLS_DATA } from '../../../data/skills';
 
 // Helper to resolve image URLs - prepends BASE_URL for local assets
 const resolveImageUrl = (url: string | undefined): string | undefined => {
@@ -157,6 +174,12 @@ type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
 
 export interface RacialChoiceData {
     spellAbility?: AbilityScoreName;
+    /** Elf - Keen Senses (pick 1 of 3) */
+    keenSensesSkillId?: string;
+    /** Centaur - Natural Affinity (pick 1 of 4) */
+    centaurNaturalAffinitySkillId?: string;
+    /** Changeling - Instincts (pick 2 of 5) */
+    changelingInstinctSkillIds?: string[];
 }
 
 interface RaceDetailPaneProps {
@@ -164,6 +187,12 @@ interface RaceDetailPaneProps {
     onSelect: (raceId: string, choices?: RacialChoiceData) => void;
     selectedSpellAbility?: AbilityScoreName | null;
     onSpellAbilityChange?: (ability: AbilityScoreName) => void;
+    selectedKeenSensesSkillId?: string | null;
+    onKeenSensesSkillChange?: (skillId: string) => void;
+    selectedCentaurNaturalAffinitySkillId?: string | null;
+    onCentaurNaturalAffinitySkillChange?: (skillId: string) => void;
+    selectedChangelingInstinctSkillIds?: Set<string>;
+    onChangelingInstinctSkillToggle?: (skillId: string) => void;
 }
 
 
@@ -172,6 +201,12 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
     onSelect,
     selectedSpellAbility = null,
     onSpellAbilityChange,
+    selectedKeenSensesSkillId = null,
+    onKeenSensesSkillChange,
+    selectedCentaurNaturalAffinitySkillId = null,
+    onCentaurNaturalAffinitySkillChange,
+    selectedChangelingInstinctSkillIds = new Set<string>(),
+    onChangelingInstinctSkillToggle,
     children
 }) => {
     const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
@@ -316,6 +351,104 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                                         </button>
                                     ))}
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Elf Keen Senses (required choice) */}
+                    {race.id === 'elf' && (
+                        <div className="mt-4 bg-amber-900/10 border border-amber-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-amber-700/40">
+                                <h4 className="text-sm font-semibold text-amber-300">Keen Senses - Choose a Skill</h4>
+                                <p className="text-xs text-gray-400 mt-1">Pick one: Insight, Perception, or Survival.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                {(['insight', 'perception', 'survival'] as const).map((skillId) => {
+                                    const skill = SKILLS_DATA[skillId];
+                                    const isSelected = selectedKeenSensesSkillId === skillId;
+                                    return (
+                                        <button
+                                            key={skillId}
+                                            type="button"
+                                            onClick={() => onKeenSensesSkillChange?.(skillId)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-amber-600/80 text-white border-amber-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-amber-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill?.name ?? skillId}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Centaur Natural Affinity (required choice) */}
+                    {race.id === 'centaur' && (
+                        <div className="mt-4 bg-sky-900/10 border border-sky-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-sky-700/40">
+                                <h4 className="text-sm font-semibold text-sky-300">Natural Affinity - Choose a Skill</h4>
+                                <p className="text-xs text-gray-400 mt-1">Pick one: Animal Handling, Medicine, Nature, or Survival.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {(['animal_handling', 'medicine', 'nature', 'survival'] as const).map((skillId) => {
+                                    const skill = SKILLS_DATA[skillId];
+                                    const isSelected = selectedCentaurNaturalAffinitySkillId === skillId;
+                                    return (
+                                        <button
+                                            key={skillId}
+                                            type="button"
+                                            onClick={() => onCentaurNaturalAffinitySkillChange?.(skillId)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-sky-600/80 text-white border-sky-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-sky-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill?.name ?? skillId}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Changeling Instincts (required choice) */}
+                    {race.id === 'changeling' && (
+                        <div className="mt-4 bg-sky-900/10 border border-sky-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-sky-700/40">
+                                <h4 className="text-sm font-semibold text-sky-300">Changeling Instincts - Choose Two Skills</h4>
+                                <p className="text-xs text-gray-400 mt-1">Pick two: Deception, Insight, Intimidation, Performance, or Persuasion.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {(['deception', 'insight', 'intimidation', 'performance', 'persuasion'] as const).map((skillId) => {
+                                    const skill = SKILLS_DATA[skillId];
+                                    const isSelected = selectedChangelingInstinctSkillIds.has(skillId);
+                                    const isMaxed = selectedChangelingInstinctSkillIds.size >= 2;
+                                    const isDisabled = !isSelected && isMaxed;
+                                    return (
+                                        <button
+                                            key={skillId}
+                                            type="button"
+                                            onClick={() => onChangelingInstinctSkillToggle?.(skillId)}
+                                            disabled={isDisabled}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-sky-600/80 text-white border-sky-400 shadow-lg'
+                                                    : isDisabled
+                                                        ? 'bg-gray-900/40 text-gray-600 border-gray-900 cursor-not-allowed'
+                                                        : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-sky-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill?.name ?? skillId}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="px-3 pb-3 text-xs text-gray-400">
+                                Selected: {selectedChangelingInstinctSkillIds.size} / 2
                             </div>
                         </div>
                     )}

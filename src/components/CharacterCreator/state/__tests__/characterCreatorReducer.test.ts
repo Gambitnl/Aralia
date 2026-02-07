@@ -62,8 +62,6 @@ function walkCompleteFlow(
         gnomeSubrace?: { subraceId: GnomeSubraceType; spellAbility: AbilityScoreName };
         giantAncestry?: GiantAncestryType;
         tieflingLegacy?: { legacyId: FiendishLegacyType; spellAbility: AbilityScoreName };
-        centaurSkill?: string;
-        changelingSkills?: string[];
         humanSkill?: string;
     }
 ): CharacterCreationState {
@@ -111,17 +109,24 @@ function walkCompleteFlow(
             break;
         case 'centaur':
             state = characterCreatorReducer(state, {
-                type: 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL',
-                payload: options?.centaurSkill || 'animal_handling',
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'centaur', patch: { skillIds: ['animal_handling'] } },
             });
             break;
         case 'changeling':
             state = characterCreatorReducer(state, {
-                type: 'SELECT_CHANGELING_INSTINCTS',
-                payload: options?.changelingSkills || ['deception', 'insight'],
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'changeling', patch: { skillIds: ['deception', 'insight'] } },
             });
             break;
         // Races without sub-selections go directly to AgeSelection
+    }
+
+    if (raceId === 'elf') {
+        state = characterCreatorReducer(state, {
+            type: 'SET_RACIAL_SELECTION',
+            payload: { raceId: 'elf', patch: { skillIds: ['perception'] } },
+        });
     }
 
     // Step 3: Age Selection (just advance, age is already defaulted)
@@ -145,12 +150,7 @@ function walkCompleteFlow(
     });
 
     // Step 8: Handle racial spell ability choice if needed
-    if (state.step === CreationStep.RacialSpellAbilityChoice) {
-        state = characterCreatorReducer(state, {
-            type: 'SELECT_RACIAL_SPELL_ABILITY',
-            payload: 'Charisma',
-        });
-    }
+    // NOTE: racial spell ability is now recorded in racialSelections during race selection UI.
 
     // Step 9: Human skill choice if human
     if (state.step === CreationStep.HumanSkillChoice) {
@@ -291,9 +291,9 @@ describe('Character Creator Reducer', () => {
             { raceId: 'elf', expectedStep: CreationStep.ElvenLineage },
             { raceId: 'goliath', expectedStep: CreationStep.GiantAncestry },
             { raceId: 'tiefling', expectedStep: CreationStep.TieflingLegacy },
-            { raceId: 'centaur', expectedStep: CreationStep.CentaurNaturalAffinitySkill },
-            { raceId: 'changeling', expectedStep: CreationStep.ChangelingInstincts },
             // Races without sub-selections (go directly to age)
+            { raceId: 'centaur', expectedStep: CreationStep.AgeSelection },
+            { raceId: 'changeling', expectedStep: CreationStep.AgeSelection },
             { raceId: 'human', expectedStep: CreationStep.AgeSelection },
             { raceId: 'hill_dwarf', expectedStep: CreationStep.AgeSelection },
             { raceId: 'halfling', expectedStep: CreationStep.AgeSelection },
@@ -355,13 +355,12 @@ describe('Character Creator Reducer', () => {
                 type: 'SELECT_ELVEN_LINEAGE',
                 payload: { lineageId: 'high_elf', spellAbility: 'Intelligence' },
             });
-            expect(state.step).toBe(CreationStep.ElvenLineage);
+            expect(state.step).toBe(CreationStep.AgeSelection);
 
-            // Going back from AgeSelection should return to Race and preserve the elf selection
-            // (since we're not leaving the ElvenLineage step, we're leaving AgeSelection)
+            // Back navigation is non-destructive. Data is only wiped when a dependency (Race/Class) changes.
             state = characterCreatorReducer(state, { type: 'GO_BACK' });
             expect(state.step).toBe(CreationStep.Race);
-            expect(state.racialSelections['elf']).toBeUndefined();
+            expect(state.racialSelections['elf']).toBeDefined();
         });
     });
 

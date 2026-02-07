@@ -34,7 +34,12 @@
       "Bash(taskkill:*)",
       "mcp__github__get_file_contents",
       "Skill(claudeception)",
-      "Skill(claudeception:*)"
+      "Skill(claudeception:*)",
+      "Bash(python3 -c \" import sys, json for line in sys.stdin: try: obj = json.loads\\(line.strip\\(\\)\\) ts = obj.get\\(''timestamp'', obj.get\\(''created'', ''''\\)\\) if ''2026-02-05'' in str\\(ts\\) or ''2026-02-06T0'' in str\\(ts\\): print\\(json.dumps\\({k: obj[k] for k in [''sessionId'',''timestamp'',''summary'',''projectPath''] if k in obj}, indent=2\\)\\) except: pass \")",
+      "Bash(SRC=\"C:/Users/Gambit/.claude/projects/R--AraliaV4-Aralia\")",
+      "Bash(DST=\"C:/Users/Gambit/.claude/projects/f--Repos-Aralia\")",
+      "Bash(do cp -v \"$f\" \"$DST/\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

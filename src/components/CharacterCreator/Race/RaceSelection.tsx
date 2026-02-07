@@ -1,11 +1,27 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 06/02/2026, 03:31:43
+ * Dependents: CharacterCreator.tsx
+ * Imports: 6 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file RaceSelection.tsx
  * Refactored to use accordion-style grouping by baseRace.
  * Parent rows are not selectable; only variant races (subraces) are.
  */
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Race } from '../../../types';
+import { Race, RacialSelectionData } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../../ui/SplitPaneLayout';
 import { RaceDetailPane, RaceDetailData, RacialChoiceData } from './RaceDetailPane';
@@ -103,6 +119,8 @@ interface RaceGroup {
 interface RaceSelectionProps {
   races: Race[];
   onRaceSelect: (raceId: string, choices?: RacialChoiceData) => void;
+  selectedRaceId?: string | null;
+  racialSelections?: Record<string, RacialSelectionData>;
 }
 
 type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
@@ -111,6 +129,9 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [selectedSpellAbility, setSelectedSpellAbility] = useState<AbilityScoreName | null>(null);
+  const [selectedKeenSensesSkillId, setSelectedKeenSensesSkillId] = useState<string | null>(null);
+  const [selectedCentaurNaturalAffinitySkillId, setSelectedCentaurNaturalAffinitySkillId] = useState<string | null>(null);
+  const [selectedChangelingInstinctSkillIds, setSelectedChangelingInstinctSkillIds] = useState<Set<string>>(new Set());
 
   // Group races by baseRace
   const raceGroups = useMemo(() => {
@@ -145,6 +166,14 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
   // Avoid setState-in-effect by treating the first variant as the implicit selection.
   const effectiveRaceId = selectedRaceId ?? defaultRaceId;
   const selectedRace = races.find(r => r.id === effectiveRaceId);
+
+  // When the viewed race changes, clear per-race local choice state so we don't accidentally carry it over.
+  useEffect(() => {
+    setSelectedSpellAbility(null);
+    setSelectedKeenSensesSkillId(null);
+    setSelectedCentaurNaturalAffinitySkillId(null);
+    setSelectedChangelingInstinctSkillIds(new Set());
+  }, [effectiveRaceId]);
 
   // Compute detail data with sibling variants for comparison table
   const detailData = useMemo(() => {
@@ -208,10 +237,36 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
         if (selectedSpellAbility) {
           choices.spellAbility = selectedSpellAbility;
         }
+        if (selectedRace.id === 'elf' && selectedKeenSensesSkillId) {
+          choices.keenSensesSkillId = selectedKeenSensesSkillId;
+        }
+        if (selectedRace.id === 'centaur' && selectedCentaurNaturalAffinitySkillId) {
+          choices.centaurNaturalAffinitySkillId = selectedCentaurNaturalAffinitySkillId;
+        }
+        if (selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size > 0) {
+          choices.changelingInstinctSkillIds = Array.from(selectedChangelingInstinctSkillIds);
+        }
         onRaceSelect(selectedRace.id, choices);
       }}
-      disabled={!!(selectedRace.racialSpellChoice && !selectedSpellAbility)}
-      title={selectedRace.racialSpellChoice && !selectedSpellAbility ? 'Please select a spellcasting ability first' : `Confirm ${selectedRace.name}`}
+      disabled={
+        !!(
+          (selectedRace.racialSpellChoice && !selectedSpellAbility) ||
+          (selectedRace.id === 'elf' && !selectedKeenSensesSkillId) ||
+          (selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId) ||
+          (selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2)
+        )
+      }
+      title={
+        selectedRace.racialSpellChoice && !selectedSpellAbility
+          ? 'Please select a spellcasting ability first'
+          : selectedRace.id === 'elf' && !selectedKeenSensesSkillId
+            ? 'Please select a Keen Senses skill first'
+            : selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId
+              ? 'Please select a Natural Affinity skill first'
+              : selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2
+                ? 'Please select two Changeling Instincts skills first'
+                : `Confirm ${selectedRace.name}`
+      }
     >
       Confirm {selectedRace.name}
     </Button>
@@ -326,6 +381,22 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
                   onSelect={onRaceSelect}
                   selectedSpellAbility={selectedSpellAbility}
                   onSpellAbilityChange={setSelectedSpellAbility}
+                  selectedKeenSensesSkillId={selectedKeenSensesSkillId}
+                  onKeenSensesSkillChange={setSelectedKeenSensesSkillId}
+                  selectedCentaurNaturalAffinitySkillId={selectedCentaurNaturalAffinitySkillId}
+                  onCentaurNaturalAffinitySkillChange={setSelectedCentaurNaturalAffinitySkillId}
+                  selectedChangelingInstinctSkillIds={selectedChangelingInstinctSkillIds}
+                  onChangelingInstinctSkillToggle={(skillId) => {
+                    setSelectedChangelingInstinctSkillIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(skillId)) {
+                        next.delete(skillId);
+                      } else if (next.size < 2) {
+                        next.add(skillId);
+                      }
+                      return next;
+                    });
+                  }}
                 />
               </motion.div>
             ) : (

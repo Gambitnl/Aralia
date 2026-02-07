@@ -16,7 +16,7 @@ describe('CreationSidebar', () => {
       />
     );
 
-    const ageButton = screen.getByRole('button', { name: /^Age\b/i });
+    const ageButton = screen.getByRole('button', { name: /\bAge\b/i });
     expect(ageButton).toBeEnabled();
 
     fireEvent.click(ageButton);
@@ -34,7 +34,7 @@ describe('CreationSidebar', () => {
       />
     );
 
-    const featButton = screen.getByRole('button', { name: 'Feat' });
+    const featButton = screen.getByRole('button', { name: /\bFeat\b/i });
     expect(featButton).toBeEnabled();
 
     fireEvent.click(featButton);
