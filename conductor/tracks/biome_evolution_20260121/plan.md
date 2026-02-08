@@ -57,13 +57,13 @@
 ## Phase 11: Voxel Engine - Core Architecture
 - [x] Task: Create \MarchingCubesLogic.ts\ with standard lookup tables (Edge, Tri). (Ref: Research 1.1)
 - [x] Task: Implement \VoxelGrid\ management using 3D Float32Array in \VoxelTerrain.tsx\. (Ref: Research 2.1.3)
-- [x] Task: **DEBUGGING**: Resolve runtime crashes (\undefined reading 0\) in meshing loop. 20260208
-- [x] Task: **BLOCKER**: Resolve Vite 500 Internal Server Error preventing HMR updates. 20260208
+- [x] Task: **DEBUGGING**: Resolve runtime crashes (\undefined reading 0\) in meshing loop. afe50f4
+- [x] Task: **BLOCKER**: Resolve Vite 500 Internal Server Error preventing HMR updates. afe50f4
 
 ## Phase 12: Voxel Engine - Interaction & Shading
 - [x] Task: Implement \"Mold Earth\" raycast-based spherical brush (Dig/Build) for Voxels. (Ref: Research 2.3)
 - [x] Task: Port Tri-Planar Shader mapping to the Voxel Material. (Ref: Research 4.0)
-- [x] Task: **STABILITY**: Ensure ShaderMaterial properly registers in JSX namespace to avoid build errors. 20260208
+- [x] Task: **STABILITY**: Ensure ShaderMaterial properly registers in JSX namespace to avoid build errors. afe50f4
 
 ## Phase 13: Hydraulic Erosion Simulation
 - [x] Task: Implement \HydraulicErosion.ts\ droplet-based simulation for Heightmap engine.
