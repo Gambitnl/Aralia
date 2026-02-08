@@ -40,7 +40,14 @@
       "Bash(DST=\"C:/Users/Gambit/.claude/projects/f--Repos-Aralia\")",
       "Bash(do cp -v \"$f\" \"$DST/\")",
       "Bash(done)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(xcopy:*)",
+      "Bash(cmd /c \"mkdir F:\\\\Repos\\\\Aralia\\\\misc && xcopy R:\\\\AraliaV4\\\\Aralia\\\\misc\\\\* F:\\\\Repos\\\\Aralia\\\\misc\\\\ /E /Y\")",
+      "Bash(cmd /c \"dir R:\\\\AraliaV4\\\\Aralia\\\\misc\")",
+      "Bash(cmd /c \"if exist R:\\\\AraliaV4\\\\Aralia\\\\misc echo EXISTS & dir /b R:\\\\AraliaV4\\\\Aralia\\\\misc\")",
+      "Bash(cmd /c \"dir R:\\\\AraliaV4\\\\Aralia\\\\misc\\\\*.html\")",
+      "Bash(cmd /c:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []
