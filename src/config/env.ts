@@ -11,6 +11,7 @@ interface EnvConfig {
   BASE_URL: string;
   DEV: boolean;
   VITE_ENABLE_DEV_TOOLS: boolean;
+  VITE_ENABLE_PORTRAITS: boolean;
 }
 
 // Access raw environment variables
@@ -70,6 +71,11 @@ const RAW_ENV = {
   VITE_ENABLE_DEV_TOOLS: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEV_TOOLS)
     ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
     : undefined,
+
+  // Parse 'true', '1', 'on' as true for VITE_ENABLE_PORTRAITS
+  VITE_ENABLE_PORTRAITS: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_PORTRAITS)
+    ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_PORTRAITS || '').toLowerCase())
+    : undefined,
 };
 
 // Ensure BASE_URL always has a trailing slash for consistency
@@ -87,6 +93,8 @@ export const ENV: EnvConfig = {
   DEV: RAW_ENV.DEV,
   // If not explicitly set, fall back to DEV to mirror previous “always on in dev” behavior.
   VITE_ENABLE_DEV_TOOLS: RAW_ENV.VITE_ENABLE_DEV_TOOLS ?? RAW_ENV.DEV,
+  // If not explicitly set, allow portraits in dev by default.
+  VITE_ENABLE_PORTRAITS: RAW_ENV.VITE_ENABLE_PORTRAITS ?? RAW_ENV.DEV,
 };
 
 /**

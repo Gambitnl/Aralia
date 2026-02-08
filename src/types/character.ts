@@ -452,7 +452,7 @@ export interface PlayerCharacter {
   equippedItems: Partial<Record<EquipmentSlotType, Item>>;
   /** Text description of character appearance for AI portrait generation */
   visualDescription?: string;
-  /** Base64 data URL of AI-generated character portrait */
+  /** URL (local path or https URL) for an AI-generated character portrait */
   portraitUrl?: string;
   /** Visual customization for layered sprites */
   visuals?: {

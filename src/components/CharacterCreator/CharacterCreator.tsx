@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  * 
- * Last Sync: 06/02/2026, 03:31:43
+ * Last Sync: 08/02/2026, 15:57:38
  * Dependents: None (Orphan)
- * Imports: 37 files
+ * Imports: 39 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -26,7 +26,6 @@ import {
   Skill,
   Spell,
   FightingStyle,
-  AbilityScoreName,
   Item,
 } from '../../types';
 import {
@@ -70,12 +69,14 @@ import type { CharacterCreationState } from './state/characterCreatorState';
 import type { AppAction } from '../../state/actionTypes';
 import { useCharacterAssembly } from './hooks/useCharacterAssembly';
 import { CharacterVisualConfig } from '../../services/CharacterAssetService';
+import { generatePortraitUrl } from '../../services/PortraitService';
 import SpellContext from '../../context/SpellContext';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { WindowFrame } from '../ui/WindowFrame';
 import { Button } from '../ui/Button';
-import { SIDEBAR_STEPS, isStepCompleted } from './config/sidebarSteps';
 import { SafeStorage } from '../../utils/storageUtils';
+import { sanitizeAIPromptText } from '../../utils/securityUtils';
+import { ENV } from '../../config/env';
 
 // Helper function to determine the next step
 const getNextStep = (state: CharacterCreationState): CreationStep => {
@@ -99,11 +100,74 @@ interface CharacterCreatorProps {
 
 const STORAGE_KEY = 'aralia_character_creation_state';
 
+const isPortraitInFlight = (state: CharacterCreationState) =>
+  state.portrait.status === 'requesting' || state.portrait.status === 'polling';
+
+function buildFallbackVisualDescription(state: CharacterCreationState): string {
+  const race = state.selectedRace?.name || 'adventurer';
+  const charClass = state.selectedClass?.name || 'wanderer';
+  const gender = state.visuals?.gender || 'Male';
+  const hairStyle = state.visuals?.hairStyle || 'Hair1';
+  const clothing = state.visuals?.clothing || 'Clothing1';
+
+  return [
+    `A high fantasy character portrait of a level 1 ${race} ${charClass}.`,
+    `${gender} adventurer.`,
+    `Hair: ${hairStyle}.`,
+    `Clothing: ${clothing}.`,
+    'Head-and-shoulders, detailed, dramatic lighting, neutral background.'
+  ].join(' ');
+}
+
+function rehydrateCharacterCreatorState(
+  initial: CharacterCreationState,
+  raw: unknown
+): CharacterCreationState {
+  if (!raw || typeof raw !== 'object') return initial;
+
+  const persisted = raw as Partial<CharacterCreationState> & {
+    visuals?: unknown;
+    portrait?: unknown;
+  };
+
+  const merged: CharacterCreationState = {
+    ...initial,
+    ...persisted,
+    visuals: {
+      ...initial.visuals,
+      ...((persisted.visuals && typeof persisted.visuals === 'object') ? (persisted.visuals as Partial<CharacterCreationState['visuals']>) : {}),
+    },
+    visualDescription: typeof persisted.visualDescription === 'string' ? persisted.visualDescription : initial.visualDescription,
+    portrait: {
+      ...initial.portrait,
+      ...((persisted.portrait && typeof persisted.portrait === 'object') ? (persisted.portrait as Partial<CharacterCreationState['portrait']>) : {}),
+    },
+  };
+
+  // Don’t resume in-flight portrait requests after reload.
+  if (merged.portrait.status === 'requesting' || merged.portrait.status === 'polling') {
+    merged.portrait = {
+      ...merged.portrait,
+      status: 'idle',
+      error: null,
+      requestedForName: null,
+    };
+  }
+
+  if (merged.portrait.url !== null && typeof merged.portrait.url !== 'string') merged.portrait.url = null;
+  if (merged.portrait.error !== null && typeof merged.portrait.error !== 'string') merged.portrait.error = null;
+  if (merged.portrait.requestedForName !== null && typeof merged.portrait.requestedForName !== 'string') {
+    merged.portrait.requestedForName = null;
+  }
+
+  return merged;
+}
+
 const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, onExitToMainMenu, dispatch: appDispatch }) => {
   const [state, dispatch] = useReducer(characterCreatorReducer, initialCharacterCreatorState, (initial) => {
     try {
       const persisted = SafeStorage.getItem(STORAGE_KEY);
-      return persisted ? JSON.parse(persisted) : initial;
+      return persisted ? rehydrateCharacterCreatorState(initial, JSON.parse(persisted)) : initial;
     } catch (e) {
       console.warn('Failed to load character creation state', e);
       return initial;
@@ -117,12 +181,83 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
   const allSpells = useContext(SpellContext);
   const [showSidebar, setShowSidebar] = useState(true);
+  const portraitJobRef = React.useRef<{ token: number; cancelled: boolean }>({ token: 0, cancelled: false });
 
   const { assembleAndSubmitCharacter, generatePreviewCharacter } = useCharacterAssembly({
     onCharacterCreate
   });
 
-  const { selectedRace, selectedClass, finalAbilityScores, racialSpellChoiceContext } = state;
+  const { selectedRace, selectedClass, finalAbilityScores } = state;
+
+  const handleCancelPortrait = useCallback(() => {
+    portraitJobRef.current.cancelled = true;
+    dispatch({ type: 'PORTRAIT_REQUEST_CANCEL' });
+  }, [dispatch]);
+
+  const handleClearPortrait = useCallback(() => {
+    portraitJobRef.current.cancelled = true;
+    dispatch({ type: 'CLEAR_PORTRAIT' });
+  }, [dispatch]);
+
+  const handleGeneratePortrait = useCallback(async () => {
+    if (!ENV.VITE_ENABLE_PORTRAITS) return;
+    if (!selectedRace || !selectedClass) {
+      dispatch({ type: 'PORTRAIT_REQUEST_ERROR', payload: { error: 'Select a race and class first.' } });
+      return;
+    }
+
+    if (isPortraitInFlight(state)) return;
+
+    const requestedForName = (state.characterName || '').trim() || null;
+
+    const descriptionSource = (state.visualDescription || '').trim() || buildFallbackVisualDescription(state);
+    const description = sanitizeAIPromptText(descriptionSource, 500);
+
+    // Start a new job token so late responses from older jobs can be ignored.
+    const token = portraitJobRef.current.token + 1;
+    portraitJobRef.current = { token, cancelled: false };
+
+    dispatch({ type: 'PORTRAIT_REQUEST_START', payload: { requestedForName } });
+
+    try {
+      const url = await generatePortraitUrl({
+        description,
+        race: selectedRace.name,
+        className: selectedClass.name,
+      });
+
+      if (portraitJobRef.current.token !== token || portraitJobRef.current.cancelled) {
+        dispatch({ type: 'PORTRAIT_REQUEST_CANCEL' });
+        return;
+      }
+
+      dispatch({ type: 'PORTRAIT_REQUEST_SUCCESS', payload: { url } });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate portrait.';
+      dispatch({ type: 'PORTRAIT_REQUEST_ERROR', payload: { error: message } });
+    }
+  }, [
+    dispatch,
+    selectedRace,
+    selectedClass,
+    state,
+  ]);
+
+  // Cancel portrait generation if the user navigates away from the review step.
+  React.useEffect(() => {
+    const inFlight = state.portrait.status === 'requesting' || state.portrait.status === 'polling';
+    if (state.step !== CreationStep.NameAndReview && inFlight) {
+      portraitJobRef.current.cancelled = true;
+      dispatch({ type: 'PORTRAIT_REQUEST_CANCEL' });
+    }
+  }, [dispatch, state.step, state.portrait.status]);
+
+  // Ensure we don't keep polling if this component unmounts.
+  React.useEffect(() => {
+    return () => {
+      portraitJobRef.current.cancelled = true;
+    };
+  }, []);
 
   const featOptions = useMemo(() => {
     const abilityScores = finalAbilityScores || state.baseAbilityScores || {
@@ -278,7 +413,23 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             dispatch({ type: 'SET_STEP', payload: CreationStep.Race });
             return <p className="text-red-400">Error: Missing critical character data. Returning to start.</p>;
           }
-          return <NameAndReview characterPreview={characterToPreview} onConfirm={handleNameAndReviewSubmit} initialName={state.characterName} onBack={goBack} featStepSkipped={state.featStepSkipped} />;
+          return (
+            <NameAndReview
+              characterPreview={characterToPreview}
+              onConfirm={handleNameAndReviewSubmit}
+              initialName={state.characterName}
+              onNameDraftChange={(nextName) => dispatch({ type: 'SET_CHARACTER_NAME', payload: nextName })}
+              visualDescription={state.visualDescription}
+              onVisualDescriptionChange={(nextDescription) => dispatch({ type: 'SET_VISUAL_DESCRIPTION', payload: nextDescription })}
+              portraitsEnabled={ENV.VITE_ENABLE_PORTRAITS}
+              portrait={state.portrait}
+              onGeneratePortrait={handleGeneratePortrait}
+              onCancelPortrait={handleCancelPortrait}
+              onClearPortrait={handleClearPortrait}
+              onBack={goBack}
+              featStepSkipped={state.featStepSkipped}
+            />
+          );
         }
       default:
         return <p>Unknown character creation step.</p>;

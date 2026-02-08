@@ -3,13 +3,243 @@ import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import type { ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
-import { spawn } from 'child_process';
+import { spawn, exec, execSync } from 'child_process';
+
+const MCP_CLI = path.resolve(process.cwd(), 'node_modules/.bin/mcp-cli');
+const MCP_CONFIG = path.resolve(process.cwd(), '.mcp.json');
+const STITCH_TOOL_OVERRIDE = (process.env.STITCH_IMAGE_TOOL || '').trim();
+const STITCH_EXTRA_ARGS = (process.env.STITCH_IMAGE_ARGS || '').trim();
+let cachedStitchImageTool: string | null = null;
+let cachedStitchImageToolAt = 0;
+const STITCH_TOOL_CACHE_MS = 5 * 60 * 1000;
+
+const PORTRAIT_OUTPUT_DIR = path.resolve(
+  process.cwd(),
+  'public',
+  'assets',
+  'images',
+  'portraits',
+  'generated'
+);
+const STITCH_GCLOUD_CONFIG = process.env.CLOUDSDK_CONFIG
+  || (process.env.USERPROFILE ? path.join(process.env.USERPROFILE, '.stitch-mcp', 'config') : '');
 
 const formatProxyTarget = (target: ProxyOptions['target']): string => {
   if (!target) return 'unknown';
   if (typeof target === 'string') return target;
   return target.toString();
 };
+
+const execAsync = (cmd: string, opts: any): Promise<{ stdout: string; stderr: string }> =>
+  new Promise((resolve, reject) => {
+    exec(cmd, opts, (error: any, stdout: string, stderr: string) => {
+      if (error) {
+        (error as any).stdout = stdout;
+        (error as any).stderr = stderr;
+        reject(error);
+        return;
+      }
+      resolve({ stdout, stderr });
+    });
+  });
+
+const readBody = (req: any): Promise<string> =>
+  new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', (chunk: any) => {
+      data += String(chunk);
+      // Guardrail for accidental large payloads.
+      if (data.length > 1_000_000) {
+        reject(new Error('Request body too large.'));
+        try { req.destroy(); } catch { /* ignore */ }
+      }
+    });
+    req.on('end', () => resolve(data));
+    req.on('error', reject);
+  });
+
+function sanitizePromptText(input: string, maxLength = 500): string {
+  if (!input) return '';
+  let sanitized = input.slice(0, maxLength);
+  sanitized = sanitized
+    .replace(/System Instruction:/gi, '[REDACTED]')
+    .replace(/User Prompt:/gi, '[REDACTED]')
+    .replace(/Context:/gi, '[REDACTED]')
+    .replace(/```/g, "'''")
+    .trim();
+  return sanitized;
+}
+
+function parseJsonInput(value: string): Record<string, unknown> {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    if (parsed && typeof parsed === 'object') return parsed as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+  return {};
+}
+
+function extractJsonFromOutput(output: string): unknown | null {
+  const trimmed = String(output || '').trim();
+  if (!trimmed) return null;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const objectMatch = trimmed.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      try { return JSON.parse(objectMatch[0]); } catch { /* ignore */ }
+    }
+    const arrayMatch = trimmed.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+      try { return JSON.parse(arrayMatch[0]); } catch { /* ignore */ }
+    }
+  }
+  return null;
+}
+
+function parseToolsFromOutput(output: string): string[] {
+  const tools: string[] = [];
+  const lines = String(output || '').split('\n');
+
+  for (const line of lines) {
+    const match = line.match(/(?:^|\s)([a-z_]+)\s*-/i);
+    if (match) tools.push(match[1]);
+  }
+
+  return tools;
+}
+
+async function listTools(serverName: string): Promise<string[]> {
+  const cmd = `"${MCP_CLI}" --config "${MCP_CONFIG}" ${serverName} -d`;
+  const { stdout } = await execAsync(cmd, { shell: true, timeout: 30000 });
+  return parseToolsFromOutput(stdout);
+}
+
+async function resolveStitchImageTool(): Promise<string | null> {
+  if (STITCH_TOOL_OVERRIDE) return STITCH_TOOL_OVERRIDE;
+  if (cachedStitchImageTool && (Date.now() - cachedStitchImageToolAt) < STITCH_TOOL_CACHE_MS) {
+    return cachedStitchImageTool;
+  }
+  if (!fs.existsSync(MCP_CONFIG)) return null;
+
+  const tools = await listTools('stitch');
+  if (!tools.length) return null;
+
+  const imageCandidates = tools.filter((tool) => /image|img|asset|render/i.test(tool));
+  const preferred = imageCandidates.find((tool) => /generate|create|render/i.test(tool));
+
+  cachedStitchImageTool = preferred || imageCandidates[0] || tools[0] || null;
+  cachedStitchImageToolAt = Date.now();
+  return cachedStitchImageTool;
+}
+
+async function callMcpTool(server: string, tool: string, args: Record<string, unknown>): Promise<{ stdout: string; stderr: string }> {
+  const cmd = `"${MCP_CLI}" --config "${MCP_CONFIG}" ${server}/${tool} '${JSON.stringify(args)}'`;
+  return execAsync(cmd, { shell: true, timeout: 180000 });
+}
+
+function extractUrlFromText(text: string): string | undefined {
+  const urlMatch = String(text || '').match(/https?:\/\/\S+/);
+  if (urlMatch) return urlMatch[0].replace(/[\s'")]+$/, '');
+  return undefined;
+}
+
+function extractImagePayload(data: unknown): { imageUrl?: string; imageData?: string; mimeType?: string } | null {
+  if (!data || typeof data !== 'object') return null;
+
+  const anyData = data as any;
+  const candidates = [anyData, anyData.result, anyData.data, anyData.output];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+
+    if (typeof candidate.imageUrl === 'string') return { imageUrl: candidate.imageUrl };
+    if (typeof candidate.image_url === 'string') return { imageUrl: candidate.image_url };
+    if (typeof candidate.url === 'string') return { imageUrl: candidate.url };
+    if (typeof candidate.imageData === 'string') return { imageData: candidate.imageData };
+    if (typeof candidate.image_base64 === 'string') return { imageData: candidate.image_base64 };
+
+    const content = candidate.content;
+    if (Array.isArray(content)) {
+      for (const item of content) {
+        if (!item) continue;
+        if (item.type === 'image' && typeof item.data === 'string') {
+          return { imageData: item.data, mimeType: item.mimeType || 'image/png' };
+        }
+        if (item.type === 'resource' && typeof item.url === 'string') {
+          return { imageUrl: item.url };
+        }
+        if (item.type === 'text' && typeof item.text === 'string') {
+          const textUrl = extractUrlFromText(item.text);
+          if (textUrl) return { imageUrl: textUrl };
+        }
+      }
+    }
+
+    if (typeof content === 'string') {
+      const textUrl = extractUrlFromText(content);
+      if (textUrl) return { imageUrl: textUrl };
+    }
+  }
+
+  return null;
+}
+
+async function savePortraitToPublic(payload: { imageUrl?: string; imageData?: string; mimeType?: string }): Promise<string> {
+  fs.mkdirSync(PORTRAIT_OUTPUT_DIR, { recursive: true });
+  const stamp = Date.now();
+  const rand = Math.random().toString(16).slice(2);
+  const filename = `portrait-${stamp}-${rand}.png`;
+  const outputPath = path.join(PORTRAIT_OUTPUT_DIR, filename);
+
+  if (payload.imageData) {
+    const dataUrlMatch = payload.imageData.match(/^data:(.+);base64,(.+)$/);
+    const base64 = dataUrlMatch ? dataUrlMatch[2] : payload.imageData;
+    fs.writeFileSync(outputPath, Buffer.from(base64, 'base64'));
+    return `assets/images/portraits/generated/${filename}`;
+  }
+
+  if (payload.imageUrl) {
+    const response = await fetch(payload.imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to download portrait (${response.status}).`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    fs.writeFileSync(outputPath, buffer);
+    return `assets/images/portraits/generated/${filename}`;
+  }
+
+  throw new Error('No image payload to save.');
+}
+
+async function generatePortraitWithStitch(prompt: string): Promise<string> {
+  if (!fs.existsSync(MCP_CONFIG)) {
+    throw new Error('Missing .mcp.json; Stitch MCP server is not configured.');
+  }
+
+  const tool = await resolveStitchImageTool();
+  if (!tool) {
+    throw new Error('No Stitch image tool found. Set STITCH_IMAGE_TOOL or run npm run mcp inspect stitch.');
+  }
+
+  const extraArgs = parseJsonInput(STITCH_EXTRA_ARGS);
+  const args = { prompt, ...extraArgs };
+
+  const { stdout, stderr } = await callMcpTool('stitch', tool, args);
+  if (stderr && !stderr.toLowerCase().includes('debug')) {
+    console.warn(`[portraits] stitch/${tool} stderr: ${stderr.trim()}`);
+  }
+
+  const parsed = extractJsonFromOutput(stdout);
+  const payload = extractImagePayload(parsed);
+  if (!payload) {
+    throw new Error('Stitch returned no image payload. Set STITCH_IMAGE_TOOL/STITCH_IMAGE_ARGS to match the tool schema.');
+  }
+
+  return savePortraitToPublic(payload);
+}
 
 const addProxyDiagnostics = (
   route: string,
@@ -134,6 +364,194 @@ const conductorManager = () => ({
   }
 });
 
+const scanManager = () => ({
+  name: 'scan-manager',
+  configureServer(server: any) {
+    server.middlewares.use((req: any, res: any, next: any) => {
+      if (req.url === '/api/scan') {
+        exec('npx tsx scripts/scan-quality.ts --json', { cwd: process.cwd(), timeout: 30000 }, (error: any, stdout: string, stderr: string) => {
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          if (error) {
+            res.end(JSON.stringify({ error: 'Scan failed', message: stderr || error.message }));
+          } else {
+            res.end(stdout.trim());
+          }
+        });
+        return;
+      }
+      next();
+    });
+  }
+});
+
+const gitStatusManager = () => ({
+  name: 'git-status-manager',
+  configureServer(server: any) {
+    server.middlewares.use((req: any, res: any, next: any) => {
+      if (req.url === '/api/git/status') {
+        try {
+          const branch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
+          const porcelain = execSync('git status --porcelain', { encoding: 'utf-8' });
+          const dirty = porcelain.split('\n').filter(Boolean).length;
+          const lastCommit = execSync('git log -1 --format=%s', { encoding: 'utf-8' }).trim();
+          const lastCommitDate = execSync('git log -1 --format=%cr', { encoding: 'utf-8' }).trim();
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ branch, dirty, lastCommit, lastCommitDate }));
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+      next();
+    });
+  }
+});
+
+const devHubApiManager = () => ({
+  name: 'devhub-api-manager',
+  configureServer(server: any) {
+    server.middlewares.use((req: any, res: any, next: any) => {
+      const json = (data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      // Test runner — runs vitest and reads the JSON results file
+      if (req.url === '/api/test') {
+        exec('npx vitest run', { cwd: process.cwd(), timeout: 120000 }, (_error: any) => {
+          try {
+            const resultsPath = path.resolve(process.cwd(), 'vitest-results.json');
+            if (fs.existsSync(resultsPath)) {
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
+              json(results);
+            } else {
+              json({ error: 'No vitest-results.json produced' });
+            }
+          } catch (e) {
+            json({ error: 'Parse failed', message: String(e) });
+          }
+        });
+        return;
+      }
+
+      // CI status — queries GitHub Actions via gh CLI
+      if (req.url === '/api/ci/status') {
+        exec(
+          'gh run list --limit 5 --json status,conclusion,name,createdAt,headBranch,databaseId',
+          { cwd: process.cwd(), timeout: 10000 },
+          (_error: any, stdout: string) => {
+            if (_error) { json({ error: 'gh CLI unavailable' }); return; }
+            try { json({ runs: JSON.parse(stdout.trim()) }); }
+            catch { json({ error: 'Parse failed' }); }
+          }
+        );
+        return;
+      }
+
+      // Environment health — server-side checks
+      if (req.url === '/api/health/env') {
+        json({ rDrive: fs.existsSync('R:\\AraliaV4\\Aralia') });
+        return;
+      }
+
+      // Agent config discovery — lists rules, skills, workflows
+      if (req.url === '/api/agent/config') {
+        try {
+          const agentDir = path.resolve(process.cwd(), '.agent');
+          const readMdFiles = (sub: string) => {
+            const dir = path.join(agentDir, sub);
+            if (!fs.existsSync(dir)) return [];
+            return fs.readdirSync(dir, { withFileTypes: true })
+              .filter((d: any) => d.isFile() && d.name.endsWith('.md'))
+              .map((d: any) => ({ name: d.name.replace('.md', ''), path: `.agent/${sub}/${d.name}` }));
+          };
+          const skillsDir = path.join(agentDir, 'skills');
+          const skills = fs.existsSync(skillsDir)
+            ? fs.readdirSync(skillsDir, { withFileTypes: true })
+                .filter((d: any) => d.isDirectory())
+                .map((d: any) => ({ name: d.name, path: `.agent/skills/${d.name}/SKILL.md` }))
+            : [];
+          json({ rules: readMdFiles('rules'), skills, workflows: readMdFiles('workflows') });
+        } catch (e) {
+          json({ error: String(e) }, 500);
+        }
+        return;
+      }
+
+      next();
+    });
+  }
+});
+
+const portraitApiManager = () => ({
+  name: 'portrait-api-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+      if (urlPath !== '/api/portraits/generate') {
+        next();
+        return;
+      }
+
+      const json = (data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204, {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        });
+        res.end();
+        return;
+      }
+
+      if (req.method !== 'POST') {
+        json({ error: 'Method not allowed.' }, 405);
+        return;
+      }
+
+      try {
+        const rawBody = await readBody(req);
+        const parsed = rawBody ? JSON.parse(rawBody) : {};
+        const description = sanitizePromptText(String(parsed?.description || ''), 500);
+        const race = sanitizePromptText(String(parsed?.race || ''), 80);
+        const className = sanitizePromptText(String(parsed?.className || ''), 80);
+
+        const prompt = [
+          'High fantasy character portrait. Head-and-shoulders. Detailed. Dramatic lighting. Neutral background.',
+          race ? `Race: ${race}.` : '',
+          className ? `Class: ${className}.` : '',
+          description ? `Description: ${description}` : '',
+          'No text. No UI. No watermark.'
+        ].filter(Boolean).join(' ');
+
+        const url = await generatePortraitWithStitch(prompt);
+        json({ url });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        // Surface common Stitch setup issues with a clearer hint.
+        if (/\[Gcloud\] Token fetch failed/i.test(message) || /Failed to retrieve initial access token/i.test(message)) {
+          const configHint = STITCH_GCLOUD_CONFIG ? `CLOUDSDK_CONFIG=\"${STITCH_GCLOUD_CONFIG}\" ` : '';
+          json({
+            error: [
+              'Stitch is not authenticated on this machine.',
+              `Run: ${configHint}gcloud.cmd auth application-default login`,
+              'Then retry portrait generation.'
+            ].join(' ')
+          }, 500);
+          return;
+        }
+        json({ error: message || 'Portrait generation failed.' }, 500);
+      }
+    });
+  },
+});
+
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
   const isDevServer = command === 'serve';
@@ -180,7 +598,7 @@ export default defineConfig(({ mode, command }) => {
         )
       }
     },
-    plugins: [react(), visualizerManager(), conductorManager()],
+    plugins: [react(), visualizerManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), portraitApiManager()],
     define: {
       // Shim process.env for legacy support (allows process.env.API_KEY to work).
       // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.

@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { pollForPortrait } from '../PortraitService';
+import { generatePortraitUrl, pollForPortrait } from '../PortraitService';
 
 type FetchMock = ReturnType<typeof vi.fn>;
 
@@ -19,6 +19,7 @@ describe('PortraitService', () => {
         const fetchMock = global.fetch as unknown as FetchMock;
         // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
         fetchMock.mockResolvedValue({
+            ok: true,
             json: async () => mockResponse
         });
 
@@ -33,10 +34,43 @@ describe('PortraitService', () => {
         const fetchMock = global.fetch as unknown as FetchMock;
         // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
         fetchMock.mockResolvedValue({
+            ok: true,
             json: async () => mockResponse
         });
 
         const url = await pollForPortrait('Hero');
         expect(url).toBeNull();
+    });
+
+    it('generatePortraitUrl should return url from dev portrait API', async () => {
+        const fetchMock = global.fetch as unknown as FetchMock;
+        // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
+        fetchMock.mockResolvedValue({
+            ok: true,
+            json: async () => ({ url: 'assets/images/portraits/generated/portrait.png' })
+        });
+
+        const url = await generatePortraitUrl({
+            description: 'Test prompt',
+            race: 'Elf',
+            className: 'Wizard'
+        });
+        expect(url).toBe('assets/images/portraits/generated/portrait.png');
+    });
+
+    it('generatePortraitUrl should throw server error message when request fails', async () => {
+        const fetchMock = global.fetch as unknown as FetchMock;
+        // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
+        fetchMock.mockResolvedValue({
+            ok: false,
+            status: 500,
+            json: async () => ({ error: 'Stitch is not authenticated.' })
+        });
+
+        await expect(generatePortraitUrl({
+            description: 'Test prompt',
+            race: 'Elf',
+            className: 'Wizard'
+        })).rejects.toThrow('Stitch is not authenticated.');
     });
 });

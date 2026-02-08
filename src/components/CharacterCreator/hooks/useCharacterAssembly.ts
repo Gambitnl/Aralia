@@ -500,6 +500,8 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
       racialSelections: currentState.racialSelections,
       visuals: currentState.visuals,
+      visualDescription: currentState.visualDescription || undefined,
+      portraitUrl: currentState.portrait.url || undefined,
     };
     assembledCharacter.hitPointDice = buildHitPointDicePools(assembledCharacter, { classLevels });
 

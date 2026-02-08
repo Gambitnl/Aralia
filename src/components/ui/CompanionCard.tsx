@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { Companion, RelationshipLevel } from '../../types/companions';
+import { assetUrl } from '../../config/env';
 
 interface CompanionCardProps {
   companion: Companion;
@@ -43,7 +44,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
       <div className="flex gap-4 mb-4">
         <div className="w-16 h-16 rounded-full bg-gray-700 border-2 border-amber-600 flex items-center justify-center overflow-hidden shrink-0">
           {identity.avatarUrl ? (
-            <img src={identity.avatarUrl} alt={identity.name} className="w-full h-full object-cover" />
+            <img src={assetUrl(identity.avatarUrl)} alt={identity.name} className="w-full h-full object-cover" />
           ) : (
             <span className="text-2xl font-cinzel text-amber-500">{identity.name.charAt(0)}</span>
           )}

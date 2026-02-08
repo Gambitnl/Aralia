@@ -39,7 +39,8 @@
       "Bash(SRC=\"C:/Users/Gambit/.claude/projects/R--AraliaV4-Aralia\")",
       "Bash(DST=\"C:/Users/Gambit/.claude/projects/f--Repos-Aralia\")",
       "Bash(do cp -v \"$f\" \"$DST/\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

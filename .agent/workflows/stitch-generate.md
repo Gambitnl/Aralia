@@ -4,8 +4,6 @@ description: Generate UI components using Google Stitch MCP
 
 # Stitch UI Generation Workflow
 
-// turbo-all
-
 ## Prerequisites Check
 
 1. Verify Stitch is installed and patched:

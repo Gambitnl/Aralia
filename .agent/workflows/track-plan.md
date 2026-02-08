@@ -10,7 +10,7 @@ Start a new track (unit of work) by generating a specification and actionable pl
 
 ## Prerequisites
 
-- Run `/track-setup` first if `.agent/conductor/` doesn't exist
+- `.agent/conductor/` directory must exist with product, tech-stack, and workflow docs
 
 ---
 

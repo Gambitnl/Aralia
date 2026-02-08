@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 27/01/2026, 01:42:00
+ * Last Sync: 08/02/2026, 15:57:46
  * Dependents: CharacterCreator.tsx
- * Imports: 10 files
+ * Imports: 13 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -18,29 +18,59 @@
  * @file NameAndReview.tsx
  * Refactored to use Split Config Style (Name Entry vs Character Summary).
  */
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { PlayerCharacter, AbilityScoreName, DraconicAncestryInfo } from '../../types';
+import { PlayerCharacter, DraconicAncestryInfo } from '../../types';
 import { RACES_DATA, WEAPONS_DATA, MASTERY_DATA, DRAGONBORN_ANCESTRIES } from '../../constants';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { getCharacterSpells } from '../../utils/spellUtils';
 import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/characterUtils';
 import { validateCharacterName } from '../../utils/securityUtils';
+import { assetUrl } from '../../config/env';
 import SpellContext from '../../context/SpellContext';
 import Tooltip from '../ui/Tooltip';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
-import { User, Shield, Zap, BookOpen } from 'lucide-react';
+import { Shield, Zap, BookOpen } from 'lucide-react';
+import { Button } from '../ui/Button';
+import type { PortraitGenerationStatus } from './state/characterCreatorState';
 
 interface NameAndReviewProps {
   characterPreview: PlayerCharacter;
   onConfirm: (name: string) => void;
+  onNameDraftChange?: (name: string) => void;
+  visualDescription: string;
+  onVisualDescriptionChange: (description: string) => void;
+  portraitsEnabled: boolean;
+  portrait: {
+    status: PortraitGenerationStatus;
+    url: string | null;
+    error: string | null;
+    requestedForName: string | null;
+  };
+  onGeneratePortrait: () => void;
+  onCancelPortrait: () => void;
+  onClearPortrait: () => void;
   onBack: () => void;
   initialName?: string;
   featStepSkipped?: boolean;
 }
 
-const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', featStepSkipped }) => {
+const NameAndReview: React.FC<NameAndReviewProps> = ({
+  characterPreview,
+  onConfirm,
+  onNameDraftChange,
+  visualDescription,
+  onVisualDescriptionChange,
+  portraitsEnabled,
+  portrait,
+  onGeneratePortrait,
+  onCancelPortrait,
+  onClearPortrait,
+  onBack,
+  initialName = '',
+  featStepSkipped,
+}) => {
   const [name, setName] = useState(initialName);
   const [validationError, setValidationError] = useState<string | null>(() => {
     if (!initialName) return null;
@@ -63,10 +93,56 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
   } = characterPreview;
 
   const allSpells = useContext(SpellContext);
+  const isGeneratingPortrait = portrait.status === 'requesting' || portrait.status === 'polling';
+  const hasSeededDescriptionRef = useRef(false);
+
+  const fallbackPortraitGlyph = useMemo(() => {
+    switch (charClass.id) {
+      case 'fighter': return '⚔️';
+      case 'wizard': return '🧙';
+      case 'cleric': return '✝️';
+      case 'barbarian': return '🪓';
+      case 'rogue': return '🗡️';
+      case 'ranger': return '🏹';
+      case 'paladin': return '🛡️';
+      case 'bard': return '🎵';
+      case 'druid': return '🌿';
+      case 'warlock': return '🔮';
+      case 'sorcerer': return '⚡';
+      case 'artificer': return '⚙️';
+      case 'monk': return '🥋';
+      default: return '●';
+    }
+  }, [charClass.id]);
+
+  const suggestedVisualDescription = useMemo(() => {
+    const raceText = getCharacterRaceDisplayString(characterPreview);
+    const classText = charClass.name;
+    const gender = characterPreview.visuals?.gender ? `${characterPreview.visuals.gender} ` : '';
+    const nameText = name.trim() ? `${name.trim()}, ` : '';
+
+    return [
+      `A high fantasy character portrait of ${nameText}a level 1 ${raceText} ${classText}.`,
+      `${gender}adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.`
+    ].join(' ');
+  }, [characterPreview, charClass.name, name]);
+
+  useEffect(() => {
+    if (!portraitsEnabled) return;
+    if (hasSeededDescriptionRef.current) return;
+    if (visualDescription.trim().length > 0) {
+      hasSeededDescriptionRef.current = true;
+      return;
+    }
+
+    hasSeededDescriptionRef.current = true;
+    onVisualDescriptionChange(suggestedVisualDescription);
+  }, [onVisualDescriptionChange, portraitsEnabled, suggestedVisualDescription, visualDescription]);
   
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setName(newName);
+    onNameDraftChange?.(newName);
     const { valid, error } = validateCharacterName(newName);
     setValidationError(valid ? null : (error || 'Invalid name'));
   };
@@ -96,7 +172,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
       title="Finalize Legend"
       onBack={onBack}
       onNext={handleConfirm}
-      canProceed={!validationError && !!name.trim()}
+      canProceed={!validationError && !!name.trim() && !isGeneratingPortrait}
       nextLabel="Begin Adventure!"
       bodyScrollable={false}
     >
@@ -105,16 +181,86 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
           controls={
             <div className="space-y-6">
               <div className="p-4 bg-gray-900/40 border border-gray-700 rounded-xl flex flex-col items-center text-center">
-                {/* TODO: Add "Generate Portrait" button here using the Stitch/AI backend to create a custom avatar based on race/class/description. */}
-                <div className="w-24 h-24 rounded-full bg-gray-800 border-2 border-amber-500/50 flex items-center justify-center mb-4 shadow-lg overflow-hidden relative group">
+                <div
+                  className="w-24 h-24 rounded-full bg-gray-800 border-2 border-amber-500/50 flex items-center justify-center mb-4 shadow-lg overflow-hidden relative group"
+                  aria-busy={isGeneratingPortrait}
+                >
                   {characterPreview.portraitUrl ? (
-                    <img src={characterPreview.portraitUrl} alt="Portrait" className="w-full h-full object-cover" />
+                    <img
+                      src={assetUrl(characterPreview.portraitUrl)}
+                      alt={`${name || 'Character'} portrait`}
+                      className={`w-full h-full object-cover ${isGeneratingPortrait ? 'opacity-60 blur-[0.5px]' : ''}`}
+                    />
                   ) : (
-                    <User size={48} className="text-gray-600 group-hover:text-amber-500/50 transition-colors" />
+                    <span
+                      className="text-4xl text-gray-600 group-hover:text-amber-500/50 transition-colors"
+                      role="img"
+                      aria-label={`${charClass.name} icon`}
+                    >
+                      {fallbackPortraitGlyph}
+                    </span>
+                  )}
+
+                  {isGeneratingPortrait && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="text-[10px] font-bold tracking-wide text-amber-200 uppercase">Generating</span>
+                    </div>
                   )}
                 </div>
                 <h3 className="font-cinzel font-bold text-amber-400">The Legend Begins</h3>
                 <p className="text-xs text-gray-500 mt-1 uppercase tracking-tighter">Enter a name to seal your fate</p>
+
+                {portraitsEnabled && (
+                  <div className="mt-4 w-full space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="action"
+                        size="sm"
+                        isLoading={isGeneratingPortrait}
+                        onClick={onGeneratePortrait}
+                        disabled={isGeneratingPortrait}
+                      >
+                        {characterPreview.portraitUrl ? 'Regenerate Portrait' : 'Generate Portrait'}
+                      </Button>
+
+                      {isGeneratingPortrait ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={onCancelPortrait}
+                          disabled={!isGeneratingPortrait}
+                        >
+                          Cancel
+                        </Button>
+                      ) : characterPreview.portraitUrl ? (
+                        <Button variant="ghost" size="sm" onClick={onClearPortrait}>
+                          Clear
+                        </Button>
+                      ) : null}
+                    </div>
+
+                    {portrait.error && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-[11px] text-red-300/90"
+                      >
+                        {portrait.error}
+                      </motion.p>
+                    )}
+
+                    {!isGeneratingPortrait && !characterPreview.portraitUrl && (
+                      <p className="text-[10px] text-amber-200/80 leading-tight">
+                        Optional: If you continue without a portrait, your character will use the class icon above.
+                        (You cannot generate a portrait later in this version.)
+                      </p>
+                    )}
+
+                    <p className="text-[10px] text-gray-500 leading-tight">
+                      Uses local AI tooling (Stitch). If it fails, Stitch may need authentication (gcloud application-default login).
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -140,6 +286,36 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
                   </motion.p>
                 )}
               </div>
+
+              {portraitsEnabled && (
+                <div className="space-y-2">
+                  <div className="flex items-end justify-between gap-3 px-1">
+                    <label htmlFor="portraitDescription" className="block text-sm font-bold text-gray-400 uppercase tracking-wide">
+                      Portrait Description (Optional)
+                    </label>
+                    <span className="text-[10px] text-gray-500 tabular-nums">
+                      {Math.min(visualDescription.length, 500)}/500
+                    </span>
+                  </div>
+                  <textarea
+                    id="portraitDescription"
+                    value={visualDescription}
+                    onChange={(e) => onVisualDescriptionChange(e.target.value)}
+                    maxLength={500}
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 outline-none transition-all shadow-inner resize-none"
+                    placeholder={`E.g., ${getCharacterRaceDisplayString(characterPreview)} ${charClass.name} with a stern gaze, travel-worn cloak, dramatic lighting.`}
+                  />
+                  <div className="flex items-start justify-between gap-2 px-1">
+                    <p className="text-[10px] text-gray-500 leading-tight">
+                      Avoid real personal data. This text is used only to guide portrait generation.
+                    </p>
+                    <Tooltip content="This does not affect gameplay stats.">
+                      <span className="text-[10px] text-amber-300/80 underline decoration-amber-500/30 cursor-help">Why?</span>
+                    </Tooltip>
+                  </div>
+                </div>
+              )}
 
               {featStepSkipped && (
                 <div className="p-3 bg-sky-900/20 border border-sky-700/30 rounded-lg">
@@ -219,6 +395,22 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
                     <BookOpen size={14} /> Class & Racial Features
                   </h3>
                   <div className="space-y-2 text-sm">
+                    {selectedDraconicAncestry && (
+                      <div className="text-gray-300">
+                        <span className="text-amber-500/80 font-semibold mr-2">Draconic Ancestry:</span>
+                        {selectedDraconicAncestry.type} ({selectedDraconicAncestry.damageType})
+                      </div>
+                    )}
+                    {elvenLineageDetails && (
+                      <div className="text-gray-300">
+                        <span className="text-amber-500/80 font-semibold mr-2">Elven Lineage:</span> {elvenLineageDetails.name}
+                      </div>
+                    )}
+                    {gnomeSubraceDetails && (
+                      <div className="text-gray-300">
+                        <span className="text-amber-500/80 font-semibold mr-2">Gnome Subrace:</span> {gnomeSubraceDetails.name}
+                      </div>
+                    )}
                     {selectedFightingStyle && (
                       <div className="text-gray-300">
                         <span className="text-amber-500/80 font-semibold mr-2">Fighting Style:</span> {selectedFightingStyle.name}

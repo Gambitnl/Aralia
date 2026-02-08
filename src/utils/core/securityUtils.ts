@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 26/01/2026, 01:39:08
+ * Last Sync: 08/02/2026, 15:58:02
  * Dependents: core/index.ts, logger.ts, securityUtils.ts
  * Imports: 1 files
  * 
@@ -53,6 +53,30 @@ export function sanitizeAIInput(input: string, maxLength: number = 500): string 
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+
+  return sanitized;
+}
+
+/**
+ * Sanitizes user input intended for AI prompts while preserving punctuation (no HTML entity escaping).
+ *
+ * Use this when the string is only sent to an AI backend (and not rendered as HTML).
+ */
+export function sanitizeAIPromptText(input: string, maxLength: number = 500): string {
+  if (!input) return '';
+
+  // 1. Truncate to maximum length to prevent token exhaustion/DoS
+  let sanitized = input.slice(0, maxLength);
+
+  // 2. Remove or escape potential prompt injection delimiters
+  sanitized = sanitized
+    .replace(/System Instruction:/gi, '[REDACTED]')
+    .replace(/User Prompt:/gi, '[REDACTED]')
+    .replace(/Context:/gi, '[REDACTED]')
+    .replace(/```/g, "'''"); // Break markdown code blocks
+
+  // 3. Basic whitespace trimming
+  sanitized = sanitized.trim();
 
   return sanitized;
 }

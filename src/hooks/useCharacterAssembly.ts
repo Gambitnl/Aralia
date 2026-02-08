@@ -264,6 +264,8 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
         hairStyle: currentState.visuals.hairStyle,
         clothingStyle: currentState.visuals.clothing,
       },
+      visualDescription: currentState.visualDescription || undefined,
+      portraitUrl: currentState.portrait.url || undefined,
     };
     assembledCharacter.hitPointDice = buildHitPointDicePools(assembledCharacter, { classLevels });
 

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  * 
- * Last Sync: 06/02/2026, 03:31:43
- * Dependents: CharacterCreator.tsx, CreationSidebar.tsx, FeatSelection.tsx, LevelUpModal.tsx, sidebarSteps.ts, useCharacterAssembly.ts, useCharacterAssembly.ts
+ * Last Sync: 08/02/2026, 15:57:53
+ * Dependents: CharacterCreator.tsx, CreationSidebar.tsx, FeatSelection.tsx, LevelUpModal.tsx, NameAndReview.tsx, sidebarSteps.ts, useCharacterAssembly.ts, useCharacterAssembly.ts
  * Imports: 4 files
  * 
  * MULTI-AGENT SAFETY:
@@ -74,6 +74,8 @@ export type FeatChoiceState = {
   [key: string]: FeatChoiceValue;
 };
 
+export type PortraitGenerationStatus = 'idle' | 'requesting' | 'polling' | 'ready' | 'error';
+
 export interface CharacterCreationState {
   step: CreationStep;
   selectedRace: Race | null;
@@ -101,6 +103,14 @@ export interface CharacterCreationState {
   selectedBackground: string | null;
   featStepSkipped?: boolean;
   visuals: CharacterVisualConfig;
+  /** Optional appearance/portrait prompt text entered by the player. */
+  visualDescription: string;
+  portrait: {
+    status: PortraitGenerationStatus;
+    url: string | null;
+    error: string | null;
+    requestedForName: string | null;
+  };
 }
 
 export type ClassFeatureFinalSelectionAction =
@@ -140,6 +150,13 @@ export type CharacterCreatorAction =
   | { type: 'SET_FEAT_CHOICE'; payload: { featId: string; choiceType: string; value: FeatChoiceValue } }
   | { type: 'CONFIRM_FEAT_STEP' }
   | { type: 'SET_CHARACTER_NAME'; payload: string }
+  | { type: 'SET_VISUAL_DESCRIPTION'; payload: string }
+  | { type: 'PORTRAIT_REQUEST_START'; payload: { requestedForName: string | null } }
+  | { type: 'PORTRAIT_POLL_START' }
+  | { type: 'PORTRAIT_REQUEST_SUCCESS'; payload: { url: string } }
+  | { type: 'PORTRAIT_REQUEST_ERROR'; payload: { error: string } }
+  | { type: 'PORTRAIT_REQUEST_CANCEL' }
+  | { type: 'CLEAR_PORTRAIT' }
   | { type: 'SET_CHARACTER_AGE'; payload: number }
   | { type: 'SELECT_BACKGROUND'; payload: string }
   | { type: 'GO_BACK' }
@@ -174,6 +191,13 @@ export const initialCharacterCreatorState: CharacterCreationState = {
     hairStyle: 'Hair1',
     hairColor: 'Black',
     clothing: 'Clothing1',
+  },
+  visualDescription: '',
+  portrait: {
+    status: 'idle',
+    url: null,
+    error: null,
+    requestedForName: null,
   },
 };
 
@@ -534,6 +558,7 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         selectedSpellsL1: [],
         selectedWeaponMasteries: null,
         selectedFeat: null, // Feats might depend on class prerequisites
+        portrait: { ...initialCharacterCreatorState.portrait },
         step: CreationStep.AbilityScores 
       };
     }
@@ -586,6 +611,65 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
     }
     case 'SET_CHARACTER_NAME': {
       return { ...state, characterName: action.payload };
+    }
+    case 'SET_VISUAL_DESCRIPTION': {
+      return { ...state, visualDescription: action.payload };
+    }
+    case 'PORTRAIT_REQUEST_START': {
+      return {
+        ...state,
+        portrait: {
+          ...state.portrait,
+          status: 'requesting',
+          error: null,
+          requestedForName: action.payload.requestedForName,
+        },
+      };
+    }
+    case 'PORTRAIT_POLL_START': {
+      return {
+        ...state,
+        portrait: {
+          ...state.portrait,
+          status: 'polling',
+          error: null,
+        },
+      };
+    }
+    case 'PORTRAIT_REQUEST_SUCCESS': {
+      return {
+        ...state,
+        portrait: {
+          ...state.portrait,
+          status: 'ready',
+          url: action.payload.url,
+          error: null,
+        },
+      };
+    }
+    case 'PORTRAIT_REQUEST_ERROR': {
+      return {
+        ...state,
+        portrait: {
+          ...state.portrait,
+          status: 'error',
+          error: action.payload.error,
+        },
+      };
+    }
+    case 'PORTRAIT_REQUEST_CANCEL': {
+      return {
+        ...state,
+        portrait: {
+          ...state.portrait,
+          status: 'idle',
+          error: null,
+          requestedForName: null,
+        },
+      };
+    }
+    case 'CLEAR_PORTRAIT': {
+      return { ...state, portrait: { ...initialCharacterCreatorState.portrait } };
     }
     case 'GO_BACK': {
       const currentStep = state.step;
