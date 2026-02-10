@@ -52,6 +52,7 @@ import { dialogueReducer } from './reducers/dialogueReducer';
 import { craftingReducer } from './reducers/craftingReducer';
 import { conversationReducer } from './reducers/conversationReducer';
 import { journalReducer } from './reducers/journalReducer';
+import { legacyReducer } from './reducers/legacyReducer';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
@@ -794,6 +795,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             nextState = { ...nextState, ...craftingReducer(nextState, action) };
             nextState = { ...nextState, ...conversationReducer(nextState, action) };
             nextState = { ...nextState, ...journalReducer(nextState, action) };
+            nextState = { ...nextState, ...legacyReducer(nextState, action) };
 
             return nextState;
         }

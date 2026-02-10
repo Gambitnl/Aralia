@@ -17,6 +17,7 @@ import {
     StrongholdMission,
     MissionReward
 } from '../types/stronghold';
+import { GameMessage } from '../types/world';
 
 const BASE_WAGES: Record<StaffRole, number> = {
     steward: 10,
@@ -579,4 +580,67 @@ export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold:
     }
 
     return { updatedStronghold, summary };
+};
+
+/**
+ * Processes daily upkeep for all player strongholds.
+ */
+export const processAllStrongholds = (
+    strongholds: Record<string, Stronghold>
+): { updatedStrongholds: Record<string, Stronghold>; summaries: DailyUpdateSummary[] } => {
+    const updatedStrongholds: Record<string, Stronghold> = {};
+    const summaries: DailyUpdateSummary[] = [];
+
+    for (const [id, stronghold] of Object.entries(strongholds)) {
+        const { updatedStronghold, summary } = processDailyUpkeep(stronghold);
+        updatedStrongholds[id] = updatedStronghold;
+        summaries.push(summary);
+    }
+
+    return { updatedStrongholds, summaries };
+};
+
+/**
+ * Converts stronghold daily update summaries into game messages for the log.
+ */
+export const strongholdSummariesToMessages = (
+    summaries: DailyUpdateSummary[],
+    gameTime: Date
+): GameMessage[] => {
+    const messages: GameMessage[] = [];
+    let msgId = Date.now();
+
+    for (const summary of summaries) {
+        const lines: string[] = [];
+
+        if (summary.goldChange !== 0) {
+            const sign = summary.goldChange >= 0 ? '+' : '';
+            lines.push(`Treasury: ${sign}${summary.goldChange} gold`);
+        }
+
+        for (const event of summary.staffEvents) {
+            lines.push(event);
+        }
+        for (const event of summary.threatEvents) {
+            lines.push(event);
+        }
+        for (const event of summary.missionEvents) {
+            lines.push(event);
+        }
+        for (const alert of summary.alerts) {
+            lines.push(alert);
+        }
+
+        if (lines.length > 0) {
+            messages.push({
+                id: msgId++,
+                text: `[Stronghold Report] ${lines.join(' | ')}`,
+                sender: 'system',
+                timestamp: gameTime,
+                metadata: { strongholdId: summary.strongholdId, type: 'stronghold_report' }
+            });
+        }
+    }
+
+    return messages;
 };

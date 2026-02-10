@@ -12,6 +12,7 @@ import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { getGameDay } from '../../utils/core';
 import { ritualReducer } from './ritualReducer';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/historyUtils';
+import { processAllStrongholds, strongholdSummariesToMessages } from '../../services/strongholdService';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -113,6 +114,17 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           playerFactionStandings: simulatedWorldState.playerFactionStandings,
           messages: [...nextState.messages, ...worldLogs]
         };
+
+        // 4. Stronghold Daily Processing
+        if (nextState.strongholds && Object.keys(nextState.strongholds).length > 0) {
+          const { updatedStrongholds, summaries } = processAllStrongholds(nextState.strongholds);
+          const strongholdMessages = strongholdSummariesToMessages(summaries, newTime);
+          nextState = {
+            ...nextState,
+            strongholds: updatedStrongholds,
+            messages: [...nextState.messages, ...strongholdMessages]
+          };
+        }
       }
 
       // Return ONLY the fields that changed to satisfy the slice reducer contract
