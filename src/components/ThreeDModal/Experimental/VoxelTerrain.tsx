@@ -22,6 +22,7 @@ interface VoxelTerrainProps extends React.ComponentProps<'mesh'> {
 
 export interface VoxelTerrainRef {
   modify: (point: Vector3, radius: number, amount: number) => void;
+  getHeight: (x: number, z: number) => number;
 }
 
 export const VoxelTerrain = forwardRef<VoxelTerrainRef, VoxelTerrainProps>(({ 
@@ -113,6 +114,25 @@ export const VoxelTerrain = forwardRef<VoxelTerrainRef, VoxelTerrainProps>(({
   };
   // Expose Interaction API
   useImperativeHandle(ref, () => ({
+    getHeight: (x: number, z: number) => {
+        const step = size / resolution;
+        const offset = size / 2;
+        const gx = (x + offset) / step;
+        const gz = (z + offset) / step;
+
+        const ix = Math.floor(gx);
+        const iz = Math.floor(gz);
+
+        if (ix < 0 || ix >= resolution || iz < 0 || iz >= resolution) return 0;
+
+        for (let iy = resolution; iy >= 0; iy--) {
+            const val = density.current[getSafeIndex(ix, iy, iz)];
+            if (val > isoLevel) {
+                return (iy * step) - offset;
+            }
+        }
+        return -offset;
+    },
     modify: (point: Vector3, radius: number, amount: number) => {
         const step = size / resolution;
         const offset = size / 2;
