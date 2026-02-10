@@ -4,7 +4,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import type { Mesh, Object3D } from 'three';
 import GridCellOutline from './GridCellOutline';
 
-interface EnemyUnitProps {
+interface NpcUnitProps {
   id: string;
   label: string;
   position: { x: number; z: number };
@@ -20,7 +20,7 @@ interface EnemyUnitProps {
   outlineColor?: number;
 }
 
-const EnemyUnit = ({
+const NpcUnit = ({
   id: _id,
   label: _label,
   position,
@@ -32,24 +32,23 @@ const EnemyUnit = ({
   onHoverStart,
   onHoverEnd,
   onSelect,
-  bodyColor = 0xef4444,
-  outlineColor = 0xf97316,
-}: EnemyUnitProps) => {
-  const enemyRootRef = useRef<Object3D | null>(null);
+  bodyColor = 0x22c55e,
+  outlineColor = 0x38bdf8,
+}: NpcUnitProps) => {
+  const npcRootRef = useRef<Object3D | null>(null);
   const height = useMemo(() => heightSampler(position.x, position.z), [heightSampler, position.x, position.z]);
 
   useFrame(() => {
-    const enemy = enemyRootRef.current;
+    const npc = npcRootRef.current;
     const player = playerRef?.current;
-    if (!enemy || !player) return;
+    if (!npc || !player) return;
 
-    const dx = player.position.x - enemy.position.x;
-    const dz = player.position.z - enemy.position.z;
+    const dx = player.position.x - npc.position.x;
+    const dz = player.position.z - npc.position.z;
     const dist = Math.hypot(dx, dz);
-    if (dist < 0.001 || dist > 260) return;
+    if (dist < 0.001 || dist > 180) return;
 
-    // "Awareness" behavior: face the player when close enough.
-    enemy.rotation.y = Math.atan2(dx, dz);
+    npc.rotation.y = Math.atan2(dx, dz);
   });
 
   const highlightVisible = showOutline || isHovered || isSelected;
@@ -57,7 +56,7 @@ const EnemyUnit = ({
 
   return (
     <>
-      <group ref={enemyRootRef} position={[position.x, height + 3, position.z]}>
+      <group ref={npcRootRef} position={[position.x, height + 3, position.z]}>
         <mesh
           castShadow
           onPointerOver={(e: ThreeEvent<PointerEvent>) => {
@@ -73,12 +72,16 @@ const EnemyUnit = ({
             onSelect?.();
           }}
         >
-          <sphereGeometry args={[4, 16, 16]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.45} map={null} />
+          <cylinderGeometry args={[2.2, 2.2, 6, 12]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.55} map={null} />
+        </mesh>
+        <mesh position={[0, 4.25, 0]} castShadow>
+          <sphereGeometry args={[1.6, 16, 16]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.55} map={null} />
         </mesh>
       </group>
       <GridCellOutline
-        playerRef={enemyRootRef}
+        playerRef={npcRootRef}
         gridSize={5}
         heightSampler={heightSampler}
         color={highlightColor}
@@ -88,4 +91,4 @@ const EnemyUnit = ({
   );
 };
 
-export default EnemyUnit;
+export default NpcUnit;
