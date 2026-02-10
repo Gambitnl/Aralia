@@ -122,7 +122,7 @@ export class BountyHunterSystem {
         const minionCount = event.tier === HunterTier.Elite ? 2 : 1;
         const minions: NPC[] = Array.from({ length: minionCount }, (_, index) => ({
             id: `${event.hunter.id}_minion_${index + 1}`,
-            name: `${event.hunter.name}\'s Tracker ${index + 1}`,
+            name: `${event.hunter.name}'s Tracker ${index + 1}`,
             baseDescription: 'A hired tracker assisting the bounty hunter.',
             initialPersonalityPrompt: 'You are a bounty hunter henchman.',
             role: 'guard',

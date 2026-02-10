@@ -16,6 +16,23 @@ interface TradeRouteDashboardProps {
 
 type TabId = 'overview' | 'routes' | 'events';
 
+const TradeNavButton: React.FC<{
+    tabId: TabId;
+    activeTab: TabId;
+    onSelect: (tabId: TabId) => void;
+    children: React.ReactNode;
+}> = ({ tabId, activeTab, onSelect, children }) => (
+    <button
+        onClick={() => onSelect(tabId)}
+        className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tabId
+            ? 'border-amber-500 text-amber-500 bg-gray-700/50'
+            : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'
+            }`}
+    >
+        {children}
+    </button>
+);
+
 const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
     tradeRoutes,
     marketEvents,
@@ -29,18 +46,6 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
     const boomingRoutes = tradeRoutes.filter(r => (r.status as string) === 'booming').length;
     const shortages = marketEvents.filter(e => e.type === 'SHORTAGE').length;
     const surpluses = marketEvents.filter(e => e.type === 'SURPLUS').length;
-
-    const NavButton: React.FC<{ tabId: TabId; children: React.ReactNode }> = ({ tabId, children }) => (
-        <button
-            onClick={() => setActiveTab(tabId)}
-            className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tabId
-                ? 'border-amber-500 text-amber-500 bg-gray-700/50'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-700/30'
-                }`}
-        >
-            {children}
-        </button>
-    );
 
     return (
         <WindowFrame
@@ -71,9 +76,9 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
 
                 {/* Navigation */}
                 <div className="flex border-b border-gray-700 bg-gray-800/50 shrink-0">
-                    <NavButton tabId="overview">Overview</NavButton>
-                    <NavButton tabId="routes">Routes ({tradeRoutes.length})</NavButton>
-                    <NavButton tabId="events">Market Events ({marketEvents.length})</NavButton>
+                    <TradeNavButton tabId="overview" activeTab={activeTab} onSelect={setActiveTab}>Overview</TradeNavButton>
+                    <TradeNavButton tabId="routes" activeTab={activeTab} onSelect={setActiveTab}>Routes ({tradeRoutes.length})</TradeNavButton>
+                    <TradeNavButton tabId="events" activeTab={activeTab} onSelect={setActiveTab}>Market Events ({marketEvents.length})</TradeNavButton>
                 </div>
 
                 {/* Content Area */}

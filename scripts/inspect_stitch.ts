@@ -253,7 +253,7 @@ async function main() {
     } catch (error) {
         console.error("[Bridge] Error:", error);
     } finally {
-        try { await client.close(); } catch { }
+        try { await client.close(); } catch { /* ignore shutdown errors */ }
     }
 }
 

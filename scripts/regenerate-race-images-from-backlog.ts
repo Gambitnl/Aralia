@@ -383,7 +383,6 @@ async function main() {
 
 main().catch(async (err) => {
   console.error(err);
-  try { await cleanup(); } catch {}
+  try { await cleanup(); } catch { /* ignore cleanup errors */ }
   process.exit(1);
 });
-
