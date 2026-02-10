@@ -3,8 +3,15 @@
   "title": "Deep Gnome (Svirfneblin)",
   "category": "Character Races",
   "entryLore": "Deep gnomes, or svirfneblin, are natives of the Underdark. Suffused with subterranean magic, they possess natural camouflage and a remarkable resistance to magical influence, allowing them to thrive in the perilous depths. They are more somber than their surface-dwelling cousins, their lives shaped by the dangers of the deep earth.",
-  "imageUrl": "/assets/images/races/gnome_female.png",
   "source": "PHB 2024",
+  "lore": {
+    "typicalDwelling": "Deep gnomes live in hidden stone burrows and compact tunnel-homes carved into cavern walls, often protected by secret doors and clever false passages. Their settlements cluster near reliable water and fungus gardens, with dim crystal lamps or phosphorescent mushrooms for light.",
+    "typicalAttire": "They favor practical, muted clothing in grays and browns: fitted tunics, sturdy boots, and layered wraps designed for crawling through tunnels. Many wear hoods, scarves, or cloaks treated with dust and dyes to break up their silhouette against stone.",
+    "typicalEnvironment": "Svirfneblin thrive in the Underdark: winding caverns, narrow passages, underground rivers, and mineral-rich grottoes. They prefer places with many hiding spots and escape routes, away from open, exposed chambers.",
+    "societyType": "Their communities are tight-knit and cautious, organized around small clans and work crews that mine, craft, and maintain defenses. They value quiet competence, secrecy, and mutual protection, and they avoid drawing attention from larger Underdark powers.",
+    "typicalAssociation": "Deep gnomes are wary survivors who trust slowly but can be fiercely loyal once bonds form. Many tend toward practical, restrained behavior, prioritizing safety, discretion, and steady work over grand displays.",
+    "physicalAppearance": "Deep gnomes are small and wiry, with skin tones that range from stone-gray to earthy brown, often mottled like rock. Their eyes are large and reflective, adapted to low light. Hair is commonly dark, gray, or white, worn short or tied back for life underground."
+  },
   "characteristics": [
     {
       "label": "Lineage Type",

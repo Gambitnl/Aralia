@@ -1,9 +1,8 @@
 {
-  "id": "cloud_giant",
+  "id": "cloud_giant_goliath",
   "title": "Cloud Giant Ancestry",
   "category": "Character Races",
   "entryLore": "As a goliath with Cloud Giant ancestry, you possess the grace and magic of the sky-dwellers. You can step through the air as easily as a cloud moves with the wind, allowing for sudden and supernatural repositioning on the battlefield.",
-  "imageUrl": "/assets/images/races/goliath_female.png",
   "source": "PHB 2024",
   "lore": {
     "typicalDwelling": "Those of cloud giant ancestry often dwell in the high-altitude reaches of ancient mountain citadels, floating sky-palaces, or the grandest districts of major metropolitan cities. Their homes are constructed of durable, often gleaming stone and feature expansive libraries, meditation gardens, and central halls with high, vaulted ceilings that allow for a clear view of the sky. They value aesthetic perfection and structural permanence, their dwellings often doubling as centers of learning or spiritual sanctuary for their communities. Their settlements are monuments to their wisdom and their ancestor's mastery over the highest reaches of the world.",
@@ -33,13 +32,15 @@
     "teleportation",
     "lineage"
   ],
-  "aliases": [],
+  "aliases": [
+    "cloud_giant"
+  ],
   "seeAlso": [
     "goliath",
     "bonus_action",
     "teleport"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.json",
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant_goliath.json",
   "maleImageUrl": "/assets/images/races/Goliath_Cloud Giant_Male.png",
   "femaleImageUrl": "/assets/images/races/Goliath_Cloud Giant_Female.png"
 }

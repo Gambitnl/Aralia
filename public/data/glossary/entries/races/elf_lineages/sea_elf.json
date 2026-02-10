@@ -3,7 +3,6 @@
   "title": "Sea Elf",
   "category": "Character Races",
   "entryLore": "Sea elves fell in love with the wild beauty of the ocean in the earliest days of the multiverse. While other elves traveled from realm to realm, the sea elves navigated the deepest currents and explored the waters across a hundred worlds. Today, they live in small, hidden communities in the ocean shallows and on the Elemental Plane of Water. They have developed gills and webbed hands and feet, adapting perfectly to life beneath the waves. Sea elves maintain cordial relationships with their land-dwelling kin, though they may go decades without encountering them.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "MPMM",
   "baseRace": "elf",
   "lore": {

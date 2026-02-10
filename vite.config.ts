@@ -7,6 +7,10 @@ import { spawn, exec, execSync } from 'child_process';
 
 const MCP_CLI = path.resolve(process.cwd(), 'node_modules/.bin/mcp-cli');
 const MCP_CONFIG = path.resolve(process.cwd(), '.mcp.json');
+const MCP_CLI_ENTRY = path.resolve(process.cwd(), 'node_modules', 'mcp-cli', 'src', 'index.ts');
+const BUN_BIN = process.platform === 'win32'
+  ? path.resolve(process.cwd(), 'node_modules', '.bin', 'bun.exe')
+  : 'bun';
 const STITCH_TOOL_OVERRIDE = (process.env.STITCH_IMAGE_TOOL || '').trim();
 const STITCH_EXTRA_ARGS = (process.env.STITCH_IMAGE_ARGS || '').trim();
 let cachedStitchImageTool: string | null = null;
@@ -135,9 +139,47 @@ async function resolveStitchImageTool(): Promise<string | null> {
   return cachedStitchImageTool;
 }
 
-async function callMcpTool(server: string, tool: string, args: Record<string, unknown>): Promise<{ stdout: string; stderr: string }> {
-  const cmd = `"${MCP_CLI}" --config "${MCP_CONFIG}" ${server}/${tool} '${JSON.stringify(args)}'`;
-  return execAsync(cmd, { shell: true, timeout: 180000 });
+async function callMcpTool(
+  server: string,
+  tool: string,
+  args: Record<string, unknown>,
+  timeoutMs = 180000
+): Promise<{ stdout: string; stderr: string }> {
+  // Use bun + the mcp-cli TS entrypoint to avoid JSON quoting issues on Windows shells.
+  // (Passing JSON through cmd/powershell quoting frequently results in mcp-cli receiving the surrounding quotes.)
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      BUN_BIN,
+      [MCP_CLI_ENTRY, '--config', MCP_CONFIG, `${server}/${tool}`, JSON.stringify(args)],
+      { shell: false }
+    );
+
+    let stdout = '';
+    let stderr = '';
+
+    const timer = setTimeout(() => {
+      try { child.kill('SIGKILL'); } catch { /* ignore */ }
+      reject(new Error(`mcp-cli timed out calling ${server}/${tool}.`));
+    }, timeoutMs);
+
+    child.stdout?.on('data', (d: any) => { stdout += String(d); });
+    child.stderr?.on('data', (d: any) => { stderr += String(d); });
+    child.on('error', (e: any) => {
+      clearTimeout(timer);
+      reject(e);
+    });
+    child.on('close', (code: number) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        const err = new Error(`Command failed: ${BUN_BIN} ${server}/${tool} (exit ${code})\n${stderr.trim()}`);
+        (err as any).stdout = stdout;
+        (err as any).stderr = stderr;
+        reject(err);
+        return;
+      }
+      resolve({ stdout: stdout.trim(), stderr: stderr.trim() });
+    });
+  });
 }
 
 function extractUrlFromText(text: string): string | undefined {
@@ -239,6 +281,40 @@ async function generatePortraitWithStitch(prompt: string): Promise<string> {
   }
 
   return savePortraitToPublic(payload);
+}
+
+async function generatePortraitWithImageGen(prompt: string): Promise<string> {
+  // Use the browser automation implementation directly (single process) so generate+download share state.
+  // Calling the image-gen MCP via mcp-cli is stateless per invocation, which breaks the download step.
+  const { generateImage, downloadImage } = await import('./scripts/image-gen-mcp.ts');
+
+  fs.mkdirSync(PORTRAIT_OUTPUT_DIR, { recursive: true });
+  const stamp = Date.now();
+  const rand = Math.random().toString(16).slice(2);
+  const filename = `portrait-${stamp}-${rand}.png`;
+  const outputPath = path.join(PORTRAIT_OUTPUT_DIR, filename);
+
+  // Prefer attaching to a dedicated debug Chrome session (shared profile, less flaky consent/login).
+  // Start it with: npm run mcp:chrome
+  process.env.IMAGE_GEN_USE_CDP = process.env.IMAGE_GEN_USE_CDP || '1';
+  process.env.IMAGE_GEN_CDP_URL = process.env.IMAGE_GEN_CDP_URL || 'http://localhost:9222';
+
+  // If CDP is disabled, fall back to Playwright persistent profile. In that mode, we usually
+  // don't want a visible browser window from the dev server.
+  process.env.IMAGE_GEN_HEADLESS = process.env.IMAGE_GEN_HEADLESS || '1';
+
+  const gen = await generateImage(prompt, 'gemini');
+  if (!gen?.success) {
+    throw new Error(typeof gen?.message === 'string' && gen.message ? gen.message : 'image-gen failed to generate an image.');
+  }
+
+  const dl = await downloadImage({ outputPath, prompt });
+  if (!dl?.success || !fs.existsSync(outputPath)) {
+    const msg = typeof dl?.message === 'string' && dl.message ? dl.message : 'image-gen failed to download the image.';
+    throw new Error(`${msg}\nExpected: ${outputPath}`);
+  }
+
+  return `assets/images/portraits/generated/${filename}`;
 }
 
 const addProxyDiagnostics = (
@@ -418,7 +494,7 @@ const devHubApiManager = () => ({
         res.end(JSON.stringify(data));
       };
 
-      // Test runner — runs vitest and reads the JSON results file
+      // Test runner - runs vitest and reads the JSON results file
       if (req.url === '/api/test') {
         exec('npx vitest run', { cwd: process.cwd(), timeout: 120000 }, (_error: any) => {
           try {
@@ -436,7 +512,7 @@ const devHubApiManager = () => ({
         return;
       }
 
-      // CI status — queries GitHub Actions via gh CLI
+      // CI status - queries GitHub Actions via gh CLI
       if (req.url === '/api/ci/status') {
         exec(
           'gh run list --limit 5 --json status,conclusion,name,createdAt,headBranch,databaseId',
@@ -450,13 +526,13 @@ const devHubApiManager = () => ({
         return;
       }
 
-      // Environment health — server-side checks
+      // Environment health - server-side checks
       if (req.url === '/api/health/env') {
         json({ rDrive: fs.existsSync('R:\\AraliaV4\\Aralia') });
         return;
       }
 
-      // Agent config discovery — lists rules, skills, workflows
+      // Agent config discovery - lists rules, skills, workflows
       if (req.url === '/api/agent/config') {
         try {
           const agentDir = path.resolve(process.cwd(), '.agent');
@@ -490,7 +566,7 @@ const portraitApiManager = () => ({
   configureServer(server: any) {
     server.middlewares.use(async (req: any, res: any, next: any) => {
       const urlPath = (req.url || '').split('?')[0];
-      if (urlPath !== '/api/portraits/generate') {
+      if (urlPath !== '/api/portraits/generate' && urlPath !== '/api/portraits/list' && urlPath !== '/api/portraits/cdp/doctor') {
         next();
         return;
       }
@@ -499,6 +575,60 @@ const portraitApiManager = () => ({
         res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify(data));
       };
+
+      if (urlPath === '/api/portraits/list') {
+        if (req.method !== 'GET') {
+          json({ error: 'Method not allowed.' }, 405);
+          return;
+        }
+
+        try {
+          if (!fs.existsSync(PORTRAIT_OUTPUT_DIR)) {
+            json({ files: [], dir: PORTRAIT_OUTPUT_DIR });
+            return;
+          }
+
+          const files = fs.readdirSync(PORTRAIT_OUTPUT_DIR)
+            .filter((name) => /\.(png|jpg|jpeg|webp)$/i.test(name))
+            .map((name) => {
+              const full = path.join(PORTRAIT_OUTPUT_DIR, name);
+              const stat = fs.statSync(full);
+              return {
+                name,
+                size: stat.size,
+                mtimeMs: stat.mtimeMs,
+                url: `assets/images/portraits/generated/${name}`,
+              };
+            })
+            .sort((a, b) => b.mtimeMs - a.mtimeMs)
+            .slice(0, 60);
+
+          json({ files, dir: PORTRAIT_OUTPUT_DIR });
+        } catch (e) {
+          json({ error: String(e) }, 500);
+        }
+        return;
+      }
+
+      if (urlPath === '/api/portraits/cdp/doctor') {
+        if (req.method !== 'GET') {
+          json({ error: 'Method not allowed.' }, 405);
+          return;
+        }
+
+        try {
+          const { doctorGeminiCDP } = await import('./scripts/image-gen-mcp.ts');
+          const result = await doctorGeminiCDP({
+            cdpUrl: process.env.IMAGE_GEN_CDP_URL || 'http://localhost:9222',
+            attemptConsent: true,
+            openIfMissing: true,
+          });
+          json(result);
+        } catch (e) {
+          json({ ok: false, stage: 'error', message: String(e) }, 500);
+        }
+        return;
+      }
 
       if (req.method === 'OPTIONS') {
         res.writeHead(204, {
@@ -515,23 +645,33 @@ const portraitApiManager = () => ({
         return;
       }
 
-      try {
-        const rawBody = await readBody(req);
-        const parsed = rawBody ? JSON.parse(rawBody) : {};
-        const description = sanitizePromptText(String(parsed?.description || ''), 500);
+        try {
+          const rawBody = await readBody(req);
+          const parsed = rawBody ? JSON.parse(rawBody) : {};
+          const description = sanitizePromptText(String(parsed?.description || ''), 500);
         const race = sanitizePromptText(String(parsed?.race || ''), 80);
         const className = sanitizePromptText(String(parsed?.className || ''), 80);
 
-        const prompt = [
-          'High fantasy character portrait. Head-and-shoulders. Detailed. Dramatic lighting. Neutral background.',
-          race ? `Race: ${race}.` : '',
-          className ? `Class: ${className}.` : '',
-          description ? `Description: ${description}` : '',
-          'No text. No UI. No watermark.'
-        ].filter(Boolean).join(' ');
+          const prompt = [
+            'High fantasy character portrait. Head-and-shoulders. Detailed. Dramatic lighting. Neutral background.',
+            race ? `Race: ${race}.` : '',
+            className ? `Class: ${className}.` : '',
+            description ? `Description: ${description}` : '',
+            'No text. No UI. No watermark.'
+          ].filter(Boolean).join(' ');
 
-        const url = await generatePortraitWithStitch(prompt);
-        json({ url });
+        try {
+          const url = await generatePortraitWithStitch(prompt);
+          json({ url, provider: 'stitch' });
+          return;
+        } catch (stitchErr) {
+          const stitchMessage = stitchErr instanceof Error ? stitchErr.message : String(stitchErr);
+          console.warn(`[portraits] Stitch failed, falling back to image-gen. ${stitchMessage}`);
+
+          const url = await generatePortraitWithImageGen(prompt);
+          json({ url, provider: 'image-gen' });
+          return;
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         // Surface common Stitch setup issues with a clearer hint.
@@ -541,7 +681,30 @@ const portraitApiManager = () => ({
             error: [
               'Stitch is not authenticated on this machine.',
               `Run: ${configHint}gcloud.cmd auth application-default login`,
-              'Then retry portrait generation.'
+              'Then retry portrait generation. (This endpoint will also attempt an image-gen fallback if configured.)'
+            ].join(' ')
+          }, 500);
+          return;
+        }
+
+        if (/Could not connect to Chrome DevTools/i.test(message) || /npm run mcp:chrome/i.test(message)) {
+          json({
+            error: [
+              'Portrait generation could not connect to the debug Chrome session (CDP).',
+              'Run: npm run mcp:chrome',
+              'In that Chrome window: open https://gemini.google.com/app, accept consent/sign in, then retry.',
+              `Details: ${message}`
+            ].join(' ')
+          }, 500);
+          return;
+        }
+
+        if (/Before you continue/i.test(message) || /Could not find prompt input for gemini/i.test(message)) {
+          json({
+            error: [
+              'Gemini browser automation is blocked by a consent/sign-in screen.',
+              'Preferred fix: npm run mcp:chrome (launch debug Chrome on :9222), open Gemini in that window, accept consent/sign in, then retry.',
+              'Fallback fix: npm run image-gen:login (Playwright profile) and accept consent/sign in there.'
             ].join(' ')
           }, 500);
           return;

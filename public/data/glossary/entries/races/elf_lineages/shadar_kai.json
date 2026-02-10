@@ -3,7 +3,6 @@
   "title": "Shadar-kai",
   "category": "Character Races",
   "entryLore": "Shadar-kai are the elves of the Shadowfell, a bleak and haunted realm where emotion itself feels muted. They were once drawn to the Shadowfell by the Raven Queen, and over the centuries, some of them have been transformed by it, gaining supernatural abilities. Their skin ranges from alabaster to deep ebony, and many adorn themselves with elaborate tattoos, piercings, and scars. The shadar-kai serve the Raven Queen and act as her agents in the multiverse. They are grim but not without emotion—they simply express it differently, valuing passion and intensity in all things as a way to feel truly alive.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "MPMM",
   "baseRace": "elf",
   "lore": {
@@ -81,5 +80,7 @@
     "charmed",
     "necrotic_damage"
   ],
-  "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json"
+  "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json",
+  "maleImageUrl": "/assets/images/races/Shadar-kai_Male.png",
+  "femaleImageUrl": "/assets/images/races/Shadar-kai_Female.png"
 }

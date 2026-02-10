@@ -80,6 +80,7 @@ describe('characterReducer', () => {
             id: 'long-rest-char',
             hp: 3,
             maxHp: 10,
+            level: 2, // Set level to 2 to support 2 max hit dice
             hitPointDice: [{ die: 8, current: 0, max: 2 }]
         });
         const state = { ...initialState, party: [character] } as GameState;

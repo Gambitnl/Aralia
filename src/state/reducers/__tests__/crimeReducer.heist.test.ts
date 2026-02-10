@@ -100,7 +100,7 @@ describe('crimeReducer - Heist Logic', () => {
         const newState = crimeReducer(currentState, action);
 
         expect(newState.activeHeist?.turnsElapsed).toBe(1);
-        expect(newState.activeHeist?.alertLevel).toBe(15);
+        expect(newState.activeHeist?.alertLevel).toBe(30); // 15 * 2 (failure penalty)
         expect(newState.messages?.[newState.messages.length - 1].text).toContain('Failed');
     });
 

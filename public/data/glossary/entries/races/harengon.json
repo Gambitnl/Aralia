@@ -3,7 +3,6 @@
   "title": "Harengon",
   "category": "Character Races",
   "entryLore": "Harengon are rabbit-folk native to the Feywild, though many have migrated to other planes. They are known for their luck, quick reflexes, and boundless energy. Harengon embody the spirit of freedom and adventure, often finding themselves unable to stay in one place for long. Their large feet allow them to make impressive leaps, and their keen senses and natural agility make them excellent scouts and explorers. Many harengon carry a touch of fey magic that manifests as uncanny luck.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "MPMM",
   "lore": {
     "typicalDwelling": "Harengon live in vibrant, well-integrated dwellings within the shifting landscapes of the Feywild or in quiet, sun-drenched meadows of the Material Plane. Their homes often feature cozy, well-ventilated burrows, lightweight treetop bridges, and central gathering areas for communal dancing and the exchange of news. They value mobility and social interaction, their living spaces often organized with shared central areas for gathering and the exchange of stories. Their homes are filled with a variety of interesting objects they have collected, reflecting a mind that values travel and spiritual exploration.",
@@ -66,5 +65,7 @@
     "fey",
     "feywild"
   ],
-  "filePath": "/data/glossary/entries/races/harengon.json"
+  "filePath": "/data/glossary/entries/races/harengon.json",
+  "maleImageUrl": "/assets/images/races/Harengon_Male.png",
+  "femaleImageUrl": "/assets/images/races/Harengon_Female.png"
 }

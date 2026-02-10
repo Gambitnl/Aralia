@@ -3,7 +3,6 @@
   "title": "Astral Elf",
   "category": "Character Races",
   "entryLore": "Long ago, groups of elves ventured from the Feywild to the Astral Plane to be closer to their gods. Life in the Silver Void has imbued their souls with a spark of divine light. That light manifests as a starry gleam in an astral elf's eyes. Because nothing ages in the Astral Plane, astral elves who inhabit that plane can be very old, and their longevity gives them an unusual perspective on the flow of time. Some are prone to melancholy, while others display an uncharacteristic elven brightness. Many seek to return to the Material Plane to experience life as other mortals do, finding the passage of time strangely exhilarating.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "AAG",
   "baseRace": "elf",
   "lore": {

@@ -8,5 +8,9 @@
     "allowImportingTsExtensions": true,
     "emitDeclarationOnly": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "scripts/image-gen-mcp.ts",
+    "scripts/raceImageStatus.ts"
+  ]
 }

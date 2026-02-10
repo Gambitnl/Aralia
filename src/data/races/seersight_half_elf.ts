@@ -7,7 +7,7 @@ import { Race } from '../../types';
 
 export const MARK_OF_DETECTION_HALF_ELF_DATA: Race = {
   id: 'seersight_half_elf',
-  name: 'Half-Elf (Seersight)',
+  name: 'Seersight Half-Elf',
   baseRace: 'half_elf',
   description:
     'Born with an arcane sigil that grants powers of observation and insight, half-elves bearing the Mark of Detection possess an almost supernatural awareness of their surroundings. This hereditary gift manifests as a glowing pattern on the skin, awakening enhanced senses that pierce through deception and reveal hidden truths. Those with this mark are sought after as investigators, bodyguards, and advisors, their ability to perceive danger and uncover secrets making them invaluable in matters requiring discernment and protection.',

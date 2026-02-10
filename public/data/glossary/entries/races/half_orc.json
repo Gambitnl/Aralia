@@ -1,0 +1,55 @@
+{
+  "id": "half_orc",
+  "title": "Half-Orc",
+  "category": "Character Races",
+  "entryLore": "Half-orcs are individuals who carry the resilient and powerful heritage of orcs combined with the versatility of humans. In the 2024 rules, they are categorized under 'Children of Different Kindreds,' allowing players to determine their appearance through a blend of both lineages while adopting the mechanical traits of one parent. They are often known for their great endurance and the fierce determination that allows them to thrive in the face of adversity.",
+  "source": "PHB 2024",
+  "lore": {
+    "typicalDwelling": "Half-orcs find homes wherever their strength and determination earn them a place. Many live in human frontier towns where their physical prowess is valued for defense and labor. Others make their way in cities, working as guards, laborers, or soldiers. Some half-orcs live among orc tribes, where they must constantly prove their worth through strength. Their homes are typically practical rather than comfortable—a half-orc values security and function over decoration. Military barracks, working-class apartments, or sturdy farmhouses are all common.",
+    "typicalAttire": "Half-orc clothing prioritizes durability and freedom of movement. Leather, canvas, and heavy wool are preferred over delicate fabrics. Many dress to project strength and capability: well-maintained equipment, practical boots, and garments that show off their muscular builds. Jewelry, when worn, tends toward bold pieces—heavy chains, thick rings, or trophies from battles and hunts. Some half-orcs dress carefully to appear less threatening; others embrace an intimidating aesthetic. Colors tend toward earth tones, blacks, and dark reds.",
+    "typicalEnvironment": "Half-orcs gravitate toward places that value physical ability and direct action. Frontier settlements, military outposts, mining towns, and other rugged environments suit them well. Many serve as guards, mercenaries, or laborers in urban areas. Some seek acceptance in orcish lands, while others distance themselves entirely from that heritage. They often prefer environments where they're judged by their actions rather than their appearance—places where proving oneself through deeds is the primary social currency.",
+    "societyType": "Half-orcs rarely form their own communities but carve out places within existing societies through demonstrated ability. They're often found in military organizations, mercenary companies, and labor guilds—structured environments where competence and toughness are valued. Family structures vary: some are raised by human mothers with little knowledge of their orcish heritage, while others grow up in orc tribes. Many half-orcs feel they must constantly prove themselves, driving them toward achievement.",
+    "typicalAssociation": "Half-orcs show a wide range of alignments, though many lean toward chaos—a tendency possibly inherited from their orc ancestors. Their upbringing matters enormously: half-orcs raised in accepting communities often become heroic defenders, while those raised in hostile environments may develop bitter or aggressive tendencies. Many struggle against the expectation that they'll be brutish or stupid, channeling that frustration into proving themselves through deeds. They tend toward directness, valuing action over talk.",
+    "physicalAppearance": "Half-orcs are imposing figures, typically standing 5'10\" to 6'6\" with powerful, muscular builds weighing 180-250 pounds. Their skin ranges from human tones to grayish-green or olive, with some showing a more pronounced greenish or grayish cast. Facial features vary widely: some half-orcs appear mostly human with only slight orcish hints, while others display prominent lower tusks, sloping foreheads, and jutting jaws. Hair is usually black or dark brown, often coarse, worn in practical styles or shaved. Their eyes can be human colors or more unusual shades like yellow or red. Scars are common and often worn proudly. Their hands are large and powerful, and their movements convey raw physical strength. Despite their intimidating appearance, their expressions can convey the full range of emotion."
+  },
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Different Kindreds",
+      "icon": "heart",
+      "description": "As a child of different kindreds, you choose whether to inherit the traits of your [[human|Human]] parent or your [[orc|Orc]] parent. Regardless of your choice, you can manifest physical features of both lineages, such as a sturdy, muscled build or more pronounced facial features characteristic of your orcish heritage."
+    }
+  ],
+  "tags": [
+    "race",
+    "half-orc",
+    "human",
+    "orc",
+    "humanoid"
+  ],
+  "aliases": [
+    "kindred",
+    "half-orc"
+  ],
+  "seeAlso": [
+    "human",
+    "orc",
+    "humanoid"
+  ],
+  "filePath": "/data/glossary/entries/races/half_orc.json",
+  "maleImageUrl": "/assets/images/races/Half_Orc_Male.png",
+  "femaleImageUrl": "/assets/images/races/Half_Orc_Female.png"
+}

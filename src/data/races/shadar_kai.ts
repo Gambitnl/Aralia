@@ -27,7 +27,7 @@ export const SHADAR_KAI_DATA: Race = {
   visual: {
     id: 'shadar_kai',
     color: '#2F4F4F',
-    maleIllustrationPath: 'assets/images/races/shadar_kai_male.png',
-    femaleIllustrationPath: 'assets/images/races/shadar_kai_female.png',
+    maleIllustrationPath: 'assets/images/races/Shadar-kai_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Shadar-kai_Female.png',
   },
 };

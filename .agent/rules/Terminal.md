@@ -50,6 +50,7 @@ This guide tracks common issues encountered when running terminal commands and p
   - **Solution:** Use `Out-File -Encoding utf8` or `Set-Content -Encoding utf8` if the file must be read by environment tools, or use `Get-Content` to view it in the terminal.
 - **Execution Policy:** If scripts fail to run, check the PowerShell Execution Policy (`Get-ExecutionPolicy`).
 - **Spawning Shell Processes:** When using Node's `child_process.spawn` or `exec` on Windows to run commands like `npx`, always set `{ shell: true }` in the options. This ensures that `.cmd` and `.ps1` wrappers are correctly handled by the system shell.
+  - **Stitch MCP Specific:** The `@_davideast/stitch-mcp` library fails on Windows with `spawn EINVAL` because it lacks this handling. Patching `cli.js` to wrap commands in `cmd.exe /c` or setting `{ shell: true }` is required.
 
 ## Execution Best Practices
 
@@ -61,12 +62,15 @@ This guide tracks common issues encountered when running terminal commands and p
   - PowerShell to null: `command | Out-Null` or `command > $null 2>&1`
 - **Async Management:** For long-running commands (like `gemini --yolo`), use the background execution capability and monitor status via `command_status` helper tools.
 - **Exit Code Interpretation:** Some commands (like `npx tsc --noEmit`) may return non-zero exit codes due to pre-existing errors. Filter the output with `Select-String` to focus on your changes rather than relying solely on the exit code.
-  - **TSC Formatting:** Use `--pretty false` when redirecting `tsc` output to a file (e.g., `npx tsc --noEmit --pretty false > tsc.log`) to avoid ANSI escape codes in the log file.
-- **Tool Issues:** If a specific tool like `grep_search` fails with internal OS errors (e.g., missing `.antigravityignore` or special files like `nul`), fallback to `run_command` with native CLI tools.
-- **Log Encoding (UTF-16LE):** Files like `test_output.log` are often encoded in `UTF-16LE` (Unicode). standard `view_file` or `type` commands may fail or show scramble.
-  - **Solution:** Use PowerShell with the encoding flag: `Get-Content -Path "test_output.log" -Encoding Unicode`.
-- **Special File Conflicts (nul):** The `nul` file in the project root causes `Select-String` and other recursive PowerShell commands to fail.
-  - **Solution:** Explicitly exclude `nul` or use `git grep` which respects `.gitignore`.
-- **Node Spawn on Windows:** When using `child_process.spawn` or `exec` on Windows, ALWAYS set `{ shell: true }` to avoid `ENOENT` errors when calling `.cmd` or `.ps1` wrappers (like `npx`).
-- **Rapid-Fire File Edits:** When performing multiple `multi_replace_file_content` calls on a single file, ensure each call is followed by a `view_file` to resync line numbers. Overlapping or rapid non-atomic edits can lead to catastrophic file corruption if internal line-tracking state desyncs from the actual file state.
-- **TSC Exit Codes:** `npx tsc --noEmit` on this project often returns exit code 1 due to pre-existing `node_modules` (Zod/fa) interop issues. Focus on specific file errors in the output rather than the final exit code.
+    - **TSC Formatting:** Use `--pretty false` when redirecting `tsc` output to a file (e.g., `npx tsc --noEmit --pretty false > tsc.log`) to avoid ANSI escape codes in the log file.
+  - **Tool Issues:** If a specific tool like `grep_search` fails with internal OS errors (e.g., missing `.antigravityignore` or special files like `nul`), fallback to `run_command` with native CLI tools.
+  - **Log Encoding (UTF-16LE):** Files like `test_output.log` are often encoded in `UTF-16LE` (Unicode). standard `view_file` or `type` commands may fail or show scramble.
+    - **Solution:** Use PowerShell with the encoding flag: `Get-Content -Path "test_output.log" -Encoding Unicode`.
+  - **Special File Conflicts (nul):** The `nul` file in the project root causes `Select-String` and other recursive PowerShell commands to fail.
+    - **Solution:** Explicitly exclude `nul` or use `git grep` which respects `.gitignore`.
+  - **Node Spawn on Windows:** When using `child_process.spawn` or `exec` on Windows, ALWAYS set `{ shell: true }` to avoid `ENOENT` errors when calling `.cmd` or `.ps1` wrappers (like `npx`).
+  - **Rapid-Fire File Edits:** When performing multiple `multi_replace_file_content` calls on a single file, ensure each call is followed by a `view_file` to resync line numbers. Overlapping or rapid non-atomic edits can lead to catastrophic file corruption if internal line-tracking state desyncs from the actual file state.
+  - **TSC Exit Codes:** `npx tsc --noEmit` on this project often returns exit code 1 due to pre-existing `node_modules` (Zod/fa) interop issues. Focus on specific file errors in the output rather than the final exit code.
+  - **Vitest Watch Mode:** Vitest runs in watch mode by default. Always use `npx vitest run` or `npm run test -- --run` to ensure the command exits after a single pass.
+  - **Ignored Directories:** Tests in `.agent_tools/` are often environment-specific or bundle-dependent and may fail in CI/CLI contexts. Focus testing on `src/` and `tests/` directories unless debugging tool internals.
+  

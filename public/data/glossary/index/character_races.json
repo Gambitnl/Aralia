@@ -3,7 +3,7 @@
     "id": "group_aasimar",
     "title": "Aasimar",
     "category": "Character Races",
-    "excerpt": "Celestial-blooded mortals and their variants.",
+    "excerpt": "Aasimar are mortals infused with celestial power, bearing the divine spark of the Upper Planes. They possess transformative revelations that manifest their celestial nature.",
     "filePath": null,
     "subEntries": [
       {
@@ -18,7 +18,7 @@
           "humanoid",
           "fear"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Fallen aasimar are those touched by dark powers as a youth or who have turned to evil in early adulthood.",
         "aliases": [],
         "seeAlso": [
           "aasimar",
@@ -41,7 +41,7 @@
           "humanoid",
           "flight"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Protector aasimar are charged by the powers of good to guard the weak, strike at evil wherever it arises, and stand vigilant against the da…",
         "aliases": [],
         "seeAlso": [
           "aasimar",
@@ -63,7 +63,7 @@
           "humanoid",
           "radiant aura"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Scourge aasimar are imbued with a divine energy that blazes intensely within them.",
         "aliases": [],
         "seeAlso": [
           "aasimar",
@@ -76,33 +76,10 @@
     ]
   },
   {
-    "id": "autognome",
-    "title": "Autognome",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "autognome",
-      "construct",
-      "spelljammer",
-      "mechanical"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [
-      "mechanical gnome",
-      "clockwork gnome"
-    ],
-    "seeAlso": [
-      "construct",
-      "gnome",
-      "mending"
-    ],
-    "filePath": "/data/glossary/entries/races/autognome.json"
-  },
-  {
     "id": "group_beastfolk",
     "title": "Beastfolk",
     "category": "Character Races",
-    "excerpt": "Humanoids with animalistic features.",
+    "excerpt": "Beastfolk are humanoids with animalistic features, ranging from avian to reptilian to mammalian traits. Each possesses unique abilities tied to their animal nature.",
     "filePath": null,
     "subEntries": [
       {
@@ -118,7 +95,7 @@
           "talons",
           "wind caller"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "A winged people originating from the Elemental Plane of Air, aarakocra soar through the sky with grace.",
         "aliases": [],
         "seeAlso": [
           "humanoid",
@@ -139,7 +116,7 @@
           "beastfolk",
           "military"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Giff are hippo-headed humanoids of impressive size who are renowned across the multiverse for their martial prowess and their love of firea…",
         "aliases": [
           "hippofolk",
           "space hippo"
@@ -162,7 +139,7 @@
           "beastfolk",
           "glide"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Hadozee are simian humanoids with wing-like flaps of skin that extend from their arms to their legs, allowing them to glide through the air.",
         "aliases": [
           "deck ape",
           "gliding monkey"
@@ -184,7 +161,7 @@
           "fey",
           "rabbit"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Harengon are rabbit-folk native to the Feywild, though many have migrated to other planes.",
         "aliases": [
           "rabbitfolk",
           "harefolk"
@@ -208,7 +185,7 @@
           "humanoid",
           "raven"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Kenku are feathered folk whose roots trace back to the shadow of the raven.",
         "aliases": [],
         "seeAlso": [
           "humanoid",
@@ -230,7 +207,7 @@
           "beastfolk",
           "lion"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Leonin are fierce, lion-like humanoids who dwell in the golden savannas of Theros.",
         "aliases": [
           "lionfolk"
         ],
@@ -251,7 +228,7 @@
           "swimmer",
           "natural armor"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Lizardfolk are ancient reptilian humanoids who primarily inhabit swamps and jungles.",
         "aliases": [],
         "seeAlso": [
           "humanoid",
@@ -273,7 +250,7 @@
           "beastfolk",
           "elephant"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Loxodon are elephant-like humanoids native to the plane of Ravnica, where they are known for their calm demeanor, strong sense of community…",
         "aliases": [
           "elephantfolk"
         ],
@@ -295,7 +272,7 @@
           "strength",
           "horns"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Minotaur are powerful, bull-headed humanoids known for their immense strength and martial prowess.",
         "aliases": [],
         "seeAlso": [
           "humanoid",
@@ -316,7 +293,7 @@
           "climb",
           "humanoid"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Curious and agile catlike humanoids, tabaxi are driven by a desire to uncover secrets and collect stories.",
         "aliases": [],
         "seeAlso": [
           "humanoid",
@@ -340,7 +317,7 @@
           "insectoid",
           "mantis"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Thri-kreen are insectoid humanoids who originated on the deserts of the world Athas but can be found in Wildspace and the Astral Plane.",
         "aliases": [
           "mantis warrior",
           "mantis folk"
@@ -362,7 +339,7 @@
           "defensive",
           "natural armor"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Tortles are turtle-like humanoids who lead a simple and often nomadic life.",
         "aliases": [],
         "seeAlso": [
           "humanoid",
@@ -372,7 +349,7 @@
         "filePath": "/data/glossary/entries/races/tortle.json"
       },
       {
-        "id": "yuan-ti",
+        "id": "yuan_ti",
         "title": "Yuan-Ti",
         "category": "Character Races",
         "tags": [
@@ -382,9 +359,10 @@
           "magic resistance",
           "poison"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Yuan-ti are people who possess serpentine features, ranging from scales and slitted pupils to more drastic snakelike traits.",
         "aliases": [
-          "snake-folk"
+          "snake-folk",
+          "yuan-ti"
         ],
         "seeAlso": [
           "humanoid",
@@ -392,107 +370,73 @@
           "poison_damage",
           "serpentine_casting"
         ],
-        "filePath": "/data/glossary/entries/races/yuan-ti.json"
+        "filePath": "/data/glossary/entries/races/yuan_ti.json"
       }
     ]
   },
   {
-    "id": "bugbear",
-    "title": "Bugbear",
+    "id": "group_constructed",
+    "title": "Constructed",
     "category": "Character Races",
-    "tags": [
-      "race",
-      "bugbear",
-      "goblinoid",
-      "fey",
-      "stealth",
-      "surprise attack"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "goblinoid",
-      "darkvision",
-      "fey_ancestry",
-      "powerful_build",
-      "stealth"
-    ],
-    "filePath": "/data/glossary/entries/races/bugbear.json"
-  },
-  {
-    "id": "centaur",
-    "title": "Centaur",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "centaur",
-      "fey",
-      "equine",
-      "charge",
-      "hooves"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "fey",
-      "charge",
-      "hooves",
-      "natural_affinity"
-    ],
-    "filePath": "/data/glossary/entries/races/centaur.json"
-  },
-  {
-    "id": "changeling",
-    "title": "Changeling",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "changeling",
-      "fey",
-      "shapechanger",
-      "deception"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "fey",
-      "changeling_instincts",
-      "shapechanger"
-    ],
-    "filePath": "/data/glossary/entries/races/changeling.json"
-  },
-  {
-    "id": "group_dragonborn",
-    "title": "Dragonborn",
-    "category": "Character Races",
-    "excerpt": "Dragonborn traits and draconic ancestries.",
+    "excerpt": "Constructed beings are sentient creatures built rather than born. Whether forged for war or crafted by gnomish ingenuity, they possess mechanical bodies animated by magic or the spark of life.",
     "filePath": null,
     "subEntries": [
       {
-        "id": "dragonborn",
-        "title": "Dragonborn",
+        "id": "autognome",
+        "title": "Autognome",
         "category": "Character Races",
         "tags": [
           "race",
-          "dragonborn",
-          "draconic",
-          "scales",
-          "breath weapon",
-          "humanoid"
+          "autognome",
+          "construct",
+          "spelljammer",
+          "mechanical"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Autognomes are mechanical beings built by rock gnomes in their image, usually with a specific purpose in mind.",
         "aliases": [
-          "dragon-kin",
-          "scaled ones"
+          "mechanical gnome",
+          "clockwork gnome"
         ],
         "seeAlso": [
-          "draconic_ancestry",
-          "breath_weapon",
-          "damage_resistance",
-          "darkvision"
+          "construct",
+          "gnome",
+          "mending"
         ],
-        "filePath": "/data/glossary/entries/races/dragonborn.json"
+        "filePath": "/data/glossary/entries/races/autognome.json"
       },
+      {
+        "id": "warforged",
+        "title": "Warforged",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "warforged",
+          "humanoid",
+          "eberron",
+          "construct-like",
+          "living construct"
+        ],
+        "excerpt": "Warforged are living constructs created during the Last War of Eberron to serve as soldiers.",
+        "aliases": [
+          "living construct",
+          "forged"
+        ],
+        "seeAlso": [
+          "humanoid",
+          "poisoned",
+          "poison_damage"
+        ],
+        "filePath": "/data/glossary/entries/races/warforged.json"
+      }
+    ]
+  },
+  {
+    "id": "group_draconic_kin",
+    "title": "Draconic Kin",
+    "category": "Character Races",
+    "excerpt": "Draconic Kin are humanoids touched by dragon blood. From the proud dragonborn to the cunning kobolds, they share a connection to dragonkind that grants them breath weapons, elemental resistance, or draconic cunning.",
+    "filePath": null,
+    "subEntries": [
       {
         "id": "black_dragonborn",
         "title": "Black Dragonborn",
@@ -503,7 +447,7 @@
           "black",
           "acid"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the cruel and predatory black dragons of the swamps, these dragonborn carry the power of acid in their breath.",
         "aliases": [
           "black ancestry"
         ],
@@ -524,7 +468,7 @@
           "blue",
           "lightning"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the regal and manipulative blue dragons of the deserts, these dragonborn command the power of lightning.",
         "aliases": [
           "blue ancestry"
         ],
@@ -545,7 +489,7 @@
           "brass",
           "fire"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the gregarious and talkative brass dragons of the hot deserts, these dragonborn command the power of fire.",
         "aliases": [
           "brass ancestry"
         ],
@@ -566,7 +510,7 @@
           "bronze",
           "lightning"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the inquisitive and protective bronze dragons of the coastal caves, these dragonborn command the power of lightning.",
         "aliases": [
           "bronze ancestry"
         ],
@@ -587,7 +531,7 @@
           "copper",
           "acid"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the witty and prankish copper dragons of the rocky hills, these dragonborn command the power of acid.",
         "aliases": [
           "copper ancestry"
         ],
@@ -599,6 +543,30 @@
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/copper.json"
       },
       {
+        "id": "draconblood_dragonborn",
+        "title": "Draconblood Dragonborn",
+        "category": "Character Races",
+        "tags": [
+          "dragonborn",
+          "draconblood",
+          "exandria",
+          "wildemount",
+          "arcane"
+        ],
+        "excerpt": "Draconblood dragonborn are the product of selective breeding by the draconic sorcerers of ancient Draconia in the world of Exandria.",
+        "aliases": [
+          "draconblood"
+        ],
+        "seeAlso": [
+          "dragonborn",
+          "ravenite_dragonborn",
+          "thaumaturgy",
+          "comprehend_languages",
+          "detect_magic"
+        ],
+        "filePath": "/data/glossary/entries/races/dragonborn_ancestries/draconblood.json"
+      },
+      {
         "id": "gold_dragonborn",
         "title": "Gold Dragonborn",
         "category": "Character Races",
@@ -608,7 +576,7 @@
           "gold",
           "fire"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the noble and wise gold dragons of the sun-drenched peaks, these dragonborn command the power of fire.",
         "aliases": [
           "gold ancestry"
         ],
@@ -629,7 +597,7 @@
           "green",
           "poison"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the cunning and deceptive green dragons of the dense forests, these dragonborn command the power of poison.",
         "aliases": [
           "green ancestry"
         ],
@@ -641,6 +609,49 @@
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/green.json"
       },
       {
+        "id": "kobold",
+        "title": "Kobold",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "kobold",
+          "draconic",
+          "small",
+          "humanoid"
+        ],
+        "excerpt": "Small and clever, kobolds are distant kin of dragons.",
+        "aliases": [],
+        "seeAlso": [
+          "humanoid",
+          "darkvision",
+          "draconic_cry",
+          "kobold_legacy"
+        ],
+        "filePath": "/data/glossary/entries/races/kobold.json"
+      },
+      {
+        "id": "ravenite_dragonborn",
+        "title": "Ravenite Dragonborn",
+        "category": "Character Races",
+        "tags": [
+          "dragonborn",
+          "ravenite",
+          "exandria",
+          "wildemount",
+          "warrior"
+        ],
+        "excerpt": "Ravenite dragonborn were once enslaved by the draconblood aristocracy but rose up to destroy the nation of Draconia.",
+        "aliases": [
+          "ravenite"
+        ],
+        "seeAlso": [
+          "dragonborn",
+          "draconblood_dragonborn",
+          "reaction"
+        ],
+        "filePath": "/data/glossary/entries/races/dragonborn_ancestries/ravenite.json"
+      },
+      {
         "id": "red_dragonborn",
         "title": "Red Dragonborn",
         "category": "Character Races",
@@ -650,7 +661,7 @@
           "red",
           "fire"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the arrogant and covetous red dragons of the mountain peaks, these dragonborn command the power of fire.",
         "aliases": [
           "red ancestry"
         ],
@@ -671,7 +682,7 @@
           "silver",
           "cold"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the friendly and altruistic silver dragons of the cloud-veiled peaks, these dragonborn command the power of cold.",
         "aliases": [
           "silver ancestry"
         ],
@@ -692,7 +703,7 @@
           "white",
           "cold"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from the feral and bestial white dragons of the ice-capped mountains, these dragonborn command the power of cold.",
         "aliases": [
           "white ancestry"
         ],
@@ -709,7 +720,7 @@
     "id": "group_dwarf",
     "title": "Dwarf",
     "category": "Character Races",
-    "excerpt": "Dwarven lineages and related variants.",
+    "excerpt": "Dwarves are stout, resilient folk known for their craftsmanship, endurance, and deep connection to stone and earth. They excel as warriors, smiths, and artisans.",
     "filePath": null,
     "subEntries": [
       {
@@ -723,7 +734,7 @@
           "underdark",
           "psionic"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Duergar are dwarves whose ancestors were transformed by centuries living in the deepest places of the Underdark.",
         "aliases": [
           "gray dwarf"
         ],
@@ -745,7 +756,7 @@
           "hill dwarf",
           "humanoid"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Hill dwarves possess keen senses, deep intuition, and remarkable resilience.",
         "aliases": [
           "hillfolk",
           "surface dwarf"
@@ -769,7 +780,7 @@
           "armored",
           "warrior"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Mountain dwarves are strong and hardy, accustomed to a difficult life in rugged terrain.",
         "aliases": [],
         "seeAlso": [
           "dwarf",
@@ -792,7 +803,7 @@
           "eberron",
           "house kundarak"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Warding grants power over protection and security.",
         "aliases": [
           "warding dwarf",
           "kundarak"
@@ -810,30 +821,9 @@
     "id": "group_eladrin",
     "title": "Eladrin",
     "category": "Character Races",
-    "excerpt": "Seasonal eladrin variants and traits.",
+    "excerpt": "Eladrin are elves native to the Feywild who embody the seasons. Their emotions and abilities shift with the seasons, from joyful spring to melancholy winter.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "eladrin",
-        "title": "Eladrin",
-        "category": "Character Races",
-        "tags": [
-          "elf",
-          "eladrin",
-          "fey",
-          "lineage"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "elf",
-          "fey_ancestry",
-          "fey_step",
-          "keen_senses",
-          "trance"
-        ],
-        "filePath": "/data/glossary/entries/races/eladrin.json"
-      },
       {
         "id": "autumn_eladrin",
         "title": "Autumn Eladrin",
@@ -847,7 +837,7 @@
           "feywild",
           "peaceful"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "When an eladrin is in the autumn season, they embody peace and goodwill, sharing freely with others and spreading kindness wherever they go.",
         "aliases": [],
         "seeAlso": [
           "eladrin",
@@ -870,7 +860,7 @@
           "feywild",
           "joyful"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "When an eladrin is in the spring season, they are filled with unbridled joy and hope, overflowing with energy and enthusiasm.",
         "aliases": [],
         "seeAlso": [
           "eladrin",
@@ -893,7 +883,7 @@
           "feywild",
           "fierce"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "When an eladrin is in the summer season, they burn with aggressive energy and fierce determination.",
         "aliases": [],
         "seeAlso": [
           "eladrin",
@@ -917,7 +907,7 @@
           "feywild",
           "sorrowful"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "When an eladrin is in the winter season, they reflect sorrow and melancholy, withdrawing into contemplation and introspection.",
         "aliases": [],
         "seeAlso": [
           "eladrin",
@@ -934,37 +924,9 @@
     "id": "group_elf",
     "title": "Elf",
     "category": "Character Races",
-    "excerpt": "Elven lineages and related variants.",
+    "excerpt": "Elves are magical people of otherworldly grace, known for their keen senses, connection to the Feywild, and mastery of magic and nature. Each elven lineage reflects different aspects of elven culture.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "elf",
-        "title": "Elf",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "elf",
-          "fey",
-          "humanoid"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "elfkind",
-          "firstborn",
-          "elves"
-        ],
-        "seeAlso": [
-          "darkvision",
-          "fey_ancestry",
-          "trance",
-          "keen_senses",
-          "drow_lineage",
-          "high_elf_lineage",
-          "wood_elf_lineage",
-          "eladrin"
-        ],
-        "filePath": "/data/glossary/entries/races/elf.json"
-      },
       {
         "id": "astral_elf",
         "title": "Astral Elf",
@@ -977,7 +939,7 @@
           "spelljammer",
           "astral plane"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Long ago, groups of elves ventured from the Feywild to the Astral Plane to be closer to their gods.",
         "aliases": [],
         "seeAlso": [
           "elf",
@@ -996,7 +958,7 @@
           "underdark",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from elves who were once drawn into the Underdark, drow possess superior darkvision and unique innate magic.",
         "aliases": [
           "dark elf"
         ],
@@ -1019,7 +981,7 @@
           "arcane",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Heirs to elves infused with the magic of the Feywild, high elves are naturally adept at arcane arts.",
         "aliases": [
           "sun elf",
           "moon elf"
@@ -1046,7 +1008,7 @@
           "critical role",
           "exandria"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Pallid elves are a subrace of elves unique to Exandria, dwelling in the shadowed recesses of the Pallid Grove in the Greying Wildlands.",
         "aliases": [
           "pallid"
         ],
@@ -1071,7 +1033,7 @@
           "aquatic",
           "underwater"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Sea elves fell in love with the wild beauty of the ocean in the earliest days of the multiverse.",
         "aliases": [
           "aquatic elf"
         ],
@@ -1094,7 +1056,7 @@
           "shadowfell",
           "raven queen"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Shadar-kai are the elves of the Shadowfell, a bleak and haunted realm where emotion itself feels muted.",
         "aliases": [
           "shadow elf"
         ],
@@ -1105,30 +1067,6 @@
           "necrotic_damage"
         ],
         "filePath": "/data/glossary/entries/races/elf_lineages/shadar_kai.json"
-      },
-      {
-        "id": "wood_elf",
-        "title": "Wood Elf Lineage",
-        "category": "Character Races",
-        "tags": [
-          "elf",
-          "wood elf",
-          "nature",
-          "lineage"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "wild elf",
-          "green elf"
-        ],
-        "seeAlso": [
-          "elf",
-          "druidcraft",
-          "longstrider",
-          "pass_without_trace",
-          "speed"
-        ],
-        "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json"
       },
       {
         "id": "shadowveil_elf",
@@ -1144,7 +1082,7 @@
           "house phiarlan",
           "house thuranni"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Shadow grants power over illusion and darkness.",
         "aliases": [
           "shadow elf",
           "phiarlan",
@@ -1156,56 +1094,131 @@
           "invisibility"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/shadowveil_elf.json"
+      },
+      {
+        "id": "wood_elf",
+        "title": "Wood Elf Lineage",
+        "category": "Character Races",
+        "tags": [
+          "elf",
+          "wood elf",
+          "nature",
+          "lineage"
+        ],
+        "excerpt": "Embodying the spirit of primeval forests, wood elves are swift, perceptive, and have a primal connection to nature.",
+        "aliases": [
+          "wild elf",
+          "green elf"
+        ],
+        "seeAlso": [
+          "elf",
+          "druidcraft",
+          "longstrider",
+          "pass_without_trace",
+          "speed"
+        ],
+        "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json"
       }
     ]
   },
   {
-    "id": "fairy",
-    "title": "Fairy",
+    "id": "group_feyfolk",
+    "title": "Feyfolk",
     "category": "Character Races",
-    "tags": [
-      "race",
-      "fairy",
-      "fey",
-      "flight",
-      "small"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "fey",
-      "fairy_magic",
-      "flight"
-    ],
-    "filePath": "/data/glossary/entries/races/fairy.json"
-  },
-  {
-    "id": "firbolg",
-    "title": "Firbolg",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "firbolg",
-      "giant-kin",
-      "fey",
-      "stealth",
-      "nature"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "firbolg_magic",
-      "hidden_step",
-      "powerful_build",
-      "speech_of_beast_and_leaf"
-    ],
-    "filePath": "/data/glossary/entries/races/firbolg.json"
+    "excerpt": "Feyfolk are creatures with deep ties to the Feywild or fey nature. From tiny fairies to towering firbolgs, they share an innate connection to wild magic and the natural world.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "centaur",
+        "title": "Centaur",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "centaur",
+          "fey",
+          "equine",
+          "charge",
+          "hooves"
+        ],
+        "excerpt": "Centaurs hail from the Feywild, mystically resonating with the natural world.",
+        "aliases": [],
+        "seeAlso": [
+          "fey",
+          "charge",
+          "hooves",
+          "natural_affinity"
+        ],
+        "filePath": "/data/glossary/entries/races/centaur.json"
+      },
+      {
+        "id": "fairy",
+        "title": "Fairy",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "fairy",
+          "fey",
+          "flight",
+          "small"
+        ],
+        "excerpt": "Fairies are a wee folk from the Feywild, infused with its primal magic.",
+        "aliases": [],
+        "seeAlso": [
+          "fey",
+          "fairy_magic",
+          "flight"
+        ],
+        "filePath": "/data/glossary/entries/races/fairy.json"
+      },
+      {
+        "id": "firbolg",
+        "title": "Firbolg",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "firbolg",
+          "giant-kin",
+          "fey",
+          "stealth",
+          "nature"
+        ],
+        "excerpt": "Firbolgs are distant cousins of giants who trace their origins to the primeval forests of the multiverse.",
+        "aliases": [],
+        "seeAlso": [
+          "firbolg_magic",
+          "hidden_step",
+          "powerful_build",
+          "speech_of_beast_and_leaf"
+        ],
+        "filePath": "/data/glossary/entries/races/firbolg.json"
+      },
+      {
+        "id": "satyr",
+        "title": "Satyr",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "satyr",
+          "fey",
+          "revelry",
+          "magic resistance"
+        ],
+        "excerpt": "Satyrs are fey beings who embody the revelry and wild spirit of the Feywild.",
+        "aliases": [],
+        "seeAlso": [
+          "fey",
+          "magic_resistance",
+          "mirthful_leaps"
+        ],
+        "filePath": "/data/glossary/entries/races/satyr.json"
+      }
+    ]
   },
   {
     "id": "group_genasi",
     "title": "Genasi",
     "category": "Character Races",
-    "excerpt": "Elemental genasi lineages.",
+    "excerpt": "Genasi trace their ancestry to the genies of the Elemental Planes. Each genasi manifests the power of their elemental heritage through innate magic and resistance.",
     "filePath": null,
     "subEntries": [
       {
@@ -1219,7 +1232,7 @@
           "lightning",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Air genasi are descended from djinn, the genies of the Elemental Plane of Air.",
         "aliases": [],
         "seeAlso": [
           "genasi",
@@ -1239,7 +1252,7 @@
           "stone",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Earth genasi trace their ancestry to dao, the genies of the Elemental Plane of Earth.",
         "aliases": [],
         "seeAlso": [
           "genasi",
@@ -1260,7 +1273,7 @@
           "efreeti",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Descended from efreet, the genies of the Elemental Plane of Fire, fire genasi channel the flamboyant and often destructive nature of flame.",
         "aliases": [],
         "seeAlso": [
           "genasi",
@@ -1281,7 +1294,7 @@
           "aquatic",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Water genasi descend from marids, aquatic genies from the Elemental Plane of Water.",
         "aliases": [],
         "seeAlso": [
           "genasi",
@@ -1297,7 +1310,7 @@
     "id": "group_gith",
     "title": "Gith",
     "category": "Character Races",
-    "excerpt": "Psionic peoples split between two cultures.",
+    "excerpt": "The gith are psionic peoples who escaped mind flayer enslavement millennia ago. Now split into two cultures—the warlike githyanki and the contemplative githzerai.",
     "filePath": null,
     "subEntries": [
       {
@@ -1311,7 +1324,7 @@
           "psionic",
           "humanoid"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Hailing from the Astral Plane, githyanki are psionic warriors who escaped eons of servitude to mind flayers.",
         "aliases": [],
         "seeAlso": [
           "astral_knowledge",
@@ -1332,7 +1345,7 @@
           "humanoid",
           "monk"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Githzerai are disciplined dwellers of the Everchanging Chaos of Limbo.",
         "aliases": [],
         "seeAlso": [
           "githzerai_psionics",
@@ -1347,7 +1360,7 @@
     "id": "group_gnome",
     "title": "Gnome",
     "category": "Character Races",
-    "excerpt": "Gnome lineages and variants.",
+    "excerpt": "Gnomes are magical folk known for their cleverness, curiosity, and mastery of illusion magic. Each gnome subrace reflects different aspects of gnomish ingenuity.",
     "filePath": null,
     "subEntries": [
       {
@@ -1361,7 +1374,7 @@
           "underdark",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Deep gnomes, or svirfneblin, are natives of the Underdark.",
         "aliases": [
           "svirfneblin"
         ],
@@ -1384,7 +1397,7 @@
           "illusion",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Forest gnomes possess a natural gift for illusion and an inherent quickness.",
         "aliases": [
           "wild gnome"
         ],
@@ -1405,7 +1418,7 @@
           "tinker",
           "lineage"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Rock gnomes are the most common type of gnome, celebrated for their inventiveness and hardiness.",
         "aliases": [
           "tinker gnome"
         ],
@@ -1430,7 +1443,7 @@
           "eberron",
           "house sivis"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Scribing grants power over written and spoken communication.",
         "aliases": [
           "scribing gnome",
           "sivis"
@@ -1445,12 +1458,174 @@
     ]
   },
   {
-    "id": "group_goblinoid",
-    "title": "Goblinoid",
+    "id": "group_goliath",
+    "title": "Goliath",
     "category": "Character Races",
-    "excerpt": "Fey-touched goblins and hobgoblins.",
+    "excerpt": "Goliaths are towering humanoids descended from giants, inheriting supernatural strength and resilience. Each goliath embodies the legacy of their giant ancestor.",
     "filePath": null,
     "subEntries": [
+      {
+        "id": "cloud_giant_goliath",
+        "title": "Cloud Giant Ancestry",
+        "category": "Character Races",
+        "tags": [
+          "goliath",
+          "giant",
+          "cloud giant",
+          "teleportation",
+          "lineage"
+        ],
+        "excerpt": "As a goliath with Cloud Giant ancestry, you possess the grace and magic of the sky-dwellers.",
+        "aliases": [
+          "cloud_giant"
+        ],
+        "seeAlso": [
+          "goliath",
+          "bonus_action",
+          "teleport"
+        ],
+        "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant_goliath.json"
+      },
+      {
+        "id": "fire_giant_goliath",
+        "title": "Fire Giant Ancestry",
+        "category": "Character Races",
+        "tags": [
+          "goliath",
+          "giant",
+          "fire giant",
+          "fire damage",
+          "lineage"
+        ],
+        "excerpt": "As a goliath with Fire Giant ancestry, you possess the common traits of your people, enhanced by the destructive power of flame that burns…",
+        "aliases": [
+          "fire_giant"
+        ],
+        "seeAlso": [
+          "goliath",
+          "fire_damage"
+        ],
+        "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant_goliath.json"
+      },
+      {
+        "id": "frost_giant_goliath",
+        "title": "Frost Giant Ancestry",
+        "category": "Character Races",
+        "tags": [
+          "goliath",
+          "giant",
+          "frost giant",
+          "cold damage",
+          "lineage"
+        ],
+        "excerpt": "As a goliath with Frost Giant ancestry, you possess the common traits of your people, enhanced by the freezing power of the mountains that…",
+        "aliases": [
+          "frost_giant"
+        ],
+        "seeAlso": [
+          "goliath",
+          "cold_damage",
+          "speed"
+        ],
+        "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant_goliath.json"
+      },
+      {
+        "id": "hill_giant_goliath",
+        "title": "Hill Giant Ancestry",
+        "category": "Character Races",
+        "tags": [
+          "goliath",
+          "giant",
+          "hill giant",
+          "prone",
+          "lineage"
+        ],
+        "excerpt": "As a goliath with Hill Giant ancestry, you possess the common traits of your people, enhanced by the massive strength of the hills.",
+        "aliases": [
+          "hill_giant"
+        ],
+        "seeAlso": [
+          "goliath",
+          "prone_condition"
+        ],
+        "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant_goliath.json"
+      },
+      {
+        "id": "stone_giant_goliath",
+        "title": "Stone Giant Ancestry",
+        "category": "Character Races",
+        "tags": [
+          "goliath",
+          "giant",
+          "stone giant",
+          "damage reduction",
+          "lineage"
+        ],
+        "excerpt": "As a goliath with Stone Giant ancestry, you possess the common traits of your people, enhanced by the endurance of the mountains.",
+        "aliases": [
+          "stone_giant"
+        ],
+        "seeAlso": [
+          "goliath",
+          "reaction",
+          "constitution"
+        ],
+        "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant_goliath.json"
+      },
+      {
+        "id": "storm_giant_goliath",
+        "title": "Storm Giant Ancestry",
+        "category": "Character Races",
+        "tags": [
+          "goliath",
+          "giant",
+          "storm giant",
+          "thunder damage",
+          "lineage"
+        ],
+        "excerpt": "As a goliath with Storm Giant ancestry, you possess the common traits of your people, enhanced by the crackling power of the tempest.",
+        "aliases": [
+          "storm_giant"
+        ],
+        "seeAlso": [
+          "goliath",
+          "reaction",
+          "thunder_damage"
+        ],
+        "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant_goliath.json"
+      }
+    ]
+  },
+  {
+    "id": "group_greenskins",
+    "title": "Greenskins",
+    "category": "Character Races",
+    "excerpt": "Greenskins are a diverse group of humanoids united by their orcish or goblinoid heritage. From the cunning goblins to the mighty orcs and half-orcs, they share a resilient nature and adaptability.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "bugbear",
+        "title": "Bugbear",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "bugbear",
+          "goblinoid",
+          "fey",
+          "stealth",
+          "surprise attack"
+        ],
+        "excerpt": "Bugbears are the hulking cousins of goblins and hobgoblins.",
+        "aliases": [],
+        "seeAlso": [
+          "goblinoid",
+          "darkvision",
+          "fey_ancestry",
+          "powerful_build",
+          "stealth"
+        ],
+        "filePath": "/data/glossary/entries/races/bugbear.json"
+      },
       {
         "id": "goblin",
         "title": "Goblin",
@@ -1463,7 +1638,7 @@
           "stealth",
           "nimble escape"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Goblins are small humanoids with distant fey origins.",
         "aliases": [],
         "seeAlso": [
           "goblinoid",
@@ -1473,6 +1648,29 @@
           "nimble_escape"
         ],
         "filePath": "/data/glossary/entries/races/goblin.json"
+      },
+      {
+        "id": "half_orc",
+        "title": "Half-Orc",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "half-orc",
+          "human",
+          "orc",
+          "humanoid"
+        ],
+        "excerpt": "Half-orcs are individuals who carry the resilient and powerful heritage of orcs combined with the versatility of humans.",
+        "aliases": [
+          "kindred",
+          "half-orc"
+        ],
+        "seeAlso": [
+          "human",
+          "orc",
+          "humanoid"
+        ],
+        "filePath": "/data/glossary/entries/races/half_orc.json"
       },
       {
         "id": "hobgoblin",
@@ -1486,7 +1684,7 @@
           "fey",
           "military"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Hobgoblins are disciplined and militant humanoids with a strong sense of hierarchy and honor.",
         "aliases": [],
         "seeAlso": [
           "humanoid",
@@ -1495,154 +1693,75 @@
           "fey_ancestry"
         ],
         "filePath": "/data/glossary/entries/races/hobgoblin.json"
-      }
-    ]
-  },
-  {
-    "id": "group_goliath",
-    "title": "Goliath",
-    "category": "Character Races",
-    "excerpt": "Goliath traits and giant ancestries.",
-    "filePath": null,
-    "subEntries": [
+      },
       {
-        "id": "goliath",
-        "title": "Goliath",
+        "id": "orc",
+        "title": "Orc",
         "category": "Character Races",
         "tags": [
           "race",
-          "goliath",
-          "giant",
-          "humanoid"
+          "orc",
+          "relentless",
+          "adrenaline",
+          "humanoid",
+          "gruumsh"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Orcs trace their creation to Gruumsh, a god who wandered the wild spaces of the Material Plane.",
+        "aliases": [],
+        "seeAlso": [
+          "humanoid",
+          "darkvision",
+          "temporary_hit_points",
+          "dash_action",
+          "relentless_endurance"
+        ],
+        "filePath": "/data/glossary/entries/races/orc.json"
+      },
+      {
+        "id": "pathfinder_half_orc",
+        "title": "Pathfinder Half-Orc",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "half-orc",
+          "dragonmark",
+          "mark of finding",
+          "humanoid",
+          "eberron",
+          "house tharashk"
+        ],
+        "excerpt": "The Mark of Finding grants abilities related to locating people and objects.",
         "aliases": [
-          "giant-kin"
+          "finding half-orc",
+          "tharashk"
         ],
         "seeAlso": [
-          "giant_ancestry",
-          "large_form",
-          "powerful_build"
+          "half_orc",
+          "humanoid",
+          "hunter's_mark"
         ],
-        "filePath": "/data/glossary/entries/races/goliath.json"
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/pathfinder_half_orc.json"
       },
       {
-        "id": "cloud_giant",
-        "title": "Cloud Giant Ancestry",
+        "id": "verdan",
+        "title": "Verdan",
         "category": "Character Races",
         "tags": [
-          "goliath",
-          "giant",
-          "cloud giant",
-          "teleportation",
-          "lineage"
+          "race",
+          "verdan",
+          "humanoid",
+          "goblinoid",
+          "transformed",
+          "evolving"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The verdan are a people in transition.",
         "aliases": [],
         "seeAlso": [
-          "goliath",
-          "bonus_action",
-          "teleport"
+          "humanoid",
+          "goblin",
+          "hobgoblin"
         ],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.json"
-      },
-      {
-        "id": "fire_giant",
-        "title": "Fire Giant Ancestry",
-        "category": "Character Races",
-        "tags": [
-          "goliath",
-          "giant",
-          "fire giant",
-          "fire damage",
-          "lineage"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "goliath",
-          "fire_damage"
-        ],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.json"
-      },
-      {
-        "id": "frost_giant",
-        "title": "Frost Giant Ancestry",
-        "category": "Character Races",
-        "tags": [
-          "goliath",
-          "giant",
-          "frost giant",
-          "cold damage",
-          "lineage"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "goliath",
-          "cold_damage",
-          "speed"
-        ],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.json"
-      },
-      {
-        "id": "hill_giant",
-        "title": "Hill Giant Ancestry",
-        "category": "Character Races",
-        "tags": [
-          "goliath",
-          "giant",
-          "hill giant",
-          "prone",
-          "lineage"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "goliath",
-          "prone_condition"
-        ],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant.json"
-      },
-      {
-        "id": "stone_giant",
-        "title": "Stone Giant Ancestry",
-        "category": "Character Races",
-        "tags": [
-          "goliath",
-          "giant",
-          "stone giant",
-          "damage reduction",
-          "lineage"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "goliath",
-          "reaction",
-          "constitution"
-        ],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.json"
-      },
-      {
-        "id": "storm_giant",
-        "title": "Storm Giant Ancestry",
-        "category": "Character Races",
-        "tags": [
-          "goliath",
-          "giant",
-          "storm giant",
-          "thunder damage",
-          "lineage"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "goliath",
-          "reaction",
-          "thunder_damage"
-        ],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json"
+        "filePath": "/data/glossary/entries/races/verdan.json"
       }
     ]
   },
@@ -1650,31 +1769,9 @@
     "id": "group_half_elf",
     "title": "Half-Elf",
     "category": "Character Races",
-    "excerpt": "Half-elf variants and dragonmarks.",
+    "excerpt": "Half-elves combine human versatility with elven grace. Those with specific elven heritage may inherit additional traits from their elven parent.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "half-elf",
-        "title": "Half-Elf",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "half-elf",
-          "human",
-          "elf",
-          "humanoid"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "kindred"
-        ],
-        "seeAlso": [
-          "human",
-          "elf",
-          "humanoid"
-        ],
-        "filePath": "/data/glossary/entries/races/half-elf.json"
-      },
       {
         "id": "half_elf_aquatic",
         "title": "Half-Elf (Aquatic)",
@@ -1687,12 +1784,12 @@
           "swimmer",
           "coastal"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Half-elves of aquatic elf heritage are rare, as aquatic elves seldom interact with surface-dwelling peoples.",
         "aliases": [
           "half-sea elf"
         ],
         "seeAlso": [
-          "half-elf",
+          "half_elf",
           "sea_elf",
           "humanoid",
           "charmed"
@@ -1711,17 +1808,40 @@
           "underdark",
           "magic"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Half-elves of drow heritage are often the result of forbidden unions or raids upon the surface world.",
         "aliases": [
           "half-drow"
         ],
         "seeAlso": [
-          "half-elf",
+          "half_elf",
           "drow",
           "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/half_elf_variants/drow.json"
+      },
+      {
+        "id": "half_elf",
+        "title": "Half-Elf",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "half-elf",
+          "human",
+          "elf",
+          "humanoid"
+        ],
+        "excerpt": "Half-elves are individuals born from the union of humans and elves, or those who carry the heritage of both lineages in their blood.",
+        "aliases": [
+          "kindred",
+          "half-elf"
+        ],
+        "seeAlso": [
+          "human",
+          "elf",
+          "humanoid"
+        ],
+        "filePath": "/data/glossary/entries/races/half_elf.json"
       },
       {
         "id": "half_elf_high",
@@ -1735,37 +1855,15 @@
           "arcane",
           "wizard"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Half-elves with high elf heritage often display an affinity for the arcane arts that runs strong in their elven bloodline.",
         "aliases": [],
         "seeAlso": [
-          "half-elf",
+          "half_elf",
           "high_elf",
           "humanoid",
           "charmed"
         ],
         "filePath": "/data/glossary/entries/races/half_elf_variants/high.json"
-      },
-      {
-        "id": "half_elf_wood",
-        "title": "Half-Elf (Wood)",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "half-elf",
-          "wood",
-          "humanoid",
-          "nature",
-          "swift"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "half-elf",
-          "wood_elf",
-          "humanoid",
-          "charmed"
-        ],
-        "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
       },
       {
         "id": "seersight_half_elf",
@@ -1780,13 +1878,13 @@
           "eberron",
           "house medani"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Detection grants those who bear it powers of observation and insight.",
         "aliases": [
           "detection half-elf",
           "medani"
         ],
         "seeAlso": [
-          "half-elf",
+          "half_elf",
           "humanoid",
           "detect_magic"
         ],
@@ -1805,73 +1903,39 @@
           "eberron",
           "house lyrandar"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Storm grants power over wind and weather.",
         "aliases": [
           "storm half-elf",
           "lyrandar"
         ],
         "seeAlso": [
-          "half-elf",
+          "half_elf",
           "humanoid",
           "lightning_damage"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/stormborn_half_elf.json"
-      }
-    ]
-  },
-  {
-    "id": "group_half_orc",
-    "title": "Half-Orc",
-    "category": "Character Races",
-    "excerpt": "Half-orc variants and dragonmarks.",
-    "filePath": null,
-    "subEntries": [
-      {
-        "id": "half-orc",
-        "title": "Half-Orc",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "half-orc",
-          "human",
-          "orc",
-          "humanoid"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "kindred"
-        ],
-        "seeAlso": [
-          "human",
-          "orc",
-          "humanoid"
-        ],
-        "filePath": "/data/glossary/entries/races/half-orc.json"
       },
       {
-        "id": "pathfinder_half_orc",
-        "title": "Pathfinder Half-Orc",
+        "id": "half_elf_wood",
+        "title": "Half-Elf (Wood)",
         "category": "Character Races",
         "tags": [
           "race",
-          "half-orc",
-          "dragonmark",
-          "mark of finding",
+          "half-elf",
+          "wood",
           "humanoid",
-          "eberron",
-          "house tharashk"
+          "nature",
+          "swift"
         ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "finding half-orc",
-          "tharashk"
-        ],
+        "excerpt": "Half-elves with wood elf heritage inherit their elven parent's affinity for nature and their swift, graceful movements.",
+        "aliases": [],
         "seeAlso": [
-          "half-orc",
+          "half_elf",
+          "wood_elf",
           "humanoid",
-          "hunter's_mark"
+          "charmed"
         ],
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/pathfinder_half_orc.json"
+        "filePath": "/data/glossary/entries/races/half_elf_variants/wood.json"
       }
     ]
   },
@@ -1879,7 +1943,7 @@
     "id": "group_halfling",
     "title": "Halfling",
     "category": "Character Races",
-    "excerpt": "Halfling subraces and variants.",
+    "excerpt": "Halflings are small, cheerful folk known for their remarkable luck, bravery, and nimbleness. Each halfling subrace has adapted to different environments.",
     "filePath": null,
     "subEntries": [
       {
@@ -1892,7 +1956,7 @@
           "humanoid",
           "small"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Halflings are a practical and lighthearted people who value home and community above all.",
         "aliases": [
           "hin"
         ],
@@ -1903,6 +1967,31 @@
           "nimbleness"
         ],
         "filePath": "/data/glossary/entries/races/halfling.json"
+      },
+      {
+        "id": "hearthkeeper_halfling",
+        "title": "Hearthkeeper Halfling",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "halfling",
+          "dragonmark",
+          "mark of hospitality",
+          "humanoid",
+          "eberron",
+          "house ghallanda"
+        ],
+        "excerpt": "The Mark of Hospitality grants abilities related to food, shelter, and comfort.",
+        "aliases": [
+          "hospitality halfling",
+          "ghallanda"
+        ],
+        "seeAlso": [
+          "halfling",
+          "humanoid",
+          "prestidigitation"
+        ],
+        "filePath": "/data/glossary/entries/races/dragonmark_variants/hearthkeeper_halfling.json"
       },
       {
         "id": "lightfoot_halfling",
@@ -1916,7 +2005,7 @@
           "stealth",
           "social"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "As a lightfoot halfling, you can easily hide from notice, even using other people as cover.",
         "aliases": [],
         "seeAlso": [
           "halfling",
@@ -1939,7 +2028,7 @@
           "exandria",
           "nature"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Lotusden halflings are native to the Lotusden Greenwood of Exandria, where they have developed a deep connection to the natural world and d…",
         "aliases": [
           "lotusden"
         ],
@@ -1950,55 +2039,6 @@
           "entangle"
         ],
         "filePath": "/data/glossary/entries/races/halfling_subraces/lotusden_halfling.json"
-      },
-      {
-        "id": "stout_halfling",
-        "title": "Stout Halfling",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "halfling",
-          "stout",
-          "humanoid",
-          "resilient",
-          "tough"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "strongheart halfling"
-        ],
-        "seeAlso": [
-          "halfling",
-          "humanoid",
-          "frightened",
-          "poison"
-        ],
-        "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
-      },
-      {
-        "id": "hearthkeeper_halfling",
-        "title": "Hearthkeeper Halfling",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "halfling",
-          "dragonmark",
-          "mark of hospitality",
-          "humanoid",
-          "eberron",
-          "house ghallanda"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "hospitality halfling",
-          "ghallanda"
-        ],
-        "seeAlso": [
-          "halfling",
-          "humanoid",
-          "prestidigitation"
-        ],
-        "filePath": "/data/glossary/entries/races/dragonmark_variants/hearthkeeper_halfling.json"
       },
       {
         "id": "mender_halfling",
@@ -2013,7 +2053,7 @@
           "eberron",
           "house jorasco"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Healing grants the ability to mend wounds and cure ailments.",
         "aliases": [
           "healing halfling",
           "jorasco"
@@ -2024,6 +2064,30 @@
           "cure_wounds"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/mender_halfling.json"
+      },
+      {
+        "id": "stout_halfling",
+        "title": "Stout Halfling",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "halfling",
+          "stout",
+          "humanoid",
+          "resilient",
+          "tough"
+        ],
+        "excerpt": "As a stout halfling, you're hardier than average and have some resistance to poison.",
+        "aliases": [
+          "strongheart halfling"
+        ],
+        "seeAlso": [
+          "halfling",
+          "humanoid",
+          "frightened",
+          "poison"
+        ],
+        "filePath": "/data/glossary/entries/races/halfling_subraces/stout.json"
       }
     ]
   },
@@ -2031,30 +2095,9 @@
     "id": "group_human",
     "title": "Human",
     "category": "Character Races",
-    "excerpt": "Human variants and dragonmarks.",
+    "excerpt": "Humans are the most adaptable and ambitious people, known for their resourcefulness and determination. Some humans bear dragonmarks that grant mystical powers.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "human",
-        "title": "Human",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "human",
-          "humanoid"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "humankind"
-        ],
-        "seeAlso": [
-          "humanoid",
-          "skill_proficiencies",
-          "feats",
-          "heroic_inspiration"
-        ],
-        "filePath": "/data/glossary/entries/races/human.json"
-      },
       {
         "id": "beastborn_human",
         "title": "Beastborn Human",
@@ -2068,7 +2111,7 @@
           "eberron",
           "house vadalis"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Handling grants the ability to calm and control animals.",
         "aliases": [
           "handling human",
           "vadalis"
@@ -2093,7 +2136,7 @@
           "eberron",
           "house cannith"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Making grants the ability to create and repair.",
         "aliases": [
           "making human",
           "cannith"
@@ -2118,7 +2161,7 @@
           "eberron",
           "house deneith"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Sentinel grants power to protect and defend.",
         "aliases": [
           "sentinel human",
           "deneith"
@@ -2129,6 +2172,27 @@
           "shield"
         ],
         "filePath": "/data/glossary/entries/races/dragonmark_variants/guardian_human.json"
+      },
+      {
+        "id": "human",
+        "title": "Human",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "human",
+          "humanoid"
+        ],
+        "excerpt": "Humans are the most ambitious and adaptable of the common races.",
+        "aliases": [
+          "humankind"
+        ],
+        "seeAlso": [
+          "humanoid",
+          "skill_proficiencies",
+          "feats",
+          "heroic_inspiration"
+        ],
+        "filePath": "/data/glossary/entries/races/human.json"
       },
       {
         "id": "wayfarer_human",
@@ -2143,7 +2207,7 @@
           "eberron",
           "house orien"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The Mark of Passage grants power over movement and transportation.",
         "aliases": [
           "passage human",
           "orien"
@@ -2158,136 +2222,126 @@
     ]
   },
   {
-    "id": "kalashtar",
-    "title": "Kalashtar",
+    "id": "group_planar_travelers",
+    "title": "Planar Travelers",
     "category": "Character Races",
-    "tags": [
-      "race",
-      "kalashtar",
-      "humanoid",
-      "eberron",
-      "psionic",
-      "quori"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "humanoid",
-      "psychic_damage"
-    ],
-    "filePath": "/data/glossary/entries/races/kalashtar.json"
+    "excerpt": "Planar Travelers are beings with origins beyond the Material Plane or who possess unusual connections to other realms. They bring exotic abilities and unique perspectives.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "kalashtar",
+        "title": "Kalashtar",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "kalashtar",
+          "humanoid",
+          "eberron",
+          "psionic",
+          "quori"
+        ],
+        "excerpt": "The kalashtar are a compound people, created from the union of humanity and renegade spirits from the plane of dreams known as quori.",
+        "aliases": [],
+        "seeAlso": [
+          "humanoid",
+          "psychic_damage"
+        ],
+        "filePath": "/data/glossary/entries/races/kalashtar.json"
+      },
+      {
+        "id": "kender",
+        "title": "Kender",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "kender",
+          "humanoid",
+          "dragonlance",
+          "fearless",
+          "curious"
+        ],
+        "excerpt": "Kender are small humanoids native to the world of Krynn, known for their insatiable curiosity, fearlessness, and tendency to 'find' things…",
+        "aliases": [],
+        "seeAlso": [
+          "humanoid",
+          "halfling"
+        ],
+        "filePath": "/data/glossary/entries/races/kender.json"
+      },
+      {
+        "id": "simic_hybrid",
+        "title": "Simic Hybrid",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "simic_hybrid",
+          "humanoid",
+          "ravnica",
+          "mutant",
+          "enhanced"
+        ],
+        "excerpt": "The Simic Combine uses a magical process to create hybrids of multiple organisms, sometimes including humans, elves, and vedalken.",
+        "aliases": [
+          "guardian",
+          "simic guardian"
+        ],
+        "seeAlso": [
+          "humanoid",
+          "vedalken"
+        ],
+        "filePath": "/data/glossary/entries/races/simic_hybrid.json"
+      },
+      {
+        "id": "triton",
+        "title": "Triton",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "triton",
+          "aquatic",
+          "amphibious",
+          "cold resistance",
+          "humanoid"
+        ],
+        "excerpt": "Originally from the Elemental Plane of Water, tritons serve as vigilant guardians across the world's oceans.",
+        "aliases": [],
+        "seeAlso": [
+          "humanoid",
+          "darkvision",
+          "cold_resistance",
+          "fog_cloud",
+          "gust_of_wind",
+          "water_walk"
+        ],
+        "filePath": "/data/glossary/entries/races/triton.json"
+      },
+      {
+        "id": "vedalken",
+        "title": "Vedalken",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "vedalken",
+          "humanoid",
+          "ravnica",
+          "perfectionist",
+          "analytical"
+        ],
+        "excerpt": "Vedalken are tall, blue-skinned humanoids characterized by their relentless pursuit of knowledge and self-improvement.",
+        "aliases": [],
+        "seeAlso": [
+          "humanoid",
+          "simic_hybrid"
+        ],
+        "filePath": "/data/glossary/entries/races/vedalken.json"
+      }
+    ]
   },
   {
-    "id": "kender",
-    "title": "Kender",
+    "id": "group_shapeshifters",
+    "title": "Shapeshifters",
     "category": "Character Races",
-    "tags": [
-      "race",
-      "kender",
-      "humanoid",
-      "dragonlance",
-      "fearless",
-      "curious"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "humanoid",
-      "halfling"
-    ],
-    "filePath": "/data/glossary/entries/races/kender.json"
-  },
-  {
-    "id": "kobold",
-    "title": "Kobold",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "kobold",
-      "draconic",
-      "small",
-      "humanoid"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "humanoid",
-      "darkvision",
-      "draconic_cry",
-      "kobold_legacy"
-    ],
-    "filePath": "/data/glossary/entries/races/kobold.json"
-  },
-  {
-    "id": "orc",
-    "title": "Orc",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "orc",
-      "relentless",
-      "adrenaline",
-      "humanoid",
-      "gruumsh"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "humanoid",
-      "darkvision",
-      "temporary_hit_points",
-      "dash_action",
-      "relentless_endurance"
-    ],
-    "filePath": "/data/glossary/entries/races/orc.json"
-  },
-  {
-    "id": "plasmoid",
-    "title": "Plasmoid",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "plasmoid",
-      "ooze",
-      "spelljammer",
-      "amorphous",
-      "shapechanger"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "ooze",
-      "acid_damage",
-      "poison_damage",
-      "poisoned"
-    ],
-    "filePath": "/data/glossary/entries/races/plasmoid.json"
-  },
-  {
-    "id": "satyr",
-    "title": "Satyr",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "satyr",
-      "fey",
-      "revelry",
-      "magic resistance"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "fey",
-      "magic_resistance",
-      "mirthful_leaps"
-    ],
-    "filePath": "/data/glossary/entries/races/satyr.json"
-  },
-  {
-    "id": "group_shifter",
-    "title": "Shifter",
-    "category": "Character Races",
-    "excerpt": "Shifter variants and traits.",
+    "excerpt": "Shapeshifters are beings with the innate ability to alter their physical form. From the weretouched shifters to the amorphous plasmoids and identity-fluid changelings, they share a mutable nature that defies fixed shape.",
     "filePath": null,
     "subEntries": [
       {
@@ -2302,13 +2356,33 @@
           "lycanthrope",
           "tough"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Beasthide shifters are typically tied to the bear or the boar, animals known for their tough hides and ferocious strength when cornered.",
         "aliases": [],
         "seeAlso": [
           "shifter",
           "humanoid"
         ],
         "filePath": "/data/glossary/entries/races/shifter_variants/beasthide.json"
+      },
+      {
+        "id": "changeling",
+        "title": "Changeling",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "changeling",
+          "fey",
+          "shapechanger",
+          "deception"
+        ],
+        "excerpt": "Changelings are masters of disguise, capable of supernaturally altering their appearance and voice.",
+        "aliases": [],
+        "seeAlso": [
+          "fey",
+          "changeling_instincts",
+          "shapechanger"
+        ],
+        "filePath": "/data/glossary/entries/races/changeling.json"
       },
       {
         "id": "longtooth_shifter",
@@ -2322,13 +2396,35 @@
           "lycanthrope",
           "predator"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Longtooth shifters are fierce and aggressive, their lycanthropic heritage tied to fierce predators like wolves and tigers.",
         "aliases": [],
         "seeAlso": [
           "shifter",
           "humanoid"
         ],
         "filePath": "/data/glossary/entries/races/shifter_variants/longtooth.json"
+      },
+      {
+        "id": "plasmoid",
+        "title": "Plasmoid",
+        "category": "Character Races",
+        "tags": [
+          "race",
+          "plasmoid",
+          "ooze",
+          "spelljammer",
+          "amorphous",
+          "shapechanger"
+        ],
+        "excerpt": "Plasmoids are amorphous beings of organic ooze who can alter their shape at will.",
+        "aliases": [],
+        "seeAlso": [
+          "ooze",
+          "acid_damage",
+          "poison_damage",
+          "poisoned"
+        ],
+        "filePath": "/data/glossary/entries/races/plasmoid.json"
       },
       {
         "id": "swiftstride_shifter",
@@ -2342,7 +2438,7 @@
           "lycanthrope",
           "agile"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Swiftstride shifters are graceful and quick, their lycanthropic heritage tied to swift and elusive creatures like cats, rats, and ravens.",
         "aliases": [],
         "seeAlso": [
           "shifter",
@@ -2363,7 +2459,7 @@
           "lycanthrope",
           "tracker"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Wildhunt shifters are the most in tune with their animal nature, their lycanthropic heritage tied to creatures known for their keen senses…",
         "aliases": [],
         "seeAlso": [
           "shifter",
@@ -2375,55 +2471,12 @@
     ]
   },
   {
-    "id": "simic_hybrid",
-    "title": "Simic Hybrid",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "simic_hybrid",
-      "humanoid",
-      "ravnica",
-      "mutant",
-      "enhanced"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [
-      "guardian",
-      "simic guardian"
-    ],
-    "seeAlso": [
-      "humanoid",
-      "vedalken"
-    ],
-    "filePath": "/data/glossary/entries/races/simic_hybrid.json"
-  },
-  {
     "id": "group_tiefling",
     "title": "Tiefling",
     "category": "Character Races",
-    "excerpt": "Tiefling legacies and traits.",
+    "excerpt": "Tieflings carry the blood of the Lower Planes, manifesting fiendish traits. Each legacy reflects a different fiendish origin and grants unique magical abilities.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "tiefling",
-        "title": "Tiefling",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "tiefling",
-          "fiend",
-          "humanoid"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "humanoid",
-          "darkvision",
-          "thaumaturgy",
-          "fiendish_legacy"
-        ],
-        "filePath": "/data/glossary/entries/races/tiefling.json"
-      },
       {
         "id": "abyssal_tiefling",
         "title": "Abyssal Legacy",
@@ -2435,7 +2488,7 @@
           "demon",
           "poison"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Hailing from the chaos of the Abyss, this legacy grants resistance to poison and innate demonic magic.",
         "aliases": [
           "abyssal legacy"
         ],
@@ -2459,7 +2512,7 @@
           "neutral evil",
           "necrotic"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "Linked to the gloom of Hades and Gehenna, this legacy grants resistance to necrotic energy and spectral magic.",
         "aliases": [
           "chthonic legacy"
         ],
@@ -2483,7 +2536,7 @@
           "devil",
           "fire"
         ],
-        "excerpt": "No excerpt available.",
+        "excerpt": "The structured hierarchy of the Nine Hells is the source of the Infernal Legacy.",
         "aliases": [
           "infernal legacy"
         ],
@@ -2497,94 +2550,5 @@
         "filePath": "/data/glossary/entries/races/tiefling_legacies/infernal.json"
       }
     ]
-  },
-  {
-    "id": "triton",
-    "title": "Triton",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "triton",
-      "aquatic",
-      "amphibious",
-      "cold resistance",
-      "humanoid"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "humanoid",
-      "darkvision",
-      "cold_resistance",
-      "fog_cloud",
-      "gust_of_wind",
-      "water_walk"
-    ],
-    "filePath": "/data/glossary/entries/races/triton.json"
-  },
-  {
-    "id": "vedalken",
-    "title": "Vedalken",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "vedalken",
-      "humanoid",
-      "ravnica",
-      "perfectionist",
-      "analytical"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "humanoid",
-      "simic_hybrid"
-    ],
-    "filePath": "/data/glossary/entries/races/vedalken.json"
-  },
-  {
-    "id": "verdan",
-    "title": "Verdan",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "verdan",
-      "humanoid",
-      "goblinoid",
-      "transformed",
-      "evolving"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [
-      "humanoid",
-      "goblin",
-      "hobgoblin"
-    ],
-    "filePath": "/data/glossary/entries/races/verdan.json"
-  },
-  {
-    "id": "warforged",
-    "title": "Warforged",
-    "category": "Character Races",
-    "tags": [
-      "race",
-      "warforged",
-      "humanoid",
-      "eberron",
-      "construct-like",
-      "living construct"
-    ],
-    "excerpt": "No excerpt available.",
-    "aliases": [
-      "living construct",
-      "forged"
-    ],
-    "seeAlso": [
-      "humanoid",
-      "poisoned",
-      "poison_damage"
-    ],
-    "filePath": "/data/glossary/entries/races/warforged.json"
   }
 ]

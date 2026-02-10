@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 10/02/2026, 01:54:11
+ * Dependents: CompanionGenerator.ts, GameGuideModal.tsx
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/services/characterGenerator.ts
@@ -101,7 +116,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     const proficiencyBonus = 2;
     const conMod = getAbilityModifierValue(finalAbilityScores.Constitution);
     let maxHp = charClass.hitDie + conMod;
-    if (race.id === 'dwarf') maxHp += 1; // Dwarven Toughness
+    if (race.traits.some(t => t.includes('Dwarven Toughness'))) maxHp += 1; // Dwarven Toughness
 
     // Speed
     let speed = 30;
@@ -118,7 +133,6 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         const match = dvTrait.match(/(\d+)/);
         if (match) darkvisionRange = parseInt(match[1], 10);
     }
-    if (race.id === 'drow' || race.id === 'deep_gnome') darkvisionRange = 120;
 
 
     // 4. Equipment (Simplified: Class "A" or default approximations)

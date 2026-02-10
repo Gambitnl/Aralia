@@ -1,61 +1,62 @@
 {
-    "id": "minotaur",
-    "title": "Minotaur",
-    "category": "Character Races",
-    "entryLore": "Minotaur are powerful, bull-headed humanoids known for their immense strength and martial prowess. Often associated with the winding corridors of vast labyrinths, they possess a keen spatial awareness and a fierce spirit. Whether they serve as guardians of ancient secrets or as formidable warriors on the battlefield, their presence is always commanding, and their charge is as relentless as it is devastating.",
-    "imageUrl": "/assets/images/races/minotaur_female.png",
-    "source": "MPMM",
-    "lore": {
-        "typicalDwelling": "Minotaurs favor sturdy, well-organized dwellings that reflect their martial heritage and sense of order. Their settlements often feature labyrinthine corridors, subterranean halls, and fortified stone structures built into rugged terrain. These homes are designed for defense and clear spatial awareness, with every room serving a specific, logical purpose. Even in cosmopolitan areas, their living spaces are kept spartan and functional, focused on physical readiness and the maintenance of their martial skills.",
-        "typicalAttire": "Minotaur fashion is defined by functionality and personal honor. They favor durable leather, heavy fabrics, and functional metal accents in deep reds, blacks, and earth tones. Many wear harnesses and belts for carrying weapons and gear, as well as tokens that denote their pride, legion, or personal achievements. Jewelry is typically robust—heavy bronze or iron rings, carved horn pendants, and symbols of their family lineage. They possess a deep respect for their horns and often decorate them with metal bands or ritual etchings.",
-        "typicalEnvironment": "Rugged mountains, rocky plateaus, and fortified borderlands are the minotaur's natural habitats. They thrive in environments that reward physical strength and geographic mastery. Many seek out roles that utilize their natural gifts—as architects of complex structures, professional soldiers, or specialized guards. While they are comfortable in a variety of terrestrial habitats, they prefer landscapes where they can establish clear boundaries and maintain a sense of order.",
-        "societyType": "Minotaur society is intensely tribal and hierarchical, organized around prides or legions. They value strength, discipline, and the fulfillment of one's personal and communal duty. Status is earned through merit and service, and they have a complex system of honor that guides their interactions. They believe in the power of the group and have a deep sense of loyalty to their kin, often working in unison to overcome challenges that would defeat individuals.",
-        "typicalAssociation": "Minotaurs tend toward lawful alignments, primarily lawful neutral. Their worldview is defined by a sense of order and the belief that a structured life is the only defense against the chaos of the world. They are not naturally cruel, but they are ruthless in the pursuit of their objectives and the protection of their territory. Their word is considered absolute, and they have little patience for deception or lack of discipline in others.",
-        "physicalAppearance": "Minotaurs are hulking, powerfully built humanoids standing 6.5 to 7.5 feet tall, weighing 300-400 pounds. Their most striking feature is their bovine head, which possesses a broad muzzle, large nostrils, and a pair of formidable horns that vary in shape and size by individual. Their skin is typically a shade of brown, gray, or black, often covered in a fine coat of coarse fur that becomes thicker around the neck and shoulders. Their eyes are large and expressive, often a dark shade like chestnut or obsidian, reflecting their focused and determined nature. Their hands and feet end in powerful, hooves digits (or very thick nails), and they move with a heavy, purposeful gait that conveys immense physical power and readiness for combat."
+  "id": "minotaur",
+  "title": "Minotaur",
+  "category": "Character Races",
+  "entryLore": "Minotaur are powerful, bull-headed humanoids known for their immense strength and martial prowess. Often associated with the winding corridors of vast labyrinths, they possess a keen spatial awareness and a fierce spirit. Whether they serve as guardians of ancient secrets or as formidable warriors on the battlefield, their presence is always commanding, and their charge is as relentless as it is devastating.",
+  "source": "MPMM",
+  "lore": {
+    "typicalDwelling": "Minotaurs favor sturdy, well-organized dwellings that reflect their martial heritage and sense of order. Their settlements often feature labyrinthine corridors, subterranean halls, and fortified stone structures built into rugged terrain. These homes are designed for defense and clear spatial awareness, with every room serving a specific, logical purpose. Even in cosmopolitan areas, their living spaces are kept spartan and functional, focused on physical readiness and the maintenance of their martial skills.",
+    "typicalAttire": "Minotaur fashion is defined by functionality and personal honor. They favor durable leather, heavy fabrics, and functional metal accents in deep reds, blacks, and earth tones. Many wear harnesses and belts for carrying weapons and gear, as well as tokens that denote their pride, legion, or personal achievements. Jewelry is typically robust—heavy bronze or iron rings, carved horn pendants, and symbols of their family lineage. They possess a deep respect for their horns and often decorate them with metal bands or ritual etchings.",
+    "typicalEnvironment": "Rugged mountains, rocky plateaus, and fortified borderlands are the minotaur's natural habitats. They thrive in environments that reward physical strength and geographic mastery. Many seek out roles that utilize their natural gifts—as architects of complex structures, professional soldiers, or specialized guards. While they are comfortable in a variety of terrestrial habitats, they prefer landscapes where they can establish clear boundaries and maintain a sense of order.",
+    "societyType": "Minotaur society is intensely tribal and hierarchical, organized around prides or legions. They value strength, discipline, and the fulfillment of one's personal and communal duty. Status is earned through merit and service, and they have a complex system of honor that guides their interactions. They believe in the power of the group and have a deep sense of loyalty to their kin, often working in unison to overcome challenges that would defeat individuals.",
+    "typicalAssociation": "Minotaurs tend toward lawful alignments, primarily lawful neutral. Their worldview is defined by a sense of order and the belief that a structured life is the only defense against the chaos of the world. They are not naturally cruel, but they are ruthless in the pursuit of their objectives and the protection of their territory. Their word is considered absolute, and they have little patience for deception or lack of discipline in others.",
+    "physicalAppearance": "Minotaurs are hulking, powerfully built humanoids standing 6.5 to 7.5 feet tall, weighing 300-400 pounds. Their most striking feature is their bovine head, which possesses a broad muzzle, large nostrils, and a pair of formidable horns that vary in shape and size by individual. Their skin is typically a shade of brown, gray, or black, often covered in a fine coat of coarse fur that becomes thicker around the neck and shoulders. Their eyes are large and expressive, often a dark shade like chestnut or obsidian, reflecting their focused and determined nature. Their hands and feet end in powerful, hooves digits (or very thick nails), and they move with a heavy, purposeful gait that conveys immense physical power and readiness for combat."
+  },
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
     },
-    "characteristics": [
-        {
-            "label": "Creature Type",
-            "value": "[[humanoid]]"
-        },
-        {
-            "label": "Size",
-            "value": "Medium"
-        },
-        {
-            "label": "Speed",
-            "value": "30 feet"
-        }
-    ],
-    "traits": [
-        {
-            "name": "Horns",
-            "icon": "sword",
-            "description": "You have horns that you can use to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier piercing damage, instead of the normal bludgeoning damage."
-        },
-        {
-            "name": "Goring Rush",
-            "icon": "wind",
-            "description": "Immediately after you take the [[dash_action|Dash]] action on your turn and move at least 20 feet, you can make one melee attack with your horns as a [[bonus_action|Bonus Action]]."
-        },
-        {
-            "name": "Hammering Horns",
-            "icon": "sword",
-            "description": "Immediately after you hit a creature with a melee attack as part of the [[attack_action|Attack]] action on your turn, you can use a [[bonus_action|Bonus Action]] to attempt to shove that target with your horns. The target must be no more than one size larger than you and within 5 feet of you. Unless it succeeds on a Strength [[saving_throw|Saving Throw]] (DC = 8 + your Strength modifier + your [[proficiency_bonus|Proficiency Bonus]]), you push it up to 10 feet away from you."
-        }
-    ],
-    "tags": [
-        "race",
-        "minotaur",
-        "monstrous",
-        "strength",
-        "horns"
-    ],
-    "aliases": [],
-    "seeAlso": [
-        "humanoid",
-        "goring_rush",
-        "hammering_horns"
-    ],
-    "filePath": "/data/glossary/entries/races/minotaur.json"
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Horns",
+      "icon": "sword",
+      "description": "You have horns that you can use to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier piercing damage, instead of the normal bludgeoning damage."
+    },
+    {
+      "name": "Goring Rush",
+      "icon": "wind",
+      "description": "Immediately after you take the [[dash_action|Dash]] action on your turn and move at least 20 feet, you can make one melee attack with your horns as a [[bonus_action|Bonus Action]]."
+    },
+    {
+      "name": "Hammering Horns",
+      "icon": "sword",
+      "description": "Immediately after you hit a creature with a melee attack as part of the [[attack_action|Attack]] action on your turn, you can use a [[bonus_action|Bonus Action]] to attempt to shove that target with your horns. The target must be no more than one size larger than you and within 5 feet of you. Unless it succeeds on a Strength [[saving_throw|Saving Throw]] (DC = 8 + your Strength modifier + your [[proficiency_bonus|Proficiency Bonus]]), you push it up to 10 feet away from you."
+    }
+  ],
+  "tags": [
+    "race",
+    "minotaur",
+    "monstrous",
+    "strength",
+    "horns"
+  ],
+  "aliases": [],
+  "seeAlso": [
+    "humanoid",
+    "goring_rush",
+    "hammering_horns"
+  ],
+  "filePath": "/data/glossary/entries/races/minotaur.json",
+  "maleImageUrl": "/assets/images/races/Minotaur_Male.png",
+  "femaleImageUrl": "/assets/images/races/Minotaur_Female.png"
 }

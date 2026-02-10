@@ -3,7 +3,6 @@
   "title": "Simic Hybrid",
   "category": "Character Races",
   "entryLore": "The Simic Combine uses a magical process to create hybrids of multiple organisms, sometimes including humans, elves, and vedalken. These hybrids are called Simic hybrids, though they sometimes refer to themselves as guardians. A hybrid's biological enhancements can change their appearance dramatically, though most hybrids retain their humanoid forms. The combination of magic and science that creates a hybrid involves a process of 'adapting' their bodies to incorporate characteristics of other creatures. These adaptations are carefully designed to serve a specific purpose, whether that's exploring the depths of the ocean, defending the guild's laboratories, or simply gathering knowledge.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "GGtR",
   "lore": {
     "typicalDwelling": "Simic hybrids live in the zonots—massive, water-filled sinkholes that serve as the laboratories and communal hubs of the Simic Combine. Their dwellings are integrated into the organic architecture of the zonots, often featuring submerged chambers, bioluminescent lighting, and air-tight seals for those with terrestrial origins. They value structural adaptability and sensory immersion, their homes often feeling more like specialized experimental chambers than traditional residences.",
@@ -65,6 +64,6 @@
     "vedalken"
   ],
   "filePath": "/data/glossary/entries/races/simic_hybrid.json",
-  "maleImageUrl": "/assets/images/races/Simic_hybrid_Male.png",
-  "femaleImageUrl": "/assets/images/races/Simic_hybrid_Female.png"
+  "maleImageUrl": "/assets/images/races/simic_hybrid_male.png",
+  "femaleImageUrl": "/assets/images/races/simic_hybrid_female.png"
 }

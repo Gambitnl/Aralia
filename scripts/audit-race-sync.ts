@@ -20,6 +20,10 @@
 import fs from 'fs';
 import path from 'path';
 
+// Forced-choice base families (variants-only). These base entries are helpers and intentionally excluded
+// from Character Creator selection and from the Glossary race index (Aasimar-style).
+const NON_SELECTABLE_BASE_RACE_IDS = new Set<string>(['elf', 'tiefling', 'goliath', 'eladrin', 'dragonborn']);
+
 // ============================================================================
 // TYPE DEFINITIONS
 // ============================================================================
@@ -103,6 +107,7 @@ function getCharacterCreatorRaces(): RaceInfo[] {
 
       // Only add if it has traits (real race, not a subrace/benefit helper)
       if (idMatch && nameMatch && hasTraits) {
+        if (NON_SELECTABLE_BASE_RACE_IDS.has(idMatch[1])) continue;
         races.push({
           id: idMatch[1],
           name: nameMatch[1],

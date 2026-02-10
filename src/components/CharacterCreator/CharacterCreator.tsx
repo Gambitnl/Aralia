@@ -32,6 +32,7 @@ import {
   RACES_DATA,
   CLASSES_DATA,
 } from '../../constants';
+import { ACTIVE_RACES } from '../../data/races/index';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { evaluateFeatPrerequisites } from '../../utils/characterUtils';
 import RaceSelection from './Race/RaceSelection';
@@ -354,7 +355,8 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.Race:
         return (
           <RaceSelection
-            races={Object.values(RACES_DATA)}
+            // Use filtered race list (excludes forced-choice base helpers like elf/tiefling/goliath/eladrin).
+            races={ACTIVE_RACES}
             onRaceSelect={handleRaceSelect}
             selectedRaceId={state.selectedRace?.id ?? null}
             racialSelections={state.racialSelections}

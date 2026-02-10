@@ -19,7 +19,7 @@ export class HeistManager {
             leaderId,
             participants: [leaderId],
             crew: [{ characterId: leaderId, role: HeistRole.Leader }],
-            phase: 'Planning',
+            phase: HeistPhase.Recon,
             alertLevel: 0,
             maxAlertLevel: 100,
             turnsElapsed: 0,
@@ -37,12 +37,15 @@ export class HeistManager {
     }
 
     /**
-     * Advances the heist to the next phase (Planning -> Infiltration -> Execution -> Escape).
+     * Advances the heist to the next phase (Recon -> Planning -> Infiltration -> Execution -> Escape).
      */
     static advancePhase(plan: HeistPlan): HeistPlan {
         let nextPhase: HeistPhase | `${HeistPhase}` = plan.phase;
 
         switch (plan.phase) {
+            case 'Recon':
+                nextPhase = 'Planning';
+                break;
             case 'Planning':
                 if (!plan.selectedApproach) throw new Error("Cannot start heist without selecting an approach.");
                 nextPhase = 'Infiltration';
@@ -64,7 +67,7 @@ export class HeistManager {
     /**
      * Calculates the success chance of a specific action based on current alert level and approach.
      */
-    static calculateActionSuccessChance(plan: HeistPlan, action: HeistAction, _actorRole?: HeistRole): number {
+    static calculateActionSuccessChance(plan: HeistPlan, action: HeistAction, actorRole?: HeistRole): number {
         let baseChance = 100 - action.difficulty; // DC 15 -> 85% base
         
         // Alert Level Penalty: -1% per point of alert
@@ -77,6 +80,11 @@ export class HeistManager {
             } else if (plan.selectedApproach.type === 'Force' && action.type === HeistActionType.Combat) {
                 baseChance += 10;
             }
+        }
+
+        // Role Bonus (Preservationist: Ensuring roles matter)
+        if (actorRole && action.requiredRole === actorRole) {
+            baseChance += 25; // Significant bonus for correct specialist
         }
 
         return Math.max(5, Math.min(95, baseChance));
@@ -93,11 +101,33 @@ export class HeistManager {
             intelGathered: [...(plan.intelGathered ?? plan.collectedIntel), intel]
         };
     }
-}
 
-export declare namespace HeistManager {
-    export function assignCrew(plan: HeistPlan, characterId: string, role: HeistRole): HeistPlan;
-    export function performHeistAction(
+    /**
+     * Assigns a role to a crew member in the heist plan.
+     */
+    static assignCrew(plan: HeistPlan, characterId: string, role: HeistRole): HeistPlan {
+        const currentCrew = [...plan.crew];
+        const index = currentCrew.findIndex(c => c.characterId === characterId);
+        
+        if (index >= 0) {
+            currentCrew[index] = { ...currentCrew[index], role };
+        } else {
+            currentCrew.push({ characterId, role });
+        }
+
+        const participants = Array.from(new Set([...(plan.participants || []), characterId]));
+
+        return {
+            ...plan,
+            crew: currentCrew,
+            participants
+        };
+    }
+
+    /**
+     * Resolves a single action within the heist (turn-based).
+     */
+    static performHeistAction(
         plan: HeistPlan,
         action: HeistAction,
         actorId: string,
@@ -107,5 +137,43 @@ export declare namespace HeistManager {
         alertGenerated: number;
         updatedPlan: HeistPlan;
         message: string;
-    };
+    } {
+        const actor = plan.crew.find(c => c.characterId === actorId);
+        const successChance = this.calculateActionSuccessChance(plan, action, actor?.role);
+        
+        // Simple d100 check vs percentage chance
+        const isSuccess = roll <= successChance;
+        let alertGenerated = 0;
+        let message = '';
+
+        if (isSuccess) {
+            alertGenerated = action.alertProfile === 'Silent' ? 0 : 5;
+            message = `Success! ${action.name} executed without raising alarm.`;
+        } else {
+            // Updated to match test expectation (20 for loud failure)
+            alertGenerated = action.alertProfile === 'Silent' ? 10 : 20;
+            message = `Failure! ${action.name} caused a disturbance. Alert +${alertGenerated}`;
+            
+            // Lookout Mitigation (Updated to flat -5 reduction per test)
+            const lookout = plan.crew.find(c => c.role === HeistRole.Lookout && c.characterId !== actorId);
+            if (lookout) {
+                const reduction = 5;
+                alertGenerated = Math.max(0, alertGenerated - reduction);
+                message += ` (Lookout reduced alert to +${alertGenerated})`;
+            }
+        }
+
+        const updatedPlan: HeistPlan = {
+            ...plan,
+            alertLevel: Math.min(plan.maxAlertLevel, plan.alertLevel + alertGenerated),
+            turnsElapsed: plan.turnsElapsed + 1
+        };
+
+        return {
+            success: isSuccess,
+            alertGenerated,
+            updatedPlan,
+            message
+        };
+    }
 }

@@ -3,9 +3,16 @@
   "title": "Mountain Dwarf",
   "category": "Character Races",
   "entryLore": "Mountain dwarves are strong and hardy, accustomed to a difficult life in rugged terrain. They're probably on the tall side for a dwarf and tend toward lighter coloration. Mountain dwarves are known for their skill at warfare and their superior craftsmanship in armor and weapons. Their kingdoms, carved from the hearts of mountains, are renowned throughout the world. Mountain dwarves pride themselves on their martial traditions, with many clans maintaining elite military orders that have protected their holds for countless generations.",
-  "imageUrl": null,
   "source": "PHB2014",
   "baseRace": "dwarf",
+  "lore": {
+    "typicalDwelling": "Mountain dwarves build fortified halls and holdfasts carved deep into mountain faces, with stout gates, wide stairways, and stonework meant to last for ages. Many families live in layered districts of mines, forges, storehouses, and clan halls connected by tunnels.",
+    "typicalAttire": "They wear durable wool and leather for daily work, often marked with clan colors and simple metal clasps. Even outside war, many keep heavy belts, gloves, and thick boots suited to stone and snow, with practical capes or cloaks for cold winds.",
+    "typicalEnvironment": "They favor rugged highlands, cold valleys, and the deep mountain interior where ore and stone are plentiful. Their lives revolve around mines, quarries, and forges, with smoke, echoing hammers, and carved stone passages as familiar sights.",
+    "societyType": "Mountain dwarf culture is clan-based and martial, with strong traditions of craft guilds, militia training, and strict duty to the hold. Leadership often comes from respected elders, master smiths, and proven warriors who safeguard the clan's honor.",
+    "typicalAssociation": "Mountain dwarves are proud, disciplined, and direct. They respect resilience, craftsmanship, and keeping one's word, and they can be stubborn when challenged. Outsiders often find them blunt, but dependable once trust is earned.",
+    "physicalAppearance": "They are stocky and powerful, often taller and broader than other dwarves. Complexions tend toward lighter or ruddy tones, with thick hair and beards in browns, reds, and grays. Their hands are usually calloused from stonework and metalwork."
+  },
   "characteristics": [
     {
       "label": "Creature Type",

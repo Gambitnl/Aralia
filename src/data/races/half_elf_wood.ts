@@ -7,7 +7,7 @@ import { Race } from '../../types';
 
 export const HALF_ELF_WOOD_DATA: Race = {
   id: 'half_elf_wood',
-  name: 'Half-Elf (Wood)',
+  name: 'Wood Half-Elf',
   baseRace: 'half_elf',
   description:
     'Half-elves with wood elf heritage inherit their elven parent\'s affinity for nature and their swift, graceful movements. They often have tanned skin and hair that ranges from blonde to deep brown, sometimes with hints of green. These half-elves feel most at home in forests and wild places, possessing an instinctive ability to blend into natural surroundings. Many become rangers, druids, or scouts, putting their enhanced speed and natural camouflage to good use.',

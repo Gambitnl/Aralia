@@ -1,9 +1,8 @@
 {
-  "id": "storm_giant",
+  "id": "storm_giant_goliath",
   "title": "Storm Giant Ancestry",
   "category": "Character Races",
   "entryLore": "As a goliath with Storm Giant ancestry, you possess the common traits of your people, enhanced by the crackling power of the tempest. This heritage allows you to strike back at those who dare harm you, manifesting your ancestral fury as a localized crackle of thunder and lightning.",
-  "imageUrl": "/assets/images/races/goliath_female.png",
   "source": "PHB 2024",
   "lore": {
     "typicalDwelling": "Those of storm giant ancestry often dwell in the wave-lashed reaches of coastal cliffs, isolated mountain peaks, or the grandest districts of major port cities. Their homes are constructed of durable stone and often featured submerged entrances or chambers that allow for easy access to the sea. They value structural integrity and a clear view of the horizon, their dwellings often doubling as watchtowers or lighthouses for communal safety. Their settlements are monuments to their discipline and their ancestor's mastery over the absolute power of the storm.",
@@ -33,13 +32,15 @@
     "thunder damage",
     "lineage"
   ],
-  "aliases": [],
+  "aliases": [
+    "storm_giant"
+  ],
   "seeAlso": [
     "goliath",
     "reaction",
     "thunder_damage"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json",
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant_goliath.json",
   "maleImageUrl": "/assets/images/races/Goliath_Storm Giant_Male.png",
   "femaleImageUrl": "/assets/images/races/Goliath_Storm Giant_Female.png"
 }

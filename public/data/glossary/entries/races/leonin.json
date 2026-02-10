@@ -3,7 +3,6 @@
   "title": "Leonin",
   "category": "Character Races",
   "entryLore": "Leonin are fierce, lion-like humanoids who dwell in the golden savannas of Theros. They are proud hunters and warriors who value strength, courage, and family bonds above all else. Leonin society revolves around prides, tight-knit family groups led by experienced hunters. They are deeply suspicious of the gods, believing that mortals should rely on their own strength rather than divine intervention. This skepticism stems from ancient betrayals, and most leonin take pride in their self-reliance and the power of their roar.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "MOoT",
   "lore": {
     "typicalDwelling": "Leonin live in large, open-air encampments or simple, sturdy structures on the golden savannas and sun-drenched plains they call home. Their dwellings are organized around the pride, with shared central areas for gathering and communal fires. They favor high ground with clear views of the surrounding terrain, allowed them to spot game or intruders from a distance. Their homes are integrated into the landscape, using lightweight but durable materials like sun-dried brick, hides, and woven grasses.",
@@ -68,5 +67,7 @@
     "humanoid",
     "frightened"
   ],
-  "filePath": "/data/glossary/entries/races/leonin.json"
+  "filePath": "/data/glossary/entries/races/leonin.json",
+  "maleImageUrl": "/assets/images/races/Leonin_Male.png",
+  "femaleImageUrl": "/assets/images/races/Leonin_Female.png"
 }

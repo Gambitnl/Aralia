@@ -3,7 +3,6 @@
   "title": "Satyr",
   "category": "Character Races",
   "entryLore": "Satyrs are fey beings who embody the revelry and wild spirit of the Feywild. Known for their goat-like lower bodies and pointed horns, they are often seen as carefree merrymakers, musicians, and performers. However, their mirth hides a connection to the fundamental magic of nature, and their ability to shrug off magical influence makes them more than just simple entertainers.",
-  "imageUrl": "/assets/images/races/satyr_female.png",
   "source": "MPMM",
   "lore": {
     "typicalDwelling": "Satyrs live in vibrant, ever-changing communities within the wilder parts of the Feywild and ancient, enchanted forests of the Material Plane. Their homes are often integrated into the natural environment—hollowed-out trees, mossy grottos, or simple, colorful tents decorated with flowers and ribbons. These dwellings are less about shelter and more about providing a base for revelry. They value hospitality and their homes are always open to fellow travelers and merrymakers.",
@@ -63,6 +62,6 @@
     "mirthful_leaps"
   ],
   "filePath": "/data/glossary/entries/races/satyr.json",
-  "maleImageUrl": "/assets/images/races/Satyr_Male.png",
-  "femaleImageUrl": "/assets/images/races/Satyr_Female.png"
+  "maleImageUrl": "/assets/images/races/satyr_male.png",
+  "femaleImageUrl": "/assets/images/races/satyr_female.png"
 }

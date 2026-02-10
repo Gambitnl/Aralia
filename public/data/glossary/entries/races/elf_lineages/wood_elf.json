@@ -3,7 +3,6 @@
   "title": "Wood Elf Lineage",
   "category": "Character Races",
   "entryLore": "Embodying the spirit of primeval forests, wood elves are swift, perceptive, and have a primal connection to nature. This lineage is known for its incredible speed and the ability to vanish into the natural world, often serving as guardians and scouts of the deep wilds.",
-  "imageUrl": "/assets/images/races/elf_female.png",
   "source": "PHB 2024",
   "lore": {
     "typicalDwelling": "Wood elves live in harmony with ancient forests, constructing homes that blend seamlessly with the trees themselves. Their settlements might be invisible to outsiders—platforms hidden among branches, burrows beneath root systems, or lodges covered with living moss and vines. Architecture uses natural materials and disturbs the forest as little as possible. Some wood elf communities are truly nomadic, leaving no permanent structures at all. A wood elf home is warm, practical, and part of the forest rather than imposed upon it.",
@@ -61,5 +60,7 @@
     "pass_without_trace",
     "speed"
   ],
-  "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json"
+  "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json",
+  "maleImageUrl": "/assets/images/races/Elf_Wood_Male.png",
+  "femaleImageUrl": "/assets/images/races/Elf_Wood_Female.png"
 }

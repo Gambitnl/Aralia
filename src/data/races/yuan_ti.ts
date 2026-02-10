@@ -26,8 +26,8 @@ export const YUAN_TI_DATA: Race = {
   visual: {
     id: 'yuan_ti',
     color: '#4B8B3B',
-    maleIllustrationPath: 'assets/images/Placeholder.jpg',
-    femaleIllustrationPath: 'assets/images/Placeholder.jpg',
+    maleIllustrationPath: 'assets/images/races/Yuan-Ti_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Yuan-Ti_Female.png',
   },
   knownSpells: [
     { minLevel: 0, spellId: 'poison-spray' },

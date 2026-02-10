@@ -1,0 +1,393 @@
+{
+  "generatedAt": "2026-02-09T15:08:19.335Z",
+  "parents": {
+    "eladrin": {
+      "summary": {
+        "parent": {
+          "id": "eladrin",
+          "name": "Eladrin",
+          "traitCount": 8
+        },
+        "children": {
+          "count": 4,
+          "anyMissingKeys": true,
+          "anyMissingKeyless": false
+        }
+      },
+      "childReports": [
+        {
+          "id": "autumn_eladrin",
+          "name": "Autumn Eladrin",
+          "missingParentTraitKeys": [
+            "fey step"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "spring_eladrin",
+          "name": "Spring Eladrin",
+          "missingParentTraitKeys": [
+            "fey step"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "summer_eladrin",
+          "name": "Summer Eladrin",
+          "missingParentTraitKeys": [
+            "fey step"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "winter_eladrin",
+          "name": "Winter Eladrin",
+          "missingParentTraitKeys": [
+            "fey step"
+          ],
+          "missingParentKeylessTraits": []
+        }
+      ]
+    },
+    "elf": {
+      "summary": {
+        "parent": {
+          "id": "elf",
+          "name": "Elf",
+          "traitCount": 8
+        },
+        "children": {
+          "count": 8,
+          "anyMissingKeys": true,
+          "anyMissingKeyless": false
+        }
+      },
+      "childReports": [
+        {
+          "id": "astral_elf",
+          "name": "Astral Elf",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "drow",
+          "name": "Drow",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "high_elf",
+          "name": "High Elf",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "pallid_elf",
+          "name": "Pallid Elf",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "sea_elf",
+          "name": "Sea Elf",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "shadar_kai",
+          "name": "Shadar-kai",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "shadowveil_elf",
+          "name": "Shadowveil Elf",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "wood_elf",
+          "name": "Wood Elf",
+          "missingParentTraitKeys": [
+            "elven lineage"
+          ],
+          "missingParentKeylessTraits": []
+        }
+      ]
+    },
+    "goliath": {
+      "summary": {
+        "parent": {
+          "id": "goliath",
+          "name": "Goliath",
+          "traitCount": 6
+        },
+        "children": {
+          "count": 6,
+          "anyMissingKeys": true,
+          "anyMissingKeyless": false
+        }
+      },
+      "childReports": [
+        {
+          "id": "cloud_giant_goliath",
+          "name": "Cloud Giant Goliath",
+          "missingParentTraitKeys": [
+            "giant ancestry"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "fire_giant_goliath",
+          "name": "Fire Giant Goliath",
+          "missingParentTraitKeys": [
+            "giant ancestry"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "frost_giant_goliath",
+          "name": "Frost Giant Goliath",
+          "missingParentTraitKeys": [
+            "giant ancestry"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "hill_giant_goliath",
+          "name": "Hill Giant Goliath",
+          "missingParentTraitKeys": [
+            "giant ancestry"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "stone_giant_goliath",
+          "name": "Stone Giant Goliath",
+          "missingParentTraitKeys": [
+            "giant ancestry"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "storm_giant_goliath",
+          "name": "Storm Giant Goliath",
+          "missingParentTraitKeys": [
+            "giant ancestry"
+          ],
+          "missingParentKeylessTraits": []
+        }
+      ]
+    },
+    "half_elf": {
+      "summary": {
+        "parent": {
+          "id": "half_elf",
+          "name": "Half-Elf",
+          "traitCount": 6
+        },
+        "children": {
+          "count": 6,
+          "anyMissingKeys": true,
+          "anyMissingKeyless": false
+        }
+      },
+      "childReports": [
+        {
+          "id": "half_elf_aquatic",
+          "name": "Half-Elf (Aquatic)",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "half_elf_drow",
+          "name": "Half-Elf (Drow)",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "half_elf_high",
+          "name": "Half-Elf (High)",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "half_elf_wood",
+          "name": "Half-Elf (Wood)",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "seersight_half_elf",
+          "name": "Half-Elf (Seersight)",
+          "missingParentTraitKeys": [
+            "skill versatility"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "stormborn_half_elf",
+          "name": "Half-Elf (Stormborn)",
+          "missingParentTraitKeys": [
+            "skill versatility"
+          ],
+          "missingParentKeylessTraits": []
+        }
+      ]
+    },
+    "halfling": {
+      "summary": {
+        "parent": {
+          "id": "halfling",
+          "name": "Halfling",
+          "traitCount": 7
+        },
+        "children": {
+          "count": 5,
+          "anyMissingKeys": true,
+          "anyMissingKeyless": false
+        }
+      },
+      "childReports": [
+        {
+          "id": "hearthkeeper_halfling",
+          "name": "Hearthkeeper Halfling",
+          "missingParentTraitKeys": [
+            "luck",
+            "naturally stealthy"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "lightfoot_halfling",
+          "name": "Lightfoot Halfling",
+          "missingParentTraitKeys": [
+            "luck"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "lotusden_halfling",
+          "name": "Lotusden Halfling",
+          "missingParentTraitKeys": [
+            "luck",
+            "naturally stealthy"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "mender_halfling",
+          "name": "Mender Halfling",
+          "missingParentTraitKeys": [
+            "luck",
+            "naturally stealthy"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "stout_halfling",
+          "name": "Stout Halfling",
+          "missingParentTraitKeys": [
+            "luck",
+            "naturally stealthy"
+          ],
+          "missingParentKeylessTraits": []
+        }
+      ]
+    },
+    "human": {
+      "summary": {
+        "parent": {
+          "id": "human",
+          "name": "Human",
+          "traitCount": 6
+        },
+        "children": {
+          "count": 4,
+          "anyMissingKeys": false,
+          "anyMissingKeyless": false
+        }
+      },
+      "childReports": [
+        {
+          "id": "beastborn_human",
+          "name": "Beastborn Human",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "forgeborn_human",
+          "name": "Forgeborn Human",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "guardian_human",
+          "name": "Guardian Human",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "wayfarer_human",
+          "name": "Wayfarer Human",
+          "missingParentTraitKeys": [],
+          "missingParentKeylessTraits": []
+        }
+      ]
+    },
+    "tiefling": {
+      "summary": {
+        "parent": {
+          "id": "tiefling",
+          "name": "Tiefling",
+          "traitCount": 6
+        },
+        "children": {
+          "count": 3,
+          "anyMissingKeys": true,
+          "anyMissingKeyless": false
+        }
+      },
+      "childReports": [
+        {
+          "id": "abyssal_tiefling",
+          "name": "Abyssal Tiefling",
+          "missingParentTraitKeys": [
+            "fiendish legacy"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "chthonic_tiefling",
+          "name": "Chthonic Tiefling",
+          "missingParentTraitKeys": [
+            "fiendish legacy"
+          ],
+          "missingParentKeylessTraits": []
+        },
+        {
+          "id": "infernal_tiefling",
+          "name": "Infernal Tiefling",
+          "missingParentTraitKeys": [
+            "fiendish legacy"
+          ],
+          "missingParentKeylessTraits": []
+        }
+      ]
+    }
+  }
+}

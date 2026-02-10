@@ -1,0 +1,264 @@
+# Slice-of-Life Settings Used (Race Portraits)
+
+Generated from: `public/assets/images/races/race-image-status.json`
+
+## Unique Roles / Activities
+
+- baking bread in a communal oven, dusted with flour.
+- carrying water and supplies along a village path, calm and focused.
+- carving wooden utensils at a simple workbench.
+- copying ledgers in an office nook with ink-stained fingers.
+- harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- loading crates at a caravan stop, practical labor and travel-worn clothes.
+- mending a torn cloak with needle and thread by window light.
+- repairing a fishing net on a dock, with practical tools laid out nearby.
+- repairing a wagon wheel with basic tools.
+- serving stew from a pot at a roadside inn.
+- setting lanterns along a street at dusk.
+- sorting mushrooms on a cloth in a cavern-side camp.
+- stacking firewood neatly under an awning.
+- sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- tending a herb garden, bundling fresh sprigs with twine.
+- tending a small workshop bench, crafting or mending everyday items.
+- training a working animal (mule/ox) with gentle guidance.
+- working at a market stall, weighing produce and speaking with customers.
+- writing or organizing records at a humble desk, everyday administration.
+
+## Unique Backgrounds
+
+
+## Per Image (Race, Gender -> Role / Background)
+
+- aarakocra (female): (no role found)
+- aarakocra (male): (no role found)
+- abyssal_tiefling (female): training a working animal (mule/ox) with gentle guidance.
+- abyssal_tiefling (male): setting lanterns along a street at dusk.
+- astral_elf (female): serving stew from a pot at a roadside inn.
+- astral_elf (male): copying ledgers in an office nook with ink-stained fingers.
+- autumn_eladrin (female): writing or organizing records at a humble desk, everyday administration.
+- autumn_eladrin (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- beastborn_human (female): (no role found)
+- beastborn_human (male): working at a market stall, weighing produce and speaking with customers.
+- beasthide_shifter (female): carrying water and supplies along a village path, calm and focused.
+- beasthide_shifter (male): tending a small workshop bench, crafting or mending everyday items.
+- blue_dragonborn (male): (no role found)
+- bugbear (female): (no role found)
+- bugbear (male): (no role found)
+- centaur (female): (no role found)
+- changeling (female): (no role found)
+- changeling (male): (no role found)
+- chthonic_tiefling (female): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- chthonic_tiefling (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- cloud_giant_goliath (female): tending a small workshop bench, crafting or mending everyday items.
+- cloud_giant_goliath (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- copper_dragonborn (female): (no role found)
+- copper_dragonborn (male): (no role found)
+- draconblood_dragonborn (male): carrying water and supplies along a village path, calm and focused.
+- drow (female): writing or organizing records at a humble desk, everyday administration.
+- drow (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- duergar (female): (no role found)
+- duergar (male): (no role found)
+- fallen_aasimar (female): mending a torn cloak with needle and thread by window light.
+- fallen_aasimar (male): baking bread in a communal oven, dusted with flour.
+- firbolg (female): (no role found)
+- firbolg (male): (no role found)
+- fire_genasi (female): (no role found)
+- fire_genasi (male): (no role found)
+- fire_giant_goliath (female): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- fire_giant_goliath (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- forest_gnome (female): (no role found)
+- forgeborn_human (female): (no role found)
+- forgeborn_human (male): (no role found)
+- frost_giant_goliath (female): carrying water and supplies along a village path, calm and focused.
+- frost_giant_goliath (male): tending a small workshop bench, crafting or mending everyday items.
+- giff (female): (no role found)
+- giff (male): (no role found)
+- githyanki (male): (no role found)
+- githzerai (male): (no role found)
+- goblin (female): (no role found)
+- gold_dragonborn (male): (no role found)
+- green_dragonborn (female): (no role found)
+- green_dragonborn (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- guardian_human (female): carrying water and supplies along a village path, calm and focused.
+- guardian_human (male): tending a small workshop bench, crafting or mending everyday items.
+- hadozee (female): (no role found)
+- hadozee (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- half_elf_aquatic (female): writing or organizing records at a humble desk, everyday administration.
+- half_elf_aquatic (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- half_elf_drow (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- half_elf_drow (male): carrying water and supplies along a village path, calm and focused.
+- half_elf_high (female): (no role found)
+- half_elf_high (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- half_elf_wood (female): (no role found)
+- half_elf_wood (male): (no role found)
+- half_elf (female): (no role found)
+- half_elf (male): (no role found)
+- half_orc (female): (no role found)
+- half_orc (male): (no role found)
+- harengon (female): repairing a fishing net on a dock, with practical tools laid out nearby.
+- harengon (male): working at a market stall, weighing produce and speaking with customers.
+- hearthkeeper_halfling (male): (no role found)
+- high_elf (female): (no role found)
+- high_elf (male): (no role found)
+- hill_dwarf (female): (no role found)
+- hill_giant_goliath (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- hill_giant_goliath (male): carrying water and supplies along a village path, calm and focused.
+- hobgoblin (male): (no role found)
+- infernal_tiefling (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- infernal_tiefling (male): stacking firewood neatly under an awning.
+- kalashtar (female): (no role found)
+- kalashtar (male): (no role found)
+- kender (female): (no role found)
+- kender (male): (no role found)
+- kenku (female): (no role found)
+- kobold (female): (no role found)
+- kobold (male): (no role found)
+- leonin (female): carrying water and supplies along a village path, calm and focused.
+- leonin (male): tending a small workshop bench, crafting or mending everyday items.
+- lizardfolk (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- lizardfolk (male): carrying water and supplies along a village path, calm and focused.
+- longtooth_shifter (female): tending a small workshop bench, crafting or mending everyday items.
+- longtooth_shifter (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- loxodon (female): working at a market stall, weighing produce and speaking with customers.
+- loxodon (male): (no role found)
+- mender_halfling (male): (no role found)
+- minotaur (female): (no role found)
+- minotaur (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- orc (male): (no role found)
+- pallid_elf (female): (no role found)
+- pallid_elf (male): (no role found)
+- pathfinder_half_orc (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- pathfinder_half_orc (male): carrying water and supplies along a village path, calm and focused.
+- protector_aasimar (female): tending a herb garden, bundling fresh sprigs with twine.
+- protector_aasimar (male): carving wooden utensils at a simple workbench.
+- ravenite_dragonborn (female): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- ravenite_dragonborn (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- red_dragonborn (female): writing or organizing records at a humble desk, everyday administration.
+- red_dragonborn (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- rock_gnome (male): (no role found)
+- runeward_dwarf (male): (no role found)
+- scourge_aasimar (female): repairing a wagon wheel with basic tools.
+- scourge_aasimar (male): sorting mushrooms on a cloth in a cavern-side camp.
+- sea_elf (female): (no role found)
+- seersight_half_elf (female): (no role found)
+- seersight_half_elf (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- shadar_kai (female): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- shadar_kai (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- shadowveil_elf (female): (no role found)
+- silver_dragonborn (female): repairing a fishing net on a dock, with practical tools laid out nearby.
+- silver_dragonborn (male): (no role found)
+- spring_eladrin (female): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- spring_eladrin (male): repairing a fishing net on a dock, with practical tools laid out nearby.
+- stone_giant_goliath (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
+- stone_giant_goliath (male): carrying water and supplies along a village path, calm and focused.
+- storm_giant_goliath (female): tending a small workshop bench, crafting or mending everyday items.
+- storm_giant_goliath (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- stormborn_half_elf (female): (no role found)
+- stormborn_half_elf (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- summer_eladrin (female): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- summer_eladrin (male): repairing a fishing net on a dock, with practical tools laid out nearby.
+- swiftstride_shifter (female): writing or organizing records at a humble desk, everyday administration.
+- swiftstride_shifter (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- thri_kreen (female): carrying water and supplies along a village path, calm and focused.
+- thri_kreen (male): tending a small workshop bench, crafting or mending everyday items.
+- tortle (female): repairing a fishing net on a dock, with practical tools laid out nearby.
+- tortle (male): working at a market stall, weighing produce and speaking with customers.
+- triton (female): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- undefined (undefined): (no role found)
+- vedalken (female): (no role found)
+- verdan (female): (no role found)
+- verdan (male): (no role found)
+- warforged (female): (no role found)
+- water_genasi (male): (no role found)
+- wayfarer_human (female): carrying water and supplies along a village path, calm and focused.
+- wayfarer_human (male): tending a small workshop bench, crafting or mending everyday items.
+- white_dragonborn (female): tending a small workshop bench, crafting or mending everyday items.
+- white_dragonborn (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
+- wildhunt_shifter (female): carrying water and supplies along a village path, calm and focused.
+- wildhunt_shifter (male): tending a small workshop bench, crafting or mending everyday items.
+- winter_eladrin (female): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- winter_eladrin (male): repairing a fishing net on a dock, with practical tools laid out nearby.
+- wordweaver_gnome (female): (no role found)
+- yuan_ti (female): sweeping a courtyard or temple steps, quiet routine and grounded mood.
+- yuan_ti (male): repairing a fishing net on a dock, with practical tools laid out nearby.

@@ -23,7 +23,7 @@ export const LEONIN_DATA: Race = {
   visual: {
     id: 'leonin',
     color: '#995c1f',
-    maleIllustrationPath: 'assets/images/Placeholder.jpg',
-    femaleIllustrationPath: 'assets/images/Placeholder.jpg',
+    maleIllustrationPath: 'assets/images/races/Leonin_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Leonin_Female.png',
   },
 };

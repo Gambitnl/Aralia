@@ -27,9 +27,9 @@
       ]
     },
     "stitch": {
-      "command": "npx.cmd",
+      "command": "node",
       "args": [
-        "@_davideast/stitch-mcp",
+        "./node_modules/@_davideast/stitch-mcp/dist/cli.js",
         "proxy",
         "--debug"
       ],

@@ -3,7 +3,6 @@
   "title": "Kobold",
   "category": "Character Races",
   "entryLore": "Small and clever, kobolds are distant kin of dragons. While often viewed as mere pests by larger folk, they possess a remarkable communal spirit and a surprising ingenuity. They are experts at setting traps and navigating tight spaces, using their draconic heritage to tap into subtle magical or physical gifts that allow them to overcome their diminutive size.",
-  "imageUrl": "/assets/images/races/kobold_female.png",
   "source": "MPMM",
   "lore": {
     "typicalDwelling": "Kobolds live in incredibly well-organized subterranean complexes, often hidden beneath mountains or deep within dense forests. Their homes are a marvel of small-scale engineering, filled with winding tunnels too narrow for larger folk to navigate comfortably. These warrens are packed with clever traps, hidden passages, and communal living spaces where the entire tribe shares chores and resources. They have a particular talent for utilizing every inch of space, creating thriving vertical communities in locations others would find uninhabitable.",
@@ -54,6 +53,6 @@
     "kobold_legacy"
   ],
   "filePath": "/data/glossary/entries/races/kobold.json",
-  "maleImageUrl": "/assets/images/races/Kobold_Male.png",
-  "femaleImageUrl": "/assets/images/races/Kobold_Female.png"
+  "maleImageUrl": "/assets/images/races/kobold_male.png",
+  "femaleImageUrl": "/assets/images/races/kobold_female.png"
 }

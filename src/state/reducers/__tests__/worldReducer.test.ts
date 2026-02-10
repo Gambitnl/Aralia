@@ -53,6 +53,6 @@ describe('worldReducer', () => {
         const result = worldReducer(baseState, action);
 
         expect(result.gameTime).toBeDefined();
-        expect(result.messages).toBeUndefined(); // No changes to messages
+        expect(result.messages).toEqual([]); // Expect empty array, not undefined
     });
 });

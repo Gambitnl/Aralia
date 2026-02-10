@@ -7,7 +7,7 @@ import { Race } from '../../types';
 
 export const HALF_ELF_HIGH_DATA: Race = {
   id: 'half_elf_high',
-  name: 'Half-Elf (High)',
+  name: 'High Half-Elf',
   baseRace: 'half_elf',
   description:
     'Half-elves with high elf heritage often display an affinity for the arcane arts that runs strong in their elven bloodline. They may have features that lean slightly more elven than human, with longer ears and more angular features. Many are drawn to magical study, finding that wizardry and other arcane pursuits come naturally to them. Their high elf parent\'s culture of intellectual curiosity and magical tradition often leaves a lasting impression, even when raised among humans.',

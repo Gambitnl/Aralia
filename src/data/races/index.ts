@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ * 
+ * Last Sync: 10/02/2026, 01:54:14
+ * Dependents: CharacterCreator.tsx, characterUtils.ts, characterValidation.ts, constants.ts, dummyCharacter.ts, npcGenerator.ts, quickCharacterGenerator.ts, raceSyncAuditor.ts, useCharacterAssembly.ts
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file index.ts
  * Aggregates all race data exports for centralized access using import.meta.glob.
@@ -62,6 +78,17 @@ export const RACE_DATA_BUNDLE = {
 
 // Array for iteration (e.g., character creator list)
 // Updated to filter out legacy or helper entries if needed
-export const ACTIVE_RACES = Object.values(ALL_RACES_DATA).sort((a, b) =>
-  a.name.localeCompare(b.name)
-);
+// Some base races are intentionally "chooser-only" (the player must pick a lineage/legacy/ancestry/season).
+// Those base entries are still useful as internal helpers, but should not appear as selectable races.
+const NON_SELECTABLE_BASE_RACE_IDS = new Set<string>([
+  // Forced-choice base families (variants-only)
+  'elf',
+  'tiefling',
+  'goliath',
+  'eladrin',
+  'dragonborn',
+]);
+
+export const ACTIVE_RACES = Object.values(ALL_RACES_DATA)
+  .filter((race) => !NON_SELECTABLE_BASE_RACE_IDS.has(race.id))
+  .sort((a, b) => a.name.localeCompare(b.name));

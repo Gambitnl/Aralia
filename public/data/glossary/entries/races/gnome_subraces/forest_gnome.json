@@ -3,8 +3,15 @@
   "title": "Forest Gnome Lineage",
   "category": "Character Races",
   "entryLore": "Forest gnomes possess a natural gift for illusion and an inherent quickness. Often found in hidden sylvan communities, they use their trickery to remain unseen and protect the woodland creatures they call friends. They are the most common gnomes found in the wilder parts of the world.",
-  "imageUrl": "/assets/images/races/gnome_female.png",
   "source": "PHB 2024",
+  "lore": {
+    "typicalDwelling": "Forest gnomes live in concealed woodland burrows and camouflaged cottages built into roots, hillsides, and dense brush. Their homes are small but cozy, often protected by illusion, hidden paths, and friendly animals that warn them of danger.",
+    "typicalAttire": "They prefer simple, practical clothing in greens and browns: short cloaks, sturdy belts, and soft boots made for quiet steps. Many decorate themselves with small natural trinkets like acorn caps, carved wooden charms, and woven vines.",
+    "typicalEnvironment": "They thrive in forests, thickets, and mossy glades where cover is plentiful. They favor areas with abundant wildlife and natural landmarks, and they avoid open fields where they would be easily spotted.",
+    "societyType": "Forest gnome communities are close-knit and playful, built around shared craft, storytelling, and gentle trickery that keeps outsiders at a distance. They rely on cooperation and cleverness rather than force, and many act as quiet guardians of local woods.",
+    "typicalAssociation": "Forest gnomes are curious, friendly, and quick-witted, but cautious around strangers. They enjoy harmless illusions and pranks, and they form strong bonds with animals and trusted neighbors.",
+    "physicalAppearance": "Forest gnomes are small and wiry, with expressive faces, bright eyes, and quick hands. Hair is often tousled and practical, sometimes decorated with leaves or twine. Their clothing and features often pick up forest colors from constant life among trees and moss."
+  },
   "characteristics": [
     {
       "label": "Lineage Type",

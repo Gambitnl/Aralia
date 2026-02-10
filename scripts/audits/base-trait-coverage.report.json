@@ -1,0 +1,470 @@
+{
+  "generatedAt": "2026-02-09T14:51:43.739Z",
+  "parents": {
+    "eladrin": {
+      "parent": {
+        "id": "eladrin",
+        "name": "Eladrin",
+        "parentTraitsCount": 8
+      },
+      "children": {
+        "count": 4,
+        "anyMissing": true
+      },
+      "childReports": [
+        {
+          "id": "autumn_eladrin",
+          "name": "Autumn Eladrin",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Creature Type: Humanoid. You are also considered an elf.",
+            "Fey Step: As a bonus action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. When you reach 3rd level, your Fey Step gains an additional effect based on your season (Autumn, Winter, Spring, or Summer). The save DC for these effects is 8 + your proficiency bonus + your chosen spellcasting modifier (Intelligence, Wisdom, or Charisma).",
+            "Trance: You don't need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don't have, each one with a weapon or a tool of your choice."
+          ]
+        },
+        {
+          "id": "spring_eladrin",
+          "name": "Spring Eladrin",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Creature Type: Humanoid. You are also considered an elf.",
+            "Fey Step: As a bonus action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. When you reach 3rd level, your Fey Step gains an additional effect based on your season (Autumn, Winter, Spring, or Summer). The save DC for these effects is 8 + your proficiency bonus + your chosen spellcasting modifier (Intelligence, Wisdom, or Charisma).",
+            "Trance: You don't need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don't have, each one with a weapon or a tool of your choice."
+          ]
+        },
+        {
+          "id": "summer_eladrin",
+          "name": "Summer Eladrin",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Creature Type: Humanoid. You are also considered an elf.",
+            "Fey Step: As a bonus action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. When you reach 3rd level, your Fey Step gains an additional effect based on your season (Autumn, Winter, Spring, or Summer). The save DC for these effects is 8 + your proficiency bonus + your chosen spellcasting modifier (Intelligence, Wisdom, or Charisma).",
+            "Trance: You don't need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don't have, each one with a weapon or a tool of your choice."
+          ]
+        },
+        {
+          "id": "winter_eladrin",
+          "name": "Winter Eladrin",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Creature Type: Humanoid. You are also considered an elf.",
+            "Fey Step: As a bonus action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. When you reach 3rd level, your Fey Step gains an additional effect based on your season (Autumn, Winter, Spring, or Summer). The save DC for these effects is 8 + your proficiency bonus + your chosen spellcasting modifier (Intelligence, Wisdom, or Charisma).",
+            "Trance: You don't need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don't have, each one with a weapon or a tool of your choice."
+          ]
+        }
+      ]
+    },
+    "elf": {
+      "parent": {
+        "id": "elf",
+        "name": "Elf",
+        "parentTraitsCount": 8
+      },
+      "children": {
+        "count": 8,
+        "anyMissing": true
+      },
+      "childReports": [
+        {
+          "id": "drow",
+          "name": "Drow",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
+            "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray."
+          ]
+        },
+        {
+          "id": "sea_elf",
+          "name": "Sea Elf",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Speed: 30 feet",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+          ]
+        },
+        {
+          "id": "wood_elf",
+          "name": "Wood Elf",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Speed: 30 feet",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+          ]
+        },
+        {
+          "id": "astral_elf",
+          "name": "Astral Elf",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+          ]
+        },
+        {
+          "id": "high_elf",
+          "name": "High Elf",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+          ]
+        },
+        {
+          "id": "pallid_elf",
+          "name": "Pallid Elf",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+          ]
+        },
+        {
+          "id": "shadar_kai",
+          "name": "Shadar-kai",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+          ]
+        },
+        {
+          "id": "shadowveil_elf",
+          "name": "Shadowveil Elf",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Elven Lineage: Choose a Drow, High Elf, or Wood Elf lineage, granting specific benefits.",
+            "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
+            "Trance: You don't need to sleep and can't be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness."
+          ]
+        }
+      ]
+    },
+    "goliath": {
+      "parent": {
+        "id": "goliath",
+        "name": "Goliath",
+        "parentTraitsCount": 6
+      },
+      "children": {
+        "count": 6,
+        "anyMissing": true
+      },
+      "childReports": [
+        {
+          "id": "cloud_giant_goliath",
+          "name": "Cloud Giant Goliath",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Giant Ancestry: You are descended from Giants. Choose one supernatural boon from your ancestry (Cloud's Jaunt, Fire's Burn, Frost's Chill, Hill's Tumble, Stone's Endurance, or Storm's Thunder). You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
+            "Large Form: Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
+            "Powerful Build: You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
+            "Size: Medium (about 7–8 feet tall)"
+          ]
+        },
+        {
+          "id": "fire_giant_goliath",
+          "name": "Fire Giant Goliath",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Giant Ancestry: You are descended from Giants. Choose one supernatural boon from your ancestry (Cloud's Jaunt, Fire's Burn, Frost's Chill, Hill's Tumble, Stone's Endurance, or Storm's Thunder). You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
+            "Large Form: Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
+            "Powerful Build: You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
+            "Size: Medium (about 7–8 feet tall)"
+          ]
+        },
+        {
+          "id": "frost_giant_goliath",
+          "name": "Frost Giant Goliath",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Giant Ancestry: You are descended from Giants. Choose one supernatural boon from your ancestry (Cloud's Jaunt, Fire's Burn, Frost's Chill, Hill's Tumble, Stone's Endurance, or Storm's Thunder). You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
+            "Large Form: Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
+            "Powerful Build: You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
+            "Size: Medium (about 7–8 feet tall)"
+          ]
+        },
+        {
+          "id": "hill_giant_goliath",
+          "name": "Hill Giant Goliath",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Giant Ancestry: You are descended from Giants. Choose one supernatural boon from your ancestry (Cloud's Jaunt, Fire's Burn, Frost's Chill, Hill's Tumble, Stone's Endurance, or Storm's Thunder). You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
+            "Large Form: Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
+            "Powerful Build: You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
+            "Size: Medium (about 7–8 feet tall)"
+          ]
+        },
+        {
+          "id": "stone_giant_goliath",
+          "name": "Stone Giant Goliath",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Giant Ancestry: You are descended from Giants. Choose one supernatural boon from your ancestry (Cloud's Jaunt, Fire's Burn, Frost's Chill, Hill's Tumble, Stone's Endurance, or Storm's Thunder). You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
+            "Large Form: Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
+            "Powerful Build: You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
+            "Size: Medium (about 7–8 feet tall)"
+          ]
+        },
+        {
+          "id": "storm_giant_goliath",
+          "name": "Storm Giant Goliath",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Giant Ancestry: You are descended from Giants. Choose one supernatural boon from your ancestry (Cloud's Jaunt, Fire's Burn, Frost's Chill, Hill's Tumble, Stone's Endurance, or Storm's Thunder). You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
+            "Large Form: Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
+            "Powerful Build: You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
+            "Size: Medium (about 7–8 feet tall)"
+          ]
+        }
+      ]
+    },
+    "half_elf": {
+      "parent": {
+        "id": "half_elf",
+        "name": "Half-Elf",
+        "parentTraitsCount": 6
+      },
+      "children": {
+        "count": 6,
+        "anyMissing": true
+      },
+      "childReports": [
+        {
+          "id": "half_elf_wood",
+          "name": "Half-Elf (Wood)",
+          "missingParentTraitsCount": 2,
+          "missingParentTraits": [
+            "Skill Versatility: You gain proficiency in two skills of your choice.",
+            "Speed: 30 feet"
+          ]
+        },
+        {
+          "id": "half_elf_aquatic",
+          "name": "Half-Elf (Aquatic)",
+          "missingParentTraitsCount": 1,
+          "missingParentTraits": [
+            "Skill Versatility: You gain proficiency in two skills of your choice."
+          ]
+        },
+        {
+          "id": "half_elf_drow",
+          "name": "Half-Elf (Drow)",
+          "missingParentTraitsCount": 1,
+          "missingParentTraits": [
+            "Skill Versatility: You gain proficiency in two skills of your choice."
+          ]
+        },
+        {
+          "id": "half_elf_high",
+          "name": "Half-Elf (High)",
+          "missingParentTraitsCount": 1,
+          "missingParentTraits": [
+            "Skill Versatility: You gain proficiency in two skills of your choice."
+          ]
+        },
+        {
+          "id": "seersight_half_elf",
+          "name": "Half-Elf (Seersight)",
+          "missingParentTraitsCount": 1,
+          "missingParentTraits": [
+            "Skill Versatility: You gain proficiency in two skills of your choice."
+          ]
+        },
+        {
+          "id": "stormborn_half_elf",
+          "name": "Half-Elf (Stormborn)",
+          "missingParentTraitsCount": 1,
+          "missingParentTraits": [
+            "Skill Versatility: You gain proficiency in two skills of your choice."
+          ]
+        }
+      ]
+    },
+    "halfling": {
+      "parent": {
+        "id": "halfling",
+        "name": "Halfling",
+        "parentTraitsCount": 7
+      },
+      "children": {
+        "count": 5,
+        "anyMissing": true
+      },
+      "childReports": [
+        {
+          "id": "hearthkeeper_halfling",
+          "name": "Hearthkeeper Halfling",
+          "missingParentTraitsCount": 6,
+          "missingParentTraits": [
+            "Brave: You have Advantage on saving throws you make to avoid or end the Frightened condition.",
+            "Halfling Nimbleness: You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.",
+            "Luck: When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll. (Note: Mechanical implementation of reroll not yet in place).",
+            "Naturally Stealthy: You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced).",
+            "Size: Small (about 2–3 feet tall)",
+            "Speed: 30 feet"
+          ]
+        },
+        {
+          "id": "lightfoot_halfling",
+          "name": "Lightfoot Halfling",
+          "missingParentTraitsCount": 6,
+          "missingParentTraits": [
+            "Brave: You have Advantage on saving throws you make to avoid or end the Frightened condition.",
+            "Halfling Nimbleness: You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.",
+            "Luck: When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll. (Note: Mechanical implementation of reroll not yet in place).",
+            "Naturally Stealthy: You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced).",
+            "Size: Small (about 2–3 feet tall)",
+            "Speed: 30 feet"
+          ]
+        },
+        {
+          "id": "lotusden_halfling",
+          "name": "Lotusden Halfling",
+          "missingParentTraitsCount": 6,
+          "missingParentTraits": [
+            "Brave: You have Advantage on saving throws you make to avoid or end the Frightened condition.",
+            "Halfling Nimbleness: You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.",
+            "Luck: When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll. (Note: Mechanical implementation of reroll not yet in place).",
+            "Naturally Stealthy: You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced).",
+            "Size: Small (about 2–3 feet tall)",
+            "Speed: 30 feet"
+          ]
+        },
+        {
+          "id": "mender_halfling",
+          "name": "Mender Halfling",
+          "missingParentTraitsCount": 6,
+          "missingParentTraits": [
+            "Brave: You have Advantage on saving throws you make to avoid or end the Frightened condition.",
+            "Halfling Nimbleness: You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.",
+            "Luck: When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll. (Note: Mechanical implementation of reroll not yet in place).",
+            "Naturally Stealthy: You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced).",
+            "Size: Small (about 2–3 feet tall)",
+            "Speed: 30 feet"
+          ]
+        },
+        {
+          "id": "stout_halfling",
+          "name": "Stout Halfling",
+          "missingParentTraitsCount": 6,
+          "missingParentTraits": [
+            "Brave: You have Advantage on saving throws you make to avoid or end the Frightened condition.",
+            "Halfling Nimbleness: You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.",
+            "Luck: When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll. (Note: Mechanical implementation of reroll not yet in place).",
+            "Naturally Stealthy: You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced).",
+            "Size: Small (about 2–3 feet tall)",
+            "Speed: 30 feet"
+          ]
+        }
+      ]
+    },
+    "human": {
+      "parent": {
+        "id": "human",
+        "name": "Human",
+        "parentTraitsCount": 6
+      },
+      "children": {
+        "count": 4,
+        "anyMissing": true
+      },
+      "childReports": [
+        {
+          "id": "wayfarer_human",
+          "name": "Wayfarer Human",
+          "missingParentTraitsCount": 4,
+          "missingParentTraits": [
+            "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+            "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+            "Skillful: You gain proficiency in one skill of your choice (chosen during character creation).",
+            "Speed: 30 feet"
+          ]
+        },
+        {
+          "id": "beastborn_human",
+          "name": "Beastborn Human",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+            "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+            "Skillful: You gain proficiency in one skill of your choice (chosen during character creation)."
+          ]
+        },
+        {
+          "id": "forgeborn_human",
+          "name": "Forgeborn Human",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+            "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+            "Skillful: You gain proficiency in one skill of your choice (chosen during character creation)."
+          ]
+        },
+        {
+          "id": "guardian_human",
+          "name": "Guardian Human",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+            "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+            "Skillful: You gain proficiency in one skill of your choice (chosen during character creation)."
+          ]
+        }
+      ]
+    },
+    "tiefling": {
+      "parent": {
+        "id": "tiefling",
+        "name": "Tiefling",
+        "parentTraitsCount": 6
+      },
+      "children": {
+        "count": 3,
+        "anyMissing": true
+      },
+      "childReports": [
+        {
+          "id": "abyssal_tiefling",
+          "name": "Abyssal Tiefling",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Fiendish Legacy: You are the recipient of a legacy that grants you supernatural abilities. Choose a legacy (Abyssal, Chthonic, or Infernal). You gain benefits at levels 1, 3, and 5. Spells learned this way can be cast once per Long Rest without a spell slot, or using spell slots. Your spellcasting ability for these spells (Intelligence, Wisdom, or Charisma) is chosen when you select your legacy.",
+            "Otherworldly Presence: You know the Thaumaturgy cantrip. It uses the same spellcasting ability chosen for your Fiendish Legacy.",
+            "Size: Medium (about 4–7 feet tall) or Small (about 3–4 feet tall), chosen when you select this species (defaults to Medium for now)."
+          ]
+        },
+        {
+          "id": "chthonic_tiefling",
+          "name": "Chthonic Tiefling",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Fiendish Legacy: You are the recipient of a legacy that grants you supernatural abilities. Choose a legacy (Abyssal, Chthonic, or Infernal). You gain benefits at levels 1, 3, and 5. Spells learned this way can be cast once per Long Rest without a spell slot, or using spell slots. Your spellcasting ability for these spells (Intelligence, Wisdom, or Charisma) is chosen when you select your legacy.",
+            "Otherworldly Presence: You know the Thaumaturgy cantrip. It uses the same spellcasting ability chosen for your Fiendish Legacy.",
+            "Size: Medium (about 4–7 feet tall) or Small (about 3–4 feet tall), chosen when you select this species (defaults to Medium for now)."
+          ]
+        },
+        {
+          "id": "infernal_tiefling",
+          "name": "Infernal Tiefling",
+          "missingParentTraitsCount": 3,
+          "missingParentTraits": [
+            "Fiendish Legacy: You are the recipient of a legacy that grants you supernatural abilities. Choose a legacy (Abyssal, Chthonic, or Infernal). You gain benefits at levels 1, 3, and 5. Spells learned this way can be cast once per Long Rest without a spell slot, or using spell slots. Your spellcasting ability for these spells (Intelligence, Wisdom, or Charisma) is chosen when you select your legacy.",
+            "Otherworldly Presence: You know the Thaumaturgy cantrip. It uses the same spellcasting ability chosen for your Fiendish Legacy.",
+            "Size: Medium (about 4–7 feet tall) or Small (about 3–4 feet tall), chosen when you select this species (defaults to Medium for now)."
+          ]
+        }
+      ]
+    }
+  }
+}

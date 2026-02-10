@@ -26,8 +26,8 @@ export const MARK_OF_FINDING_HALF_ORC_DATA: Race = {
   visual: {
     id: 'mark_of_finding_half_orc',
     color: '#8B4513',
-    maleIllustrationPath: 'assets/images/races/mark_of_finding_half_orc_male.png',
-    femaleIllustrationPath: 'assets/images/races/mark_of_finding_half_orc_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Orc_Pathfinder_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Orc_Pathfinder_Female.png',
   },
   knownSpells: [
     { minLevel: 1, spellId: 'hunters-mark' },

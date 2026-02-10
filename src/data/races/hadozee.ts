@@ -22,7 +22,7 @@ export const HADOZEE_DATA: Race = {
   visual: {
     id: 'hadozee',
     color: '#5a7b9f',
-    maleIllustrationPath: 'assets/images/Placeholder.jpg',
-    femaleIllustrationPath: 'assets/images/Placeholder.jpg',
+    maleIllustrationPath: 'assets/images/races/Hadozee_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Hadozee_Female.png',
   },
 };

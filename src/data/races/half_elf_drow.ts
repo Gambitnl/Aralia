@@ -7,7 +7,7 @@ import { Race } from '../../types';
 
 export const HALF_ELF_DROW_DATA: Race = {
   id: 'half_elf_drow',
-  name: 'Half-Elf (Drow)',
+  name: 'Drow Half-Elf',
   baseRace: 'half_elf',
   description:
     'Half-elves of drow heritage are often the result of forbidden unions or raids upon the surface world. Many face prejudice from both sides of their ancestry—mistrusted by surface dwellers for their dark elf blood and scorned by drow for their human taint. Despite these hardships, half-drow often develop strong wills and a determination to forge their own path. They may inherit the drow\'s affinity for shadow magic, manifesting as an ability to conjure dancing lights, darkness, and other supernatural effects.',
@@ -35,7 +35,7 @@ export const HALF_ELF_DROW_DATA: Race = {
   visual: {
     id: 'half_elf_drow',
     color: '#663399',
-    maleIllustrationPath: 'assets/images/races/half_elf_drow_male.png',
-    femaleIllustrationPath: 'assets/images/races/half_elf_drow_female.png',
+    maleIllustrationPath: 'assets/images/races/Half-Elf_Drow_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Half-Elf_Drow_Female.png',
   },
 };

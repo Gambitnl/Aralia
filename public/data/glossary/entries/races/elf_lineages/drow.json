@@ -3,7 +3,6 @@
   "title": "Drow Lineage",
   "category": "Character Races",
   "entryLore": "Descended from elves who were once drawn into the Underdark, drow possess superior darkvision and unique innate magic. This lineage has been shaped by the magic and the shadows of their subterranean home, granting them the ability to call upon the darkness itself.",
-  "imageUrl": "/assets/images/races/elf_female.png",
   "source": "PHB 2024",
   "lore": {
     "typicalDwelling": "Drow build their cities in vast caverns of the Underdark—grand structures carved from rock and adorned with luminescent fungi, bioluminescent crystals, and magical lights that provide eerie illumination. Their architecture is elegant yet cruel, featuring soaring spires, deep pits, and palaces that serve as both homes and fortresses. Noble houses compete to construct the most impressive compounds. Even common drow live in well-crafted stone dwellings, though comfort matters less than defensibility in a society where assassination is a political tool.",
@@ -51,5 +50,7 @@
     "faerie_fire",
     "darkness"
   ],
-  "filePath": "/data/glossary/entries/races/elf_lineages/drow.json"
+  "filePath": "/data/glossary/entries/races/elf_lineages/drow.json",
+  "maleImageUrl": "/assets/images/races/Drow_Male.png",
+  "femaleImageUrl": "/assets/images/races/Drow_Female.png"
 }

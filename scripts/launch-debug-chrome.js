@@ -39,7 +39,7 @@ console.log(`Found Chrome at: ${chromePath}`);
 const args = [
   '--remote-debugging-port=9222',
   `--user-data-dir=${profileDir}`,
-  'about:blank' // Open blank page initially
+  'https://gemini.google.com/app' // Open Gemini so consent/login can be completed in the debug profile.
 ];
 
 const child = spawn(chromePath, args, { detached: true, stdio: 'ignore' });

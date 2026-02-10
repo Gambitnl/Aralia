@@ -23,7 +23,7 @@ export const TORTLE_DATA: Race = {
   visual: {
     id: 'tortle',
     color: '#2e8b57',
-    maleIllustrationPath: 'assets/images/Placeholder.jpg',
-    femaleIllustrationPath: 'assets/images/Placeholder.jpg',
+    maleIllustrationPath: 'assets/images/races/Tortle_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Tortle_Female.png',
   },
 };

@@ -3,7 +3,6 @@
   "title": "Kender",
   "category": "Character Races",
   "entryLore": "Kender are small humanoids native to the world of Krynn, known for their insatiable curiosity, fearlessness, and tendency to 'find' things that belong to others. They are not truly thieves—they simply have a different understanding of personal property and often forget how items came to be in their pouches. Kender are immune to fear and often charge headlong into danger without a second thought, much to the consternation of their companions. Their boundless optimism and cheerful demeanor can be both endearing and exasperating.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "DSotDQ",
   "lore": {
     "typicalDwelling": "Kender live in cluttered, vibrant dwellings that reflect their insatiable curiosity and lack of formal boundaries. Their homes are filled with a dizzying variety of 'found' objects—shiny stones, peculiar tools, half-remembered tokens, and mechanical curiosities. In their native world of Krynn, they inhabit colorful caravan-cities and sprawling village-hubs that are a constant hive of social activity and discovery. They value hospitality and the sharing of stories, their living spaces always open to fellow travelers and anyone with an interesting item or a tale to tell.",
@@ -58,6 +57,6 @@
     "halfling"
   ],
   "filePath": "/data/glossary/entries/races/kender.json",
-  "maleImageUrl": "/assets/images/races/Kender_Male.png",
-  "femaleImageUrl": "/assets/images/races/Kender_Female.png"
+  "maleImageUrl": "/assets/images/races/kender_male.png",
+  "femaleImageUrl": "/assets/images/races/kender_female.png"
 }

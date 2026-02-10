@@ -3,7 +3,6 @@
   "title": "Hobgoblin",
   "category": "Character Races",
   "entryLore": "Hobgoblins are disciplined and militant humanoids with a strong sense of hierarchy and honor. Like their goblin and bugbear kin, hobgoblins trace their origins to the Feywild, where they were first created by the god Maglubiyet. They are known for their tactical minds, martial prowess, and unwavering loyalty to their legions. Hobgoblins value strength, discipline, and cunning, and they respect those who demonstrate these qualities regardless of their origin. Their fey heritage grants them a supernatural ability to bolster their allies in times of need.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "MPMM",
   "lore": {
     "typicalDwelling": "Hobgoblins favor highly organized and defensible dwellings, often constructed with military precision. Their settlements range from fortified stone keeps and walled camps to subterranean bunkers with complex networks of tunnels. Every structure serves a strategic purpose, with clear lines of sight and reinforced defenses. Even in peaceful environments, their homes are kept meticulously clean and orderly, reflecting their deep-rooted discipline and sense of hierarchy.",
@@ -69,6 +68,6 @@
     "fey_ancestry"
   ],
   "filePath": "/data/glossary/entries/races/hobgoblin.json",
-  "maleImageUrl": "/assets/images/races/Hobgoblin_Male.png",
-  "femaleImageUrl": "/assets/images/races/Hobgoblin_Female.png"
+  "maleImageUrl": "/assets/images/races/hobgoblin_male.png",
+  "femaleImageUrl": "/assets/images/races/hobgoblin_female.png"
 }

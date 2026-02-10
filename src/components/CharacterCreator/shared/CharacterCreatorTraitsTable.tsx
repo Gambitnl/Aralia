@@ -6,6 +6,8 @@
 import React, { useMemo } from 'react';
 import { GlossarySpellsOfTheMarkTable } from '../../Glossary/GlossarySpellsOfTheMarkTable';
 import { GlossaryContentRenderer } from '../../Glossary/GlossaryContentRenderer';
+import { GlossaryIcon } from '../../Glossary/IconRegistry';
+import { getTraitIcon } from '../../../utils/traits/traitIcons';
 
 interface BaseTraits {
     type?: string;
@@ -117,7 +119,12 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                     {baseTraits?.type && (
                         <tr className="hover:bg-gray-800/50 transition-colors">
                             <td className="py-3 px-4 align-top">
-                                <span className="text-sky-400 font-semibold">Creature Type</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400">
+                                        <GlossaryIcon name={getTraitIcon('Creature Type')} className="w-4 h-4" />
+                                    </span>
+                                    <span className="text-sky-400 font-semibold">Creature Type</span>
+                                </div>
                             </td>
                             <td className="py-3 px-4 text-gray-300">
                                 <GlossaryContentRenderer markdownContent={baseTraits.type} onNavigate={onSpellClick} />
@@ -129,7 +136,12 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                     {baseTraits?.size && (
                         <tr className="hover:bg-gray-800/50 transition-colors">
                             <td className="py-3 px-4 align-top">
-                                <span className="text-sky-400 font-semibold">Size</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400">
+                                        <GlossaryIcon name={getTraitIcon('Size')} className="w-4 h-4" />
+                                    </span>
+                                    <span className="text-sky-400 font-semibold">Size</span>
+                                </div>
                             </td>
                             <td className="py-3 px-4 text-gray-300">
                                 <GlossaryContentRenderer markdownContent={baseTraits.size} onNavigate={onSpellClick} />
@@ -141,7 +153,12 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                     {baseTraits?.speed !== undefined && (
                         <tr className="hover:bg-gray-800/50 transition-colors">
                             <td className="py-3 px-4 align-top">
-                                <span className="text-sky-400 font-semibold">Speed</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400">
+                                        <GlossaryIcon name={getTraitIcon('Speed')} className="w-4 h-4" />
+                                    </span>
+                                    <span className="text-sky-400 font-semibold">Speed</span>
+                                </div>
                             </td>
                             <td className="py-3 px-4 text-gray-300">{baseTraits.speed} feet</td>
                         </tr>
@@ -150,7 +167,12 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                     {/* Vision (always shown) */}
                     <tr className="hover:bg-gray-800/50 transition-colors">
                         <td className="py-3 px-4 align-top">
-                            <span className="text-sky-400 font-semibold">Vision</span>
+                            <div className="flex items-center gap-2">
+                                <span className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400">
+                                    <GlossaryIcon name={getTraitIcon('Vision')} className="w-4 h-4" />
+                                </span>
+                                <span className="text-sky-400 font-semibold">Vision</span>
+                            </div>
                         </td>
                         <td className="py-3 px-4 text-gray-300">
                             <div className="font-medium">{visionText} ({baseTraits?.darkvision || 0} feet)</div>
@@ -163,11 +185,17 @@ export const CharacterCreatorTraitsTable: React.FC<CharacterCreatorTraitsTablePr
                     {/* All other racial traits */}
                     {traits.map((trait, index) => {
                         const { spells, remainingDescription } = parseSpellProgression(trait.description);
+                        const iconName = getTraitIcon(trait.name);
 
                         return (
                             <tr key={index} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="py-3 px-4 align-top">
-                                    <span className="text-sky-400 font-semibold">{trait.name}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="flex-shrink-0 p-1 rounded bg-sky-900/30 text-sky-400">
+                                            <GlossaryIcon name={iconName} className="w-4 h-4" />
+                                        </span>
+                                        <span className="text-sky-400 font-semibold">{trait.name}</span>
+                                    </div>
                                 </td>
                                 <td className="py-3 px-4 text-gray-300">
                                     {trait.name === 'Spells of the Mark' && spellsOfTheMark ? (

@@ -1,0 +1,66 @@
+{
+  "id": "yuan_ti",
+  "title": "Yuan-Ti",
+  "category": "Character Races",
+  "entryLore": "Yuan-ti are people who possess serpentine features, ranging from scales and slitted pupils to more drastic snakelike traits. Tracing their origins to ancient empires that sought to transcend their humanity through draconic and serpentine rituals, they possess a keen intellect and a natural affinity for magic. They are often viewed with suspicion due to their past, but many yuan-ti navigate the world as shrewd diplomats, masters of intrigue, or guardians of forgotten lore.",
+  "source": "MPMM",
+  "lore": {
+    "typicalDwelling": "Yuan-ti prefer opulent, defensible dwellings that reflect their ancient architectural heritage and love of symmetry. Their settlements often feature stepped pyramids, underground hall-complexes, and lush, jungle-integrated estates. These homes are designed for both comfort and secrecy, with hidden chambers, winding corridors, and temperature-controlled environments that cater to their cold-blooded nature. They value aesthetic beauty and often decorate their homes with intricate mosaic tilework, emerald-encrusted sigils, and exotic plant life.",
+    "typicalAttire": "Yuan-ti fashion is defined by elegance, status, and the subtle integration of serpentine motifs. They favor fine silks, shimmering fabrics, and gold-threaded embroidery in deep greens, bronzes, and blacks. Their clothing is often layered and designed to accentuate their graceful movements. Many wear jewelry that incorporates emeralds, jade, and polished snake-scales, as well as headdresses or sashes that denote their caste or lineage. Their appearance is always meticulously curated, conveying a sense of cold, calculated refinement.",
+    "typicalEnvironment": "Ancient jungle-cities, humid coastal regions, and hidden subterranean empires are the yuan-ti's natural habitats. They thrive in environments that reward patience, technical ingenuity, and social manipulation. Many seek out roles that utilize their natural gifts—as shrewd diplomats, masters of intrigue, specialized researchers of forbidden lore, or religious leaders. They are deeply uncomfortable in cold, sterile environments where their metabolic processes slow down and they lose their sensory edge.",
+    "societyType": "Yuan-ti society is intensely hierarchical and organized around ancient castes based on the degree of one's serpentine features. They value intellect, strategic planning, and the pursuit of power. Status is earned through political maneuvering, the demonstration of magical skill, and service to their enigmatic serpentine deities. Their culture is one of calculated ambition and the belief that they are fundamentally superior to the 'warm-bloods' who now dominate the world. They possess a collective identity as the heirs to a lost, glorious empire.",
+    "typicalAssociation": "Yuan-ti tend toward neutral alignments, primarily neutral or lawful neutral in modern iterations, reflecting a shift from their purely villainous origins. They are a pragmatic and detached people, often approaching social interactions with a cold, analytical perspective that can be both admirable and unsettling. They value self-preservation and the advancement of their own interests or those of their house. They are masters of the long game, honoring agreements only as long as they provide a strategic advantage.",
+    "physicalAppearance": "Yuan-ti possess a hauntingly beautiful and undeniably alien appearance. They stand between 5.5 and 6 feet tall with slender, exceptionally graceful builds. Their skin range through human norms but often features patches of small, find scales in shades of emerald green, deep bronze, or obsidian black, particularly on the neck, shoulders, and limbs. Their most striking feature is their eyes—large and almond-shaped with slitted, vertical pupils like those of a viper, in shades of gold, bright green, or copper. Their hair is typically dark and kept in elaborate, well-maintained styles. Their features are sharp and symmetrical, often conveying a sense of cold, predatory refinement. They move with a liquid, unnerving silence, every motion characterized by a total absence of unnecessary effort. Their presence is cool and anchors the space around them, a visible manifestation of their detachment and calculated power."
+  },
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium or Small"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Magic Resistance",
+      "icon": "shield",
+      "description": "You have [[advantage|Advantage]] on [[saving_throw|saving throws]] against [[spells]]."
+    },
+    {
+      "name": "Poison Resilience",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]], and you have [[advantage|Advantage]] on saving throws you make to avoid or end the [[poisoned_condition|Poisoned]] condition."
+    },
+    {
+      "name": "Serpentine Casting",
+      "icon": "magic",
+      "description": "You know the [[poison_spray|Poison Spray]] cantrip. Starting at 3rd level, you can cast [[animal_friendship|Animal Friendship]] an unlimited number of times with this trait, but you can target only snakes with it. Starting at 5th level, you can cast [[suggestion|Suggestion]] with this trait. Once you cast Suggestion with this trait, you can't do so again until you finish a [[long_rest|Long Rest]]. You can also cast these spells using any spell slots you have of the appropriate level."
+    }
+  ],
+  "tags": [
+    "race",
+    "yuan-ti",
+    "serpentine",
+    "magic resistance",
+    "poison"
+  ],
+  "aliases": [
+    "snake-folk",
+    "yuan-ti"
+  ],
+  "seeAlso": [
+    "humanoid",
+    "magic_resistance",
+    "poison_damage",
+    "serpentine_casting"
+  ],
+  "filePath": "/data/glossary/entries/races/yuan_ti.json",
+  "maleImageUrl": "/assets/images/races/Yuan-Ti_Male.png",
+  "femaleImageUrl": "/assets/images/races/Yuan-Ti_Female.png"
+}

@@ -47,7 +47,9 @@
       "Bash(cmd /c \"if exist R:\\\\AraliaV4\\\\Aralia\\\\misc echo EXISTS & dir /b R:\\\\AraliaV4\\\\Aralia\\\\misc\")",
       "Bash(cmd /c \"dir R:\\\\AraliaV4\\\\Aralia\\\\misc\\\\*.html\")",
       "Bash(cmd /c:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(if exist f:ReposAraliatsc_output.log del f:ReposAraliatsc_output.log)"
     ],
     "deny": [],
     "ask": []
@@ -56,7 +58,8 @@
   "enabledMcpjsonServers": [
     "chrome-devtools",
     "github",
-    "image-gen"
+    "image-gen",
+    "stitch"
   ],
   "hooks": {
     "PreToolUse": [

@@ -4,6 +4,14 @@
   "category": "Character Races",
   "entryLore": "Fairies are a wee folk from the Feywild, infused with its primal magic. Distinguishable by their shimmering insectile wings and unique physical traits, they are mischievous and magical denizens of the multiverse. They often manifest bizarre or whimsical characteristics, such as colorful skin, sparkling dust, or an aura of soft music.",
   "source": "PHB 2024",
+  "lore": {
+    "typicalDwelling": "Fairies live in hidden hollows and tiny fey homes woven into flowers, mushrooms, or the eaves of ancient trees. Some make temporary nests in lanterns, birdhouses, and forgotten nooks of mortal settlements where they can watch larger folk unnoticed.",
+    "typicalAttire": "Their clothing is light and flexible: short cloaks, fitted tunics, and layered fabrics that move easily with flight. Many favor bright colors, iridescent accents, and natural ornaments like petals, beads, and small bells.",
+    "typicalEnvironment": "They prefer lush places full of life and light: glades, gardens, creek-banks, and moonlit clearings. Even in cities they seek courtyards, rooftop planters, and ivy-covered walls where they can dart between hiding spots.",
+    "societyType": "Fairy communities are informal and playful, organized around small circles of friends, shared pranks, and seasonal revels. They value freedom, cleverness, and keeping the wonder of the Feywild close, even when living among mortals.",
+    "typicalAssociation": "Fairies are curious and mischievous, quick to tease but just as quick to help when someone earns their favor. They often enjoy bargains, stories, and harmless tricks, and they dislike needless cruelty and heavy-handed rules.",
+    "physicalAppearance": "Fairies are small and delicate, with shimmering insect-like wings that can be gossamer, patterned, or translucent. Skin, hair, and eyes may be brightly colored or subtly luminescent. Many have unusual traits such as pointed ears, tiny horns, sparkling freckles, or a faint trail of glittering dust."
+  },
   "characteristics": [
     {
       "label": "Creature Type",

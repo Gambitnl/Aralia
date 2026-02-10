@@ -7,7 +7,7 @@ import { Race } from '../../types';
 
 export const MARK_OF_STORM_HALF_ELF_DATA: Race = {
   id: 'stormborn_half_elf',
-  name: 'Half-Elf (Stormborn)',
+  name: 'Stormborn Half-Elf',
   baseRace: 'half_elf',
   description:
     'Born with a crackling sigil that shifts and pulses like storm clouds, half-elves bearing the Mark of Storm command the winds and weather itself. This hereditary gift flows from ancient pacts with elemental powers, manifesting as the ability to call lightning from clear skies and ride the strongest gales. Their mark glows brightest during tempests, and they feel most alive when wind whips around them. These storm-touched individuals become legendary sailors, navigators, and storm callers, their mastery of the elements making them both feared and revered.',

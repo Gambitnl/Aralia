@@ -74,7 +74,7 @@ describe('HeistManager', () => {
         const chanceRightRole = HeistManager.calculateActionSuccessChance(plan, action, HeistRole.Infiltrator);
 
         expect(chanceRightRole).toBeGreaterThan(chanceWrongRole);
-        expect(chanceRightRole).toBe(50 + 25 - 30); // Base 50 + Role 25 - Diff 30 = 45
+        expect(chanceRightRole).toBe(95); // 100 - 30 (diff) + 25 (role)
     });
 
     it('should perform heist action successfully', () => {

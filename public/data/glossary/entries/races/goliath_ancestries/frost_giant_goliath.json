@@ -1,9 +1,8 @@
 {
-  "id": "frost_giant",
+  "id": "frost_giant_goliath",
   "title": "Frost Giant Ancestry",
   "category": "Character Races",
   "entryLore": "As a goliath with Frost Giant ancestry, you possess the common traits of your people, enhanced by the freezing power of the mountains that numbs your foes. This cold heritage allows you to sap the heat and momentum from your enemies with every strike.",
-  "imageUrl": "/assets/images/races/goliath_female.png",
   "source": "PHB 2024",
   "lore": {
     "typicalDwelling": "Those of frost giant ancestry often dwell in the ice-touched reaches of high-altitude mountain peaks, frozen caves, or the wind-swept heights of barren tundras. Their homes are constructed of durable, often frost-resistant stone or carved directly into the sides of ancient glaciers. They value structural simplicity and functional design, their dwellings featuring high ceilings, open courtyards for communal gathering, and thick walls to ward off the extreme cold. Their settlements are often monuments to their endurance and their ancestor's mastery over the absolute power of ice.",
@@ -33,13 +32,15 @@
     "cold damage",
     "lineage"
   ],
-  "aliases": [],
+  "aliases": [
+    "frost_giant"
+  ],
   "seeAlso": [
     "goliath",
     "cold_damage",
     "speed"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.json",
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant_goliath.json",
   "maleImageUrl": "/assets/images/races/Goliath_Frost Giant_Male.png",
   "femaleImageUrl": "/assets/images/races/Goliath_Frost Giant_Female.png"
 }

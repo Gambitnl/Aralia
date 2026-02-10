@@ -58,7 +58,9 @@ describe('PartyPane', () => {
     render(<PartyPane {...mockProps} />);
 
     // Check visible HP text
-    expect(screen.getByText('10 / 20 Hit Points')).toBeInTheDocument();
+    // UI displays "HP" label and "10 / 20" value separately
+    expect(screen.getByText('HP')).toBeInTheDocument();
+    expect(screen.getByText(/10\s*\/\s*20/)).toBeInTheDocument();
 
     // Check Tooltip content for AC
     const tooltips = screen.getAllByTestId('tooltip');

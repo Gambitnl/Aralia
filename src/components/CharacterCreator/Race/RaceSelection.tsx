@@ -193,17 +193,31 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
         const speedMatch = speedTrait?.match(/(\d+)/);
         const speed = speedMatch ? parseInt(speedMatch[1], 10) : 30;
 
-        // Extract darkvision from traits
-        const dvTrait = v.traits.find(t => t.toLowerCase().includes('darkvision'));
-        const dvMatch = dvTrait?.match(/(\d+)/);
+        // Extract darkvision range from traits.
+        // Some races use "Darkvision:" while others use a standardized "Vision:" description.
+        const dvTrait = v.traits.find((t) => {
+          const tt = t.toLowerCase();
+          return tt.startsWith('darkvision:') || tt.startsWith('vision:') || tt.includes('darkvision');
+        });
+        const dvMatch = dvTrait?.match(/(\d+)\s*(?:feet|ft)/i) ?? dvTrait?.match(/(\d+)/);
         const darkvision = dvMatch ? parseInt(dvMatch[1], 10) : 0;
 
-        // Extract key trait names (first 3 non-core traits)
-        const coreKeywords = ['creature type:', 'size:', 'speed:', 'darkvision:'];
+        // Build a map of trait key -> description (used for tooltips in the comparison table).
+        const traitDescriptions: Record<string, string> = {};
+        v.traits.forEach((t) => {
+          const idx = t.indexOf(':');
+          const key = (idx === -1 ? t : t.slice(0, idx)).trim();
+          const desc = (idx === -1 ? t : t.slice(idx + 1)).trim();
+          if (key) traitDescriptions[key] = desc;
+        });
+
+        // Extract key trait names (used by the Compare Variants table).
+        // We include all non-core traits so the comparison can be exhaustive.
+        const coreKeywords = ['creature type:', 'size:', 'speed:', 'vision:', 'darkvision:'];
         const keyTraits = v.traits
           .filter(t => !coreKeywords.some(k => t.toLowerCase().startsWith(k)))
           .map(t => t.split(':')[0].trim())
-          .slice(0, 3);
+          .filter(Boolean);
 
         return {
           id: v.id,
@@ -211,6 +225,7 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
           speed,
           darkvision,
           keyTraits,
+          traitDescriptions,
         };
       });
     }

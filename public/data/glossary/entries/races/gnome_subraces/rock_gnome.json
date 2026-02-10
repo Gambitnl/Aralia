@@ -3,8 +3,15 @@
   "title": "Rock Gnome Lineage",
   "category": "Character Races",
   "entryLore": "Rock gnomes are the most common type of gnome, celebrated for their inventiveness and hardiness. They are master tinkerers and engineers, always seeking to improve the world through mechanical marvels and alchemical experiments. Their communities are often found near rich veins of ore or in bustling workshops.",
-  "imageUrl": "/assets/images/races/gnome_female.png",
   "source": "PHB 2024",
+  "lore": {
+    "typicalDwelling": "Rock gnomes live in compact townhouses, workshop-homes, and burrowed halls near mines and trade roads. Their dwellings are filled with benches, shelves of parts, and odd little devices, with storage everywhere and a place for every tool.",
+    "typicalAttire": "They wear sturdy work clothes: rolled sleeves, leather aprons, tool belts, and gloves stained by grease or dyes. Goggles, magnifying lenses, and pockets full of small components are common, as are practical caps or scarves to keep hair out of moving parts.",
+    "typicalEnvironment": "They favor places where materials and customers are nearby: mining towns, craft districts, busy workshops, and markets that trade in metal, wood, and alchemical supplies. The sound of gears, hammers, and laughter is common in their neighborhoods.",
+    "societyType": "Rock gnome society revolves around craft, invention, and problem-solving. Many communities are organized around guilds, workshops, and friendly rivalry, where new ideas are shared, tested, and improved through constant tinkering.",
+    "typicalAssociation": "Rock gnomes are energetic, practical, and endlessly curious. They love puzzles and prototypes, and they often approach danger with a mix of caution and excitement, always thinking of a clever workaround.",
+    "physicalAppearance": "Rock gnomes are small and sturdy, with bright eyes that miss little detail and hands quick enough to work tiny mechanisms. Hair can be unruly from long hours at the bench. Smudges of soot, ink, or alchemical residue are common marks of daily life."
+  },
   "characteristics": [
     {
       "label": "Lineage Type",

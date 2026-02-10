@@ -22,9 +22,11 @@ import React, { useState } from 'react';
 import ImageModal from '../../ImageModal';
 import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
 import { GlossarySpellsOfTheMarkTable } from '../../Glossary/GlossarySpellsOfTheMarkTable';
+import { GlossaryIcon } from '../../Glossary/IconRegistry';
 import { CharacterCreatorTraitsTable } from '../shared/CharacterCreatorTraitsTable';
 import { BTN_PRIMARY } from '../../../styles/buttonStyles';
 import { SKILLS_DATA } from '../../../data/skills';
+import { getTraitIcon } from '../../../utils/traits/traitIcons';
 
 // Helper to resolve image URLs - prepends BASE_URL for local assets
 const resolveImageUrl = (url: string | undefined): string | undefined => {
@@ -61,6 +63,7 @@ export interface RaceDetailData {
         speed?: number;
         darkvision?: number;
         keyTraits: string[];
+        traitDescriptions: Record<string, string>;
     }>;
     /** Racial spell choice configuration (if race requires spellcasting ability selection) */
     racialSpellChoice?: {
@@ -75,6 +78,9 @@ export interface RaceDetailData {
 // Collapsible comparison table for race variants (transposed: traits as rows, variants as columns)
 const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['siblingVariants']>; currentId: string }> = ({ variants, currentId }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [hoveredTrait, setHoveredTrait] = useState<string | null>(null);
+    const [pinnedTrait, setPinnedTrait] = useState<string | null>(null);
+    const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
     if (variants.length < 2) return null;
 
@@ -82,6 +88,10 @@ const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['s
     const allKeyTraits = Array.from(
         new Set(variants.flatMap(v => v.keyTraits))
     );
+
+    const viewingVariant = variants.find((v) => v.id === currentId) ?? variants[0];
+    const activeTrait = pinnedTrait ?? hoveredTrait;
+    const activeTraitDescription = activeTrait ? (viewingVariant.traitDescriptions[activeTrait] ?? '') : '';
 
     return (
         <div className="bg-gray-900/40 border border-gray-700 rounded-lg overflow-hidden mt-4">
@@ -147,7 +157,33 @@ const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['s
                             {/* Key Traits Rows */}
                             {allKeyTraits.map((trait, idx) => (
                                 <tr key={trait} className={`border-b border-gray-800 ${idx === allKeyTraits.length - 1 ? 'last:border-0' : ''}`}>
-                                    <td className="py-2 px-2 font-medium text-gray-300 sticky left-0 bg-gray-900/90">{trait}</td>
+                                    <td className="py-2 px-2 font-medium text-gray-300 sticky left-0 bg-gray-900/90">
+                                        <button
+                                            type="button"
+                                            className="flex items-center gap-2 text-left hover:text-sky-200"
+                                            onMouseEnter={(e) => {
+                                                setHoveredTrait(trait);
+                                                setTooltipPos({ x: e.clientX, y: e.clientY });
+                                            }}
+                                            onMouseMove={(e) => {
+                                                if (!pinnedTrait) setTooltipPos({ x: e.clientX, y: e.clientY });
+                                            }}
+                                            onMouseLeave={() => {
+                                                if (!pinnedTrait) setHoveredTrait(null);
+                                            }}
+                                            onClick={(e) => {
+                                                setTooltipPos({ x: e.clientX, y: e.clientY });
+                                                setPinnedTrait((prev) => (prev === trait ? null : trait));
+                                                setHoveredTrait(null);
+                                            }}
+                                            aria-label={`Show details for ${trait}`}
+                                        >
+                                            <span className="flex-shrink-0 p-0.5 rounded bg-sky-900/30 text-sky-400">
+                                                <GlossaryIcon name={getTraitIcon(trait)} className="w-3.5 h-3.5" />
+                                            </span>
+                                            <span>{trait}</span>
+                                        </button>
+                                    </td>
                                     {variants.map((v) => (
                                         <td
                                             key={v.id}
@@ -164,6 +200,34 @@ const VariantComparisonTable: React.FC<{ variants: NonNullable<RaceDetailData['s
                             ))}
                         </tbody>
                     </table>
+
+                    {activeTrait && tooltipPos && activeTraitDescription && (
+                        <div
+                            className="fixed z-[9999] max-w-sm bg-gray-950 border border-gray-700 rounded-lg shadow-xl p-3 text-xs text-gray-200"
+                            style={{
+                                left: Math.min(tooltipPos.x + 12, window.innerWidth - 360),
+                                top: Math.min(tooltipPos.y + 12, window.innerHeight - 160),
+                            }}
+                            role="dialog"
+                            aria-label={`${activeTrait} details`}
+                        >
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="font-semibold text-sky-200">{activeTrait}</div>
+                                {pinnedTrait === activeTrait && (
+                                    <button
+                                        type="button"
+                                        className="text-gray-400 hover:text-gray-200 px-1"
+                                        onClick={() => setPinnedTrait(null)}
+                                        aria-label="Close"
+                                    >
+                                        x
+                                    </button>
+                                )}
+                            </div>
+                            <div className="mt-1 text-gray-300 leading-snug">{activeTraitDescription}</div>
+                            <div className="mt-2 text-[10px] text-gray-500">Source: {viewingVariant.name}</div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

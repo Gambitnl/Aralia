@@ -3,7 +3,6 @@
   "title": "Pallid Elf",
   "category": "Character Races",
   "entryLore": "Pallid elves are a subrace of elves unique to Exandria, dwelling in the shadowed recesses of the Pallid Grove in the Greying Wildlands. They have adapted to a life without sunlight, developing pale, almost luminescent skin and an affinity for the mysteries of the Luxon. Their connection to light and darkness gives them unique magical abilities, and their society values knowledge, introspection, and the secrets hidden in shadow.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "EGtW",
   "baseRace": "elf",
   "lore": {

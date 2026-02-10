@@ -1,9 +1,8 @@
 {
-  "id": "hill_giant",
+  "id": "hill_giant_goliath",
   "title": "Hill Giant Ancestry",
   "category": "Character Races",
   "entryLore": "As a goliath with Hill Giant ancestry, you possess the common traits of your people, enhanced by the massive strength of the hills. Your strikes carry a weight that can bowl over even the stoutest foes, making you a formidable presence in any melee.",
-  "imageUrl": "/assets/images/races/goliath_female.png",
   "source": "PHB 2024",
   "lore": {
     "typicalDwelling": "Those of hill giant ancestry often dwell in the wind-swept reaches of rolling hills, high-altitude mesas, or the bustling districts of major metropolitan cities. Their homes are designed for social interaction and the exchange of news, featuring open balconies, comfortable seating areas, and expansive central halls. They value hospitality and structural variety, their dwellings often constructed of thick, sun-baked mud bricks or integrated into the natural contours of the hills. Their settlements are monuments to their practical nature and their ancestor's mastery over the open terrain.",
@@ -33,12 +32,14 @@
     "prone",
     "lineage"
   ],
-  "aliases": [],
+  "aliases": [
+    "hill_giant"
+  ],
   "seeAlso": [
     "goliath",
     "prone_condition"
   ],
-  "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant.json",
+  "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant_goliath.json",
   "maleImageUrl": "/assets/images/races/Goliath_Hill Giant_Male.png",
   "femaleImageUrl": "/assets/images/races/Goliath_Hill Giant_Female.png"
 }

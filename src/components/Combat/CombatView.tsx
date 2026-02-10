@@ -3,8 +3,16 @@
  * The main component for the active combat phase.
  * Initializes the turn manager and ability system with real game data.
  * Now handles Victory/Defeat states and Loot distribution.
+ *
+ * @modified 2026-02-10 — Integrated the rich combat messaging system (useCombatMessaging)
+ *   via a bridge adapter (convertLogEntryToMessage). Every CombatLogEntry emitted by the
+ *   combat hooks is now also converted to a CombatMessage and stored in parallel. The
+ *   CombatLog component receives both arrays and can render either format.
+ *
+ * IMPORTANT: Do not remove inline comments from this file unless the associated code is modified.
+ * If code changes, update the comment with the new date and a description of the change.
  */
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import BattleMap from '../BattleMap/BattleMap';
 import { PlayerCharacter, Item } from '../../types';
 import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
@@ -28,6 +36,14 @@ import SpellContext from '../../context/SpellContext';
 import { motion } from 'framer-motion';
 import { useGameState } from '../../state/GameContext';
 import { CombatReligionAdapter } from '../../systems/religion/CombatReligionAdapter';
+
+// [2026-02-10] Rich combat messaging imports.
+// useCombatMessaging: React hook that manages CombatMessage[] state with filtering, configuration,
+//   and convenience methods. Instantiated here in CombatView to hold the parallel rich message array.
+// convertLogEntryToMessage: Bridge adapter function that converts a simple CombatLogEntry into a
+//   rich CombatMessage. Called inside handleLogEntry on every log emission to populate the messaging state.
+import { useCombatMessaging } from '../../hooks/combat/useCombatMessaging';
+import { convertLogEntryToMessage } from '../../utils/combat/combatLogToMessageAdapter';
 
 import AISpellInputModal from '../BattleMap/AISpellInputModal';
 import { Spell } from '../../types/spells';
@@ -59,6 +75,13 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const [seed] = useState(() => Date.now()); // Generate map once
   const { logs: combatLog, addLogEntry: baseLogEntry } = useCombatLog();
 
+  // [2026-02-10] Rich messaging system state.
+  // Instantiates the useCombatMessaging hook which manages a parallel CombatMessage[] array.
+  // This hook provides: messages (filtered array), addMessage, clearMessages, updateConfig,
+  // updateFilters, and convenience methods (addDamageMessage, addKillMessage, etc.).
+  // The messages are populated by the bridge adapter in handleLogEntry below.
+  const messaging = useCombatMessaging();
+
   // Initialize map and characters directly from props (Lazy Initialization)
   // This avoids a double-render and "Preparing..." flash that occurred with useEffect
   const [initialState] = useState(() => {
@@ -73,6 +96,15 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   // Single source of truth for map and characters
   const [mapData, setMapData] = useState<BattleMapData | null>(initialState.mapData);
   const [characters, setCharacters] = useState<CombatCharacter[]>(initialState.positionedCharacters);
+
+  // [2026-02-10] Ref for characters to avoid dependency churn in handleLogEntry.
+  // The bridge adapter (convertLogEntryToMessage) needs the current characters array to look up
+  // entity IDs by name. If we put `characters` directly in handleLogEntry's dependency array,
+  // handleLogEntry would be recreated on every character state change (HP updates, status ticks, etc.),
+  // which cascades to recreating the entire useTurnManager hook (since it receives onLogEntry as a prop).
+  // Using a ref lets handleLogEntry always read the latest characters without being a dependency.
+  const charactersRef = useRef(characters);
+  charactersRef.current = characters;
   // TODO(lint-intent): 'selectedCharacterId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
@@ -121,12 +153,30 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
   }, []);
 
-  // Wrapper that logs entries AND processes religion triggers
+  // [2026-02-10] Central log entry handler — three responsibilities:
+  //   1. baseLogEntry(entry): Adds the entry to the simple CombatLogEntry[] state (useCombatLog).
+  //      This powers the legacy log display and keeps the old system working.
+  //   2. CombatReligionAdapter.processLogEntry(): Checks the entry for religion-related triggers
+  //      (e.g. "Undead killed" grants divine favor). This is a pre-existing side effect.
+  //   3. Bridge to rich messaging: Converts the CombatLogEntry into a CombatMessage via the
+  //      adapter function and adds it to the useCombatMessaging state. This feeds the enhanced
+  //      CombatLog display (color-coded by message type, priority borders, etc.).
+  //
+  // Dependencies:
+  //   - baseLogEntry: Stable (useCallback in useCombatLog).
+  //   - dispatch: Stable (from useGameState context).
+  //   - messaging.addMessage: Stable (useCallback in useCombatMessaging).
+  //   - charactersRef: Ref, not a dependency — always reads current value.
   const handleLogEntry = useCallback((entry: CombatLogEntry) => {
     baseLogEntry(entry);
-    // Process Religion Triggers (from CombatReligionAdapter)
     CombatReligionAdapter.processLogEntry(entry, dispatch);
-  }, [baseLogEntry, dispatch]);
+
+    // Bridge: convert simple log entry to rich CombatMessage.
+    // charactersRef.current is used instead of the `characters` state variable to avoid
+    // adding `characters` as a dependency (see ref comment above for reasoning).
+    const richMessage = convertLogEntryToMessage(entry, charactersRef.current);
+    messaging.addMessage(richMessage);
+  }, [baseLogEntry, dispatch, messaging.addMessage]);
   const turnManager = useTurnManager({
     characters,
     mapData,
@@ -138,12 +188,15 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     difficulty: 'normal'
   });
 
-  // Initialize turn manager when characters are ready
+  // Initialize turn manager when characters are ready.
+  // [2026-02-10] Also clears any stale rich messages before combat starts, so the
+  // CombatLog begins fresh. This mirrors useCombatLog's behavior (which starts with an empty array).
   useEffect(() => {
     if (characters.length > 0 && turnManager.turnState.turnOrder.length === 0) {
+      messaging.clearMessages();
       turnManager.initializeCombat(characters);
     }
-  }, [characters, turnManager]);
+  }, [characters, turnManager, messaging.clearMessages]);
 
   // Handle Summoning Integration
   // TODO(lint-intent): 'addSummon' is declared but unused, suggesting an unfinished state/behavior hook in this block.
@@ -403,7 +456,13 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
             onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter!)}
             canAffordAction={(cost) => currentCharacter ? turnManager.canAffordAction(currentCharacter, cost) : false}
           />
-          <CombatLog logEntries={combatLog} />
+          {/* [2026-02-10] CombatLog now receives both the legacy log entries and rich messages.
+              - logEntries: Simple CombatLogEntry[] from useCombatLog (fallback display).
+              - richMessages: CombatMessage[] from useCombatMessaging (enhanced display).
+              - useRichDisplay: When true, CombatLog renders richMessages with type-based
+                color coding (via getMessageColor) and priority-based left borders.
+                Set to false to revert to the original simple text display. */}
+          <CombatLog logEntries={combatLog} richMessages={messaging.messages} useRichDisplay={true} />
 
           <div className="mt-auto">
             <button

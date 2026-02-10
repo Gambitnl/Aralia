@@ -23,7 +23,7 @@ export const LOXODON_DATA: Race = {
   visual: {
     id: 'loxodon',
     color: '#7f7f7f',
-    maleIllustrationPath: 'assets/images/Placeholder.jpg',
-    femaleIllustrationPath: 'assets/images/Placeholder.jpg',
+    maleIllustrationPath: 'assets/images/races/Loxodon_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Loxodon_Female.png',
   },
 };

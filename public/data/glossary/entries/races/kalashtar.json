@@ -3,7 +3,6 @@
   "title": "Kalashtar",
   "category": "Character Races",
   "entryLore": "The kalashtar are a compound people, created from the union of humanity and renegade spirits from the plane of dreams known as quori. Kalashtar are often seen as wise, spiritual people with great compassion for others. They are characterized by their dual nature, sharing their body with a quori spirit that grants them psionic abilities. Though they appear human, kalashtar often have an otherworldly quality about them. They strive to find peace and balance, working to protect the world from the sinister Dreaming Dark.",
-  "imageUrl": "/assets/images/Placeholder.jpg",
   "source": "ERLW",
   "lore": {
     "typicalDwelling": "Kalashtar typically live in monastic communities or quiet urban neighborhoods where they can practice their spiritual disciplines and meditation without distraction. Their homes are elegant and spartan, focused on creating a peaceful environment for mental and psionic cultivation. They favor light, airy spaces with minimal furniture and decorations that serve as aids to contemplation—singing bowls, incense burners, and intricate mandalas. Their settlements are often hidden or protected by subtle psionic wards to keep them safe from the servants of the Dreaming Dark.",
@@ -63,6 +62,6 @@
     "psychic_damage"
   ],
   "filePath": "/data/glossary/entries/races/kalashtar.json",
-  "maleImageUrl": "/assets/images/races/Kalashtar_Male.png",
-  "femaleImageUrl": "/assets/images/races/Kalashtar_Female.png"
+  "maleImageUrl": "/assets/images/races/kalashtar_male.png",
+  "femaleImageUrl": "/assets/images/races/kalashtar_female.png"
 }

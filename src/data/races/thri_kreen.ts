@@ -24,7 +24,7 @@ export const THRI_KREEN_DATA: Race = {
   visual: {
     id: 'thri_kreen',
     color: '#5a7a5a',
-    maleIllustrationPath: 'assets/images/Placeholder.jpg',
-    femaleIllustrationPath: 'assets/images/Placeholder.jpg',
+    maleIllustrationPath: 'assets/images/races/Thri-kreen_Male.png',
+    femaleIllustrationPath: 'assets/images/races/Thri-kreen_Female.png',
   },
 };
