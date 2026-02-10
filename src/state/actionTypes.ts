@@ -2,7 +2,7 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types';
 import { RitualState } from '../types/rituals';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -191,6 +191,10 @@ export type AppAction =
   | { type: 'ADD_LEGACY_MONUMENT'; payload: { name: string; description: string; locationId: string; cost: number } }
   | { type: 'REGISTER_HEIR'; payload: { name: string; relation: string; age: number; heirClass?: string } }
   | { type: 'FOUND_STRONGHOLD'; payload: { name: string; type: StrongholdType; locationId: string } }
+  | { type: 'RECRUIT_STAFF'; payload: { strongholdId: string; name: string; role: StaffRole } }
+  | { type: 'FIRE_STAFF'; payload: { strongholdId: string; staffId: string } }
+  | { type: 'PURCHASE_UPGRADE'; payload: { strongholdId: string; upgradeId: string } }
+  | { type: 'START_STRONGHOLD_MISSION'; payload: { strongholdId: string; staffId: string; type: MissionType; difficulty: number; description: string } }
   // Dialogue Actions
   | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string } }
   | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession } }

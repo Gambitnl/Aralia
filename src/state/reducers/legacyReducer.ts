@@ -5,16 +5,8 @@
 
 import { GameState } from '../../types/index';
 import { AppAction } from '../actionTypes';
-// TODO(lint-intent): 'PlayerLegacy' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { PlayerLegacy as _PlayerLegacy } from '../../types/legacy';
-// TODO(lint-intent): 'Stronghold' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Stronghold as _Stronghold } from '../../types/stronghold';
-import { grantTitle, recordMonument, registerHeir, initializeLegacy } from '../../services/legacyService';
-import { createStronghold } from '../../services/strongholdService';
+import { initializeLegacy, grantTitle, recordMonument, registerHeir } from '../../services/legacyService';
+import { createStronghold, recruitStaff, fireStaff, purchaseUpgrade, startMission } from '../../services/strongholdService';
 
 export function legacyReducer(state: GameState, action: AppAction): Partial<GameState> {
     switch (action.type) {
@@ -69,6 +61,60 @@ export function legacyReducer(state: GameState, action: AppAction): Partial<Game
                     strongholdIds: [...currentLegacy.strongholdIds, newStronghold.id]
                 }
             };
+        }
+
+        case 'RECRUIT_STAFF': {
+            const stronghold = state.strongholds?.[action.payload.strongholdId];
+            if (!stronghold) return {};
+            const updated = recruitStaff(stronghold, action.payload.name, action.payload.role);
+            return {
+                strongholds: { ...state.strongholds, [action.payload.strongholdId]: updated }
+            };
+        }
+
+        case 'FIRE_STAFF': {
+            const stronghold = state.strongholds?.[action.payload.strongholdId];
+            if (!stronghold) return {};
+            try {
+                const updated = fireStaff(stronghold, action.payload.staffId);
+                return {
+                    strongholds: { ...state.strongholds, [action.payload.strongholdId]: updated }
+                };
+            } catch {
+                return {}; // Staff on mission — cannot fire
+            }
+        }
+
+        case 'PURCHASE_UPGRADE': {
+            const stronghold = state.strongholds?.[action.payload.strongholdId];
+            if (!stronghold) return {};
+            try {
+                const updated = purchaseUpgrade(stronghold, action.payload.upgradeId);
+                return {
+                    strongholds: { ...state.strongholds, [action.payload.strongholdId]: updated }
+                };
+            } catch {
+                return {}; // Insufficient resources or missing prerequisites
+            }
+        }
+
+        case 'START_STRONGHOLD_MISSION': {
+            const stronghold = state.strongholds?.[action.payload.strongholdId];
+            if (!stronghold) return {};
+            try {
+                const updated = startMission(
+                    stronghold,
+                    action.payload.staffId,
+                    action.payload.type,
+                    action.payload.difficulty,
+                    action.payload.description
+                );
+                return {
+                    strongholds: { ...state.strongholds, [action.payload.strongholdId]: updated }
+                };
+            } catch {
+                return {}; // Staff not found, already on mission, or insufficient supplies
+            }
         }
 
         default:
