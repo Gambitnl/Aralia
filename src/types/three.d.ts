@@ -1,4 +1,5 @@
 // TODO(2026-01-15 Codex-CLI): Replace this shim with upstream three typings once available in this repo.
+/*
 declare module 'three' {
   export class Object3D { [key: string]: any; }
   export class BufferGeometry { [key: string]: any; }
@@ -23,6 +24,7 @@ declare module 'three' {
   export const SRGBColorSpace: any;
   export const DoubleSide: any;
 }
+*/
 
 declare module 'three/examples/jsm/controls/OrbitControls.js' {
   export class OrbitControls { [key: string]: any; constructor(...args: any[]); }

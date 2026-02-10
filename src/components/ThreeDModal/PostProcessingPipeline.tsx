@@ -24,15 +24,15 @@ const PostProcessingPipeline = ({
   // Create the post-processing composer
   const composer = useMemo(() => {
     if (!enabled) return null;
-    
+
     const comp = new EffectComposer(gl);
     comp.setSize(size.width, size.height);
     comp.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    
+
     // Add render pass
     const renderPass = new RenderPass(scene, camera);
     comp.addPass(renderPass);
-    
+
     // Add bloom pass for glow effects
     const bloomPass = new UnrealBloomPass(
       new Vector2(size.width, size.height),
@@ -41,7 +41,7 @@ const PostProcessingPipeline = ({
       bloomThreshold
     );
     comp.addPass(bloomPass);
-    
+
     // Add FXAA for anti-aliasing
     if (fxaaEnabled) {
       const fxaaPass = new ShaderPass(FXAAShader);
@@ -51,7 +51,7 @@ const PostProcessingPipeline = ({
       );
       comp.addPass(fxaaPass);
     }
-    
+
     return comp;
   }, [enabled, gl, scene, camera, size, bloomIntensity, bloomRadius, bloomThreshold, fxaaEnabled]);
 
@@ -60,13 +60,13 @@ const PostProcessingPipeline = ({
   // Handle resize events
   useEffect(() => {
     if (!composer) return;
-    
+
     const handleResize = () => {
       composer.setSize(size.width, size.height);
       composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      
+
       // Update FXAA resolution if enabled
-      const fxaaPass = composer.passes.find(pass => pass instanceof ShaderPass && pass.name === 'FXAAShader');
+      const fxaaPass = composer.passes.find(pass => pass instanceof ShaderPass && (pass as any).name === 'FXAAShader');
       if (fxaaPass && fxaaEnabled) {
         (fxaaPass as ShaderPass).material.uniforms['resolution'].value.set(
           1 / (size.width * Math.min(window.devicePixelRatio, 2)),
@@ -74,10 +74,10 @@ const PostProcessingPipeline = ({
         );
       }
     };
-    
+
     handleResize();
     window.addEventListener('resize', handleResize);
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
       composer.dispose();

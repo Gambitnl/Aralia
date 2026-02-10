@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import type { InstancedMesh } from 'three';
 import { Color as ThreeColor, DoubleSide, MeshStandardMaterial, Object3D, Vector3 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three-stdlib';
 import { SeededRandom } from '../../utils/random/seededRandom';
 
 type ShaderWithUniforms = {

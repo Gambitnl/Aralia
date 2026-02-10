@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useLoader } from '@react-three/fiber';
 import type { InstancedMesh } from 'three';
 import { Object3D } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { GLTFLoader, DRACOLoader } from 'three-stdlib';
 import { SeededRandom } from '../../utils/random/seededRandom';
 
 interface LabRocksProps {
