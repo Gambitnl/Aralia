@@ -11,32 +11,27 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - carrying water buckets from a well.
 - carving wooden utensils at a simple workbench.
 - cleaning armor for someone else (as a job) without wearing any armor.
-- copying ledgers in an office nook with ink-stained fingers.
 - etching runes into a stone tile as an artisan.
 - feeding chickens in a farmyard.
+- fletching arrows as a tradesperson (no combat, no armor).
+- haggling politely with a vendor, holding a coin purse.
 - hanging herbs to dry from rafters.
 - harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
 - inspecting fish at a market table, choosing today's catch.
 - loading crates at a caravan stop, practical labor and travel-worn clothes.
 - measuring cloth at a tailor stall.
 - mending a torn cloak with needle and thread by window light.
-- mixing dyes in small jars at a craft table.
 - packing a merchant crate with careful inventory (hands placing items into a crate; ledger nearby).
-- packing a merchant crate with careful inventory.
 - painting simple signs for a shopfront (brush and painted lettering board visible, no text in final image).
 - painting simple signs for a shopfront.
 - planting herb seedlings into a small soil bed using a simple hand trowel.
 - polishing glassware behind a tavern counter (rag and glass clearly visible).
 - polishing glassware behind a tavern counter.
-- practicing calligraphy, testing brush strokes on scrap paper.
 - preparing tea for guests at a monastery refectory table (kettle, cups, steam visible).
-- preparing tea for guests.
 - preparing travel rations (wrapping bread, cheese, fruit).
 - repairing a fishing net on a dock, with practical tools laid out nearby.
-- repairing a wagon wheel with basic tools.
 - repairing boots with leather scraps.
-- serving stew from a pot at a roadside inn.
-- setting lanterns along a street at dusk.
+- setting lanterns along a village street at dusk (hands lighting a lantern with a taper).
 - setting out offerings at a shrine (non-magical, calm).
 - sharpening kitchen knives in a modest kitchen.
 - sorting mail and parchments at a courier desk (hands sorting clearly visible).
@@ -45,12 +40,13 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - stacking firewood neatly under an awning.
 - stitching a patchwork quilt.
 - sweeping a courtyard or temple steps, quiet routine and grounded mood.
-- sweeping a library aisle.
+- teaching a child to read (quiet domestic scene).
 - tending a forge as a helper, carrying tongs and coal (no armor, no weapons).
 - tending a herb garden.
 - tending a small workshop bench, crafting or mending everyday items.
 - tidying a small altar, lighting candles.
-- training a working animal (mule/ox) with gentle guidance.
+- training a working animal (mule/ox) with gentle guidance (holding a lead rope).
+- trimming candle wicks and arranging fresh candles on a drying rack in a candle-maker's shop.
 - weaving a small basket from reeds at a simple work table (hands weaving clearly visible).
 - weaving a small basket from reeds.
 - working at a market stall, weighing produce and speaking with customers.
@@ -61,15 +57,15 @@ Generated from: `public/assets/images/races/race-image-status.json`
 
 ## Per Image (Race, Gender -> Role / Background)
 
-- aarakocra (female): serving stew from a pot at a roadside inn.
-- aarakocra (male): copying ledgers in an office nook with ink-stained fingers.
+- aarakocra (female): training a working animal (mule/ox) with gentle guidance (holding a lead rope).
+- aarakocra (male): setting lanterns along a village street at dusk (hands lighting a lantern with a taper).
 - abyssal_tiefling (female): sorting mail and parchments at a courier desk (hands sorting clearly visible).
 - abyssal_tiefling (male): packing a merchant crate with careful inventory (hands placing items into a crate; ledger nearby).
 - astral_elf (female): painting simple signs for a shopfront (brush and painted lettering board visible, no text in final image).
 - astral_elf (male): polishing glassware behind a tavern counter (rag and glass clearly visible).
 - autumn_eladrin (female): writing or organizing records at a humble desk, everyday administration.
 - autumn_eladrin (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
-- beastborn_human (female): arranging flowers at a stall.
+- beastborn_human (female): repairing boots with leather scraps.
 - beastborn_human (male): working at a market stall, weighing produce and speaking with customers.
 - beasthide_shifter (female): carrying water and supplies along a village path, calm and focused.
 - beasthide_shifter (male): tending a small workshop bench, crafting or mending everyday items.
@@ -83,19 +79,19 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - chthonic_tiefling (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - cloud_giant_goliath (female): tending a small workshop bench, crafting or mending everyday items.
 - cloud_giant_goliath (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
-- copper_dragonborn (female): preparing tea for guests.
-- copper_dragonborn (male): cleaning armor for someone else (as a job) without wearing any armor.
+- copper_dragonborn (female): preparing travel rations (wrapping bread, cheese, fruit).
+- copper_dragonborn (male): trimming candle wicks and arranging fresh candles on a drying rack in a candle-maker's shop.
 - draconblood_dragonborn (male): carrying water and supplies along a village path, calm and focused.
 - drow (female): writing or organizing records at a humble desk, everyday administration.
 - drow (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
-- duergar (female): packing a merchant crate with careful inventory.
-- duergar (male): painting simple signs for a shopfront.
+- duergar (female): weaving a small basket from reeds.
+- duergar (male): teaching a child to read (quiet domestic scene).
 - fallen_aasimar (female): baking bread using a wooden peel to slide a loaf into a communal oven.
 - fallen_aasimar (male): planting herb seedlings into a small soil bed using a simple hand trowel.
 - firbolg (female): (no role found)
 - firbolg (male): (no role found)
-- fire_genasi (female): inspecting fish at a market table, choosing today's catch.
-- fire_genasi (male): sweeping a library aisle.
+- fire_genasi (female): repairing boots with leather scraps.
+- fire_genasi (male): fletching arrows as a tradesperson (no combat, no armor).
 - fire_giant_goliath (female): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
 - fire_giant_goliath (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - forest_gnome (female): (no role found)
@@ -105,11 +101,11 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - frost_giant_goliath (male): tending a small workshop bench, crafting or mending everyday items.
 - giff (female): (no role found)
 - giff (male): (no role found)
-- githyanki (male): tending a forge as a helper, carrying tongs and coal (no armor, no weapons).
-- githzerai (male): etching runes into a stone tile as an artisan.
-- goblin (female): carrying water buckets from a well.
+- githyanki (male): inspecting fish at a market table, choosing today's catch.
+- githzerai (male): carving wooden utensils at a simple workbench.
+- goblin (female): sorting mail/parchments in a courier station.
 - gold_dragonborn (male): (no role found)
-- green_dragonborn (female): weaving a small basket from reeds.
+- green_dragonborn (female): tidying a small altar, lighting candles.
 - green_dragonborn (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
 - guardian_human (female): carrying water and supplies along a village path, calm and focused.
 - guardian_human (male): tending a small workshop bench, crafting or mending everyday items.
@@ -119,7 +115,7 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - half_elf_aquatic (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
 - half_elf_drow (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - half_elf_drow (male): carrying water and supplies along a village path, calm and focused.
-- half_elf_high (female): feeding chickens in a farmyard.
+- half_elf_high (female): fletching arrows as a tradesperson (no combat, no armor).
 - half_elf_high (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
 - half_elf_wood (female): (no role found)
 - half_elf_wood (male): (no role found)
@@ -130,9 +126,9 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - harengon (female): repairing a fishing net on a dock, with practical tools laid out nearby.
 - harengon (male): working at a market stall, weighing produce and speaking with customers.
 - hearthkeeper_halfling (male): (no role found)
-- high_elf (female): measuring cloth at a tailor stall.
-- high_elf (male): sharpening kitchen knives in a modest kitchen.
-- hill_dwarf (female): sorting mail/parchments in a courier station.
+- high_elf (female): sharpening kitchen knives in a modest kitchen.
+- high_elf (male): painting simple signs for a shopfront.
+- hill_dwarf (female): stitching a patchwork quilt.
 - hill_giant_goliath (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - hill_giant_goliath (male): carrying water and supplies along a village path, calm and focused.
 - hobgoblin (male): (no role found)
@@ -142,7 +138,7 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - kalashtar (male): (no role found)
 - kender (female): (no role found)
 - kender (male): (no role found)
-- kenku (female): setting lanterns along a street at dusk.
+- kenku (female): hanging herbs to dry from rafters.
 - kobold (female): (no role found)
 - kobold (male): (no role found)
 - leonin (female): carrying water and supplies along a village path, calm and focused.
@@ -152,40 +148,40 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - longtooth_shifter (female): tending a small workshop bench, crafting or mending everyday items.
 - longtooth_shifter (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
 - loxodon (female): working at a market stall, weighing produce and speaking with customers.
-- loxodon (male): training a working animal (mule/ox) with gentle guidance.
+- loxodon (male): etching runes into a stone tile as an artisan.
 - mender_halfling (male): (no role found)
 - minotaur (female): (no role found)
 - minotaur (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - orc (male): (no role found)
-- pallid_elf (female): tending a herb garden.
+- pallid_elf (female): carrying water buckets from a well.
 - pallid_elf (male): (no role found)
 - pathfinder_half_orc (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - pathfinder_half_orc (male): carrying water and supplies along a village path, calm and focused.
 - protector_aasimar (female): mending a torn cloak with needle and thread by window light.
-- protector_aasimar (male): baking bread in a communal oven, dusted with flour.
+- protector_aasimar (male): haggling politely with a vendor, holding a coin purse.
 - ravenite_dragonborn (female): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
 - ravenite_dragonborn (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - red_dragonborn (female): writing or organizing records at a humble desk, everyday administration.
 - red_dragonborn (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
 - rock_gnome (male): (no role found)
-- runeward_dwarf (male): stitching a patchwork quilt.
+- runeward_dwarf (male): stacking firewood neatly under an awning.
 - scourge_aasimar (female): weaving a small basket from reeds at a simple work table (hands weaving clearly visible).
 - scourge_aasimar (male): preparing tea for guests at a monastery refectory table (kettle, cups, steam visible).
-- sea_elf (female): mixing dyes in small jars at a craft table.
-- seersight_half_elf (female): practicing calligraphy, testing brush strokes on scrap paper.
+- sea_elf (female): measuring cloth at a tailor stall.
+- seersight_half_elf (female): polishing glassware behind a tavern counter.
 - seersight_half_elf (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
 - shadar_kai (female): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
 - shadar_kai (male): loading crates at a caravan stop, practical labor and travel-worn clothes.
-- shadowveil_elf (female): setting out offerings at a shrine (non-magical, calm).
+- shadowveil_elf (female): tending a forge as a helper, carrying tongs and coal (no armor, no weapons).
 - silver_dragonborn (female): repairing a fishing net on a dock, with practical tools laid out nearby.
-- silver_dragonborn (male): polishing glassware behind a tavern counter.
+- silver_dragonborn (male): teaching a child to read (quiet domestic scene).
 - spring_eladrin (female): sweeping a courtyard or temple steps, quiet routine and grounded mood.
 - spring_eladrin (male): repairing a fishing net on a dock, with practical tools laid out nearby.
 - stone_giant_goliath (female): loading crates at a caravan stop, practical labor and travel-worn clothes.
 - stone_giant_goliath (male): carrying water and supplies along a village path, calm and focused.
 - storm_giant_goliath (female): tending a small workshop bench, crafting or mending everyday items.
 - storm_giant_goliath (male): harvesting herbs or mushrooms, carefully sorting bundles into a satchel.
-- stormborn_half_elf (female): repairing boots with leather scraps.
+- stormborn_half_elf (female): setting out offerings at a shrine (non-magical, calm).
 - stormborn_half_elf (male): sweeping a courtyard or temple steps, quiet routine and grounded mood.
 - summer_eladrin (female): sweeping a courtyard or temple steps, quiet routine and grounded mood.
 - summer_eladrin (male): repairing a fishing net on a dock, with practical tools laid out nearby.
@@ -195,7 +191,7 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - thri_kreen (male): tending a small workshop bench, crafting or mending everyday items.
 - tortle (female): repairing a fishing net on a dock, with practical tools laid out nearby.
 - tortle (male): working at a market stall, weighing produce and speaking with customers.
-- triton (female): preparing travel rations (wrapping bread, cheese, fruit).
+- triton (female): cleaning armor for someone else (as a job) without wearing any armor.
 - undefined (undefined): (no role found)
 - undefined (undefined): (no role found)
 - undefined (undefined): (no role found)
@@ -340,11 +336,11 @@ Generated from: `public/assets/images/races/race-image-status.json`
 - undefined (undefined): (no role found)
 - undefined (undefined): (no role found)
 - undefined (undefined): (no role found)
-- vedalken (female): tidying a small altar, lighting candles.
-- verdan (female): repairing a wagon wheel with basic tools.
-- verdan (male): sorting mushrooms on a cloth in a cavern-side camp.
-- warforged (female): stacking firewood neatly under an awning.
-- water_genasi (male): hanging herbs to dry from rafters.
+- vedalken (female): arranging flowers at a stall.
+- verdan (female): sorting mushrooms on a cloth in a cavern-side camp.
+- verdan (male): tending a herb garden.
+- warforged (female): feeding chickens in a farmyard.
+- water_genasi (male): baking bread in a communal oven, dusted with flour.
 - wayfarer_human (female): carrying water and supplies along a village path, calm and focused.
 - wayfarer_human (male): tending a small workshop bench, crafting or mending everyday items.
 - white_dragonborn (female): tending a small workshop bench, crafting or mending everyday items.

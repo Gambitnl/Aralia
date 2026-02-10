@@ -7,32 +7,27 @@
     "carrying water buckets from a well.",
     "carving wooden utensils at a simple workbench.",
     "cleaning armor for someone else (as a job) without wearing any armor.",
-    "copying ledgers in an office nook with ink-stained fingers.",
     "etching runes into a stone tile as an artisan.",
     "feeding chickens in a farmyard.",
+    "fletching arrows as a tradesperson (no combat, no armor).",
+    "haggling politely with a vendor, holding a coin purse.",
     "hanging herbs to dry from rafters.",
     "harvesting herbs or mushrooms, carefully sorting bundles into a satchel.",
     "inspecting fish at a market table, choosing today's catch.",
     "loading crates at a caravan stop, practical labor and travel-worn clothes.",
     "measuring cloth at a tailor stall.",
     "mending a torn cloak with needle and thread by window light.",
-    "mixing dyes in small jars at a craft table.",
     "packing a merchant crate with careful inventory (hands placing items into a crate; ledger nearby).",
-    "packing a merchant crate with careful inventory.",
     "painting simple signs for a shopfront (brush and painted lettering board visible, no text in final image).",
     "painting simple signs for a shopfront.",
     "planting herb seedlings into a small soil bed using a simple hand trowel.",
     "polishing glassware behind a tavern counter (rag and glass clearly visible).",
     "polishing glassware behind a tavern counter.",
-    "practicing calligraphy, testing brush strokes on scrap paper.",
     "preparing tea for guests at a monastery refectory table (kettle, cups, steam visible).",
-    "preparing tea for guests.",
     "preparing travel rations (wrapping bread, cheese, fruit).",
     "repairing a fishing net on a dock, with practical tools laid out nearby.",
-    "repairing a wagon wheel with basic tools.",
     "repairing boots with leather scraps.",
-    "serving stew from a pot at a roadside inn.",
-    "setting lanterns along a street at dusk.",
+    "setting lanterns along a village street at dusk (hands lighting a lantern with a taper).",
     "setting out offerings at a shrine (non-magical, calm).",
     "sharpening kitchen knives in a modest kitchen.",
     "sorting mail and parchments at a courier desk (hands sorting clearly visible).",
@@ -41,12 +36,13 @@
     "stacking firewood neatly under an awning.",
     "stitching a patchwork quilt.",
     "sweeping a courtyard or temple steps, quiet routine and grounded mood.",
-    "sweeping a library aisle.",
+    "teaching a child to read (quiet domestic scene).",
     "tending a forge as a helper, carrying tongs and coal (no armor, no weapons).",
     "tending a herb garden.",
     "tending a small workshop bench, crafting or mending everyday items.",
     "tidying a small altar, lighting candles.",
-    "training a working animal (mule/ox) with gentle guidance.",
+    "training a working animal (mule/ox) with gentle guidance (holding a lead rope).",
+    "trimming candle wicks and arranging fresh candles on a drying rack in a candle-maker's shop.",
     "weaving a small basket from reeds at a simple work table (hands weaving clearly visible).",
     "weaving a small basket from reeds.",
     "working at a market stall, weighing produce and speaking with customers.",
@@ -59,263 +55,263 @@
       "gender": "male",
       "role": "planting herb seedlings into a small soil bed using a simple hand trowel.",
       "background": "",
-      "downloadedAt": "2026-02-10T18:13:09.927Z",
+      "downloadedAt": "2026-02-10T21:36:35.298Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aasimar_Fallen_Male.png"
     },
     {
       "race": "vedalken",
       "gender": "female",
-      "role": "tidying a small altar, lighting candles.",
+      "role": "arranging flowers at a stall.",
       "background": "",
-      "downloadedAt": "2026-02-10T18:09:17.507Z",
+      "downloadedAt": "2026-02-10T21:36:01.283Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\vedalken_female.png"
     },
     {
       "race": "triton",
       "gender": "female",
-      "role": "preparing travel rations (wrapping bread, cheese, fruit).",
+      "role": "cleaning armor for someone else (as a job) without wearing any armor.",
       "background": "",
-      "downloadedAt": "2026-02-10T18:08:39.968Z",
+      "downloadedAt": "2026-02-10T21:35:25.734Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Triton_Female.png"
     },
     {
       "race": "beastborn_human",
       "gender": "female",
-      "role": "arranging flowers at a stall.",
+      "role": "repairing boots with leather scraps.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:37:09.629Z",
+      "downloadedAt": "2026-02-10T21:34:49.945Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Human_Beastborn_Female.png"
     },
     {
       "race": "stormborn_half_elf",
       "gender": "female",
-      "role": "repairing boots with leather scraps.",
+      "role": "setting out offerings at a shrine (non-magical, calm).",
       "background": "",
-      "downloadedAt": "2026-02-10T17:36:33.181Z",
+      "downloadedAt": "2026-02-10T21:34:14.397Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Half-Elf_Stormborn_Female.png"
     },
     {
       "race": "seersight_half_elf",
       "gender": "female",
-      "role": "practicing calligraphy, testing brush strokes on scrap paper.",
+      "role": "polishing glassware behind a tavern counter.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:35:23.305Z",
+      "downloadedAt": "2026-02-10T21:33:40.438Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Half-Elf_Seersight_Female.png"
     },
     {
       "race": "half_elf_high",
       "gender": "female",
-      "role": "feeding chickens in a farmyard.",
+      "role": "fletching arrows as a tradesperson (no combat, no armor).",
       "background": "",
-      "downloadedAt": "2026-02-10T17:34:47.983Z",
+      "downloadedAt": "2026-02-10T21:33:06.132Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Half-Elf_High_Female.png"
     },
     {
       "race": "goblin",
       "gender": "female",
-      "role": "carrying water buckets from a well.",
+      "role": "sorting mail/parchments in a courier station.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:34:10.418Z",
+      "downloadedAt": "2026-02-10T21:32:32.194Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Goblin_Female.png"
     },
     {
       "race": "githzerai",
       "gender": "male",
-      "role": "etching runes into a stone tile as an artisan.",
+      "role": "carving wooden utensils at a simple workbench.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:33:33.415Z",
+      "downloadedAt": "2026-02-10T21:31:57.476Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\githzerai_male.png"
     },
     {
       "race": "githyanki",
       "gender": "male",
-      "role": "tending a forge as a helper, carrying tongs and coal (no armor, no weapons).",
+      "role": "inspecting fish at a market table, choosing today's catch.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:32:58.116Z",
+      "downloadedAt": "2026-02-10T21:31:23.130Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\githyanki_male.png"
     },
     {
       "race": "water_genasi",
       "gender": "male",
-      "role": "hanging herbs to dry from rafters.",
+      "role": "baking bread in a communal oven, dusted with flour.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:32:18.959Z",
+      "downloadedAt": "2026-02-10T21:30:48.704Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Genasi_Water_Male.png"
     },
     {
       "race": "fire_genasi",
       "gender": "female",
-      "role": "inspecting fish at a market table, choosing today's catch.",
+      "role": "repairing boots with leather scraps.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:31:41.238Z",
+      "downloadedAt": "2026-02-10T21:30:14.750Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Genasi_Fire_Female.png"
     },
     {
       "race": "fire_genasi",
       "gender": "male",
-      "role": "sweeping a library aisle.",
+      "role": "fletching arrows as a tradesperson (no combat, no armor).",
       "background": "",
-      "downloadedAt": "2026-02-10T17:31:06.386Z",
+      "downloadedAt": "2026-02-10T21:29:40.631Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Genasi_Fire_Male.png"
     },
     {
       "race": "shadowveil_elf",
       "gender": "female",
-      "role": "setting out offerings at a shrine (non-magical, calm).",
+      "role": "tending a forge as a helper, carrying tongs and coal (no armor, no weapons).",
       "background": "",
-      "downloadedAt": "2026-02-10T17:30:31.404Z",
+      "downloadedAt": "2026-02-10T21:29:06.364Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Elf_Shadowveil_Female.png"
     },
     {
       "race": "sea_elf",
       "gender": "female",
-      "role": "mixing dyes in small jars at a craft table.",
+      "role": "measuring cloth at a tailor stall.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:29:56.055Z",
+      "downloadedAt": "2026-02-10T21:28:31.770Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Elf_Sea_Female.png"
     },
     {
       "race": "pallid_elf",
       "gender": "female",
-      "role": "tending a herb garden.",
+      "role": "carrying water buckets from a well.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:29:20.108Z",
+      "downloadedAt": "2026-02-10T21:27:57.586Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Elf_Pallid_Female.png"
     },
     {
       "race": "high_elf",
       "gender": "female",
-      "role": "measuring cloth at a tailor stall.",
+      "role": "sharpening kitchen knives in a modest kitchen.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:05:49.248Z",
+      "downloadedAt": "2026-02-10T21:27:22.587Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Elf_High_Female.png"
     },
     {
       "race": "high_elf",
       "gender": "male",
-      "role": "sharpening kitchen knives in a modest kitchen.",
+      "role": "painting simple signs for a shopfront.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:05:13.144Z",
+      "downloadedAt": "2026-02-10T21:26:47.190Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Elf_High_Male.png"
     },
     {
       "race": "runeward_dwarf",
       "gender": "male",
-      "role": "stitching a patchwork quilt.",
+      "role": "stacking firewood neatly under an awning.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:04:37.762Z",
+      "downloadedAt": "2026-02-10T21:25:39.899Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Dwarf_Runeward_Male.png"
     },
     {
       "race": "hill_dwarf",
       "gender": "female",
-      "role": "sorting mail/parchments in a courier station.",
+      "role": "stitching a patchwork quilt.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:03:26.201Z",
+      "downloadedAt": "2026-02-10T21:25:05.396Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Dwarf_Hill_Female.png"
     },
     {
       "race": "duergar",
       "gender": "female",
-      "role": "packing a merchant crate with careful inventory.",
+      "role": "weaving a small basket from reeds.",
       "background": "",
-      "downloadedAt": "2026-02-10T17:01:03.609Z",
+      "downloadedAt": "2026-02-10T22:06:00.085Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Duergar_Female.png"
     },
     {
       "race": "duergar",
       "gender": "male",
-      "role": "painting simple signs for a shopfront.",
+      "role": "teaching a child to read (quiet domestic scene).",
       "background": "",
-      "downloadedAt": "2026-02-10T17:00:28.203Z",
+      "downloadedAt": "2026-02-10T22:22:15.346Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Duergar_Male.png"
     },
     {
       "race": "silver_dragonborn",
       "gender": "male",
-      "role": "polishing glassware behind a tavern counter.",
+      "role": "teaching a child to read (quiet domestic scene).",
       "background": "",
-      "downloadedAt": "2026-02-10T16:59:52.428Z",
+      "downloadedAt": "2026-02-10T22:21:40.218Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Dragonborn_Silver_Male.png"
     },
     {
       "race": "green_dragonborn",
       "gender": "female",
-      "role": "weaving a small basket from reeds.",
+      "role": "tidying a small altar, lighting candles.",
       "background": "",
-      "downloadedAt": "2026-02-10T16:59:17.480Z",
+      "downloadedAt": "2026-02-10T22:21:04.671Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Dragonborn_Green_Female.png"
     },
     {
       "race": "copper_dragonborn",
       "gender": "female",
-      "role": "preparing tea for guests.",
+      "role": "preparing travel rations (wrapping bread, cheese, fruit).",
       "background": "",
-      "downloadedAt": "2026-02-10T16:58:42.347Z",
+      "downloadedAt": "2026-02-10T22:20:30.697Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Dragonborn_Copper_Female.png"
     },
     {
       "race": "copper_dragonborn",
       "gender": "male",
-      "role": "cleaning armor for someone else (as a job) without wearing any armor.",
+      "role": "trimming candle wicks and arranging fresh candles on a drying rack in a candle-maker's shop.",
       "background": "",
-      "downloadedAt": "2026-02-10T16:58:06.729Z",
+      "downloadedAt": "2026-02-10T22:27:26.328Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Dragonborn_Copper_Male.png"
     },
     {
       "race": "warforged",
       "gender": "female",
-      "role": "stacking firewood neatly under an awning.",
+      "role": "feeding chickens in a farmyard.",
       "background": "",
-      "downloadedAt": "2026-02-10T16:57:29.440Z",
+      "downloadedAt": "2026-02-10T22:19:20.888Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Warforged_Female.png"
     },
     {
       "race": "loxodon",
       "gender": "male",
-      "role": "training a working animal (mule/ox) with gentle guidance.",
+      "role": "etching runes into a stone tile as an artisan.",
       "background": "",
-      "downloadedAt": "2026-02-10T16:56:53.116Z",
+      "downloadedAt": "2026-02-10T22:18:46.182Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Loxodon_Male.png"
     },
     {
       "race": "kenku",
       "gender": "female",
-      "role": "setting lanterns along a street at dusk.",
+      "role": "hanging herbs to dry from rafters.",
       "background": "",
-      "downloadedAt": "2026-02-10T16:56:17.506Z",
+      "downloadedAt": "2026-02-10T22:18:11.879Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Kenku_Female.png"
     },
     {
       "race": "aarakocra",
       "gender": "female",
-      "role": "serving stew from a pot at a roadside inn.",
+      "role": "training a working animal (mule/ox) with gentle guidance (holding a lead rope).",
       "background": "",
-      "downloadedAt": "2026-02-10T16:55:42.335Z",
+      "downloadedAt": "2026-02-10T22:34:15.747Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aarakocra_Female.png"
     },
     {
       "race": "aarakocra",
       "gender": "male",
-      "role": "copying ledgers in an office nook with ink-stained fingers.",
+      "role": "setting lanterns along a village street at dusk (hands lighting a lantern with a taper).",
       "background": "",
-      "downloadedAt": "2026-02-10T16:55:05.580Z",
+      "downloadedAt": "2026-02-10T22:33:41.785Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aarakocra_Male.png"
     },
     {
       "race": "verdan",
       "gender": "female",
-      "role": "repairing a wagon wheel with basic tools.",
+      "role": "sorting mushrooms on a cloth in a cavern-side camp.",
       "background": "",
-      "downloadedAt": "2026-02-10T16:53:53.454Z",
+      "downloadedAt": "2026-02-10T22:16:26.429Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\verdan_female.png"
     },
     {
       "race": "verdan",
       "gender": "male",
-      "role": "sorting mushrooms on a cloth in a cavern-side camp.",
+      "role": "tending a herb garden.",
       "background": "",
-      "downloadedAt": "2026-02-10T16:53:18.584Z",
+      "downloadedAt": "2026-02-10T22:15:50.737Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\verdan_male.png"
     },
     {
@@ -367,7 +363,7 @@
       "gender": "male",
       "role": "polishing glassware behind a tavern counter (rag and glass clearly visible).",
       "background": "",
-      "downloadedAt": "2026-02-10T16:01:38.884Z",
+      "downloadedAt": "2026-02-10T21:41:08.861Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Elf_Astral_Male.png"
     },
     {
@@ -381,7 +377,7 @@
       "gender": "female",
       "role": "weaving a small basket from reeds at a simple work table (hands weaving clearly visible).",
       "background": "",
-      "downloadedAt": "2026-02-10T15:52:43.300Z",
+      "downloadedAt": "2026-02-10T21:40:34.182Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aasimar_Scourge_Female.png"
     },
     {
@@ -389,7 +385,7 @@
       "gender": "male",
       "role": "preparing tea for guests at a monastery refectory table (kettle, cups, steam visible).",
       "background": "",
-      "downloadedAt": "2026-02-10T15:50:30.978Z",
+      "downloadedAt": "2026-02-10T21:39:59.512Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aasimar_Scourge_Male.png"
     },
     {
@@ -415,7 +411,7 @@
       "gender": "female",
       "role": "mending a torn cloak with needle and thread by window light.",
       "background": "",
-      "downloadedAt": "2026-02-10T15:28:32.237Z",
+      "downloadedAt": "2026-02-10T21:39:24.884Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aasimar_Protector_Female.png"
     },
     {
@@ -439,9 +435,9 @@
     {
       "race": "protector_aasimar",
       "gender": "male",
-      "role": "baking bread in a communal oven, dusted with flour.",
+      "role": "haggling politely with a vendor, holding a coin purse.",
       "background": "",
-      "downloadedAt": "2026-02-10T15:15:15.451Z",
+      "downloadedAt": "2026-02-10T21:15:54.690Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aasimar_Protector_Male.png"
     },
     {
@@ -449,7 +445,7 @@
       "gender": "female",
       "role": "baking bread using a wooden peel to slide a loaf into a communal oven.",
       "background": "",
-      "downloadedAt": "2026-02-10T15:14:23.716Z",
+      "downloadedAt": "2026-02-10T21:37:09.598Z",
       "imagePath": "F:\\Repos\\Aralia\\public\\assets\\images\\races\\Aasimar_Fallen_Female.png"
     },
     {

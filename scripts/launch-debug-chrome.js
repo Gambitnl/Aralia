@@ -39,6 +39,10 @@ console.log(`Found Chrome at: ${chromePath}`);
 const args = [
   '--remote-debugging-port=9222',
   `--user-data-dir=${profileDir}`,
+  // Playwright <-> Chrome CDP can currently crash when Chrome attaches to certain
+  // new/experimental target types (e.g. shared storage worklets). Disable the
+  // feature to keep CDP stable for our Gemini automation.
+  '--disable-features=SharedStorageAPI,SharedStorage',
   'https://gemini.google.com/app' // Open Gemini so consent/login can be completed in the debug profile.
 ];
 

@@ -14,7 +14,7 @@ interface VerifyImageResult {
     message: string;
     verifiedRace?: string;
 }
-declare function verifyImageAdherence(imagePath: string): Promise<VerifyImageResult>;
+export declare function verifyImageAdherence(imagePath: string): Promise<VerifyImageResult>;
 export declare function startNewGeminiChat(): Promise<{
     success: boolean;
     message: string;
@@ -41,4 +41,4 @@ declare function downloadImage(optionsOrPath: string | {
     message: string;
 }>;
 declare const cleanup: () => Promise<never>;
-export { generateImage, downloadImage, cleanup, ensureBrowser, verifyImageAdherence };
+export { generateImage, downloadImage, cleanup, ensureBrowser };

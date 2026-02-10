@@ -19,6 +19,9 @@ export interface RaceImageStatusEntry {
   race?: string;
   variant?: string;
   gender?: string;
+  category?: string;
+  reason?: string;
+  activity?: string;
   prompt?: string;
   provider?: Provider;
   imagePath: string;
@@ -63,6 +66,9 @@ export function recordRaceImageDownload(input: {
   race?: string;
   variant?: string;
   gender?: string;
+  category?: string;
+  reason?: string;
+  activity?: string;
   prompt?: string;
   provider?: Provider;
   imagePath: string;
@@ -75,6 +81,9 @@ export function recordRaceImageDownload(input: {
     race: input.race,
     variant: input.variant,
     gender: input.gender,
+    category: input.category,
+    reason: input.reason,
+    activity: input.activity,
     prompt: input.prompt,
     provider: input.provider,
     imagePath: input.imagePath,

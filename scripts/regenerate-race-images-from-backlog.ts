@@ -15,9 +15,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
 import { spawnSync } from 'child_process';
-import { doctorGeminiCDP, generateImage, downloadImage, cleanup } from './image-gen-mcp';
+import { doctorGeminiCDP, generateImage, downloadImage, cleanup, verifyImageAdherence } from './image-gen-mcp';
+import { recordRaceImageDownload } from './raceImageStatus.js';
 
 type Gender = 'male' | 'female';
 type Category = 'A' | 'B' | 'C' | 'D' | 'E';
@@ -44,7 +44,6 @@ type PromptOverride = {
   settingEnvironment?: string;
   attire?: string;
   extraRules?: string[];
-  extraNegative?: string[];
 };
 
 const ROOT = process.cwd();
@@ -52,7 +51,6 @@ const RACES_TS_DIR = path.join(ROOT, 'src', 'data', 'races');
 const GLOSSARY_RACES_DIR = path.join(ROOT, 'public', 'data', 'glossary', 'entries', 'races');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const BACKLOG_PATH = path.join(ROOT, 'docs', 'portraits', 'race_portrait_regen_backlog.json');
-const STATUS_PATH = path.join(ROOT, 'public', 'assets', 'images', 'races', 'race-image-status.json');
 const ACTIVITIES_REPORT_PATH = path.join(ROOT, 'scripts', 'audits', 'slice-of-life-settings.json');
 
 const STYLE_BASE = [
@@ -65,6 +63,7 @@ const STYLE_BASE = [
   'Subject is a common villager or worker (not an adventurer or hero).',
   'Wardrobe: practical civilian clothing suitable for daily work.',
   'No weapons. No armor. No spell effects. No combat stance.',
+  'Do not include any modern/real-world objects (no guns, no modern tools, no signage).',
 ];
 
 // The backlog includes categories A-E (cropping, slice-of-life, etc). We still track them for
@@ -84,7 +83,6 @@ const SLICE_OF_LIFE_ACTIVITIES = [
   'setting lanterns along a street at dusk',
   'training a working animal (mule/ox) with gentle guidance',
   'stacking firewood neatly under an awning',
-  'cleaning armor for someone else (as a job) without wearing any armor',
   'preparing tea for guests',
   'weaving a small basket from reeds',
   'polishing glassware behind a tavern counter',
@@ -110,13 +108,30 @@ const SLICE_OF_LIFE_ACTIVITIES = [
   'tidying a small altar, lighting candles',
   'haggling politely with a vendor, holding a coin purse',
   'rolling barrels in a cellar',
-  'fletching arrows as a tradesperson (no combat, no armor)',
   'teaching a child to read (quiet domestic scene)',
   'delivering parcels in a busy street',
   'washing hands at a basin after work (grounded realism)',
 ];
 
 const RACE_OVERRIDES: Record<string, string[]> = {
+  aarakocra: [
+    // Aarakocra images frequently drift into "heroic cliffside" or dramatic wingspan poses.
+    'Pose: wings must be folded or partially folded (not spread wide). Subject must be grounded on the ground (not flying).',
+    'Setting must be mundane slice-of-life at ground level (village, market, workshop), not a mountain peak lookout.',
+  ],
+  copper_dragonborn: [
+    'Setting: grounded slice-of-life in a market, workshop, or home; avoid armories, battlefields, or militarized environments.',
+    'Wardrobe: practical civilian clothing; avoid any armor pieces or soldier-like straps/insignia.',
+    'Hands: no weapons. Use civilian tools only (e.g., sewing needle, ledger, cooking utensils, broom).',
+  ],
+  silver_dragonborn: [
+    'Setting: grounded slice-of-life at ground level (village, dock, kitchen, market). Avoid mystical floating citadels or heroic mountaintop shrines.',
+    'Wardrobe: practical civilian clothing (no ceremonial robes, no jewelry-heavy regalia).',
+  ],
+  duergar: [
+    'Setting: underdark or subterranean slice-of-life that is calm and mundane (market stall, workshop, communal hall). Avoid lava fields, battle scenes, or war camps.',
+    'Wardrobe: practical civilian work clothing.',
+  ],
   fallen_aasimar: [
     // Make wings a subtle presence, not a dramatic pose.
     'Wings: wings must be folded and tucked close to the back. Do NOT spread them. For slice-of-life scenes, prefer wings fully covered by clothing so they are NOT visible.',
@@ -160,6 +175,47 @@ const RACE_OVERRIDES: Record<string, string[]> = {
 };
 
 const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<Gender, PromptOverride>>>>> = {
+  aarakocra: {
+    A: {
+      male: {
+        forcedActivity: "setting lanterns along a village street at dusk (hands lighting a lantern with a taper)",
+        settingEnvironment:
+          "A grounded village street at dusk: timber buildings, warm window light, small lantern posts. Calm, mundane atmosphere. No mountains, no cliffs, no high-altitude outlooks.",
+        attire:
+          "Civilian worker attire: simple tunic, belt pouch, practical boots. No armor. No weapons.",
+        extraRules: [
+          "Wings must be folded close to the body like a cloak or tucked behind the shoulders (not spread wide).",
+          "Subject must be standing on the ground (not flying).",
+        ],
+      },
+      female: {
+        forcedActivity: "training a working animal (mule/ox) with gentle guidance (holding a lead rope)",
+        settingEnvironment:
+          "A lowland farm road near a village: grass, fences, a simple cart in the distance. Calm, mundane atmosphere. No cliffs, no mountain peaks.",
+        attire:
+          "Civilian worker attire: simple dress or tunic with apron, practical boots. No armor. No weapons.",
+        extraRules: [
+          "Wings must be folded close to the body like a cloak or tucked behind the shoulders (not spread wide).",
+          "Subject must be standing on the ground (not flying).",
+        ],
+      },
+    },
+  },
+  copper_dragonborn: {
+    // Avoid "tool-as-weapon" drift (knives/axes) and militarized props.
+    A: {
+      male: {
+        forcedActivity: "trimming candle wicks and arranging fresh candles on a drying rack in a candle-maker's shop",
+        settingEnvironment:
+          "A small candle-maker's shop: beeswax blocks, simple molds, drying racks, warm lamplight. Calm, mundane atmosphere. Ground level, not a battlefield, not an armory.",
+        attire:
+          "Civilian artisan attire: simple tunic, work apron, sturdy boots. No armor. No weapons. No soldier insignia.",
+        extraRules: [
+          "Hands must be occupied with candle-making materials only (wax, wick, candles). No blades or knives.",
+        ],
+      },
+    },
+  },
   fallen_aasimar: {
     // This is a known hard case: the lore text pushes "ruins + dread + wings-out".
     // For slice-of-life (Category B), keep the environment/action readable and mundane.
@@ -175,15 +231,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'Wings must be folded AND fully covered by clothing (wings should not be visible in the image).',
           'Background must extend edge-to-edge with no blank margins.',
         ],
-        extraNegative: [
-          'visible wings',
-          'wings spread wide',
-          'hero cape',
-          'travel cloak',
-          'adventurer outfit',
-          'dramatic battle ruins',
-          'white margin',
-        ],
       },
       female: {
         forcedActivity: 'baking bread using a wooden peel to slide a loaf into a communal oven',
@@ -196,16 +243,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'Show full body head-to-toe with visible boots/feet and floor beneath. No cropping.',
           'Wings must be folded AND fully covered by clothing (wings should not be visible in the image).',
           'Background must extend edge-to-edge with no blank margins.',
-        ],
-        extraNegative: [
-          'visible wings',
-          'wings spread wide',
-          'hero cape',
-          'travel cloak',
-          'adventurer outfit',
-          'dramatic ruins',
-          'white margin',
-          'cropped feet',
         ],
       },
     },
@@ -222,16 +259,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'Action clarity: show hands actively mending fabric with needle and thread (thread visible).',
           'Wings must be folded and tucked; do not show a wide wing span.',
           'Background must extend edge-to-edge with no blank margins anywhere.',
-        ],
-        extraNegative: [
-          'white margin',
-          'blank border',
-          'portrait with side borders',
-          'letterboxed',
-          'visible full wingspan',
-          'wings spread wide',
-          'heroic pose',
-          'adventurer outfit',
         ],
       },
     },
@@ -250,21 +277,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'Wings must be folded AND fully covered by clothing (wings should not be visible in the image).',
           'No glowing aura, sparks, or spell-like effects. Keep it mundane.',
         ],
-        extraNegative: [
-          'ceremonial mask',
-          'mask',
-          'face covering',
-          'visible wings',
-          'wings spread wide',
-          'glowing aura',
-          'sparks',
-          'weapons',
-          'armor',
-          'desert canyon',
-          'volcanic landscape',
-          'battlefield',
-          'heroic pose',
-        ],
       },
       female: {
         forcedActivity: 'weaving a small basket from reeds at a simple work table (hands weaving clearly visible)',
@@ -277,21 +289,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'No mask or face covering. Eyes visible.',
           'Wings must be folded AND fully covered by clothing (wings should not be visible in the image).',
           'No glowing aura, sparks, or spell-like effects. Keep it mundane.',
-        ],
-        extraNegative: [
-          'ceremonial mask',
-          'mask',
-          'face covering',
-          'visible wings',
-          'wings spread wide',
-          'glowing aura',
-          'sparks',
-          'weapons',
-          'armor',
-          'desert canyon',
-          'volcanic landscape',
-          'battlefield',
-          'heroic pose',
         ],
       },
     },
@@ -308,16 +305,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'Action clarity: show hands actively polishing a glass with a cloth.',
           'No spell effects, no floating crystals, no cosmic void background.',
         ],
-        extraNegative: [
-          'astral plane',
-          'cosmic void',
-          'floating islands',
-          'crystalline citadel',
-          'weapons',
-          'armor',
-          'spell effects',
-          'heroic pose',
-        ],
       },
       female: {
         forcedActivity: 'painting simple signs for a shopfront (brush and painted lettering board visible, no text in final image)',
@@ -328,19 +315,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
         extraRules: [
           'Action clarity: show hands actively painting a decorative pattern on a wooden sign board (avoid readable letters).',
           'No spell effects, no floating crystals, no cosmic void background.',
-        ],
-        extraNegative: [
-          'readable text',
-          'letters',
-          'words',
-          'astral plane',
-          'cosmic void',
-          'floating islands',
-          'crystalline citadel',
-          'weapons',
-          'armor',
-          'spell effects',
-          'heroic pose',
         ],
       },
     },
@@ -357,13 +331,6 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'Action clarity: show hands actively packing items into a crate; a small ledger or checklist nearby.',
           'No heroic posing; posture should look like real work.',
         ],
-        extraNegative: [
-          'weapons',
-          'armor',
-          'combat stance',
-          'heroic pose',
-          'fancy adventurer outfit',
-        ],
       },
       female: {
         forcedActivity: 'sorting mail and parchments at a courier desk (hands sorting clearly visible)',
@@ -375,22 +342,10 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
           'Action clarity: show hands actively sorting letters/parchments into neat stacks.',
           'Make the character clearly female while staying non-sexualized (silhouette + face + hair styling).',
         ],
-        extraNegative: [
-          'weapons',
-          'armor',
-          'combat stance',
-          'heroic pose',
-          'fancy adventurer outfit',
-        ],
       },
     },
   },
 };
-
-function sha256File(filePath: string): string {
-  const buf = fs.readFileSync(filePath);
-  return crypto.createHash('sha256').update(buf).digest('hex');
-}
 
 function resolvePublicAsset(assetPath: string): string {
   const p = assetPath.startsWith('/') ? assetPath.slice(1) : assetPath;
@@ -578,15 +533,6 @@ function buildPrompt(params: {
   return { prompt: lines.join('\n'), activityUsed };
 }
 
-function updateStatus(entry: any) {
-  const dir = path.dirname(STATUS_PATH);
-  fs.mkdirSync(dir, { recursive: true });
-  const existing = fs.existsSync(STATUS_PATH) ? JSON.parse(fs.readFileSync(STATUS_PATH, 'utf8')) : { entries: [] };
-  const entries: any[] = Array.isArray(existing.entries) ? existing.entries : [];
-  entries.unshift(entry);
-  fs.writeFileSync(STATUS_PATH, JSON.stringify({ entries }, null, 2) + '\n', 'utf8');
-}
-
 function parseArgs(argv: string[]) {
   const out: { category?: Category; limit: number | null; dryRun: boolean; races: string[]; genders: Gender[] } = {
     limit: null,
@@ -597,9 +543,11 @@ function parseArgs(argv: string[]) {
   let retries: number | null = null;
   let cooldownMs: number | null = null;
   let skipWrittenAfter: string | null = null;
+  let verify: boolean = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dry-run') out.dryRun = true;
+    else if (a === '--verify') verify = true;
     else if (a === '--category' && argv[i + 1]) out.category = argv[++i] as Category;
     else if (a.startsWith('--category=')) out.category = a.split('=', 2)[1] as Category;
     else if (a === '--limit' && argv[i + 1]) out.limit = Number(argv[++i]);
@@ -615,7 +563,7 @@ function parseArgs(argv: string[]) {
     else if (a === '--skip-written-after' && argv[i + 1]) skipWrittenAfter = String(argv[++i]);
     else if (a.startsWith('--skip-written-after=')) skipWrittenAfter = a.split('=', 2)[1];
   }
-  return { ...out, retries, cooldownMs, skipWrittenAfter };
+  return { ...out, retries, cooldownMs, skipWrittenAfter, verify };
 }
 
 async function main() {
@@ -624,15 +572,18 @@ async function main() {
   const cooldown = Number.isFinite((args as any).cooldownMs) && (args as any).cooldownMs >= 0 ? (args as any).cooldownMs : 4500;
   const skipWrittenAfterRaw = String((args as any).skipWrittenAfter || '').trim();
   const skipWrittenAfter = skipWrittenAfterRaw ? Date.parse(skipWrittenAfterRaw) : NaN;
+  const verify = !!(args as any).verify;
 
-  // Ensure Gemini is reachable and the CDP browser session is ready before running a long batch.
-  const doctor = await doctorGeminiCDP({
-    cdpUrl: process.env.IMAGE_GEN_CDP_URL || 'http://localhost:9222',
-    attemptConsent: true,
-    openIfMissing: true,
-  });
-  if (!doctor.ok) {
-    throw new Error(`[regen-backlog] Gemini not ready (${doctor.stage}): ${doctor.message}`);
+  if (!args.dryRun) {
+    // Ensure Gemini is reachable and the CDP browser session is ready before running a long batch.
+    const doctor = await doctorGeminiCDP({
+      cdpUrl: process.env.IMAGE_GEN_CDP_URL || 'http://localhost:9222',
+      attemptConsent: true,
+      openIfMissing: true,
+    });
+    if (!doctor.ok) {
+      throw new Error(`[regen-backlog] Gemini not ready (${doctor.stage}): ${doctor.message}`);
+    }
   }
 
   const backlog = readBacklog().filter((x) => (args.category ? x.category === args.category : true));
@@ -709,7 +660,7 @@ async function main() {
         }
         throw new Error(`[regen] Image generation failed for ${w.race.id} (${w.gender}) after ${retries + 1} attempts: ${msg}`);
       }
-      const dl = await downloadImage(absPath);
+      const dl = await downloadImage({ outputPath: absPath, race: w.race.id, gender: w.gender, prompt });
       if (!dl?.success) {
         throw new Error(`[regen] Image download failed for ${w.race.id} (${w.gender}): ${dl?.message || 'unknown error'}`);
       }
@@ -728,6 +679,48 @@ async function main() {
         console.warn(`[regen] Warning: blank-margin detector errored; accepting image. Details: ${String(det.stderr || '').trim()}`);
       }
 
+      // Reject non-square outputs (e.g., if we had to screenshot-fallback a non-square asset).
+      const squareCheck = `python scripts/audits/check-image-square.py "${absPath}"`;
+      const sq = spawnSync(squareCheck, { shell: true, stdio: 'pipe' });
+      const sqText = String(sq.stdout || '').trim();
+      if (sq.status === 2) {
+        console.warn(`[regen] Non-square image detected for ${w.race.id} (${w.gender}). Will retry.`);
+        if (sqText) console.warn(`[regen] check-image-square: ${sqText}`);
+        await new Promise((r) => setTimeout(r, cooldown));
+        continue;
+      }
+      if (sq.status === 1) {
+        console.warn(`[regen] Warning: square-check errored; accepting image. Details: ${String(sq.stderr || '').trim()}`);
+      }
+
+      const { duplicates } = recordRaceImageDownload({
+        race: w.race.id,
+        gender: w.gender,
+        category: w.category,
+        reason: w.reason ?? '',
+        activity: activityUsed ?? '',
+        prompt,
+        provider: 'gemini',
+        imagePath: absPath,
+      });
+      if (duplicates.length > 0) {
+        console.warn(`[regen] Duplicate bytes detected for ${w.race.id} (${w.gender}). Will retry.`);
+        for (const d of duplicates.slice(0, 5)) {
+          console.warn(`[regen] Duplicate of: ${d.imagePath}`);
+        }
+        await new Promise((r) => setTimeout(r, cooldown));
+        continue;
+      }
+
+      if (verify) {
+        const v = await verifyImageAdherence(absPath);
+        if (!v.success || !v.complies) {
+          console.warn(`[regen] Verification failed for ${w.race.id} (${w.gender}): ${v.message}`);
+          await new Promise((r) => setTimeout(r, cooldown));
+          continue;
+        }
+      }
+
       ok = true;
       break;
     }
@@ -735,19 +728,6 @@ async function main() {
     if (!ok) {
       throw new Error(`[regen] Exhausted retries for ${w.race.id} (${w.gender}); still getting blank margins.`);
     }
-
-    updateStatus({
-      race: w.race.id,
-      gender: w.gender,
-      category: w.category,
-      reason: w.reason ?? '',
-      activity: activityUsed ?? '',
-      prompt,
-      provider: 'gemini',
-      imagePath: absPath,
-      sha256: fs.existsSync(absPath) ? sha256File(absPath) : '',
-      downloadedAt: new Date().toISOString(),
-    });
 
     if (activityUsed) usedActivities.add(normalizeActivityKey(activityUsed));
     runSliceOfLifeReport();

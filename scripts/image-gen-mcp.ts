@@ -143,7 +143,7 @@ interface VerifyImageResult {
     verifiedRace?: string;
 }
 
-async function verifyImageAdherence(imagePath: string): Promise<VerifyImageResult> {
+export async function verifyImageAdherence(imagePath: string): Promise<VerifyImageResult> {
     try {
         if (!activePage || activePage.isClosed() || !currentProvider) {
             throw new Error("No active browser session. Generate an image first.");
@@ -162,12 +162,8 @@ async function verifyImageAdherence(imagePath: string): Promise<VerifyImageResul
 
         log("Starting visual verification...");
 
-        // 1. Start New Chat
-        const newChatBtn = await activePage.$(config.selectors.newChat!);
-        if (newChatBtn) {
-            await newChatBtn.click();
-            await activePage.waitForTimeout(1000);
-        }
+        // 1. Start New Chat (must avoid context bleed for verification too)
+        await startGeminiNewChat(activePage).catch(() => undefined);
 
         // 2. Upload Image
         const fileInput = await activePage.waitForSelector('input[type="file"]', { state: 'attached', timeout: 5000 });
@@ -416,6 +412,29 @@ async function maybeDismissGoogleConsent(page: Page): Promise<boolean> {
 function normalizeGeminiImageUrl(src: string): string {
     // Gemini images often carry sizing params; normalize to original ("s0") so downloads are full-res.
     return String(src || "").replace(/=w\d+-h\d+.*$/, '=s0').replace(/=s\d+(-rj)?$/, '=s0');
+}
+
+function isPng(buffer: Buffer): boolean {
+    return (
+        buffer.length >= 8 &&
+        buffer[0] === 0x89 &&
+        buffer[1] === 0x50 &&
+        buffer[2] === 0x4e &&
+        buffer[3] === 0x47 &&
+        buffer[4] === 0x0d &&
+        buffer[5] === 0x0a &&
+        buffer[6] === 0x1a &&
+        buffer[7] === 0x0a
+    );
+}
+
+function isJpeg(buffer: Buffer): boolean {
+    return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+}
+
+function previewText(buffer: Buffer, limit = 600): string {
+    const s = buffer.toString("utf8");
+    return s.length > limit ? s.slice(0, limit) + "..." : s;
 }
 
 async function snapshotLargeImageUrls(page: Page, selector: string): Promise<string[]> {
@@ -799,16 +818,96 @@ async function downloadImage(optionsOrPath: string | { outputPath?: string; race
         const finalPath = outputPath || path.join(DEFAULT_OUTPUT_DIR, `${provider}-${timestamp}.png`);
 
         if (provider === "gemini") {
-            let imageUrl = lastGeminiImageUrl ? normalizeGeminiImageUrl(lastGeminiImageUrl) : null;
-            if (!imageUrl) {
-                const urls = (await snapshotLargeImageUrls(activePage, config.selectors.image)).map(normalizeGeminiImageUrl);
-                imageUrl = urls.length ? urls[urls.length - 1] : null;
+            // Gemini can return multiple URL shapes (including signed "rd-gg-dl" links) where our
+            // normalization can occasionally produce HTTP 400. We therefore try a small set of
+            // candidates in a robust order and validate we actually got an image payload.
+            const rawUrls: string[] = [];
+            if (lastGeminiImageUrl) rawUrls.push(String(lastGeminiImageUrl));
+            rawUrls.push(...(await snapshotLargeImageUrls(activePage, config.selectors.image)));
+
+            const candidates: string[] = [];
+            const seen = new Set<string>();
+            const push = (u: string) => {
+                const s = String(u || "").trim();
+                if (!s || seen.has(s)) return;
+                seen.add(s);
+                candidates.push(s);
+            };
+
+            // Prefer the newest URL(s) and try raw first, then normalized.
+            for (const u of rawUrls.slice(-6)) {
+                push(u);
+                const n = normalizeGeminiImageUrl(u);
+                if (n !== u) push(n);
             }
 
-            if (!imageUrl) throw new Error("Could not find generated image URL");
+            if (candidates.length === 0) throw new Error("Could not find generated image URL");
 
-            const response = await activePage.context().request.get(imageUrl);
-            fs.writeFileSync(finalPath, await response.body());
+            const errors: string[] = [];
+
+            const tryWrite = (buf: Buffer, url: string) => {
+                if (buf.length < 10_000) {
+                    throw new Error(`Download too small (${buf.length} bytes) from ${url}`);
+                }
+                if (!isPng(buf) && !isJpeg(buf)) {
+                    throw new Error(`Download is not an image from ${url}. Preview: ${previewText(buf)}`);
+                }
+                fs.writeFileSync(finalPath, buf);
+            };
+
+            for (const imageUrl of candidates) {
+                // Attempt 1: APIRequestContext (fast path)
+                try {
+                    const response = await activePage.context().request.get(imageUrl, {
+                        timeout: 30000,
+                        headers: {
+                            // Some signed googleusercontent URLs are picky; keep a realistic referer.
+                            referer: "https://gemini.google.com/",
+                        },
+                    });
+                    const buf = Buffer.from(await response.body());
+                    tryWrite(buf, imageUrl);
+                    break;
+                } catch (e: unknown) {
+                    errors.push(`request.get failed for ${imageUrl}: ${getErrorMessage(e)}`);
+                }
+
+                // Attempt 2: open URL in a throwaway tab (sometimes succeeds where request.get fails)
+                try {
+                    const tmp = await activePage.context().newPage();
+                    try {
+                        const resp = await tmp.goto(imageUrl, { timeout: 30000, waitUntil: "domcontentloaded" });
+                        const ok = !!resp && resp.ok();
+                        if (!resp) throw new Error("No response from goto()");
+                        const buf = Buffer.from(await resp.body());
+                        if (!ok) {
+                            throw new Error(`HTTP ${resp.status()} from goto(). Preview: ${previewText(buf)}`);
+                        }
+                        tryWrite(buf, imageUrl);
+                        await tmp.close().catch(() => undefined);
+                        break;
+                    } finally {
+                        if (!tmp.isClosed()) await tmp.close().catch(() => undefined);
+                    }
+                } catch (e: unknown) {
+                    errors.push(`page.goto download failed for ${imageUrl}: ${getErrorMessage(e)}`);
+                }
+            }
+
+            // If we still didn't write an image file, fall back to element screenshot.
+            // This avoids brittle download URL shapes entirely (at the cost of sometimes lower resolution).
+            const wrote = fs.existsSync(finalPath) && fs.statSync(finalPath).size > 10_000;
+            if (!wrote) {
+                try {
+                    const imgs = activePage.locator(config.selectors.image);
+                    const count = await imgs.count();
+                    if (count <= 0) throw new Error("No image elements found to screenshot.");
+                    await imgs.nth(count - 1).screenshot({ path: finalPath });
+                } catch (e: unknown) {
+                    const errorMessage = `Failed to download Gemini image via URL and screenshot fallback. Errors:\n- ${errors.join("\n- ")}\nFallback error: ${getErrorMessage(e)}`;
+                    throw new Error(errorMessage);
+                }
+            }
         } else {
             // Whisk download logic
             const imageContainer = await activePage.waitForSelector(config.selectors.image, { timeout: 5000 });
@@ -934,7 +1033,7 @@ async function main() {
     await server.connect(transport);
 }
 
-export { generateImage, downloadImage, cleanup, ensureBrowser, verifyImageAdherence };
+export { generateImage, downloadImage, cleanup, ensureBrowser };
 
 // Only run server if called directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

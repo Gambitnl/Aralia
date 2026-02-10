@@ -295,7 +295,16 @@ const PropsLayer = ({
     return geometry;
   }, []);
   const biomeTint = useMemo(
-    () => new ThreeColor(biome?.rgbaColor ?? '#ffffff'),
+    () => {
+      const rgba = biome?.rgbaColor ?? '#ffffff';
+      // Extract RGB components from rgba() format, ignoring alpha
+      const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (match) {
+        const [, r, g, b] = match;
+        return new ThreeColor(parseInt(r, 10) / 255, parseInt(g, 10) / 255, parseInt(b, 10) / 255);
+      }
+      return new ThreeColor(rgba);
+    },
     [biome?.rgbaColor]
   );
   const safeCenter = spawnCenter ?? { x: 0, z: 0 };

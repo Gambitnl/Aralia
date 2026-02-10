@@ -6,7 +6,7 @@
   },
   "items": [
     { "category": "A", "raceName": "Verdan", "genders": ["male", "female"], "reason": "cropped" },
-    { "category": "A", "raceName": "Aarakocra", "genders": ["male", "female"], "reason": "cropped" },
+    { "category": "A", "raceName": "Aarakocra", "genders": ["male", "female"], "reason": "cropped; avoid wings spread; must be grounded slice-of-life (not heroic, not mountain peak)" },
     { "category": "A", "raceName": "Kenku", "genders": ["female"], "reason": "cropped" },
     { "category": "A", "raceName": "Loxodon", "genders": ["male"], "reason": "cropped" },
     { "category": "A", "raceName": "Warforged", "genders": ["female"], "reason": "cropped" },

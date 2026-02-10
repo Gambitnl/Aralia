@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import type { Color, Mesh } from 'three';
-import { Color as ThreeColor } from 'three';
+import { ACESFilmicToneMapping, Color as ThreeColor, SRGBColorSpace } from 'three';
 import { BIOMES } from '../../constants';
 import { SeededRandom } from '../../utils/random/seededRandom';
 import type { PlayerCharacter } from '../../types';
@@ -9,6 +9,8 @@ import { getLightingForTime } from './lighting';
 import CameraRig from './CameraRig';
 import PlayerController from './PlayerController';
 import Terrain from './Terrain';
+import EnhancedTerrain from './EnhancedTerrain';
+import TextureSplatting from './TextureSplatting';
 import PropsLayer, { type TreeStats } from './PropsLayer';
 import type { SceneEntity } from './sceneEntities';
 import {
@@ -19,7 +21,9 @@ import EnemyUnit from './EnemyUnit';
 import NpcUnit from './NpcUnit';
 import PartyUnit from './PartyUnit';
 import SkyDome from './SkyDome';
+import EnhancedSkyDome from './EnhancedSkyDome';
 import WaterPlane from './WaterPlane';
+import EnhancedWaterPlane from './EnhancedWaterPlane';
 import LabGround from './LabGround';
 import LabClouds from './LabClouds';
 import LabGrass from './LabGrass';
@@ -368,14 +372,9 @@ const SceneContents = ({
       <hemisphereLight 
         color={lighting.ambientColor} 
         groundColor={lighting.biomeColor} 
-        intensity={0.35} 
+        intensity={0.18} 
       />
-      {/* Ambient Occlusion Simulation */}
-      <hemisphereLight 
-        color={lighting.ambientOcclusion.color} 
-        groundColor={new ThreeColor(0x000000)} 
-        intensity={lighting.ambientOcclusion.intensity} 
-      />
+      {/* NOTE: "AO" as a light tends to blow out the scene; keep disabled unless we swap to real SSAO. */}
       <directionalLight
         color={lighting.sunColor}
         intensity={sunIntensity}
@@ -391,7 +390,15 @@ const SceneContents = ({
         shadow-camera-bottom={-100}
         shadow-bias={-0.0001}
       />
-      <SkyDome sunDirection={sunDirection} biomeId={biomeId} tint={lighting.biomeColor} visible={skyVisible} />
+      <EnhancedSkyDome 
+        sunDirection={sunDirection} 
+        biomeId={biomeId} 
+        tint={lighting.biomeColor} 
+        visible={skyVisible}
+        gameTime={gameTime}
+        cloudCoverage={0.6}
+        windSpeed={1.0}
+      />
       {isTreeLab ? (
         <>
           <LabGround
@@ -421,19 +428,30 @@ const SceneContents = ({
           />
         </>
       ) : (
-        <Terrain
+        <TextureSplatting
           size={submapFootprintFt}
           heightSampler={heightSampler}
           moistureSampler={moistureSampler}
+          slopeSampler={slopeSampler}
+          featureSampler={featureSampler}
           color={lighting.biomeColor.clone().multiplyScalar(0.8)}
           showGrid={showGrid}
           gridSizeFt={5}
           heightRange={heightRange}
           heightColors={terrainColors}
+          biomeId={biomeId}
+          textureScale={0.5}
         />
       )}
       {waterLevel !== null && (
-        <WaterPlane size={submapFootprintFt} level={waterLevel} color={waterColor} />
+        <EnhancedWaterPlane 
+          size={submapFootprintFt} 
+          level={waterLevel} 
+          color={waterColor} 
+          opacity={0.75}
+          waveIntensity={0.4}
+          gameTime={gameTime}
+        />
       )}
       <PropsLayer
         submapSeed={submapSeed}
@@ -547,9 +565,11 @@ const SceneContents = ({
       />
       <PostProcessingPipeline 
         enabled={true}
-        bloomIntensity={0.5}
-        bloomThreshold={0.2}
-        bloomRadius={0.4}
+        // Keep bloom extremely conservative; aggressive bloom reads as "exposure ramping"
+        // and can white-out the whole scene in bright fog/sky conditions.
+        bloomIntensity={0.15}
+        bloomThreshold={0.85}
+        bloomRadius={0.12}
         fxaaEnabled={true}
       />
     </>
@@ -568,6 +588,12 @@ const Scene3D = ({ pauseRender = false, ...props }: Scene3DProps) => (
       depth: true
     }}
     frameloop={pauseRender ? 'never' : 'always'}
+    onCreated={({ gl }) => {
+      // Stabilize lighting perception across GPUs/drivers and avoid "inside the sun" visuals.
+      gl.outputColorSpace = SRGBColorSpace;
+      gl.toneMapping = ACESFilmicToneMapping;
+      gl.toneMappingExposure = 1.0;
+    }}
     onPointerMissed={() => props.onEntitySelect?.(null)}
     className="w-full h-full"
   >

@@ -11,7 +11,9 @@ const parseRgba = (rgba: string | undefined, fallback = '#1f2937'): Color => {
 };
 
 const getFogDensity = (biomeId: string | null | undefined, sunHeight: number): number => {
-  const base = 0.00035;
+  // Keep exp2 fog light enough that it doesn't wash out the entire tile.
+  // (We can ramp this per-biome, but the base should be conservative.)
+  const base = 0.00018;
   let density = base;
   
   switch (biomeId) {
@@ -37,7 +39,9 @@ const getFogDensity = (biomeId: string | null | undefined, sunHeight: number): n
   
   // Modulate fog density based on time of day
   // More fog at dawn/dusk, less during midday
-  const timeModulation = 0.7 + 0.6 * Math.abs(sunHeight);
+  // NOTE: sunHeight ~= 1 at midday, ~= 0 at dawn/dusk.
+  // We want *more* fog when sunHeight is near 0.
+  const timeModulation = 0.7 + 0.6 * (1 - Math.abs(sunHeight));
   return density * timeModulation;
 };
 
@@ -58,12 +62,15 @@ export const getLightingForTime = (gameTime: Date, biomeId: string | null | unde
   const ambientColor = new Color(0xbcc8e3).lerp(new Color(0x1b2233), nightStrength * 0.8);
 
   // Enhanced lighting with ambient occlusion simulation
-  const sunIntensity = 0.25 + sunStrength * 0.95;
-  const ambientIntensity = 0.18 + sunStrength * 0.5;
+  // Keep intensities conservative. We already have multiple ambient-like sources
+  // (ambient + hemisphere + sky) and optional post-processing.
+  const sunIntensity = 0.15 + sunStrength * 0.75;
+  const ambientIntensity = 0.10 + sunStrength * 0.25;
   
   // Simulate ambient occlusion based on time of day
   const ambientOcclusion = {
-    intensity: 0.3 + nightStrength * 0.4, // Stronger AO at night
+    // IMPORTANT: this is not true AO; it's a dark fill term. Keep it subtle.
+    intensity: 0.05 + nightStrength * 0.15,
     color: new Color(0x1a1a2e).lerp(new Color(0x3a3a4a), sunStrength)
   };
 
