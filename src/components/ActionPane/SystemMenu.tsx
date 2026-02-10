@@ -6,6 +6,7 @@ import { canUseDevTools } from '../../utils/permissions';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation';
 import { ActionButton } from './ActionButton';
+import { UI_ID } from '../../styles/uiIds';
 
 interface SystemMenuProps {
   onAction: (action: Action) => void;
@@ -96,7 +97,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   }, [isMenuOpen]);
 
   return (
-    <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuContainerRef}>
+    <div id={UI_ID.SYSTEM_MENU} data-testid={UI_ID.SYSTEM_MENU} className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuContainerRef}>
       <button
         ref={triggerRef}
         onClick={() => setIsMenuOpen(!isMenuOpen)}

@@ -22,10 +22,12 @@ export interface SubmapPathNode {
 }
 
 type TileVisualResolver = (rowIndex: number, colIndex: number) => { effectiveTerrainType: string };
+type TileVisualMapGetter = (x: number, y: number) => { effectiveTerrainType: string } | undefined;
 
 interface PathfindingGridOptions {
   submapDimensions: { rows: number; cols: number };
-  getTileVisuals: TileVisualResolver;
+  getTileVisuals?: TileVisualResolver;
+  getTileVisualsFromMap?: TileVisualMapGetter;
   playerCharacter: PlayerCharacter;
   gameTime: Date;
 }
@@ -33,6 +35,7 @@ interface PathfindingGridOptions {
 export const usePathfindingGrid = ({
   submapDimensions,
   getTileVisuals,
+  getTileVisualsFromMap,
   playerCharacter,
   gameTime,
 }: PathfindingGridOptions): Map<string, SubmapPathNode> => {
@@ -43,7 +46,13 @@ export const usePathfindingGrid = ({
     const grid = new Map<string, SubmapPathNode>();
     for (let r = 0; r < submapDimensions.rows; r++) {
       for (let c = 0; c < submapDimensions.cols; c++) {
-        const visuals = getTileVisuals(r, c);
+        // Use either the direct function or the map getter
+        const visuals = getTileVisualsFromMap 
+          ? getTileVisualsFromMap(c, r) 
+          : getTileVisuals?.(r, c);
+        
+        if (!visuals) continue;
+        
         const { effectiveTerrainType } = visuals;
         let movementCost = 30; // default foot travel minutes
         let blocksMovement = false;
@@ -78,7 +87,14 @@ export const usePathfindingGrid = ({
       }
     }
     return grid;
-  }, [gameTime, getTileVisuals, playerCharacter.transportMode, submapDimensions]);
+  }, [
+    gameTime, 
+    getTileVisuals, 
+    getTileVisualsFromMap,
+    playerCharacter.transportMode, 
+    submapDimensions.rows,
+    submapDimensions.cols
+  ]);
 };
 
 interface QuickTravelDataOptions {

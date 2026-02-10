@@ -23,7 +23,15 @@
  */
 
 import { Item, EconomyState, MarketEventType } from '../../types';
+import { Faction, PlayerFactionStanding } from '../../types/factions';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
+import { getRegionalPriceModifier } from '../../systems/economy/RegionalEconomySystem';
+import { getFactionTradeBonus } from '../../systems/world/FactionEconomyManager';
+
+export interface PriceContext {
+  factions?: Record<string, Faction>;
+  standings?: Record<string, PlayerFactionStanding>;
+}
 
 /**
  * Parses a cost string like "10 GP" into a gold value.
@@ -77,13 +85,15 @@ export interface PriceCalculationResult {
  * @param economy The current global economy state.
  * @param transactionType 'buy' (player buying from merchant) or 'sell' (player selling to merchant).
  * @param regionId Optional region ID to apply local import/export modifiers.
+ * @param context Optional faction data and player standings for faction trade bonuses.
  * @returns Detailed calculation result including final price and modifiers.
  */
 export const calculatePrice = (
   item: Item,
   economy: EconomyState | undefined,
   transactionType: 'buy' | 'sell',
-  regionId?: string
+  regionId?: string,
+  context?: PriceContext
 ): PriceCalculationResult => {
   // Prefer numeric `costInGp` because it's unambiguous and already normalized.
   // Fall back to parsing the `cost` string (supports "cp/sp/ep/gp/pp").
@@ -190,6 +200,22 @@ export const calculatePrice = (
         if (isExport) multiplier -= 0.1; // They have plenty, pay less
         if (isImport) multiplier += 0.1; // They need it, pay more
       }
+    }
+  }
+
+  // Regional Wealth & Inflation Modifier
+  // Wealthier regions have higher prices; inflation affects all regions.
+  const regionalPriceMod = getRegionalPriceModifier(regionId, economy);
+  multiplier *= regionalPriceMod;
+
+  // Faction Trade Bonus
+  // Player standing with the faction controlling this region affects prices.
+  if (regionId && context?.factions && context?.standings) {
+    const factionBonus = getFactionTradeBonus(regionId, context.factions, context.standings);
+    if (transactionType === 'buy') {
+      multiplier += factionBonus; // Negative bonus = discount, positive = surcharge
+    } else {
+      multiplier -= factionBonus * 0.5; // Inverse: friendly factions pay more when buying from you
     }
   }
 

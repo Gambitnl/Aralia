@@ -10,6 +10,7 @@ import { PlayerCharacter, Item, EquipmentSlotType, Action, Quest, LevelUpChoices
 import { JournalState } from '../../types/journal';
 import { Companion } from '../../types/companions';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { canLevelUp } from '../../utils/characterUtils';
 
 // Tab components from subfolders
@@ -98,7 +99,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   return (
     <WindowFrame
       title={character.name}
-      storageKey="character-sheet"
+      storageKey={WINDOW_KEYS.CHARACTER_SHEET}
       onClose={onClose}
       initialMaximized={true}
     >

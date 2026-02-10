@@ -21,6 +21,7 @@ interface UseGameInitializationProps {
   dispatch: React.Dispatch<AppAction>;
   addMessage: AddMessageFn;
   currentMapData: MapData | null;
+  worldSeed: number;
 }
 
 interface UseGameInitializationOutput {
@@ -90,6 +91,7 @@ const App: React.FC = () => {
     dispatch,
     addMessage,
     currentMapData: gameState.mapData,
+    worldSeed: gameState.worldSeed,
   });
 
   // Used in MainMenu props

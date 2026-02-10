@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { Button } from './Button'; // Build failed because bundler can't resolve './ui/Button' from within the ui folder; keep the relative path local.
 import { Z_INDEX } from '../../styles/zIndex';
+import { UI_ID } from '../../styles/uiIds';
 
 interface OllamaDependencyModalProps {
   isOpen: boolean;
@@ -38,6 +39,8 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          id={UI_ID.OLLAMA_DEPENDENCY_MODAL}
+          data-testid={UI_ID.OLLAMA_DEPENDENCY_MODAL}
           className={`fixed inset-0 bg-black/70 flex items-center justify-center z-[${Z_INDEX.MODAL_BACKGROUND}] p-4`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

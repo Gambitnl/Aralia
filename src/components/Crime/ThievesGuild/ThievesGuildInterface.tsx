@@ -6,6 +6,7 @@ import { GuildJob, GuildMembership, GuildService } from '../../../types/crime';
 import { LOCATIONS } from '../../../constants';
 import FenceInterface from './FenceInterface';
 import { WindowFrame } from '../../ui/WindowFrame';
+import { UI_ID, WINDOW_KEYS } from '../../../styles/uiIds';
 
 const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { state, dispatch } = useGameState();
@@ -95,7 +96,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
     if (guild.rank === 0) {
         return (
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4">
+            <div id={UI_ID.THIEVES_GUILD} data-testid={UI_ID.THIEVES_GUILD} className="fixed inset-0 bg-black/80 flex items-center justify-center z-[var(--z-index-modal-background)] p-4">
                 <div className="bg-gray-900 border border-purple-900 p-6 rounded-lg max-w-md w-full shadow-2xl">
                     <h2 className="text-2xl font-bold text-purple-400 mb-4">The Shadows Watch</h2>
                     <p className="text-gray-300 mb-6">
@@ -129,7 +130,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
         <WindowFrame
             title="Shadow Hands Guild"
             onClose={onClose}
-            storageKey="thieves-guild-window"
+            storageKey={WINDOW_KEYS.THIEVES_GUILD_SAFEHOUSE}
         >
             <div className="flex flex-col h-full bg-gray-900 text-gray-200 font-sans">
                 {/* Header Section */}

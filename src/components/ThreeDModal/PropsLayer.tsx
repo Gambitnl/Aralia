@@ -18,6 +18,10 @@ interface PropsLayerProps {
   biomeId: string;
   size: number;
   heightSampler: (x: number, z: number) => number;
+  slopeSampler?: (x: number, z: number) => number;
+  moistureSampler?: (x: number, z: number) => number;
+  featureSampler?: (x: number, z: number) => { river: number; riverBank: number; path: number; clearing: number };
+  heightRange?: { min: number; max: number };
   tint: Color;
   spawnCenter?: { x: number; z: number };
   spawnSafeRadius?: number;
@@ -152,6 +156,13 @@ const clampNumber = (value: number, min: number, max: number) => Math.min(max, M
 
 const clampInt = (value: number, min: number, max: number) => Math.round(clampNumber(value, min, max));
 
+const clamp01 = (value: number) => clampNumber(value, 0, 1);
+
+const smoothstep = (edge0: number, edge1: number, x: number) => {
+  const t = clamp01((x - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+};
+
 const getGeometryStats = (geometry: BufferGeometry) => {
   const vertexCount = geometry.attributes.position?.count ?? 0;
   const triangleCount = geometry.index ? geometry.index.count / 3 : vertexCount / 3;
@@ -230,6 +241,10 @@ const PropsLayer = ({
   biomeId,
   size,
   heightSampler,
+  slopeSampler,
+  moistureSampler,
+  featureSampler,
+  heightRange,
   tint,
   spawnCenter,
   spawnSafeRadius,
@@ -274,12 +289,86 @@ const PropsLayer = ({
     geometry.computeBoundingSphere();
     return geometry;
   }, []);
+  const landmarkGeometry = useMemo(() => {
+    const geometry = new DodecahedronGeometry(14, 0);
+    geometry.computeBoundingSphere();
+    return geometry;
+  }, []);
   const biomeTint = useMemo(
     () => new ThreeColor(biome?.rgbaColor ?? '#ffffff'),
-    [biomeId]
+    [biome?.rgbaColor]
   );
   const safeCenter = spawnCenter ?? { x: 0, z: 0 };
   const safeRadius = spawnSafeRadius ?? 0;
+  const effectiveHeightRange = useMemo(() => {
+    if (heightRange) return heightRange;
+    // Fallback heuristic when the scene doesn't provide a range (should be rare).
+    return { min: -120, max: 220 };
+  }, [heightRange]);
+
+  const treePlacementWeight = useMemo(() => {
+    if (!slopeSampler || !moistureSampler || !featureSampler) return undefined;
+
+    return (x: number, z: number, _scale: number) => {
+      const masks = featureSampler(x, z);
+      const avoid = Math.max(masks.path, masks.river);
+      const clearing = masks.clearing;
+
+      // Strongly avoid placing trees directly inside paths/rivers and inside
+      // clearings so the macro features read clearly at a distance.
+      if (avoid > 0.35) return 0;
+
+      const slope = slopeSampler(x, z);
+      const moisture = moistureSampler(x, z);
+      const height = heightSampler(x, z);
+      const heightT = clamp01((height - effectiveHeightRange.min) / Math.max(0.001, effectiveHeightRange.max - effectiveHeightRange.min));
+
+      const slopeFactor = 1 - smoothstep(0.12, 0.5, slope);
+      const moistureFactor = smoothstep(0.08, 0.72, moisture);
+      const altitudeFactor = 1 - smoothstep(0.55, 0.92, heightT);
+      const clearingFactor = 1 - clearing * 0.95;
+      const pathFactor = 1 - masks.path * 0.9;
+      const riverFactor = 1 - masks.river * 0.95;
+
+      let familyBias = 1;
+      if (family === 'desert') familyBias = smoothstep(0.18, 0.55, moisture) * 0.85;
+      else if (family === 'mountain' || family === 'highland') familyBias = (1 - smoothstep(0.2, 0.6, slope)) * 0.75;
+      else if (family === 'wetland') familyBias = smoothstep(0.25, 0.85, moisture) * 0.95;
+
+      return clamp01(slopeFactor * moistureFactor * altitudeFactor * clearingFactor * pathFactor * riverFactor * familyBias);
+    };
+  }, [
+    effectiveHeightRange.max,
+    effectiveHeightRange.min,
+    family,
+    featureSampler,
+    heightSampler,
+    moistureSampler,
+    slopeSampler,
+  ]);
+
+  const rockPlacementWeight = useMemo(() => {
+    if (!slopeSampler || !featureSampler) return undefined;
+
+    return (x: number, z: number, _scale: number) => {
+      const masks = featureSampler(x, z);
+      const slope = slopeSampler(x, z);
+      const height = heightSampler(x, z);
+      const heightT = clamp01((height - effectiveHeightRange.min) / Math.max(0.001, effectiveHeightRange.max - effectiveHeightRange.min));
+
+      const slopeFactor = smoothstep(0.08, 0.55, slope);
+      const altitudeFactor = smoothstep(0.45, 0.95, heightT);
+      const clearingFactor = 1 - masks.clearing * 0.45;
+      const pathFactor = 1 - masks.path * 0.55;
+      const riverFactor = 1 - masks.river * 0.65;
+
+      let familyBias = 1;
+      if (family === 'mountain' || family === 'highland') familyBias = 1.25;
+      else if (family === 'forest' || family === 'wetland') familyBias = 0.75;
+
+      return clamp01((slopeFactor * 0.7 + altitudeFactor * 0.6) * clearingFactor * pathFactor * riverFactor * familyBias);
+    };
+  }, [effectiveHeightRange.max, effectiveHeightRange.min, family, featureSampler, heightSampler, slopeSampler]);
   const [treeAssets, setTreeAssets] = useState<TreeAsset[]>([]);
   const [customTreeAsset, setCustomTreeAsset] = useState<TreeAsset | null>(null);
   const [comparisonTreeAsset, setComparisonTreeAsset] = useState<TreeAsset | null>(null);
@@ -316,6 +405,50 @@ const PropsLayer = ({
     const base = new ThreeColor(0x6b7280).lerp(tint, 0.15);
     return new MeshStandardMaterial({ color: base, roughness: 0.95, metalness: 0.1, map: null });
   }, [tint]);
+  const landmarkMaterial = useMemo(() => {
+    const base = new ThreeColor(0x0f172a).lerp(tint, 0.22).lerp(new ThreeColor(0xfbbf24), 0.08);
+    return new MeshStandardMaterial({ color: base, roughness: 0.8, metalness: 0.25, map: null });
+  }, [tint]);
+  const landmarks = useMemo(() => {
+    if (!featureSampler) return [];
+
+    const rng = new SeededRandom(submapSeed + 515151);
+    const half = Math.min(size / 2, 2200);
+    const candidates: Array<{ x: number; z: number; score: number }> = [];
+
+    for (let i = 0; i < 90; i += 1) {
+      const x = (rng.next() * 2 - 1) * half;
+      const z = (rng.next() * 2 - 1) * half;
+      const masks = featureSampler(x, z);
+      const score = masks.path * 1.25 + masks.clearing * 0.9 - masks.river * 2 - masks.riverBank * 0.5;
+      candidates.push({ x, z, score });
+    }
+
+    candidates.sort((a, b) => b.score - a.score);
+
+    const picked: Array<{ x: number; y: number; z: number; scale: number; rotation: number }> = [];
+    const minSpacing = 260;
+    const safePadding = safeRadius + 220;
+
+    for (const candidate of candidates) {
+      if (picked.length >= 3) break;
+      if (candidate.score < 0.25) break;
+
+      if (Math.hypot(candidate.x - safeCenter.x, candidate.z - safeCenter.z) < safePadding) continue;
+      if (picked.some((p) => Math.hypot(p.x - candidate.x, p.z - candidate.z) < minSpacing)) continue;
+
+      const scale = 0.85 + rng.next() * 0.65;
+      picked.push({
+        x: candidate.x,
+        z: candidate.z,
+        y: heightSampler(candidate.x, candidate.z) + 6,
+        scale,
+        rotation: rng.next() * Math.PI * 2,
+      });
+    }
+
+    return picked;
+  }, [featureSampler, heightSampler, safeCenter.x, safeCenter.z, safeRadius, size, submapSeed]);
 
   const treePlan = useMemo(() => {
     const plan = getTreePlan(family, size);
@@ -557,7 +690,9 @@ const PropsLayer = ({
   useEffect(() => () => {
     rockGeometry.dispose();
     rockMaterial.dispose();
-  }, [rockGeometry, rockMaterial]);
+    landmarkGeometry.dispose();
+    landmarkMaterial.dispose();
+  }, [landmarkGeometry, landmarkMaterial, rockGeometry, rockMaterial]);
 
   return (
     <>
@@ -576,6 +711,8 @@ const PropsLayer = ({
             minScale={asset.minScale}
             maxScale={asset.maxScale}
             heightSampler={heightSampler}
+            placementWeight={treePlacementWeight}
+            maxAttemptsPerInstance={14}
             geometry={asset.trunkGeometry}
             material={asset.trunkMaterial}
             spawnRadius={asset.spawnRadius}
@@ -591,6 +728,8 @@ const PropsLayer = ({
             minScale={asset.minScale}
             maxScale={asset.maxScale}
             heightSampler={heightSampler}
+            placementWeight={treePlacementWeight}
+            maxAttemptsPerInstance={14}
             geometry={asset.leavesGeometry}
             material={asset.leavesMaterial}
             spawnRadius={asset.spawnRadius}
@@ -610,6 +749,8 @@ const PropsLayer = ({
           minScale={0.7}
           maxScale={2.6}
           heightSampler={heightSampler}
+          placementWeight={rockPlacementWeight}
+          maxAttemptsPerInstance={12}
           geometry={rockGeometry}
           material={rockMaterial}
           avoidCenter={safeCenter}
@@ -617,6 +758,22 @@ const PropsLayer = ({
           avoidBuffer={rockGeometry.boundingSphere?.radius ?? 0}
           yOffset={2}
         />
+      )}
+      {landmarks.length > 0 && (
+        <group>
+          {landmarks.map((landmark) => (
+            <mesh
+              key={`landmark-${Math.round(landmark.x)}-${Math.round(landmark.z)}`}
+              geometry={landmarkGeometry}
+              material={landmarkMaterial}
+              position={[landmark.x, landmark.y, landmark.z]}
+              rotation={[0, landmark.rotation, 0]}
+              scale={[landmark.scale, landmark.scale, landmark.scale]}
+              castShadow
+              receiveShadow
+            />
+          ))}
+        </group>
       )}
       {heroLineEntries.length > 0 && (
         <group>

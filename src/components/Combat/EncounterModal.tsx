@@ -8,6 +8,7 @@ import { Monster, GroundingChunk, Action, TempPartyMember } from '../../types';
 import { CLASSES_DATA } from '../../constants'; // To get class names
 import { t } from '../../utils/i18n';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface EncounterModalProps {
   isOpen: boolean;
@@ -119,7 +120,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
     <WindowFrame
       title={t('encounter_modal.title')}
       onClose={onClose}
-      storageKey="encounter-gen-window"
+      storageKey={WINDOW_KEYS.ENCOUNTER_MODAL}
     >
       <div className="flex flex-col h-full bg-gray-800 p-6">
         <div className="overflow-y-auto scrollable-content flex-grow p-1 pr-2">

@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import { getAllFactions } from '../../utils/factionUtils';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { NobleHouse, Heraldry } from '../../types/noble';
 
 interface NobleHouseListProps {
@@ -108,7 +109,7 @@ const NobleHouseList: React.FC<NobleHouseListProps> = ({ worldSeed, onClose }) =
         <WindowFrame
             title="Noble Houses of Aralia"
             onClose={onClose}
-            storageKey="noble-house-list"
+            storageKey={WINDOW_KEYS.NOBLE_HOUSE_LIST}
         >
             <div className="h-full overflow-y-auto p-4 font-sans bg-gray-900/95">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">

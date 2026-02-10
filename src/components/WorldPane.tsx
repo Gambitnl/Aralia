@@ -9,6 +9,7 @@ import { formatGameTime, getGameDay } from '@/utils/core';
 import Tooltip from './ui/Tooltip'; // Import the new Tooltip component
 import GlossaryContext from '../context/GlossaryContext';
 import { LoreService } from '../services/LoreService';
+import { UI_ID } from '../styles/uiIds';
 
 interface WorldPaneProps {
   messages: GameMessage[];
@@ -107,6 +108,8 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
 
   return (
     <div
+      id={UI_ID.WORLD_PANE}
+      data-testid={UI_ID.WORLD_PANE}
       ref={scrollContainerRef}
       className="flex-grow bg-gray-800 p-6 rounded-lg shadow-xl overflow-y-auto scrollable-content border border-gray-700 min-h-0"
     >

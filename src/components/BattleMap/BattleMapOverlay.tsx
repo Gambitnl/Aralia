@@ -4,6 +4,7 @@ import DamageNumberOverlay from './DamageNumberOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { getStatusEffectIcon } from '../../utils/combatUtils';
 import { Z_INDEX } from '../../styles/zIndex';
+import { UI_ID } from '../../styles/uiIds';
 
 interface BattleMapOverlayProps {
   mapData: BattleMapData;
@@ -17,6 +18,20 @@ interface BattleMapOverlayProps {
  * Layered overlay for the tactical map. Aggregates floating numbers, buff/debuff
  * badges, spell cues, and AoE previews using lightweight CSS transitions to
  * avoid expensive animation libraries.
+ * 
+ * CURRENT FUNCTIONALITY:
+ * - Renders damage numbers with CSS transitions
+ * - Displays status effect badges above character tokens
+ * - Shows spell effect animations and AoE previews
+ * - Uses requestAnimationFrame for smooth transitions
+ * - Manages active/inactive animation states
+ * 
+ * PERFORMANCE OPPORTUNITIES:
+ * - Individual DOM elements for each status effect badge
+ * - Damage numbers use separate divs instead of canvas batching
+ * - Spell animations create multiple elements per effect
+ * - No virtualization for large numbers of effects
+ * - Position calculations repeated for overlapping elements
  */
 const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
   mapData,
@@ -50,6 +65,8 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
 
   return (
     <div
+      id={UI_ID.BATTLE_MAP_OVERLAY}
+      data-testid={UI_ID.BATTLE_MAP_OVERLAY}
       className="pointer-events-none absolute inset-0"
       style={{
         width: mapData.dimensions.width * TILE_SIZE_PX,

@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence as _AnimatePresence, MotionProps } from 'framer-motion';
 import { Action } from '../types';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface NpcInteractionTestModalProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
     <WindowFrame
       title="NPC System Test Plan"
       onClose={onClose}
-      storageKey="npc-test-window"
+      storageKey={WINDOW_KEYS.NPC_TEST_PLAN}
     >
       <div className="bg-gray-800 p-6 w-full h-full flex flex-col">
         <div className="bg-gray-900/50 p-4 rounded-lg flex-grow overflow-y-auto">

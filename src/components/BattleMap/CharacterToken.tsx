@@ -1,6 +1,20 @@
 /**
  * @file CharacterToken.tsx
  * Component to display a character's token on the battle map.
+ * 
+ * CURRENT FUNCTIONALITY:
+ * - Renders character tokens with team-based coloring
+ * - Displays status effects as badge overlays
+ * - Shows concentration indicator for spellcasters
+ * - Implements selection and targeting states
+ * - Uses React.memo for basic render optimization
+ * 
+ * PERFORMANCE OPPORTUNITIES:
+ * - Individual DOM elements for each token (could batch with canvas)
+ * - Status effect badges recreated for every render
+ * - No level-of-detail scaling based on distance from camera
+ * - CSS transforms recalculated even for static positions
+ * - Tooltip creation overhead for every token
  */
 import React from 'react';
 import { CombatCharacter } from '../../types/combat';
@@ -28,6 +42,9 @@ const getClassIcon = (classId: string) => {
 };
 
 const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, position, isSelected, isTargetable, isTurn, onCharacterClick }) => {
+  // Position styling calculated for every render
+  // IMPROVEMENT OPPORTUNITY: Could pre-calculate and cache position styles
+  // or use CSS variables for better performance
   const style: React.CSSProperties = {
     position: 'absolute',
     left: `${position.x * TILE_SIZE_PX}px`,
@@ -39,6 +56,8 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
     cursor: 'pointer',
   };
 
+  // Border color determination with multiple conditional checks
+  // IMPROVEMENT OPPORTUNITY: Could simplify with lookup table or precomputed values
   let borderColor = '#6B7280'; // gray-500 default
   if (character.team === 'player') borderColor = '#3B82F6'; // blue-500 for player team
   else borderColor = '#991B1B'; // red-800 for enemy team
@@ -51,6 +70,9 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
   }
 
 
+  // Token styling with dynamic properties
+  // IMPROVEMENT OPPORTUNITY: Box-shadow and transform calculations could be
+  // precomputed or use CSS classes for better browser optimization
   const tokenStyle: React.CSSProperties = {
     width: '80%',
     height: '80%',

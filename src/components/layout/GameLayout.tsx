@@ -18,6 +18,7 @@ import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
 import Minimap from '../Minimap';
+import { UI_ID } from '../../styles/uiIds';
 
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
@@ -77,11 +78,11 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     onAction,
 }) => {
     return (
-        <div className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
+        <div id={UI_ID.GAME_LAYOUT} data-testid={UI_ID.GAME_LAYOUT} className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
             <VersionDisplay position="game-screen" />
 
             {/* Left Column: Navigation and Actions */}
-            <div className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0">
+            <div id={UI_ID.LEFT_COLUMN} data-testid={UI_ID.LEFT_COLUMN} className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0">
                 <ErrorBoundary fallbackMessage="Error in Compass Pane.">
                     <CompassPane
                         currentLocation={currentLocation}
@@ -114,7 +115,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
             </div>
 
             {/* Right Column: Narrative Log and Minimap */}
-            <div className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0 relative">
+            <div id={UI_ID.RIGHT_COLUMN} data-testid={UI_ID.RIGHT_COLUMN} className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0 relative">
                 <ErrorBoundary fallbackMessage="Error in World Pane.">
                     <WorldPane messages={messages} />
                 </ErrorBoundary>

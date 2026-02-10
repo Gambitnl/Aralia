@@ -12,6 +12,7 @@
 import React from 'react';
 import { PlayerCharacter, MissingChoice, ShortRestTracker } from '../../types';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import PartyPane from './PartyPane';
 import Tooltip from '../ui/Tooltip';
 import { GlossaryIcon } from '../Glossary/IconRegistry';
@@ -143,7 +144,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({
         <WindowFrame
             title="Party Roster"
             onClose={onClose}
-            storageKey="party-overlay-window"
+            storageKey={WINDOW_KEYS.PARTY_OVERLAY}
             initialMaximized={false}
         >
             {/* Main content container with flex column to allow footer */}

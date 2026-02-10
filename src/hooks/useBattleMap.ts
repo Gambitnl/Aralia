@@ -2,6 +2,20 @@
  * @file useBattleMap.ts
  * Custom hook to manage the state and logic of a procedural battle map.
  * Refactored to use useGridMovement for pathfinding state.
+ * 
+ * CURRENT FUNCTIONALITY:
+ * - Manages character positioning and selection state
+ * - Handles turn-based action modes (move/ability)
+ * - Integrates with grid movement system for pathfinding
+ * - Coordinates with ability system for targeting
+ * - Provides tile and character click handlers
+ * 
+ * PERFORMANCE OPPORTUNITIES:
+ * - CharacterPositions Map recreation on every character array change
+ * - No spatial indexing for fast position lookups
+ * - Missing camera/view state integration for viewport calculations
+ * - Pathfinding recalculated frequently without caching
+ * - No batched state updates for multiple simultaneous changes
  */
 import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../types/combat';
@@ -49,6 +63,8 @@ export function useBattleMap(
   // TODO(lint-intent): If turn-based selection should persist across turns, store selections keyed by turn id.
 
   // Derived state: Map of character IDs to their positions
+  // IMPROVEMENT OPPORTUNITY: This recreates the entire Map on every character change
+  // Could use incremental updates or spatial hash for faster lookups
   const characterPositions = useMemo(() => {
     const newPositions = new Map<string, CharacterPosition>();
     characters.forEach(char => {
@@ -58,6 +74,8 @@ export function useBattleMap(
   }, [characters]);
 
   // Derived state: Selected Character Object
+  // IMPROVEMENT OPPORTUNITY: Could cache this with proper dependency tracking
+  // to avoid recreation when unrelated characters change
   const selectedCharacter = useMemo(() =>
     characters.find(c => c.id === resolvedSelectedCharacterId) || null
     , [characters, resolvedSelectedCharacterId]);

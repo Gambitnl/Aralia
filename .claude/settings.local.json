@@ -49,7 +49,9 @@
       "Bash(cmd /c:*)",
       "Bash(test:*)",
       "WebFetch(domain:docs.anthropic.com)",
-      "Bash(if exist f:ReposAraliatsc_output.log del f:ReposAraliatsc_output.log)"
+      "Bash(if exist f:ReposAraliatsc_output.log del f:ReposAraliatsc_output.log)",
+      "WebFetch(domain:vitest.dev)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

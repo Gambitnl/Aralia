@@ -10,14 +10,13 @@ import CameraRig from './CameraRig';
 import PlayerController from './PlayerController';
 import Terrain from './Terrain';
 import PropsLayer, { type TreeStats } from './PropsLayer';
+import type { SceneEntity } from './sceneEntities';
 import {
-  createHeightSampler,
-  createMoistureSampler,
-  createSlopeSampler,
-  getHeightRangeForBiome,
+  createTerrainSamplers,
 } from './terrainUtils';
 import GridCellOutline from './GridCellOutline';
 import EnemyUnit from './EnemyUnit';
+import NpcUnit from './NpcUnit';
 import PartyUnit from './PartyUnit';
 import SkyDome from './SkyDome';
 import WaterPlane from './WaterPlane';
@@ -25,6 +24,7 @@ import LabGround from './LabGround';
 import LabClouds from './LabClouds';
 import LabGrass from './LabGrass';
 import LabRocks from './LabRocks';
+import PostProcessingPipeline from './PostProcessingPipeline';
 
 interface Scene3DProps {
   biomeId: string;
@@ -39,6 +39,10 @@ interface Scene3DProps {
   onPlayerPosition?: (position: { x: number; y: number; z: number }) => void;
   onPlayerSpeed?: (speedFeetPerRound: number) => void;
   onFps?: (fps: number) => void;
+  onEntityHover?: (entity: SceneEntity | null) => void;
+  onEntitySelect?: (entity: SceneEntity | null) => void;
+  hoveredEntityId?: string | null;
+  selectedEntityId?: string | null;
   pauseRender?: boolean;
   treeCountMultiplier?: number;
   rockCountMultiplier?: number;
@@ -145,6 +149,10 @@ const SceneContents = ({
   labFlowerCount,
   labRocksEnabled,
   labRocksPerType,
+  onEntityHover,
+  onEntitySelect,
+  hoveredEntityId,
+  selectedEntityId,
 }: Scene3DProps) => {
   const playerRef = useRef<Mesh>(null);
   const partyPositionsRef = useRef<Array<{ x: number; y: number; z: number } | null>>([]);
@@ -180,21 +188,19 @@ const SceneContents = ({
   const sunIntensity = lightingOverrides?.sunIntensity ?? lighting.sunIntensity;
   const ambientIntensity = lightingOverrides?.ambientIntensity ?? lighting.ambientIntensity;
   const fogDensity = lightingOverrides?.fogDensity ?? lighting.fogDensity;
-  const heightSampler = useMemo(() => {
+  const terrainSamplers = useMemo(() => {
     // Tree-lab mode uses a large ground plane so there are no visible tile edges.
     // Keeping height flat also makes tree shape iteration easier to judge.
-    if (isTreeLab) return () => 0;
-    return createHeightSampler(submapSeed, biomeId, submapFootprintFt);
+    if (isTreeLab) {
+      return createTerrainSamplers(submapSeed, 'plains', submapFootprintFt);
+    }
+    return createTerrainSamplers(submapSeed, biomeId, submapFootprintFt);
   }, [biomeId, isTreeLab, submapFootprintFt, submapSeed]);
-  const moistureSampler = useMemo(() => {
-    if (isTreeLab) return () => 0;
-    return createMoistureSampler(submapSeed, biomeId, submapFootprintFt);
-  }, [biomeId, isTreeLab, submapFootprintFt, submapSeed]);
-  const slopeSampler = useMemo(() => {
-    if (isTreeLab) return () => 0;
-    return createSlopeSampler(heightSampler, 8);
-  }, [heightSampler, isTreeLab]);
-  const heightRange = useMemo(() => getHeightRangeForBiome(biomeId), [biomeId]);
+  const heightSampler = useMemo(() => (isTreeLab ? () => 0 : terrainSamplers.heightSampler), [isTreeLab, terrainSamplers.heightSampler]);
+  const moistureSampler = useMemo(() => (isTreeLab ? () => 0.4 : terrainSamplers.moistureSampler), [isTreeLab, terrainSamplers.moistureSampler]);
+  const slopeSampler = useMemo(() => (isTreeLab ? () => 0 : terrainSamplers.slopeSampler), [isTreeLab, terrainSamplers.slopeSampler]);
+  const featureSampler = useMemo(() => terrainSamplers.featureSampler, [terrainSamplers.featureSampler]);
+  const heightRange = useMemo(() => terrainSamplers.heightRange, [terrainSamplers.heightRange]);
   const terrainColors = useMemo(() => {
     const base = lighting.biomeColor.clone();
     return {
@@ -219,13 +225,68 @@ const SceneContents = ({
         x = (rng.next() * 2 - 1) * spawnRange;
         z = (rng.next() * 2 - 1) * spawnRange;
         attempts += 1;
-      } while (Math.hypot(x, z) < minDistance && attempts < 8);
+        const masks = featureSampler(x, z);
+        const blocked = masks.path > 0.25 || masks.river > 0.3 || masks.clearing > 0.55;
+        if (blocked) continue;
+      } while (Math.hypot(x, z) < minDistance && attempts < 14);
 
       positions.push({ x, z });
     }
 
     return positions;
-  }, [submapFootprintFt, submapSeed]);
+  }, [featureSampler, submapFootprintFt, submapSeed]);
+  const creatureEntities = useMemo<SceneEntity[]>(() => {
+    const rng = new SeededRandom(submapSeed + 4343);
+    const labels = ['Wolf', 'Boar', 'Giant Spider', 'Bandit', 'Goblin Scout'];
+
+    return enemyPositions.map((enemy, index) => ({
+      id: `tile_creature_${submapSeed}_${index}`,
+      kind: 'creature',
+      label: rng.pick(labels),
+      position: enemy,
+      interactRadiusFt: 18,
+    }));
+  }, [enemyPositions, submapSeed]);
+  const npcEntities = useMemo<SceneEntity[]>(() => {
+    if (isTreeLab) return [];
+
+    const rng = new SeededRandom(submapSeed + 9191);
+    const labels = ['Traveler', 'Forager', 'Scout', 'Pilgrim', 'Wanderer'];
+    const half = submapFootprintFt / 2;
+    const spawnRange = half * 0.65;
+    const positions: SceneEntity[] = [];
+    const minDistanceFromOrigin = 220;
+    const minDistanceBetween = 180;
+
+    const count = biomeId === 'cave' || biomeId === 'dungeon' ? 0 : 2;
+    for (let i = 0; i < count; i += 1) {
+      let x = 0;
+      let z = 0;
+      let attempts = 0;
+
+      do {
+        x = (rng.next() * 2 - 1) * spawnRange;
+        z = (rng.next() * 2 - 1) * spawnRange;
+        attempts += 1;
+        const tooCloseToOrigin = Math.hypot(x, z) < minDistanceFromOrigin;
+        const tooCloseToNpc = positions.some((npc) => Math.hypot(npc.position.x - x, npc.position.z - z) < minDistanceBetween);
+        const masks = featureSampler(x, z);
+        const preferPath = masks.path > 0.2 || masks.clearing > 0.25;
+        const blocked = masks.river > 0.35;
+        if (!tooCloseToOrigin && !tooCloseToNpc && preferPath && !blocked) break;
+      } while (attempts < 12);
+
+      positions.push({
+        id: `tile_npc_${submapSeed}_${i}`,
+        kind: 'npc',
+        label: rng.pick(labels),
+        position: { x, z },
+        interactRadiusFt: 20,
+      });
+    }
+
+    return positions;
+  }, [biomeId, featureSampler, isTreeLab, submapFootprintFt, submapSeed]);
   const partyOffsets = useMemo(() => {
     const baseOffsets = [
       { x: -10, z: -10 },
@@ -304,12 +365,31 @@ const SceneContents = ({
       {!skyVisible && <color attach="background" args={[lighting.fogColor]} />}
       <fogExp2 attach="fog" args={[fogColor, fogDensity]} />
       <ambientLight color={lighting.ambientColor} intensity={ambientIntensity} />
-      <hemisphereLight color={lighting.ambientColor} groundColor={lighting.biomeColor} intensity={0.35} />
+      <hemisphereLight 
+        color={lighting.ambientColor} 
+        groundColor={lighting.biomeColor} 
+        intensity={0.35} 
+      />
+      {/* Ambient Occlusion Simulation */}
+      <hemisphereLight 
+        color={lighting.ambientOcclusion.color} 
+        groundColor={new ThreeColor(0x000000)} 
+        intensity={lighting.ambientOcclusion.intensity} 
+      />
       <directionalLight
         color={lighting.sunColor}
         intensity={sunIntensity}
         position={sunDirection.toArray()}
         castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-near={0.5}
+        shadow-camera-far={500}
+        shadow-camera-left={-100}
+        shadow-camera-right={100}
+        shadow-camera-top={100}
+        shadow-camera-bottom={-100}
+        shadow-bias={-0.0001}
       />
       <SkyDome sunDirection={sunDirection} biomeId={biomeId} tint={lighting.biomeColor} visible={skyVisible} />
       {isTreeLab ? (
@@ -344,7 +424,6 @@ const SceneContents = ({
         <Terrain
           size={submapFootprintFt}
           heightSampler={heightSampler}
-          slopeSampler={slopeSampler}
           moistureSampler={moistureSampler}
           color={lighting.biomeColor.clone().multiplyScalar(0.8)}
           showGrid={showGrid}
@@ -361,6 +440,10 @@ const SceneContents = ({
         biomeId={biomeId}
         size={submapFootprintFt}
         heightSampler={heightSampler}
+        slopeSampler={isTreeLab ? undefined : slopeSampler}
+        moistureSampler={isTreeLab ? undefined : moistureSampler}
+        featureSampler={isTreeLab ? undefined : featureSampler}
+        heightRange={heightRange}
         tint={lighting.biomeColor}
         // If the spawn position hasn't been sampled yet, default to origin; once
         // captured, keep using that fixed point to reserve a clear spawn zone.
@@ -404,18 +487,43 @@ const SceneContents = ({
           />
         );
       })}
-      {enemyPositions.map((enemy, index) => (
-        <EnemyUnit
-          key={`enemy-${index}`}
-          position={enemy}
+      {npcEntities.map((npc) => (
+        <NpcUnit
+          key={npc.id}
+          id={npc.id}
+          label={npc.label}
+          position={npc.position}
           heightSampler={heightSampler}
           showOutline={showGrid}
+          playerRef={playerRef}
+          isHovered={hoveredEntityId === npc.id}
+          isSelected={selectedEntityId === npc.id}
+          onHoverStart={() => onEntityHover?.(npc)}
+          onHoverEnd={() => onEntityHover?.(null)}
+          onSelect={() => onEntitySelect?.(npc)}
         />
       ))}
-              <mesh ref={playerRef} position={[0, 3, 0]} castShadow>
-                <boxGeometry args={[3, 6, 3]} />
-                <meshStandardMaterial color={0xf59e0b} roughness={0.45} map={null} />
-              </mesh>      <PlayerController
+      {creatureEntities.map((enemy) => (
+        <EnemyUnit
+          key={enemy.id}
+          id={enemy.id}
+          label={enemy.label}
+          position={enemy.position}
+          heightSampler={heightSampler}
+          showOutline={showGrid}
+          playerRef={playerRef}
+          isHovered={hoveredEntityId === enemy.id}
+          isSelected={selectedEntityId === enemy.id}
+          onHoverStart={() => onEntityHover?.(enemy)}
+          onHoverEnd={() => onEntityHover?.(null)}
+          onSelect={() => onEntitySelect?.(enemy)}
+        />
+      ))}
+      <mesh ref={playerRef} position={[0, 3, 0]} castShadow>
+        <boxGeometry args={[3, 6, 3]} />
+        <meshStandardMaterial color={0xf59e0b} roughness={0.45} map={null} />
+      </mesh>
+      <PlayerController
         playerRef={playerRef}
         speedFeetPerRound={playerSpeed}
         submapHalfSize={submapHalfSize}
@@ -437,6 +545,13 @@ const SceneContents = ({
         heightSampler={heightSampler}
         visible={showGrid}
       />
+      <PostProcessingPipeline 
+        enabled={true}
+        bloomIntensity={0.5}
+        bloomThreshold={0.2}
+        bloomRadius={0.4}
+        fxaaEnabled={true}
+      />
     </>
   );
 };
@@ -445,9 +560,15 @@ const Scene3D = ({ pauseRender = false, ...props }: Scene3DProps) => (
   <Canvas
     shadows
     camera={{ position: [0, 80, 160], fov: 55, near: 0.1, far: 20000 }}
-    dpr={[1, 1.5]}
-    gl={{ antialias: false, powerPreference: 'high-performance' }}
+    dpr={[1, 2]}
+    gl={{ 
+      antialias: true, 
+      powerPreference: 'high-performance',
+      stencil: false,
+      depth: true
+    }}
     frameloop={pauseRender ? 'never' : 'always'}
+    onPointerMissed={() => props.onEntitySelect?.(null)}
     className="w-full h-full"
   >
     <SceneContents {...props} />

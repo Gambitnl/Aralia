@@ -9,6 +9,7 @@
 import React, { useState, useRef, useEffect, useContext as _useContext } from 'react';
 import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import { Z_INDEX } from '../../styles/zIndex';
+import { UI_ID } from '../../styles/uiIds';
 import { generateGuideResponse } from '../../services/ollamaTextService';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from '../../services/characterGenerator';
 import { PlayerCharacter, NPCMemory, GoalStatus } from '../../types';
@@ -163,6 +164,8 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
 
     return (
         <div
+            id={UI_ID.GAME_GUIDE_MODAL}
+            data-testid={UI_ID.GAME_GUIDE_MODAL}
             className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-4`}
             aria-modal="true"
             role="dialog"

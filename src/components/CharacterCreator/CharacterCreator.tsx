@@ -74,6 +74,7 @@ import { generatePortraitUrl } from '../../services/PortraitService';
 import SpellContext from '../../context/SpellContext';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Button } from '../ui/Button';
 import { SafeStorage } from '../../utils/storageUtils';
 import { sanitizeAIPromptText } from '../../utils/securityUtils';
@@ -442,7 +443,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     <WindowFrame
       title="Create Your Adventurer"
       onClose={onExitToMainMenu}
-      storageKey="character-creator-window"
+      storageKey={WINDOW_KEYS.CHARACTER_CREATOR}
       headerActions={
         <Button
           variant="ghost"

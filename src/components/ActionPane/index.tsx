@@ -14,6 +14,7 @@ import { ActionButton } from './ActionButton';
 import { useActionGeneration } from './useActionGeneration';
 import { SystemMenu } from './SystemMenu';
 import RestModal from '../ui/RestModal';
+import { UI_ID } from '../../styles/uiIds';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -87,7 +88,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   };
 
   return (
-    <div className="bg-gray-800 p-4 rounded-lg shadow-xl border border-gray-700">
+    <div id={UI_ID.ACTION_PANE} data-testid={UI_ID.ACTION_PANE} className="bg-gray-800 p-4 rounded-lg shadow-xl border border-gray-700">
       <h2 className="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">Actions</h2>
 
       {/* Top Row: Oracle, Analyze */}

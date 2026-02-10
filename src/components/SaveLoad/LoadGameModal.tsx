@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SaveSlotSummary } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { UI_ID } from '../../styles/uiIds';
 
 interface LoadGameModalProps {
   slots: SaveSlotSummary[];
@@ -75,7 +76,7 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]">
+    <div id={UI_ID.LOAD_GAME_MODAL} data-testid={UI_ID.LOAD_GAME_MODAL} className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]">
       <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl p-6 text-gray-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <div>

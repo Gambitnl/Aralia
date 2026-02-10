@@ -99,6 +99,38 @@ export const UPGRADE_CATALOG: Record<string, StrongholdUpgrade> = {
         description: 'A place for quiet contemplation.',
         cost: { gold: 600, supplies: 50 },
         effects: [{ type: 'morale_bonus', value: 2 }]
+    },
+    // Business Upgrades (Phase 4: Living Economy)
+    'display_cases': {
+        id: 'display_cases',
+        name: 'Display Cases',
+        description: 'Showcase your finest wares to attract more customers.',
+        cost: { gold: 800, supplies: 60 },
+        prerequisites: ['market_stall'],
+        effects: [{ type: 'income_flat', value: 10 }, { type: 'influence_bonus', value: 1 }]
+    },
+    'warehouse': {
+        id: 'warehouse',
+        name: 'Warehouse',
+        description: 'Store extra inventory to weather supply disruptions.',
+        cost: { gold: 2000, supplies: 300 },
+        prerequisites: ['marketplace'],
+        effects: [{ type: 'income_flat', value: 20 }]
+    },
+    'advertising_crier': {
+        id: 'advertising_crier',
+        name: 'Town Crier Advertisement',
+        description: 'Hire a crier to announce your business through the streets.',
+        cost: { gold: 500, supplies: 10 },
+        effects: [{ type: 'influence_bonus', value: 2 }]
+    },
+    'quality_workshop': {
+        id: 'quality_workshop',
+        name: 'Quality Workshop',
+        description: 'Better tools and workbenches produce finer craftsmanship.',
+        cost: { gold: 2000, supplies: 200 },
+        prerequisites: ['market_stall'],
+        effects: [{ type: 'income_flat', value: 25 }, { type: 'morale_bonus', value: 1 }]
     }
 };
 

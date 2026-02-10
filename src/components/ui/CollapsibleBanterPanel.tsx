@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WindowFrame } from './WindowFrame';
+import { UI_ID } from '../../styles/uiIds';
 
 import { BanterMoment, Companion } from '../../types/companions';
 
@@ -263,6 +264,8 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
     if (mode === 'EXPANDED') {
         return (
             <motion.div
+                id={UI_ID.BANTER_PANEL_EXPANDED}
+                data-testid={UI_ID.BANTER_PANEL_EXPANDED}
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
@@ -305,6 +308,8 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
     // But primarily this just opens the full view.
     return (
         <motion.div
+            id={UI_ID.BANTER_PANEL_COLLAPSED}
+            data-testid={UI_ID.BANTER_PANEL_COLLAPSED}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             className="fixed right-0 top-1/3 z-[var(--z-index-content-overlay-medium)]"

@@ -273,6 +273,7 @@ const App: React.FC = () => {
     dispatch,
     addMessage,
     currentMapData: gameState.mapData,
+    worldSeed: gameState.worldSeed,
   });
 
   const handleBattleMapDemo = useCallback(() => {

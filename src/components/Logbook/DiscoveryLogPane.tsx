@@ -7,6 +7,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { GameState, DiscoveryEntry, DiscoveryType, NPC, KnownFact } from '../../types';
 import { formatGameDate, formatGameDateTime } from '@/utils/core';
 import Tooltip from '../ui/Tooltip';
+import { UI_ID } from '../../styles/uiIds';
 
 interface DiscoveryLogPaneProps {
   isOpen: boolean;
@@ -156,6 +157,8 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
 
   return (
     <div
+      id={UI_ID.DISCOVERY_LOG}
+      data-testid={UI_ID.DISCOVERY_LOG}
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
       aria-modal="true"
       role="dialog"

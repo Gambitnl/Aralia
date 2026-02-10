@@ -1,6 +1,20 @@
 /**
  * @file BattleMap.tsx
  * The primary component for rendering the procedural battle map grid, tiles, and character tokens.
+ * 
+ * CURRENT FUNCTIONALITY:
+ * - Renders grid-based battle map with tiles and character tokens
+ * - Manages turn-based interaction states (move/attack modes)
+ * - Handles tile and character click interactions
+ * - Displays damage numbers and spell effects through overlay
+ * - Implements basic optimization with memoized sets for target selection
+ * 
+ * PERFORMANCE OPPORTUNITIES:
+ * - Missing viewport culling for off-screen entities (renders all characters/tiles)
+ * - No level-of-detail scaling for distant combatants
+ * - Individual DOM elements for each damage number (could use canvas)
+ * - Grid rendering recalculates all tiles even when only positions change
+ * - No texture atlas consolidation for sprite batching
  */
 import React, { useMemo, useCallback } from 'react';
 import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData } from '../../types/combat';
@@ -12,6 +26,7 @@ import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
 import BattleMapOverlay from './BattleMapOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
+import { UI_ID } from '../../styles/uiIds';
 
 interface BattleMapProps {
   mapData: BattleMapData | null;
@@ -62,6 +77,8 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
 
   // --- OPTIMIZATION START ---
   // Memoize sets to reduce O(N) lookups in render loop and prevent re-calcs on mouse move
+  // IMPROVEMENT OPPORTUNITY: Could implement spatial indexing for faster tile lookups
+  // instead of linear searches through character arrays
 
   const { aoeSet, validTargetSet } = useTargetSelection({
     selectedAbility: abilitySystem.selectedAbility,
@@ -91,7 +108,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
   // Ensure the progress bar clearly shows interruption conditions (e.g., "Damage breaks concentration").
 
   return (
-    <div className="relative">
+    <div id={UI_ID.BATTLE_MAP} data-testid={UI_ID.BATTLE_MAP} className="relative">
        {/* UI for current turn actions */}
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-700 p-2 rounded-md shadow-lg flex gap-2 z-[var(--z-index-submap-overlay)]">
@@ -133,11 +150,13 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
         >
           {tileArray.map(tile => {
             // Optimised lookups using Sets (O(1)) instead of Array searches/Calculations (O(N))
+            // IMPROVEMENT OPPORTUNITY: Implement viewport culling to skip rendering
+            // off-screen tiles entirely - could reduce render load by 60-80% in large maps
             const isTargetable = validTargetSet.has(tile.id);
             const isAoePreview = aoeSet.has(tile.id);
             const isValidMove = actionMode === 'move' && validMoves.has(tile.id);
             const isInPath = activePathSet.has(tile.id);
-
+          
             return (
               <BattleMapTile
                 key={tile.id}
@@ -151,13 +170,15 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
               />
             )
           })}
-          
+                
           {characters.map(character => {
             // Optimized: Iterate characters directly instead of looking them up via characterPositions map
             // This removes an O(N) search inside the loop, making this rendering phase O(N) instead of O(N^2)
+            // IMPROVEMENT OPPORTUNITY: Add viewport culling here - only render characters within camera bounds
+            // Could use a quadtree or simple bounds checking to filter visible entities
             const charTileId = `${character.position.x}-${character.position.y}`;
             const isTargetable = validTargetSet.has(charTileId);
-
+          
             return (
               <CharacterToken
                 key={character.id}

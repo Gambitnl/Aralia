@@ -35,6 +35,12 @@ import { PlayerCharacter, Monster, Item } from '../../types';
 // TODO(lint-intent): 'ConditionName' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+//
+// IMPROVEMENT OPPORTUNITY: This unused import suggests incomplete integration of condition handling.
+// Consider either:
+// 1. Implementing condition-based combat mechanics that utilize ConditionName type
+// 2. Removing the import to reduce module surface area and potential confusion
+// 3. Creating a dedicated conditions module that handles status effect processing
 import { Spell, DamageType, ConditionName as _ConditionName } from '../../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA } from '../../data/classes';
 import { MONSTERS_DATA } from '../../data/monsters';
@@ -52,10 +58,30 @@ export { createAbilityFromSpell, generateId, ResistanceCalculator };
 
 // TODO(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
 // TODO(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
+//
+// IMPROVEMENT OPPORTUNITY: Missing physics integration creates inconsistency between combat and exploration mechanics.
+// Current implementation lacks:
+// 1. Fall damage calculation during forced movement/teleportation
+// 2. Exhaustion effect application that should modify combat stats
+// 3. Jumping mechanics that could affect positioning and opportunity attacks
+// Consider creating a unified physics adapter that bridges combat and exploration systems.
 
 /**
  * Checks if a character can take a reaction.
  * Verifies HP, reaction resource availability, and incapacitating conditions.
+ *
+ * CURRENT FUNCTIONALITY:
+ * - Validates character is alive (HP > 0)
+ * - Checks reaction resource availability in action economy
+ * - Evaluates incapacitating conditions (Incapacitated, Paralyzed, Petrified, Stunned, Unconscious)
+ * - Handles both legacy statusEffects and new conditions array formats
+ *
+ * IMPROVEMENT OPPORTUNITIES:
+ * 1. PERFORMANCE: The dual checking of statusEffects and conditions creates redundancy
+ *    - Consider normalizing data structure to eliminate duplicate condition checking
+ * 2. MAINTAINABILITY: Hard-coded condition names could be centralized in a constants file
+ * 3. EXTENSIBILITY: Add support for conditional reactions (e.g., Opportunity Attacks based on movement type)
+ * 4. TESTABILITY: Extract condition checking logic into separate pure function for easier unit testing
  *
  * @param character The character to check.
  * @returns True if the character can take a reaction.
@@ -100,6 +126,23 @@ export function canTakeReaction(character: CombatCharacter): boolean {
  * @param target - The target's position.
  * @param mapData - The battle map data.
  * @returns The cover bonus to AC (0, 2, or 5).
+ *
+ * CURRENT FUNCTIONALITY:
+ * - Uses Bresenham's line algorithm to trace path between attacker and target
+ * - Evaluates each intermediate tile for cover-providing properties
+ * - Applies standard D&D 5e cover bonuses (Half Cover: +2, Three-Quarters Cover: +5)
+ * - Special handling for pillars providing superior cover
+ *
+ * IMPROVEMENT OPPORTUNITIES:
+ * 1. PERFORMANCE: Line tracing for every attack could be expensive in complex battles
+ *    - Consider pre-calculating cover maps for static environments
+ *    - Implement spatial indexing for faster tile lookups
+ * 2. ACCURACY: Current implementation may not handle complex terrain correctly
+ *    - Add support for partial cover from multiple sources
+ *    - Implement height-based cover calculations
+ * 3. EXTENSIBILITY: Support for cover-modifying spells/items
+ *    - Add callback system for dynamic cover effects
+ *    - Integrate with spell system for cover-granting abilities
  */
 export function calculateCover(origin: Position, target: Position, mapData: BattleMapData): number {
   if (!mapData) return 0;
@@ -143,6 +186,25 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
  * @returns Total rolled value.
  *
  * @internal This is a helper for `rollDamage` and should not be used directly.
+ *
+ * CURRENT FUNCTIONALITY:
+ * - Implements basic dice rolling with Math.random()
+ * - Enforces minimum roll values (useful for feats like Elemental Adept)
+ * - Simple loop-based implementation for reliability
+ *
+ * IMPROVEMENT OPPORTUNITIES:
+ * 1. SECURITY: Client-side Math.random() is predictable and manipulable
+ *    - Implement server-side validation for critical rolls
+ *    - Add cryptographic randomness for important game events
+ * 2. PERFORMANCE: Loop-based approach is inefficient for large dice pools
+ *    - Consider batch processing for multiple dice of same type
+ *    - Implement lookup tables for common dice combinations
+ * 3. EXTENSIBILITY: Limited customization options
+ *    - Add support for advantage/disadvantage mechanics
+ *    - Implement roll history tracking for analytics
+ * 4. TESTABILITY: Difficult to test due to random nature
+ *    - Add deterministic mode for testing purposes
+ *    - Implement seedable random number generator
  */
 function rollDieGroup(count: number, sides: number, minRoll: number = 1): number {
     // TODO(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation.
@@ -161,6 +223,27 @@ function rollDieGroup(count: number, sides: number, minRoll: number = 1): number
  * Supports complex formulas like '1d8 + 1d6 + 2'.
  * @param diceString The dice notation to roll (e.g., '2d8+3')
  * @returns The total rolled value
+ *
+ * CURRENT FUNCTIONALITY:
+ * - Handles standard dice notation (XdY+Z format)
+ * - Supports complex formulas with multiple dice types
+ * - Processes positive and negative modifiers
+ * - Removes whitespace for consistent parsing
+ *
+ * IMPROVEMENT OPPORTUNITIES:
+ * 1. ROBUSTNESS: Regex-based parsing can be fragile with malformed input
+ *    - Add input validation and sanitization
+ *    - Implement graceful error handling for invalid notation
+ * 2. PERFORMANCE: Regex evaluation for each roll adds overhead
+ *    - Consider compiled parsers for frequently used formulas
+ *    - Cache parsed results for repeated identical rolls
+ * 3. FEATURE GAP: Missing advanced D&D mechanics
+ *    - No support for advantage/disadvantage
+ *    - Cannot handle complex conditional dice (e.g., "reroll 1s")
+ *    - Lacks integration with character-specific modifiers
+ * 4. MAINTAINABILITY: Parsing logic mixed with rolling logic
+ *    - Separate parsing from execution for better testability
+ *    - Create dedicated dice expression AST for complex operations
  */
 export function rollDice(diceString: string): number {
   return rollDamage(diceString, false);
@@ -178,6 +261,26 @@ export function rollDice(diceString: string): number {
  * @param isCritical Whether this is a critical hit (doubles dice).
  * @param minRoll Optional minimum value for each die (e.g. for Elemental Adept).
  * @returns The total damage.
+ *
+ * CURRENT FUNCTIONALITY:
+ * - Implements D&D 5e critical hit rules (double dice count, not multiply result)
+ * - Supports complex damage formulas with multiple dice types
+ * - Handles minimum roll values for specific game mechanics
+ * - Uses global regex for parsing dice notation
+ *
+ * IMPROVEMENT OPPORTUNITIES:
+ * 1. CORRECTNESS: Global regex state can cause issues in concurrent environments
+ *    - Use local regex instances to avoid state sharing
+ *    - Implement proper regex reset between parses
+ * 2. PERFORMANCE: Regex re-evaluation for each damage roll
+ *    - Pre-compile common damage formulas
+ *    - Cache parsed expressions for frequently used weapons/spells
+ * 3. EXTENSIBILITY: Limited damage type integration
+ *    - No built-in support for damage type modifiers
+ *    - Missing integration with resistance/vulnerability calculations
+ * 4. DEBUGGING: Difficult to trace individual dice rolls
+ *    - Add roll breakdown reporting for transparency
+ *    - Implement detailed logging for critical game moments
  *
  * @example
  * rollDamage('2d6+3', false) // Returns 5-15
@@ -456,6 +559,31 @@ export function getStatusEffectIcon(effect: StatusEffect): string {
  * - **Spells -> Abilities:** Hydrates the spellbook using the global spell dictionary.
  * - **Stats:** Flattens nested stat objects for easier access by combat systems.
  *
+ * CURRENT FUNCTIONALITY:
+ * - Maps player stats to combat-ready format
+ * - Converts equipped weapons to combat abilities with proper damage calculations
+ * - Integrates spellbook with combat ability system
+ * - Handles class-specific combat features (Second Wind, Cunning Dash, etc.)
+ * - Applies racial traits like darkvision
+ * - Manages hit point dice pools for combat use
+ *
+ * IMPROVEMENT OPPORTUNITIES:
+ * 1. PERFORMANCE: Expensive transformation process called frequently
+ *    - Implement caching for unchanged character state
+ *    - Consider incremental updates instead of full recreation
+ * 2. MAINTAINABILITY: Monolithic function with multiple responsibilities
+ *    - Extract weapon conversion to separate helper function
+ *    - Separate spell processing from core character creation
+ *    - Break down class feature handling into modular components
+ * 3. ROBUSTNESS: Missing error handling for data inconsistencies
+ *    - Add validation for missing spell data
+ *    - Handle malformed weapon/equipment data gracefully
+ *    - Implement fallback behaviors for incomplete character data
+ * 4. EXTENSIBILITY: Hard-coded class features limit flexibility
+ *    - Create plugin system for class-specific combat abilities
+ *    - Add support for temporary combat modifiers/buffs
+ *    - Integrate with condition system for combat-specific effects
+ *
  * @param player - The persistent PlayerCharacter object.
  * @param allSpells - Dictionary of all spell data, used to resolve spell IDs into full ability objects.
  * @returns A fully hydrated CombatCharacter ready for the BattleMap.
@@ -635,6 +763,31 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
  * - If data is missing (e.g., content mismatch), falls back to a generic "Fighter" template
  *   to prevent the game from crashing.
  * - Assigns a unique ID incorporating the index to distinguish identical enemies (e.g., "Goblin 1", "Goblin 2").
+ *
+ * CURRENT FUNCTIONALITY:
+ * - Creates unique combat instances from monster templates
+ * - Handles missing monster data with graceful fallbacks
+ * - Supports Challenge Rating conversion to level equivalents
+ * - Assigns unique identifiers for multi-enemy encounters
+ * - Provides basic combat stats and abilities from monster data
+ *
+ * IMPROVEMENT OPPORTUNITIES:
+ * 1. DATA INTEGRITY: Fallback system masks underlying data issues
+ *    - Add logging/alerting for missing monster data
+ *    - Implement data validation during encounter generation
+ *    - Create better fallback templates based on monster category
+ * 2. PERFORMANCE: Lookup-based approach doesn't scale well
+ *    - Consider pre-loading monster data into memory
+ *    - Implement lazy loading with caching strategy
+ *    - Add bulk creation methods for large encounters
+ * 3. CUSTOMIZATION: Limited support for monster variants
+ *    - Add support for elite/weak monster modifiers
+ *    - Implement dynamic stat scaling based on party size
+ *    - Support for temporary monster buffs/debuffs
+ * 4. MAINTAINABILITY: Hard-coded class assignment ('fighter') is inflexible
+ *    - Create monster-type specific combat behaviors
+ *    - Implement proper monster AI integration
+ *    - Add support for legendary actions and lair actions
  *
  * @param monster - The lightweight Monster template.
  * @param index - Unique index for this instance (0-based).

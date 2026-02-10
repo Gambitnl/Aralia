@@ -5,6 +5,7 @@
 import React, { useEffect, useRef } from 'react';
 import { GeminiLogEntry } from '../../types';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface GeminiLogViewerProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ const GeminiLogViewer: React.FC<GeminiLogViewerProps> = ({ isOpen, onClose, logE
     <WindowFrame
       title="Gemini API Interaction Log"
       onClose={onClose}
-      storageKey="gemini-log-window"
+      storageKey={WINDOW_KEYS.GEMINI_LOG}
     >
       <div className="flex flex-col h-full bg-gray-900 p-6">
         <div className="overflow-y-auto scrollable-content flex-grow bg-black/30 p-3 rounded-md border border-gray-700">

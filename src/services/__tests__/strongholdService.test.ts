@@ -1,9 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
     createStronghold,
     recruitStaff,
     fireStaff,
     processDailyUpkeep,
+    processAllStrongholds,
+    strongholdSummariesToMessages,
     getAvailableUpgrades,
     purchaseUpgrade,
     calculateDefense,
@@ -14,8 +16,7 @@ import {
     // TODO(lint-intent): 'UPGRADE_CATALOG' is unused in this test; use it in the assertion path or remove it.
     UPGRADE_CATALOG as _UPGRADE_CATALOG
 } from '../strongholdService';
-// TODO(lint-intent): 'Stronghold' is unused in this test; use it in the assertion path or remove it.
-import { Stronghold as _Stronghold, ActiveThreat } from '../../types/stronghold';
+import { Stronghold, ActiveThreat, DailyUpdateSummary } from '../../types/stronghold';
 
 describe('StrongholdService', () => {
     it('should create a stronghold with default resources and empty upgrades', () => {
@@ -325,5 +326,322 @@ describe('StrongholdService', () => {
              expect(result.updatedStronghold.missions.length).toBe(0); // Removed
              expect(result.summary.missionEvents[0]).toContain('Cancelled');
         });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Helper: build a minimal stronghold with a deterministic id
+// ---------------------------------------------------------------------------
+const makeStronghold = (overrides: Partial<Stronghold> = {}): Stronghold => {
+    const base = createStronghold('Test Keep', 'castle', 'loc-1');
+    return { ...base, id: 'sh-1', ...overrides };
+};
+
+// ---------------------------------------------------------------------------
+// processAllStrongholds
+// ---------------------------------------------------------------------------
+describe('processAllStrongholds', () => {
+    afterEach(() => { vi.restoreAllMocks(); });
+
+    it('should return empty results for an empty record', () => {
+        const { updatedStrongholds, summaries } = processAllStrongholds({});
+        expect(updatedStrongholds).toEqual({});
+        expect(summaries).toEqual([]);
+    });
+
+    it('should process a single stronghold and return its updated state + summary', () => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+        const sh = makeStronghold();
+        const { updatedStrongholds, summaries } = processAllStrongholds({ [sh.id]: sh });
+
+        expect(Object.keys(updatedStrongholds)).toHaveLength(1);
+        expect(updatedStrongholds[sh.id]).toBeDefined();
+        expect(summaries).toHaveLength(1);
+        expect(summaries[0].strongholdId).toBe(sh.id);
+    });
+
+    it('should process multiple strongholds independently', () => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+        const sh1 = makeStronghold({ id: 'sh-1', name: 'Keep Alpha' });
+        const sh2 = makeStronghold({ id: 'sh-2', name: 'Keep Beta', resources: { gold: 5000, supplies: 200, influence: 0, intel: 0 } });
+
+        const { updatedStrongholds, summaries } = processAllStrongholds({
+            [sh1.id]: sh1,
+            [sh2.id]: sh2
+        });
+
+        expect(Object.keys(updatedStrongholds)).toHaveLength(2);
+        expect(summaries).toHaveLength(2);
+
+        const ids = summaries.map(s => s.strongholdId);
+        expect(ids).toContain('sh-1');
+        expect(ids).toContain('sh-2');
+    });
+
+    it('should add daily income to gold for a stronghold with no staff', () => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+        const sh = makeStronghold({ dailyIncome: 25 });
+        const { updatedStrongholds, summaries } = processAllStrongholds({ [sh.id]: sh });
+
+        expect(updatedStrongholds[sh.id].resources.gold).toBe(sh.resources.gold + 25);
+        expect(summaries[0].goldChange).toBe(25);
+    });
+
+    it('should deduct staff wages from gold', () => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+        let sh = makeStronghold();
+        sh = recruitStaff(sh, 'Bob', 'guard');
+        sh = { ...sh, id: 'sh-1' };
+
+        const { updatedStrongholds, summaries } = processAllStrongholds({ [sh.id]: sh });
+
+        // Income 10, wage 5 => net +5
+        expect(summaries[0].goldChange).toBe(10 - 5);
+        expect(updatedStrongholds[sh.id].resources.gold).toBe(sh.resources.gold + 10 - 5);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// strongholdSummariesToMessages
+// ---------------------------------------------------------------------------
+describe('strongholdSummariesToMessages', () => {
+    const gameTime = new Date('2024-06-15T12:00:00Z');
+
+    it('should return no messages for an empty summaries array', () => {
+        const messages = strongholdSummariesToMessages([], gameTime);
+        expect(messages).toEqual([]);
+    });
+
+    it('should return no messages when a summary has no events at all', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: 0,
+            influenceChange: 0,
+            staffEvents: [],
+            threatEvents: [],
+            missionEvents: [],
+            alerts: []
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+        expect(messages).toEqual([]);
+    });
+
+    it('should create a message with [Stronghold Report] prefix when goldChange is non-zero', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: 15,
+            influenceChange: 0,
+            staffEvents: [],
+            threatEvents: [],
+            missionEvents: [],
+            alerts: []
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toContain('[Stronghold Report]');
+        expect(messages[0].text).toContain('+15 gold');
+        expect(messages[0].sender).toBe('system');
+        expect(messages[0].timestamp).toBe(gameTime);
+    });
+
+    it('should include negative gold changes with no plus sign', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: -50,
+            influenceChange: 0,
+            staffEvents: [],
+            threatEvents: [],
+            missionEvents: [],
+            alerts: []
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toContain('-50 gold');
+        expect(messages[0].text).not.toContain('+-50');
+    });
+
+    it('should include staffEvents in the message', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: 0,
+            influenceChange: 0,
+            staffEvents: ['Bob (guard) was not paid. Morale dropped.'],
+            threatEvents: [],
+            missionEvents: [],
+            alerts: []
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toContain('Bob (guard) was not paid');
+    });
+
+    it('should include threatEvents in the message', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: 0,
+            influenceChange: 0,
+            staffEvents: [],
+            threatEvents: ['New Threat: Bandit Raid (Severity: 25)'],
+            missionEvents: [],
+            alerts: []
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toContain('Bandit Raid');
+    });
+
+    it('should include missionEvents in the message', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: 0,
+            influenceChange: 0,
+            staffEvents: [],
+            threatEvents: [],
+            missionEvents: ['Mission Success: Alice completed \'Scout the northern pass\'.'],
+            alerts: []
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toContain('Mission Success');
+    });
+
+    it('should include alerts in the message', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: 0,
+            influenceChange: 0,
+            staffEvents: [],
+            threatEvents: [],
+            missionEvents: [],
+            alerts: ['Warning: Treasury is running low!']
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toContain('Warning: Treasury is running low!');
+    });
+
+    it('should join multiple events with pipe separators', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-1',
+            goldChange: 10,
+            influenceChange: 0,
+            staffEvents: ['Guard hired.'],
+            threatEvents: [],
+            missionEvents: [],
+            alerts: ['Warning: Treasury is running low!']
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toContain(' | ');
+    });
+
+    it('should include strongholdId in message metadata', () => {
+        const summary: DailyUpdateSummary = {
+            strongholdId: 'sh-42',
+            goldChange: 5,
+            influenceChange: 0,
+            staffEvents: [],
+            threatEvents: [],
+            missionEvents: [],
+            alerts: []
+        };
+        const messages = strongholdSummariesToMessages([summary], gameTime);
+
+        expect(messages).toHaveLength(1);
+        expect(messages[0].metadata).toBeDefined();
+        expect(messages[0].metadata!.strongholdId).toBe('sh-42');
+        expect(messages[0].metadata!.type).toBe('stronghold_report');
+    });
+
+    it('should produce one message per summary that has events', () => {
+        const summaries: DailyUpdateSummary[] = [
+            {
+                strongholdId: 'sh-1',
+                goldChange: 10,
+                influenceChange: 0,
+                staffEvents: [],
+                threatEvents: [],
+                missionEvents: [],
+                alerts: []
+            },
+            {
+                strongholdId: 'sh-2',
+                goldChange: 0,
+                influenceChange: 0,
+                staffEvents: [],
+                threatEvents: [],
+                missionEvents: [],
+                alerts: []
+            },
+            {
+                strongholdId: 'sh-3',
+                goldChange: 0,
+                influenceChange: 0,
+                staffEvents: ['Someone quit'],
+                threatEvents: [],
+                missionEvents: [],
+                alerts: []
+            }
+        ];
+
+        const messages = strongholdSummariesToMessages(summaries, gameTime);
+
+        // sh-1 has goldChange, sh-2 has nothing, sh-3 has staffEvents
+        expect(messages).toHaveLength(2);
+        expect(messages[0].metadata!.strongholdId).toBe('sh-1');
+        expect(messages[1].metadata!.strongholdId).toBe('sh-3');
+    });
+
+    it('should assign unique ids to each message', () => {
+        const summaries: DailyUpdateSummary[] = [
+            { strongholdId: 'sh-1', goldChange: 5, influenceChange: 0, staffEvents: [], threatEvents: [], missionEvents: [], alerts: [] },
+            { strongholdId: 'sh-2', goldChange: 10, influenceChange: 0, staffEvents: [], threatEvents: [], missionEvents: [], alerts: [] }
+        ];
+        const messages = strongholdSummariesToMessages(summaries, gameTime);
+
+        expect(messages).toHaveLength(2);
+        expect(messages[0].id).not.toBe(messages[1].id);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// processDailyUpkeep (supplementary edge cases)
+// ---------------------------------------------------------------------------
+describe('processDailyUpkeep - edge cases', () => {
+    afterEach(() => { vi.restoreAllMocks(); });
+
+    it('should generate a low-funds alert when gold is below 50', () => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+        const sh = makeStronghold({ resources: { gold: 30, supplies: 100, influence: 0, intel: 0 }, dailyIncome: 0 });
+        const { summary } = processDailyUpkeep(sh);
+
+        expect(summary.alerts).toContain('Warning: Treasury is running low!');
+    });
+
+    it('should reduce morale and log an event when a staffer cannot be paid', () => {
+        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+        let sh = makeStronghold({ resources: { gold: 0, supplies: 100, influence: 0, intel: 0 }, dailyIncome: 0 });
+        sh = recruitStaff(sh, 'Poor Guard', 'guard');
+        sh = { ...sh, id: 'sh-1' };
+
+        const { updatedStronghold, summary } = processDailyUpkeep(sh);
+
+        expect(summary.staffEvents.some(e => e.includes('Poor Guard'))).toBe(true);
+        const guard = updatedStronghold.staff.find(s => s.name === 'Poor Guard');
+        expect(guard).toBeDefined();
+        if (guard) {
+            expect(guard.morale).toBeLessThan(100);
+        }
     });
 });

@@ -13,7 +13,7 @@ import { Secret } from '../../types/identity';
 import { Faction as _Faction } from '../../types/factions';
 import { SeededRandom } from '@/utils/random';
 
-export type LeverageGoal = 'blackmail' | 'information' | 'favor' | 'safe_passage';
+export type LeverageGoal = 'blackmail' | 'information' | 'favor' | 'safe_passage' | 'forced_sale';
 export type LeverageOutcome = 'success' | 'failure' | 'backfire';
 
 export interface LeverageAttempt {
@@ -29,6 +29,7 @@ export interface LeverageResult {
         gold?: number;
         favor?: number; // Reputation gain (or loss mitigation)
         intel?: string; // New information gained
+        forcedSaleDiscount?: number; // Percent discount on forced business sale (20-50)
     };
     consequences?: {
         reputationLoss?: number;
@@ -160,6 +161,13 @@ export class LeverageSystem {
             case 'safe_passage':
                 result.message += ` They have granted you safe passage through their territory.`;
                 break;
+            case 'forced_sale': {
+                // Forced business sale: discount scales with secret value (20-50%)
+                const discount = Math.min(50, 20 + secret.value * 3);
+                rewards.forcedSaleDiscount = discount;
+                result.message += ` Under pressure, they agree to sell their business at a ${discount}% discount.`;
+                break;
+            }
         }
 
         return result;

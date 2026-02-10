@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Ship } from '../../types/naval';
 import { Anchor, Users, Package } from 'lucide-react';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/Table';
 
 interface ShipPaneProps {
@@ -17,7 +18,7 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
     <WindowFrame
       title={ship.name}
       onClose={onClose}
-      storageKey="ship-pane-window"
+      storageKey={WINDOW_KEYS.SHIP_PANE}
     >
       <div className="flex flex-col h-full bg-gray-900">
         {/* Navigation */}

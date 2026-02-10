@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Companion } from '../../types/companions';
 
 import { GameMessage } from '../../types';
+import { UI_ID } from '../../styles/uiIds';
 
 interface CompanionReactionProps {
   companions: Record<string, Companion>;
@@ -56,6 +57,8 @@ export const CompanionReaction: React.FC<CompanionReactionProps> = ({ companions
   return (
     <AnimatePresence>
       <motion.div
+        id={UI_ID.COMPANION_REACTION}
+        data-testid={UI_ID.COMPANION_REACTION}
         initial={{ opacity: 0, y: 20, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.9 }}

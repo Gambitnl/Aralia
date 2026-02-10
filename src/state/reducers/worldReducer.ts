@@ -13,6 +13,11 @@ import { getGameDay } from '../../utils/core';
 import { ritualReducer } from './ritualReducer';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/historyUtils';
 import { processAllStrongholds, strongholdSummariesToMessages } from '../../services/strongholdService';
+import { processAllBusinesses } from '../../systems/economy/BusinessSimulation';
+import { processAllInvestments } from '../../systems/economy/InvestmentManager';
+import { processAllNpcBusinesses } from '../../systems/economy/NpcBusinessManager';
+import { processPlayerBusinessManagement } from '../../systems/economy/BusinessManagement';
+import { SeededRandom } from '@/utils/random';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -124,6 +129,127 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
             strongholds: updatedStrongholds,
             messages: [...nextState.messages, ...strongholdMessages]
           };
+        }
+
+        // 5. Business Daily Processing
+        const currentBusinesses = nextState.businesses;
+        const currentStrongholds = nextState.strongholds;
+        if (currentBusinesses && Object.keys(currentBusinesses).length > 0 && currentStrongholds) {
+          const businessRng = new SeededRandom(state.worldSeed + newDay + 7777);
+          let bizState = { businesses: currentBusinesses, strongholds: currentStrongholds };
+          for (let d = 0; d < daysPassed; d++) {
+            const bizResult = processAllBusinesses(
+              bizState.businesses,
+              bizState.strongholds,
+              nextState.economy,
+              nextState.factions,
+              newDay - daysPassed + d + 1,
+              businessRng
+            );
+            bizState = { businesses: bizResult.businesses, strongholds: bizResult.strongholds };
+          }
+          nextState = {
+            ...nextState,
+            businesses: bizState.businesses,
+            strongholds: bizState.strongholds
+          };
+        }
+
+        // 5b. NPC World Business Daily Processing
+        // Simulates NPC-owned businesses: revenue, costs, price adjustments, financial pressure.
+        // Bankrupt businesses (pressure > 90 for 30+ unprofitable days) are removed and their
+        // NPC owner's businessId is cleared so they can be re-generated as merchants without shops.
+        const currentWorldBusinesses = nextState.worldBusinesses;
+        if (currentWorldBusinesses && Object.keys(currentWorldBusinesses).length > 0) {
+          const npcBizRng = new SeededRandom(state.worldSeed + newDay + 8888);
+          let wbState = currentWorldBusinesses;
+          for (let d = 0; d < daysPassed; d++) {
+            const wbResult = processAllNpcBusinesses(
+              wbState,
+              nextState.economy,
+              nextState.factions,
+              newDay - daysPassed + d + 1,
+              npcBizRng
+            );
+            wbState = wbResult.worldBusinesses;
+            // Clear businessId on NPCs whose businesses closed
+            if (wbResult.closedBusinessIds.length > 0) {
+              const updatedNpcs = { ...nextState.generatedNpcs };
+              for (const closedId of wbResult.closedBusinessIds) {
+                for (const [npcKey, npc] of Object.entries(updatedNpcs)) {
+                  if (npc.businessId === closedId) {
+                    updatedNpcs[npcKey] = { ...npc, businessId: undefined };
+                  }
+                }
+              }
+              nextState = { ...nextState, generatedNpcs: updatedNpcs };
+            }
+          }
+          nextState = { ...nextState, worldBusinesses: wbState };
+        }
+
+        // 5c. Player-owned World Business Management (decay, events, ramp-up)
+        // Processes management decay (reputation/satisfaction loss without visits or a manager),
+        // random business events (theft, festivals, competitor changes), and customer ramp-up
+        // caps for newly founded businesses. Events generate courier messages for the player.
+        const wbAfterNpc = nextState.worldBusinesses;
+        if (wbAfterNpc && Object.values(wbAfterNpc).some(b => b.ownerType === 'player')) {
+          const mgmtRng = new SeededRandom(state.worldSeed + newDay + 6666);
+          let mgmtWb = wbAfterNpc;
+          for (let d = 0; d < daysPassed; d++) {
+            const mgmtResult = processPlayerBusinessManagement(
+              mgmtWb,
+              nextState.economy,
+              newDay - daysPassed + d + 1,
+              mgmtRng
+            );
+            mgmtWb = mgmtResult.worldBusinesses;
+            // Convert events to courier messages
+            for (const evt of mgmtResult.events) {
+              const urgency = evt.type === 'negative' ? 0 : 1; // Negative events = immediate
+              const courier = {
+                id: `courier_evt_${evt.id}`,
+                sourceRegionId: nextState.currentLocationId || 'unknown',
+                deliveryDay: newDay + urgency,
+                messageText: `[${evt.name}] ${evt.description}`,
+                accuracy: 1,
+                type: 'business_report' as const,
+              };
+              nextState = {
+                ...nextState,
+                pendingCouriers: [...(nextState.pendingCouriers || []), courier]
+              };
+            }
+          }
+          nextState = { ...nextState, worldBusinesses: mgmtWb };
+        }
+
+        // 6. Investment Daily Processing (Caravans, Loans, Speculation)
+        const currentInvestments = nextState.playerInvestments;
+        if (currentInvestments && currentInvestments.length > 0) {
+          const investRng = new SeededRandom(state.worldSeed + newDay + 9999);
+          let investState = currentInvestments;
+          for (let d = 0; d < daysPassed; d++) {
+            const investResult = processAllInvestments(
+              investState,
+              nextState.economy,
+              newDay - daysPassed + d + 1,
+              investRng
+            );
+            investState = investResult.investments;
+            for (const logText of investResult.logs) {
+              nextState = {
+                ...nextState,
+                messages: [...nextState.messages, {
+                  id: Date.now() + investRng.next(),
+                  text: logText,
+                  sender: 'system',
+                  timestamp: newTime
+                }]
+              };
+            }
+          }
+          nextState = { ...nextState, playerInvestments: investState };
         }
       }
 

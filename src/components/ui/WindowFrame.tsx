@@ -56,6 +56,8 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
             {/* Window Container */}
             <div
                 ref={windowRef}
+                id={`window-${storageKey}`}
+                data-testid={`window-${storageKey}`}
                 className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto"
                 style={style}
             >

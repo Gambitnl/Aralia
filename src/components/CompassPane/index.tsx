@@ -15,6 +15,7 @@ import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { TimeWidget } from '../ui/TimeWidget';
 import Tooltip from '../ui/Tooltip'; // Import Tooltip
 import PassTimeModal from '../Town/PassTimeModal'; // Import the new modal
+import { UI_ID } from '../../styles/uiIds';
 
 interface CompassPaneProps {
   currentLocation: Location;
@@ -108,7 +109,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
         currentTime={gameTime}
       />
 
-      <div className="flex flex-col gap-2">
+      <div id={UI_ID.COMPASS_PANE} data-testid={UI_ID.COMPASS_PANE} className="flex flex-col gap-2">
         {/* Time Widget */}
         <TimeWidget
           gameTime={gameTime}

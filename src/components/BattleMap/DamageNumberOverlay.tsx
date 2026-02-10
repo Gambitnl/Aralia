@@ -3,6 +3,24 @@ import { DamageNumber } from '../../types/combat';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { Z_INDEX } from '../../styles/zIndex';
 
+/**
+ * Overlay component for displaying floating damage numbers during combat.
+ * 
+ * CURRENT FUNCTIONALITY:
+ * - Creates floating damage/heal/miss indicators above combatant positions
+ * - Uses CSS transitions for smooth animation effects
+ * - Implements fade-out and upward movement animations
+ * - Manages activation state through requestAnimationFrame
+ * - Supports different colors for damage types
+ * 
+ * PERFORMANCE OPPORTUNITIES:
+ * - Individual DOM element for each damage number (no batching)
+ * - Position calculations done per render cycle
+ * - CSS transitions create layout thrashing for many simultaneous numbers
+ * - No recycling of DOM elements (creates/destroys constantly)
+ * - Transform calculations not optimized for GPU acceleration
+ */
+
 interface DamageNumberOverlayProps {
   damageNumbers: DamageNumber[];
 }
@@ -35,6 +53,9 @@ const DamageNumberOverlay: React.FC<DamageNumberOverlayProps> = ({ damageNumbers
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: Z_INDEX.CONTENT_OVERLAY_HIGH }}>
       {damageNumbers.map((dn) => {
+        // Calculate base position for each damage number
+        // IMPROVEMENT OPPORTUNITY: These calculations happen for every render
+        // Could cache positions or use CSS variables for better performance
         const active = !!activeMap[dn.id];
         const baseLeft = dn.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
         const baseTop = dn.position.y * TILE_SIZE_PX;
@@ -45,6 +66,9 @@ const DamageNumberOverlay: React.FC<DamageNumberOverlayProps> = ({ damageNumbers
             style={{
               left: `${baseLeft}px`,
               top: `${baseTop}px`,
+              // Animation transforms - could be optimized with CSS classes
+              // IMPROVEMENT OPPORTUNITY: Using 'will-change' hint but could
+              // benefit from transform3d() for better GPU acceleration
               transform: active ? 'translate(-50%, -42px)' : 'translate(-50%, 0px)',
               opacity: active ? 0 : 1,
               color: dn.type === 'heal' ? '#4ade80' : dn.type === 'miss' ? '#9ca3af' : '#ef4444',

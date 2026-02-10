@@ -9,6 +9,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Z_INDEX } from '../../styles/zIndex';
+import { UI_ID } from '../../styles/uiIds';
 import { X, Dice6 } from 'lucide-react';
 import { useDice } from '../../contexts/DiceContext';
 
@@ -34,6 +35,8 @@ export const DiceOverlay: React.FC = () => {
         <AnimatePresence>
             {isOverlayVisible && (
                 <motion.div
+                    id={UI_ID.DICE_OVERLAY}
+                    data-testid={UI_ID.DICE_OVERLAY}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}

@@ -461,6 +461,14 @@ export const processDailyOrgUpdate = (org: Organization): { updatedOrg: Organiza
                     // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
                     // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
                     // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
+                    //
+                    // IMPROVEMENT OPPORTUNITY: Variable scoping issues in switch statement indicate complex logic that's hard to follow.
+                    // Current approach creates variables that only exist within this case block, making the code harder to maintain.
+                    // Consider:
+                    // 1. Wrapping the case in braces: case 'smear_campaign': { ... }
+                    // 2. Extracting this logic into a separate helper function: handleSmearCampaign(organization, rivals)
+                    // 3. Lifting shared variables to function scope if they're used across multiple cases
+                    // 4. Converting switch to object mapping pattern for better testability
                     const connectionsLost = Math.floor(currentConnections * 0.1);
                     currentConnections -= connectionsLost;
                     summary.push(`Rivals turned allies against you. Lost ${connectionsLost} connections.`);

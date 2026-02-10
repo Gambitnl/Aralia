@@ -6,6 +6,7 @@ import React, { useEffect, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Notification } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
+import { UI_ID } from '../../styles/uiIds';
 
 interface NotificationSystemProps {
   notifications: Notification[];
@@ -87,6 +88,8 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
 
   return (
     <div
+      id={UI_ID.NOTIFICATION_SYSTEM}
+      data-testid={UI_ID.NOTIFICATION_SYSTEM}
       aria-live="assertive"
       className="pointer-events-none fixed inset-0 flex flex-col items-end px-4 py-6 sm:items-start sm:p-6 z-[var(--z-index-modal-background)] gap-2"
     >

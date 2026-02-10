@@ -7,6 +7,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { GameState, NPC, SuspicionLevel, GoalStatus } from '../../types';
+import { UI_ID } from '../../styles/uiIds';
 
 interface DossierPaneProps {
   isOpen: boolean;
@@ -88,6 +89,8 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
 
   return (
     <motion.div
+      id={UI_ID.DOSSIER_PANE}
+      data-testid={UI_ID.DOSSIER_PANE}
       {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
       onClick={onClose}

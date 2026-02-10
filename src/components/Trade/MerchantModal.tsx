@@ -15,6 +15,7 @@ import { formatGpAsCoins } from '../../utils/coinPurseUtils';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { RumorMill } from '../Town/Intrigue/RumorMill';
+import { UI_ID } from '../../styles/uiIds';
 
 interface MerchantModalProps {
     isOpen: boolean;
@@ -57,6 +58,12 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     // Use prop economy if provided (for tests), otherwise fall back to global state economy
     const economy = propEconomy || state.economy;
 
+    // Faction context for trade bonuses — player standing affects prices
+    const priceContext = useMemo(() => ({
+        factions: state.factions,
+        standings: state.playerFactionStandings
+    }), [state.factions, state.playerFactionStandings]);
+
     // Determine if this is a tavern-like establishment
     const isTavern = merchantName.toLowerCase().includes('tavern') || merchantName.toLowerCase().includes('inn');
     const [activeTab, setActiveTab] = useState<Tab>('trade');
@@ -72,14 +79,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     }, [playerInventory]);
 
     const handleBuy = (item: Item) => {
-        const { finalPrice } = calculatePrice(item, economy, 'buy', regionId);
+        const { finalPrice } = calculatePrice(item, economy, 'buy', regionId, priceContext);
         if (finalPrice > 0 && playerGold >= finalPrice) {
             onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { item, cost: finalPrice } as any });
         }
     };
 
     const handleSell = (item: Item) => {
-        const { finalPrice } = calculatePrice(item, economy, 'sell', regionId);
+        const { finalPrice } = calculatePrice(item, economy, 'sell', regionId, priceContext);
         if (finalPrice > 0) {
             onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { itemId: item.id, value: finalPrice } as any });
         }
@@ -89,6 +96,8 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
 
     return (
         <motion.div
+            id={UI_ID.MERCHANT_MODAL}
+            data-testid={UI_ID.MERCHANT_MODAL}
             {...overlayMotion}
             className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[var(--z-index-modal-background)] p-4"
             onClick={onClose}
@@ -183,7 +192,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                 <h3 className="text-lg font-bold text-sky-300 mb-3 sticky top-0">For Sale</h3>
                                 <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
                                     {merchantInventory.map((item, idx) => {
-                                        const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId);
+                                        const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId, priceContext);
                                         const canAfford = playerGold >= finalPrice;
                                         return (
                                             <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center shadow-sm">
@@ -225,7 +234,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                 <h3 className="text-lg font-bold text-amber-300 mb-3 sticky top-0">Your Inventory</h3>
                                 <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
                                     {sellableItems.map((item, idx) => {
-                                        const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell', regionId);
+                                        const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell', regionId, priceContext);
                                         const canSell = finalPrice > 0;
                                         return (
                                             <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600/50">

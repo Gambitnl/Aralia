@@ -10,6 +10,10 @@ interface PropFieldProps {
   minScale: number;
   maxScale: number;
   heightSampler: (x: number, z: number) => number;
+  /** Optional weighting function. Return [0,1] where 0 is "never place". */
+  placementWeight?: (x: number, z: number, scale: number) => number;
+  /** Candidate retries per instance before giving up and placing anyway. */
+  maxAttemptsPerInstance?: number;
   geometry: BufferGeometry;
   material: Material;
   yOffset?: number;
@@ -26,6 +30,8 @@ const PropField = ({
   minScale,
   maxScale,
   heightSampler,
+  placementWeight,
+  maxAttemptsPerInstance = 10,
   geometry,
   material,
   yOffset = 0,
@@ -57,15 +63,38 @@ const PropField = ({
       const bufferedSafeRadiusSq = bufferedSafeRadius * bufferedSafeRadius;
       let x = 0;
       let z = 0;
-      if (bufferedSafeRadius > 0) {
-        do {
-          x = (rng.next() - 0.5) * half * 2;
-          z = (rng.next() - 0.5) * half * 2;
-        } while ((x - centerX) ** 2 + (z - centerZ) ** 2 < bufferedSafeRadiusSq);
-      } else {
+      let placed = false;
+      let attempts = 0;
+      while (attempts < Math.max(1, maxAttemptsPerInstance)) {
+        attempts += 1;
         x = (rng.next() - 0.5) * half * 2;
         z = (rng.next() - 0.5) * half * 2;
+
+        if (bufferedSafeRadius > 0 && (x - centerX) ** 2 + (z - centerZ) ** 2 < bufferedSafeRadiusSq) {
+          continue;
+        }
+
+        if (placementWeight) {
+          const weight = Math.max(0, Math.min(1, placementWeight(x, z, scale)));
+          if (weight <= 0) continue;
+          if (weight < 1 && rng.next() > weight) continue;
+        }
+
+        placed = true;
+        break;
       }
+
+      // If we failed to find a candidate outside the reserved spawn zone after
+      // max attempts, force a point outside the zone instead of "giving up and
+      // placing anyway" on top of the player spawn.
+      if (!placed && bufferedSafeRadius > 0) {
+        const remaining = Math.max(0, half - bufferedSafeRadius);
+        const r = bufferedSafeRadius + rng.next() * remaining;
+        const theta = rng.next() * Math.PI * 2;
+        x = centerX + Math.cos(theta) * r;
+        z = centerZ + Math.sin(theta) * r;
+      }
+
       const baseY = heightSampler(x, z);
       list.push({
         x: Math.min(half, Math.max(-half, x)),
@@ -79,14 +108,15 @@ const PropField = ({
   }, [
     count,
     heightSampler,
+    maxAttemptsPerInstance,
     maxScale,
     minScale,
+    placementWeight,
     seed,
     size,
     spawnRadius,
     yOffset,
-    avoidCenter?.x,
-    avoidCenter?.z,
+    avoidCenter,
     avoidRadius,
     avoidBuffer,
   ]);

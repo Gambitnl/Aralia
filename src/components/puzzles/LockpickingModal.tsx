@@ -9,6 +9,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { Lock, Key, Hammer, AlertTriangle, CheckCircle, XCircle, Eye, Shield } from 'lucide-react';
 import { Lock as LockType, LockpickResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from '../../systems/puzzles/types';
 import { attemptLockpick, attemptBreak, hasTool, hasToolProficiency, detectTrap, disarmTrap } from '../../systems/puzzles/lockSystem';
@@ -248,7 +249,7 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
         <WindowFrame
             title="Lockpicking"
             onClose={onClose}
-            storageKey="lockpicking-window"
+            storageKey={WINDOW_KEYS.LOCKPICKING_MODAL}
         >
             <div className="flex flex-col h-full bg-gray-900 text-gray-200">
                 {/* Header / Info Bar */}

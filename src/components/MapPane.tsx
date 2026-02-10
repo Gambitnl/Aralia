@@ -16,6 +16,7 @@ import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';
+import { WINDOW_KEYS } from '../styles/uiIds';
 
 interface MapPaneProps {
   mapData: MapData;
@@ -141,6 +142,14 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   // TODO(lint-intent): 'getTileStyle' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  //
+  // IMPROVEMENT OPPORTUNITY: Dead code indicates incomplete feature implementation.
+  // This function appears to be for dynamic tile styling based on discovery state and biome.
+  // Consider:
+  // 1. Completing the intended feature by integrating with tile rendering
+  // 2. Removing the unused function to reduce code clutter
+  // 3. Moving to a dedicated tile styling utility if this logic is needed elsewhere
+  // 4. Converting to a hook if this represents ongoing state management work
   const _getTileStyle = (tile: MapTileType): React.CSSProperties => {
     const biome: Biome | undefined = BIOMES[tile.biomeId];
     let backgroundColor = 'rgba(107, 114, 128, 0.7)'; // Default discovered fallback
@@ -162,6 +171,14 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   // TODO(lint-intent): 'getTileTooltip' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  //
+  // IMPROVEMENT OPPORTUNITY: Another instance of incomplete tooltip functionality.
+  // This suggests a planned feature for contextual tile information display.
+  // Consider:
+  // 1. Implementing hover tooltips showing biome info, discovery status, and points of interest
+  // 2. Integrating with existing tooltip system for consistency
+  // 3. Adding accessibility support for screen readers
+  // 4. Creating a unified tile interaction system combining styling and tooltips
   const _getTileTooltip = (tile: MapTileType): string => {
     const biome = BIOMES[tile.biomeId];
     if (!tile.discovered) {
@@ -229,7 +246,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     <WindowFrame
       title="World Map"
       onClose={onClose}
-      storageKey="world-map-window"
+      storageKey={WINDOW_KEYS.WORLD_MAP}
     >
       <div
         className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"

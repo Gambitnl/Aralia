@@ -23,6 +23,7 @@ import { SpellData } from './SpellCardTemplate';
 import { fetchWithTimeout } from '../../utils/networkUtils';
 import { assetUrl } from '../../config/env';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 // Sub-components
 import { GlossarySidebar } from './GlossarySidebar';
@@ -302,7 +303,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       title="Game Glossary"
       onClose={onClose}
       headerActions={headerActions}
-      storageKey="glossary-modal-size"
+      storageKey={WINDOW_KEYS.GLOSSARY}
     >
       <div className="flex flex-col h-full p-6 bg-gray-900 text-gray-200">
         {/* Main content area */}

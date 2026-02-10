@@ -12,6 +12,7 @@ import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../../services/sa
 import { VersionDisplay } from '../ui/VersionDisplay';
 import { canUseDevTools } from '../../utils/permissions';
 import { t } from '../../utils/i18n';
+import { UI_ID } from '../../styles/uiIds';
 
 interface MainMenuProps {
   onNewGame: () => void;
@@ -102,7 +103,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-center p-8">
+    <div id={UI_ID.MAIN_MENU} data-testid={UI_ID.MAIN_MENU} className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-center p-8">
       <div className="bg-gray-800 p-8 md:p-12 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md text-center">
         <h1 className="text-5xl font-bold text-amber-400 mb-12 font-cinzel tracking-wider">
           {t('main_menu.title')}

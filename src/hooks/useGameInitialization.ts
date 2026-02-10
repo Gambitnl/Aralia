@@ -52,8 +52,7 @@ import { generateMap } from '../services/mapService';
 import * as SaveLoadService from '../services/saveLoadService';
 // Utility that determines which dynamic NPCs should be active at a given location.
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
-// Deterministic random number generator seeded by a numeric value for reproducible worlds.
-import { SeededRandom } from '@/utils/random';
+import { generateWorldSeed } from '../utils/random/generateWorldSeed';
 // Generates a full companion character (stats + AI-driven backstory) from a race/class config.
 import { generateCompanion } from '../services/CompanionGenerator';
 
@@ -69,12 +68,14 @@ interface UseGameInitializationProps {
   dispatch: React.Dispatch<AppAction>;
   addMessage: AddMessageFn;
   currentMapData: MapData | null;
+  worldSeed: number;
 }
 
 export function useGameInitialization({
   dispatch,
   addMessage,
   currentMapData,
+  worldSeed: currentWorldSeed,
 }: UseGameInitializationProps) {
 
   // ── handleNewGame ──────────────────────────────────────────────────────
@@ -82,8 +83,8 @@ export function useGameInitialization({
   // Generates a fresh world seed, snapshots each location's starting items,
   // builds the procedural map, and dispatches to transition into the character creator.
   const handleNewGame = useCallback(() => {
-    // Create a deterministic seed from the current timestamp, scaled up for variety.
-    const newWorldSeed = new SeededRandom(Date.now()).next() * 1000000;
+    // Each new game gets a fresh seed (time + entropy) so the world changes per run.
+    const newWorldSeed = generateWorldSeed();
 
     // Snapshot each location's default item list so items can be added/removed
     // at runtime without mutating the static LOCATIONS data.
@@ -110,7 +111,7 @@ export function useGameInitialization({
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating party with full backstories..." } });
 
     // World seed for this quick-start session.
-    const newWorldSeed = new SeededRandom(Date.now()).next() * 1000000;
+    const newWorldSeed = generateWorldSeed();
 
     // Party blueprint: each entry maps to a CompanionSkeletonConfig.
     // Race IDs must match entries in ALL_RACES_DATA (e.g. 'hill_dwarf', not 'dwarf').
@@ -247,8 +248,9 @@ export function useGameInitialization({
     // Look up the starting location for its description.
     const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
 
-    // Use the current timestamp as a seed (no need for reproducibility in previews).
-    const worldSeed = Date.now();
+    // Keep world generation and procedural systems aligned. If we already have a map,
+    // re-use its seed; otherwise generate a throwaway seed for previews.
+    const worldSeed = currentMapData ? currentWorldSeed : generateWorldSeed();
 
     // Re-use existing map data if available, otherwise generate a throwaway one.
     const mapToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
@@ -269,6 +271,7 @@ export function useGameInitialization({
     dispatch({
       type: 'INITIALIZE_DUMMY_PLAYER_STATE',
       payload: {
+        worldSeed,
         mapData: mapToUse,
         dynamicLocationItemIds: dynamicItemsToUse,
         initialLocationDescription: initialLocation.baseDescription,
@@ -276,7 +279,7 @@ export function useGameInitialization({
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
       }
     });
-  }, [currentMapData, dispatch]);
+  }, [currentMapData, currentWorldSeed, dispatch]);
 
   // Expose all five flows to the consuming component.
   return {

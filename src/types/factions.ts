@@ -62,7 +62,17 @@ export interface Faction {
   // Dynamic state
   power: number; // 0-100, represents overall influence/strength
   assets: FactionAsset[]; // Territories, resources, etc.
+
+  // Economic state (Living Economy System)
+  treasury: number;                // Gold the faction controls
+  taxRate: number;                 // 0-100 percent on commerce in controlled regions
+  controlledRegionIds: string[];   // Regions where this faction collects taxes
+  controlledRouteIds: string[];    // Trade routes this faction controls
+  economicPolicy: FactionEconomicPolicy;
+  tradeGoodPriorities: string[];   // Goods this faction prioritizes trading
 }
+
+export type FactionEconomicPolicy = 'protectionist' | 'free_trade' | 'exploitative' | 'mercantile';
 
 export interface ReputationEvent {
   id: string;

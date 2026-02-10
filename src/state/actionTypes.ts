@@ -29,7 +29,7 @@ export type AppAction =
   | { type: 'TOGGLE_SUBMAP_VISIBILITY' }
   | { type: 'TOGGLE_THREE_D_VISIBILITY' }
   | { type: 'SET_MAP_DATA'; payload: MapData }
-  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null } }
+  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null } }
   | { type: 'SET_GEMINI_ACTIONS'; payload: Action[] | null }
   | { type: 'OPEN_CHARACTER_SHEET'; payload: PlayerCharacter }
   | { type: 'CLOSE_CHARACTER_SHEET' }
@@ -217,6 +217,32 @@ export type AppAction =
   | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
   | { type: 'TOGGLE_NAVAL_DASHBOARD' }
   | { type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }
+  // Economy & Investment Actions
+  | { type: 'INVEST_IN_CARAVAN'; payload: { tradeRouteId: string; goldAmount: number } }
+  | { type: 'COLLECT_INVESTMENT'; payload: { investmentId: string } }
+  | { type: 'TAKE_LOAN'; payload: { lenderId: string; factionId?: string; amount: number; interestRate: number; durationDays: number } }
+  | { type: 'REPAY_LOAN'; payload: { investmentId: string; amount: number } }
+  | { type: 'SPECULATE_ON_GOODS'; payload: { goodCategory: string; quantity: number; regionId: string; buyPrice: number } }
+  | { type: 'SELL_SPECULATION'; payload: { investmentId: string; regionId: string } }
+  | { type: 'TOGGLE_ECONOMY_LEDGER' }
+  | { type: 'TOGGLE_COURIER_POUCH' }
+  // Business Actions
+  | { type: 'FOUND_BUSINESS'; payload: { strongholdId: string; businessType: import('../types/business').BusinessType } }
+  | { type: 'SET_BUSINESS_PRICES'; payload: { businessId: string; priceMultiplier: number } }
+  | { type: 'SIGN_SUPPLY_CONTRACT'; payload: { businessId: string; contract: import('../types/business').SupplyContract } }
+  | { type: 'CANCEL_SUPPLY_CONTRACT'; payload: { businessId: string; contractId: string } }
+  // World Business Actions (NPC-owned & acquisition)
+  | { type: 'REGISTER_WORLD_BUSINESS'; payload: { business: import('../types/business').WorldBusiness } }
+  | { type: 'PURCHASE_BUSINESS'; payload: { businessId: string; negotiatedPrice: number } }
+  | { type: 'COERCE_BUSINESS_SALE'; payload: { businessId: string; discountPercent: number } }
+  | { type: 'CREATE_PARTNERSHIP'; payload: { businessId: string; investmentAmount: number; playerSharePercent: number } }
+  | { type: 'BUYOUT_PARTNER'; payload: { businessId: string; buyoutPrice: number } }
+  | { type: 'ACCEPT_FACTION_GRANT'; payload: { factionId: string; locationId: string; businessType: import('../types/business').BusinessType } }
+  | { type: 'FOUND_STANDALONE_BUSINESS'; payload: { locationId: string; businessType: import('../types/business').BusinessType } }
+  | { type: 'ASSIGN_MANAGER'; payload: { businessId: string; npcId: string } }
+  | { type: 'REMOVE_MANAGER'; payload: { businessId: string } }
+  | { type: 'MANAGE_BUSINESS'; payload: { businessId: string } }
+  | { type: 'DISSOLVE_PARTNERSHIP'; payload: { businessId: string } }
   // Crafting Actions
   | { type: 'INIT_CRAFTING_STATE'; payload: { toolProficiencies: string[] } }
   | { type: 'LEARN_RECIPE'; payload: { recipeId: string } }

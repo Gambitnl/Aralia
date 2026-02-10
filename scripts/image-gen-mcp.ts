@@ -288,13 +288,23 @@ async function startGeminiNewChat(page: Page): Promise<boolean> {
     await dismissOverlays();
 
     async function clickNewChatIfVisible(): Promise<boolean> {
-        const btn = await page.$(config.selectors.newChat!).catch(() => null);
-        if (!btn) return false;
+        const loc = page.locator(config.selectors.newChat!).first();
+        const visible = await loc.isVisible({ timeout: 500 }).catch(() => false);
+        if (!visible) return false;
+
+        // Gemini sometimes leaves a discovery/feature overlay hanging around (often in CDK containers)
+        // that intercepts pointer events and makes "normal" clicks time out. Force-click on retry.
         try {
-            await btn.click({ timeout: 5000 });
+            await loc.click({ timeout: 5000 });
             return true;
         } catch {
-            return false;
+            await dismissOverlays().catch(() => undefined);
+            try {
+                await loc.click({ timeout: 5000, force: true });
+                return true;
+            } catch {
+                return false;
+            }
         }
     }
 
@@ -659,8 +669,9 @@ async function generateImage(prompt: string, provider: Provider = "gemini"): Pro
         // Submit (prefer clicking an explicit send button; fallback to pressing Enter on the input itself).
         let submitted = false;
         for (const selector of config.selectors.submit) {
-            const btn = await page.$(selector).catch(() => null);
-            if (!btn) continue;
+            const btn = page.locator(selector).first();
+            const visible = await btn.isVisible({ timeout: 500 }).catch(() => false);
+            if (!visible) continue;
             const enabled = await btn.isEnabled().catch(() => false);
             if (!enabled) continue;
             try {
@@ -670,7 +681,32 @@ async function generateImage(prompt: string, provider: Provider = "gemini"): Pro
             } catch (e: unknown) {
                 // If a backdrop/menu intercepts the click, try another selector or fall back to Enter.
                 log(`[gemini] Submit click failed for selector "${selector}": ${getErrorMessage(e)}`);
-                continue;
+
+                // Gemini discovery overlays (often CDK-based) can intercept pointer events. Clear them and retry force-click.
+                try {
+                    await page.keyboard.press("Escape").catch(() => undefined);
+                    await page.keyboard.press("Escape").catch(() => undefined);
+                } catch {
+                    // ignore
+                }
+                try {
+                    const backdrop = page.locator(".cdk-overlay-backdrop").first();
+                    const hasBackdrop = await backdrop.isVisible({ timeout: 200 }).catch(() => false);
+                    if (hasBackdrop) {
+                        await backdrop.click({ timeout: 1000, force: true }).catch(() => undefined);
+                    }
+                } catch {
+                    // ignore
+                }
+
+                try {
+                    await btn.click({ timeout: 5000, force: true });
+                    submitted = true;
+                    break;
+                } catch (e2: unknown) {
+                    log(`[gemini] Submit force-click also failed for selector "${selector}": ${getErrorMessage(e2)}`);
+                    continue;
+                }
             }
         }
 

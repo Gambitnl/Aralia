@@ -10,6 +10,9 @@ import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { calculatePrice } from '../../utils/economy/economyUtils';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
+import { generateNpcBusiness, pickBusinessTypeForMerchant } from '../../systems/economy/NpcBusinessManager';
+import { SeededRandom } from '@/utils/random';
+import { getGameDay } from '../../utils/core';
 
 function clampNumber(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -137,6 +140,17 @@ export async function handleOpenDynamicMerchant({
 
       // Persist to state
       dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc } });
+
+      // Generate NPC's business and link it
+      const bizRng = new SeededRandom((gameState.worldSeed || 42) + resolvedBuildingId.length);
+      const bizType = pickBusinessTypeForMerchant(bizRng);
+      const locationId = gameState.currentLocationId || 'unknown';
+      const gameDay = getGameDay(gameState.gameTime);
+      const npcBusiness = generateNpcBusiness(npc, locationId, bizType, gameDay, bizRng);
+      npc = { ...npc, businessId: npcBusiness.id };
+      dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc } }); // re-register with businessId
+      dispatch({ type: 'REGISTER_WORLD_BUSINESS', payload: { business: npcBusiness } });
+
       addMessage(`A new face greets you: ${npc.name}, the ${npc.biography.age}-year-old ${npc.biography.classId}.`, 'system');
     } else {
       addMessage(`You recognize ${npc.name}.`, 'system');

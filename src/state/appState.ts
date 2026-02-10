@@ -53,6 +53,7 @@ import { craftingReducer } from './reducers/craftingReducer';
 import { conversationReducer } from './reducers/conversationReducer';
 import { journalReducer } from './reducers/journalReducer';
 import { legacyReducer } from './reducers/legacyReducer';
+import { economyReducer } from './reducers/economyReducer';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
@@ -593,6 +594,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const dummyGameTime = createInitialGameTime();
             return {
                 ...state,
+                worldSeed: action.payload.worldSeed,
                 messages: [
                     { id: Date.now() + Math.random(), text: `Welcome, ${state.party[0]!.name} and party! Your adventure begins (Dev Mode - Auto Start).`, sender: 'system', timestamp: new Date() },
                     { id: Date.now() + Math.random() + 1, text: action.payload.initialLocationDescription, sender: 'system', timestamp: new Date() }
@@ -796,6 +798,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             nextState = { ...nextState, ...conversationReducer(nextState, action) };
             nextState = { ...nextState, ...journalReducer(nextState, action) };
             nextState = { ...nextState, ...legacyReducer(nextState, action) };
+            nextState = { ...nextState, ...economyReducer(nextState, action) };
 
             return nextState;
         }

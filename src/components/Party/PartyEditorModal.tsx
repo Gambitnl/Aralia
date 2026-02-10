@@ -7,6 +7,7 @@ import { PlayerCharacter, TempPartyMember } from '../../types';
 import { PartyManager } from '../EncounterGenerator/PartyManager';
 import { getDummyParty } from '../../data/dev/dummyCharacter';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface PartyEditorModalProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
     <WindowFrame
       title="Edit Encounter Party"
       onClose={onClose}
-      storageKey="party-editor-window"
+      storageKey={WINDOW_KEYS.PARTY_EDITOR}
     >
       <div className="flex flex-col h-full bg-gray-800 p-6">
         <div className="flex-grow pr-2 h-full overflow-hidden">

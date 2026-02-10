@@ -7,6 +7,7 @@
 import React from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { t } from '../../utils/i18n';
+import { UI_ID } from '../../styles/uiIds';
 
 export interface LoadingSpinnerProps {
   message?: string | null; // Optional message to display
@@ -29,6 +30,8 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   const displayMessage = message || t('app.ui.loading.default');
   return (
     <motion.div
+      id={UI_ID.LOADING_SPINNER}
+      data-testid={UI_ID.LOADING_SPINNER}
       {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)]"
       aria-label="Loading content"

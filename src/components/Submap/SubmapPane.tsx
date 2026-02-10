@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * 
+ * Last Sync: 10/02/2026, 19:54:44
+ * Dependents: None (Orphan)
+ * Imports: 20 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file SubmapPane.tsx
  * This component displays the visual submap for the player's current
@@ -19,6 +35,7 @@ import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisu
 import SubmapTile from './SubmapTile';
 import { CaTileType } from '../../services/cellularAutomataService';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 // Modularized imports
 import {
@@ -68,7 +85,7 @@ interface SubmapPaneProps {
 }
 
 
-const SubmapPane: React.FC<SubmapPaneProps> = ({
+const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
     currentLocation,
     currentWorldBiomeId,
     playerSubmapCoords,
@@ -246,13 +263,10 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         return visuals;
     }, [simpleHash, visualsConfig, pathDetails, activeSeededFeatures, caGrid, wfcGrid]);
 
-    // Pathfinding grid feeds quick travel previews and path overlays; split out for clarity.
-    // TODO: Share the visuals computed below with the quick-travel grid instead of re-running
-    // `getTileVisuals` twice (once for the render grid, once for pathfinding). Memoizing a single
-    // visuals map would cut this work roughly in half.
+    // Pathfinding grid feeds quick travel previews and path overlays; now shares computed visuals
     const pathfindingGrid = usePathfindingGrid({
         submapDimensions,
-        getTileVisuals,
+        getTileVisualsFromMap: (x: number, y: number) => sharedVisualsMap.get(`${x},${y}`),
         playerCharacter,
         gameTime,
     });
@@ -321,6 +335,56 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         }
     }, [disabled, isQuickTravelMode, isInspecting, quickTravelData, inspectableTiles, onAction, currentWorldBiomeId, parentWorldMapCoords]);
 
+    // Memoized grid data selector to pre-compute derived values and reduce re-renders
+    const memoizedSubmapGrid = useMemo(() => {
+        const grid = [];
+        for (let r = 0; r < submapDimensions.rows; r++) {
+            for (let c = 0; c < submapDimensions.cols; c++) {
+                const visuals = getTileVisuals(r, c);
+                const tileKey = `${c},${r}`;
+                const isPlayerPos = playerSubmapCoords?.x === c && playerSubmapCoords?.y === r;
+                
+                grid.push({
+                    r,
+                    c,
+                    visuals,
+                    tileKey,
+                    isPlayerPos,
+                    // Pre-compute commonly used derived values
+                    isHighlightedForInspection: isInspecting && inspectableTiles.has(tileKey),
+                    isInteractiveResource: !isInspecting && !isQuickTravelMode && visuals.isResource && 
+                        ((Math.abs(c - playerSubmapCoords.x) <= 1 && Math.abs(r - playerSubmapCoords.y) <= 1)),
+                    isInQuickTravelPath: isQuickTravelMode && quickTravelData.path.has(tileKey),
+                    isBlockedForTravel: pathfindingGrid.get(tileKey)?.blocksMovement === true,
+                    isHovered: hoveredTile?.x === c && hoveredTile?.y === r
+                });
+            }
+        }
+        return grid;
+    }, [
+        submapDimensions.rows,
+        submapDimensions.cols,
+        getTileVisuals,
+        playerSubmapCoords,
+        isInspecting,
+        isQuickTravelMode,
+        inspectableTiles,
+        quickTravelData.path,
+        pathfindingGrid,
+        hoveredTile
+    ]);
+
+    // Create shared visuals map to eliminate duplicate computation between rendering and pathfinding
+    const sharedVisualsMap = useMemo(() => {
+        const map = new Map<string, VisualLayerOutput>();
+        for (let r = 0; r < submapDimensions.rows; r++) {
+            for (let c = 0; c < submapDimensions.cols; c++) {
+                map.set(`${c},${r}`, getTileVisuals(r, c));
+            }
+        }
+        return map;
+    }, [submapDimensions.rows, submapDimensions.cols, getTileVisuals]);
+
     const scheduleHoverUpdate = useCallback((nextHover: { x: number; y: number } | null) => {
         // Use rAF to coalesce rapid mousemove events; this keeps hover updates from thrashing React state.
         if (hoverFrameRef.current) cancelAnimationFrame(hoverFrameRef.current);
@@ -339,29 +403,29 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         // Ensure any pending hover rAF callbacks are cancelled when the pane unmounts.
         if (hoverFrameRef.current) cancelAnimationFrame(hoverFrameRef.current);
     }, []);
-    const toggleGlossary = () => setIsGlossaryOpen(!isGlossaryOpen);
+    const toggleGlossary = useCallback(() => setIsGlossaryOpen(!isGlossaryOpen), [isGlossaryOpen]);
 
-    const handleInspectClick = () => {
+    const handleInspectClick = useCallback(() => {
         if (disabled) return;
         setIsQuickTravelMode(false);
         setIsInspecting(!isInspecting);
         setInspectionMessage(isInspecting ? null : "Select an adjacent tile to inspect.");
-    };
+    }, [disabled, isInspecting]);
 
-    const handleQuickTravelClick = () => {
+    const handleQuickTravelClick = useCallback(() => {
         if (disabled) return;
         setIsInspecting(false);
         setInspectionMessage(null);
         setIsQuickTravelMode(!isQuickTravelMode);
-    };
+    }, [disabled, isQuickTravelMode]);
 
-    const handleThreeDClick = () => {
+    const handleThreeDClick = useCallback(() => {
         if (disabled) return;
         setIsInspecting(false);
         setInspectionMessage(null);
         setIsQuickTravelMode(false);
         setIsThreeDOpen(true);
-    };
+    }, [disabled]);
 
     // Legend items are generated from the visuals config so React + Pixi share the same glossary.
     const glossaryItems = useSubmapGlossaryItems(visualsConfig);
@@ -384,7 +448,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         <WindowFrame
             title={`Local Area Scan - ${currentLocation.name}`}
             onClose={onClose}
-            storageKey="submap-window"
+            storageKey={WINDOW_KEYS.SUBMAP}
         >
             <div className="flex flex-col h-full w-full bg-gray-800 p-1 md:p-2">
                 {isInspecting && inspectionMessage && (
@@ -417,15 +481,12 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                             <p id="submap-grid-description" className="sr-only">
                                 Submap grid showing local terrain features. Your current position is marked with a person icon.
                             </p>
-                            {/* OPTIMIZATION: Use submapGridWithTooltips to avoid re-generating strings on hover */}
-                            {submapGridWithTooltips.map(({ r, c, visuals, tooltipContent }) => {
-                                const isPlayerPos = playerSubmapCoords?.x === c && playerSubmapCoords?.y === r;
-                                const tileKey = `${c},${r}`;
-                                const isHighlightedForInspection = isInspecting && inspectableTiles.has(tileKey);
-                                const isInteractiveResource = !isInspecting && !isQuickTravelMode && visuals.isResource && ((Math.abs(c - playerSubmapCoords.x) <= 1 && Math.abs(r - playerSubmapCoords.y) <= 1));
-                                const isInQuickTravelPath = isQuickTravelMode && quickTravelData.path.has(tileKey);
-                                const isBlockedForTravel = pathfindingGrid.get(tileKey)?.blocksMovement === true;
-                                const isHovered = hoveredTile?.x === c && hoveredTile?.y === r;
+                            {/* Use memoized grid data to avoid re-computing derived values on every render */}
+                            {memoizedSubmapGrid.map(({ 
+                                r, c, visuals, tileKey, isPlayerPos, 
+                                isHighlightedForInspection, isInteractiveResource,
+                                isInQuickTravelPath, isBlockedForTravel, isHovered 
+                            }) => {
                                 const isDestination = isQuickTravelMode && isHovered;
 
                                 return (
@@ -434,7 +495,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                         r={r}
                                         c={c}
                                         visuals={visuals}
-                                        tooltipContent={tooltipContent}
+                                        tooltipContent={submapGridWithTooltips.find(t => t.r === r && t.c === c)?.tooltipContent || ''}
                                         isPlayerPos={isPlayerPos}
                                         isHighlightedForInspection={isHighlightedForInspection}
                                         isInteractiveResource={isInteractiveResource}
@@ -610,9 +671,26 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                     partyMembers={partyMembers}
                     parentWorldMapCoords={parentWorldMapCoords}
                     playerSubmapCoords={playerSubmapCoords}
+                    onMove={(direction) => onAction({ type: 'move', payload: {}, targetId: direction, label: `Move ${direction}` })}
                 />
             </div>
         </WindowFrame>
     );
-};
+}, (prevProps, nextProps) => {
+    // Custom props comparison focusing on actual change indicators
+    // Only re-render when props that affect rendering change
+    return (
+        prevProps.playerSubmapCoords.x === nextProps.playerSubmapCoords.x &&
+        prevProps.playerSubmapCoords.y === nextProps.playerSubmapCoords.y &&
+        prevProps.disabled === nextProps.disabled &&
+        prevProps.currentWorldBiomeId === nextProps.currentWorldBiomeId &&
+        prevProps.submapDimensions.rows === nextProps.submapDimensions.rows &&
+        prevProps.submapDimensions.cols === nextProps.submapDimensions.cols &&
+        prevProps.mapData === nextProps.mapData &&
+        prevProps.gameTime.getTime() === nextProps.gameTime.getTime() &&
+        prevProps.playerCharacter === nextProps.playerCharacter
+        // Note: Local state changes (isInspecting, isQuickTravelMode) will naturally trigger re-renders
+        // so we don't need to include them in the comparison
+    );
+});
 export default SubmapPane;

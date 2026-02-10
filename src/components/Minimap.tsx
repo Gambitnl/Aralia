@@ -24,6 +24,7 @@ import {
   applyScatterVisuals
 } from './Submap/submapVisuals';
 import { Z_INDEX } from '../styles/zIndex';
+import { UI_ID } from '../styles/uiIds';
 
 // ============================================================================
 // PROPS INTERFACE
@@ -433,6 +434,8 @@ const Minimap: React.FC<MinimapProps> = ({
 
   return (
     <div
+      id={UI_ID.MINIMAP}
+      data-testid={UI_ID.MINIMAP}
       className={`absolute top-4 right-4 z-[${Z_INDEX.MINIMAP}] shadow-lg rounded-lg overflow-hidden border-2 border-amber-700 bg-black cursor-pointer hover:opacity-90 transition-opacity`}
       onClick={toggleSubmap}
       onKeyDown={(event) => {

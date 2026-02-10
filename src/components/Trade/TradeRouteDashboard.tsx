@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { TradeRoute, MarketEvent } from '../../types/economy';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import RouteCard from './RouteCard';
 import MarketEventCard from './MarketEventCard';
 
@@ -51,7 +52,7 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
         <WindowFrame
             title="Trade Route Monitor"
             onClose={onClose}
-            storageKey="trade-route-dashboard"
+            storageKey={WINDOW_KEYS.TRADE_ROUTE_DASHBOARD}
         >
             <div className="flex flex-col h-full bg-gray-900">
                 {/* Stats Overview */}

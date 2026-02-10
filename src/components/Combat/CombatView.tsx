@@ -22,6 +22,7 @@ import { useCombatLog } from '../../hooks/combat/useCombatLog';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
 import { Z_INDEX } from '../../styles/zIndex';
+import { UI_ID } from '../../styles/uiIds';
 import { useSummons } from '../../hooks/combat/useSummons';
 import InitiativeTracker from '../BattleMap/InitiativeTracker';
 import AbilityPalette from '../BattleMap/AbilityPalette';
@@ -285,7 +286,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const currentCharacter = turnManager.getCurrentCharacter();
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4 relative">
+    <div id={UI_ID.COMBAT_VIEW} data-testid={UI_ID.COMBAT_VIEW} className="bg-gray-900 text-white min-h-screen flex flex-col p-4 relative">
       {/* Victory / Defeat Modal */}
       {battleState !== 'active' && (
         <div className="absolute inset-0 bg-black/80 z-[var(--z-index-modal-background)] flex items-center justify-center">

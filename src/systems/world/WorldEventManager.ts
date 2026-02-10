@@ -20,6 +20,9 @@ import { WorldHistoryService } from '../../services/WorldHistoryService';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/world/historyUtils';
 import { calculateMarketFactors } from '../../utils/economy/marketEvents';
 import { BountyHunterSystem } from '../crime/BountyHunterSystem';
+import { updateRegionalWealth, updateGlobalInflation } from '../economy/RegionalEconomySystem';
+import { processFactionDailyEconomics } from './FactionEconomyManager';
+import { processDeliveries } from '../economy/EconomicIntelSystem';
 
 export const DAILY_EVENT_CHANCE = 0.1;
 
@@ -628,6 +631,53 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
                 sender: 'system',
                 timestamp: currentState.gameTime
             });
+        }
+    }
+
+    // 6. Regional Wealth & Inflation Update
+    const updatedRegionalWealth = updateRegionalWealth(currentState.economy, daysPassed, rng);
+    const updatedInflation = updateGlobalInflation(currentState.economy, daysPassed);
+    currentState = {
+        ...currentState,
+        economy: {
+            ...currentState.economy,
+            regionalWealth: updatedRegionalWealth,
+            globalInflation: updatedInflation
+        }
+    };
+
+    // 7. Faction Economics (Treasury, Taxes, Route Competition)
+    for (let i = 0; i < daysPassed; i++) {
+        const factionEconResult = processFactionDailyEconomics(
+            currentState.factions,
+            currentState.economy,
+            rng
+        );
+        currentState = { ...currentState, factions: factionEconResult.factions };
+        for (const logText of factionEconResult.logs) {
+            allLogs.push({
+                id: Date.now() + rng.next(),
+                text: logText,
+                sender: 'system',
+                timestamp: currentState.gameTime
+            });
+        }
+    }
+
+    // 8. Courier Delivery (Information Trickle)
+    const pendingCouriers = currentState.pendingCouriers || [];
+    if (pendingCouriers.length > 0) {
+        const { delivered, remaining } = processDeliveries(pendingCouriers, currentDay);
+        if (delivered.length > 0) {
+            for (const courier of delivered) {
+                allLogs.push({
+                    id: Date.now() + rng.next(),
+                    text: `[Courier] ${courier.messageText}`,
+                    sender: 'system',
+                    timestamp: currentState.gameTime
+                });
+            }
+            currentState = { ...currentState, pendingCouriers: remaining };
         }
     }
 

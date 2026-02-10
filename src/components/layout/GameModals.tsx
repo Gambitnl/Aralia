@@ -192,7 +192,9 @@ const GameModals: React.FC<GameModalsProps> = ({
                     partyMembers={gameState.party}
                     parentWorldMapCoords={currentLocation.mapCoordinates}
                     playerSubmapCoords={gameState.subMapCoordinates}
+                    onMove={(direction) => onAction({ type: 'move', payload: {}, targetId: direction, label: `Move ${direction}` })}
                     isDevModeEnabled={gameState.isDevModeEnabled}
+                    devModelOverride={gameState.devModelOverride}
                 />
             )}
 
@@ -434,14 +436,14 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Dialogue Interface (Conversation) */}
-            {gameState.isDialogueInterfaceOpen && gameState.activeDialogueSession && gameState.party[0] && (
+            {gameState.isDialogueInterfaceOpen && gameState.activeDialogueSession && gameState.party[0] && (NPCS[gameState.activeDialogueSession.npcId] || gameState.generatedNpcs?.[gameState.activeDialogueSession.npcId]) && (
                 <Suspense fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Conversation.">
                         <DialogueInterface
                             isOpen={gameState.isDialogueInterfaceOpen}
                             session={gameState.activeDialogueSession}
                             gameState={gameState}
-                            npc={NPCS[gameState.activeDialogueSession.npcId]}
+                            npc={(NPCS[gameState.activeDialogueSession.npcId] || gameState.generatedNpcs?.[gameState.activeDialogueSession.npcId])!}
                             playerCharacter={gameState.party[0]}
                             onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}

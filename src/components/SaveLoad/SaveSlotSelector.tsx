@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../../services/saveLoadService';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { UI_ID } from '../../styles/uiIds';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -114,7 +115,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   );
 
   return (
-    <div ref={rootRef} className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]">
+    <div ref={rootRef} id={UI_ID.SAVE_SLOT_SELECTOR} data-testid={UI_ID.SAVE_SLOT_SELECTOR} className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[var(--z-index-modal-background)]">
       <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl p-6 text-gray-100">
         <div className="flex items-center justify-between mb-4">
           <div>

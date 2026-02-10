@@ -15,6 +15,7 @@ import _Tooltip from '../ui/Tooltip';
 import { DEITIES } from '../../data/deities';
 import { getDivineStanding } from '../../utils/religionUtils';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 
 interface TempleModalProps {
     isOpen: boolean;
@@ -72,7 +73,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
         <WindowFrame
             title={temple.name}
             onClose={onClose}
-            storageKey="temple-window"
+            storageKey={WINDOW_KEYS.TEMPLE_MODAL}
         >
             <div className="flex flex-col h-full bg-gray-900 rounded-b-xl overflow-hidden">
                 {/* Header Info - Moved inside content since WindowFrame has its own title bar */}

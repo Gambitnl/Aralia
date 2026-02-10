@@ -32,6 +32,7 @@ import { ExperimentPanel } from './ExperimentPanel';
 import { IngredientGlossaryPanel } from './IngredientGlossaryPanel';
 import { createInitialCraftingState, CraftingState } from '../../types/crafting';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import './AlchemyBenchPanel.css';
 
 interface AlchemyBenchPanelProps {
@@ -601,7 +602,7 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
         <WindowFrame
             title="⚗️ Alchemy & Crafting Bench"
             onClose={onClose}
-            storageKey="alchemy-bench-panel"
+            storageKey={WINDOW_KEYS.ALCHEMY_BENCH}
         >
             <div className="alchemy-bench-panel">
 

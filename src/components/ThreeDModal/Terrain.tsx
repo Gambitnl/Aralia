@@ -5,7 +5,6 @@ import { BufferAttribute, Color as ThreeColor, PlaneGeometry } from 'three';
 interface TerrainProps {
   size: number;
   heightSampler: (x: number, z: number) => number;
-  slopeSampler: (x: number, z: number) => number;
   moistureSampler: (x: number, z: number) => number;
   color: Color;
   showGrid: boolean;
@@ -23,7 +22,6 @@ type ShaderWithUniforms = {
 const Terrain = ({
   size,
   heightSampler,
-  slopeSampler,
   moistureSampler,
   color,
   showGrid,
@@ -42,8 +40,11 @@ const Terrain = ({
   );
   const geometry = useMemo(() => {
     const segments = Math.max(64, Math.round(size / 40));
+    const step = size / segments;
+    const stride = segments + 1;
     const next = new PlaneGeometry(size, size, segments, segments);
     const positions = next.attributes.position;
+    const heights = new Float32Array(positions.count);
     const slopeValues = new Float32Array(positions.count);
     const moistureValues = new Float32Array(positions.count);
     let slopeMax = 0;
@@ -52,11 +53,26 @@ const Terrain = ({
       const x = positions.getX(i);
       const z = positions.getY(i);
       const height = heightSampler(x, z);
-      const slope = slopeSampler(x, z);
+      heights[i] = height;
       positions.setZ(i, height);
-      slopeValues[i] = slope;
       moistureValues[i] = moistureSampler(x, z);
-      if (slope > slopeMax) slopeMax = slope;
+    }
+
+    // Compute slope from the height grid directly. This avoids re-sampling the
+    // height field (which can be expensive once we add richer terrain features).
+    for (let iz = 0; iz < stride; iz += 1) {
+      for (let ix = 0; ix < stride; ix += 1) {
+        const i = ix + iz * stride;
+        const iL = ix > 0 ? i - 1 : i;
+        const iR = ix < stride - 1 ? i + 1 : i;
+        const iD = iz > 0 ? i - stride : i;
+        const iU = iz < stride - 1 ? i + stride : i;
+        const dhdx = (heights[iR] - heights[iL]) / (ix > 0 && ix < stride - 1 ? 2 * step : step);
+        const dhdz = (heights[iU] - heights[iD]) / (iz > 0 && iz < stride - 1 ? 2 * step : step);
+        const slope = Math.sqrt(dhdx * dhdx + dhdz * dhdz);
+        slopeValues[i] = slope;
+        if (slope > slopeMax) slopeMax = slope;
+      }
     }
 
     const slopeScale = slopeMax > 0 ? 1 / slopeMax : 1;
@@ -69,7 +85,7 @@ const Terrain = ({
     positions.needsUpdate = true;
     next.computeVertexNormals();
     return next;
-  }, [heightSampler, moistureSampler, size, slopeSampler]);
+  }, [heightSampler, moistureSampler, size]);
 
   useEffect(() => () => {
     geometry.dispose();

@@ -76,3 +76,56 @@ export interface RegionalEconomy {
   imports: string[]; // Categories or Item IDs they need (Expensive here)
   wealthLevel: number; // 0-100 modifier on prices
 }
+
+// --- Investment & Finance Types ---
+
+export type InvestmentType = 'caravan' | 'business' | 'loan_given' | 'loan_taken' | 'speculation';
+
+export interface PlayerInvestment {
+  id: string;
+  type: InvestmentType;
+  principalGold: number;
+  currentValue: number;
+  startDay: number;
+  durationDays: number;
+  riskLevel: number;          // 0-1
+  regionId?: string;
+  tradeRouteId?: string;
+  factionId?: string;         // Lending/borrowing faction
+  goodCategory?: string;      // For speculation: the trade good category
+  status: 'active' | 'completed' | 'failed' | 'defaulted';
+  interestRate?: number;      // Per period (e.g., 0.05 = 5% per duration)
+  lastUpdateDay: number;
+}
+
+export interface LoanOffer {
+  lenderId: string;
+  lenderName: string;
+  factionId?: string;
+  maxAmount: number;
+  interestRate: number;
+  minDuration: number;
+  maxDuration: number;
+  collateralRequired?: 'stronghold' | 'none';
+}
+
+// --- Information Delivery Types ---
+
+export type CourierMessageType = 'business_report' | 'investment_result' | 'market_intel' | 'loan_notice' | 'faction_edict';
+
+export interface PendingCourier {
+  id: string;
+  sourceRegionId: string;
+  deliveryDay: number;
+  messageText: string;
+  accuracy: number;           // 0-1, how truthful (rumors can be wrong)
+  type: CourierMessageType;
+  payload?: Record<string, unknown>;
+}
+
+export interface PlayerInvestmentReport {
+  investmentId: string;
+  lastKnownStatus: string;
+  reportAge: number;          // Days since last actual report
+  isEstimate: boolean;        // True if extrapolated, not actual data
+}

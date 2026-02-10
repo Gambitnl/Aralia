@@ -4,6 +4,7 @@ import { DialogueSession, ConversationTopic } from '../../types/dialogue';
 import { GameState, NPC, PlayerCharacter } from '../../types';
 import { getAvailableTopics, processTopicSelection, ProcessTopicResult } from '../../services/dialogueService';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { UI_ID } from '../../styles/uiIds';
 
 interface DialogueInterfaceProps {
     isOpen: boolean;
@@ -87,7 +88,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     if (!isOpen || !session) return null;
 
     return (
-        <div className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
+        <div id={UI_ID.DIALOGUE_INTERFACE} data-testid={UI_ID.DIALOGUE_INTERFACE} className="fixed inset-0 z-[var(--z-index-modal-background)] flex items-center justify-center bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
             <motion.div
                 ref={modalRef}
                 initial={{ opacity: 0, scale: 0.95 }}

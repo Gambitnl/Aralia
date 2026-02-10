@@ -552,6 +552,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       playerInvestments: [],
       pendingCouriers: [],
       businesses: {},
+      worldBusinesses: {},
       activeRitual: null,
       banterCooldowns: {},
       // TODO(2026-01-03 pass 4 Codex-CLI): banter debug log placeholder; surface real logs when conversational banter system wires through state.
@@ -704,6 +705,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       playerInvestments: [],
       pendingCouriers: [],
       businesses: {},
+      worldBusinesses: {},
       activeRitual: null,
       banterCooldowns: {},
       // TODO: Fix TS2741 - missing archivedBanters in fallback

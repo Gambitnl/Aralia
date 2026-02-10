@@ -10,23 +10,35 @@ const parseRgba = (rgba: string | undefined, fallback = '#1f2937'): Color => {
   return new Color(r / 255, g / 255, b / 255);
 };
 
-const getFogDensity = (biomeId: string | null | undefined): number => {
+const getFogDensity = (biomeId: string | null | undefined, sunHeight: number): number => {
   const base = 0.00035;
+  let density = base;
+  
   switch (biomeId) {
     case 'swamp':
-      return base * 3.5;
+      density = base * 3.5;
+      break;
     case 'forest':
-      return base * 2.2;
+      density = base * 2.2;
+      break;
     case 'desert':
-      return base * 0.8;
+      density = base * 0.8;
+      break;
     case 'ocean':
-      return base * 1.6;
+      density = base * 1.6;
+      break;
     case 'cave':
     case 'dungeon':
-      return base * 4.5;
+      density = base * 4.5;
+      break;
     default:
-      return base;
+      density = base;
   }
+  
+  // Modulate fog density based on time of day
+  // More fog at dawn/dusk, less during midday
+  const timeModulation = 0.7 + 0.6 * Math.abs(sunHeight);
+  return density * timeModulation;
 };
 
 export const getLightingForTime = (gameTime: Date, biomeId: string | null | undefined, biomeRgba?: string) => {
@@ -45,10 +57,18 @@ export const getLightingForTime = (gameTime: Date, biomeId: string | null | unde
   const sunColor = new Color(0xfff3d6).lerp(new Color(0xffb37a), warmBlend);
   const ambientColor = new Color(0xbcc8e3).lerp(new Color(0x1b2233), nightStrength * 0.8);
 
+  // Enhanced lighting with ambient occlusion simulation
   const sunIntensity = 0.25 + sunStrength * 0.95;
   const ambientIntensity = 0.18 + sunStrength * 0.5;
+  
+  // Simulate ambient occlusion based on time of day
+  const ambientOcclusion = {
+    intensity: 0.3 + nightStrength * 0.4, // Stronger AO at night
+    color: new Color(0x1a1a2e).lerp(new Color(0x3a3a4a), sunStrength)
+  };
+
   const fogColor = dayFog.lerp(nightFog, nightStrength);
-  const fogDensity = getFogDensity(biomeId);
+  const fogDensity = getFogDensity(biomeId, sunHeight);
 
   const sunDirection = new Vector3(
     Math.cos(sunAngle),
@@ -65,5 +85,6 @@ export const getLightingForTime = (gameTime: Date, biomeId: string | null | unde
     fogDensity,
     sunDirection,
     biomeColor,
+    ambientOcclusion // New AO properties
   };
 };

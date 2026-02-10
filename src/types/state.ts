@@ -238,6 +238,12 @@ export interface GameState {
   legacy?: PlayerLegacy;
   strongholds?: Record<string, Stronghold>;
 
+  // Economy: Investments & Information Delivery
+  playerInvestments: import('./economy').PlayerInvestment[];
+  pendingCouriers: import('./economy').PendingCourier[];
+  businesses: Record<string, import('./business').BusinessState>;
+  worldBusinesses: Record<string, import('./business').WorldBusiness>;
+
   underdark: UnderdarkState;
 
   environment?: import('./environment').WeatherState;
@@ -248,6 +254,8 @@ export interface GameState {
   isNavalDashboardVisible: boolean;
   isNobleHouseListVisible: boolean;
   isTradeRouteDashboardVisible: boolean;
+  isEconomyLedgerVisible: boolean;
+  isCourierPouchVisible: boolean;
 
   activeRitual?: RitualState | null;
 

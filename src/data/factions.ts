@@ -50,7 +50,13 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['theft', 'chaos', 'bad_debts'],
         power: 80,
         assets: [],
-        relationships: {}
+        relationships: {},
+        treasury: 50000,
+        taxRate: 8,
+        controlledRegionIds: ['region_capital'],
+        controlledRouteIds: ['golden_road'],
+        economicPolicy: 'mercantile',
+        tradeGoodPriorities: ['luxury', 'gem', 'gold', 'magic_reagents']
     },
     'unseen_hand': {
         id: 'unseen_hand',
@@ -68,7 +74,13 @@ export const FACTIONS: Record<string, Faction> = {
         services: ['fence', 'forgery', 'safehouse'],
         power: 60,
         assets: [],
-        relationships: {}
+        relationships: {},
+        treasury: 15000,
+        taxRate: 15,
+        controlledRegionIds: [],
+        controlledRouteIds: [],
+        economicPolicy: 'exploitative',
+        tradeGoodPriorities: ['narcotics', 'stolen_goods', 'dark_magic', 'weapon']
     },
     'house_vane': {
         id: 'house_vane',
@@ -85,7 +97,13 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['cowardice', 'treachery', 'disrespect'],
         power: 75,
         assets: [],
-        relationships: {}
+        relationships: {},
+        treasury: 35000,
+        taxRate: 12,
+        controlledRegionIds: ['region_capital'],
+        controlledRouteIds: [],
+        economicPolicy: 'protectionist',
+        tradeGoodPriorities: ['weapon', 'armor', 'iron', 'food']
     },
     // --- UNDERDARK FACTIONS ---
     'house_xorlarrin': {
@@ -103,7 +121,13 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['weakness', 'light_dwellers', 'surface_elves'],
         power: 85,
         assets: [],
-        relationships: {}
+        relationships: {},
+        treasury: 25000,
+        taxRate: 20,
+        controlledRegionIds: [],
+        controlledRouteIds: [],
+        economicPolicy: 'exploitative',
+        tradeGoodPriorities: ['magic_reagents', 'gem', 'dark_magic']
     },
     'deepkings_guard': {
         id: 'deepkings_guard',
@@ -120,7 +144,13 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['chaos', 'laziness', 'drow'],
         power: 70,
         assets: [],
-        relationships: {}
+        relationships: {},
+        treasury: 20000,
+        taxRate: 10,
+        controlledRegionIds: [],
+        controlledRouteIds: [],
+        economicPolicy: 'protectionist',
+        tradeGoodPriorities: ['iron', 'weapon', 'armor', 'stone']
     },
     'ironhead_clan': {
         id: 'ironhead_clan',
@@ -137,7 +167,13 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['slavers', 'open_spaces', 'wastefulness'],
         power: 50,
         assets: [],
-        relationships: {}
+        relationships: {},
+        treasury: 12000,
+        taxRate: 5,
+        controlledRegionIds: [],
+        controlledRouteIds: [],
+        economicPolicy: 'protectionist',
+        tradeGoodPriorities: ['gem', 'stone', 'iron', 'magic_reagents']
     }
 };
 

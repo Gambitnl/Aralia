@@ -4,6 +4,7 @@
  */
 import React, { useState } from 'react';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { OllamaLogEntry } from '../../types';
 
 interface BanterDebugLogEntry {
@@ -78,7 +79,7 @@ export const UnifiedDebugLogViewer: React.FC<UnifiedDebugLogViewerProps> = ({
             title="Banter & AI Inspector"
             onClose={onClose}
             headerActions={headerActions}
-            storageKey="unified-log-viewer"
+            storageKey={WINDOW_KEYS.UNIFIED_DEBUG_LOG}
         >
             <div className="flex flex-col h-full bg-gray-900 text-gray-200 text-sm">
                 {/* Tabs */}

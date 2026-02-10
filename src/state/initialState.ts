@@ -199,6 +199,12 @@ export const initialGameState: GameState = {
         activeEvents: []
     },
 
+    // Economy: Investments & Information Delivery
+    playerInvestments: [],
+    pendingCouriers: [],
+    businesses: {},
+    worldBusinesses: {},
+
     // Quest System
     questLog: [],
     isQuestLogVisible: false,
@@ -291,4 +297,6 @@ export const initialGameState: GameState = {
     isThievesGuildSafehouseVisible: false,
     isNobleHouseListVisible: false,
     isTradeRouteDashboardVisible: false,
+    isEconomyLedgerVisible: false,
+    isCourierPouchVisible: false,
 };

@@ -177,6 +177,7 @@ export interface NPC {
   visual?: NPCVisualSpec;
   // TODO(preserve-lint): Unify NpcMemory/NPCMemory once the memory systems converge.
   memory?: NPCMemory | NpcMemory;
+  businessId?: string;              // ID of owned WorldBusiness (if merchant)
 }
 
 export interface Biome {

@@ -11,6 +11,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Dice6, RefreshCcw, Minus, Plus } from 'lucide-react';
 import { useDiceBox } from '../../hooks/useDiceBox';
 import { WindowFrame } from '../ui/WindowFrame';
+import { WINDOW_KEYS } from '../../styles/uiIds';
 import { DiceScaleSlider } from './DiceScaleSlider';
 import { DiceSVG } from './DiceSVGs';
 
@@ -138,7 +139,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                     key="dice-roller-window"
                     title="Dice Roller"
                     onClose={onClose}
-                    storageKey="dice-roller-window"
+                    storageKey={WINDOW_KEYS.DICE_ROLLER}
                     headerActions={<Dice6 className="w-5 h-5 text-amber-400" />}
                 >
                     <div
