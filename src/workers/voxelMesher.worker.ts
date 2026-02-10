@@ -1,4 +1,6 @@
-import { edgeTable, triTable } from '../ThreeDModal/Experimental/MarchingCubesLogic';
+/// <reference lib="webworker" />
+
+import { edgeTable, triTable } from '../components/ThreeDModal/Experimental/MarchingCubesLogic';
 import { Vector3 } from 'three';
 import { SimplexNoise } from '../utils/random/simplexNoise'; // We'll need a standalone noise impl or pass it in
 
@@ -51,7 +53,9 @@ export interface VoxelWorkerResponse {
   scatter: ScatterPoint[];
 }
 
-self.onmessage = (e: MessageEvent<VoxelWorkerRequest>) => {
+const ctx: DedicatedWorkerGlobalScope = self as any;
+
+ctx.onmessage = (e: MessageEvent<VoxelWorkerRequest>) => {
   const { id, type, gridSize, isoLevel, size, data, dna } = e.data;
 
   if (type === 'generate') {
@@ -65,7 +69,7 @@ self.onmessage = (e: MessageEvent<VoxelWorkerRequest>) => {
     // We can use the vertices directly to find surface points!
     const scatter = generateScatter(meshResult.vertices, dna, size);
 
-    self.postMessage(
+    ctx.postMessage(
       { 
           id, 
           vertices: meshResult.vertices, 

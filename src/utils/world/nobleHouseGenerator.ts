@@ -330,10 +330,28 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
   // 50% chance of a major house secret
   if (rng.next() > 0.5) {
     // Mock faction for secret generation (since we are creating it)
-    // TODO(lint-intent): The any on 'mockFaction' hides the intended shape of this data.
-    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    const mockFaction = { id: houseId, name: fullName } as Faction;
+    const mockFaction: Faction = {
+      id: houseId,
+      name: fullName,
+      description: `The noble house of ${familyName}.`,
+      type: 'NOBLE_HOUSE',
+      colors: { primary: colors.primary, secondary: colors.secondary },
+      ranks: DEFAULT_RANKS,
+      allies: [],
+      enemies: [],
+      rivals: [],
+      relationships: {},
+      values: [],
+      hates: [],
+      power: 50,
+      assets: [],
+      treasury: 0,
+      taxRate: 0,
+      controlledRegionIds: [],
+      controlledRouteIds: [],
+      economicPolicy: 'mercantile',
+      tradeGoodPriorities: [],
+    };
     const secret = secretGen.generateFactionSecret(mockFaction, []);
     secret.tags.push('political');
     houseSecrets.push(secret);
@@ -374,6 +392,12 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
     // Faction Base Props
     power: power,
     assets: [], // Default empty assets
+    treasury: 0,
+    taxRate: 0,
+    controlledRegionIds: [],
+    controlledRouteIds: [],
+    economicPolicy: 'mercantile',
+    tradeGoodPriorities: [],
 
     // NobleHouse specific
     heraldry: generateHeraldry(rng),

@@ -147,12 +147,11 @@ export class HeistManager {
         let message = '';
 
         if (isSuccess) {
-            alertGenerated = action.alertProfile === 'Silent' ? 0 : 5;
-            message = `Success! ${action.name} executed without raising alarm.`;
+            alertGenerated = action.noise;
+            message = `Success! ${action.description} executed without raising alarm.`;
         } else {
-            // Updated to match test expectation (20 for loud failure)
-            alertGenerated = action.alertProfile === 'Silent' ? 10 : 20;
-            message = `Failure! ${action.name} caused a disturbance. Alert +${alertGenerated}`;
+            alertGenerated = action.risk;
+            message = `Failure! ${action.description} caused a disturbance. Alert +${alertGenerated}`;
             
             // Lookout Mitigation (Updated to flat -5 reduction per test)
             const lookout = plan.crew.find(c => c.role === HeistRole.Lookout && c.characterId !== actorId);

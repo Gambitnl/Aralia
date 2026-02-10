@@ -128,7 +128,13 @@ export const generateNobleHouse = (_kingdomId: string = 'default', seed: number 
         values: [],
         hates: [],
         power: Math.floor(rng.next() * 100),
-        assets: []
+        assets: [],
+        treasury: 0,
+        taxRate: 0,
+        controlledRegionIds: [],
+        controlledRouteIds: [],
+        economicPolicy: 'mercantile',
+        tradeGoodPriorities: [],
     };
 
     const secret = secretGen.generateFactionSecret(mockFaction, []);
@@ -179,6 +185,12 @@ export const generateNobleHouse = (_kingdomId: string = 'default', seed: number 
     hates: [],
     power,
     assets: [],
+    treasury: 0,
+    taxRate: 0,
+    controlledRegionIds: [],
+    controlledRouteIds: [],
+    economicPolicy: 'mercantile',
+    tradeGoodPriorities: [],
     wealth,
     militaryPower,
     politicalInfluence,

@@ -15,6 +15,7 @@
 // @dependencies-end
 
 import { useState, useCallback } from 'react';
+import type { BiomeDNA, ScatterRule } from '@/types/biome';
 
 // ============================================================================
 // TYPES
@@ -23,21 +24,26 @@ import { useState, useCallback } from 'react';
 type GeneratorStatus = 'idle' | 'generating' | 'success' | 'error';
 type Provider = 'ollama' | 'gemini';
 
-interface BiomeDNA {
-  id: string;
-  name: string;
-  descriptor: string;
-  primaryColor: string;
-  secondaryColor: string;
-  roughness: number;
-  waterColor: string;
-  waterClarity: number;
-  waveIntensity: number;
-  fogDensity: number;
-  fogHeight: number;
-  weatherType: 'clear' | 'rain' | 'snow' | 'ash' | 'spores';
-  weatherIntensity: number;
-  scatter: unknown[];
+function coerceScatterRules(raw: unknown): ScatterRule[] {
+  if (!Array.isArray(raw)) return [];
+  // Best-effort parsing: keep entries with the required fields and coerce numbers.
+  return raw
+    .filter((r) => r && typeof r === 'object')
+    .map((r: any) => ({
+      id: String(r.id || ''),
+      assetType: r.assetType === 'tree' || r.assetType === 'rock' || r.assetType === 'grass' ? r.assetType : 'tree',
+      preset: typeof r.preset === 'string' ? r.preset : undefined,
+      density: typeof r.density === 'number' ? r.density : 0,
+      minSlope: typeof r.minSlope === 'number' ? r.minSlope : undefined,
+      maxSlope: typeof r.maxSlope === 'number' ? r.maxSlope : undefined,
+      minHeight: typeof r.minHeight === 'number' ? r.minHeight : undefined,
+      maxHeight: typeof r.maxHeight === 'number' ? r.maxHeight : undefined,
+      scaleMean: typeof r.scaleMean === 'number' ? r.scaleMean : 1,
+      scaleVar: typeof r.scaleVar === 'number' ? r.scaleVar : 0,
+      clusterScale: typeof r.clusterScale === 'number' ? r.clusterScale : undefined,
+      clusterThreshold: typeof r.clusterThreshold === 'number' ? r.clusterThreshold : undefined,
+    }))
+    .filter((r) => r.id.length > 0);
 }
 
 interface UseBiomeGeneratorResult {
@@ -185,7 +191,7 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
         fogHeight: typeof resultJSON.fogHeight === 'number' ? resultJSON.fogHeight : 10.0,
         weatherType: ['clear', 'rain', 'snow', 'ash', 'spores'].includes(resultJSON.weatherType) ? resultJSON.weatherType : 'clear',
         weatherIntensity: typeof resultJSON.weatherIntensity === 'number' ? resultJSON.weatherIntensity : 0.0,
-        scatter: Array.isArray(resultJSON.scatter) ? resultJSON.scatter : []
+        scatter: coerceScatterRules(resultJSON.scatter),
       };
 
       setDna(newDna);

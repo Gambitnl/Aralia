@@ -23,7 +23,13 @@ describe('HistoryService', () => {
       values: [],
       hates: [],
       power: 10,
-      assets: []
+      assets: [],
+      treasury: 0,
+      taxRate: 0,
+      controlledRegionIds: [],
+      controlledRouteIds: [],
+      economicPolicy: 'mercantile',
+      tradeGoodPriorities: [],
     },
     'faction_b': {
       id: 'faction_b',
@@ -39,7 +45,13 @@ describe('HistoryService', () => {
       values: [],
       hates: [],
       power: 10,
-      assets: []
+      assets: [],
+      treasury: 0,
+      taxRate: 0,
+      controlledRegionIds: [],
+      controlledRouteIds: [],
+      economicPolicy: 'mercantile',
+      tradeGoodPriorities: [],
     }
   };
   mockState.gameTime = new Date('2024-01-01T12:00:00Z');

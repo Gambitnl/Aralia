@@ -29,7 +29,13 @@ describe('SecretSystem', () => {
         values: ['honor'],
         hates: ['treachery'],
         power: 50,
-        assets: []
+        assets: [],
+        treasury: 0,
+        taxRate: 0,
+        controlledRegionIds: [],
+        controlledRouteIds: [],
+        economicPolicy: 'mercantile',
+        tradeGoodPriorities: [],
     };
 
     const factionB: Faction = {
@@ -46,7 +52,13 @@ describe('SecretSystem', () => {
         values: ['wealth'],
         hates: ['poverty'],
         power: 80,
-        assets: []
+        assets: [],
+        treasury: 0,
+        taxRate: 0,
+        controlledRegionIds: [],
+        controlledRouteIds: [],
+        economicPolicy: 'mercantile',
+        tradeGoodPriorities: [],
     };
 
     describe('SecretGenerator', () => {

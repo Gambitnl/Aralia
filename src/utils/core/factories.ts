@@ -188,7 +188,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
  */
 export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
   try {
-    return {
+    const base = {
       id: `faction-${safeUuid()}`,
       name: "Mock Faction",
       description: "A generic mock faction.",
@@ -203,8 +203,26 @@ export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
       hates: [],
       power: 50,
       assets: [],
-      ...overrides
-    };
+
+      // Living economy fields (required by Faction)
+      treasury: 0,
+      taxRate: 0,
+      controlledRegionIds: [],
+      controlledRouteIds: [],
+      economicPolicy: 'mercantile',
+      tradeGoodPriorities: [],
+
+      ...overrides,
+    } as any;
+
+    base.treasury = base.treasury ?? 0;
+    base.taxRate = base.taxRate ?? 0;
+    base.controlledRegionIds = base.controlledRegionIds ?? [];
+    base.controlledRouteIds = base.controlledRouteIds ?? [];
+    base.economicPolicy = base.economicPolicy ?? 'mercantile';
+    base.tradeGoodPriorities = base.tradeGoodPriorities ?? [];
+
+    return base as Faction;
   } catch (error) {
     console.error("Warden: createMockFaction failed", error);
     return {
@@ -221,7 +239,13 @@ export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
       values: [],
       hates: [],
       power: 0,
-      assets: []
+      assets: [],
+      treasury: 0,
+      taxRate: 0,
+      controlledRegionIds: [],
+      controlledRouteIds: [],
+      economicPolicy: 'mercantile',
+      tradeGoodPriorities: [],
     } as Faction;
   }
 }
@@ -378,7 +402,7 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
 export function createMockGameState(overrides: Partial<GameState> = {}): GameState {
   try {
     const resolvedGameTime = overrides.gameTime ?? getGameEpoch();
-    return {
+    const base = {
       phase: GamePhase.PLAYING,
       party: [],
       tempParty: null,
@@ -512,6 +536,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isNavalDashboardVisible: false,
       isNobleHouseListVisible: false,
       isTradeRouteDashboardVisible: false,
+      isEconomyLedgerVisible: false,
+      isCourierPouchVisible: false,
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
@@ -521,6 +547,11 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       playerIdentity: undefined,
       legacy: undefined,
       strongholds: {},
+
+      // Economy: Investments & Information Delivery (required fields)
+      playerInvestments: [],
+      pendingCouriers: [],
+      businesses: {},
       activeRitual: null,
       banterCooldowns: {},
       // TODO(2026-01-03 pass 4 Codex-CLI): banter debug log placeholder; surface real logs when conversational banter system wires through state.
@@ -552,8 +583,17 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       // TODO: Fix TS2322 - missing or incompatible archivedBanters
       archivedBanters: [],
 
-      ...overrides
-    };
+      ...overrides,
+    } as any;
+
+    // Ensure required fields remain non-optional even after spreading Partial<GameState>.
+    base.playerInvestments = base.playerInvestments ?? [];
+    base.pendingCouriers = base.pendingCouriers ?? [];
+    base.businesses = base.businesses ?? {};
+    base.isEconomyLedgerVisible = base.isEconomyLedgerVisible ?? false;
+    base.isCourierPouchVisible = base.isCourierPouchVisible ?? false;
+
+    return base as GameState;
   } catch (error) {
     console.error("Warden: createMockGameState failed", error);
     // Extreme fallback - manually construct Date if timeUtils failed
@@ -650,6 +690,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isNavalDashboardVisible: false,
       isNobleHouseListVisible: false,
       isTradeRouteDashboardVisible: false,
+      isEconomyLedgerVisible: false,
+      isCourierPouchVisible: false,
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
@@ -659,6 +701,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       playerIdentity: undefined,
       legacy: undefined,
       strongholds: {},
+      playerInvestments: [],
+      pendingCouriers: [],
+      businesses: {},
       activeRitual: null,
       banterCooldowns: {},
       // TODO: Fix TS2741 - missing archivedBanters in fallback

@@ -234,7 +234,13 @@ export class EntityResolverService {
       values: [],
       hates: [],
       power: 50,
-      assets: []
+      assets: [],
+      treasury: 0,
+      taxRate: 0,
+      controlledRegionIds: [],
+      controlledRouteIds: [],
+      economicPolicy: 'mercantile',
+      tradeGoodPriorities: [],
     };
   }
 
