@@ -36,6 +36,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   // Determine color based on action type
   if (action.type === 'toggle_party_overlay') colorClasses = "btn-green";
   else if (action.type === 'save_game') colorClasses = "btn-yellow";
+  else if (action.type === 'toggle_auto_save') colorClasses = "btn-yellow";
   else if (action.type === 'go_to_main_menu') colorClasses = "btn-red";
   else if (action.type === 'toggle_dev_menu') colorClasses = "btn-orange";
   else if (action.type === 'gemini_custom_action') colorClasses = "btn-teal";

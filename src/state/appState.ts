@@ -96,6 +96,9 @@ export { initialGameState, INITIAL_DIVINE_FAVOR };
 export function appReducer(state: GameState, action: AppAction): GameState {
     // 1. Handle actions with cross-cutting concerns first
     switch (action.type) {
+        case 'SET_AUTO_SAVE_ENABLED': {
+            return { ...state, autoSaveEnabled: action.payload };
+        }
         case 'SET_GAME_PHASE': {
             // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
             // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
@@ -179,6 +182,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...initialGameState,
                 phase: GamePhase.CHARACTER_CREATION,
                 worldSeed: action.payload.worldSeed,
+                // Preserve user preference across new-game resets.
+                autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
                 mapData: action.payload.mapData,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
                 inventory: [],
@@ -322,6 +327,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...initialGameState,
                 phase: GamePhase.PLAYING,
+                // Preserve user preference across resets.
+                autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
                 worldSeed: state.worldSeed,
                 party: newParty,
                 tempParty: newParty.map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })),
@@ -375,6 +382,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...initialGameState,
                 phase: GamePhase.PLAYING,
+                // Preserve user preference across resets.
+                autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
                 worldSeed: worldSeed,
                 party: generatedParty,
                 tempParty: generatedParty.map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })),
@@ -455,6 +464,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...initialGameState,
                 phase: GamePhase.PLAYING,
+                // Preserve user preference across resets.
+                autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
                 worldSeed: state.worldSeed, // Carry over the seed from the new game setup
                 party: [{ ...restOfPayload.character, equippedItems: restOfPayload.character.equippedItems || {} }],
                 inventory: filteredInventory,
@@ -531,6 +542,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...loadedState,
                 phase: GamePhase.LOAD_TRANSITION,
+                // Keep preference from the current session (user-level), not the save slot payload.
+                autoSaveEnabled: state.autoSaveEnabled ?? loadedState.autoSaveEnabled ?? true,
                 isLoading: false, loadingMessage: null, isImageLoading: false, error: null,
                 isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isPartyEditorVisible: false,
                 isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, isDiscoveryLogVisible: false,

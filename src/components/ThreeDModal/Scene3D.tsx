@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import type { Color, Mesh } from 'three';
-import { ACESFilmicToneMapping, Color as ThreeColor, SRGBColorSpace } from 'three';
+import { ACESFilmicToneMapping, Color as ThreeColor, DoubleSide, SRGBColorSpace } from 'three';
 import { BIOMES } from '../../constants';
 import { SeededRandom } from '../../utils/random/seededRandom';
 import type { PlayerCharacter } from '../../types';
@@ -36,6 +36,8 @@ interface Scene3DProps {
   playerSpeed: number;
   submapSeed: number;
   submapFootprintFt: number;
+  /** Rendering safety switch for debugging. */
+  renderQuality?: 'safe' | 'enhanced';
   environmentMode?: 'submap' | 'tree-lab';
   showGrid: boolean;
   partyMembers: PlayerCharacter[];
@@ -119,6 +121,7 @@ const SceneContents = ({
   playerSpeed,
   submapSeed,
   submapFootprintFt,
+  renderQuality = 'enhanced',
   showGrid,
   partyMembers,
   isCombatMode,
@@ -163,6 +166,7 @@ const SceneContents = ({
   const submapHalfSize = submapFootprintFt / 2;
   const biome = BIOMES[biomeId];
   const isTreeLab = environmentMode === 'tree-lab';
+  const isSafeRender = renderQuality === 'safe';
   // Capture the player's initial spawn location once so we can keep a permanent
   // "no-props" bubble around the entry point without re-rolling prop placement
   // every time the player moves.
@@ -367,7 +371,8 @@ const SceneContents = ({
     <>
       <FpsTracker onFps={onFps} />
       {!skyVisible && <color attach="background" args={[lighting.fogColor]} />}
-      <fogExp2 attach="fog" args={[fogColor, fogDensity]} />
+      {/* In "safe" mode, we intentionally reduce atmospheric effects to debug geometry/material issues. */}
+      {!isSafeRender && <fogExp2 attach="fog" args={[fogColor, fogDensity]} />}
       <ambientLight color={lighting.ambientColor} intensity={ambientIntensity} />
       <hemisphereLight 
         color={lighting.ambientColor} 
@@ -390,15 +395,17 @@ const SceneContents = ({
         shadow-camera-bottom={-100}
         shadow-bias={-0.0001}
       />
-      <EnhancedSkyDome 
-        sunDirection={sunDirection} 
-        biomeId={biomeId} 
-        tint={lighting.biomeColor} 
-        visible={skyVisible}
-        gameTime={gameTime}
-        cloudCoverage={0.6}
-        windSpeed={1.0}
-      />
+      {!isSafeRender && (
+        <EnhancedSkyDome 
+          sunDirection={sunDirection} 
+          biomeId={biomeId} 
+          tint={lighting.biomeColor} 
+          visible={skyVisible}
+          gameTime={gameTime}
+          cloudCoverage={0.6}
+          windSpeed={1.0}
+        />
+      )}
       {isTreeLab ? (
         <>
           <LabGround
@@ -428,20 +435,41 @@ const SceneContents = ({
           />
         </>
       ) : (
-        <TextureSplatting
-          size={submapFootprintFt}
-          heightSampler={heightSampler}
-          moistureSampler={moistureSampler}
-          slopeSampler={slopeSampler}
-          featureSampler={featureSampler}
-          color={lighting.biomeColor.clone().multiplyScalar(0.8)}
-          showGrid={showGrid}
-          gridSizeFt={5}
-          heightRange={heightRange}
-          heightColors={terrainColors}
-          biomeId={biomeId}
-          textureScale={0.5}
-        />
+        <>
+          {isSafeRender ? (
+            // Flat, bright fallback ground so we can debug camera/controls/lighting even if terrain shaders break.
+            <>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+                <planeGeometry args={[submapFootprintFt, submapFootprintFt, 1, 1]} />
+                <meshStandardMaterial
+                  color={0x94a3b8}
+                  emissive={new ThreeColor(0x111827)}
+                  roughness={0.95}
+                  metalness={0.02}
+                  side={DoubleSide}
+                  map={null}
+                />
+              </mesh>
+              <gridHelper args={[submapFootprintFt, Math.max(10, Math.round(submapFootprintFt / 300))]} position={[0, 0.05, 0]} />
+              <axesHelper args={[80]} />
+            </>
+          ) : (
+            <TextureSplatting
+              size={submapFootprintFt}
+              heightSampler={heightSampler}
+              moistureSampler={moistureSampler}
+              slopeSampler={slopeSampler}
+              featureSampler={featureSampler}
+              color={lighting.biomeColor.clone().multiplyScalar(0.8)}
+              showGrid={showGrid}
+              gridSizeFt={5}
+              heightRange={heightRange}
+              heightColors={terrainColors}
+              biomeId={biomeId}
+              textureScale={0.5}
+            />
+          )}
+        </>
       )}
       {waterLevel !== null && (
         <EnhancedWaterPlane 
@@ -563,15 +591,17 @@ const SceneContents = ({
         heightSampler={heightSampler}
         visible={showGrid}
       />
-      <PostProcessingPipeline 
-        enabled={true}
-        // Keep bloom extremely conservative; aggressive bloom reads as "exposure ramping"
-        // and can white-out the whole scene in bright fog/sky conditions.
-        bloomIntensity={0.15}
-        bloomThreshold={0.85}
-        bloomRadius={0.12}
-        fxaaEnabled={true}
-      />
+      {!isSafeRender && (
+        <PostProcessingPipeline 
+          enabled={true}
+          // Keep bloom extremely conservative; aggressive bloom reads as "exposure ramping"
+          // and can white-out the whole scene in bright fog/sky conditions.
+          bloomIntensity={0.15}
+          bloomThreshold={0.85}
+          bloomRadius={0.12}
+          fxaaEnabled={true}
+        />
+      )}
     </>
   );
 };

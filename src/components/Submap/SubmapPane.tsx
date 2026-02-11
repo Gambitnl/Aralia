@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  * 
- * Last Sync: 10/02/2026, 19:54:44
+ * Last Sync: 11/02/2026, 10:16:44
  * Dependents: None (Orphan)
  * Imports: 20 files
  * 
@@ -82,6 +82,7 @@ interface SubmapPaneProps {
     isDevDummyActive: boolean;
     unreadDiscoveryCount: number;
     hasNewRateLimitError: boolean;
+    autoSaveEnabled?: boolean;
 }
 
 
@@ -106,6 +107,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
     isDevDummyActive,
     unreadDiscoveryCount,
     hasNewRateLimitError,
+    autoSaveEnabled = true,
 }) => {
     const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
     const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -263,6 +265,18 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
         return visuals;
     }, [simpleHash, visualsConfig, pathDetails, activeSeededFeatures, caGrid, wfcGrid]);
 
+    // Create shared visuals map to eliminate duplicate computation between rendering and pathfinding.
+    // Keep this above pathfinding hook usage so the resolver is initialized before hook execution.
+    const sharedVisualsMap = useMemo(() => {
+        const map = new Map<string, VisualLayerOutput>();
+        for (let r = 0; r < submapDimensions.rows; r++) {
+            for (let c = 0; c < submapDimensions.cols; c++) {
+                map.set(`${c},${r}`, getTileVisuals(r, c));
+            }
+        }
+        return map;
+    }, [submapDimensions.rows, submapDimensions.cols, getTileVisuals]);
+
     // Pathfinding grid feeds quick travel previews and path overlays; now shares computed visuals
     const pathfindingGrid = usePathfindingGrid({
         submapDimensions,
@@ -315,7 +329,26 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
             // for quick travel. Consider: fatigue = travelTime * fatigueMultiplier.
             const travelData = quickTravelData;
             if (travelData.path.size > 0) {
-                onAction({ type: 'QUICK_TRAVEL', label: `Quick travel to (${tileX},${tileY})`, payload: { quickTravel: { destination: { x: tileX, y: tileY }, durationSeconds: travelData.time * 60 } } });
+                const stepPath = travelData.orderedPath.slice(1);
+                const stepDurationsSeconds = stepPath.map((step) => {
+                    const movementCostMinutes = pathfindingGrid.get(`${step.x}-${step.y}`)?.movementCost ?? 30;
+                    return Math.max(1, Math.round(movementCostMinutes * 60));
+                });
+
+                onAction({
+                    type: 'QUICK_TRAVEL',
+                    label: `Quick travel to (${tileX},${tileY})`,
+                    payload: {
+                        quickTravel: {
+                            destination: { x: tileX, y: tileY },
+                            durationSeconds: Math.round(travelData.time * 60),
+                            orderedPath: travelData.orderedPath,
+                            stepDurationsSeconds,
+                            encounterChancePerStep: 0.16,
+                            stepDelayMs: 3000,
+                        }
+                    }
+                });
                 setIsQuickTravelMode(false);
             }
             return;
@@ -333,7 +366,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
                 setInspectionMessage("You can only inspect adjacent tiles.");
             }
         }
-    }, [disabled, isQuickTravelMode, isInspecting, quickTravelData, inspectableTiles, onAction, currentWorldBiomeId, parentWorldMapCoords]);
+    }, [disabled, isQuickTravelMode, isInspecting, quickTravelData, inspectableTiles, onAction, currentWorldBiomeId, parentWorldMapCoords, pathfindingGrid]);
 
     // Memoized grid data selector to pre-compute derived values and reduce re-renders
     const memoizedSubmapGrid = useMemo(() => {
@@ -354,8 +387,8 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
                     isHighlightedForInspection: isInspecting && inspectableTiles.has(tileKey),
                     isInteractiveResource: !isInspecting && !isQuickTravelMode && visuals.isResource && 
                         ((Math.abs(c - playerSubmapCoords.x) <= 1 && Math.abs(r - playerSubmapCoords.y) <= 1)),
-                    isInQuickTravelPath: isQuickTravelMode && quickTravelData.path.has(tileKey),
-                    isBlockedForTravel: pathfindingGrid.get(tileKey)?.blocksMovement === true,
+                    isInQuickTravelPath: isQuickTravelMode && quickTravelData.path.has(`${c}-${r}`),
+                    isBlockedForTravel: pathfindingGrid.get(`${c}-${r}`)?.blocksMovement === true,
                     isHovered: hoveredTile?.x === c && hoveredTile?.y === r
                 });
             }
@@ -373,17 +406,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
         pathfindingGrid,
         hoveredTile
     ]);
-
-    // Create shared visuals map to eliminate duplicate computation between rendering and pathfinding
-    const sharedVisualsMap = useMemo(() => {
-        const map = new Map<string, VisualLayerOutput>();
-        for (let r = 0; r < submapDimensions.rows; r++) {
-            for (let c = 0; c < submapDimensions.cols; c++) {
-                map.set(`${c},${r}`, getTileVisuals(r, c));
-            }
-        }
-        return map;
-    }, [submapDimensions.rows, submapDimensions.cols, getTileVisuals]);
 
     const scheduleHoverUpdate = useCallback((nextHover: { x: number; y: number } | null) => {
         // Use rAF to coalesce rapid mousemove events; this keeps hover updates from thrashing React state.
@@ -439,6 +461,19 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
     };
 
     const dayNightOverlayClass = getDayNightOverlayClass(gameTime);
+    const edgeDirections = useMemo(() => {
+        const dirs: string[] = [];
+        const edgeThreshold = 1;
+        if (playerSubmapCoords.y <= edgeThreshold) dirs.push('North');
+        if (playerSubmapCoords.y >= submapDimensions.rows - 1 - edgeThreshold) dirs.push('South');
+        if (playerSubmapCoords.x <= edgeThreshold) dirs.push('West');
+        if (playerSubmapCoords.x >= submapDimensions.cols - 1 - edgeThreshold) dirs.push('East');
+        return dirs;
+    }, [playerSubmapCoords, submapDimensions.rows, submapDimensions.cols]);
+
+    const edgeTelegraphMessage = edgeDirections.length > 0
+        ? `Boundary nearby (${edgeDirections.join(', ')}). Moving further will transition to an adjacent world tile.`
+        : null;
 
     // TODO: Wrap SubmapPane in React Error Boundary to catch runtime errors gracefully
     // Current component can crash the entire submap view if hooks throw unexpected errors
@@ -453,6 +488,11 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
             <div className="flex flex-col h-full w-full bg-gray-800 p-1 md:p-2">
                 {isInspecting && inspectionMessage && (
                     <p className="text-center text-sm text-yellow-300 mb-2 italic">{inspectionMessage}</p>
+                )}
+                {edgeTelegraphMessage && (
+                    <p className="text-center text-xs md:text-sm text-cyan-200 bg-cyan-900/30 border border-cyan-600/40 rounded px-2 py-1 mb-2">
+                        {edgeTelegraphMessage}
+                    </p>
                 )}
 
                 {/*
@@ -542,6 +582,18 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
                                     )}
                                 </svg>
                             )}
+                            {edgeDirections.includes('North') && (
+                                <div className="absolute top-0 left-0 right-0 h-2 bg-cyan-400/30 pointer-events-none" />
+                            )}
+                            {edgeDirections.includes('South') && (
+                                <div className="absolute bottom-0 left-0 right-0 h-2 bg-cyan-400/30 pointer-events-none" />
+                            )}
+                            {edgeDirections.includes('West') && (
+                                <div className="absolute top-0 bottom-0 left-0 w-2 bg-cyan-400/30 pointer-events-none" />
+                            )}
+                            {edgeDirections.includes('East') && (
+                                <div className="absolute top-0 bottom-0 right-0 w-2 bg-cyan-400/30 pointer-events-none" />
+                            )}
                         </div>
                         <div className={`day-night-overlay ${dayNightOverlayClass}`}></div>
                     </div>
@@ -609,6 +661,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
                                 isDevDummyActive={isDevDummyActive}
                                 isDevModeEnabled={false}
                                 unreadDiscoveryCount={unreadDiscoveryCount}
+                                autoSaveEnabled={autoSaveEnabled}
                                 hasNewRateLimitError={hasNewRateLimitError}
                                 subMapCoordinates={playerSubmapCoords}
                                 worldSeed={worldSeed}

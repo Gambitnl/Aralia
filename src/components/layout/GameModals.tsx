@@ -175,6 +175,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             isDevDummyActive={canUseDevTools()}
                             unreadDiscoveryCount={gameState.unreadDiscoveryCount}
                             hasNewRateLimitError={gameState.hasNewRateLimitError}
+                            autoSaveEnabled={gameState.autoSaveEnabled ?? true}
                         />
                     </ErrorBoundary>
                 </Suspense>

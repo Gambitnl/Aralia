@@ -66,6 +66,7 @@ export const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce(
 // It uses "Dummy" data if dev tools are enabled and no save exists to facilitate rapid testing.
 export const initialGameState: GameState = {
     phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
+    autoSaveEnabled: true,
     party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
     tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame()
         ? getDummyParty().map(p => ({

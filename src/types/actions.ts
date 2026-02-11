@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 31/01/2026, 18:01:52
+ * Last Sync: 11/02/2026, 10:15:45
  * Dependents: actionTypes.ts, state.ts, types/index.ts
  * Imports: 6 files
  * 
@@ -36,6 +36,7 @@ export type ActionType =
   | 'toggle_map'
   | 'toggle_submap_visibility'
   | 'toggle_three_d'
+  | 'toggle_auto_save'
   | 'gemini_custom_action'
   | 'save_game'
   | 'go_to_main_menu'
@@ -123,6 +124,7 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   toggle_map: { isUiToggle: true },
   toggle_submap_visibility: { isUiToggle: true },
   toggle_three_d: { isUiToggle: true },
+  toggle_auto_save: { isUiToggle: true },
   toggle_dev_menu: { isUiToggle: true },
   toggle_gemini_log_viewer: { isUiToggle: true },
   TOGGLE_DISCOVERY_LOG: { isUiToggle: true },
@@ -230,6 +232,10 @@ export interface StartBattleMapEncounterPayload {
 export interface QuickTravelPayload {
   destination: { x: number; y: number };
   durationSeconds: number;
+  orderedPath?: Array<{ x: number; y: number }>;
+  stepDurationsSeconds?: number[];
+  encounterChancePerStep?: number;
+  stepDelayMs?: number;
 }
 
 export interface StartGameSuccessPayload {
@@ -253,6 +259,7 @@ export type Action =
   | { type: 'toggle_map'; payload?: never; label?: string }
   | { type: 'toggle_submap_visibility'; payload?: never; label?: string }
   | { type: 'toggle_three_d'; payload?: never; label?: string }
+  | { type: 'toggle_auto_save'; payload?: never; label?: string }
   | { type: 'gemini_custom_action'; payload: { query?: string; geminiPrompt?: string; check?: string; targetNpcId?: string; eventResidue?: unknown; isEgregious?: boolean }; label?: string }
   | { type: 'save_game'; payload?: never; label?: string }
   | { type: 'go_to_main_menu'; payload?: never; label?: string }

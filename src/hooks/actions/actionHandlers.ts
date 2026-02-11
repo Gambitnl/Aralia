@@ -253,6 +253,12 @@ export function buildActionHandlers({
     toggle_three_d: () => {
       dispatch({ type: 'TOGGLE_THREE_D_VISIBILITY' });
     },
+    toggle_auto_save: () => {
+      const current = gameState.autoSaveEnabled ?? true;
+      const next = !current;
+      dispatch({ type: 'SET_AUTO_SAVE_ENABLED', payload: next });
+      addMessage(`Auto-save ${next ? 'enabled' : 'disabled'}.`, 'system');
+    },
     TOGGLE_DISCOVERY_LOG: () => {
       handleToggleDiscoveryLog(dispatch);
     },

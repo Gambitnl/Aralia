@@ -116,6 +116,8 @@ export interface ShortRestTracker {
 export interface GameState {
   phase: GamePhase;
   previousPhase?: GamePhase;
+  /** User preference. If true, the game will auto-save to the autosave slot periodically. */
+  autoSaveEnabled?: boolean;
   party: PlayerCharacter[];
   tempParty: TempPartyMember[] | null;
   inventory: Item[];

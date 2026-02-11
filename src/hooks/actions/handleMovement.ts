@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 11/02/2026, 10:15:45
+ * Dependents: actionHandlers.ts
+ * Imports: 16 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/actions/handleMovement.ts
@@ -604,13 +619,29 @@ export async function handleQuickTravel({
   dispatch,
   addMessage,
 }: HandleQuickTravelProps): Promise<void> {
+  const sleep = (ms: number) => new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
   const payload = (action as any).payload;
   if (!payload?.quickTravel) {
     addMessage("Quick travel failed: missing data.", 'system');
     return;
   }
 
-  const { destination, durationSeconds } = payload.quickTravel;
+  const {
+    destination,
+    durationSeconds,
+    orderedPath,
+    stepDurationsSeconds,
+    encounterChancePerStep,
+    stepDelayMs,
+  } = payload.quickTravel;
+
+  if (!gameState.subMapCoordinates) {
+    addMessage("Quick travel failed: no current submap position.", 'system');
+    return;
+  }
 
   // Calculate tile info for the destination to check for special terrain types (like villages)
   // TODO[LOCATION-PARSING]: Consolidate coord_X_Y parsing into a shared utility
@@ -624,43 +655,88 @@ export async function handleQuickTravel({
     biomeId: gameState.mapData?.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId || 'plains',
   };
 
-  const { effectiveTerrainType, isImpassable } = getSubmapTileInfo(
-    gameState.worldSeed,
-    currentLoc.mapCoordinates,
-    currentLoc.biomeId,
-    SUBMAP_DIMENSIONS,
-    destination
-  );
+  const pathFromPayload: Array<{ x: number; y: number }> =
+    Array.isArray(orderedPath) && orderedPath.length > 0
+      ? orderedPath
+      : [gameState.subMapCoordinates, destination];
+  const routeSteps = pathFromPayload.slice(1);
 
-  // Block quick travel to impassable terrain (water, village tiles, etc.)
-  if (isImpassable) {
-    if (effectiveTerrainType === 'village_area') {
-      addMessage("You cannot travel directly onto the village. Move to an adjacent tile and use the Enter Village action.", "system");
-    } else if (effectiveTerrainType === 'water') {
-      addMessage("You cannot travel across the water.", "system");
-    } else {
-      addMessage("You cannot travel to that location.", "system");
-    }
+  if (routeSteps.length === 0) {
+    addMessage("You are already at that location.", "system");
     return;
   }
 
-  // Dispatch move
-  dispatch({
-    type: 'MOVE_PLAYER',
-    payload: {
-      newLocationId: gameState.currentLocationId,
-      newSubMapCoordinates: destination,
-      mapData: gameState.mapData || undefined,
-      activeDynamicNpcIds: gameState.currentLocationActiveDynamicNpcIds
-    }
-  });
+  const safeEncounterChance = Math.max(0, Math.min(1, Number(encounterChancePerStep ?? 0.16)));
+  const safeStepDelayMs = Math.max(0, Number(stepDelayMs ?? 3000));
+  const defaultStepDurationSeconds = routeSteps.length > 0
+    ? Math.max(1, Math.round(Number(durationSeconds || 0) / routeSteps.length))
+    : 0;
 
-  // Advance time
-  if (durationSeconds > 0) {
-    dispatch({ type: 'ADVANCE_TIME', payload: { seconds: durationSeconds } });
+  let wasInterruptedByEncounter = false;
+  let reachedStepCount = 0;
+  for (let stepIndex = 0; stepIndex < routeSteps.length; stepIndex++) {
+    const stepDestination = routeSteps[stepIndex];
+    const { effectiveTerrainType, isImpassable } = getSubmapTileInfo(
+      gameState.worldSeed,
+      currentLoc.mapCoordinates,
+      currentLoc.biomeId,
+      SUBMAP_DIMENSIONS,
+      stepDestination
+    );
+
+    // Block quick travel to impassable terrain (water, village tiles, etc.)
+    if (isImpassable) {
+      if (effectiveTerrainType === 'village_area') {
+        addMessage("You cannot travel directly onto the village. Move to an adjacent tile and use the Enter Village action.", "system");
+      } else if (effectiveTerrainType === 'water') {
+        addMessage("You cannot travel across the water.", "system");
+      } else {
+        addMessage("You cannot travel to that location.", "system");
+      }
+      return;
+    }
+
+    dispatch({
+      type: 'MOVE_PLAYER',
+      payload: {
+        newLocationId: gameState.currentLocationId,
+        newSubMapCoordinates: stepDestination,
+        mapData: gameState.mapData || undefined,
+        activeDynamicNpcIds: gameState.currentLocationActiveDynamicNpcIds
+      }
+    });
+
+    const stepDuration = Math.max(
+      1,
+      Math.round(
+        Number(stepDurationsSeconds?.[stepIndex] ?? defaultStepDurationSeconds)
+      )
+    );
+    if (stepDuration > 0) {
+      dispatch({ type: 'ADVANCE_TIME', payload: { seconds: stepDuration } });
+    }
+
+    reachedStepCount++;
+
+    const isFinalStep = stepIndex === routeSteps.length - 1;
+    if (!isFinalStep && safeStepDelayMs > 0) {
+      await sleep(safeStepDelayMs);
+    }
+
+    const encounterTriggered = !isFinalStep && Math.random() < safeEncounterChance;
+    if (encounterTriggered) {
+      addMessage("Travel interrupted: your party notices signs of danger nearby.", "system");
+      wasInterruptedByEncounter = true;
+      break;
+    }
   }
 
-  addMessage(`You travel quickly across the terrain.`, 'system');
+  if (wasInterruptedByEncounter) {
+    addMessage(`You covered ${reachedStepCount} step${reachedStepCount === 1 ? '' : 's'} before stopping.`, "system");
+    return;
+  }
+
+  addMessage(`You travel quickly across the terrain and reach your destination.`, 'system');
 }
 
 interface HandleApproachSettlementProps {

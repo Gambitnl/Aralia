@@ -31,6 +31,7 @@ import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
 import { useMissingChoice } from './hooks/useMissingChoice';
 import { useOllamaCheck } from './hooks/useOllamaCheck';
+import { useAutoSave } from './hooks/useAutoSave';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
 import { generateCompanion } from './services/CompanionGenerator';
@@ -63,6 +64,7 @@ import ErrorBoundary from './components/ui/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { ConversationPanel } from './components/ConversationPanel';
+import { SafeStorage } from './utils/core/storageUtils';
 
 import { CollapsibleBanterPanel } from './components/ui/CollapsibleBanterPanel';
 
@@ -89,6 +91,7 @@ const NotFound = lazy(() => import('./components/ui/NotFound'));
 // significantly reducing internet dependency. Merchant inventories still require Gemini. Need service worker for caching
 // static assets and handling offline fallbacks when Ollama server is unavailable.
 const App: React.FC = () => {
+  const AUTO_SAVE_PREF_KEY = 'aralia_rpg_pref_auto_save_enabled';
   // Validate environment variables on startup
   useEffect(() => {
     validateEnv();
@@ -99,6 +102,30 @@ const App: React.FC = () => {
   }, []);
 
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
+  const autoSaveEnabled = gameState.autoSaveEnabled ?? true;
+  const [isAutoSavePrefHydrated, setIsAutoSavePrefHydrated] = useState(false);
+
+  // Load persisted preference once (default is ON if absent).
+  useEffect(() => {
+    const stored = SafeStorage.getItem(AUTO_SAVE_PREF_KEY);
+    if (stored) {
+      const normalized = stored.trim().toLowerCase();
+      const enabled = normalized === '1' || normalized === 'true' || normalized === 'on';
+      dispatch({ type: 'SET_AUTO_SAVE_ENABLED', payload: enabled });
+    }
+    setIsAutoSavePrefHydrated(true);
+  }, []);
+
+  // Persist preference any time the user toggles it.
+  useEffect(() => {
+    if (!isAutoSavePrefHydrated) return;
+    SafeStorage.trySetItem(AUTO_SAVE_PREF_KEY, autoSaveEnabled ? '1' : '0');
+  }, [autoSaveEnabled, isAutoSavePrefHydrated]);
+
+  // Best-effort autosave for refresh safety.
+  // Gate on preference hydration so we don't accidentally autosave if the user
+  // previously disabled the feature.
+  useAutoSave(gameState, isAutoSavePrefHydrated ? autoSaveEnabled : false);
 
   // 🏹 Ranger: Sync GamePhase with URL history
   useHistorySync(gameState, dispatch);
@@ -780,6 +807,7 @@ const App: React.FC = () => {
           worldSeed={gameState.worldSeed}
           isDevDummyActive={canUseDevTools()}
           isDevModeEnabled={gameState.isDevModeEnabled ?? false}
+          autoSaveEnabled={autoSaveEnabled}
           disabled={!isUIInteractive}
           onAction={processAction}
         />

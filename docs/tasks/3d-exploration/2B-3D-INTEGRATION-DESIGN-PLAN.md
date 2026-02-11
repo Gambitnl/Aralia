@@ -32,6 +32,7 @@ Write short answers next to each item and we will lock decisions into the "Desig
 1. **Scene Scope**: A. Submap tile only (no continuous world traversal planned; world is huge).
 2. **Cross-View Alignment**: A. Yes: 3D macro features should correspond to 2D submap features (and vice-versa).
 3. **Edge Continuity**: A. Yes: rivers/roads/cliffs must edge-match across adjacent tiles (NOTE: currently not working for 2D either, but it should).
+4. **Time Progression In 3D**: In 3D mode, time advances in real time (1 second IRL = 1 second in-game). The system already supports time skipping natively; no OS clock hacks.
 4. **"Engaging Landscape"**: Lean playability/readability first, then raise the visual ceiling. (Rationale: current 3D integration feels unstable/cursed; e.g. lighting appears to ramp until the scene blows out.)
 5. **Traversal Rules**: C. Hard rules (blocked terrain), but resolve blockers via D&D-inspired narrative interactions (items/spells/skill checks/saving throws), not a bespoke physics/minigame.
 6. **Actor Persistence**: Wants a staged generation model instead of two distinct "types":
@@ -47,6 +48,22 @@ Write short answers next to each item and we will lock decisions into the "Desig
 12. **Data-Driven Tuning**: Does not want to hand-tune knobs. Prefer presets / profiles / "set-and-forget" authoring, with changes validated visually rather than guessing numbers.
 13. **Hierarchical Discovery**: B. Fine-grained tiles are visible when zooming, but appear fuzzy/unknown until explored (no POI icons, generic hints, blurred styling).
 14. **Batch Travel UX**: No skip. Multi-step travel plays out per step in real time, rolling encounters and advancing time on each crossing.
+15. **Azgaar FMG Integration Direction (Macro World Map)**: Wants the "latter": Aralia runtime should use an FMG-derived generator (not just offline exports).
+16. **Immediate 3D Blocker**: Lighting blowout appears fixed, but the floor/terrain is not visible ("floor is completely gone"). Treat as a hard gate; add a "safe render" mode for debugging (disable fog/sky/postfx and render a flat ground plane) so iteration can continue.
+17. **2D ↔ 3D Alignment Scope (MVP)**:
+   - Must match: rivers, roads/paths, and impassable terrain/cliffs.
+   - POIs: location is approximate ("somewhere around here") rather than exact pin unless/ until later phases add more precision.
+   - Resources: scoped to "somewhere in this submap 3D tile". Also wants an option to auto-harvest from the 2D/base UI at lower gains, longer times, more randomized output, and lower chance for high-quality drops.
+18. **Edge Travel UX**: Soft telegraph (a boundary band + clear UI cue that you're about to leave, then travel prompt), not a hard invisible wall.
+19. **Seed Policy (Locked)**:
+   - New Game: YES, generate a new `worldSeed` (fresh world per run).
+   - Refresh/no explicit save: add an Auto-save toggle (default ON) to persist the current run (including `worldSeed`) via local persistence.
+20. **Time-Of-Day Semantics (Locked)**:
+   - Time of day affects visuals/lighting and simulation pacing only.
+   - It MUST NOT change deterministic terrain/prop layout generation for a given tile recipe (otherwise the same tile would "reshape" when revisiting at a different hour).
+21. **Step Travel Pacing (Locked)**:
+   - Real-time delay per 2D travel step: 3 seconds per submap-cell crossing.
+   - Encounter triggering: finish the current step first, then pause for the encounter (avoid back-to-back triggers after resolving the first).
 
 ---
 

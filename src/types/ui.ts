@@ -110,6 +110,7 @@ export enum UIToggleAction {
   MAP = 'toggle_map',
   SUBMAP = 'toggle_submap_visibility',
   THREE_D = 'toggle_three_d',
+  AUTO_SAVE = 'toggle_auto_save',
   DEV_MENU = 'toggle_dev_menu',
   GEMINI_LOG = 'toggle_gemini_log_viewer',
   DISCOVERY_LOG = 'TOGGLE_DISCOVERY_LOG',

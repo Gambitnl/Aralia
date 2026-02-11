@@ -43,6 +43,7 @@ const ThreeDModal = ({
   const [showGrid, setShowGrid] = useState(false);
   const [isCombatMode, setIsCombatMode] = useState(false);
   const [isDashing, setIsDashing] = useState(false);
+  const [renderQuality, setRenderQuality] = useState<'safe' | 'enhanced'>('enhanced');
   const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number; z: number } | null>(null);
   const [playerSpeedPerRound, setPlayerSpeedPerRound] = useState(0);
   const [isDevTurbo, setIsDevTurbo] = useState(false);
@@ -204,6 +205,7 @@ const ThreeDModal = ({
           playerSpeed={effectivePlayerSpeed}
           submapSeed={submapSeed}
           submapFootprintFt={SUBMAP_FOOTPRINT_FT}
+          renderQuality={renderQuality}
           showGrid={showGrid}
           partyMembers={partyMembers}
           isCombatMode={isCombatMode}
@@ -231,6 +233,23 @@ const ThreeDModal = ({
       <div className="absolute top-4 left-4 text-xs text-gray-100 bg-black/60 rounded px-3 py-2 space-y-1">
         <div className="font-semibold">3D Exploration Mode</div>
         <div>WASD move | Shift dash | Mouse orbit/zoom</div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-gray-200/90">Render:</span>
+          <button
+            type="button"
+            className={`px-2 py-0.5 rounded border ${renderQuality === 'enhanced' ? 'bg-white/10 border-white/30' : 'bg-black/30 border-white/10 hover:bg-white/5'}`}
+            onClick={() => setRenderQuality('enhanced')}
+          >
+            Enhanced
+          </button>
+          <button
+            type="button"
+            className={`px-2 py-0.5 rounded border ${renderQuality === 'safe' ? 'bg-white/10 border-white/30' : 'bg-black/30 border-white/10 hover:bg-white/5'}`}
+            onClick={() => setRenderQuality('safe')}
+          >
+            Safe
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           {biome && <span className="inline-block h-3 w-3 rounded-sm border border-white/40" style={biomeColorStyle} aria-hidden />}
           <span>{biomeLabel}</span>

@@ -27,6 +27,7 @@ interface ActionPaneProps {
   isDevDummyActive: boolean;
   isDevModeEnabled: boolean;
   unreadDiscoveryCount: number;
+  autoSaveEnabled?: boolean;
 
   hasNewRateLimitError: boolean;
   subMapCoordinates?: { x: number; y: number };
@@ -43,6 +44,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   isDevDummyActive,
   isDevModeEnabled,
   unreadDiscoveryCount,
+  autoSaveEnabled = true,
   party,
 
   hasNewRateLimitError,
@@ -195,6 +197,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         hasNewRateLimitError={hasNewRateLimitError}
         isDevDummyActive={isDevDummyActive}
         isDevModeEnabled={isDevModeEnabled}
+        autoSaveEnabled={autoSaveEnabled}
       />
 
       {/* Modal collects Hit Dice spending for the entire party. */}

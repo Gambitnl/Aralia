@@ -15,6 +15,7 @@ interface SystemMenuProps {
   hasNewRateLimitError: boolean;
   isDevDummyActive: boolean; // Retained prop for completeness, though specific usage might be implicitly handled by permissions
   isDevModeEnabled: boolean;
+  autoSaveEnabled: boolean;
 }
 
 export const SystemMenu: React.FC<SystemMenuProps> = ({
@@ -23,7 +24,8 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   unreadDiscoveryCount,
   hasNewRateLimitError,
   isDevDummyActive: _isDevDummyActive,
-  isDevModeEnabled
+  isDevModeEnabled,
+  autoSaveEnabled,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -60,6 +62,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
 
       // Middle section: Persistence (Save/Quit).
       { action: { type: 'save_game', label: 'Save Game' } },
+      { action: { type: 'toggle_auto_save', label: `Auto-save: ${autoSaveEnabled ? 'On' : 'Off'}` } },
       { action: { type: 'go_to_main_menu', label: 'Main Menu' } },
 
       // RALPH: Dev-Only Guard.
@@ -74,7 +77,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
         ? { action: { type: 'toggle_dev_menu', label: 'Dev Menu' }, hasNotification: hasNewRateLimitError }
         : null,
     ].filter(Boolean) as { action: Action; badgeCount?: number; hasNotification?: boolean }[],
-    [unreadDiscoveryCount, hasNewRateLimitError, isDevModeEnabled],
+    [unreadDiscoveryCount, hasNewRateLimitError, isDevModeEnabled, autoSaveEnabled],
   );
 
   // Close menu when clicking outside

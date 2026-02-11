@@ -49,6 +49,8 @@ interface GameLayoutProps {
     isDevDummyActive: boolean;
     /** Flag indicating if developer mode logic (menus, cheats) is enabled. */
     isDevModeEnabled: boolean;
+    /** User preference: if true, the game periodically saves to the auto-save slot. */
+    autoSaveEnabled: boolean;
     /** If true, disables all interactive elements (buttons, inputs) in the layout. */
     disabled: boolean;
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
@@ -74,6 +76,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     worldSeed,
     isDevDummyActive,
     isDevModeEnabled,
+    autoSaveEnabled,
     disabled,
     onAction,
 }) => {
@@ -107,6 +110,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         isDevDummyActive={isDevDummyActive}
                         isDevModeEnabled={isDevModeEnabled}
                         unreadDiscoveryCount={unreadDiscoveryCount}
+                        autoSaveEnabled={autoSaveEnabled}
                         hasNewRateLimitError={hasNewRateLimitError}
                         subMapCoordinates={subMapCoordinates ?? undefined}
                         worldSeed={worldSeed}

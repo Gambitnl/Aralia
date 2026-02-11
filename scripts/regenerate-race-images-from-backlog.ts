@@ -52,6 +52,7 @@ const GLOSSARY_RACES_DIR = path.join(ROOT, 'public', 'data', 'glossary', 'entrie
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const BACKLOG_PATH = path.join(ROOT, 'docs', 'portraits', 'race_portrait_regen_backlog.json');
 const ACTIVITIES_REPORT_PATH = path.join(ROOT, 'scripts', 'audits', 'slice-of-life-settings.json');
+const RUNBOOK_PATH = path.join(ROOT, 'docs', 'portraits', 'race_portrait_regen_handoff.md');
 
 const STYLE_BASE = [
   'High fantasy Dungeons and Dragons character illustration.',
@@ -64,6 +65,7 @@ const STYLE_BASE = [
   'Wardrobe: practical civilian clothing suitable for daily work.',
   'No weapons. No armor. No spell effects. No combat stance.',
   'Do not include any modern/real-world objects (no guns, no modern tools, no signage).',
+  'Do not include arrows or arrow-like props.',
 ];
 
 // The backlog includes categories A-E (cropping, slice-of-life, etc). We still track them for
@@ -113,6 +115,29 @@ const SLICE_OF_LIFE_ACTIVITIES = [
   'washing hands at a basin after work (grounded realism)',
 ];
 
+const FALLBACK_ACTIVITY_CONTEXTS = [
+  'keeping a simple work ledger nearby',
+  'before sunrise in a quiet neighborhood',
+  'during a routine afternoon work shift',
+  'while preparing supplies for the next day',
+  'in a shared community workspace',
+  'with a nearby basket of finished goods',
+  'while greeting passing neighbors',
+  'under warm lantern light',
+  'in a modest courtyard workshop',
+  'with simple hand tools laid out neatly',
+  'as part of a daily household routine',
+  'in a calm market-side alcove',
+  'at a worktable near an open doorway',
+  'with neatly stacked materials at arm’s reach',
+  'as part of evening cleanup',
+  'with a helper station prepared beside them',
+  'in a communal guild corner',
+  'while organizing a small order queue',
+  'at a tidy corner of a village hall',
+  'in a low-noise artisan nook',
+];
+
 const RACE_OVERRIDES: Record<string, string[]> = {
   aarakocra: [
     // Aarakocra images frequently drift into "heroic cliffside" or dramatic wingspan poses.
@@ -123,6 +148,10 @@ const RACE_OVERRIDES: Record<string, string[]> = {
     'Setting: grounded slice-of-life in a market, workshop, or home; avoid armories, battlefields, or militarized environments.',
     'Wardrobe: practical civilian clothing; avoid any armor pieces or soldier-like straps/insignia.',
     'Hands: no weapons. Use civilian tools only (e.g., sewing needle, ledger, cooking utensils, broom).',
+  ],
+  protector_aasimar: [
+    'Hands: no weapons and no arrows. Use civilian tools only (needle/thread, kitchen tools, broom, ledger).',
+    'Wardrobe: practical civilian clothing. Avoid capes/cloaks that read as heroic regalia.',
   ],
   silver_dragonborn: [
     'Setting: grounded slice-of-life at ground level (village, dock, kitchen, market). Avoid mystical floating citadels or heroic mountaintop shrines.',
@@ -249,6 +278,18 @@ const PROMPT_OVERRIDES: Record<string, Partial<Record<Category, Partial<Record<G
   },
   protector_aasimar: {
     B: {
+      male: {
+        forcedActivity: 'sharpening kitchen knives in a modest kitchen (hands using a whetstone; focus on careful craft)',
+        settingEnvironment:
+          'A modest village kitchen interior: wooden table, stone hearth, hanging herbs, warm daylight through a window. Calm, mundane domestic atmosphere.',
+        attire:
+          'Civilian attire: simple shirt and trousers, work apron, sturdy boots. No armor. No weapons. No heroic cloak. A light shawl draped over the back so folded wings are mostly concealed.',
+        extraRules: [
+          'Action clarity: show hands actively using a whetstone on a kitchen knife (not a weapon).',
+          'Wings must be folded and tucked; do not show a wide wing span.',
+          'Background must extend edge-to-edge with no blank margins.',
+        ],
+      },
       female: {
         forcedActivity: 'mending a torn cloak with needle and thread by window light',
         settingEnvironment:
@@ -415,13 +456,36 @@ function pickUniqueActivity(used: Set<string>): string {
     const key = normalizeActivityKey(a);
     if (!used.has(key)) return a;
   }
-  // Fallback: if exhausted, just cycle (but keep deterministic output).
-  return SLICE_OF_LIFE_ACTIVITIES[Math.floor(Math.random() * SLICE_OF_LIFE_ACTIVITIES.length)];
+
+  // Fallback 1: expand each base activity with a grounded context phrase.
+  for (const base of SLICE_OF_LIFE_ACTIVITIES) {
+    const baseClean = base.replace(/[.]+$/g, '').trim();
+    for (const context of FALLBACK_ACTIVITY_CONTEXTS) {
+      const candidate = `${baseClean} while ${context}`;
+      const key = normalizeActivityKey(candidate);
+      if (!used.has(key)) return candidate;
+    }
+  }
+
+  // Fallback 2: deterministic numbered suffix if everything above is exhausted.
+  const base = SLICE_OF_LIFE_ACTIVITIES[used.size % SLICE_OF_LIFE_ACTIVITIES.length].replace(/[.]+$/g, '').trim();
+  let i = 1;
+  while (i < 10000) {
+    const candidate = `${base} during routine civic work shift ${i}`;
+    const key = normalizeActivityKey(candidate);
+    if (!used.has(key)) return candidate;
+    i += 1;
+  }
+
+  // Last resort (should never happen in practice).
+  return `${base} during routine civic work shift`;
 }
 
 function normalizeActivityKey(value: string): string {
   return String(value || '')
     .toLowerCase()
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[.,;:!?'"`]/g, ' ')
     .trim()
     .replace(/\s+/g, ' ')
     .replace(/[.]+$/g, '');
@@ -432,8 +496,18 @@ function loadUsedActivitiesFromReport(): Set<string> {
   if (!fs.existsSync(ACTIVITIES_REPORT_PATH)) return used;
   try {
     const json = JSON.parse(fs.readFileSync(ACTIVITIES_REPORT_PATH, 'utf8')) as any;
+    // New format: use latest per-race rows (preferred), fallback to old uniqueRoles list.
+    if (Array.isArray(json.rows)) {
+      for (const row of json.rows) {
+        if (row && typeof row.activity === 'string' && row.activity.trim()) {
+          used.add(normalizeActivityKey(row.activity));
+        }
+      }
+    }
     const roles = Array.isArray(json.uniqueRoles) ? json.uniqueRoles : [];
-    for (const r of roles) used.add(normalizeActivityKey(r));
+    for (const r of roles) {
+      if (typeof r === 'string' && r.trim()) used.add(normalizeActivityKey(r));
+    }
   } catch {
     // ignore
   }
@@ -447,6 +521,16 @@ function runSliceOfLifeReport(): void {
   const res = spawnSync(cmd, { shell: true, stdio: 'inherit' });
   if (res.status !== 0) {
     console.warn(`[slice-of-life] Warning: failed to update report (exit ${res.status ?? 'unknown'})`);
+  }
+}
+
+function appendRunbookLogLine(line: string): void {
+  try {
+    const ts = new Date().toISOString();
+    const msg = `- ${ts} ${line}\n`;
+    fs.appendFileSync(RUNBOOK_PATH, msg, 'utf8');
+  } catch (e) {
+    console.warn(`[runbook] Warning: failed to append to runbook: ${(e as Error)?.message ?? String(e)}`);
   }
 }
 
@@ -615,6 +699,7 @@ async function main() {
   const filteredByGender = args.genders.length > 0 ? filteredByRace.filter((w) => args.genders.includes(w.gender)) : filteredByRace;
   const limited = args.limit ? filteredByGender.slice(0, args.limit) : filteredByGender;
   console.log(`[regen-backlog] Planned regenerations: ${limited.length}${args.limit ? ` (limited from ${work.length})` : ''}`);
+  appendRunbookLogLine(`[start] planned=${limited.length} args=${process.argv.slice(2).join(' ')}`);
 
   for (const w of limited) {
     const assetRel = w.gender === 'male' ? w.race.male : w.race.female;
@@ -643,6 +728,7 @@ async function main() {
     }
 
     console.log(`[regen] ${w.category} ${w.race.id} (${w.gender}) -> ${assetRel}`);
+    appendRunbookLogLine(`[begin] ${w.category} ${w.race.id} ${w.gender} -> ${assetRel}`);
 
     let ok = false;
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -662,7 +748,15 @@ async function main() {
       }
       const dl = await downloadImage({ outputPath: absPath, race: w.race.id, gender: w.gender, prompt });
       if (!dl?.success) {
-        throw new Error(`[regen] Image download failed for ${w.race.id} (${w.gender}): ${dl?.message || 'unknown error'}`);
+        const msg = String(dl?.message || 'unknown error');
+        appendRunbookLogLine(`[warn] download failed: ${w.race.id} ${w.gender} msg=${msg}`);
+        console.warn(`[regen] Image download failed for ${w.race.id} (${w.gender}): ${msg}`);
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, cooldown));
+          continue;
+        }
+        appendRunbookLogLine(`[error] download failed (exhausted): ${w.race.id} ${w.gender} msg=${msg}`);
+        throw new Error(`[regen] Image download failed for ${w.race.id} (${w.gender}) after ${retries + 1} attempts: ${msg}`);
       }
 
       // Reject Gemini "letterboxing" / blank margin outputs and try again.
@@ -672,6 +766,7 @@ async function main() {
       if (det.status === 2) {
         console.warn(`[regen] Blank margins detected for ${w.race.id} (${w.gender}). Will retry.`);
         if (detText) console.warn(`[regen] detect-blank-margins: ${detText}`);
+        appendRunbookLogLine(`[retry] blank-margins ${w.race.id} ${w.gender}`);
         await new Promise((r) => setTimeout(r, cooldown));
         continue;
       }
@@ -686,6 +781,7 @@ async function main() {
       if (sq.status === 2) {
         console.warn(`[regen] Non-square image detected for ${w.race.id} (${w.gender}). Will retry.`);
         if (sqText) console.warn(`[regen] check-image-square: ${sqText}`);
+        appendRunbookLogLine(`[retry] non-square ${w.race.id} ${w.gender}`);
         await new Promise((r) => setTimeout(r, cooldown));
         continue;
       }
@@ -708,6 +804,7 @@ async function main() {
         for (const d of duplicates.slice(0, 5)) {
           console.warn(`[regen] Duplicate of: ${d.imagePath}`);
         }
+        appendRunbookLogLine(`[retry] duplicate-bytes ${w.race.id} ${w.gender}`);
         await new Promise((r) => setTimeout(r, cooldown));
         continue;
       }
@@ -716,12 +813,14 @@ async function main() {
         const v = await verifyImageAdherence(absPath);
         if (!v.success || !v.complies) {
           console.warn(`[regen] Verification failed for ${w.race.id} (${w.gender}): ${v.message}`);
+          appendRunbookLogLine(`[retry] verify-failed ${w.race.id} ${w.gender} msg=${String(v.message || '')}`);
           await new Promise((r) => setTimeout(r, cooldown));
           continue;
         }
       }
 
       ok = true;
+      appendRunbookLogLine(`[done] ${w.category} ${w.race.id} ${w.gender} path=${assetRel} activity=${JSON.stringify(activityUsed ?? '')}`);
       break;
     }
 

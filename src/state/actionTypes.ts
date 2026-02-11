@@ -14,6 +14,7 @@ import { InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, EquipI
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
+  | { type: 'SET_AUTO_SAVE_ENABLED'; payload: boolean }
   | { type: 'START_NEW_GAME_SETUP'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; worldSeed: number; } }
   | { type: 'START_GAME_FOR_DUMMY'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; generatedParty: PlayerCharacter[]; worldSeed: number; } }
   | { type: 'START_GAME_SUCCESS'; payload: StartGameSuccessPayload }
