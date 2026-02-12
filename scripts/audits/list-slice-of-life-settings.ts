@@ -41,13 +41,27 @@ type CcRacePair = {
 };
 
 type LedgerRow = {
+  pairNumber: number;
+  pairTag: string;
   raceId: string;
   raceName: string;
   baseRace: string | null;
   gender: "male" | "female";
   illustrationPath: string | null;
+  observedActivity: string | null;
+  targetActivity: string | null;
   activity: string | null;
   activityCanonical: string | null;
+  likelyScore: number | null;
+  likelyReason: string | null;
+  needsRegen: boolean;
+  duplicateGroupSize: number;
+  duplicateDecision: "missing" | "unique" | "keep" | "regen";
+  duplicateKeeperPairTag: string | null;
+  qaStatus: "pending" | "approved" | "rejected";
+  qaNotes: string | null;
+  qaReviewedAt: string | null;
+  qaReviewer: string | null;
   statusCategory: string | null;
   statusReason: string | null;
   downloadedAt: string | null;
@@ -60,11 +74,48 @@ type LedgerRow = {
 const ROOT = process.cwd();
 const STATUS_PATH = path.join(ROOT, "public", "assets", "images", "races", "race-image-status.json");
 const RACES_TS_DIR = path.join(ROOT, "src", "data", "races");
+const QA_PATH = path.join(ROOT, "scripts", "audits", "slice-of-life-qa.json");
 const OUT_MD = path.join(ROOT, "scripts", "audits", "slice-of-life-settings.md");
 const OUT_JSON = path.join(ROOT, "scripts", "audits", "slice-of-life-settings.json");
 
+// Also emit a copy under public/ so the Design Preview page can fetch "live" ledger data
+// without requiring a rebuild (static JSON import tends to go stale across sessions).
+const PUBLIC_OUT_DIR = path.join(ROOT, "public", "data", "dev");
+const PUBLIC_OUT_MD = path.join(PUBLIC_OUT_DIR, "slice-of-life-settings.md");
+const PUBLIC_OUT_JSON = path.join(PUBLIC_OUT_DIR, "slice-of-life-settings.json");
+
 const NON_SELECTABLE_BASE_RACE_IDS = new Set(["elf", "tiefling", "goliath", "eladrin", "dragonborn"]);
 const BACKLOG_CATEGORIES = new Set(["A", "B", "C", "D", "E"]);
+
+type QaEntry = {
+  raceId?: string;
+  gender?: string;
+  status?: string;
+  notes?: string;
+  reviewedAt?: string;
+  reviewer?: string;
+};
+
+function loadQaByPairKey(): Map<string, Required<Pick<LedgerRow, "qaStatus" | "qaNotes" | "qaReviewedAt" | "qaReviewer">>> {
+  const out = new Map<string, Required<Pick<LedgerRow, "qaStatus" | "qaNotes" | "qaReviewedAt" | "qaReviewer">>>();
+  if (!fs.existsSync(QA_PATH)) return out;
+  const raw = JSON.parse(fs.readFileSync(QA_PATH, "utf8")) as { entries?: QaEntry[] };
+  const entries = Array.isArray(raw.entries) ? raw.entries : [];
+  for (const entry of entries) {
+    if (typeof entry.raceId !== "string" || typeof entry.gender !== "string") continue;
+    const key = statusKey(entry.raceId, entry.gender);
+    const status = entry.status === "approved" || entry.status === "rejected" || entry.status === "pending"
+      ? entry.status
+      : "pending";
+    out.set(key, {
+      qaStatus: status,
+      qaNotes: typeof entry.notes === "string" && entry.notes.trim() ? entry.notes.trim() : null,
+      qaReviewedAt: typeof entry.reviewedAt === "string" && entry.reviewedAt.trim() ? entry.reviewedAt.trim() : null,
+      qaReviewer: typeof entry.reviewer === "string" && entry.reviewer.trim() ? entry.reviewer.trim() : null,
+    });
+  }
+  return out;
+}
 
 function extractLine(prompt: string, label: string): string | null {
   if (typeof prompt !== "string" || !prompt) return null;
@@ -211,6 +262,22 @@ function collectDuplicates(rows: LedgerRow[], regenOnly: boolean) {
     }));
 }
 
+function compareRowsForDuplicateKeeper(a: LedgerRow, b: LedgerRow): number {
+  // Higher likely score wins if present.
+  const aLikely = typeof a.likelyScore === "number" ? a.likelyScore : -1;
+  const bLikely = typeof b.likelyScore === "number" ? b.likelyScore : -1;
+  if (aLikely !== bLikely) return bLikely - aLikely;
+
+  // Prefer regenerated rows, then newer downloads, then stable pair ordering.
+  if (a.isRegenerated !== b.isRegenerated) return a.isRegenerated ? -1 : 1;
+  const aDate = parseDateMs(a.downloadedAt ?? undefined);
+  const bDate = parseDateMs(b.downloadedAt ?? undefined);
+  if (aDate !== bDate) return bDate - aDate;
+  if (a.pairNumber !== b.pairNumber) return a.pairNumber - b.pairNumber;
+  if (a.gender !== b.gender) return a.gender === "male" ? -1 : 1;
+  return a.raceId.localeCompare(b.raceId);
+}
+
 function main() {
   if (!fs.existsSync(STATUS_PATH)) {
     console.error(`[slice-of-life] Missing status file: ${STATUS_PATH}`);
@@ -219,6 +286,7 @@ function main() {
 
   const raw = JSON.parse(fs.readFileSync(STATUS_PATH, "utf8")) as { entries?: StatusEntry[] };
   const statusEntries = Array.isArray(raw.entries) ? raw.entries : [];
+  const qaByPairKey = loadQaByPairKey();
   const ccPairs = parseCcRacePairs();
   const { latest, discardedWithoutPair } = getLatestStatusByPair(statusEntries);
 
@@ -236,15 +304,30 @@ function main() {
         ? latestStatus.category.trim()
         : null;
     const isRegenerated = statusCategory !== null && BACKLOG_CATEGORIES.has(statusCategory);
+    const qa = qaByPairKey.get(key);
 
     return {
+      pairNumber: 0,
+      pairTag: "",
       raceId: pair.raceId,
       raceName: pair.raceName,
       baseRace: pair.baseRace,
       gender: pair.gender,
       illustrationPath: pair.illustrationPath,
+      observedActivity: extractedActivity,
+      targetActivity: null,
       activity: extractedActivity,
       activityCanonical: canonical,
+      likelyScore: null,
+      likelyReason: "Pending lore-likelihood review.",
+      needsRegen: false,
+      duplicateGroupSize: 0,
+      duplicateDecision: "missing",
+      duplicateKeeperPairTag: null,
+      qaStatus: qa?.qaStatus ?? "pending",
+      qaNotes: qa?.qaNotes ?? null,
+      qaReviewedAt: qa?.qaReviewedAt ?? null,
+      qaReviewer: qa?.qaReviewer ?? null,
       statusCategory,
       statusReason: typeof latestStatus?.reason === "string" ? latestStatus.reason : null,
       downloadedAt: typeof latestStatus?.downloadedAt === "string" ? latestStatus.downloadedAt : null,
@@ -255,11 +338,66 @@ function main() {
     };
   });
 
+  // Pair races as N(m/f) in a stable, human-readable order.
+  const raceSort = [...rows]
+    .sort((a, b) => a.raceName.localeCompare(b.raceName) || a.raceId.localeCompare(b.raceId))
+    .map((r) => r.raceId)
+    .filter((value, index, arr) => arr.indexOf(value) === index);
+  const pairNumberByRace = new Map<string, number>();
+  raceSort.forEach((raceId, index) => pairNumberByRace.set(raceId, index + 1));
+
+  for (const row of rows) {
+    const pairNumber = pairNumberByRace.get(row.raceId) ?? 0;
+    row.pairNumber = pairNumber;
+    row.pairTag = `${pairNumber}${row.gender === "male" ? "m" : "f"}`;
+  }
+
+  rows.sort((a, b) => {
+    if (a.pairNumber !== b.pairNumber) return a.pairNumber - b.pairNumber;
+    if (a.gender !== b.gender) return a.gender === "male" ? -1 : 1;
+    return a.raceId.localeCompare(b.raceId);
+  });
+
   const duplicateAll = collectDuplicates(rows, false);
   const duplicateRegen = collectDuplicates(rows, true);
 
   const dupAllSet = new Set<string>(duplicateAll.map((d) => d.activityCanonical));
   const dupRegenSet = new Set<string>(duplicateRegen.map((d) => d.activityCanonical));
+
+  const rowsByActivity = new Map<string, LedgerRow[]>();
+  for (const row of rows) {
+    if (!row.activityCanonical) continue;
+    const arr = rowsByActivity.get(row.activityCanonical) ?? [];
+    arr.push(row);
+    rowsByActivity.set(row.activityCanonical, arr);
+  }
+
+  for (const row of rows) {
+    if (!row.activityCanonical) {
+      row.needsRegen = true;
+      row.duplicateDecision = "missing";
+      continue;
+    }
+
+    const peers = rowsByActivity.get(row.activityCanonical) ?? [];
+    row.duplicateGroupSize = peers.length;
+    if (peers.length <= 1) {
+      row.needsRegen = false;
+      row.duplicateDecision = "unique";
+      continue;
+    }
+
+    const keeper = peers.slice().sort(compareRowsForDuplicateKeeper)[0];
+    row.duplicateKeeperPairTag = keeper.pairTag;
+    if (row.pairTag === keeper.pairTag) {
+      row.needsRegen = false;
+      row.duplicateDecision = "keep";
+    } else {
+      row.needsRegen = true;
+      row.duplicateDecision = "regen";
+    }
+  }
+
   for (const row of rows) {
     if (row.activityCanonical && dupAllSet.has(row.activityCanonical)) row.duplicateAll = true;
     if (row.activityCanonical && dupRegenSet.has(row.activityCanonical)) row.duplicateRegenerated = true;
@@ -270,6 +408,10 @@ function main() {
   const regeneratedWithActivityCount = rows.filter((r) => r.isRegenerated && r.activityCanonical !== null).length;
   const duplicateAllRowCount = rows.filter((r) => r.duplicateAll).length;
   const duplicateRegenRowCount = rows.filter((r) => r.duplicateRegenerated).length;
+  const rowsMarkedForRegen = rows.filter((r) => r.needsRegen).length;
+  const qaApprovedCount = rows.filter((r) => r.qaStatus === "approved").length;
+  const qaRejectedCount = rows.filter((r) => r.qaStatus === "rejected").length;
+  const qaPendingCount = rows.length - qaApprovedCount - qaRejectedCount;
 
   const uniqueLatestActivities = new Set(rows.map((r) => r.activityCanonical).filter(Boolean) as string[]);
   const uniqueRegenActivities = new Set(
@@ -288,6 +430,10 @@ function main() {
     duplicatedRowsAcrossLatestPairs: duplicateAllRowCount,
     duplicatedActivitiesAcrossRegeneratedPairs: duplicateRegen.length,
     duplicatedRowsAcrossRegeneratedPairs: duplicateRegenRowCount,
+    rowsMarkedForRegen,
+    qaApprovedCount,
+    qaRejectedCount,
+    qaPendingCount,
     discardedStatusEntriesWithoutRaceGender: discardedWithoutPair,
     totalStatusEntriesRead: statusEntries.length,
   };
@@ -310,6 +456,10 @@ function main() {
   md.push(`- Duplicated rows (all latest pairs): ${summary.duplicatedRowsAcrossLatestPairs}`);
   md.push(`- Duplicated activities (regenerated pairs): ${summary.duplicatedActivitiesAcrossRegeneratedPairs}`);
   md.push(`- Duplicated rows (regenerated pairs): ${summary.duplicatedRowsAcrossRegeneratedPairs}`);
+  md.push(`- Rows marked for regen (missing or non-keeper duplicate): ${summary.rowsMarkedForRegen}`);
+  md.push(`- QA approved rows: ${summary.qaApprovedCount}`);
+  md.push(`- QA rejected rows: ${summary.qaRejectedCount}`);
+  md.push(`- QA pending rows: ${summary.qaPendingCount}`);
   md.push(`- Discarded status entries without race/gender: ${summary.discardedStatusEntriesWithoutRaceGender}`);
   md.push("");
 
@@ -344,20 +494,20 @@ function main() {
   md.push("## All Race/Gender Pairs");
   md.push("");
   md.push(
-    "| Race ID | Race Name | Gender | Group | Activity | Category | Regen? | Dup(Regen) | Dup(All) |",
+    "| Pair | Race ID | Race Name | Gender | Group | Observed Activity | Target Activity | Likely | Needs Regen | Decision | Keeper | QA | QA Note | Category | Regen? | Dup(Regen) | Dup(All) |",
   );
-  md.push("|---|---|---|---|---|---|---|---|---|");
+  md.push("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
   for (const row of rows) {
     md.push(
-      `| ${row.raceId} | ${row.raceName} | ${row.gender} | ${row.baseRace ?? row.raceId} | ${row.activity ?? "(missing)"} | ${row.statusCategory ?? ""} | ${row.isRegenerated ? "yes" : "no"} | ${row.duplicateRegenerated ? "yes" : "no"} | ${row.duplicateAll ? "yes" : "no"} |`,
+      `| ${row.pairTag} | ${row.raceId} | ${row.raceName} | ${row.gender} | ${row.baseRace ?? row.raceId} | ${row.observedActivity ?? "(missing)"} | ${row.targetActivity ?? "(unset)"} | ${row.likelyScore ?? "-"} | ${row.needsRegen ? "yes" : "no"} | ${row.duplicateDecision} | ${row.duplicateKeeperPairTag ?? "-"} | ${row.qaStatus} | ${row.qaNotes ?? ""} | ${row.statusCategory ?? ""} | ${row.isRegenerated ? "yes" : "no"} | ${row.duplicateRegenerated ? "yes" : "no"} | ${row.duplicateAll ? "yes" : "no"} |`,
     );
   }
   md.push("");
 
   fs.mkdirSync(path.dirname(OUT_MD), { recursive: true });
   fs.writeFileSync(OUT_MD, md.join("\n"), "utf8");
-  fs.writeFileSync(
-    OUT_JSON,
+
+  const jsonPayload =
     JSON.stringify(
       {
         summary,
@@ -367,11 +517,16 @@ function main() {
       },
       null,
       2,
-    ) + "\n",
-    "utf8",
-  );
+    ) + "\n";
+
+  fs.writeFileSync(OUT_JSON, jsonPayload, "utf8");
+
+  fs.mkdirSync(PUBLIC_OUT_DIR, { recursive: true });
+  fs.writeFileSync(PUBLIC_OUT_MD, md.join("\n"), "utf8");
+  fs.writeFileSync(PUBLIC_OUT_JSON, jsonPayload, "utf8");
 
   console.log(`[slice-of-life] Wrote ${path.relative(ROOT, OUT_MD)} and ${path.relative(ROOT, OUT_JSON)}`);
+  console.log(`[slice-of-life] Wrote ${path.relative(ROOT, PUBLIC_OUT_MD)} and ${path.relative(ROOT, PUBLIC_OUT_JSON)}`);
   console.log(`[slice-of-life] Regenerated duplicate activities: ${duplicateRegen.length}`);
 }
 

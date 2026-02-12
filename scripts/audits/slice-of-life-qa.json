@@ -1,0 +1,372 @@
+{
+  "entries": [
+    {
+      "raceId": "aarakocra",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, no border, clear slice-of-life lantern lighting, plausible race fit.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:26:07.264Z"
+    },
+    {
+      "raceId": "abyssal_tiefling",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, no border, courier sorting activity reads clearly and is mundane.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:26:09.749Z"
+    },
+    {
+      "raceId": "beastborn_human",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body seated pose, no border, leatherwork/boot repair is clear slice-of-life.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:26:14.213Z"
+    },
+    {
+      "raceId": "beastborn_human",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, no border, market-weighing activity is clear and slice-of-life.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:26:11.932Z"
+    },
+    {
+      "raceId": "bugbear",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, no border, market transaction scene reads as mundane daily life.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:26:18.487Z"
+    },
+    {
+      "raceId": "bugbear",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, no border, cellar barrel-labor activity is clear and plausible.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:26:16.330Z"
+    },
+    {
+      "raceId": "changeling",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, clear slice-of-life mending scene.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:42.071Z"
+    },
+    {
+      "raceId": "changeling",
+      "gender": "male",
+      "status": "rejected",
+      "notes": "Reject: white border/frame present; image not edge-to-edge fill.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:39.620Z"
+    },
+    {
+      "raceId": "copper_dragonborn",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, travel-ration prep reads as mundane activity.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:46.625Z"
+    },
+    {
+      "raceId": "copper_dragonborn",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, candle-making task clear and plausible.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:44.310Z"
+    },
+    {
+      "raceId": "drow",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, records/desk work activity is clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:51.262Z"
+    },
+    {
+      "raceId": "drow",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, sweeping/cleaning labor activity is clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:49.085Z"
+    },
+    {
+      "raceId": "duergar",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, weaving basket activity clear and civilian.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:48:49.578Z"
+    },
+    {
+      "raceId": "duergar",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body seated pose, edge-to-edge, teaching/reading activity clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:40:10.467Z"
+    },
+    {
+      "raceId": "fallen_aasimar",
+      "gender": "female",
+      "status": "rejected",
+      "notes": "Reject: recorded activity is baking, but image depicts writing/desk scene (activity mismatch).",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:55.722Z"
+    },
+    {
+      "raceId": "fallen_aasimar",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body kneeling composition, edge-to-edge, herb-garden tending clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:32:53.541Z"
+    },
+    {
+      "raceId": "firbolg",
+      "gender": "male",
+      "status": "rejected",
+      "notes": "Reject: activity mismatch (appears forge/combat-like prop handling, not helper coal/tongs task).",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:39:54.574Z"
+    },
+    {
+      "raceId": "forest_gnome",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, shrine candle-lighting activity is clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:39:56.930Z"
+    },
+    {
+      "raceId": "forgeborn_human",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, herb-hanging activity reads clearly.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:40:01.462Z"
+    },
+    {
+      "raceId": "forgeborn_human",
+      "gender": "male",
+      "status": "rejected",
+      "notes": "Reject: outfit/scene reads militarized and not civilian slice-of-life delivery.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:39:59.138Z"
+    },
+    {
+      "raceId": "giff",
+      "gender": "female",
+      "status": "rejected",
+      "notes": "Reject: not full body (feet/legs cropped off at frame bottom).",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:40:05.841Z"
+    },
+    {
+      "raceId": "giff",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, ledger-copying activity clear and civilian.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:40:03.643Z"
+    },
+    {
+      "raceId": "gold_dragonborn",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, tea preparation activity is clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:40:08.331Z"
+    },
+    {
+      "raceId": "hadozee",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, lantern-lighting task clear; no combat posing.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:48:52.137Z"
+    },
+    {
+      "raceId": "half_elf_high",
+      "gender": "female",
+      "status": "rejected",
+      "notes": "Reject: contains arrow prop; arrow-artifact failure mode (avoid arrows).",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:49:04.323Z"
+    },
+    {
+      "raceId": "half_elf",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, mundane hand-washing scene in civilian attire.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:48:54.308Z"
+    },
+    {
+      "raceId": "half_orc",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, tavern glass-polishing scene is clear slice-of-life.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:48:59.374Z"
+    },
+    {
+      "raceId": "half_orc",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, courier sorting activity clear and non-combat.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:48:56.755Z"
+    },
+    {
+      "raceId": "hearthkeeper_halfling",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, packing/handling goods activity is clear and mundane.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:49:01.968Z"
+    },
+    {
+      "raceId": "hill_dwarf",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body seated framing, edge-to-edge, stitching quilt activity clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T01:49:06.579Z"
+    },
+    {
+      "raceId": "infernal_tiefling",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, wheel-repair activity clear and civilian enough.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:02:42.287Z"
+    },
+    {
+      "raceId": "kalashtar",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, utensil-carving craft scene reads clearly.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:02:47.068Z"
+    },
+    {
+      "raceId": "kalashtar",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, library sweeping/cleaning activity clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:02:44.773Z"
+    },
+    {
+      "raceId": "kender",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, water-carrying market scene clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:02:51.579Z"
+    },
+    {
+      "raceId": "kender",
+      "gender": "male",
+      "status": "rejected",
+      "notes": "Reject: activity mismatch; image depicts baking/oven instead of recorded bread-baking in communal oven dusted with flour style target and character presentation drifts.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:02:49.364Z"
+    },
+    {
+      "raceId": "kobold",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, fish-market inspection activity clear and mundane.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:02:55.518Z"
+    },
+    {
+      "raceId": "loxodon",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, artisan stone-etching task is clear and plausible.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:15:56.012Z"
+    },
+    {
+      "raceId": "mender_halfling",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, shrine-offering candle scene clear and mundane.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:00.439Z"
+    },
+    {
+      "raceId": "minotaur",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, animal-guidance/carrying task clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:05.134Z"
+    },
+    {
+      "raceId": "orc",
+      "gender": "male",
+      "status": "rejected",
+      "notes": "Reject: text artifact on paper (readable/generated text) violates no-text criterion.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:10.113Z"
+    },
+    {
+      "raceId": "pallid_elf",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, alchemy/mixing craft scene clear and non-combat.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:14.422Z"
+    },
+    {
+      "raceId": "protector_aasimar",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, kitchen knife-sharpening activity clear; wings folded.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:18.756Z"
+    },
+    {
+      "raceId": "rock_gnome",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, tailoring/measurement activity is clear.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:21.128Z"
+    },
+    {
+      "raceId": "runeward_dwarf",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, firewood stacking task clear and mundane.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:23.186Z"
+    },
+    {
+      "raceId": "scourge_aasimar",
+      "gender": "female",
+      "status": "approved",
+      "notes": "Pass: full body seated pose, edge-to-edge, basket-weaving activity clear; wings folded.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:27.381Z"
+    },
+    {
+      "raceId": "scourge_aasimar",
+      "gender": "male",
+      "status": "approved",
+      "notes": "Pass: full body, edge-to-edge, tea-preparation activity clear; no combat posture.",
+      "reviewer": "codex",
+      "reviewedAt": "2026-02-12T02:16:25.275Z"
+    }
+  ]
+}

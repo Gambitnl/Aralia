@@ -41,6 +41,8 @@ export const useCompanionBanter = (
   // Exposed state for UI
   const [isBanterActive, setIsBanterActive] = useState(false);
   const [isWaitingForNextLine, setIsWaitingForNextLine] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingSpeakerName, setGeneratingSpeakerName] = useState<string | null>(null);
   const [secondsUntilNextLine, setSecondsUntilNextLine] = useState(0);
   const [banterHistory, setBanterHistory] = useState<BanterHistoryLine[]>([]);
 
@@ -179,6 +181,19 @@ export const useCompanionBanter = (
     }
 
     setIsWaitingForNextLine(false);
+    setIsGenerating(true);
+
+    // If there are exactly 2 participants, we can be reasonably sure who is next.
+    // If more, it's a toss-up, so we use a generic label.
+    const currentLastSpeakerId = banterHistoryRef.current[banterHistoryRef.current.length - 1]?.speakerId;
+    const nextLikelySpeaker = participantsRef.current.find(p => p.id !== currentLastSpeakerId);
+    
+    if (participantsRef.current.length === 2 && nextLikelySpeaker) {
+      setGeneratingSpeakerName(nextLikelySpeaker.identity.name);
+    } else {
+      setGeneratingSpeakerName(null);
+    }
+
     turnRef.current++;
 
     // Check max turns
@@ -219,6 +234,9 @@ export const useCompanionBanter = (
         });
       }
     );
+
+    setIsGenerating(false);
+    setGeneratingSpeakerName(null);
 
     // Update the log with the response
     if (result.metadata) {
@@ -393,6 +411,16 @@ export const useCompanionBanter = (
 
     // Continue with NPC response after a short delay
     turnRef.current++;
+    setIsGenerating(true);
+    
+    // Guess next speaker for the indicator
+    const nextLikelySpeaker = participantsRef.current.find(p => p.id !== playerId);
+    if (participantsRef.current.length === 2 && nextLikelySpeaker) {
+      setGeneratingSpeakerName(nextLikelySpeaker.identity.name);
+    } else {
+      setGeneratingSpeakerName(null);
+    }
+
     setTimeout(() => {
       generateNextLine();
     }, 1500);
@@ -589,6 +617,8 @@ export const useCompanionBanter = (
     forceBanter,
     isBanterActive,
     isWaitingForNextLine,
+    isGenerating,
+    generatingSpeakerName,
     secondsUntilNextLine,
     playerInterrupt,
     endBanter,

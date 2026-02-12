@@ -1,15 +1,27 @@
 # 3D World Integration Implementation Plan
 
-**Date**: 2026-02-11  
-**Status**: Active execution plan (phased)  
+**Date**: 2026-02-12  
+**Status**: Active execution plan (Azgaar-primary, Stage R1 implemented, parity validation pending)  
 **Scope**: Full roadmap discussed in questionnaire + follow-ups
 
 ## Objective
 
 Deliver a browser-based 3D exploration pipeline that is deterministic per save, feels massive, supports meaningful travel/events/POIs, and can evolve into AI-driven actor simulation without collapsing performance or clarity.
 
+## Execution Discipline (Mandatory)
+
+- No shortcut implementations are accepted as "done" if they bypass the agreed primary path.
+- "Done" requires: integration + gameplay bridge wiring + persistence safety + deterministic verification.
+- Temporary scaffolds are allowed only if explicitly labeled and tracked with a follow-up item in this file.
+- This plan file must be updated at each meaningful phase boundary and after major scope decisions.
+- If risk or uncertainty appears, document it here first, then proceed with a concrete mitigation step.
+
 ## Locked Decisions
 
+- Primary world generation path is full Azgaar component integration (extracted/runtime-adapted), not long-term derived approximation.
+- World map presentation target is seamless atlas style by default (not visible square tile grid).
+- Travel/Movement mode can expose optional overlays (Voronoi/debug) as toggles; default OFF.
+- States/borders are allowed in Phase 1 as toggleable visual layers (not forced always-on).
 - New game must start with a new world seed.
 - Seed persists within-session and across save/load (auto-save toggle default ON).
 - In 3D exploration, time should progress in real time (1s real = 1s in-game).
@@ -21,6 +33,25 @@ Deliver a browser-based 3D exploration pipeline that is deterministic per save, 
 - Long-term actor model: ambient -> skeleton-on-interaction -> social/backstory depth.
 - Watabou local/POI generation is parked as a later phase.
 - Time-of-day must not mutate deterministic terrain/layout generation for a tile recipe.
+
+## Layman Model Clarification
+
+- "Continuous map" means the player sees one seamless world atlas (coastlines/relief/rivers), not obvious square chunks.
+- Under the hood, simulation still uses hidden world cells for travel time, encounter checks, persistence, and submap anchoring.
+- Clicking anywhere on the atlas can snap to nearest hidden world cell; this preserves deterministic gameplay while keeping visuals immersive.
+- Submap generation is anchored to a world cell (plus neighbors), so local terrain remains coherent with world context.
+
+## Decouple Contract
+
+- Detailed coupling inventory and staged decouple plan lives in `docs/tasks/3d-exploration/world-map-rewire-mapping.md`.
+- We will decouple in sequence:
+  - Renderer decouple first (`MapPane` swap to Azgaar atlas UI while preserving gameplay contracts).
+  - Grid UI decouple second (remove legacy tile-grid renderer after click-travel/save/submap parity checks pass).
+- Protected during renderer migration:
+  - `MapData.tiles` compatibility
+  - `MOVE_PLAYER` / `SET_MAP_DATA` contracts
+  - save/load world seed persistence
+  - submap hidden-cell anchoring
 
 ## Phase Roadmap
 
@@ -37,15 +68,44 @@ Deliver a browser-based 3D exploration pipeline that is deterministic per save, 
 - Encounter can interrupt remaining route after current step.
 - Edge cue appears before crossing boundaries.
 
-### Phase 1: World Continuity + Determinism
+### Phase 0.5: World-Map Coupling Audit + Rewire Staging
 
-1. Create deterministic border-port system for roads/rivers/cliffs between adjacent tiles.
-2. Ensure 2D and 3D consume the same continuity contract.
-3. Add deterministic recipe dumps for debug regression checks.
+1. Maintain and update `world-map-rewire-mapping.md` as the authoritative decouple map.
+2. Lock R1 scope: renderer swap only, no reducer/persistence contract breakage.
+3. Lock R2 scope: remove legacy grid UI only after parity gates pass.
+4. Define regression checklist for atlas click-travel, save/load, and submap anchoring.
 
 **Exit Criteria**
-- Neighbor tile transitions preserve path/river continuity.
-- Re-entering same tile in same save yields identical macro layout.
+- Coupling map covers renderer, travel, state, save/load, and submap dependencies with file-level references.
+- R1/R2 boundaries are explicit and agreed.
+- Rewire checklist is ready before map renderer replacement work continues.
+
+### Phase 1: Azgaar Core Integration + Atlas Rendering
+
+1. Phase 1A - Extract/adapt Azgaar generation components as primary backend (heightmap, cells, rivers, biomes, settlement hooks, states/borders where applicable).
+2. Phase 1B - Replace square-tile world presentation with seamless atlas renderer (biome tint + coast + relief + rivers + settlements).
+3. Phase 1C - Keep travel deterministic by snapping click targets to hidden world cells.
+4. Phase 1D - Add map layer toggles: borders/states, rivers, relief, movement overlays.
+5. Create deterministic border-port system for roads/rivers/cliffs between adjacent submaps.
+6. Ensure 2D and 3D consume the same continuity contract.
+7. Add deterministic recipe dumps for debug regression checks.
+
+**Exit Criteria**
+- Atlas view is default and no longer looks like exposed square map tiles.
+- Azgaar-style macro geography is visible (coast/rivers/relief/settlement layers).
+- Neighbor tile transitions preserve path/river/cliff continuity.
+- Re-entering same tile in same save yields identical macro layout and submap anchors.
+
+### Phase 1.5: Azgaar Option Triage (Feature-by-Feature)
+
+1. Enumerate Azgaar options and classify each as: `Keep`, `Hide`, `Defer`.
+2. Remove/disable non-game UI affordances (`New Map`, editor/export/import controls, etc.) from player-facing runtime.
+3. Keep generator-relevant options that shape world output and gameplay semantics.
+4. Produce a signed-off "Runtime Option Manifest" for maintenance.
+
+**Exit Criteria**
+- Every relevant Azgaar option has an explicit disposition and owner decision.
+- Runtime world map UI is clean, game-focused, and free from generator-tool clutter.
 
 ### Phase 2: Massive-World Readability
 
@@ -107,17 +167,48 @@ Deliver a browser-based 3D exploration pipeline that is deterministic per save, 
 ### Completed In This Pass
 
 - Added full-scope roadmap file for all agreed 3D/world integration requirements.
+- Added explicit world-map coupling artifact: `world-map-rewire-mapping.md` with R1/R2 decouple stages and rewire checklist.
 - Implemented step-based quick travel payload support (ordered path + step durations + encounter chance + step delay).
 - Converted quick travel handler from one-shot teleport into step-by-step execution.
 - Added per-step encounter interruption behavior (finish current step, then stop remaining route).
 - Added soft edge telegraph UI (boundary banner + edge bands) in submap view.
 - Preserved existing auto-save toggle path (default ON).
+- Locked and implemented initial Phase 1A world-source swap stub: `generateMap` defaults to Azgaar-backed generation pipeline (still mid-integration).
+- Added legacy generator fallback path so world generation cannot hard-fail at startup.
+- Implemented Stage R1 renderer swap in `MapPane`: default read-only Azgaar atlas embed with click-to-hidden-cell bridge to existing `onTileClick` movement flow.
+- Added seed-stable Azgaar embed URL generation from map layout, plus initialization retries and legacy-grid fallback mode if iframe bootstrap fails.
+- Fixed Azgaar embed 404 in base-prefixed deployments by resolving iframe URL via `import.meta.env.BASE_URL` (works with configured Vite base `/Aralia/`).
+- Replaced broken source `index.html` vendoring with built Azgaar runtime bundle (`dist` output) to eliminate `.ts` module 404s in iframe mode.
+- Added Azgaar runtime cache-busting query parameter to avoid stale broken embed HTML in browser cache.
+- Resolved two concrete R1 runtime blockers reported during live testing:
+  - `/vendor/azgaar/index.html` 404 due to Vite base path mismatch.
+  - `.ts` runtime module 404s due to source HTML being vendored instead of built runtime HTML.
+- Fixed built Azgaar module bundle path from absolute `/Fantasy-Map-Generator/index-*.js` to relative `./index-*.js` in vendored runtime HTML to prevent iframe module 404s on localhost.
+- Enabled Azgaar menu + layer toggles for option triage, while hard-disabling destructive actions (New Map / Save / Load / Export) in the embed.
+- Enabled Azgaar pan/zoom and added an Aralia `Pan/Zoom` vs `Travel` interaction toggle.
+- Implemented transform-aware atlas click-to-travel mapping using Azgaar's runtime transform (`viewX/viewY/scale`) exposed via an iframe bridge.
+- Added deterministic map generation tests for seed stability, location anchoring, and start discovery behavior.
+- Implemented deterministic edge-port continuity for submap roads and rivers across adjacent world tiles.
+- Added continuity tests to verify edge matching, determinism, and independent network channels.
+- Extended deterministic edge-port continuity to impassable cliff bands in submaps.
+- Added cliff continuity test coverage for cross-tile east/west edge matching.
 - Ran typecheck successfully.
 
 ### Next Up
 
-- Phase 1 continuity contract (edge-matched roads/rivers/cliffs across adjacent tiles).
-- Deterministic recipe dumps/tests for re-entry consistency.
+- Run R1 parity checks: atlas click-travel correctness, save/load round-trip, and submap anchoring consistency.
+- After parity passes, execute R2 cleanup: remove obsolete legacy world-map renderer paths.
+- Complete full Azgaar component extraction/integration path (primary backend).
+- Run Azgaar option triage pass and finalize Runtime Option Manifest.
+- Continue continuity contract work (edge-matched roads/rivers/cliffs across adjacent tiles).
+
+### Immediate R1 Parity Checklist
+
+1. Open world map in `Azgaar Atlas` mode and verify iframe loads without 404s or runtime reference errors.
+2. Click center and near-edge atlas positions; verify `MOVE_PLAYER` triggers and player marker/discovery update coherently.
+3. Perform save -> reload -> open map; verify same world seed and same visible macro map behavior.
+4. Enter submap after atlas-based move; verify world cell anchoring and biome coherence are preserved.
+5. Record any atlas click mismatch cases (especially coastline/edge clicks) before proceeding to R2 cleanup.
 
 ## Questionnaire Traceability
 
@@ -132,7 +223,8 @@ This implementation file is the executable roadmap. Items still needing explicit
 5. Runtime POI injection rules (when/why hidden entrances are spawned).
 6. Actor promotion triggers and retention limits (what counts as "meaningful interaction").
 7. 3D lighting/floor safe-mode debugging path (backburner but not removed).
-8. Azgaar runtime integration boundaries (generator import pipeline vs native rewrite details).
+8. Final azgaar module boundary selection (direct vendoring vs thin bridge wrappers).
+9. Click-travel snapping rule details (nearest cell vs weighted by passability/path costs).
 
 ## Verification Plan
 

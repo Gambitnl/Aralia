@@ -36,6 +36,8 @@
     "load_game_aria": "Resume a saved journey",
     "load_game_empty_aria": "Resume journey (no chronicles found)",
     "load_game_empty_title": "Resume Journey (No chronicles found)",
+    "clear_save": "Wipe Chronicles",
+    "clear_save_confirm": "Are you sure you want to delete all saved chronicles? This action cannot be undone.",
     "glossary": "Lore & Rules",
     "glossary_aria": "View game glossary",
     "glossary_title": "View Game Glossary",

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 11/02/2026, 12:38:57
+ * Dependents: useGameInitialization.ts
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file mapService.ts
  * This service module handles the generation of the world map for Aralia RPG.
@@ -5,6 +21,7 @@
 import { MapData, MapTile, Location, Biome } from '../types';
 import { STARTING_LOCATION_ID } from '../constants';
 import { SeededRandom } from '@/utils/random';
+import { generateAzgaarDerivedMap } from './azgaarDerivedMapService';
 
 /**
  * Generates a world map with biomes and links to predefined locations.
@@ -16,6 +33,23 @@ import { SeededRandom } from '@/utils/random';
  * @returns {MapData} The generated map data.
  */
 export function generateMap(
+  rows: number,
+  cols: number,
+  locations: Record<string, Location>,
+  biomes: Record<string, Biome>,
+  worldSeed: number,
+): MapData {
+  // New default: Azgaar-source template + biome world layout.
+  // Safety fallback: if this pipeline throws, keep the game bootable via legacy generator.
+  try {
+    return generateAzgaarDerivedMap(rows, cols, locations, biomes, worldSeed);
+  } catch (error) {
+    console.error('[mapService] Azgaar-source generation failed. Falling back to legacy generator.', error);
+    return generateLegacyMap(rows, cols, locations, biomes, worldSeed);
+  }
+}
+
+function generateLegacyMap(
   rows: number,
   cols: number,
   locations: Record<string, Location>,

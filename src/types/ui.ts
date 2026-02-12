@@ -92,6 +92,10 @@ export interface BiomeVisuals {
 export interface PathDetails {
   mainPathCoords: Set<string>;
   pathAdjacencyCoords: Set<string>;
+  riverCoords?: Set<string>;
+  riverBankCoords?: Set<string>;
+  cliffCoords?: Set<string>;
+  cliffAdjacencyCoords?: Set<string>;
 }
 
 export interface GlossaryTooltipProps {

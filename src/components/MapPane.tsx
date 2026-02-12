@@ -1,18 +1,13 @@
-
 /**
  * @file MapPane.tsx
- * This component displays the game world map, allowing players to visualize
- * their location and travel to discovered areas. It now features enhanced
- * keyboard navigation using arrow keys and roving tabindex, and an icon glossary.
+ * World map modal surface. Stage R1 default is an embedded, read-only Azgaar
+ * atlas with a click-to-hidden-cell bridge to preserve existing travel logic.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapData, MapTile as MapTileType, GlossaryDisplayItem, MapMarker, Biome } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
-import { BIOMES, LOCATIONS } from '../constants'; // To get biome details like color and icon
-// Icon legend for the world map lives under the Glossary folder
-import GlossaryDisplay from './Glossary/GlossaryDisplay';
+import { MapData, MapMarker, MapTile as MapTileType } from '../types';
+import { BIOMES } from '../constants';
 import { POIS } from '../data/world/pois';
 import { buildPoiMarkers } from '@/utils/spatial';
-import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';
@@ -24,223 +19,298 @@ interface MapPaneProps {
   onClose: () => void;
 }
 
+type WorldMapViewMode = 'azgaar' | 'grid';
+type WorldMapInteractionMode = 'pan' | 'travel';
+
+const AZGAAR_EMBED_STYLE_ID = 'aralia-azgaar-embed-style';
+const AZGAAR_EMBED_SCRIPT_ID = 'aralia-azgaar-embed-bridge';
+function getAzgaarBasePath(): string {
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  return `${normalizedBase}vendor/azgaar/index.html`;
+}
+
+const AZGAAR_RUNTIME_REV = '20260212-r2';
+
+function clampIndex(value: number, maxExclusive: number): number {
+  if (maxExclusive <= 0) return 0;
+  return Math.max(0, Math.min(maxExclusive - 1, value));
+}
+
+function hashText(seed: number, text: string): number {
+  let hash = seed;
+  for (let index = 0; index < text.length; index++) {
+    hash ^= text.charCodeAt(index);
+    hash = (hash * 16777619) >>> 0;
+  }
+  return hash;
+}
+
+function deriveAzgaarSeed(mapData: MapData): number {
+  let hash = 2166136261;
+  hash = hashText(hash, `${mapData.gridSize.rows}x${mapData.gridSize.cols}`);
+
+  for (let y = 0; y < mapData.tiles.length; y++) {
+    const row = mapData.tiles[y];
+    for (let x = 0; x < row.length; x++) {
+      const tile = row[x];
+      // Include only stable world layout data; exclude discovery/current flags.
+      hash = hashText(hash, `${tile.x},${tile.y},${tile.biomeId},${tile.locationId || ''};`);
+    }
+  }
+
+  const bounded = hash % 999_999_999;
+  return bounded > 0 ? bounded : bounded + 999_999_999;
+}
+
 const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   const { gridSize, tiles } = mapData;
-  const [focusedCoords, setFocusedCoords] = useState<{ x: number; y: number } | null>(null);
+  const [viewMode, setViewMode] = useState<WorldMapViewMode>('azgaar');
+  const [interactionMode, setInteractionMode] = useState<WorldMapInteractionMode>('pan');
+  const [isFrameReady, setIsFrameReady] = useState(false);
+  const [frameError, setFrameError] = useState<string | null>(null);
+  const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
 
-  const gridRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const embedOverlayRef = useRef<HTMLDivElement>(null);
+  const readinessTimersRef = useRef<number[]>([]);
 
-  // RALPH: Logic Extraction.
-  // Centralizes grid navigation logic into a reusable hook.
-  // Handles Arrow keys, Enter/Space activation, and Escape to close.
-  const { handleKeyDown } = useKeyboardNavigation({
-    containerRef: gridRef,
-    gridSize,
-    currentCoords: focusedCoords || { x: 0, y: 0 },
-    onCoordsChange: (coords) => setFocusedCoords(coords),
-    onActivate: (coords) => {
-      const { x, y } = coords || { x: 0, y: 0 };
-      const currentTile = tiles[y]?.[x];
-      if (currentTile && (currentTile.discovered || currentTile.isPlayerCurrent)) {
-        onTileClick(x, y, currentTile);
-      }
-    },
-    onClose
-  });
+  const azgaarSeed = useMemo(() => deriveAzgaarSeed(mapData), [mapData]);
+  const azgaarSrc = useMemo(() => {
+    const azgaarBasePath = getAzgaarBasePath();
+    return `${azgaarBasePath}?seed=${azgaarSeed}&options=default&runtime=${AZGAAR_RUNTIME_REV}`;
+  }, [azgaarSeed]);
 
-  /**
-   * Precompute POI markers using shared logic so both the main map and
-   * minimap stay in sync. Using a memo keeps re-renders cheap even when
-   * the grid is large or when panning triggers fast updates.
-   */
-  const poiMarkers: MapMarker[] = useMemo(() => buildPoiMarkers(POIS, mapData), [mapData]);
-
-  // Quick lookup map: "x-y" => markers sitting on that tile
-  const markersByCoordinate = useMemo(() => {
-    const map = new Map<string, MapMarker[]>();
-    poiMarkers.forEach(marker => {
-      if (!marker.isDiscovered) return; // Only draw known POIs on the big map
-      const key = `${marker.coordinates.x}-${marker.coordinates.y}`;
-      if (!map.has(key)) {
-        map.set(key, []);
-      }
-      map.get(key)?.push(marker);
-    });
-    return map;
-  }, [poiMarkers]);
-
-  // Flatten tiles once per map update to avoid O(N) flattening on every render
   const flattenedTiles = useMemo(() => tiles.flat(), [tiles]);
 
-  // New state for pan and zoom
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const poiMarkers: MapMarker[] = useMemo(() => buildPoiMarkers(POIS, mapData), [mapData]);
 
-
-
-  // Set initial focus when map opens
-  useEffect(() => {
-    const playerTile = flattenedTiles.find(tile => tile.isPlayerCurrent);
-    if (playerTile) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFocusedCoords({ x: playerTile.x, y: playerTile.y });
-    } else if (tiles.length > 0 && tiles[0].length > 0) {
-      setFocusedCoords({ x: tiles[0][0].x, y: tiles[0][0].y });
-    }
-  }, [flattenedTiles, tiles]); // Updated dependency
-
-  // Focus the specific tile when focusedCoords change
-  useEffect(() => {
-    if (focusedCoords && gridRef.current) {
-      const tileButton = gridRef.current.querySelector(`button[data-x='${focusedCoords.x}'][data-y='${focusedCoords.y}']`) as HTMLButtonElement;
-      tileButton?.focus({ preventScroll: true });
-    }
-  }, [focusedCoords]);
-
-  // Handle mouse wheel for zooming
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomSensitivity = 0.1;
-    const delta = -Math.sign(e.deltaY) * zoomSensitivity;
-    const newScale = Math.min(Math.max(0.5, scale + delta), 3); // Limit zoom between 0.5x and 3x
-    setScale(newScale);
-  };
-
-  // Handle mouse down for panning
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-  };
-
-  // Handle mouse move for panning
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setOffset({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    });
-  };
-
-  // Handle mouse up to stop panning
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleRecenter = () => {
-    setOffset({ x: 0, y: 0 });
-    setScale(1);
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
-  // TODO(lint-intent): 'getTileStyle' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  //
-  // IMPROVEMENT OPPORTUNITY: Dead code indicates incomplete feature implementation.
-  // This function appears to be for dynamic tile styling based on discovery state and biome.
-  // Consider:
-  // 1. Completing the intended feature by integrating with tile rendering
-  // 2. Removing the unused function to reduce code clutter
-  // 3. Moving to a dedicated tile styling utility if this logic is needed elsewhere
-  // 4. Converting to a hook if this represents ongoing state management work
-  const _getTileStyle = (tile: MapTileType): React.CSSProperties => {
-    const biome: Biome | undefined = BIOMES[tile.biomeId];
-    let backgroundColor = 'rgba(107, 114, 128, 0.7)'; // Default discovered fallback
-
-    if (tile.discovered) {
-      if (biome && biome.rgbaColor) {
-        backgroundColor = biome.rgbaColor;
-      }
-    } else {
-      backgroundColor = 'rgba(55, 65, 81, 0.7)'; // Undiscovered fog
-    }
-
-    return {
-      backgroundColor,
-      border: tile.isPlayerCurrent ? '2px solid #FBBF24' : '1px solid rgba(75, 85, 99, 0.5)',
-      aspectRatio: '1 / 1',
-    };
-  };
-  // TODO(lint-intent): 'getTileTooltip' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  //
-  // IMPROVEMENT OPPORTUNITY: Another instance of incomplete tooltip functionality.
-  // This suggests a planned feature for contextual tile information display.
-  // Consider:
-  // 1. Implementing hover tooltips showing biome info, discovery status, and points of interest
-  // 2. Integrating with existing tooltip system for consistency
-  // 3. Adding accessibility support for screen readers
-  // 4. Creating a unified tile interaction system combining styling and tooltips
-  const _getTileTooltip = (tile: MapTileType): string => {
-    const biome = BIOMES[tile.biomeId];
-    if (!tile.discovered) {
-      return `Undiscovered area (${tile.x}, ${tile.y}). Potential biome: ${biome?.name || 'Unknown'}.`;
-    }
-
-    let tooltip = `${biome?.name || 'Unknown Area'} (${tile.x}, ${tile.y})`;
-
-    if (tile.locationId && LOCATIONS[tile.locationId]) {
-      tooltip += ` - ${LOCATIONS[tile.locationId].name}.`;
-    } else {
-      tooltip += "."; // Add a period if no location name
-    }
-
-    if (biome?.description) {
-      tooltip += ` ${biome.description}`;
-    }
-
-    if (tile.isPlayerCurrent) {
-      tooltip += ' (Your current world map area)';
-    }
-
-    const markers = markersByCoordinate.get(`${tile.x}-${tile.y}`);
-    if (markers?.length) {
-      const poiLabels = markers.map(marker => marker.label).join(', ');
-      tooltip += ` Points of interest: ${poiLabels}.`;
-    }
-    return tooltip;
-  };
-
-  const mapGlossaryItems: GlossaryDisplayItem[] = useMemo(() => {
-    const items: GlossaryDisplayItem[] = Object.values(BIOMES)
-      .filter(biome => biome.icon)
-      .map(biome => ({
-        icon: biome.icon!,
-        meaning: biome.name,
-        category: 'Biome'
-      }));
-
-    items.push({ icon: '📍', meaning: 'Your Current World Map Area', category: 'Player' });
-    items.push({ icon: '?', meaning: 'Undiscovered Area', category: 'Map State' });
-
-    // Surface each unique POI category in the legend using the first icon we encounter for that class of marker.
-    const poiCategoryToIcon = new Map<string, string>();
+  const markersByCoordinate = useMemo(() => {
+    const markerMap = new Map<string, MapMarker[]>();
     poiMarkers.forEach(marker => {
-      if (!marker.category) return;
-      if (!poiCategoryToIcon.has(marker.category)) {
-        poiCategoryToIcon.set(marker.category, marker.icon);
+      if (!marker.isDiscovered) return;
+      const key = `${marker.coordinates.x}-${marker.coordinates.y}`;
+      if (!markerMap.has(key)) {
+        markerMap.set(key, []);
       }
+      markerMap.get(key)?.push(marker);
     });
-
-    poiCategoryToIcon.forEach((icon, category) => {
-      items.push({
-        icon,
-        meaning: `${category.charAt(0).toUpperCase()}${category.slice(1)} point of interest`,
-        category: 'Points of Interest'
-      });
-    });
-
-    return items;
+    return markerMap;
   }, [poiMarkers]);
 
+  const applyReadOnlyAzgaarMode = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const iframeWindow = iframe.contentWindow;
+    const iframeDocument = iframe.contentDocument;
+    if (!iframeWindow || !iframeDocument) return;
+
+    if (!iframeDocument.getElementById(AZGAAR_EMBED_STYLE_ID)) {
+      const styleTag = iframeDocument.createElement('style');
+      styleTag.id = AZGAAR_EMBED_STYLE_ID;
+      styleTag.textContent = `
+        /* Keep Azgaar UI available for option triage, but disable destructive controls in JS. */
+        #exitCustomization { display: none !important; }
+        #sticked > button:not(#zoomReset) { display: none !important; }
+        #regenerate { display: none !important; }
+
+        /* Ensure the SVG remains interactive for pan/zoom in Pan mode. */
+        #map {
+          position: fixed !important;
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          user-select: none !important;
+        }
+        body { margin: 0 !important; overflow: hidden !important; }
+      `;
+      iframeDocument.head.appendChild(styleTag);
+    }
+
+    // Install a bridge script into the iframe so the parent can do accurate click->cell mapping
+    // even after Azgaar pan/zoom transforms are applied. Also disable destructive generator actions.
+    if (!iframeDocument.getElementById(AZGAAR_EMBED_SCRIPT_ID)) {
+      const scriptTag = iframeDocument.createElement('script');
+      scriptTag.id = AZGAAR_EMBED_SCRIPT_ID;
+      scriptTag.type = 'text/javascript';
+      scriptTag.text = `
+        (function () {
+          try {
+            if (!window.__araliaAzgaar) window.__araliaAzgaar = {};
+
+            window.__araliaAzgaar.getTransform = function () {
+              try {
+                return { graphWidth: graphWidth, graphHeight: graphHeight, viewX: viewX, viewY: viewY, scale: scale };
+              } catch (e) {
+                return null;
+              }
+            };
+
+            window.__araliaAzgaar.resetZoom = function (d) {
+              try { resetZoom(typeof d === 'number' ? d : 1000); return true; } catch (e) { return false; }
+            };
+
+            // Hard-disable actions that would desync the embedded generator from Aralia gameplay.
+            var blockedFns = ['regeneratePrompt', 'showSavePane', 'showExportPane', 'showLoadPane'];
+            blockedFns.forEach(function (name) {
+              if (typeof window[name] === 'function') {
+                window[name] = function () { try { if (window.tip) tip('Disabled in Aralia embed', false, 'error', 4000); } catch (e) {} };
+              }
+            });
+
+            // Block clicks on known destructive controls (defense in depth).
+            var blockedIds = ['newMapButton','saveButton','exportButton','loadButton','regenerate'];
+            document.addEventListener('click', function (ev) {
+              var t = ev.target;
+              if (!t || !t.id) return;
+              if (blockedIds.indexOf(t.id) !== -1) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                try { if (window.tip) tip('Disabled in Aralia embed', false, 'error', 4000); } catch (e) {}
+              }
+            }, true);
+
+            blockedIds.forEach(function (id) {
+              var el = document.getElementById(id);
+              if (!el) return;
+              try { el.setAttribute('aria-disabled', 'true'); } catch (e) {}
+              try { el.style.pointerEvents = 'none'; el.style.opacity = '0.45'; } catch (e) {}
+              try { el.title = 'Disabled in Aralia embed'; } catch (e) {}
+            });
+          } catch (e) {
+            // ignore
+          }
+        })();
+      `;
+      iframeDocument.body.appendChild(scriptTag);
+    }
+
+    setIsFrameReady(true);
+    setFrameError(null);
+  }, [azgaarSeed]);
+
+  const clearReadinessTimers = useCallback(() => {
+    readinessTimersRef.current.forEach(timerId => window.clearTimeout(timerId));
+    readinessTimersRef.current = [];
+  }, []);
+
+  const scheduleReadOnlyInitialization = useCallback(() => {
+    clearReadinessTimers();
+    const delays = [0, 300, 1000, 2000];
+    delays.forEach(delay => {
+      const timerId = window.setTimeout(() => {
+        try {
+          applyReadOnlyAzgaarMode();
+        } catch (error) {
+          setFrameError(`Azgaar embed initialization failed: ${String(error)}`);
+        }
+      }, delay);
+      readinessTimersRef.current.push(timerId);
+    });
+  }, [applyReadOnlyAzgaarMode, clearReadinessTimers]);
+
+  useEffect(() => {
+    return () => {
+      clearReadinessTimers();
+    };
+  }, [clearReadinessTimers]);
+
+  useEffect(() => {
+    if (viewMode !== 'azgaar') return;
+    setIsFrameReady(false);
+    setFrameError(null);
+  }, [azgaarSrc, viewMode]);
+
+  const resolveCellFromPointer = useCallback((clientX: number, clientY: number) => {
+    const overlay = embedOverlayRef.current;
+    if (!overlay) return null;
+
+    const bounds = overlay.getBoundingClientRect();
+    if (bounds.width <= 0 || bounds.height <= 0) return null;
+
+    const fallbackNormalizedX = (clientX - bounds.left) / bounds.width;
+    const fallbackNormalizedY = (clientY - bounds.top) / bounds.height;
+
+    // Prefer transform-aware mapping once the iframe bridge is installed.
+    const bridge = (iframeRef.current?.contentWindow as any)?.__araliaAzgaar;
+    const transform = bridge?.getTransform?.() as
+      | { graphWidth: number; graphHeight: number; viewX: number; viewY: number; scale: number }
+      | null
+      | undefined;
+
+    let normalizedX = fallbackNormalizedX;
+    let normalizedY = fallbackNormalizedY;
+
+    if (transform && transform.graphWidth > 0 && transform.graphHeight > 0 && transform.scale > 0) {
+      const xSvg = fallbackNormalizedX * transform.graphWidth;
+      const ySvg = fallbackNormalizedY * transform.graphHeight;
+      const xWorld = (xSvg - transform.viewX) / transform.scale;
+      const yWorld = (ySvg - transform.viewY) / transform.scale;
+      normalizedX = xWorld / transform.graphWidth;
+      normalizedY = yWorld / transform.graphHeight;
+    }
+
+    const x = clampIndex(Math.floor(normalizedX * gridSize.cols), gridSize.cols);
+    const y = clampIndex(Math.floor(normalizedY * gridSize.rows), gridSize.rows);
+
+    const tile = tiles[y]?.[x];
+    if (!tile) return null;
+    return { x, y, tile };
+  }, [gridSize.cols, gridSize.rows, tiles]);
+
+  const handleOverlayClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const resolved = resolveCellFromPointer(event.clientX, event.clientY);
+    if (!resolved) return;
+    onTileClick(resolved.x, resolved.y, resolved.tile);
+  }, [onTileClick, resolveCellFromPointer]);
+
+  const handleOverlayMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const resolved = resolveCellFromPointer(event.clientX, event.clientY);
+    if (!resolved) {
+      setHoveredCell(null);
+      return;
+    }
+    setHoveredCell({ x: resolved.x, y: resolved.y });
+  }, [resolveCellFromPointer]);
+
+  const hoveredTile = useMemo(() => {
+    if (!hoveredCell) return null;
+    return tiles[hoveredCell.y]?.[hoveredCell.x] || null;
+  }, [hoveredCell, tiles]);
+
+  const hoveredBiome = hoveredTile ? BIOMES[hoveredTile.biomeId] : undefined;
+
+  const handleIframeError = useCallback(() => {
+    setFrameError('Azgaar world map could not be loaded. Switched to legacy grid view.');
+    setViewMode('grid');
+  }, []);
+
+  const renderLegacyGrid = () => (
+    <div className="overflow-auto flex-grow p-2 bg-black bg-opacity-10 rounded relative">
+      <div
+        className="grid gap-0.5"
+        style={{
+          gridTemplateColumns: `repeat(${gridSize.cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${gridSize.rows}, minmax(0, 1fr))`,
+        }}
+        role="grid"
+      >
+        {flattenedTiles.map((tile, index) => {
+          const markers = markersByCoordinate.get(`${tile.x}-${tile.y}`);
+          return (
+            <MapTile
+              key={`${tile.x}-${tile.y}-${index}`}
+              tile={tile}
+              isFocused={tile.isPlayerCurrent}
+              markers={markers}
+              onClick={onTileClick}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <WindowFrame
@@ -252,55 +322,84 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
         className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"
         style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
       >
-
-
-        <div
-          className="overflow-hidden flex-grow p-2 bg-black bg-opacity-10 rounded relative cursor-grab active:cursor-grabbing"
-          ref={containerRef}
-          onWheel={handleWheel}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          role="button"
-          tabIndex={0}
-          aria-label="World map viewport"
-        >
-          <div
-            className="grid gap-0.5 transition-transform duration-75 ease-out origin-center"
-            style={{
-              gridTemplateColumns: `repeat(${gridSize.cols}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${gridSize.rows}, minmax(0, 1fr))`,
-              transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-            }}
-            role="grid"
-            ref={gridRef}
+        <div className="mb-3 flex items-center gap-2 text-xs">
+          <button
+            onClick={() => setViewMode('azgaar')}
+            className={`px-2 py-1 rounded ${viewMode === 'azgaar' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+            type="button"
           >
-            {flattenedTiles.map((tile, index) => {
-              const isFocused = focusedCoords?.x === tile.x && focusedCoords?.y === tile.y;
-              const markers = markersByCoordinate.get(`${tile.x}-${tile.y}`);
-
-              return (
-                <MapTile
-                  key={`${tile.x}-${tile.y}-${index}`}
-                  tile={tile}
-                  isFocused={isFocused}
-                  markers={markers}
-                  onClick={onTileClick}
-                />
-              );
-            })}
-          </div>
-
-          {/* Controls Overlay */}
-          <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-            <button onClick={() => setScale(s => Math.min(3, s + 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom In">+</button>
-            <button onClick={handleRecenter} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Reset View">⟲</button>
-            <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom Out">-</button>
-          </div>
+            Azgaar Atlas
+          </button>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`px-2 py-1 rounded ${viewMode === 'grid' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+            type="button"
+          >
+            Legacy Grid
+          </button>
+          {viewMode === 'azgaar' && (
+            <>
+              <button
+                onClick={() => setInteractionMode('pan')}
+                className={`px-2 py-1 rounded ${interactionMode === 'pan' ? 'bg-emerald-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                type="button"
+              >
+                Pan/Zoom
+              </button>
+              <button
+                onClick={() => setInteractionMode('travel')}
+                className={`px-2 py-1 rounded ${interactionMode === 'travel' ? 'bg-amber-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                type="button"
+              >
+                Travel
+              </button>
+            </>
+          )}
+          <span className="ml-2 text-gray-800">Seed: {azgaarSeed}</span>
+          {frameError && <span className="text-red-700">{frameError}</span>}
         </div>
-        <GlossaryDisplay items={mapGlossaryItems} title="Map Legend" />
-        <p className="text-xs text-center mt-2 text-gray-700">Use Tab to focus the grid, Arrow Keys to navigate, +/- to zoom, drag to pan. Esc to close.</p>
+
+        {viewMode === 'azgaar' ? (
+          <div className="relative overflow-hidden flex-grow rounded bg-slate-950 border border-slate-700">
+            <iframe
+              ref={iframeRef}
+              title="Azgaar World Atlas"
+              src={azgaarSrc}
+              className="absolute inset-0 h-full w-full border-0"
+              onLoad={scheduleReadOnlyInitialization}
+              onError={handleIframeError}
+            />
+
+            <div
+              ref={embedOverlayRef}
+              className={`absolute inset-0 ${interactionMode === 'travel' ? 'cursor-crosshair' : 'pointer-events-none'}`}
+              onClick={handleOverlayClick}
+              onMouseMove={handleOverlayMouseMove}
+              onMouseLeave={() => setHoveredCell(null)}
+              aria-label="World map click overlay"
+              role="button"
+              tabIndex={0}
+            />
+
+            {!isFrameReady && (
+              <div className="absolute inset-0 bg-slate-950/70 flex items-center justify-center text-slate-100 text-sm pointer-events-none">
+                Loading Azgaar atlas...
+              </div>
+            )}
+
+            {interactionMode === 'travel' && hoveredCell && hoveredTile && (
+              <div className="absolute bottom-3 left-3 rounded bg-black/70 text-white text-xs px-2 py-1 pointer-events-none">
+                Cell {hoveredCell.x},{hoveredCell.y} - {hoveredBiome?.name || hoveredTile.biomeId}
+              </div>
+            )}
+          </div>
+        ) : (
+          renderLegacyGrid()
+        )}
+
+        <p className="text-xs text-center mt-2 text-gray-700">
+          In Azgaar Atlas: use Pan/Zoom to explore layers and zoom. Switch to Travel to click a destination.
+        </p>
       </div>
     </WindowFrame>
   );

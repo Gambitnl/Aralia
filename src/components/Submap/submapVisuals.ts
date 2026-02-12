@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 11/02/2026, 16:30:44
+ * Dependents: Minimap.tsx, SubmapPane.tsx, useSubmapGrid.ts
+ * Imports: 3 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file submapVisuals.ts
  * Contains helper functions and logic for rendering submap tiles and handling visuals
@@ -92,6 +108,58 @@ export function applyPathVisuals(
 ): VisualLayerOutput {
     const newVisuals = { ...currentVisuals };
     const currentTileCoordString = `${colIndex},${rowIndex}`;
+    const riverCoords = pathDetails.riverCoords ?? new Set<string>();
+    const riverBankCoords = pathDetails.riverBankCoords ?? new Set<string>();
+    const cliffCoords = pathDetails.cliffCoords ?? new Set<string>();
+    const cliffAdjacencyCoords = pathDetails.cliffAdjacencyCoords ?? new Set<string>();
+
+    if (riverCoords.has(currentTileCoordString)) {
+        const riverZ = 0.8;
+        if (newVisuals.zIndex < riverZ) {
+            const waterColor = visualsConfig.seededFeatures?.find(
+                (feature) => feature.generatesEffectiveTerrainType === 'water'
+            )?.color ?? 'rgba(33, 105, 170, 0.85)';
+            newVisuals.style.backgroundColor = waterColor;
+            newVisuals.content = tileHash % 5 === 0
+                ? React.createElement("span", { role: "img", "aria-label": "river current" }, "💧")
+                : null;
+            newVisuals.zIndex = riverZ;
+            newVisuals.effectiveTerrainType = 'water';
+        }
+    } else if (riverBankCoords.has(currentTileCoordString)) {
+        const riverBankZ = 0.45;
+        if (newVisuals.zIndex < riverBankZ) {
+            const bankColor = 'rgba(83, 126, 96, 0.7)';
+            newVisuals.style.backgroundColor = bankColor;
+            newVisuals.zIndex = riverBankZ;
+            if (newVisuals.effectiveTerrainType === 'default') {
+                newVisuals.effectiveTerrainType = 'river_bank';
+            }
+        }
+    }
+
+    if (cliffCoords.has(currentTileCoordString)) {
+        const cliffZ = 1.2;
+        if (newVisuals.zIndex < cliffZ) {
+            const cliffColor = visualsConfig.caTileVisuals?.wall?.color ?? '#4b5563';
+            newVisuals.style.backgroundColor = cliffColor;
+            newVisuals.content = tileHash % 6 === 0
+                ? React.createElement("span", { role: "img", "aria-label": "cliff face" }, "⛰️")
+                : null;
+            newVisuals.zIndex = cliffZ;
+            newVisuals.effectiveTerrainType = 'wall';
+        }
+    } else if (cliffAdjacencyCoords.has(currentTileCoordString)) {
+        const cliffAdjZ = 0.52;
+        if (newVisuals.zIndex < cliffAdjZ) {
+            const cliffAdjColor = 'rgba(120, 122, 127, 0.68)';
+            newVisuals.style.backgroundColor = cliffAdjColor;
+            newVisuals.zIndex = cliffAdjZ;
+            if (newVisuals.effectiveTerrainType === 'default') {
+                newVisuals.effectiveTerrainType = 'rock';
+            }
+        }
+    }
 
     if (pathDetails.mainPathCoords.has(currentTileCoordString)) {
         const pathZ = 1;

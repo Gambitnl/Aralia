@@ -1,4 +1,4 @@
-# Race Portrait Regen (Gemini) Handoff
+﻿# Race Portrait Regen (Gemini) Handoff
 
 Updated: 2026-02-11 (local) / 2026-02-10 (UTC)
 
@@ -17,8 +17,8 @@ For every (race, gender) listed in `docs/portraits/race_portrait_regen_backlog.j
   - Civilian attire (no armor, no weapons, no military regalia).
   - No arrows (Gemini often draws weird arrow artifacts).
 - Dataset hygiene:
-  - Each race/gender should have a unique slice-of-life activity (avoid reusing the same “chore” for everyone).
-  - Start a new Gemini chat between each generation to avoid “same environment pasted” and “re-download previous image” issues.
+  - Each race/gender should have a unique slice-of-life activity (avoid reusing the same â€œchoreâ€ for everyone).
+  - Start a new Gemini chat between each generation to avoid â€œsame environment pastedâ€ and â€œre-download previous imageâ€ issues.
 
 ## Where Progress Is Tracked
 
@@ -73,14 +73,14 @@ Post-run audits:
   - `duplicatedActivitiesAcrossRegeneratedPairs: 23`
   - `duplicatedRowsAcrossRegeneratedPairs: 53`
 
-Known “needs follow-up” from manual review:
+Known â€œneeds follow-upâ€ from manual review:
 
 - Aarakocra images tend to drift into dramatic wingspan / high-altitude scenes.
   - Overrides were added, but manual acceptance is still required.
 - Slice-of-life uniqueness is not fully clean yet:
   - 23 duplicate activity clusters remain across regenerated pairs (see `scripts/audits/slice-of-life-settings.md`).
 
-## Remaining Work (What’s Still Left)
+## Remaining Work (Whatâ€™s Still Left)
 
 Backlog generation is complete (all backlog pairs have status entries).
 
@@ -115,7 +115,7 @@ Behavior:
 
 - Reads `docs/portraits/race_portrait_regen_backlog.json`.
 - Resolves `raceName` to a `raceId` by parsing `src/data/races/*.ts`.
-- Builds a Gemini prompt with a structured `SPEC_JSON` and *positive* constraints (avoid heavy “negative prompting”).
+- Builds a Gemini prompt with a structured `SPEC_JSON` and *positive* constraints (avoid heavy â€œnegative promptingâ€).
 - Enforces new chat for each generation (via Gemini automation).
 - Downloads the newest generated image and saves it to the target asset path.
 - Quality gates:
@@ -191,13 +191,13 @@ Mitigations:
 
 ### Avoid arrows
 
-Gemini often renders arrows with “feathers on both ends”.
+Gemini often renders arrows with â€œfeathers on both endsâ€.
 
 We added a global constraint:
 
 - `Do not include arrows or arrow-like props.`
 
-But also avoid activities like “fletching arrows” entirely.
+But also avoid activities like â€œfletching arrowsâ€ entirely.
 
 ## Files Added/Modified In This Effort (Non-image)
 
@@ -351,3 +351,21 @@ Note: the user reported intermittent terminal prints of `{"detail":"Bad Request"
 - 2026-02-11T10:50:51.572Z [start] planned=1 args=--dry-run --limit 1
 - 2026-02-11T10:58:59.377Z [start] planned=1 args=--dry-run --limit 1
 - 2026-02-11T11:06:42.787Z [start] planned=1 args=--dry-run --limit 1
+
+## 2026-02-12 Update: Duplicate Keeper Policy
+
+- Slice-of-life ledger now uses one-keeper resolution per duplicate activity cluster.
+- For each duplicated activity, exactly one row is marked as KEEP and the rest are marked as REGEN.
+- Missing activity rows are marked as MISSING and always need regeneration.
+- Keeper selection tie-break order:
+  1. Higher likely score (when set)
+  2. Regenerated rows (category A-E)
+  3. Newer downloadedAt
+  4. Stable pair order (pairTag)
+- New per-row fields in scripts/audits/slice-of-life-settings.json:
+  - pairNumber, pairTag
+  - observedActivity, targetActivity
+  - likelyScore, likelyReason
+  - duplicateGroupSize, duplicateDecision, duplicateKeeperPairTag
+  - needsRegen
+- Summary now includes rowsMarkedForRegen.

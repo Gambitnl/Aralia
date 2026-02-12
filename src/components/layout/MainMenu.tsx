@@ -22,6 +22,7 @@ interface MainMenuProps {
   latestSaveTimestamp: number | null;
   isDevDummyActive: boolean; // New prop
   onSkipCharacterCreator: () => void; // New prop
+  onClearAllSaves?: () => void; // New prop
   // Callback to trigger the developer menu from the main menu phase
   onOpenDevMenu?: () => void;
   onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
@@ -46,6 +47,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
   // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
   isDevDummyActive: _isDevDummyActive,
   onSkipCharacterCreator,
+  onClearAllSaves,
   onOpenDevMenu,
   onSaveGame,
   onGoBack,
@@ -61,7 +63,9 @@ const MainMenu: React.FC<MainMenuProps> = ({
     setSaveSlots(getSaveSlots());
   }, []);
 
-  const refreshSlots = () => setSaveSlots(getSaveSlots());
+  const refreshSlots = () => {
+    setSaveSlots(getSaveSlots());
+  };
 
   const latestSlot = useMemo(() => {
     if (saveSlots.length > 0) {
@@ -91,6 +95,13 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const handleDeleteSlot = (slotId: string) => {
     deleteSaveGame(slotId);
     refreshSlots();
+  };
+
+  const handleClearAllSaves = () => {
+    if (window.confirm(t('main_menu.clear_save_confirm'))) {
+      onClearAllSaves?.();
+      refreshSlots();
+    }
   };
 
   const handleSaveSlot = (slotId: string, displayName?: string, isAutoSave?: boolean) => {
@@ -181,6 +192,15 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.load_game')}
           </button>
+          {(hasSaveGame || saveSlots.length > 0) && (
+            <button
+              onClick={handleClearAllSaves}
+              className="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+              aria-label={t('main_menu.clear_save')}
+            >
+              {t('main_menu.clear_save')}
+            </button>
+          )}
           <button
             onClick={onShowCompendium} // This prop now correctly opens the Glossary
             className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-75"

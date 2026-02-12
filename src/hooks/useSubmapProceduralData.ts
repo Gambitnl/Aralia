@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 11/02/2026, 16:30:44
+ * Dependents: Minimap.tsx, SubmapPane.tsx, submapVisuals.ts
+ * Imports: 5 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file useSubmapProceduralData.ts
  * Custom hook to manage procedural data generation for SubmapPane.
@@ -9,6 +25,7 @@ import { LOCATIONS, STARTING_LOCATION_ID, BIOMES } from '../constants';
 import { CellularAutomataGenerator, CaTileType } from '../services/cellularAutomataService';
 import { generateWfcGrid, WfcGrid } from '../services/wfcService';
 import type { SeededFeatureConfig, PathDetails } from '../types';
+import { generateContinuousSubmapPathDetails } from '../utils/spatial/submapPathContinuity';
 
 export type { SeededFeatureConfig, PathDetails };
 
@@ -102,17 +119,25 @@ export function useSubmapProceduralData({
 
   // 1. Calculate Path Details (Skipped for CA-driven biomes; WFC can still overlay paths)
   const pathDetails = useMemo(() => {
-    const mainPathCoords = new Set<string>();
-    const pathAdjacencyCoords = new Set<string>();
-
     // If we are using CA (cave/dungeon), skip standard paths; WFC maps can still benefit from a road overlay.
-    if (caGrid) return { mainPathCoords, pathAdjacencyCoords };
+    if (caGrid) {
+      return {
+        mainPathCoords: new Set<string>(),
+        pathAdjacencyCoords: new Set<string>(),
+        riverCoords: new Set<string>(),
+        riverBankCoords: new Set<string>(),
+        cliffCoords: new Set<string>(),
+        cliffAdjacencyCoords: new Set<string>(),
+      };
+    }
 
     const { rows, cols } = submapDimensions;
 
-    let pathChance = 70;
-    if (currentWorldBiomeId === 'swamp') pathChance = 30;
-    if (currentWorldBiomeId === 'ocean') pathChance = 0;
+    let edgeChance = 62;
+    if (biomeFamily === 'wetland') edgeChance = 34;
+    if (biomeFamily === 'mountain') edgeChance = 52;
+    if (biomeFamily === 'desert') edgeChance = 48;
+    if (currentWorldBiomeId === 'ocean') edgeChance = 0;
     
     const startingLocationData = LOCATIONS[STARTING_LOCATION_ID];
     const isStartingLocationSubmap = 
@@ -121,74 +146,58 @@ export function useSubmapProceduralData({
         parentWorldMapCoords.x === startingLocationData.mapCoordinates.x &&
         parentWorldMapCoords.y === startingLocationData.mapCoordinates.y;
 
-    if (isStartingLocationSubmap) {
-        pathChance = 100; 
-    }
+    if (isStartingLocationSubmap) edgeChance = 100;
 
-    if (simpleHash(0, 0, 'mainPathExists_v4') % 100 < pathChance) {
-        const isVertical = simpleHash(1, 1, 'mainPathVertical_v4') % 2 === 0;
-        let currentX, currentY;
-        let pathPoints: {x: number, y: number}[] = [];
+    const generated = generateContinuousSubmapPathDetails({
+      worldSeed,
+      tileCoords: parentWorldMapCoords,
+      submapDimensions,
+      edgeChancePercent: edgeChance,
+      forceCenterConnection: isStartingLocationSubmap,
+      networkId: 'road',
+    });
+    const mainPathCoords = new Set<string>(generated.mainPathCoords);
+    let pathAdjacencyCoords = new Set<string>(generated.pathAdjacencyCoords);
 
-        if (isVertical) {
-            currentX = Math.floor(cols / 2) + (simpleHash(2, 2, 'mainPathStartCol_v4') % Math.floor(cols / 3) - Math.floor(cols / 6));
-            currentX = Math.max(1, Math.min(cols - 2, currentX)); 
+    let riverEdgeChance = 18;
+    if (biomeFamily === 'wetland') riverEdgeChance = 80;
+    if (biomeFamily === 'coastal') riverEdgeChance = 72;
+    if (biomeFamily === 'mountain') riverEdgeChance = 46;
+    if (biomeFamily === 'jungle') riverEdgeChance = 40;
+    if (biomeFamily === 'plains') riverEdgeChance = 24;
+    if (biomeFamily === 'desert') riverEdgeChance = 8;
+    if (biomeFamily === 'tundra') riverEdgeChance = 14;
+    if (biomeFamily === 'volcanic') riverEdgeChance = 6;
+    if (currentWorldBiomeId === 'ocean') riverEdgeChance = 0;
 
-            for (let y = 0; y < rows; y++) {
-                pathPoints.push({x: currentX, y: y});
-                if (y < rows - 1) {
-                    const wobble = simpleHash(currentX, y, 'wobble_v_v4') % 3 - 1;
-                    currentX = Math.max(1, Math.min(cols - 2, currentX + wobble));
-                }
-            }
-        } else { 
-            currentY = Math.floor(rows / 2) + (simpleHash(3, 3, 'mainPathStartRow_v4') % Math.floor(rows / 3) - Math.floor(rows / 6));
-            currentY = Math.max(1, Math.min(rows - 2, currentY));
+    const riverNetwork = generateContinuousSubmapPathDetails({
+      worldSeed: worldSeed + 911,
+      tileCoords: parentWorldMapCoords,
+      submapDimensions,
+      edgeChancePercent: riverEdgeChance,
+      networkId: 'river',
+    });
+    const riverCoords = new Set<string>(riverNetwork.mainPathCoords);
+    const riverBankCoords = new Set<string>(riverNetwork.pathAdjacencyCoords);
 
-            for (let x = 0; x < cols; x++) {
-                pathPoints.push({x: x, y: currentY});
-                if (x < cols - 1) {
-                    const wobble = simpleHash(x, currentY, 'wobble_h_v4') % 3 - 1;
-                    currentY = Math.max(1, Math.min(rows - 2, currentY + wobble));
-                }
-            }
-        }
+    let cliffEdgeChance = 0;
+    if (biomeFamily === 'mountain') cliffEdgeChance = 24;
+    if (biomeFamily === 'highland') cliffEdgeChance = 14;
+    if (biomeFamily === 'volcanic') cliffEdgeChance = 18;
+    if (biomeFamily === 'tundra') cliffEdgeChance = 8;
+    if (biomeFamily === 'blight') cliffEdgeChance = 6;
+    if (currentWorldBiomeId === 'ocean') cliffEdgeChance = 0;
+    if (isStartingLocationSubmap) cliffEdgeChance = 0;
 
-        // Ensure path connects to the center for the starting location
-        if (isStartingLocationSubmap) {
-            const centerX = Math.floor(cols / 2);
-            const centerY = Math.floor(rows / 2);
-            let offsetX = 0;
-            let offsetY = 0;
-
-            if (isVertical) {
-                const centerPoint = pathPoints.find(p => p.y === centerY);
-                if (centerPoint) {
-                    offsetX = centerX - centerPoint.x;
-                }
-            } else {
-                const centerPoint = pathPoints.find(p => p.x === centerX);
-                if (centerPoint) {
-                    offsetY = centerY - centerPoint.y;
-                }
-            }
-
-            if (offsetX !== 0 || offsetY !== 0) {
-                pathPoints = pathPoints.map(p => ({
-                    x: Math.max(0, Math.min(cols - 1, p.x + offsetX)),
-                    y: Math.max(0, Math.min(rows - 1, p.y + offsetY))
-                }));
-            }
-        }
-
-        pathPoints.forEach(p => mainPathCoords.add(`${p.x},${p.y}`));
-        
-        if (isStartingLocationSubmap && mainPathCoords.size === 0) {
-             const fixedStartX = Math.floor(submapDimensions.cols / 2);
-             const fixedStartY = Math.floor(submapDimensions.rows / 2);
-             mainPathCoords.add(`${fixedStartX},${fixedStartY}`);
-        }
-    }
+    const cliffNetwork = generateContinuousSubmapPathDetails({
+      worldSeed: worldSeed + 1777,
+      tileCoords: parentWorldMapCoords,
+      submapDimensions,
+      edgeChancePercent: cliffEdgeChance,
+      networkId: 'cliff',
+    });
+    const cliffCoords = new Set<string>(cliffNetwork.mainPathCoords);
+    const cliffAdjacencyCoords = new Set<string>(cliffNetwork.pathAdjacencyCoords);
     
     // If paths were skipped but a WFC map is active, add a simple central path so roads don't vanish entirely.
     if (mainPathCoords.size === 0 && wfcGrid) {
@@ -204,29 +213,36 @@ export function useSubmapProceduralData({
                 mainPathCoords.add(`${x},${midY}`);
             }
         }
-    }
-
-    mainPathCoords.forEach(coordStr => {
-        const [xStr, yStr] = coordStr.split(',');
-        const x = parseInt(xStr);
-        const y = parseInt(yStr);
-        for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue;
-                const adjX = x + dx;
-                const adjY = y + dy;
-                if (adjX >= 0 && adjX < cols && adjY >= 0 && adjY < rows) {
-                    const adjCoordStr = `${adjX},${adjY}`;
-                    if (!mainPathCoords.has(adjCoordStr)) {
-                        pathAdjacencyCoords.add(adjCoordStr);
+        pathAdjacencyCoords = new Set<string>();
+        mainPathCoords.forEach(coordStr => {
+            const [xStr, yStr] = coordStr.split(',');
+            const x = Number.parseInt(xStr, 10);
+            const y = Number.parseInt(yStr, 10);
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const adjX = x + dx;
+                    const adjY = y + dy;
+                    if (adjX >= 0 && adjX < cols && adjY >= 0 && adjY < rows) {
+                        const adjCoordStr = `${adjX},${adjY}`;
+                        if (!mainPathCoords.has(adjCoordStr)) {
+                            pathAdjacencyCoords.add(adjCoordStr);
+                        }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 
-    return { mainPathCoords, pathAdjacencyCoords };
-  }, [submapDimensions, simpleHash, currentWorldBiomeId, parentWorldMapCoords, caGrid, wfcGrid]);
+    return {
+      mainPathCoords,
+      pathAdjacencyCoords,
+      riverCoords,
+      riverBankCoords,
+      cliffCoords,
+      cliffAdjacencyCoords,
+    };
+  }, [submapDimensions, simpleHash, currentWorldBiomeId, parentWorldMapCoords, caGrid, wfcGrid, worldSeed, biomeFamily]);
 
   // 2. Calculate Active Seeded Features (Skipped for CA biomes)
   const activeSeededFeatures = useMemo(() => {

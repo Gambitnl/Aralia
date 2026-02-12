@@ -12,7 +12,7 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 import { glob } from 'glob';
-import { execSync } from 'child_process';
+import { exec, execSync } from 'child_process';
 
 // ============================================================================
 // TYPE DEFINITIONS (same as main visualizer)
@@ -662,6 +662,22 @@ if (args.includes('--sync')) {
       return;
     }
 
+    // API endpoint to get code quality scan data
+    if (url === '/api/scan') {
+      console.log('[' + new Date().toLocaleTimeString() + '] Running code quality scan...');
+      exec('npx tsx scripts/scan-quality.ts --json', { cwd: process.cwd(), timeout: 30000 }, (error, stdout, stderr) => {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+          res.writeHead(500);
+          res.end(JSON.stringify({ error: 'Scan failed', message: stderr || error.message }));
+        } else {
+          res.writeHead(200);
+          res.end(stdout.trim());
+        }
+      });
+      return;
+    }
+
     // API endpoint to get fresh graph data
     if (url === '/api/graph') {
       console.log('[' + new Date().toLocaleTimeString() + '] Regenerating graph data...');
@@ -930,6 +946,41 @@ if (args.includes('--sync')) {
       font-size: 0.85em;
     }
     .stats-bar span { color: #7dd3fc; font-weight: 500; }
+    .quality-toggle-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #4a4a6a;
+      background: transparent;
+      color: #aaa;
+      font-size: 0.85em;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quality-toggle-btn:hover { background: rgba(125, 211, 252, 0.1); border-color: #7dd3fc; }
+    .quality-toggle-btn.active { background: rgba(248, 113, 113, 0.2); border-color: #f87171; color: #f87171; }
+    .quality-toggle-btn.loading { opacity: 0.6; cursor: wait; }
+    .quality-issue-item {
+      padding: 6px 10px;
+      background: rgba(20, 20, 35, 0.5);
+      border-radius: 4px;
+      margin-bottom: 4px;
+      border-left: 3px solid #666;
+      font-size: 0.8em;
+    }
+    .quality-issue-item.type-STUB { border-color: #f87171; }
+    .quality-issue-item.type-ANY_TYPE { border-color: #fbbf24; }
+    .quality-issue-item.type-CONSOLE_LOG { border-color: #38bdf8; }
+    .quality-issue-item.type-TS_IGNORE { border-color: #a78bfa; }
+    .quality-issue-item.type-EMPTY_CATCH { border-color: #fb923c; }
+    .quality-issue-line { font-family: 'Segoe UI', monospace; font-size: 0.75em; color: #7dd3fc; }
+    .quality-issue-text { font-size: 0.75em; color: #aaa; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .quality-issue-type { font-size: 0.65em; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.08); text-transform: uppercase; color: #888; }
+    .quality-summary { font-size: 0.8em; color: #aaa; margin-bottom: 12px; padding: 8px 10px; background: rgba(20, 20, 35, 0.5); border-radius: 4px; }
+    .quality-summary .q-count { font-weight: 600; font-size: 1.1em; }
+    .quality-summary .q-clean { color: #4ade80; }
+    .quality-summary .q-warn { color: #fbbf24; }
+    .quality-summary .q-bad { color: #f87171; }
   </style>
 </head>
 <body>
@@ -943,6 +994,13 @@ if (args.includes('--sync')) {
         <div class="control-group">
           <label>Actions</label>
           <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">Refresh Data</button>
+        </div>
+        <div class="control-group">
+          <label>Color Mode</label>
+          <div class="toggle-buttons">
+            <button class="quality-toggle-btn active" id="colorModeCategory" onclick="setColorMode('category')">Category</button>
+            <button class="quality-toggle-btn" id="colorModeQuality" onclick="setColorMode('quality')">Code Quality</button>
+          </div>
         </div>
         <div class="control-group">
           <label>Dependency View</label>
@@ -1048,6 +1106,11 @@ if (args.includes('--sync')) {
     var expandedSimulation = null;
     var graphElements = null;
 
+    // Code Quality mode state
+    var colorMode = 'category'; // 'category' or 'quality'
+    var qualityData = null;     // scan result from /api/scan
+    var qualityByFile = {};     // { nodeId: { total, issues: [...] } }
+
     function init() {
       setupEventListeners();
       refreshData();
@@ -1089,6 +1152,25 @@ if (args.includes('--sync')) {
 
     function buildLegend() {
       var legend = document.getElementById('legend');
+
+      if (colorMode === 'quality') {
+        legend.innerHTML = '<div class="legend-title">Code Quality</div>';
+        var qualityLevels = [
+          { color: '#2d6a4f', label: 'Clean (0 issues)' },
+          { color: '#fbbf24', label: '1-2 issues' },
+          { color: '#f97316', label: '3-5 issues' },
+          { color: '#f87171', label: '6+ issues' },
+          { color: '#333', label: 'Not scanned' }
+        ];
+        qualityLevels.forEach(function(q) {
+          var item = document.createElement('div');
+          item.className = 'legend-item';
+          item.innerHTML = '<div class="legend-color" style="background: ' + q.color + '"></div><span>' + q.label + '</span>';
+          legend.appendChild(item);
+        });
+        return;
+      }
+
       legend.innerHTML = '<div class="legend-title">Categories</div>';
       var categories = [];
       var seen = {};
@@ -1440,11 +1522,10 @@ if (args.includes('--sync')) {
       nodes.each(function(d) {
         var el = d3.select(this);
         var r = sizeScale(d.connectionCount);
-        var color = categoryColors[d.category] || '#888';
+        var color = getNodeColor(d);
         
         if (d.role === 'orphan') {
           // Triangle for Orphans
-          // A triangle centered at 0,0 with "radius" r
           var points = [
             [0, -r * 1.2],           // Top
             [-r * 1.1, r * 0.8],     // Bottom Left
@@ -1453,7 +1534,7 @@ if (args.includes('--sync')) {
           el.append('path')
             .attr('d', d3.line()(points) + 'Z')
             .attr('fill', color)
-            .attr('stroke', '#f87171')
+            .attr('stroke', colorMode === 'quality' ? 'none' : '#f87171')
             .attr('stroke-width', 2)
             .attr('stroke-dasharray', '3,2');
         } else if (d.role === 'bridge') {
@@ -1464,7 +1545,7 @@ if (args.includes('--sync')) {
             .attr('width', r * 2)
             .attr('height', r * 2)
             .attr('fill', color)
-            .attr('stroke', '#4ade80')
+            .attr('stroke', colorMode === 'quality' ? 'none' : '#4ade80')
             .attr('stroke-width', 1);
         } else {
           // Circle for Normal nodes
@@ -1618,7 +1699,19 @@ if (args.includes('--sync')) {
     function showTooltip(event, node) {
       var tooltip = document.getElementById('tooltip');
       document.getElementById('tooltipTitle').textContent = node.name;
-      document.getElementById('tooltipDesc').textContent = node.description;
+
+      if (colorMode === 'quality' && qualityByFile[node.id]) {
+        var qInfo = qualityByFile[node.id];
+        var breakdown = {};
+        qInfo.issues.forEach(function(issue) { breakdown[issue.pattern] = (breakdown[issue.pattern] || 0) + 1; });
+        var parts = Object.keys(breakdown).map(function(k) { return breakdown[k] + '× ' + k; });
+        document.getElementById('tooltipDesc').textContent = qInfo.total + ' issue(s): ' + parts.join(', ');
+      } else if (colorMode === 'quality') {
+        document.getElementById('tooltipDesc').textContent = 'No issues found';
+      } else {
+        document.getElementById('tooltipDesc').textContent = node.description;
+      }
+
       document.getElementById('tooltipIn').textContent = node.imports.length;
       document.getElementById('tooltipOut').textContent = node.importedBy.length;
 
@@ -1791,6 +1884,161 @@ if (args.includes('--sync')) {
         }
       });
     }
+
+    // ========================================================================
+    // CODE QUALITY MODE
+    // ========================================================================
+
+    function getNodeColor(d) {
+      if (colorMode !== 'quality') {
+        return categoryColors[d.category] || '#888';
+      }
+      var qInfo = qualityByFile[d.id];
+      if (!qInfo) return '#333';
+      if (qInfo.total === 0) return '#2d6a4f';
+      if (qInfo.total <= 2) return '#fbbf24';
+      if (qInfo.total <= 5) return '#f97316';
+      return '#f87171';
+    }
+
+    function setColorMode(mode) {
+      if (mode === 'quality' && !qualityData) {
+        loadQualityData();
+        return;
+      }
+      colorMode = mode;
+      document.getElementById('colorModeCategory').classList.toggle('active', mode === 'category');
+      document.getElementById('colorModeQuality').classList.toggle('active', mode === 'quality');
+      buildLegend();
+      createGraph();
+      if (selectedNode) {
+        selectNode(selectedNode);
+      }
+    }
+
+    function loadQualityData() {
+      var btn = document.getElementById('colorModeQuality');
+      btn.classList.add('loading');
+      btn.textContent = 'Scanning...';
+
+      fetch('/api/scan')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+          if (data.error) {
+            alert('Scan failed: ' + (data.message || data.error));
+            btn.classList.remove('loading');
+            btn.textContent = 'Code Quality';
+            return;
+          }
+          qualityData = data;
+          buildQualityIndex();
+          btn.classList.remove('loading');
+          btn.textContent = 'Code Quality';
+          setColorMode('quality');
+        })
+        .catch(function(err) {
+          alert('Could not reach scan API: ' + err);
+          btn.classList.remove('loading');
+          btn.textContent = 'Code Quality';
+        });
+    }
+
+    function buildQualityIndex() {
+      qualityByFile = {};
+      if (!qualityData || !qualityData.groups) return;
+
+      // Initialize all graph nodes as clean
+      graphData.nodes.forEach(function(node) {
+        qualityByFile[node.id] = { total: 0, issues: [] };
+      });
+
+      // Map scan findings to node IDs
+      // scan-quality outputs file paths like "src/components/Foo.tsx"
+      // visualizer node IDs are like "components/Foo.tsx" (relative to src/)
+      var groups = qualityData.groups;
+      for (var patternKey in groups) {
+        var items = groups[patternKey].items || [];
+        items.forEach(function(item) {
+          // Strip leading "src/" or "src\\" to match node IDs
+          var nodeId = item.file.replace(/\\/g, '/').replace(/^src\//, '');
+          if (!qualityByFile[nodeId]) {
+            qualityByFile[nodeId] = { total: 0, issues: [] };
+          }
+          qualityByFile[nodeId].total++;
+          qualityByFile[nodeId].issues.push({
+            pattern: patternKey,
+            line: item.line,
+            text: item.text
+          });
+        });
+      }
+    }
+
+    // Override updateDetailPanel to show quality info when in quality mode
+    var _originalUpdateDetailPanel = updateDetailPanel;
+    updateDetailPanel = function(node) {
+      if (colorMode !== 'quality' || !node) {
+        _originalUpdateDetailPanel(node);
+        return;
+      }
+
+      var panel = document.getElementById('detailPanel');
+      var title = document.getElementById('detailTitle');
+      var desc = document.getElementById('detailDesc');
+      var blocksList = document.getElementById('codeBlocksList');
+      var depList = document.getElementById('dependentsList');
+
+      panel.classList.add('visible');
+      title.textContent = node.name;
+
+      var pathText = document.getElementById('detailPathText');
+      var copyBtn = document.getElementById('copyBtn');
+      pathText.textContent = node.relativePath;
+      copyBtn.style.display = 'inline-block';
+
+      var qInfo = qualityByFile[node.id];
+      if (!qInfo || qInfo.total === 0) {
+        desc.textContent = 'No code quality issues found in this file.';
+        desc.innerHTML = '<span style="color: #4ade80;">✓ Clean — no issues detected</span>';
+        blocksList.innerHTML = '';
+        depList.innerHTML = '';
+        return;
+      }
+
+      var countClass = qInfo.total <= 2 ? 'q-warn' : 'q-bad';
+      desc.innerHTML = '<div class="quality-summary"><span class="q-count ' + countClass + '">' + qInfo.total + '</span> issue(s) found</div>';
+
+      // Group issues by pattern for display
+      var grouped = {};
+      qInfo.issues.forEach(function(issue) {
+        if (!grouped[issue.pattern]) grouped[issue.pattern] = [];
+        grouped[issue.pattern].push(issue);
+      });
+
+      blocksList.innerHTML = '';
+      for (var pattern in grouped) {
+        var header = document.createElement('div');
+        header.className = 'section-title';
+        header.style.marginTop = '8px';
+        header.textContent = pattern + ' (' + grouped[pattern].length + ')';
+        blocksList.appendChild(header);
+
+        grouped[pattern].forEach(function(issue) {
+          var li = document.createElement('li');
+          li.className = 'quality-issue-item type-' + issue.pattern;
+          li.innerHTML =
+            '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<span class="quality-issue-line">Line ' + issue.line + '</span>' +
+            '<span class="quality-issue-type">' + issue.pattern + '</span>' +
+            '</div>' +
+            '<div class="quality-issue-text" title="' + (issue.text || '').replace(/"/g, '&quot;') + '">' + (issue.text || '') + '</div>';
+          blocksList.appendChild(li);
+        });
+      }
+
+      // Hide dependents section in quality mode
+      depList.innerHTML = '';
+    };
 
     init();
   </script>

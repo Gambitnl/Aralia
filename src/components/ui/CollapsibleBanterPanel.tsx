@@ -18,6 +18,8 @@ export interface BanterHistoryLine {
 interface CollapsibleBanterPanelProps {
     isActive: boolean;
     isWaiting: boolean;
+    isGenerating?: boolean;
+    generatingSpeakerName?: string | null;
     secondsRemaining: number;
     history: BanterHistoryLine[];
     archivedBanters: BanterMoment[];
@@ -32,6 +34,8 @@ type Tab = 'LIVE' | 'MEMORIES';
 export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
     isActive,
     isWaiting,
+    isGenerating = false,
+    generatingSpeakerName = null,
     secondsRemaining,
     history,
     archivedBanters,
@@ -107,7 +111,19 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
                         </div>
                     </div>
                 ))}
-                {isWaiting && secondsRemaining > 0 && (
+                {isGenerating && (
+                    <div className="flex flex-col items-start animate-in fade-in duration-500">
+                        <div className="text-xs text-amber-500/50 italic px-2 mb-1 flex items-center gap-1.5">
+                            <div className="flex gap-0.5">
+                                <span className="w-1 h-1 bg-amber-500/50 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                <span className="w-1 h-1 bg-amber-500/50 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                <span className="w-1 h-1 bg-amber-500/50 rounded-full animate-bounce" />
+                            </div>
+                            {generatingSpeakerName ? `${generatingSpeakerName} is responding...` : 'A companion is responding...'}
+                        </div>
+                    </div>
+                )}
+                {isWaiting && secondsRemaining > 0 && !isGenerating && (
                     <div className="text-xs text-gray-500 italic animate-pulse px-2">
                         Next line in {secondsRemaining}s...
                     </div>
@@ -321,7 +337,10 @@ export const CollapsibleBanterPanel: React.FC<CollapsibleBanterPanelProps> = ({
                 <span className="text-amber-400 text-lg group-hover:scale-110 transition-transform">💬</span>
                 <div className="flex flex-col items-start">
                     <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">Chat</span>
-                    {isActive && isWaiting && secondsRemaining > 0 && (
+                    {isActive && isGenerating && (
+                        <span className="text-[10px] text-green-500 animate-pulse">Responding...</span>
+                    )}
+                    {isActive && isWaiting && secondsRemaining > 0 && !isGenerating && (
                         <span className="text-[10px] text-amber-500 tabular-nums">{secondsRemaining}s</span>
                     )}
                     {!isActive && (

@@ -227,9 +227,19 @@ export interface MapTile {
   isPlayerCurrent: boolean;
 }
 
+export interface AzgaarWorldRenderData {
+  version: 1;
+  templateId: string;
+  heights: number[];
+  temperatures: number[];
+  moisture: number[];
+  rivers: boolean[];
+}
+
 export interface MapData {
   gridSize: { rows: number; cols: number };
   tiles: MapTile[][];
+  azgaarWorld?: AzgaarWorldRenderData;
 }
 
 export interface PointOfInterest {

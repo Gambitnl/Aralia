@@ -372,6 +372,29 @@ export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
 }
 
 /**
+ * Deletes ALL save games and clears the metadata index.
+ */
+export function clearAllSaves(): void {
+  try {
+    const slots = getSaveSlots();
+    for (const slot of slots) {
+      SafeStorage.removeItem(slot.slotId);
+    }
+    // Also ensure legacy slots are cleared
+    SafeStorage.removeItem(DEFAULT_SAVE_SLOT);
+    SafeStorage.removeItem(AUTO_SAVE_SLOT);
+    
+    SafeStorage.removeItem(SLOT_INDEX_KEY);
+    SafeSession.removeItem(SESSION_CACHE_KEY);
+    slotIndexCache = null;
+    
+    logger.info("All save games cleared");
+  } catch (error) {
+    logger.error("Error clearing all save games", { error });
+  }
+}
+
+/**
  * Retrieves metadata for all known save slots, including the auto-save slot when present.
  */
 export function getSaveSlots(): SaveSlotSummary[] {

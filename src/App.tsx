@@ -138,6 +138,8 @@ const App: React.FC = () => {
     forceBanter,
     isBanterActive,
     isWaitingForNextLine,
+    isGenerating,
+    generatingSpeakerName,
     secondsUntilNextLine,
     playerInterrupt,
     endBanter,
@@ -403,6 +405,14 @@ const App: React.FC = () => {
 
 
   const handleExitCharacterCreatorToMainMenu = useCallback(() => {
+    dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
+  }, [dispatch]);
+
+  const handleClearAllSaves = useCallback(() => {
+    SaveLoadService.clearAllSaves();
+    // Force a re-render of the Main Menu by updating a local state if necessary, 
+    // or just rely on the fact that MainMenu calls refreshSlots which calls getSaveSlots.
+    // However, App needs to know that hasSaveGame might have changed.
     dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
   }, [dispatch]);
 
@@ -692,6 +702,7 @@ const App: React.FC = () => {
           latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
           isDevDummyActive={canUseDevTools()}
           onSkipCharacterCreator={handleSkipCharacterCreator}
+          onClearAllSaves={handleClearAllSaves}
           // Handler to toggle the dev menu visibility when requested by the Main Menu
           onOpenDevMenu={() => dispatch({ type: 'TOGGLE_DEV_MENU' })}
           onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
@@ -911,6 +922,8 @@ const App: React.FC = () => {
             <CollapsibleBanterPanel
               isActive={isBanterActive}
               isWaiting={isWaitingForNextLine}
+              isGenerating={isGenerating}
+              generatingSpeakerName={generatingSpeakerName}
               secondsRemaining={secondsUntilNextLine}
               history={banterHistory}
               archivedBanters={gameState.archivedBanters}
