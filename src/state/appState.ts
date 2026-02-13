@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 12/02/2026, 22:27:46
+ * Dependents: App.tsx
+ * Imports: 39 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/state/appState.ts
@@ -98,6 +113,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
     switch (action.type) {
         case 'SET_AUTO_SAVE_ENABLED': {
             return { ...state, autoSaveEnabled: action.payload };
+        }
+        case 'SET_WORLD_SEED': {
+            return { ...state, worldSeed: action.payload };
         }
         case 'SET_GAME_PHASE': {
             // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.

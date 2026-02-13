@@ -9,7 +9,7 @@
  */
 import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile } from '../../types';
+import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { NPCS } from '../../constants';
@@ -87,6 +87,9 @@ interface GameModalsProps {
     toggleBanterPause?: () => void;
     onForceBanterTrigger?: () => void;
     onClearBanterLogs?: () => void;
+    canRegenerateWorldMap: boolean;
+    worldGenerationLockedReason: string | null;
+    onRegenerateWorldMap: (seed?: number) => void;
 }
 
 const GameModals: React.FC<GameModalsProps> = ({
@@ -117,7 +120,10 @@ const GameModals: React.FC<GameModalsProps> = ({
     isBanterPaused,
     toggleBanterPause,
     onClearBanterLogs,
-    onForceBanterTrigger
+    onForceBanterTrigger,
+    canRegenerateWorldMap,
+    worldGenerationLockedReason,
+    onRegenerateWorldMap,
 }) => {
 
     const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
@@ -130,8 +136,14 @@ const GameModals: React.FC<GameModalsProps> = ({
                     <ErrorBoundary fallbackMessage="Error displaying the World Map.">
                         <MapPane
                             mapData={gameState.mapData}
+                            worldSeed={gameState.worldSeed}
                             onTileClick={onTileClick}
                             onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
+                            allowTravel={gameState.phase === GamePhase.PLAYING}
+                            showGenerationControls={gameState.phase === GamePhase.MAIN_MENU}
+                            canRegenerateWorld={canRegenerateWorldMap}
+                            generationLockedReason={worldGenerationLockedReason}
+                            onRegenerateWorld={onRegenerateWorldMap}
                         />
                     </ErrorBoundary>
                 </Suspense>

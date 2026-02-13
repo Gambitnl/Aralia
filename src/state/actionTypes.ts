@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ * 
+ * Last Sync: 12/02/2026, 22:27:44
+ * Dependents: CharacterCreator.tsx, CombatReligionAdapter.ts, ConversationPanel.tsx, FeatSelection.tsx, GameContext.tsx, GameGuideModal.tsx, GameModals.tsx, NotificationSystem.tsx, TempleSystem.ts, actionHandlers.ts, appState.ts, characterReducer.ts, companionReducer.ts, conversationReducer.ts, craftingReducer.ts, crimeActions.ts, crimeReducer.ts, dialogueReducer.ts, economyReducer.ts, encounterReducer.ts, entityIntegrationUtils.ts, handleEncounter.ts, handleGeminiCustom.ts, handleItemInteraction.ts, handleMerchantInteraction.ts, handleMovement.ts, handleNpcInteraction.ts, handleObservation.ts, handleOracle.ts, handleResourceActions.ts, handleSystemAndUi.ts, handleWorldEvents.ts, identityReducer.ts, journalReducer.ts, legacyReducer.ts, logReducer.ts, navalReducer.ts, npcReducer.ts, questReducer.ts, religionReducer.ts, ritualReducer.ts, townReducer.ts, types/index.ts, uiReducer.ts, useCompanionBanter.ts, useConversation.ts, useDialogueSystem.ts, useGameActions.ts, useGameInitialization.ts, useHistorySync.ts, useOllamaCheck.ts, worldReducer.ts
+ * Imports: 7 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
@@ -29,6 +45,7 @@ export type AppAction =
   | { type: 'TOGGLE_MINIMAP_VISIBILITY' }
   | { type: 'TOGGLE_SUBMAP_VISIBILITY' }
   | { type: 'TOGGLE_THREE_D_VISIBILITY' }
+  | { type: 'SET_WORLD_SEED'; payload: number }
   | { type: 'SET_MAP_DATA'; payload: MapData }
   | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null } }
   | { type: 'SET_GEMINI_ACTIONS'; payload: Action[] | null }

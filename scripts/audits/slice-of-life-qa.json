@@ -2,371 +2,1235 @@
   "entries": [
     {
       "raceId": "aarakocra",
+      "gender": "female",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "non_keeper",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "aarakocra",
       "gender": "male",
       "status": "approved",
-      "notes": "Pass: full body, no border, clear slice-of-life lantern lighting, plausible race fit.",
-      "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:26:07.264Z"
+      "visualStatus": "approved",
+      "uniquenessStatus": "unique",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.706Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "abyssal_tiefling",
       "gender": "female",
       "status": "approved",
-      "notes": "Pass: full body, no border, courier sorting activity reads clearly and is mundane.",
-      "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:26:09.749Z"
+      "visualStatus": "approved",
+      "uniquenessStatus": "unique",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "abyssal_tiefling",
+      "gender": "male",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "non_keeper",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "air_genasi",
+      "gender": "female",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "air_genasi",
+      "gender": "male",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "astral_elf",
+      "gender": "female",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "keeper",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "astral_elf",
+      "gender": "male",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "non_keeper",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "beastborn_human",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body seated pose, no border, leatherwork/boot repair is clear slice-of-life.",
+      "reviewedAt": "2026-02-12T01:26:14.213Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:26:14.213Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "beastborn_human",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, no border, market-weighing activity is clear and slice-of-life.",
+      "reviewedAt": "2026-02-12T01:26:11.932Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:26:11.932Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "bugbear",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, no border, market transaction scene reads as mundane daily life.",
+      "reviewedAt": "2026-02-12T01:26:18.487Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:26:18.487Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "bugbear",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, no border, cellar barrel-labor activity is clear and plausible.",
+      "reviewedAt": "2026-02-12T01:26:16.330Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:26:16.330Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "changeling",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, clear slice-of-life mending scene.",
+      "reviewedAt": "2026-02-12T01:32:42.071Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:42.071Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "changeling",
       "gender": "male",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: white border/frame present; image not edge-to-edge fill.",
+      "reviewedAt": "2026-02-12T01:32:39.620Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:39.620Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "copper_dragonborn",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, travel-ration prep reads as mundane activity.",
+      "reviewedAt": "2026-02-12T01:32:46.625Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:46.625Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "copper_dragonborn",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, candle-making task clear and plausible.",
+      "reviewedAt": "2026-02-12T01:32:44.310Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:44.310Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "drow",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, records/desk work activity is clear.",
+      "reviewedAt": "2026-02-12T01:32:51.262Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:51.262Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "drow",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, sweeping/cleaning labor activity is clear.",
+      "reviewedAt": "2026-02-12T01:32:49.085Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:49.085Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "duergar",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, weaving basket activity clear and civilian.",
+      "reviewedAt": "2026-02-12T01:48:49.578Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:48:49.578Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "duergar",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body seated pose, edge-to-edge, teaching/reading activity clear.",
+      "reviewedAt": "2026-02-12T01:40:10.467Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:40:10.467Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "fallen_aasimar",
       "gender": "female",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: recorded activity is baking, but image depicts writing/desk scene (activity mismatch).",
+      "reviewedAt": "2026-02-12T01:32:55.722Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:55.722Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "fallen_aasimar",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body kneeling composition, edge-to-edge, herb-garden tending clear.",
+      "reviewedAt": "2026-02-12T01:32:53.541Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:32:53.541Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "firbolg",
       "gender": "male",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: activity mismatch (appears forge/combat-like prop handling, not helper coal/tongs task).",
+      "reviewedAt": "2026-02-12T01:39:54.574Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:39:54.574Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "forest_gnome",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, shrine candle-lighting activity is clear.",
+      "reviewedAt": "2026-02-12T01:39:56.930Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:39:56.930Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "forgeborn_human",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, herb-hanging activity reads clearly.",
+      "reviewedAt": "2026-02-12T01:40:01.462Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:40:01.462Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "forgeborn_human",
       "gender": "male",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: outfit/scene reads militarized and not civilian slice-of-life delivery.",
+      "reviewedAt": "2026-02-12T01:39:59.138Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:39:59.138Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "giff",
       "gender": "female",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: not full body (feet/legs cropped off at frame bottom).",
+      "reviewedAt": "2026-02-12T01:40:05.841Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:40:05.841Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "giff",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, ledger-copying activity clear and civilian.",
+      "reviewedAt": "2026-02-12T01:40:03.643Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:40:03.643Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "gold_dragonborn",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, tea preparation activity is clear.",
+      "reviewedAt": "2026-02-12T01:40:08.331Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:40:08.331Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "hadozee",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, lantern-lighting task clear; no combat posing.",
+      "reviewedAt": "2026-02-12T01:48:52.137Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:48:52.137Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "half_elf_aquatic",
+      "gender": "female",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "non_keeper",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
+    },
+    {
+      "raceId": "half_elf_aquatic",
+      "gender": "male",
+      "status": "pending",
+      "visualStatus": "pending",
+      "uniquenessStatus": "non_keeper",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
+      "reviewedAt": "2026-02-12T21:08:27.707Z",
+      "reviewer": "codex-batch-pilot",
+      "likelyScore": null,
+      "likelyReason": "Pending lore-likelihood review.",
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "half_elf_high",
       "gender": "female",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: contains arrow prop; arrow-artifact failure mode (avoid arrows).",
+      "reviewedAt": "2026-02-12T01:49:04.323Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:49:04.323Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "half_elf",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, mundane hand-washing scene in civilian attire.",
+      "reviewedAt": "2026-02-12T01:48:54.308Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:48:54.308Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "half_orc",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, tavern glass-polishing scene is clear slice-of-life.",
+      "reviewedAt": "2026-02-12T01:48:59.374Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:48:59.374Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "half_orc",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, courier sorting activity clear and non-combat.",
+      "reviewedAt": "2026-02-12T01:48:56.755Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:48:56.755Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "hearthkeeper_halfling",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, packing/handling goods activity is clear and mundane.",
+      "reviewedAt": "2026-02-12T01:49:01.968Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:49:01.968Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "hill_dwarf",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body seated framing, edge-to-edge, stitching quilt activity clear.",
+      "reviewedAt": "2026-02-12T01:49:06.579Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T01:49:06.579Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "infernal_tiefling",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, wheel-repair activity clear and civilian enough.",
+      "reviewedAt": "2026-02-12T02:02:42.287Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:02:42.287Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "kalashtar",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, utensil-carving craft scene reads clearly.",
+      "reviewedAt": "2026-02-12T02:02:47.068Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:02:47.068Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "kalashtar",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, library sweeping/cleaning activity clear.",
+      "reviewedAt": "2026-02-12T02:02:44.773Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:02:44.773Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "kender",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, water-carrying market scene clear.",
+      "reviewedAt": "2026-02-12T02:02:51.579Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:02:51.579Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "kender",
       "gender": "male",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: activity mismatch; image depicts baking/oven instead of recorded bread-baking in communal oven dusted with flour style target and character presentation drifts.",
+      "reviewedAt": "2026-02-12T02:02:49.364Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:02:49.364Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "kobold",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, fish-market inspection activity clear and mundane.",
+      "reviewedAt": "2026-02-12T02:02:55.518Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:02:55.518Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "loxodon",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, artisan stone-etching task is clear and plausible.",
+      "reviewedAt": "2026-02-12T02:15:56.012Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:15:56.012Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "mender_halfling",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, shrine-offering candle scene clear and mundane.",
+      "reviewedAt": "2026-02-12T02:16:00.439Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:00.439Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "minotaur",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, animal-guidance/carrying task clear.",
+      "reviewedAt": "2026-02-12T02:16:05.134Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:05.134Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "orc",
       "gender": "male",
       "status": "rejected",
+      "visualStatus": "rejected",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Reject: text artifact on paper (readable/generated text) violates no-text criterion.",
+      "reviewedAt": "2026-02-12T02:16:10.113Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:10.113Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "pallid_elf",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, alchemy/mixing craft scene clear and non-combat.",
+      "reviewedAt": "2026-02-12T02:16:14.422Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:14.422Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "protector_aasimar",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, kitchen knife-sharpening activity clear; wings folded.",
+      "reviewedAt": "2026-02-12T02:16:18.756Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:18.756Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "rock_gnome",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, tailoring/measurement activity is clear.",
+      "reviewedAt": "2026-02-12T02:16:21.128Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:21.128Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "runeward_dwarf",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, firewood stacking task clear and mundane.",
+      "reviewedAt": "2026-02-12T02:16:23.186Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:23.186Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "scourge_aasimar",
       "gender": "female",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body seated pose, edge-to-edge, basket-weaving activity clear; wings folded.",
+      "reviewedAt": "2026-02-12T02:16:27.381Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:27.381Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     },
     {
       "raceId": "scourge_aasimar",
       "gender": "male",
       "status": "approved",
+      "visualStatus": "approved",
+      "uniquenessStatus": "pending",
+      "manualReviewRequired": false,
+      "checklist": {
+        "isSquare": null,
+        "isFullBody": null,
+        "isEdgeToEdge": null,
+        "isSliceOfLife": null,
+        "isCivilian": null,
+        "hasArrowsArtifact": null
+      },
       "notes": "Pass: full body, edge-to-edge, tea-preparation activity clear; no combat posture.",
+      "reviewedAt": "2026-02-12T02:16:25.275Z",
       "reviewer": "codex",
-      "reviewedAt": "2026-02-12T02:16:25.275Z"
+      "likelyScore": null,
+      "likelyReason": null,
+      "targetActivity": null,
+      "observedActivity": null
     }
   ]
 }

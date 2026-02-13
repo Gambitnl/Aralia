@@ -68,8 +68,7 @@ export function generateRoadmapData() {
     let projectY = 250;
 
     for (const block of projectBlocks) {
-      const lines = block.split('
-');
+      const lines = block.split('\n');
       const projectName = lines[0].trim();
       const projectId = projectName.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
       const tagsMatch = block.match(/\*\*Tags\*\*: (.*)/);
@@ -89,8 +88,7 @@ export function generateRoadmapData() {
       nodes.push(projectNode);
       edges.push({ from: 'aralia_chronicles', to: projectId });
 
-      const tableLines = block.split('
-').filter(l => l.includes('|') && !l.includes('---'));
+      const tableLines = block.split('\n').filter(l => l.includes('|') && !l.includes('---'));
       let taskX = 150;
       let taskY = projectY + 100;
 
@@ -170,7 +168,7 @@ export function generateRoadmapData() {
           initialY: taskY,
           color: '#38bdf8',
           description: meta.description,
-          link: path.join(TRACKS_DIR, trackFolder, 'index.md').replace(/\/g, '/')
+          link: path.join(TRACKS_DIR, trackFolder, 'index.md').replace(/\\/g, '/')
         });
         edges.push({ from: 'aralia_chronicles', to: nodeId });
 

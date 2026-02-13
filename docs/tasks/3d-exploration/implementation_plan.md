@@ -187,6 +187,11 @@ Deliver a browser-based 3D exploration pipeline that is deterministic per save, 
 - Enabled Azgaar menu + layer toggles for option triage, while hard-disabling destructive actions (New Map / Save / Load / Export) in the embed.
 - Enabled Azgaar pan/zoom and added an Aralia `Pan/Zoom` vs `Travel` interaction toggle.
 - Implemented transform-aware atlas click-to-travel mapping using Azgaar's runtime transform (`viewX/viewY/scale`) exposed via an iframe bridge.
+- Added main-menu `World Generation` entry point that opens the world map before starting a run.
+- Added pre-run regeneration controls (`Apply Seed`, `Reroll World`) in `MapPane` setup mode, with lock gating.
+- Added world-regeneration lock policy: regeneration is blocked when save data exists or an active run is in memory, with explicit user-facing reasons.
+- Added `SET_WORLD_SEED` state action so regenerated preview worlds keep seed + map data aligned before character creation starts.
+- Added preconfigured-world handoff: when no saves/active run exist and a preview map is prepared, `New Game` now reuses that configured world instead of rolling a new one.
 - Added deterministic map generation tests for seed stability, location anchoring, and start discovery behavior.
 - Implemented deterministic edge-port continuity for submap roads and rivers across adjacent world tiles.
 - Added continuity tests to verify edge matching, determinism, and independent network channels.
@@ -197,10 +202,17 @@ Deliver a browser-based 3D exploration pipeline that is deterministic per save, 
 ### Next Up
 
 - Run R1 parity checks: atlas click-travel correctness, save/load round-trip, and submap anchoring consistency.
+- Validate the new main-menu world-generation lock UX against real save states (fresh profile, existing save, active in-memory run).
 - After parity passes, execute R2 cleanup: remove obsolete legacy world-map renderer paths.
 - Complete full Azgaar component extraction/integration path (primary backend).
 - Run Azgaar option triage pass and finalize Runtime Option Manifest.
 - Continue continuity contract work (edge-matched roads/rivers/cliffs across adjacent tiles).
+
+### Backlog (Non-Gating, Do Not Derail Next Phase)
+
+- Locked-world guard sweep for Azgaar in-map tools: when world generation is locked, block all generation-mutating actions still reachable via embedded UI (including `Edit Burg` regen paths).
+- Burg tools review: audit `Burgs Overview` and related burg editors for any actions that mutate map topology/data and require lock gating.
+- Broad command-category suppression policy: disable or intercept all tool actions under `Regenerate`, `Add`, and `Create` while in locked mode; keep pure read-only inspection/layer toggles allowed.
 
 ### Immediate R1 Parity Checklist
 

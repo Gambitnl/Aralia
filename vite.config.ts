@@ -387,7 +387,8 @@ const roadmapManager = () => ({
   name: 'roadmap-manager',
   configureServer(server: any) {
     server.middlewares.use((req: any, res: any, next: any) => {
-      if (req.url === '/api/roadmap/data') {
+      // Handle both with and without base path for dev flexibility
+      if (req.url === '/api/roadmap/data' || req.url === '/Aralia/api/roadmap/data') {
         try {
           const data = generateRoadmapData();
           res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });

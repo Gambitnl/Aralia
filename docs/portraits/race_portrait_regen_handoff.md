@@ -4,6 +4,48 @@ Updated: 2026-02-11 (local) / 2026-02-10 (UTC)
 
 This file exists so a new agent can pick up the Gemini-based race portrait regeneration work without re-discovering context.
 
+## 2026-02-12 Addendum: Batch QA + Dual-State Ledger
+
+The slice-of-life QA flow now supports a dual-state model and batch orchestration:
+
+- `visualStatus`: `pending|approved|rejected`
+- `uniquenessStatus`: `pending|unique|keeper|non_keeper`
+- `manualReviewRequired`: explicit conflict flag (especially when visual is approved but uniqueness is non-keeper)
+- Checklist fields per row (`isSquare`, `isFullBody`, `isEdgeToEdge`, `isSliceOfLife`, `isCivilian`, `hasArrowsArtifact`)
+
+Canonical grading rubric:
+
+- `scripts/audits/qa-batches/QA_RUBRIC.md`
+  - Defines pass/fail criteria for each checklist key, status decision rules, uniqueness semantics, likely score anchors, and manual-review triggers.
+
+New orchestration scripts:
+
+- `scripts/audits/orchestrate-race-qa.ts`
+  - `--prepare`: creates 5-race QA batches under `scripts/audits/qa-batches/`
+  - `--merge-dir`: merges `*.output.json` back into `slice-of-life-qa.json` and refreshes ledger
+- `scripts/audits/run-qa-batch-agent.ts`
+  - Default mode (`--mode template`) creates merge-ready output templates with no API usage
+  - Recommended mode (`--mode codex`) uses local `codex exec` + schema validation; no OpenAI API key required
+  - Accepts `--rubric scripts/audits/qa-batches/QA_RUBRIC.md` and injects rubric text directly into prompts
+  - Accepts `--visual-evidence available|unavailable` to control whether checklist/visual scoring is allowed vs no-guess pending behavior
+  - Optional `--mode openai` runs one batch input through an LLM and writes a mergeable `*.output.json`
+
+Pilot validation (2026-02-12):
+
+- Created one 5-race batch via `orchestrate-race-qa.ts --prepare --batch-size-races 5 --max-batches 1`
+- Executed `run-qa-batch-agent.ts --mode codex` successfully and produced `*.output.json`
+- Merged the output with `mark-slice-of-life-qa.ts --merge-batch` and regenerated ledger successfully
+- `scripts/audits/mark-slice-of-life-qa.ts`
+  - Supports `--upsert`, `--merge-batch`, `--summary` with dual-state fields
+
+Live preview data source:
+
+- `scripts/audits/list-slice-of-life-settings.ts` now writes to both:
+  - `scripts/audits/slice-of-life-settings.json`
+  - `public/data/dev/slice-of-life-settings.json`
+
+The Design Preview page `misc/design.html` should read from `public/data/dev/slice-of-life-settings.json` and expose manual refresh in the Slice-of-Life tab.
+
 ## Goal ("Done" Definition)
 
 For every (race, gender) listed in `docs/portraits/race_portrait_regen_backlog.json`:

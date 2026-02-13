@@ -15,8 +15,14 @@ import { WINDOW_KEYS } from '../styles/uiIds';
 
 interface MapPaneProps {
   mapData: MapData;
+  worldSeed?: number;
   onTileClick: (x: number, y: number, tile: MapTileType) => void;
   onClose: () => void;
+  allowTravel?: boolean;
+  showGenerationControls?: boolean;
+  canRegenerateWorld?: boolean;
+  generationLockedReason?: string | null;
+  onRegenerateWorld?: (seed?: number) => void;
 }
 
 type WorldMapViewMode = 'azgaar' | 'grid';
@@ -63,19 +69,30 @@ function deriveAzgaarSeed(mapData: MapData): number {
   return bounded > 0 ? bounded : bounded + 999_999_999;
 }
 
-const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
+const MapPane: React.FC<MapPaneProps> = ({
+  mapData,
+  worldSeed,
+  onTileClick,
+  onClose,
+  allowTravel = true,
+  showGenerationControls = false,
+  canRegenerateWorld = false,
+  generationLockedReason = null,
+  onRegenerateWorld,
+}) => {
   const { gridSize, tiles } = mapData;
   const [viewMode, setViewMode] = useState<WorldMapViewMode>('azgaar');
-  const [interactionMode, setInteractionMode] = useState<WorldMapInteractionMode>('pan');
+  const [interactionMode, setInteractionMode] = useState<WorldMapInteractionMode>(allowTravel ? 'travel' : 'pan');
   const [isFrameReady, setIsFrameReady] = useState(false);
   const [frameError, setFrameError] = useState<string | null>(null);
   const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
+  const [seedInput, setSeedInput] = useState('');
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const embedOverlayRef = useRef<HTMLDivElement>(null);
   const readinessTimersRef = useRef<number[]>([]);
 
-  const azgaarSeed = useMemo(() => deriveAzgaarSeed(mapData), [mapData]);
+  const azgaarSeed = useMemo(() => worldSeed ?? deriveAzgaarSeed(mapData), [mapData, worldSeed]);
   const azgaarSrc = useMemo(() => {
     const azgaarBasePath = getAzgaarBasePath();
     return `${azgaarBasePath}?seed=${azgaarSeed}&options=default&runtime=${AZGAAR_RUNTIME_REV}`;
@@ -222,6 +239,16 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     setFrameError(null);
   }, [azgaarSrc, viewMode]);
 
+  useEffect(() => {
+    if (!allowTravel && interactionMode === 'travel') {
+      setInteractionMode('pan');
+    }
+  }, [allowTravel, interactionMode]);
+
+  useEffect(() => {
+    setSeedInput(String(azgaarSeed));
+  }, [azgaarSeed]);
+
   const resolveCellFromPointer = useCallback((clientX: number, clientY: number) => {
     const overlay = embedOverlayRef.current;
     if (!overlay) return null;
@@ -260,19 +287,21 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   }, [gridSize.cols, gridSize.rows, tiles]);
 
   const handleOverlayClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!allowTravel || interactionMode !== 'travel') return;
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
     if (!resolved) return;
     onTileClick(resolved.x, resolved.y, resolved.tile);
-  }, [onTileClick, resolveCellFromPointer]);
+  }, [allowTravel, interactionMode, onTileClick, resolveCellFromPointer]);
 
   const handleOverlayMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!allowTravel || interactionMode !== 'travel') return;
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
     if (!resolved) {
       setHoveredCell(null);
       return;
     }
     setHoveredCell({ x: resolved.x, y: resolved.y });
-  }, [resolveCellFromPointer]);
+  }, [allowTravel, interactionMode, resolveCellFromPointer]);
 
   const hoveredTile = useMemo(() => {
     if (!hoveredCell) return null;
@@ -285,6 +314,21 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     setFrameError('Azgaar world map could not be loaded. Switched to legacy grid view.');
     setViewMode('grid');
   }, []);
+
+  const handleRegenerateWithSeed = useCallback(() => {
+    if (!onRegenerateWorld) return;
+    const parsedSeed = Number.parseInt(seedInput.trim(), 10);
+    if (Number.isFinite(parsedSeed)) {
+      onRegenerateWorld(Math.abs(parsedSeed));
+      return;
+    }
+    onRegenerateWorld();
+  }, [onRegenerateWorld, seedInput]);
+
+  const handleRerollSeed = useCallback(() => {
+    if (!onRegenerateWorld) return;
+    onRegenerateWorld();
+  }, [onRegenerateWorld]);
 
   const renderLegacyGrid = () => (
     <div className="overflow-auto flex-grow p-2 bg-black bg-opacity-10 rounded relative">
@@ -322,41 +366,79 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
         className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"
         style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
       >
-        <div className="mb-3 flex items-center gap-2 text-xs">
-          <button
-            onClick={() => setViewMode('azgaar')}
-            className={`px-2 py-1 rounded ${viewMode === 'azgaar' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
-            type="button"
-          >
-            Azgaar Atlas
-          </button>
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`px-2 py-1 rounded ${viewMode === 'grid' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
-            type="button"
-          >
-            Legacy Grid
-          </button>
-          {viewMode === 'azgaar' && (
-            <>
+        <div className="mb-3 space-y-2 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setViewMode('azgaar')}
+              className={`px-2 py-1 rounded ${viewMode === 'azgaar' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+              type="button"
+            >
+              Azgaar Atlas
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-2 py-1 rounded ${viewMode === 'grid' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+              type="button"
+            >
+              Legacy Grid
+            </button>
+            {viewMode === 'azgaar' && (
+              <>
+                <button
+                  onClick={() => setInteractionMode('pan')}
+                  className={`px-2 py-1 rounded ${interactionMode === 'pan' ? 'bg-emerald-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                  type="button"
+                >
+                  Pan/Zoom
+                </button>
+                {allowTravel && (
+                  <button
+                    onClick={() => setInteractionMode('travel')}
+                    className={`px-2 py-1 rounded ${interactionMode === 'travel' ? 'bg-amber-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                    type="button"
+                  >
+                    Travel
+                  </button>
+                )}
+              </>
+            )}
+            <span className="ml-2 text-gray-800">Seed: {azgaarSeed}</span>
+            {frameError && <span className="text-red-700">{frameError}</span>}
+          </div>
+
+          {showGenerationControls && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <label htmlFor="world-seed-input" className="text-gray-800 font-semibold">
+                World Seed
+              </label>
+              <input
+                id="world-seed-input"
+                type="number"
+                value={seedInput}
+                onChange={(event) => setSeedInput(event.target.value)}
+                className="w-40 rounded border border-gray-500 bg-white/90 px-2 py-1 text-gray-900"
+              />
               <button
-                onClick={() => setInteractionMode('pan')}
-                className={`px-2 py-1 rounded ${interactionMode === 'pan' ? 'bg-emerald-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                onClick={handleRegenerateWithSeed}
+                className={`px-2 py-1 rounded text-white ${canRegenerateWorld ? 'bg-indigo-700 hover:bg-indigo-600' : 'bg-gray-500'}`}
                 type="button"
+                title={canRegenerateWorld ? 'Generate world using this seed' : generationLockedReason || 'Generation is currently locked'}
               >
-                Pan/Zoom
+                Apply Seed
               </button>
               <button
-                onClick={() => setInteractionMode('travel')}
-                className={`px-2 py-1 rounded ${interactionMode === 'travel' ? 'bg-amber-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                onClick={handleRerollSeed}
+                className={`px-2 py-1 rounded text-white ${canRegenerateWorld ? 'bg-violet-700 hover:bg-violet-600' : 'bg-gray-500'}`}
                 type="button"
+                title={canRegenerateWorld ? 'Generate a fresh random world seed' : generationLockedReason || 'Generation is currently locked'}
               >
-                Travel
+                Reroll World
               </button>
-            </>
+              {!canRegenerateWorld && generationLockedReason && (
+                <span className="text-amber-700">{generationLockedReason}</span>
+              )}
+            </div>
           )}
-          <span className="ml-2 text-gray-800">Seed: {azgaarSeed}</span>
-          {frameError && <span className="text-red-700">{frameError}</span>}
         </div>
 
         {viewMode === 'azgaar' ? (
@@ -372,7 +454,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
 
             <div
               ref={embedOverlayRef}
-              className={`absolute inset-0 ${interactionMode === 'travel' ? 'cursor-crosshair' : 'pointer-events-none'}`}
+              className={`absolute inset-0 ${allowTravel && interactionMode === 'travel' ? 'cursor-crosshair' : 'pointer-events-none'}`}
               onClick={handleOverlayClick}
               onMouseMove={handleOverlayMouseMove}
               onMouseLeave={() => setHoveredCell(null)}
@@ -387,7 +469,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
               </div>
             )}
 
-            {interactionMode === 'travel' && hoveredCell && hoveredTile && (
+            {allowTravel && interactionMode === 'travel' && hoveredCell && hoveredTile && (
               <div className="absolute bottom-3 left-3 rounded bg-black/70 text-white text-xs px-2 py-1 pointer-events-none">
                 Cell {hoveredCell.x},{hoveredCell.y} - {hoveredBiome?.name || hoveredTile.biomeId}
               </div>
@@ -398,7 +480,9 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
         )}
 
         <p className="text-xs text-center mt-2 text-gray-700">
-          In Azgaar Atlas: use Pan/Zoom to explore layers and zoom. Switch to Travel to click a destination.
+          {allowTravel
+            ? 'In Azgaar Atlas: use Pan/Zoom to explore layers and zoom. Switch to Travel to click a destination.'
+            : 'In Azgaar Atlas: use Pan/Zoom and layer controls to inspect world generation before starting a game.'}
         </p>
       </div>
     </WindowFrame>

@@ -210,10 +210,14 @@ Actions:
 1. Done: Add Azgaar runtime map host in `MapPane` with game-safe UI mode (tooling hidden).
 2. Done: Implement atlas click -> hidden cell resolver (current version is positional approximation).
 3. Done: Keep `onTileClick(x,y,tile)` bridge active until `App.tsx` travel handler is migrated.
-4. Pending: Verify `MOVE_PLAYER` and discovery updates from atlas interactions across center/edge/coast clicks.
-5. Pending: Run save/load compatibility check (new save + reload + movement + reload).
-6. Pending: Validate submap entry still uses correct world coordinates and biome context.
-7. Pending: Remove legacy grid rendering paths only after parity checks pass.
+4. Done: Added main-menu world-map entry and pre-run world-generation controls with lock policy (`save exists` or `active run in memory` => regeneration blocked).
+5. Pending: Verify `MOVE_PLAYER` and discovery updates from atlas interactions across center/edge/coast clicks.
+6. Pending: Run save/load compatibility check (new save + reload + movement + reload).
+7. Pending: Validate submap entry still uses correct world coordinates and biome context.
+8. Pending: Remove legacy grid rendering paths only after parity checks pass.
+9. Backlog (non-gating): Add locked-mode interception for all Azgaar mutating tools still exposed via embedded menus (especially `Edit Burg` regeneration options).
+10. Backlog (non-gating): Audit `Burgs Overview` and connected editors for map-mutating operations and gate them behind the same world-generation lock policy.
+11. Backlog (non-gating): Implement category-level lock policy for `Regenerate`, `Add`, and `Create` tool actions; preserve read-only map/layer inspection.
 
 ## Regression Risks To Watch
 

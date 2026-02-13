@@ -1,0 +1,4 @@
+*.input.json
+*.prompt.md
+*.output.json
+!README.md

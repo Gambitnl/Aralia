@@ -20,20 +20,22 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
   const isInitialMount = useRef(true);
 
   // Guard Logic Helper
-  const safeNavigate = useCallback((targetPhase: GamePhase) => {
+  const safeNavigate = useCallback((targetPhase: GamePhase, silent: boolean = false) => {
     const protectedPhases = [GamePhase.PLAYING, GamePhase.COMBAT, GamePhase.VILLAGE_VIEW, GamePhase.BATTLE_MAP_DEMO];
     if (protectedPhases.includes(targetPhase) && gameState.party.length === 0) {
-      console.warn(`[Ranger] Blocked nav to ${GamePhase[targetPhase]} - no party.`);
+      if (!silent) {
+        console.warn(`[Ranger] Blocked nav to ${GamePhase[targetPhase]} - no party.`);
 
-      // Notify user why navigation was blocked
-      dispatch({
-        type: 'ADD_NOTIFICATION',
-        payload: {
-          message: "You cannot travel there without an active party.",
-          type: 'warning',
-          duration: 4000
-        }
-      });
+        // Notify user why navigation was blocked
+        dispatch({
+          type: 'ADD_NOTIFICATION',
+          payload: {
+            message: "You cannot travel there without an active party.",
+            type: 'warning',
+            duration: 4000
+          }
+        });
+      }
 
       const params = new URLSearchParams(window.location.search);
       params.set('phase', getPhaseSlug(gameState.phase));
@@ -67,7 +69,9 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
       const rawPhase = params.get('phase');
 
       if (urlPhase !== null) {
-        safeNavigate(urlPhase); // Deep link
+        // Use silent mode on mount to avoid confusing "no party" warnings if deep-linking
+        // while the app is still initializing its state.
+        safeNavigate(urlPhase, true); 
         // Ranger: Restore location context if available and safe
         const [x, y, loc] = [params.get('x'), params.get('y'), params.get('loc')];
         if (x && y && loc && urlPhase === GamePhase.PLAYING && gameState.party.length > 0) {
