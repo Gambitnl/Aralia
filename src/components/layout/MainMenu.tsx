@@ -28,6 +28,9 @@ interface MainMenuProps {
   onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
   onGoBack?: () => void; // New prop for back navigation
   canGoBack?: boolean; // Whether there's a previous screen to go back to
+  onOpenWorldGeneration?: () => void;
+  isWorldGenerationLocked?: boolean;
+  worldGenerationLockedReason?: string | null;
 }
 
 /**
@@ -52,6 +55,9 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onSaveGame,
   onGoBack,
   canGoBack = false,
+  onOpenWorldGeneration,
+  isWorldGenerationLocked = false,
+  worldGenerationLockedReason = null,
 }) => {
   const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -153,6 +159,23 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.new_game')}
           </button>
+          {onOpenWorldGeneration && (
+            <>
+              <button
+                onClick={onOpenWorldGeneration}
+                className={`w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75 ${isWorldGenerationLocked ? 'opacity-80' : ''}`}
+                aria-label="Open world generation setup"
+                title={isWorldGenerationLocked && worldGenerationLockedReason ? worldGenerationLockedReason : 'Open world generation setup'}
+              >
+                World Generation
+              </button>
+              {isWorldGenerationLocked && worldGenerationLockedReason && (
+                <p className="text-xs text-amber-300 text-left px-1">
+                  {worldGenerationLockedReason}
+                </p>
+              )}
+            </>
+          )}
           <button
             onClick={() => setIsSaveModalOpen(true)}
             disabled={!onSaveGame}

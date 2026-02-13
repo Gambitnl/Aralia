@@ -126,6 +126,20 @@
 
 ---
 
+## Project 5: Project Infrastructure & Tooling
+
+**Status**: 🟢 Active - Roadmap & Dev Hub
+**Location**: `docs/` (System Guides)
+**Priority**: High
+
+### Master Document
+
+| Doc | Description | Status |
+|-----|-------------|--------|
+| [@ROADMAP-SYSTEM-GUIDE](./@ROADMAP-SYSTEM-GUIDE.md) | Documentation for the interactive Roadmap Visualizer | 🟢 Active |
+
+---
+
 ## Recently Completed
 
 | Doc | Project | Completed | Description |

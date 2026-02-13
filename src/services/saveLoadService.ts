@@ -322,8 +322,10 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
 export function hasSaveGame(slotName: string = DEFAULT_SAVE_SLOT): boolean {
   try {
     const slots = getSaveSlots();
-    if (slots.length > 0) return true;
-    return SafeStorage.getItem(resolveSlotKey(slotName)) !== null;
+    if (slotName === DEFAULT_SAVE_SLOT && slots.length > 0) return true;
+    
+    const storageKey = resolveSlotKey(slotName);
+    return slots.some(slot => slot.slotId === storageKey);
   } catch (error) {
     logger.error("Error checking save existence", { error });
     return false;
@@ -338,18 +340,14 @@ export function hasSaveGame(slotName: string = DEFAULT_SAVE_SLOT): boolean {
 export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): number | null {
   try {
     const slots = getSaveSlots();
-    if (slots.length > 0) {
+    if (slots.length === 0) return null;
+
+    if (slotName === DEFAULT_SAVE_SLOT) {
       return slots.sort((a, b) => b.lastSaved - a.lastSaved)[0]?.lastSaved ?? null;
     }
 
-    const serializedState = SafeStorage.getItem(resolveSlotKey(slotName));
-    if (!serializedState) return null;
-
-    const parsedData = safeJSONParse<StoredSavePayload | GameState>(serializedState);
-    if (!parsedData) return null;
-
-    const legacyState: Partial<GameState> = (parsedData as StoredSavePayload).state || (parsedData as GameState);
-    return legacyState.saveTimestamp || null;
+    const storageKey = resolveSlotKey(slotName);
+    return slots.find(slot => slot.slotId === storageKey)?.lastSaved ?? null;
   } catch (error) {
     logger.error("Error retrieving save timestamp", { error });
     return null;
@@ -585,7 +583,15 @@ function getSessionCache(): SaveSlotSummary[] | null {
 function buildSlotIndex(): SaveSlotSummary[] {
   const storedIndex = SafeStorage.getItem(SLOT_INDEX_KEY);
   const parsedIndex: SaveSlotSummary[] = safeJSONParse<SaveSlotSummary[]>(storedIndex || '') || [];
-  return mergeWithLegacySaves(parsedIndex).sort((a, b) => b.lastSaved - a.lastSaved);
+  
+  // RALPH: Ghost Mitigation.
+  // Filter out any entries from the index that no longer have a matching 
+  // payload in LocalStorage. This prevents the UI from showing "Continue"
+  // buttons for saves that were manually deleted or lost.
+  const allKeys = SafeStorage.getAllKeys();
+  const validIndex = parsedIndex.filter(slot => allKeys.includes(slot.slotId));
+
+  return mergeWithLegacySaves(validIndex).sort((a, b) => b.lastSaved - a.lastSaved);
 }
 
 function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {

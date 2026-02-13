@@ -99,6 +99,20 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 
 ---
 
+### Project: Project Infrastructure & Tooling
+
+**Location**: `docs/` (System Guides)
+
+| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
+|--------|----------|--------|----------|----------|--------------|--------------|
+| [1A](./@ROADMAP-SYSTEM-GUIDE.md) | Roadmap System Guide | Active | 90% | High | - | Feb 12, 2026 |
+
+**Tags**: `tooling`, `roadmap`, `visualization`, `agent-context`
+
+**Next available number**: `1B`
+
+---
+
 ## Retired Documents
 
 **See**: [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) for full archive with retirement reasons.

@@ -1,0 +1,869 @@
+{
+  "version": "1.1.0",
+  "root": "aralia_chronicles",
+  "nodes": [
+    {
+      "id": "aralia_chronicles",
+      "label": "Aralia Chronicles",
+      "type": "root",
+      "status": "active",
+      "initialX": 500,
+      "initialY": 100,
+      "color": "#fbbf24",
+      "description": "The master knowledge tree of Aralia RPG development."
+    },
+    {
+      "id": "spell_system_overhaul",
+      "label": "Spell System Overhaul",
+      "type": "project",
+      "status": "active",
+      "initialX": 500,
+      "initialY": 250,
+      "color": "#a78bfa",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1a",
+      "label": "1A: Project Master Springboard",
+      "type": "task",
+      "status": "active",
+      "initialX": 150,
+      "initialY": 350,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1b",
+      "label": "1B: Spell Migration Roadmap",
+      "type": "task",
+      "status": "active",
+      "initialX": 350,
+      "initialY": 350,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1d",
+      "label": "1D: Archive Old Spell Docs",
+      "type": "task",
+      "status": "active",
+      "initialX": 550,
+      "initialY": 350,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1e",
+      "label": "1E: Consolidate Jules Workflow",
+      "type": "task",
+      "status": "planned",
+      "initialX": 750,
+      "initialY": 350,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1f",
+      "label": "1F: Audit Spell Scope (PHB 2024)",
+      "type": "task",
+      "status": "planned",
+      "initialX": 150,
+      "initialY": 500,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1g",
+      "label": "1G: Reorganize Spell Files by Level",
+      "type": "task",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 500,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1h",
+      "label": "1H: Create Glossary Template System",
+      "type": "task",
+      "status": "planned",
+      "initialX": 550,
+      "initialY": 500,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1i",
+      "label": "1I: Migrate Cantrips Batch 1 (5 spells)",
+      "type": "task",
+      "status": "planned",
+      "initialX": 750,
+      "initialY": 500,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "spell_system_overhaul_1f",
+      "label": "1F: Version Review Agent (Concept)",
+      "type": "task",
+      "status": "planned",
+      "initialX": 150,
+      "initialY": 650,
+      "color": "#a78bfa",
+      "progress": 0,
+      "link": "",
+      "domain": "spell-system"
+    },
+    {
+      "id": "documentation_cleanup",
+      "label": "Documentation Cleanup",
+      "type": "project",
+      "status": "active",
+      "initialX": 500,
+      "initialY": 850,
+      "color": "#10b981",
+      "domain": "documentation"
+    },
+    {
+      "id": "documentation_cleanup_1a",
+      "label": "1A: Survey and Classification",
+      "type": "task",
+      "status": "done",
+      "initialX": 150,
+      "initialY": 950,
+      "color": "#10b981",
+      "progress": 100,
+      "link": "",
+      "domain": "documentation"
+    },
+    {
+      "id": "documentation_cleanup_1c",
+      "label": "1C: Archive Obsolete Docs",
+      "type": "task",
+      "status": "done",
+      "initialX": 350,
+      "initialY": 950,
+      "color": "#10b981",
+      "progress": 100,
+      "link": "",
+      "domain": "documentation"
+    },
+    {
+      "id": "documentation_cleanup_1d",
+      "label": "1D: Consolidate Duplicate Content",
+      "type": "task",
+      "status": "done",
+      "initialX": 550,
+      "initialY": 950,
+      "color": "#10b981",
+      "progress": 100,
+      "link": "",
+      "domain": "documentation"
+    },
+    {
+      "id": "documentation_cleanup_1e",
+      "label": "1E: Verify Doc Links",
+      "type": "task",
+      "status": "done",
+      "initialX": 750,
+      "initialY": 950,
+      "color": "#10b981",
+      "progress": 100,
+      "link": "",
+      "domain": "documentation"
+    },
+    {
+      "id": "documentation_cleanup_1f",
+      "label": "1F: Create System Status Report",
+      "type": "task",
+      "status": "done",
+      "initialX": 150,
+      "initialY": 1100,
+      "color": "#10b981",
+      "progress": 100,
+      "link": "",
+      "domain": "documentation"
+    },
+    {
+      "id": "documentation_cleanup_1g",
+      "label": "1G: Migrate Improvement Docs",
+      "type": "task",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 1100,
+      "color": "#10b981",
+      "progress": 0,
+      "link": "",
+      "domain": "documentation"
+    },
+    {
+      "id": "spell_completeness_audit__description_extraction",
+      "label": "Spell Completeness Audit & Description Extraction",
+      "type": "project",
+      "status": "active",
+      "initialX": 500,
+      "initialY": 1300,
+      "color": "#94a3b8",
+      "domain": "default"
+    },
+    {
+      "id": "spell_completeness_audit__description_extraction_2a",
+      "label": "2A: Extract Level 1 Spell Descriptions",
+      "type": "task",
+      "status": "planned",
+      "initialX": 150,
+      "initialY": 1400,
+      "color": "#94a3b8",
+      "progress": 0,
+      "link": "",
+      "domain": "default"
+    },
+    {
+      "id": "spell_completeness_audit__description_extraction_2b",
+      "label": "2B: Extract Spell Descriptions (Levels 2-9)",
+      "type": "task",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 1400,
+      "color": "#94a3b8",
+      "progress": 0,
+      "link": "",
+      "domain": "default"
+    },
+    {
+      "id": "3d_exploration__combat",
+      "label": "3D Exploration & Combat",
+      "type": "project",
+      "status": "active",
+      "initialX": 500,
+      "initialY": 1600,
+      "color": "#38bdf8",
+      "domain": "3d"
+    },
+    {
+      "id": "3d_exploration__combat_1a",
+      "label": "1A: 3D Exploration Roadmap",
+      "type": "task",
+      "status": "active",
+      "initialX": 150,
+      "initialY": 1700,
+      "color": "#38bdf8",
+      "progress": 0,
+      "link": "",
+      "domain": "3d"
+    },
+    {
+      "id": "project_infrastructure__tooling",
+      "label": "Project Infrastructure & Tooling",
+      "type": "project",
+      "status": "active",
+      "initialX": 500,
+      "initialY": 1900,
+      "color": "#fbbf24",
+      "domain": "tooling"
+    },
+    {
+      "id": "project_infrastructure__tooling_1a",
+      "label": "1A: Roadmap System Guide",
+      "type": "task",
+      "status": "active",
+      "initialX": 150,
+      "initialY": 2000,
+      "color": "#fbbf24",
+      "progress": 90,
+      "link": "",
+      "domain": "tooling"
+    },
+    {
+      "id": "project_infrastructure__tooling_1c",
+      "label": "1C: Gap Analysis (Local vs PHB)",
+      "type": "task",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 2000,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "docs/tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md",
+      "domain": "tooling",
+      "completedDate": "2025-12-04T21:04:30+01:00"
+    },
+    {
+      "id": "project_infrastructure__tooling_1b",
+      "label": "1B: Research PHB 2024 Spell List",
+      "type": "task",
+      "status": "planned",
+      "initialX": 550,
+      "initialY": 2000,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "docs/tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md",
+      "domain": "tooling",
+      "completedDate": "2025-12-04T21:04:30+01:00"
+    },
+    {
+      "id": "project_infrastructure__tooling_1a",
+      "label": "1A: Inventory Local Spells",
+      "type": "task",
+      "status": "planned",
+      "initialX": 750,
+      "initialY": 2000,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "docs/tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md",
+      "domain": "tooling",
+      "completedDate": "2025-12-04T21:04:30+01:00"
+    },
+    {
+      "id": "project_infrastructure__tooling_1c",
+      "label": "1C: Version Display & Package Fix",
+      "type": "task",
+      "status": "planned",
+      "initialX": 150,
+      "initialY": 2150,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "docs/tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md",
+      "domain": "tooling",
+      "completedDate": "2025-11-30T21:23:44+00:00"
+    },
+    {
+      "id": "project_infrastructure__tooling_date",
+      "label": "Date: Change",
+      "type": "task",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 2150,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "",
+      "domain": "tooling"
+    },
+    {
+      "id": "project_infrastructure__tooling_jan 13, 2026",
+      "label": "Jan 13, 2026: Created 1A",
+      "type": "task",
+      "status": "planned",
+      "initialX": 550,
+      "initialY": 2150,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "",
+      "domain": "tooling"
+    },
+    {
+      "id": "project_infrastructure__tooling_dec 2, 2025",
+      "label": "Dec 2, 2025: Registry restructure",
+      "type": "task",
+      "status": "planned",
+      "initialX": 750,
+      "initialY": 2150,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "",
+      "domain": "tooling"
+    },
+    {
+      "id": "project_infrastructure__tooling_nov 30, 2025",
+      "label": "Nov 30, 2025: Retired 1C",
+      "type": "task",
+      "status": "planned",
+      "initialX": 150,
+      "initialY": 2300,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "",
+      "domain": "tooling"
+    },
+    {
+      "id": "project_infrastructure__tooling_nov 30, 2025",
+      "label": "Nov 30, 2025: Created 1A, 1B",
+      "type": "task",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 2300,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "",
+      "domain": "tooling"
+    },
+    {
+      "id": "project_infrastructure__tooling_nov 28, 2025",
+      "label": "Nov 28, 2025: Created 1D-1I",
+      "type": "task",
+      "status": "planned",
+      "initialX": 550,
+      "initialY": 2300,
+      "color": "#fbbf24",
+      "progress": 0,
+      "link": "",
+      "domain": "tooling"
+    },
+    {
+      "id": "retired_spell_completeness_audit_1c",
+      "label": "1C (Retired): Gap Analysis (Local vs PHB)",
+      "type": "task",
+      "status": "done",
+      "initialX": 150,
+      "initialY": 2600,
+      "color": "#64748b",
+      "progress": 100,
+      "link": "docs/tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md",
+      "completedDate": "2025-12-04T21:04:30+01:00"
+    },
+    {
+      "id": "retired_spell_completeness_audit_1b",
+      "label": "1B (Retired): Research PHB 2024 Spell List",
+      "type": "task",
+      "status": "done",
+      "initialX": 350,
+      "initialY": 2600,
+      "color": "#64748b",
+      "progress": 100,
+      "link": "docs/tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md",
+      "completedDate": "2025-12-04T21:04:30+01:00"
+    },
+    {
+      "id": "retired_spell_completeness_audit_1a",
+      "label": "1A (Retired): Inventory Local Spells",
+      "type": "task",
+      "status": "done",
+      "initialX": 550,
+      "initialY": 2600,
+      "color": "#64748b",
+      "progress": 100,
+      "link": "docs/tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md",
+      "completedDate": "2025-12-04T21:04:30+01:00"
+    },
+    {
+      "id": "retired_spell_system_overhaul_1c",
+      "label": "1C (Retired): Version Display & Package Fix",
+      "type": "task",
+      "status": "done",
+      "initialX": 750,
+      "initialY": 2600,
+      "color": "#64748b",
+      "progress": 100,
+      "link": "docs/tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md",
+      "completedDate": "2025-11-30T21:23:44+00:00"
+    },
+    {
+      "id": "retired_project_date",
+      "label": "Date (Retired): Change",
+      "type": "task",
+      "status": "done",
+      "initialX": 150,
+      "initialY": 2750,
+      "color": "#64748b",
+      "progress": 100,
+      "link": ""
+    },
+    {
+      "id": "retired_3d_exploration_jan 13, 2026",
+      "label": "Jan 13, 2026 (Retired): Created 1A",
+      "type": "task",
+      "status": "done",
+      "initialX": 350,
+      "initialY": 2750,
+      "color": "#64748b",
+      "progress": 100,
+      "link": ""
+    },
+    {
+      "id": "retired_all_dec 2, 2025",
+      "label": "Dec 2, 2025 (Retired): Registry restructure",
+      "type": "task",
+      "status": "done",
+      "initialX": 550,
+      "initialY": 2750,
+      "color": "#64748b",
+      "progress": 100,
+      "link": ""
+    },
+    {
+      "id": "retired_spell_system_nov 30, 2025",
+      "label": "Nov 30, 2025 (Retired): Retired 1C",
+      "type": "task",
+      "status": "done",
+      "initialX": 750,
+      "initialY": 2750,
+      "color": "#64748b",
+      "progress": 100,
+      "link": ""
+    },
+    {
+      "id": "retired_spell_system_nov 30, 2025",
+      "label": "Nov 30, 2025 (Retired): Created 1A, 1B",
+      "type": "task",
+      "status": "done",
+      "initialX": 150,
+      "initialY": 2900,
+      "color": "#64748b",
+      "progress": 100,
+      "link": ""
+    },
+    {
+      "id": "retired_spell_system_nov 28, 2025",
+      "label": "Nov 28, 2025 (Retired): Created 1D-1I",
+      "type": "task",
+      "status": "done",
+      "initialX": 350,
+      "initialY": 2900,
+      "color": "#64748b",
+      "progress": 100,
+      "link": ""
+    },
+    {
+      "id": "track_arch_clarity_20260129",
+      "label": "Track: arch",
+      "type": "milestone",
+      "status": "planned",
+      "initialX": 150,
+      "initialY": 3200,
+      "color": "#38bdf8",
+      "description": "Analyze and improve codebase structure from tangled dependencies to clean layer architecture.",
+      "link": "conductor/tracks/arch_clarity_20260129/index.md"
+    },
+    {
+      "id": "track_biome_evolution_20260121",
+      "label": "Track: biome",
+      "type": "milestone",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 3200,
+      "color": "#38bdf8",
+      "description": "Transition to a generative biome system using AI DNA and procedural shaders.",
+      "link": "conductor/tracks/biome_evolution_20260121/index.md"
+    },
+    {
+      "id": "track_character_creator_ux_20260128",
+      "label": "Track: character",
+      "type": "milestone",
+      "status": "active",
+      "initialX": 550,
+      "initialY": 3200,
+      "color": "#38bdf8",
+      "description": "UX / UI check on the character creator: standardizing UI elements, placement of buttons, logical flow, and selection methods.",
+      "link": "conductor/tracks/character_creator_ux_20260128/index.md"
+    },
+    {
+      "id": "track_codebase_docs_20260131",
+      "label": "Track: codebase",
+      "type": "milestone",
+      "status": "done",
+      "initialX": 750,
+      "initialY": 3200,
+      "color": "#38bdf8",
+      "link": "conductor/tracks/codebase_docs_20260131/index.md"
+    },
+    {
+      "id": "track_race_sync_20260128",
+      "label": "Track: race",
+      "type": "milestone",
+      "status": "active",
+      "initialX": 150,
+      "initialY": 3350,
+      "color": "#38bdf8",
+      "description": "Ensure character creator races and glossary entries are synchronized with automated audit tooling.",
+      "link": "conductor/tracks/race_sync_20260128/index.md"
+    },
+    {
+      "id": "track_roadmap_backfill_20260212",
+      "label": "Track: roadmap",
+      "type": "milestone",
+      "status": "planned",
+      "initialX": 350,
+      "initialY": 3350,
+      "color": "#38bdf8",
+      "description": "roadmap population and historical backfill of past tracks/efforts/projects/implementations/changes",
+      "link": "conductor/tracks/roadmap_backfill_20260212/index.md"
+    },
+    {
+      "id": "track_state_arch_refactor_20260131",
+      "label": "Track: state",
+      "type": "milestone",
+      "status": "done",
+      "initialX": 550,
+      "initialY": 3350,
+      "color": "#38bdf8",
+      "link": "conductor/tracks/state_arch_refactor_20260131/index.md"
+    },
+    {
+      "id": "track_thieves_guild_expansion_20260131",
+      "label": "Track: thieves",
+      "type": "milestone",
+      "status": "done",
+      "initialX": 750,
+      "initialY": 3350,
+      "color": "#38bdf8",
+      "link": "conductor/tracks/thieves_guild_expansion_20260131/index.md"
+    },
+    {
+      "id": "track_thieves_guild_organic_entry_20260131",
+      "label": "Track: thieves",
+      "type": "milestone",
+      "status": "planned",
+      "initialX": 150,
+      "initialY": 3500,
+      "color": "#38bdf8",
+      "link": "conductor/tracks/thieves_guild_organic_entry_20260131/index.md"
+    },
+    {
+      "id": "track_ui_logic_knowledge_20260131",
+      "label": "Track: ui",
+      "type": "milestone",
+      "status": "done",
+      "initialX": 350,
+      "initialY": 3500,
+      "color": "#38bdf8",
+      "link": "conductor/tracks/ui_logic_knowledge_20260131/index.md"
+    },
+    {
+      "id": "track_world_sim_hardening_20260131",
+      "label": "Track: world",
+      "type": "milestone",
+      "status": "done",
+      "initialX": 550,
+      "initialY": 3500,
+      "color": "#38bdf8",
+      "link": "conductor/tracks/world_sim_hardening_20260131/index.md"
+    }
+  ],
+  "edges": [
+    {
+      "from": "aralia_chronicles",
+      "to": "spell_system_overhaul"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1a"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1b"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1d"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1e"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1f"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1g"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1h"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1i"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "spell_system_overhaul_1f"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "documentation_cleanup"
+    },
+    {
+      "from": "documentation_cleanup",
+      "to": "documentation_cleanup_1a"
+    },
+    {
+      "from": "documentation_cleanup",
+      "to": "documentation_cleanup_1c"
+    },
+    {
+      "from": "documentation_cleanup",
+      "to": "documentation_cleanup_1d"
+    },
+    {
+      "from": "documentation_cleanup",
+      "to": "documentation_cleanup_1e"
+    },
+    {
+      "from": "documentation_cleanup",
+      "to": "documentation_cleanup_1f"
+    },
+    {
+      "from": "documentation_cleanup",
+      "to": "documentation_cleanup_1g"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "spell_completeness_audit__description_extraction"
+    },
+    {
+      "from": "spell_completeness_audit__description_extraction",
+      "to": "spell_completeness_audit__description_extraction_2a"
+    },
+    {
+      "from": "spell_completeness_audit__description_extraction",
+      "to": "spell_completeness_audit__description_extraction_2b"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "3d_exploration__combat"
+    },
+    {
+      "from": "3d_exploration__combat",
+      "to": "3d_exploration__combat_1a"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "project_infrastructure__tooling"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_1a"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_1c"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_1b"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_1a"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_1c"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_date"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_jan 13, 2026"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_dec 2, 2025"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_nov 30, 2025"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_nov 30, 2025"
+    },
+    {
+      "from": "project_infrastructure__tooling",
+      "to": "project_infrastructure__tooling_nov 28, 2025"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_spell_completeness_audit_1c"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_spell_completeness_audit_1b"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_spell_completeness_audit_1a"
+    },
+    {
+      "from": "spell_system_overhaul",
+      "to": "retired_spell_system_overhaul_1c"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_project_date"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_3d_exploration_jan 13, 2026"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_all_dec 2, 2025"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_spell_system_nov 30, 2025"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_spell_system_nov 30, 2025"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "retired_spell_system_nov 28, 2025"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_arch_clarity_20260129"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_biome_evolution_20260121"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_character_creator_ux_20260128"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_codebase_docs_20260131"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_race_sync_20260128"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_roadmap_backfill_20260212"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_state_arch_refactor_20260131"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_thieves_guild_expansion_20260131"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_thieves_guild_organic_entry_20260131"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_ui_logic_knowledge_20260131"
+    },
+    {
+      "from": "aralia_chronicles",
+      "to": "track_world_sim_hardening_20260131"
+    }
+  ]
+}

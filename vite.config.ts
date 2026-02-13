@@ -352,6 +352,8 @@ const addProxyDiagnostics = (
   }
 });
 
+import { generateRoadmapData } from './scripts/roadmap-server-logic';
+
 const visualizerManager = () => ({
   name: 'visualizer-manager',
   configureServer(server: any) {
@@ -379,6 +381,27 @@ const visualizerManager = () => ({
       next();
     });
   },
+});
+
+const roadmapManager = () => ({
+  name: 'roadmap-manager',
+  configureServer(server: any) {
+    server.middlewares.use((req: any, res: any, next: any) => {
+      if (req.url === '/api/roadmap/data') {
+        try {
+          const data = generateRoadmapData();
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(JSON.stringify(data));
+        } catch (error) {
+          console.error('[dev] Failed to generate roadmap data:', error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Failed to generate roadmap data' }));
+        }
+        return;
+      }
+      next();
+    });
+  }
 });
 
 const conductorManager = () => ({
@@ -761,7 +784,7 @@ export default defineConfig(({ mode, command }) => {
         )
       }
     },
-    plugins: [react(), visualizerManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), portraitApiManager()],
+    plugins: [react(), visualizerManager(), roadmapManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), portraitApiManager()],
     define: {
       // Shim process.env for legacy support (allows process.env.API_KEY to work).
       // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.
@@ -786,6 +809,9 @@ export default defineConfig(({ mode, command }) => {
             : {}),
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'agent_docs.html'))
             ? { agent_docs: path.resolve(__dirname, 'misc', 'agent_docs.html') }
+            : {}),
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap.html'))
+            ? { roadmap: path.resolve(__dirname, 'misc', 'roadmap.html') }
             : {})
         },
         output: {

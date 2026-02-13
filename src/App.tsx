@@ -49,7 +49,7 @@ import {
   BIOMES,
 } from './constants';
 import { getDummyParty } from './data/dev/dummyCharacter';
-import { SUBMAP_DIMENSIONS } from './config/mapConfig';
+import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
@@ -67,6 +67,8 @@ import { ConversationPanel } from './components/ConversationPanel';
 import { SafeStorage } from './utils/core/storageUtils';
 
 import { CollapsibleBanterPanel } from './components/ui/CollapsibleBanterPanel';
+import { generateMap } from './services/mapService';
+import { generateWorldSeed } from './utils/random/generateWorldSeed';
 
 // Lazy load large components to reduce initial bundle size
 const TownCanvas = lazy(() => import('./components/Town/TownCanvas'));
@@ -293,7 +295,7 @@ const App: React.FC = () => {
   });
 
   const {
-    handleNewGame,
+    handleNewGame: initializeNewGame,
     handleSkipCharacterCreator,
     handleLoadGameFlow,
     startGame,
@@ -503,6 +505,109 @@ const App: React.FC = () => {
     dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
   }, [dispatch]);
 
+  const hasStoredSaveGame = SaveLoadService.hasSaveGame();
+  const hasActiveRunInMemory = gameState.party.length > 0;
+  const canRegenerateWorldMap = !hasStoredSaveGame && !hasActiveRunInMemory;
+  const worldGenerationLockedReason = hasActiveRunInMemory
+    ? 'World generation is locked while an active game session is in memory.'
+    : hasStoredSaveGame
+      ? 'World generation is locked because save data exists. Clear saves to unlock it.'
+      : null;
+
+  const buildDynamicLocationItemSnapshot = useCallback((): Record<string, string[]> => {
+    const snapshot: Record<string, string[]> = {};
+    Object.values(LOCATIONS).forEach(loc => {
+      snapshot[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
+    });
+    return snapshot;
+  }, []);
+
+  const createWorldFromSeed = useCallback((seed: number) => {
+    const normalizedSeed = Number.isFinite(seed) && seed > 0 ? Math.floor(seed) : generateWorldSeed();
+    const nextMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, normalizedSeed);
+    dispatch({ type: 'SET_WORLD_SEED', payload: normalizedSeed });
+    dispatch({ type: 'SET_MAP_DATA', payload: nextMapData });
+    return { seed: normalizedSeed, mapData: nextMapData };
+  }, [dispatch]);
+
+  const handleRegenerateWorldMap = useCallback((requestedSeed?: number) => {
+    if (!canRegenerateWorldMap) {
+      dispatch({
+        type: 'ADD_NOTIFICATION',
+        payload: {
+          type: 'warning',
+          message: worldGenerationLockedReason || 'World generation is currently locked.',
+        },
+      });
+      return;
+    }
+
+    const seedToUse = Number.isFinite(requestedSeed) && (requestedSeed ?? 0) > 0
+      ? Math.floor(requestedSeed as number)
+      : generateWorldSeed();
+    const { seed } = createWorldFromSeed(seedToUse);
+    dispatch({
+      type: 'ADD_NOTIFICATION',
+      payload: {
+        type: 'success',
+        message: `World regenerated with seed ${seed}.`,
+      },
+    });
+  }, [canRegenerateWorldMap, createWorldFromSeed, dispatch, worldGenerationLockedReason]);
+
+  const handleOpenWorldGenerationFromMainMenu = useCallback(() => {
+    if (!gameState.mapData) {
+      const previewSeed = Number.isFinite(gameState.worldSeed) && gameState.worldSeed > 0
+        ? Math.floor(gameState.worldSeed)
+        : generateWorldSeed();
+      createWorldFromSeed(previewSeed);
+    }
+
+    if (!gameState.isMapVisible) {
+      dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+    }
+    if (!canRegenerateWorldMap && worldGenerationLockedReason) {
+      dispatch({
+        type: 'ADD_NOTIFICATION',
+        payload: {
+          type: 'warning',
+          message: worldGenerationLockedReason,
+        },
+      });
+    }
+  }, [
+    canRegenerateWorldMap,
+    createWorldFromSeed,
+    dispatch,
+    gameState.isMapVisible,
+    gameState.mapData,
+    gameState.worldSeed,
+    worldGenerationLockedReason,
+  ]);
+
+  const handleNewGame = useCallback(() => {
+    if (canRegenerateWorldMap && gameState.mapData) {
+      dispatch({
+        type: 'START_NEW_GAME_SETUP',
+        payload: {
+          mapData: gameState.mapData,
+          dynamicLocationItemIds: buildDynamicLocationItemSnapshot(),
+          worldSeed: gameState.worldSeed,
+        },
+      });
+      return;
+    }
+
+    initializeNewGame();
+  }, [
+    buildDynamicLocationItemSnapshot,
+    canRegenerateWorldMap,
+    dispatch,
+    gameState.mapData,
+    gameState.worldSeed,
+    initializeNewGame,
+  ]);
+
   const handleDevMenuAction = useCallback(async (actionType: string) => {
     const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter', 'restart_dynamic_party'];
 
@@ -698,11 +803,14 @@ const App: React.FC = () => {
           onLoadGame={handleLoadGameFlow}
           // Arrow function wrapper prevents React's onClick event from being passed as initialTermId
           onShowCompendium={() => handleOpenGlossary()}
-          hasSaveGame={SaveLoadService.hasSaveGame()}
+          hasSaveGame={hasStoredSaveGame}
           latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
           isDevDummyActive={canUseDevTools()}
           onSkipCharacterCreator={handleSkipCharacterCreator}
           onClearAllSaves={handleClearAllSaves}
+          onOpenWorldGeneration={handleOpenWorldGenerationFromMainMenu}
+          isWorldGenerationLocked={!canRegenerateWorldMap}
+          worldGenerationLockedReason={worldGenerationLockedReason}
           // Handler to toggle the dev menu visibility when requested by the Main Menu
           onOpenDevMenu={() => dispatch({ type: 'TOGGLE_DEV_MENU' })}
           onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
@@ -907,6 +1015,9 @@ const App: React.FC = () => {
             onClearBanterLogs={() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' })}
             isBanterPaused={isBanterPaused}
             toggleBanterPause={() => setIsBanterPaused(prev => !prev)}
+            canRegenerateWorldMap={canRegenerateWorldMap}
+            worldGenerationLockedReason={worldGenerationLockedReason}
+            onRegenerateWorldMap={handleRegenerateWorldMap}
           />
 
           {/* Global Companion Reactions (hidden in the main exploration interface where log is visible) */}

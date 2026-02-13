@@ -24,6 +24,7 @@ This file serves as a central index for all README documentation within the Aral
 ## Root Level (Now in `docs/`)
 
 *   **[`@PROJECT-OVERVIEW.README.md`](./@PROJECT-OVERVIEW.README.md)**: The main entry point for the project. Provides a high-level overview, core features, technology stack, setup instructions, project structure, and links to other key documents.
+*   **[`@ROADMAP-SYSTEM-GUIDE.md`](./@ROADMAP-SYSTEM-GUIDE.md)**: Documentation for the interactive "Elastic" Roadmap Visualizer and Knowledge Tree.
 *   **[`@DOCUMENTATION-GUIDE.md`](./@DOCUMENTATION-GUIDE.md)**: Explains the project's documentation strategy, README structure guidelines, naming conventions, and how to maintain documentation.
 *   **[`CHANGELOG.md`](./CHANGELOG.md)**: Tracks a high-level overview of notable changes to the application, linking to component-specific changelogs for details.
 *   **[`@README-INDEX.md`](./@README-INDEX.md)**: This file. An index of all READMEs.
@@ -63,6 +64,7 @@ This file serves as a central index for all README documentation within the Aral
 ## Guides (`docs/guides/`)
 *   **[`docs/guides/CLASS_ADDITION_GUIDE.md`](./guides/CLASS_ADDITION_GUIDE.md)**: A comprehensive guide on how to add a new character class to the Aralia RPG.
 *   **[`docs/guides/RACE_ADDITION_GUIDE.md`](./guides/RACE_ADDITION_GUIDE.md)**: A guide on how to add a new character race.
+*   **[`docs/guides/RACE_ENRICHMENT_WORKFLOW.md`](./guides/RACE_ENRICHMENT_WORKFLOW.md)**: Runbook for syncing Character Creator races with Glossary race data (IDs, grouping, and portrait paths) with audit and verification steps.
 *   **[`docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md`](./guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md)**: Outlines the structure, content, and styling conventions for creating and updating glossary entries.
 *   **[`docs/tasks/spell-system-overhaul/archive/SPELL_DATA_CREATION_GUIDE.md`](./tasks/spell-system-overhaul/archive/SPELL_DATA_CREATION_GUIDE.md)**: A guide for creating the structured JSON data files for spells.
 *   **[`docs/guides/SPELL_ADDITION_WORKFLOW_GUIDE.md`](./guides/SPELL_ADDITION_WORKFLOW_GUIDE.md)**: A guide for using the `add_spell.js` script to streamline adding new spells.
