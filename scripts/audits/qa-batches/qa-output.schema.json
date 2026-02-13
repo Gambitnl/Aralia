@@ -5,7 +5,8 @@
   "additionalProperties": false,
   "required": [
     "batchId",
-    "entries"
+    "entries",
+    "raceProfiles"
   ],
   "properties": {
     "batchId": {
@@ -136,6 +137,96 @@
               "string",
               "null"
             ]
+          }
+        }
+      }
+    },
+    "raceProfiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "raceId",
+          "raceName",
+          "summary",
+          "researchSources",
+          "answers"
+        ],
+        "properties": {
+          "raceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "raceName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "researchSources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "title",
+                "url",
+                "sourceType"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "url": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sourceType": {
+                  "type": "string",
+                  "enum": [
+                    "official",
+                    "reference",
+                    "community"
+                  ]
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "answers": {
+            "type": "array",
+            "minItems": 10,
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "questionId",
+                "question",
+                "answer"
+              ],
+              "properties": {
+                "questionId": {
+                  "type": "string",
+                  "pattern": "^q([1-9]|10)$"
+                },
+                "question": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "answer": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
           }
         }
       }

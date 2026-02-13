@@ -29,6 +29,17 @@ New orchestration scripts:
   - Accepts `--rubric scripts/audits/qa-batches/QA_RUBRIC.md` and injects rubric text directly into prompts
   - Accepts `--visual-evidence available|unavailable` to control whether checklist/visual scoring is allowed vs no-guess pending behavior
   - Optional `--mode openai` runs one batch input through an LLM and writes a mergeable `*.output.json`
+  - Now also writes one race-level profile file per unique race in the batch:
+    - `docs/portraits/race_profiles/<raceId>.md`
+  - Supports `--profile-questions scripts/audits/qa-batches/RACE_PROFILE_QUESTIONS.md` (10 generalized profile questions)
+  - Internet research is now first-class for race profiles:
+    - `--web-research required|optional|off` (default `required`)
+    - In codex mode, `required` enables live web search and enforces at least one web URL source per race profile
+
+Rubric update (civilian criterion):
+
+- `scripts/audits/qa-batches/QA_RUBRIC.md` now allows a small sheathed utility sidearm.
+- Reject only when combat/military presentation dominates (drawn/prominent weapons, heavy armor, overt combat read).
 
 Pilot validation (2026-02-12):
 
@@ -411,3 +422,34 @@ Note: the user reported intermittent terminal prints of `{"detail":"Bad Request"
   - duplicateGroupSize, duplicateDecision, duplicateKeeperPairTag
   - needsRegen
 - Summary now includes rowsMarkedForRegen.
+
+## 2026-02-13 Addendum: Gemini Deep-Research Race Profiles
+
+- New script (separate from portrait regen): `scripts/research-races-with-gemini.ts`
+- Goal: generate one race-level research profile per race using Gemini Web (CDP), without modifying portrait generation scripts.
+- Output files:
+  - `docs/portraits/race_profiles/<raceId>.md`
+  - `docs/portraits/race_profiles/research-status.json` (append-only run log)
+- Prompt style:
+  - world-agnostic, wiki-like prose
+  - ten required profile topics (from `scripts/audits/qa-batches/RACE_PROFILE_QUESTIONS.md`)
+  - requires source URLs section and discourages setting-locked proper nouns
+
+Run examples:
+
+```powershell
+npm run mcp:chrome
+```
+
+```powershell
+cmd.exe /c "set IMAGE_GEN_USE_CDP=1&& npx tsx scripts/research-races-with-gemini.ts --race-id giff --overwrite"
+```
+
+```powershell
+cmd.exe /c "set IMAGE_GEN_USE_CDP=1&& npx tsx scripts/research-races-with-gemini.ts --all --limit 3 --start-after giff --overwrite"
+```
+
+Notes:
+- Script validates response length + presence of a `## Sources` section + URL count before accepting output.
+- Default per-attempt timeout is 420000ms (`GEMINI_RESEARCH_TIMEOUT_MS` or `--timeout-ms`).
+- Existing portrait regen flow remains unchanged.

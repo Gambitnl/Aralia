@@ -25,8 +25,8 @@ Use this rubric for every QA batch decision. If evidence is unavailable, mark un
   - `null`: cannot determine.
 
 - `isCivilian`
-  - `true`: practical civilian attire; no armor/weapons/military regalia.
-  - `false`: armor, weapon, overt military/heroic gear present.
+  - `true`: practical civilian attire; no dominant combat/military presentation. A small sheathed utility sidearm is allowed.
+  - `false`: drawn weapon, multiple prominent weapons, heavy armor, overt military regalia, or overall scene reads as combat/heroic.
   - `null`: cannot determine.
 
 - `hasArrowsArtifact`
@@ -111,3 +111,15 @@ If an image cannot be inspected in the current run:
 - keep checklist fields `null`,
 - keep or set `visualStatus=pending`,
 - avoid speculative pass/fail decisions.
+
+## 9) Civilian Gear Clarifier
+
+To avoid false rejects:
+
+- Allowed:
+  - small, sheathed belt knife or utility blade
+  - light work gear that is not battle-ready
+- Not allowed:
+  - drawn weapons
+  - weapon-forward posing
+  - armor/gear where combat identity dominates the scene

@@ -18,6 +18,11 @@ export interface RoadmapNode {
   link?: string;
   domain?: string;
   completedDate?: string;
+  priority?: string;
+  dependencies?: string[];
+  goals?: string[];
+  filesImpacted?: string[];
+  subNodes?: RoadmapNode[];
 }
 
 export interface RoadmapEdge {
@@ -45,6 +50,44 @@ function getDomain(tags: string[]): string {
   return 'default';
 }
 
+function extractMetadataFromMd(filePath: string) {
+  try {
+    const fullPath = path.resolve(process.cwd(), filePath);
+    if (!fs.existsSync(fullPath)) return {};
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    
+    // Extract first paragraph as description
+    const lines = content.split('\n');
+    let description = '';
+    let goals: string[] = [];
+    let files: string[] = [];
+
+    // Find first non-title, non-bold paragraph
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line && !line.startsWith('#') && !line.startsWith('**') && !description) {
+        description = line;
+      }
+      if (line.startsWith('- [ ]') || line.startsWith('- [x]')) {
+        goals.push(line.replace(/- \[[ x]\]\s*/, ''));
+      }
+      // Look for file paths (src/...)
+      const fileMatches = line.match(/(?:`|^| )(src\/[a-zA-Z0-9_\/.-]+)/g);
+      if (fileMatches) {
+        fileMatches.forEach(m => files.push(m.trim().replace(/`/g, '')));
+      }
+    }
+
+    return {
+      description: description.substring(0, 200),
+      goals: goals.slice(0, 5),
+      filesImpacted: Array.from(new Set(files)).slice(0, 8)
+    };
+  } catch (e) {
+    return {};
+  }
+}
+
 export function generateRoadmapData() {
   const dates = fs.existsSync(DATES_FILE) ? JSON.parse(fs.readFileSync(DATES_FILE, 'utf-8')) : {};
   const registryContent = fs.existsSync(REGISTRY_FILE) ? fs.readFileSync(REGISTRY_FILE, 'utf-8') : '';
@@ -68,10 +111,12 @@ export function generateRoadmapData() {
     let projectY = 250;
 
     for (const block of projectBlocks) {
-      const lines = block.split('\n');
+      // Only parse until the next major section (##)
+      const cleanBlock = block.split('\n##')[0];
+      const lines = cleanBlock.split('\n');
       const projectName = lines[0].trim();
       const projectId = projectName.toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '');
-      const tagsMatch = block.match(/\*\*Tags\*\*: (.*)/);
+      const tagsMatch = cleanBlock.match(/\*\*Tags\*\*: (.*)/);
       const tags = tagsMatch ? tagsMatch[1].split(',').map(t => t.trim().replace(/`/g, '')) : [];
       const domain = getDomain(tags);
 
@@ -85,10 +130,19 @@ export function generateRoadmapData() {
         color: DOMAIN_COLORS[domain] || DOMAIN_COLORS.default,
         domain
       };
-      nodes.push(projectNode);
-      edges.push({ from: 'aralia_chronicles', to: projectId });
+      
+      if (!nodes.find(n => n.id === projectId)) {
+        nodes.push(projectNode);
+        edges.push({ from: 'aralia_chronicles', to: projectId });
+      }
 
-      const tableLines = block.split('\n').filter(l => l.includes('|') && !l.includes('---'));
+      const tableLines = cleanBlock.split('\n').filter(l => l.includes('|') && !l.includes('---'));
+      
+      // Milestone Grouping Logic:
+      // If we have a massive amount of tasks (like Spells), group them.
+      const isSpellProject = domain === 'spell-system';
+      const milestoneBatches: Record<string, RoadmapNode[]> = {};
+
       let taskX = 150;
       let taskY = projectY + 100;
 
@@ -104,6 +158,8 @@ export function generateRoadmapData() {
         const link = linkRaw.startsWith('.') ? linkRaw.replace('./', 'docs/') : linkRaw;
         const statusRaw = cells[2].toLowerCase();
         const progressRaw = cells[3];
+        const priority = cells[4];
+        const dependencies = cells[5] ? cells[5].split(',').map(d => d.trim()).filter(d => d !== '-') : [];
 
         const status: RoadmapNode['status'] = statusRaw.includes('completed') || statusRaw.includes('retired') ? 'done' : 
                                      statusRaw.includes('active') || statusRaw.includes('ongoing') ? 'active' : 'planned';
@@ -115,8 +171,14 @@ export function generateRoadmapData() {
           if (pMatch) progress = parseInt(pMatch[1]);
         }
 
-        const taskId = `${projectId}_${number.toLowerCase().replace(/~/g, '')}`;
-        nodes.push({
+        let taskId = `${projectId}_${number.toLowerCase().replace(/~/g, '').replace(/[^a-z0-9_]/g, '')}`;
+        if (nodes.find(n => n.id === taskId)) {
+          taskId = `${taskId}_${Math.random().toString(36).substring(2, 5)}`;
+        }
+
+        const mdMeta = link ? extractMetadataFromMd(link) : {};
+
+        const taskNode: RoadmapNode = {
           id: taskId,
           label: `${number}: ${label}`,
           type: 'task',
@@ -127,9 +189,58 @@ export function generateRoadmapData() {
           progress,
           link,
           domain,
+          priority,
+          dependencies,
+          completedDate: dates[link] || undefined,
+          ...mdMeta
+        };
+          status,
+          initialX: taskX,
+          initialY: taskY,
+          color: projectNode.color,
+          progress,
+          link,
+          domain,
           completedDate: dates[link] || undefined
+        };
+
+        if (isSpellProject && (label.toLowerCase().includes('migrate') || label.toLowerCase().includes('extract'))) {
+          // Group batch tasks into a single Milestone for performance
+          const batchName = label.split('(')[0].trim();
+          if (!milestoneBatches[batchName]) {
+            milestoneBatches[batchName] = [];
+          }
+          milestoneBatches[batchName].push(taskNode);
+        } else {
+          nodes.push(taskNode);
+          edges.push({ from: projectId, to: taskId });
+          taskX += 200;
+          if (taskX > 850) {
+            taskX = 150;
+            taskY += 150;
+          }
+        }
+      }
+
+      // Add Grouped Milestones
+      for (const [batchName, subNodes] of Object.entries(milestoneBatches)) {
+        const milestoneId = `${projectId}_milestone_${batchName.toLowerCase().replace(/ /g, '_')}`;
+        const totalProgress = Math.round(subNodes.reduce((acc, n) => acc + (n.progress || 0), 0) / subNodes.length);
+        const status = totalProgress === 100 ? 'done' : totalProgress > 0 ? 'active' : 'planned';
+
+        nodes.push({
+          id: milestoneId,
+          label: batchName,
+          type: 'milestone',
+          status,
+          initialX: taskX,
+          initialY: taskY,
+          color: projectNode.color,
+          progress: totalProgress,
+          domain,
+          subNodes
         });
-        edges.push({ from: projectId, to: taskId });
+        edges.push({ from: projectId, to: milestoneId });
 
         taskX += 200;
         if (taskX > 850) {
@@ -137,6 +248,7 @@ export function generateRoadmapData() {
           taskY += 150;
         }
       }
+      
       projectY = taskY + 200;
     }
   }

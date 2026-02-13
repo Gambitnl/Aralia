@@ -16,6 +16,13 @@ This folder stores per-batch review artifacts for race portrait QA.
   - Canonical grading rubric for all checklist/status decisions
 - `qa-output.schema.json`
   - Strict output contract used by `codex exec --output-schema`
+- `RACE_PROFILE_QUESTIONS.md`
+  - Canonical 10-question framework for generalized race profile generation
+
+Additional generated artifacts:
+
+- `docs/portraits/race_profiles/<raceId>.md`
+  - One race-level profile per unique race reviewed in a batch (not per gender)
 
 ## Runner Modes
 
@@ -32,7 +39,9 @@ npx tsx scripts/audits/run-qa-batch-agent.ts `
   --input scripts/audits/qa-batches/<batch>.input.json `
   --mode codex `
   --rubric scripts/audits/qa-batches/QA_RUBRIC.md `
-  --visual-evidence unavailable `
+  --profile-questions scripts/audits/qa-batches/RACE_PROFILE_QUESTIONS.md `
+  --visual-evidence available `
+  --web-research required `
   --schema scripts/audits/qa-batches/qa-output.schema.json
 ```
 
@@ -40,6 +49,12 @@ npx tsx scripts/audits/run-qa-batch-agent.ts `
 
 - `available`: reviewer can inspect images and should apply full visual checklist scoring.
 - `unavailable`: no-guess mode; checklist fields should stay `null` and visual decisions should not be invented.
+
+`--web-research` options:
+
+- `required` (default): codex mode runs with live web search and each race profile must include web source URLs.
+- `optional`: codex mode runs with live web search but source URLs are not strictly enforced.
+- `off`: disables web search requirement (mainly for template/offline testing).
 
 ## Expected Output Contract
 
@@ -65,6 +80,27 @@ npx tsx scripts/audits/run-qa-batch-agent.ts `
       "likelyReason": "Grounded trade-duty activity fits lore flavor.",
       "targetActivity": "setting lanterns along a village street at dusk",
       "notes": "Pass"
+    }
+  ],
+  "raceProfiles": [
+    {
+      "raceId": "aarakocra",
+      "raceName": "Aarakocra",
+      "summary": "Generalized race profile summary.",
+      "researchSources": [
+        {
+          "title": "Source title",
+          "url": "https://example.com/source",
+          "sourceType": "official"
+        }
+      ],
+      "answers": [
+        {
+          "questionId": "q1",
+          "question": "What is this race's broad origin pattern ...?",
+          "answer": "Generalized answer."
+        }
+      ]
     }
   ]
 }

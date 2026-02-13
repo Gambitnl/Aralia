@@ -71,6 +71,7 @@ const ROOT = process.cwd();
 const LEDGER_PATH = path.join(ROOT, "scripts", "audits", "slice-of-life-settings.json");
 const DEFAULT_OUT_DIR = path.join(ROOT, "scripts", "audits", "qa-batches");
 const RUBRIC_PATH = path.join(ROOT, "scripts", "audits", "qa-batches", "QA_RUBRIC.md");
+const PROFILE_QUESTIONS_PATH = path.join(ROOT, "scripts", "audits", "qa-batches", "RACE_PROFILE_QUESTIONS.md");
 
 function normalizeVisualStatus(value: string | undefined): VisualStatus {
   if (value === "approved" || value === "rejected" || value === "pending") return value;
@@ -169,12 +170,20 @@ function loadRubricText(): string {
   return fs.readFileSync(RUBRIC_PATH, "utf8").trim();
 }
 
+function loadProfileQuestionsText(): string {
+  if (!fs.existsSync(PROFILE_QUESTIONS_PATH)) {
+    throw new Error(`Missing profile questions file: ${PROFILE_QUESTIONS_PATH}`);
+  }
+  return fs.readFileSync(PROFILE_QUESTIONS_PATH, "utf8").trim();
+}
+
 function writeBatchFiles(batch: BatchInput, outDir: string) {
   fs.mkdirSync(outDir, { recursive: true });
   const inputPath = path.join(outDir, `${batch.batchId}.input.json`);
   const promptPath = path.join(outDir, `${batch.batchId}.prompt.md`);
   fs.writeFileSync(inputPath, JSON.stringify(batch, null, 2) + "\n", "utf8");
   const rubricText = loadRubricText();
+  const profileQuestionsText = loadProfileQuestionsText();
 
   const promptLines: string[] = [];
   promptLines.push(`# QA Batch ${batch.batchId}`);
@@ -201,12 +210,29 @@ function writeBatchFiles(batch: BatchInput, outDir: string) {
   promptLines.push('      "notes": "..."');
   promptLines.push("    }");
   promptLines.push("  ]");
+  promptLines.push('  ,"raceProfiles": [');
+  promptLines.push("    {");
+  promptLines.push('      "raceId": "...",');
+  promptLines.push('      "raceName": "...",');
+  promptLines.push('      "summary": "...",');
+  promptLines.push('      "researchSources": [');
+  promptLines.push('        { "title": "...", "url": "https://...", "sourceType": "official|reference|community", "note": "optional" }');
+  promptLines.push("      ],");
+  promptLines.push('      "answers": [');
+  promptLines.push('        { "questionId": "q1", "question": "...", "answer": "..." }');
+  promptLines.push("      ]");
+  promptLines.push("    }");
+  promptLines.push("  ]");
   promptLines.push("}");
   promptLines.push("```");
   promptLines.push("");
   promptLines.push("## Canonical Rubric (Verbatim)");
   promptLines.push("");
   promptLines.push(rubricText);
+  promptLines.push("");
+  promptLines.push("## Race Profile Questions (Verbatim)");
+  promptLines.push("");
+  promptLines.push(profileQuestionsText);
   promptLines.push("");
   promptLines.push("## Batch Rows");
   promptLines.push("```json");

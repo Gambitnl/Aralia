@@ -301,7 +301,7 @@
       "progress": 0,
       "link": "docs/tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md",
       "domain": "tooling",
-      "completedDate": "2025-12-04T21:04:30+01:00"
+      "completedDate": "2025-12-04"
     },
     {
       "id": "project_infrastructure__tooling_1b",
@@ -314,7 +314,7 @@
       "progress": 0,
       "link": "docs/tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md",
       "domain": "tooling",
-      "completedDate": "2025-12-04T21:04:30+01:00"
+      "completedDate": "2025-12-04"
     },
     {
       "id": "project_infrastructure__tooling_1a",
@@ -327,7 +327,7 @@
       "progress": 0,
       "link": "docs/tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md",
       "domain": "tooling",
-      "completedDate": "2025-12-04T21:04:30+01:00"
+      "completedDate": "2025-12-04"
     },
     {
       "id": "project_infrastructure__tooling_1c",
@@ -424,7 +424,7 @@
       "color": "#64748b",
       "progress": 100,
       "link": "docs/tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md",
-      "completedDate": "2025-12-04T21:04:30+01:00"
+      "completedDate": "2025-12-04"
     },
     {
       "id": "retired_spell_completeness_audit_1b",
@@ -436,7 +436,7 @@
       "color": "#64748b",
       "progress": 100,
       "link": "docs/tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md",
-      "completedDate": "2025-12-04T21:04:30+01:00"
+      "completedDate": "2025-12-04"
     },
     {
       "id": "retired_spell_completeness_audit_1a",
@@ -448,7 +448,7 @@
       "color": "#64748b",
       "progress": 100,
       "link": "docs/tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md",
-      "completedDate": "2025-12-04T21:04:30+01:00"
+      "completedDate": "2025-12-04"
     },
     {
       "id": "retired_spell_system_overhaul_1c",
@@ -586,7 +586,7 @@
       "id": "track_roadmap_backfill_20260212",
       "label": "Track: roadmap",
       "type": "milestone",
-      "status": "planned",
+      "status": "done",
       "initialX": 350,
       "initialY": 3350,
       "color": "#38bdf8",

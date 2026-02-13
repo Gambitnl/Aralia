@@ -22,6 +22,7 @@
     "stitch:init": "npx @_davideast/stitch-mcp init",
     "stitch:doctor": "npx @_davideast/stitch-mcp doctor --verbose",
     "generate:race-images": "tsx scripts/generate-race-images.ts",
+    "research:race-profiles": "tsx scripts/research-races-with-gemini.ts",
     "audit:races": "tsx scripts/audit-race-sync.ts",
     "scan": "tsx scripts/scan-quality.ts",
     "verify": "npm run typecheck && npm run lint && npm run scan && npm run build"

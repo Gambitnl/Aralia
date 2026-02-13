@@ -8,14 +8,15 @@ This track focuses on transforming the Roadmap Visualizer into a high-fidelity "
 ### 1. Data Backfill & Synthesis
 - **Exhaustive Indexing**: Backfill all atomic tasks from `docs/@DOC-REGISTRY.md`, `docs/archive/`, and project-specific sub-folders.
 - **Milestone Grouping**: Group related atomic items (like individual spells) into Project Milestones to maintain performance.
-- **Drill-down Capability**: Clicking a Milestone Node opens a "Sub-Roadmap" (modal or component) showing individual atomic nodes.
+- **Drill-down Capability**: Clicking a Milestone Node opens a **Modal Overlay** showing a sub-roadmap of the individual atomic nodes (e.g., specific spell status).
 - **Semantic Inference**: Automatically infer technical dependencies between nodes by analyzing documentation content.
 - **Rich Task Metadata**:
     - **Source**: Deep links to specification/documentation Markdown files.
     - **Verification**: Original CLI commands and current status.
     - **Impact**: List of primary files modified/created.
     - **Context**: Architectural impact notes and completion timestamps.
-- **Date Fallback**: Use `git log` history to determine true creation/completion dates if missing from Markdown files.
+- **True Date Extraction**: Prioritize internal file markers (`Created:`, `Date:`, `## YYYY-MM-DD`) over Git metadata to correctly track Aralia's 2024 history before the Nov 2025 repository move.
+- **Vendor Filtering**: Explicitly exclude pulled repositories (e.g., `Claudeception`, `azgaar-src`) from the project chronicle.
 
 ### 2. Live Dashboard Integration
 - **Auto-Refresh**: The visualizer reads `conductor/tracks/*/metadata.json` in real-time to reflect currently active work.

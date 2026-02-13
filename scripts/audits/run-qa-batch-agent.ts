@@ -7,6 +7,11 @@ type Gender = "male" | "female";
 type VisualStatus = "pending" | "approved" | "rejected";
 type UniquenessStatus = "pending" | "unique" | "keeper" | "non_keeper";
 
+type ProfileQuestion = {
+  id: string;
+  question: string;
+};
+
 type BatchRow = {
   pairTag: string;
   raceId: string;
@@ -59,14 +64,40 @@ type BatchOutputEntry = {
   notes?: string;
 };
 
+type BatchOutputRaceProfileAnswer = {
+  questionId: string;
+  question: string;
+  answer: string;
+};
+
+type BatchOutputRaceProfileSourceType = "official" | "reference" | "community";
+
+type BatchOutputRaceProfileSource = {
+  title: string;
+  url: string;
+  sourceType: BatchOutputRaceProfileSourceType;
+  note?: string;
+};
+
+type BatchOutputRaceProfile = {
+  raceId: string;
+  raceName: string;
+  summary: string;
+  researchSources: BatchOutputRaceProfileSource[];
+  answers: BatchOutputRaceProfileAnswer[];
+};
+
 type BatchOutput = {
   batchId: string;
   entries: BatchOutputEntry[];
+  raceProfiles: BatchOutputRaceProfile[];
 };
 
 const ROOT = process.cwd();
 const DEFAULT_SCHEMA_PATH = path.join(ROOT, "scripts", "audits", "qa-batches", "qa-output.schema.json");
 const DEFAULT_RUBRIC_PATH = path.join(ROOT, "scripts", "audits", "qa-batches", "QA_RUBRIC.md");
+const DEFAULT_PROFILE_QUESTIONS_PATH = path.join(ROOT, "scripts", "audits", "qa-batches", "RACE_PROFILE_QUESTIONS.md");
+const RACE_PROFILE_DIR = path.join(ROOT, "docs", "portraits", "race_profiles");
 
 function parseFlag(args: string[], flag: string): string | null {
   const i = args.indexOf(flag);
@@ -89,6 +120,15 @@ function normalizeStatus(value: string | undefined): VisualStatus {
 function normalizeUniq(value: string | undefined): UniquenessStatus {
   if (value === "pending" || value === "unique" || value === "keeper" || value === "non_keeper") return value;
   return "pending";
+}
+
+function normalizeSourceType(value: unknown): BatchOutputRaceProfileSourceType {
+  if (value === "official" || value === "reference" || value === "community") return value;
+  return "reference";
+}
+
+function isWebUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value.trim());
 }
 
 function normalizeChecklist(value: unknown): BatchOutputEntry["checklist"] {
@@ -178,12 +218,50 @@ async function callModelWithPrompt(model: string, system: string, user: string):
   return extractJsonObject(text);
 }
 
-function loadRubricText(rubricPath: string): string {
-  if (!fs.existsSync(rubricPath)) throw new Error(`Rubric file not found: ${rubricPath}`);
-  return fs.readFileSync(rubricPath, "utf8").trim();
+function loadTextFile(filePath: string, label: string): string {
+  if (!fs.existsSync(filePath)) throw new Error(`${label} file not found: ${filePath}`);
+  return fs.readFileSync(filePath, "utf8").trim();
 }
 
-function buildPrompt(batch: BatchInput, rubricText: string, visualEvidenceMode: "available" | "unavailable"): string {
+function loadProfileQuestions(filePath: string): ProfileQuestion[] {
+  const text = loadTextFile(filePath, "Profile questions");
+  const lines = text.split(/\r?\n/);
+  const questions = lines
+    .map((line) => {
+      const m = line.match(/^\s*(\d+)\.\s+(.+?)\s*$/);
+      if (!m) return null;
+      return { idx: Number.parseInt(m[1], 10), question: m[2].trim() };
+    })
+    .filter((v): v is { idx: number; question: string } => v !== null)
+    .sort((a, b) => a.idx - b.idx)
+    .map((v) => ({ id: `q${v.idx}`, question: v.question }));
+
+  if (questions.length !== 10) {
+    throw new Error(`Expected exactly 10 profile questions, found ${questions.length} in ${filePath}`);
+  }
+  return questions;
+}
+
+function getRacesFromBatch(rows: BatchRow[]): Array<{ raceId: string; raceName: string; baseRace: string | null }> {
+  const byRace = new Map<string, { raceId: string; raceName: string; baseRace: string | null }>();
+  for (const row of rows) {
+    if (!byRace.has(row.raceId)) {
+      byRace.set(row.raceId, {
+        raceId: row.raceId,
+        raceName: row.raceName,
+        baseRace: row.baseRace ?? null,
+      });
+    }
+  }
+  return [...byRace.values()].sort((a, b) => a.raceId.localeCompare(b.raceId));
+}
+
+function buildPrompt(
+  batch: BatchInput,
+  rubricText: string,
+  profileQuestions: ProfileQuestion[],
+  visualEvidenceMode: "available" | "unavailable",
+): string {
   const evidenceLines = visualEvidenceMode === "available"
     ? [
       "Visual evidence is available for this run.",
@@ -194,13 +272,29 @@ function buildPrompt(batch: BatchInput, rubricText: string, visualEvidenceMode: 
       "Apply rubric no-guess rule: checklist fields should remain null and visualStatus should remain pending unless explicitly known from provided data.",
     ];
 
+  const questionText = profileQuestions.map((q, i) => `${i + 1}. (${q.id}) ${q.question}`).join("\n");
+
   return [
     "You are processing one race portrait QA batch.",
     "Return JSON only that matches the provided output schema.",
     ...evidenceLines,
     "",
+    "Internet research is required for race profiles:",
+    "- Use live web search for each race profile.",
+    "- Provide at least one source URL per race profile.",
+    "- Prefer official/primary references first, then secondary references if needed.",
+    "",
+    "Also include race-level profiles:",
+    "- Provide one race profile per unique raceId in the batch (not per gender).",
+    "- Use generalized setting-safe language (no named cities/kingdoms/countries/proper-noun geopolitics).",
+    "- Each answer should be concise and practical for world generation.",
+    "- Include `researchSources` with title, url, sourceType (official|reference|community), and optional note.",
+    "",
     "Use this canonical rubric verbatim:",
     rubricText,
+    "",
+    "Race profile questions (all must be answered):",
+    questionText,
     "",
     "Batch input JSON:",
     JSON.stringify(batch, null, 2),
@@ -212,9 +306,11 @@ function callCodex(
   schemaPath: string,
   rawOutputPath: string,
   rubricText: string,
+  profileQuestions: ProfileQuestion[],
   visualEvidenceMode: "available" | "unavailable",
+  enableWebSearch: boolean,
 ): unknown {
-  const prompt = buildPrompt(batch, rubricText, visualEvidenceMode);
+  const prompt = buildPrompt(batch, rubricText, profileQuestions, visualEvidenceMode);
   const args = [
     "exec",
     "-",
@@ -227,6 +323,9 @@ function callCodex(
     "-o",
     rawOutputPath,
   ];
+  if (enableWebSearch) {
+    args.unshift("--search");
+  }
 
   const result = spawnSync("codex", args, {
     cwd: ROOT,
@@ -246,7 +345,81 @@ function callCodex(
   return extractJsonObject(rawText);
 }
 
-function validateOutput(raw: unknown, batchId: string, expectedRows: BatchRow[]): BatchOutput {
+function normalizeRaceProfile(
+  raw: unknown,
+  expectedRaceId: string,
+  fallbackRaceName: string,
+  profileQuestions: ProfileQuestion[],
+): BatchOutputRaceProfile {
+  if (!raw || typeof raw !== "object") {
+    throw new Error(`Invalid raceProfile object for ${expectedRaceId}`);
+  }
+  const obj = raw as Record<string, unknown>;
+  const raceId = typeof obj.raceId === "string" && obj.raceId.trim() ? obj.raceId.trim() : expectedRaceId;
+  if (raceId !== expectedRaceId) {
+    throw new Error(`raceProfile raceId mismatch: expected ${expectedRaceId}, got ${raceId}`);
+  }
+  const raceName = typeof obj.raceName === "string" && obj.raceName.trim() ? obj.raceName.trim() : fallbackRaceName;
+  const summary = typeof obj.summary === "string" && obj.summary.trim() ? obj.summary.trim() : "";
+  if (!summary) throw new Error(`Missing summary for raceProfile ${expectedRaceId}`);
+  const rawSources = Array.isArray(obj.researchSources) ? obj.researchSources : [];
+  const researchSources: BatchOutputRaceProfileSource[] = [];
+  for (const rawSource of rawSources) {
+    if (!rawSource || typeof rawSource !== "object") continue;
+    const src = rawSource as Record<string, unknown>;
+    const title = typeof src.title === "string" ? src.title.trim() : "";
+    const url = typeof src.url === "string" ? src.url.trim() : "";
+    if (!title || !url) continue;
+    researchSources.push({
+      title,
+      url,
+      sourceType: normalizeSourceType(src.sourceType),
+      note: typeof src.note === "string" && src.note.trim() ? src.note.trim() : undefined,
+    });
+  }
+  if (researchSources.length === 0) {
+    throw new Error(`Missing researchSources for raceProfile ${expectedRaceId}`);
+  }
+
+  const answersRaw = Array.isArray(obj.answers) ? obj.answers : [];
+  const answerByQ = new Map<string, string>();
+  for (const answerRaw of answersRaw) {
+    if (!answerRaw || typeof answerRaw !== "object") continue;
+    const answerObj = answerRaw as Record<string, unknown>;
+    const qid = typeof answerObj.questionId === "string" ? answerObj.questionId.trim() : "";
+    const answerText = typeof answerObj.answer === "string" ? answerObj.answer.trim() : "";
+    if (!qid || !answerText) continue;
+    answerByQ.set(qid, answerText);
+  }
+
+  const answers: BatchOutputRaceProfileAnswer[] = [];
+  for (const q of profileQuestions) {
+    const answer = answerByQ.get(q.id);
+    if (!answer) {
+      throw new Error(`Missing profile answer ${q.id} for race ${expectedRaceId}`);
+    }
+    answers.push({
+      questionId: q.id,
+      question: q.question,
+      answer,
+    });
+  }
+
+  return {
+    raceId: expectedRaceId,
+    raceName,
+    summary,
+    researchSources,
+    answers,
+  };
+}
+
+function validateOutput(
+  raw: unknown,
+  batchId: string,
+  expectedRows: BatchRow[],
+  profileQuestions: ProfileQuestion[],
+): BatchOutput {
   if (!raw || typeof raw !== "object") throw new Error("Model JSON output is not an object");
   const obj = raw as Record<string, unknown>;
   const entriesRaw = Array.isArray(obj.entries) ? obj.entries : [];
@@ -258,13 +431,46 @@ function validateOutput(raw: unknown, batchId: string, expectedRows: BatchRow[])
       throw new Error(`Missing output entry for ${key}`);
     }
   }
+
+  const expectedRaces = getRacesFromBatch(expectedRows);
+  const rawProfiles = Array.isArray(obj.raceProfiles) ? obj.raceProfiles : [];
+  const rawProfileByRace = new Map<string, unknown>();
+  for (const rp of rawProfiles) {
+    if (!rp || typeof rp !== "object") continue;
+    const raceId = typeof (rp as Record<string, unknown>).raceId === "string"
+      ? ((rp as Record<string, unknown>).raceId as string).trim()
+      : "";
+    if (!raceId) continue;
+    if (!rawProfileByRace.has(raceId)) rawProfileByRace.set(raceId, rp);
+  }
+
+  const raceProfiles: BatchOutputRaceProfile[] = [];
+  for (const race of expectedRaces) {
+    const rawProfile = rawProfileByRace.get(race.raceId);
+    if (!rawProfile) {
+      throw new Error(`Missing raceProfile for ${race.raceId}`);
+    }
+    raceProfiles.push(normalizeRaceProfile(rawProfile, race.raceId, race.raceName, profileQuestions));
+  }
+
   return {
     batchId: typeof obj.batchId === "string" ? obj.batchId : batchId,
     entries,
+    raceProfiles,
   };
 }
 
-function buildTemplateOutput(batch: BatchInput): BatchOutput {
+function enforceWebResearch(output: BatchOutput) {
+  for (const profile of output.raceProfiles) {
+    const webSources = profile.researchSources.filter((source) => isWebUrl(source.url));
+    if (webSources.length === 0) {
+      throw new Error(`Race profile ${profile.raceId} has no web URL sources`);
+    }
+  }
+}
+
+function buildTemplateOutput(batch: BatchInput, profileQuestions: ProfileQuestion[]): BatchOutput {
+  const races = getRacesFromBatch(batch.rows);
   return {
     batchId: batch.batchId,
     entries: batch.rows.map((row) => ({
@@ -286,7 +492,84 @@ function buildTemplateOutput(batch: BatchInput): BatchOutput {
       targetActivity: row.targetActivity ?? null,
       notes: "TEMPLATE: fill after visual review.",
     })),
+    raceProfiles: races.map((race) => ({
+      raceId: race.raceId,
+      raceName: race.raceName,
+      summary: "TEMPLATE: fill generalized profile summary.",
+      researchSources: [
+        {
+          title: "TEMPLATE: source title",
+          url: "https://example.com/template-source",
+          sourceType: "reference",
+          note: "TEMPLATE: replace with real web source.",
+        },
+      ],
+      answers: profileQuestions.map((q) => ({
+        questionId: q.id,
+        question: q.question,
+        answer: "TEMPLATE: fill answer.",
+      })),
+    })),
   };
+}
+
+function writeRaceProfileFiles(batch: BatchInput, output: BatchOutput): number {
+  fs.mkdirSync(RACE_PROFILE_DIR, { recursive: true });
+  const outputEntryByKey = new Map<string, BatchOutputEntry>();
+  for (const entry of output.entries) {
+    outputEntryByKey.set(`${entry.raceId}::${entry.gender}`, entry);
+  }
+
+  let written = 0;
+  for (const profile of output.raceProfiles) {
+    const raceRows = batch.rows
+      .filter((row) => row.raceId === profile.raceId)
+      .sort((a, b) => (a.gender === b.gender ? 0 : a.gender === "male" ? -1 : 1));
+    const baseRace = raceRows[0]?.baseRace ?? null;
+    const filePath = path.join(RACE_PROFILE_DIR, `${profile.raceId}.md`);
+    const lines: string[] = [];
+    lines.push(`# ${profile.raceName} Profile`);
+    lines.push("");
+    lines.push(`- Race ID: \`${profile.raceId}\``);
+    lines.push(`- Base Race: ${baseRace ? `\`${baseRace}\`` : "n/a"}`);
+    lines.push(`- Updated: ${new Date().toISOString()}`);
+    lines.push(`- Source Batch: \`${batch.batchId}\``);
+    lines.push("");
+    lines.push("## Generalized Summary");
+    lines.push("");
+    lines.push(profile.summary);
+    lines.push("");
+    lines.push("## Research Sources");
+    lines.push("");
+    for (const source of profile.researchSources) {
+      lines.push(`- [${source.sourceType}] ${source.title}`);
+      lines.push(`  url: ${source.url}`);
+      if (source.note) lines.push(`  note: ${source.note}`);
+      lines.push("");
+    }
+    lines.push("");
+    lines.push("## Profile Questions");
+    lines.push("");
+    for (const answer of profile.answers) {
+      lines.push(`${answer.questionId}. ${answer.question}`);
+      lines.push(`Answer: ${answer.answer}`);
+      lines.push("");
+    }
+    lines.push("## Batch QA Snapshot");
+    lines.push("");
+    for (const row of raceRows) {
+      const qa = outputEntryByKey.get(`${row.raceId}::${row.gender}`);
+      lines.push(`- ${row.gender}: visual=\`${qa?.visualStatus ?? "pending"}\`, uniqueness=\`${qa?.uniquenessStatus ?? "pending"}\``);
+      lines.push(`  observedActivity: ${row.observedActivity ?? "n/a"}`);
+      lines.push(`  targetActivity: ${qa?.targetActivity ?? row.targetActivity ?? "n/a"}`);
+      lines.push(`  notes: ${qa?.notes ?? "n/a"}`);
+      lines.push("");
+    }
+
+    fs.writeFileSync(filePath, lines.join("\n"), "utf8");
+    written += 1;
+  }
+  return written;
 }
 
 async function main() {
@@ -294,7 +577,7 @@ async function main() {
   const inputArg = parseFlag(args, "--input");
   if (!inputArg) {
     console.log("Usage:");
-    console.log("  npx tsx scripts/audits/run-qa-batch-agent.ts --input scripts/audits/qa-batches/<batch>.input.json [--mode template|codex|openai] [--model gpt-5-mini] [--schema scripts/audits/qa-batches/qa-output.schema.json] [--rubric scripts/audits/qa-batches/QA_RUBRIC.md] [--visual-evidence available|unavailable] [--out <path>]");
+    console.log("  npx tsx scripts/audits/run-qa-batch-agent.ts --input scripts/audits/qa-batches/<batch>.input.json [--mode template|codex|openai] [--model gpt-5-mini] [--schema scripts/audits/qa-batches/qa-output.schema.json] [--rubric scripts/audits/qa-batches/QA_RUBRIC.md] [--profile-questions scripts/audits/qa-batches/RACE_PROFILE_QUESTIONS.md] [--visual-evidence available|unavailable] [--web-research required|optional|off] [--out <path>]");
     process.exit(1);
   }
 
@@ -306,6 +589,10 @@ async function main() {
   const visualEvidenceMode = visualEvidenceRaw === "available" || visualEvidenceRaw === "unavailable"
     ? visualEvidenceRaw
     : (() => { throw new Error(`Invalid --visual-evidence value: ${visualEvidenceRaw} (expected available|unavailable)`); })();
+  const webResearchRaw = parseFlag(args, "--web-research") ?? "required";
+  const webResearchMode = webResearchRaw === "required" || webResearchRaw === "optional" || webResearchRaw === "off"
+    ? webResearchRaw
+    : (() => { throw new Error(`Invalid --web-research value: ${webResearchRaw} (expected required|optional|off)`); })();
   const schemaPath = path.isAbsolute(parseFlag(args, "--schema") ?? "")
     ? (parseFlag(args, "--schema") as string)
     : path.join(ROOT, parseFlag(args, "--schema") ?? path.relative(ROOT, DEFAULT_SCHEMA_PATH));
@@ -315,7 +602,11 @@ async function main() {
   const rubricPath = path.isAbsolute(parseFlag(args, "--rubric") ?? "")
     ? (parseFlag(args, "--rubric") as string)
     : path.join(ROOT, parseFlag(args, "--rubric") ?? path.relative(ROOT, DEFAULT_RUBRIC_PATH));
-  const rubricText = loadRubricText(rubricPath);
+  const profileQuestionsPath = path.isAbsolute(parseFlag(args, "--profile-questions") ?? "")
+    ? (parseFlag(args, "--profile-questions") as string)
+    : path.join(ROOT, parseFlag(args, "--profile-questions") ?? path.relative(ROOT, DEFAULT_PROFILE_QUESTIONS_PATH));
+  const rubricText = loadTextFile(rubricPath, "Rubric");
+  const profileQuestions = loadProfileQuestions(profileQuestionsPath);
 
   const batch = JSON.parse(fs.readFileSync(inputPath, "utf8")) as BatchInput;
   if (!batch || !Array.isArray(batch.rows) || typeof batch.batchId !== "string") {
@@ -324,29 +615,46 @@ async function main() {
 
   let output: BatchOutput;
   if (mode === "openai") {
+    if (webResearchMode !== "off") {
+      throw new Error("OpenAI mode currently has no built-in web-search tool in this script. Use --mode codex for internet-researched race profiles, or set --web-research off.");
+    }
     const system = [
       "You are a strict race portrait QA classifier.",
-      "Return JSON only with shape: { batchId, entries: [...] }.",
+      "Return JSON only with shape: { batchId, entries: [...], raceProfiles: [...] }.",
       "Do not include markdown or commentary.",
+      "Race profiles must be generalized and setting-agnostic (no named cities/kingdoms/countries/proper nouns).",
       `Visual evidence mode: ${visualEvidenceMode}.`,
       "Apply the canonical rubric exactly.",
       "",
       rubricText,
     ].join("\n");
     const user = [
-      "Batch input JSON follows. Produce one output entry for every row.",
+      "Batch input JSON follows. Produce one output entry for every row and one race profile per unique raceId.",
+      "Answer all 10 profile questions for each race.",
       JSON.stringify(batch, null, 2),
     ].join("\n\n");
     const rawOutput = await callModelWithPrompt(model, system, user);
-    output = validateOutput(rawOutput, batch.batchId, batch.rows);
+    output = validateOutput(rawOutput, batch.batchId, batch.rows, profileQuestions);
   } else if (mode === "codex") {
     const rawPath = inputPath.replace(/\.input\.json$/i, ".raw.json");
-    const rawOutput = callCodex(batch, schemaPath, rawPath, rubricText, visualEvidenceMode);
-    output = validateOutput(rawOutput, batch.batchId, batch.rows);
+    const rawOutput = callCodex(
+      batch,
+      schemaPath,
+      rawPath,
+      rubricText,
+      profileQuestions,
+      visualEvidenceMode,
+      webResearchMode !== "off",
+    );
+    output = validateOutput(rawOutput, batch.batchId, batch.rows, profileQuestions);
   } else if (mode === "template") {
-    output = buildTemplateOutput(batch);
+    output = buildTemplateOutput(batch, profileQuestions);
   } else {
     throw new Error(`Invalid --mode value: ${mode} (expected template|codex|openai)`);
+  }
+
+  if (webResearchMode === "required" && mode !== "template") {
+    enforceWebResearch(output);
   }
 
   const outArg = parseFlag(args, "--out");
@@ -356,10 +664,15 @@ async function main() {
 
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2) + "\n", "utf8");
+  const profileCount = writeRaceProfileFiles(batch, output);
+
   console.log(`wrote ${path.relative(ROOT, outPath).replace(/\\/g, "/")}`);
   console.log(`entries=${output.entries.length}`);
+  console.log(`race_profiles=${output.raceProfiles.length}`);
+  console.log(`race_profile_files_written=${profileCount}`);
   console.log(`mode=${mode}`);
   console.log(`visual_evidence=${visualEvidenceMode}`);
+  console.log(`web_research=${webResearchMode}`);
 }
 
 void main();

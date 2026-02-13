@@ -38,6 +38,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: roadmap population and historical backfill of past tracks/efforts/projects/implementations/changes**
+- [~] **Track: roadmap population and historical backfill of past tracks/efforts/projects/implementations/changes**
 *Link: [./tracks/roadmap_backfill_20260212/](./tracks/roadmap_backfill_20260212/)*
 
