@@ -1,6 +1,6 @@
 /**
  * @file drow.ts
- * Defines the data for the Drow (Dark Elf) race in the Aralia RPG, based on 2024 PHB.
+ * Defines the data for the Drow (Dark Elf) race in the Aralia RPG.
  * Drow are descended from elves shaped by the Underdark or similar dark environments.
  */
 import { Race } from '../../types';

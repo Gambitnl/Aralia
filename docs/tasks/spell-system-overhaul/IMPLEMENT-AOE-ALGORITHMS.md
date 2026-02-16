@@ -4,7 +4,7 @@
 **Priority:** High
 **Phase:** Phase 2 - Core Mechanics
 **Estimated Effort:** 2-3 days
-**Source:** Identified in @SPELL-SYSTEM-RESEARCH.md review (2025-12-05)
+*
 
 ---
 

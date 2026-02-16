@@ -111,7 +111,9 @@ export function generateRoadmapData() {
     let projectY = 250;
 
     for (const block of projectBlocks) {
-      // Only parse until the next major section (##)
+      const locationMatch = block.match(/\*\*Location\*\*: `(.*)`/);
+      const projectLocation = locationMatch ? locationMatch[1] : '';
+      
       const cleanBlock = block.split('\n##')[0];
       const lines = cleanBlock.split('\n');
       const projectName = lines[0].trim();
@@ -137,10 +139,6 @@ export function generateRoadmapData() {
       }
 
       const tableLines = cleanBlock.split('\n').filter(l => l.includes('|') && !l.includes('---'));
-      
-      // Milestone Grouping Logic:
-      // If we have a massive amount of tasks (like Spells), group them.
-      const isSpellProject = domain === 'spell-system';
       const milestoneBatches: Record<string, RoadmapNode[]> = {};
 
       let taskX = 150;
@@ -149,13 +147,20 @@ export function generateRoadmapData() {
       for (const line of tableLines) {
         if (line.includes('Number') || line.includes('Document')) continue;
         const cells = line.split('|').map(c => c.trim()).filter(Boolean);
-        if (cells.length < 3) continue;
+        if (cells.length < 2) continue;
 
-        const number = cells[0].replace(/\[|\]/g, '').split('(')[0].trim();
-        const docLinkMatch = cells[1].match(/\[(.*)\]\((.*)\)/);
-        const label = docLinkMatch ? docLinkMatch[1] : cells[1];
-        const linkRaw = docLinkMatch ? docLinkMatch[2] : '';
-        const link = linkRaw.startsWith('.') ? linkRaw.replace('./', 'docs/') : linkRaw;
+        const numberLinkMatch = cells[0].match(/\[(.*)\]\((.*)\)/);
+        const number = numberLinkMatch ? numberLinkMatch[1] : cells[0].replace(/\[|\]/g, '');
+        const linkRaw = numberLinkMatch ? numberLinkMatch[2] : '';
+        
+        let resolvedLink = linkRaw;
+        if (linkRaw.startsWith('./')) {
+          resolvedLink = path.join(projectLocation, linkRaw.replace('./', '')).replace(/\\/g, '/');
+        } else if (linkRaw && !linkRaw.startsWith('docs/')) {
+          resolvedLink = path.join(projectLocation, linkRaw).replace(/\\/g, '/');
+        }
+
+        const label = cells[1];
         const statusRaw = cells[2].toLowerCase();
         const progressRaw = cells[3];
         const priority = cells[4];
@@ -176,7 +181,7 @@ export function generateRoadmapData() {
           taskId = `${taskId}_${Math.random().toString(36).substring(2, 5)}`;
         }
 
-        const mdMeta = link ? extractMetadataFromMd(link) : {};
+        const mdMeta = resolvedLink ? extractMetadataFromMd(resolvedLink) : {};
 
         const taskNode: RoadmapNode = {
           id: taskId,
@@ -187,24 +192,15 @@ export function generateRoadmapData() {
           initialY: taskY,
           color: projectNode.color,
           progress,
-          link,
+          link: resolvedLink,
           domain,
           priority,
           dependencies,
-          completedDate: dates[link] || undefined,
+          completedDate: dates[resolvedLink] || undefined,
           ...mdMeta
         };
-          status,
-          initialX: taskX,
-          initialY: taskY,
-          color: projectNode.color,
-          progress,
-          link,
-          domain,
-          completedDate: dates[link] || undefined
-        };
 
-        if (isSpellProject && (label.toLowerCase().includes('migrate') || label.toLowerCase().includes('extract'))) {
+        if (block.includes('Spell System Overhaul') && (label.toLowerCase().includes('migrate') || label.toLowerCase().includes('extract'))) {
           // Group batch tasks into a single Milestone for performance
           const batchName = label.split('(')[0].trim();
           if (!milestoneBatches[batchName]) {
@@ -290,6 +286,28 @@ export function generateRoadmapData() {
           taskY += 150;
         }
       }
+    }
+  }
+
+  // --- HISTORICAL CHRONICLES (Git-Derived) ---
+  const CHRONICLES_PATH = path.join('.agent', 'roadmap', 'chronicles.json');
+  if (fs.existsSync(CHRONICLES_PATH)) {
+    const historicalNodes = JSON.parse(fs.readFileSync(CHRONICLES_PATH, 'utf-8'));
+    for (const hNode of historicalNodes) {
+      nodes.push(hNode);
+      // Link historical eras to the root or each other
+      if (hNode.id === 'milestone_foundation_identity') {
+        edges.push({ from: 'aralia_chronicles', to: hNode.id });
+      } else {
+        // Simple chain logic for auto-linking based on position or date
+        // (In a more complex setup, edges would be defined in the JSON)
+      }
+    }
+    
+    // Add explicit edges between major historical milestones
+    const chronicleIds = historicalNodes.map((n: any) => n.id);
+    for (let i = 1; i < chronicleIds.length; i++) {
+      edges.push({ from: chronicleIds[i-1], to: chronicleIds[i] });
     }
   }
 

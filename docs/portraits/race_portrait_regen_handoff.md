@@ -49,9 +49,7 @@ Pilot validation (2026-02-12):
 - `scripts/audits/mark-slice-of-life-qa.ts`
   - Supports `--upsert`, `--merge-batch`, `--summary` with dual-state fields
 
-Live preview data source:
-
-- `scripts/audits/list-slice-of-life-settings.ts` now writes to both:
+Live preview data `scripts/audits/list-slice-of-life-settings.ts` now writes to both:
   - `scripts/audits/slice-of-life-settings.json`
   - `public/data/dev/slice-of-life-settings.json`
 
@@ -450,6 +448,23 @@ cmd.exe /c "set IMAGE_GEN_USE_CDP=1&& npx tsx scripts/research-races-with-gemini
 ```
 
 Notes:
-- Script validates response length + presence of a `## Sources` section + URL count before accepting output.
-- Default per-attempt timeout is 420000ms (`GEMINI_RESEARCH_TIMEOUT_MS` or `--timeout-ms`).
+- Script validates response length and rejects unwanted output patterns (URLs, source sections, lists, tables).
+- Default per-attempt timeout is 1200000ms (`GEMINI_RESEARCH_TIMEOUT_MS` or `--timeout-ms`).
 - Existing portrait regen flow remains unchanged.
+
+## 2026-02-13 Addendum: Race Research Output Policy Update
+
+- Race research output no longer includes sources/links in persisted data.
+- Prompt/output constraints now enforce:
+  - no source references or citation sections
+  - no URLs
+  - no bullet lists / numbered lists
+  - no tables
+- Subagent batch schema was updated to remove `researchSources` from race profile output:
+  - `scripts/audits/qa-batches/qa-output.schema.json`
+  - `scripts/audits/run-qa-batch-agent.ts`
+  - `scripts/audits/orchestrate-race-qa.ts`
+- Deep-research flow now has explicit step checks before prompt submission:
+  - new chat confirmed fresh
+  - new-chat requirement popup not visible (or dismissed)
+  - Deep Research selected

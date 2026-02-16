@@ -6,7 +6,7 @@
 The JSON file is the **canonical source** for all spell data. The glossary MD is derived from it.
 - JSON must be accurate to **2024 PHB** (or original source if legacy)
 - JSON must follow **uniform schema** (field order, formatting)
-- Add `"source": "PHB 2024"` or `"source": "Tasha's Cauldron of Everything"` etc.
+- Add `"source": "PHB 2024"` or `"source": ""` etc.
 - Add `"legacy": true` for spells not in 2024 PHB
 
 ---
@@ -51,7 +51,7 @@ Migrate these spells (Level {N}):
   "name": "Spell Name",
   "level": 3,
   "school": "Evocation",
-  "source": "PHB 2024",
+  "source": "",
   "legacy": false,
   "classes": ["Wizard", "Sorcerer"],
   "description": "...",

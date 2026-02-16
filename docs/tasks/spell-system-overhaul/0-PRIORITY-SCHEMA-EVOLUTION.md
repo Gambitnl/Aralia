@@ -2,7 +2,7 @@
 
 **Created:** 2025-12-08 12:36 CET  
 **Priority:** 🔴 HIGH  
-**Source:** Consolidated gaps from Level 1 (Batches 1-7) and Cantrip migrations  
+*
 **Blocking:** Full automation of ~40% of Level 1 spells; all smites, marks, wards, and summons
 
 ---

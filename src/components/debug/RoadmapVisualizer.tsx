@@ -77,12 +77,41 @@ export const RoadmapVisualizer: React.FC = () => {
   // Create a map of motion values for each node
   const nodePositions = useRef<Record<string, { x: any, y: any }>>({});
 
-  const handleZoom = (delta: number) => {
-    const current = canvasScale.get();
-    const next = Math.min(Math.max(current + delta, 0.05), 5);
-    canvasScale.set(next);
-    setZoomLevel(next);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleZoom = (delta: number, mouseX?: number, mouseY?: number) => {
+    const currentScale = canvasScale.get();
+    const zoomFactor = delta > 0 ? 1.15 : 0.85; // Faster, snappier zoom
+    const nextScale = Math.min(Math.max(currentScale * zoomFactor, 0.01), 10);
+    
+    if (mouseX !== undefined && mouseY !== undefined && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const cx = mouseX - rect.left;
+      const cy = mouseY - rect.top;
+      
+      const panX = canvasPanX.get();
+      const panY = canvasPanY.get();
+      
+      canvasPanX.set(cx - (cx - panX) * (nextScale / currentScale));
+      canvasPanY.set(cy - (cy - panY) * (nextScale / currentScale));
+    }
+    
+    canvasScale.set(nextScale);
+    setZoomLevel(nextScale);
   };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      handleZoom(e.deltaY < 0 ? 1 : -1, e.clientX, e.clientY);
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => container.removeEventListener('wheel', onWheel);
+  }, [data]); // Re-attach when data loads
 
   const applyLayout = (mode: LayoutMode, nodes: RoadmapNode[]) => {
     if (!nodes.length) return;
@@ -247,7 +276,7 @@ export const RoadmapVisualizer: React.FC = () => {
   const selectedNode = data.nodes.find(n => n.id === selectedNodeId);
 
   return (
-    <div className="relative w-full h-screen bg-gray-950 overflow-hidden font-cinzel">
+    <div ref={containerRef} className="relative w-full h-screen bg-gray-950 overflow-hidden font-cinzel">
       {/* HUD Header */}
       <div className="absolute top-12 left-0 w-full text-center z-20 pointer-events-none">
         <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-500 mb-2 tracking-tighter">
@@ -422,11 +451,7 @@ export const RoadmapVisualizer: React.FC = () => {
           canvasPanX.set(canvasPanX.get() + info.delta.x);
           canvasPanY.set(canvasPanY.get() + info.delta.y);
         }}
-        onWheel={(e) => {
-          const delta = e.deltaY > 0 ? -0.1 : 0.1;
-          handleZoom(delta);
-        }}
-        className="absolute inset-0 z-0 cursor-move active:cursor-grabbing"
+        className="absolute inset-0 z-0 cursor-move active:cursor-grabbing pointer-events-auto"
       />
 
       {/* Moving Content Layer */}

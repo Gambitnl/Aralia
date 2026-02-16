@@ -1,6 +1,6 @@
 /**
  * @file elf.ts
- * Defines the data for the Elf race in the Aralia RPG, based on 2024 PHB.
+ 
  * This includes base Elf traits and specific Elven Lineages: Drow, High Elf, and Wood Elf.
  */
 import { Race, ElvenLineage } from '../../types'; // Path relative to src/data/races/
@@ -87,7 +87,7 @@ export const ELF_DATA: Race = {
   name: 'Elf',
   description:
     'Elves are a magical people of otherworldly grace, living long lives and experiencing the world with a unique perspective. They trance instead of sleep.',
-  // Elves in the 2024 PHB do not get direct ability score increases from their base race or lineage.
+  // Elves in the  do not get direct ability score increases from their base race or lineage.
   // Ability scores are typically handled by background or other choices.
   traits: [
     'Creature Type: Humanoid',

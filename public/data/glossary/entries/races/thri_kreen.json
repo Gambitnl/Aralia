@@ -3,7 +3,6 @@
   "title": "Thri-kreen",
   "category": "Character Races",
   "entryLore": "Thri-kreen are insectoid humanoids who originated on the deserts of the world Athas but can be found in Wildspace and the Astral Plane. They have six limbs, with four serving as arms and two as legs. Their hard exoskeletons provide natural protection, and their large compound eyes give them excellent vision. Thri-kreen don't require sleep and can remain alert at all times, which makes them excellent sentinels. They communicate using a combination of clicks, chattering mandibles, and limited telepathy. Many other races find thri-kreen difficult to understand, as their alien psychology and lack of need for sleep makes them seem strange and distant.",
-  "source": "AAG",
   "lore": {
     "typicalDwelling": "Thri-kreen favor open-air encampments in arid deserts, rocky canyons, or the airless plains of Wildspace. They don't require traditional shelter for sleep, as they remain conscious at all times. Instead, their dwellings are organized around communal gathering spots, storage for scavenged water and food, and high vantage points for constant vigilance. Their settlements are often difficult for other races to locate, protected by natural camouflage and the thri-kreen's own ability to blend perfectly into their surroundings.",
     "typicalAttire": "For a thri-kreen, attire is a matter of strict utility. They wear minimal clothing—sashes for carrying tools, belts for weapons, and occasionally light fabrics to protect their joints from sand or dust. Their hard exoskeleton provides all the protection and modesty they require. Many decorate their carapaces with ritual etchings, specific pigments, or small metal bands that denote their role within the clutch. They have a particular fondness for items that are lightweight and durable, avoiding anything that would interfere with their six limbs or their natural speed.",
@@ -61,7 +60,6 @@
     "race",
     "thri_kreen",
     "monstrosity",
-    "spelljammer",
     "beastfolk",
     "insectoid",
     "mantis"

@@ -66,11 +66,8 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
     case CreationStep.BackgroundSelection:
       return state.selectedBackground !== null;
     case CreationStep.Visuals:
-      return true; // Visuals are always "complete" as they have defaults, or we could check if user interacts
+      return true; // Visuals are always "complete" as they have defaults
 
-    // Deprecated steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace, GiantAncestry, TieflingLegacy
-    // These are now handled inline in RaceDetailPane
-    // Deprecated step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
     case CreationStep.Class:
       return state.selectedClass !== null;
     case CreationStep.AbilityScores:

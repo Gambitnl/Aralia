@@ -3,7 +3,6 @@
   "title": "Plasmoid",
   "category": "Character Races",
   "entryLore": "Plasmoids are amorphous beings of organic ooze who can alter their shape at will. Originating from the depths of Wildspace, they are curious explorers who often adopt humanoid forms to interact with other races. Their malleable bodies allow them to squeeze through tight spaces, resist acid and poison, and even hold their breath for long periods. While they lack internal organs in the traditional sense, they are complex living organisms capable of consuming food and speaking by forcing air through tubular cavities.",
-  "source": "AAG",
   "lore": {
     "typicalDwelling": "Plasmoids often live in environments that reward their amorphous nature—fluid-filled chambers, cramped plumbing systems, or locations with extreme atmospheric pressure. On ships or in cities, they favor flexible, modular quarters that can be easily reconfigured to suit their current shape. They don't require traditional furniture, instead creating comfortable 'nesting' areas from absorbent or malleable materials. Their homes are often filled with curious objects they have collected, reflecting a mind that values sensory discovery and structural variety.",
     "typicalAttire": "For a plasmoid, attire is a matter of both personal expression and practical necessity. They favor very flexible, often translucent or mesh-like fabrics that can stretch and contract along with their shifting bodies. Many choose to wear minimal clothing, relying on their natural resilience and ability to mimic humanoid forms. Jewelry and accessories are often chosen for their interesting textures or the way they interact with the plasmoid's translucent body. For a plasmoid, clothing is a temporary shell that can be shed or modified in an instant.",
@@ -61,7 +60,6 @@
     "race",
     "plasmoid",
     "ooze",
-    "spelljammer",
     "amorphous",
     "shapechanger"
   ],

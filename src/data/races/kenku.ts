@@ -1,6 +1,6 @@
 /**
  * @file kenku.ts
- * Defines the data for the Kenku race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 24.
+ * Defines the data for the Kenku race in the Aralia RPG. 24.
  * ASIs are handled flexibly during character creation, not as fixed racial bonuses.
  */
 // [Mythkeeper] Implemented Kenku race data from MPMotM p.24 to fill a known gap in race options.

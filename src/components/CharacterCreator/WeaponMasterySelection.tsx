@@ -4,9 +4,10 @@
  * Allows users to choose by mastery property or by weapon type.
  */
 import React, { useState, useMemo, useCallback } from 'react';
-import { motion, MotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Class as CharClass, Item } from '../../types';
 import { WEAPONS_DATA, MASTERY_DATA } from '../../constants';
+import { CreationStepLayout } from './ui/CreationStepLayout';
 
 interface WeaponMasterySelectionProps {
   charClass: CharClass;
@@ -16,31 +17,29 @@ interface WeaponMasterySelectionProps {
 
 type ViewMode = 'byWeapon' | 'byMastery' | 'byHandling' | 'byType';
 
-const containerMotion: MotionProps = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-};
-
 const WeaponMasteryInfoPanel: React.FC<{
   activeInfo: { type: 'weapon' | 'mastery'; id: string } | null;
 }> = ({ activeInfo }) => {
   if (!activeInfo) {
-    return <div className="p-4 text-gray-400 italic">Hover over an item for details.</div>;
+    return <div className="p-4 text-gray-500 italic text-center">Hover over an item for details.</div>;
   }
   if (activeInfo.type === 'weapon') {
     const weapon = WEAPONS_DATA[activeInfo.id];
     if (!weapon) return null;
     const mastery = weapon.mastery ? MASTERY_DATA[weapon.mastery] : null;
     return (
-      <div className="p-4 space-y-2">
-        <h4 className="text-lg font-bold text-amber-300">{weapon.name}</h4>
-        <p className="text-sm text-gray-300">Damage: {weapon.damageDice} {weapon.damageType}</p>
-        <p className="text-sm text-gray-300">Properties: {weapon.properties?.join(', ') || 'None'}</p>
+      <div className="p-4 space-y-3">
+        <h4 className="text-xl font-bold text-amber-400 font-cinzel border-b border-gray-700 pb-2">{weapon.name}</h4>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="text-gray-400 uppercase text-[10px] font-bold">Damage</div>
+          <div className="text-sky-300 font-semibold">{weapon.damageDice} {weapon.damageType}</div>
+          <div className="text-gray-400 uppercase text-[10px] font-bold">Properties</div>
+          <div className="text-gray-300">{weapon.properties?.join(', ') || 'None'}</div>
+        </div>
         {mastery && (
-          <div className="mt-2 pt-2 border-t border-gray-600">
-            <h5 className="font-semibold text-sky-300">Mastery: {mastery.name}</h5>
-            <p className="text-xs text-gray-400">{mastery.description}</p>
+          <div className="mt-4 p-3 bg-sky-900/20 border border-sky-800/50 rounded-lg">
+            <h5 className="font-bold text-sky-300 text-sm uppercase tracking-wider mb-1">Mastery: {mastery.name}</h5>
+            <p className="text-xs text-sky-200/70 leading-relaxed">{mastery.description}</p>
           </div>
         )}
       </div>
@@ -50,9 +49,9 @@ const WeaponMasteryInfoPanel: React.FC<{
     const mastery = MASTERY_DATA[activeInfo.id];
     if (!mastery) return null;
     return (
-      <div className="p-4 space-y-2">
-        <h4 className="text-lg font-bold text-amber-300">{mastery.name}</h4>
-        <p className="text-sm text-gray-300">{mastery.description}</p>
+      <div className="p-4 space-y-3">
+        <h4 className="text-xl font-bold text-amber-400 font-cinzel border-b border-gray-700 pb-2">{mastery.name}</h4>
+        <p className="text-sm text-gray-300 leading-relaxed">{mastery.description}</p>
       </div>
     );
   }
@@ -153,11 +152,12 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
       const isDisabled = !isSelected && selectedWeaponIds.size >= selectionLimit;
       return (
         <li key={weapon.id}>
-          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
           <label
             onMouseEnter={() => setActiveInfo({ type: 'weapon', id: weapon.id })}
-            className={`flex items-center p-2 rounded-md transition-colors ${
-              isSelected ? 'bg-sky-600 cursor-pointer' : (isDisabled ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600 cursor-pointer')
+            className={`flex items-center p-2 rounded-lg transition-all border border-transparent ${
+              isSelected 
+                ? 'bg-sky-900/40 border-sky-500/50 text-sky-200 cursor-pointer font-semibold shadow-sm' 
+                : (isDisabled ? 'bg-gray-800/30 text-gray-600 cursor-not-allowed opacity-50' : 'bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white cursor-pointer')
             }`}
           >
             <input
@@ -165,9 +165,12 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
               checked={isSelected}
               disabled={isDisabled}
               onChange={() => handleWeaponSelect(weapon.id)}
-              className="mr-3 h-4 w-4 rounded text-sky-500 bg-gray-900 border-gray-600 focus:ring-sky-500"
+              className="mr-3 h-4 w-4 rounded text-sky-500 bg-gray-950 border-gray-700 focus:ring-sky-500 focus:ring-offset-gray-900"
             />
-            <span>{weapon.name} <span className="text-xs text-sky-400">({weapon.mastery})</span></span>
+            <span className="flex-1">{weapon.name}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${isSelected ? 'bg-sky-500/20 border-sky-400/30 text-sky-300' : 'bg-gray-700/50 border-gray-600 text-gray-500'}`}>
+              {weapon.mastery}
+            </span>
           </label>
         </li>
       );
@@ -175,82 +178,106 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
   );
 
   return (
-    <motion.div
-      key="weaponMasterySelection"
-      {...containerMotion}
+    <CreationStepLayout
+      title="Weapon Masteries"
+      onBack={onBack}
+      onNext={handleSubmit}
+      canProceed={selectedWeaponIds.size === selectionLimit}
+      nextLabel="Confirm Masteries"
+      bodyScrollable={false}
     >
-      <h2 className="text-2xl text-sky-300 mb-2 text-center">Select Weapon Masteries</h2>
-      <p className="text-sm text-gray-400 mb-4 text-center">As a {charClass.name}, you can master {selectionLimit} types of weapons.</p>
+      <div className="flex flex-col h-full">
+        <div className="flex-shrink-0 bg-gray-900/40 border border-gray-700 rounded-xl p-3 mb-4">
+          <div className="flex items-center justify-between mb-3">
+             <p className="text-xs text-gray-400 uppercase font-bold tracking-widest">
+              Select <span className="text-amber-400">{selectionLimit}</span> Masteries
+            </p>
+            <div className="text-xs font-mono">
+              <span className={selectedWeaponIds.size === selectionLimit ? 'text-green-400' : 'text-sky-400'}>
+                {selectedWeaponIds.size}
+              </span>
+              <span className="text-gray-600"> / {selectionLimit}</span>
+            </div>
+          </div>
 
-      <div className="bg-gray-900/50 p-2 rounded-lg flex justify-center flex-wrap gap-2 mb-4">
-        <button onClick={() => setViewMode('byWeapon')} className={`px-3 py-1.5 text-xs rounded-md ${viewMode === 'byWeapon' ? 'bg-sky-600 text-white' : 'bg-gray-700 text-gray-300'}`}>By Weapon</button>
-        <button onClick={() => setViewMode('byMastery')} className={`px-3 py-1.5 text-xs rounded-md ${viewMode === 'byMastery' ? 'bg-sky-600 text-white' : 'bg-gray-700 text-gray-300'}`}>By Mastery</button>
-        <button onClick={() => setViewMode('byHandling')} className={`px-3 py-1.5 text-xs rounded-md ${viewMode === 'byHandling' ? 'bg-sky-600 text-white' : 'bg-gray-700 text-gray-300'}`}>By Handling</button>
-        <button onClick={() => setViewMode('byType')} className={`px-3 py-1.5 text-xs rounded-md ${viewMode === 'byType' ? 'bg-sky-600 text-white' : 'bg-gray-700 text-gray-300'}`}>By Type</button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[400px]">
-        {/* Left Panel: Selection */}
-        <div className="bg-gray-900/50 p-3 rounded-lg overflow-y-auto scrollable-content">
-          {viewMode === 'byWeapon' && (
-            <ul className="space-y-1">{renderWeaponList(proficientWeapons.sort((a,b) => a.name.localeCompare(b.name)))}</ul>
-          )}
-          {viewMode === 'byMastery' && (
-            <div className="space-y-3">
-              {Object.keys(weaponsByMastery).sort().map(masteryKey => (
-                <details key={masteryKey} open className="group">
-                  <summary 
-                    onMouseEnter={() => setActiveInfo({ type: 'mastery', id: masteryKey })}
-                    className="text-md font-semibold text-amber-400 mb-1 pl-1 cursor-pointer list-none flex items-center gap-2"
-                  >
-                     <span className="transform transition-transform duration-150 group-open:rotate-90">▶</span>
-                     {masteryKey}
-                  </summary>
-                  <ul className="space-y-1 pl-4 mt-1 border-l-2 border-gray-700">{renderWeaponList(weaponsByMastery[masteryKey].sort((a,b) => a.name.localeCompare(b.name)))}</ul>
-                </details>
-              ))}
-            </div>
-          )}
-           {viewMode === 'byHandling' && (
-            <div className="space-y-3">
-              {Object.keys(weaponsByHandling).map(handlingKey => (
-                <details key={handlingKey} open className="group">
-                  <summary className="text-md font-semibold text-amber-400 mb-1 pl-1 cursor-pointer list-none flex items-center gap-2">
-                     <span className="transform transition-transform duration-150 group-open:rotate-90">▶</span>
-                     {handlingKey}
-                  </summary>
-                  <ul className="space-y-1 pl-4 mt-1 border-l-2 border-gray-700">{renderWeaponList(weaponsByHandling[handlingKey].sort((a,b) => a.name.localeCompare(b.name)))}</ul>
-                </details>
-              ))}
-            </div>
-          )}
-           {viewMode === 'byType' && (
-            <div className="space-y-3">
-              {Object.keys(weaponsByType).map(typeKey => (
-                <details key={typeKey} open className="group">
-                  <summary className="text-md font-semibold text-amber-400 mb-1 pl-1 cursor-pointer list-none flex items-center gap-2">
-                     <span className="transform transition-transform duration-150 group-open:rotate-90">▶</span>
-                     {typeKey}
-                  </summary>
-                  <ul className="space-y-1 pl-4 mt-1 border-l-2 border-gray-700">{renderWeaponList(weaponsByType[typeKey].sort((a,b) => a.name.localeCompare(b.name)))}</ul>
-                </details>
-              ))}
-            </div>
-          )}
+          <div className="flex justify-center flex-wrap gap-1.5">
+            {[
+              { id: 'byWeapon', label: 'By Weapon' },
+              { id: 'byMastery', label: 'By Mastery' },
+              { id: 'byHandling', label: 'By Handling' },
+              { id: 'byType', label: 'By Type' }
+            ].map(mode => (
+              <button 
+                key={mode.id}
+                onClick={() => setViewMode(mode.id as ViewMode)} 
+                className={`px-3 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md transition-all border ${
+                  viewMode === mode.id 
+                    ? 'bg-amber-900/40 border-amber-600 text-amber-300 shadow-sm' 
+                    : 'bg-gray-800 border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
         </div>
-        {/* Right Panel: Info */}
-        <div className="bg-gray-900/50 p-3 rounded-lg">
-          <WeaponMasteryInfoPanel activeInfo={activeInfo} />
+        
+        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4 min-h-0">
+          {/* Left Panel: Selection */}
+          <div className="bg-gray-900/30 border border-gray-700/50 rounded-xl overflow-y-auto scrollable-content p-2">
+            {viewMode === 'byWeapon' && (
+              <ul className="space-y-1">{renderWeaponList(proficientWeapons.sort((a,b) => a.name.localeCompare(b.name)))}</ul>
+            )}
+            {viewMode === 'byMastery' && (
+              <div className="space-y-4">
+                {Object.keys(weaponsByMastery).sort().map(masteryKey => (
+                  <div key={masteryKey} className="space-y-1">
+                    <h4 
+                      onMouseEnter={() => setActiveInfo({ type: 'mastery', id: masteryKey })}
+                      className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1.5 px-2 flex items-center gap-2"
+                    >
+                       <span className="w-1.5 h-1.5 rounded-full bg-sky-500/50" />
+                       {masteryKey}
+                    </h4>
+                    <ul className="space-y-1">{renderWeaponList(weaponsByMastery[masteryKey].sort((a,b) => a.name.localeCompare(b.name)))}</ul>
+                  </div>
+                ))}
+              </div>
+            )}
+             {viewMode === 'byHandling' && (
+              <div className="space-y-4">
+                {Object.keys(weaponsByHandling).map(handlingKey => (
+                  <div key={handlingKey} className="space-y-1">
+                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1.5 px-2 flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50" />
+                       {handlingKey}
+                    </h4>
+                    <ul className="space-y-1">{renderWeaponList(weaponsByHandling[handlingKey].sort((a,b) => a.name.localeCompare(b.name)))}</ul>
+                  </div>
+                ))}
+              </div>
+            )}
+             {viewMode === 'byType' && (
+              <div className="space-y-4">
+                {Object.keys(weaponsByType).map(typeKey => (
+                  <div key={typeKey} className="space-y-1">
+                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1.5 px-2 flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
+                       {typeKey}
+                    </h4>
+                    <ul className="space-y-1">{renderWeaponList(weaponsByType[typeKey].sort((a,b) => a.name.localeCompare(b.name)))}</ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Right Panel: Info */}
+          <div className="bg-gray-900/60 border border-gray-700 rounded-xl overflow-y-auto">
+            <WeaponMasteryInfoPanel activeInfo={activeInfo} />
+          </div>
         </div>
       </div>
-      
-      <p className="text-center text-gray-300 my-3">Selected {selectedWeaponIds.size} of {selectionLimit}</p>
-
-      <div className="flex gap-4 mt-4">
-        <button onClick={onBack} className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow">Back</button>
-        <button onClick={handleSubmit} disabled={selectedWeaponIds.size !== selectionLimit} className="w-1/2 bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow disabled:bg-gray-500">Confirm Masteries</button>
-      </div>
-    </motion.div>
+    </CreationStepLayout>
   );
 };
 

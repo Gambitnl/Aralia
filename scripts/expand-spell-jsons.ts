@@ -91,7 +91,7 @@ const MASTER_TEMPLATE = {
     aliases: [],
     level: 0,
     school: "Abjuration",
-    source: "PHB 2014",
+    "PHB 2014",
     legacy: false,
     classes: [],
     ritual: false,

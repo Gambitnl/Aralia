@@ -3,7 +3,6 @@
   "title": "Mountain Dwarf",
   "category": "Character Races",
   "entryLore": "Mountain dwarves are strong and hardy, accustomed to a difficult life in rugged terrain. They're probably on the tall side for a dwarf and tend toward lighter coloration. Mountain dwarves are known for their skill at warfare and their superior craftsmanship in armor and weapons. Their kingdoms, carved from the hearts of mountains, are renowned throughout the world. Mountain dwarves pride themselves on their martial traditions, with many clans maintaining elite military orders that have protected their holds for countless generations.",
-  "source": "PHB2014",
   "baseRace": "dwarf",
   "lore": {
     "typicalDwelling": "Mountain dwarves build fortified halls and holdfasts carved deep into mountain faces, with stout gates, wide stairways, and stonework meant to last for ages. Many families live in layered districts of mines, forges, storehouses, and clan halls connected by tunnels.",

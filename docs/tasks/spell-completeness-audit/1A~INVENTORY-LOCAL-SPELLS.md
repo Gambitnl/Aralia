@@ -12,7 +12,7 @@ Last Updated: 2025-12-04 16:35 UTC
 Scan the existing spell JSON files to document how many spells exist per level (1-9), including their ids, for comparison against the 2024 PHB. Cantrips (level 0) are explicitly excluded.
 
 ## Inputs
-- Codebase source: `public/data/spells/`
+- Codebase `public/data/spells/`
 - Existing status files (for awareness only): `docs/spells/STATUS_LEVEL_*.md`
 
 ## Deliverable

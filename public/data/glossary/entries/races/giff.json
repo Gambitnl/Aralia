@@ -5,7 +5,6 @@
   "entryLore": "Giff are hippo-headed humanoids of impressive size who are renowned across the multiverse for their martial prowess and their love of firearms. Originally from a world whose name has been lost to time, giff now travel throughout Wildspace, often serving as mercenaries, bodyguards, or soldiers. They are fiercely proud of their military heritage and maintain strict hierarchies and traditions even when far from their kin. A giff's word is their bond, and they take contracts and oaths extremely seriously.",
   "maleImageUrl": "/assets/images/races/giff_male.png",
   "femaleImageUrl": "/assets/images/races/giff_female.png",
-  "source": "AAG",
   "lore": {
     "typicalDwelling": "Giff live in highly disciplined and organized military-style encampments or on well-maintained ships within Wildspace. Their dwellings are characterized by structural efficiency and a clear hierarchy, reflecting their deep-rooted martial culture. Every structure serves a strategic purpose, from reinforced barracks and fortified headquarters to precisely organized armories and gun decks. Even in peaceful environments, their homes are kept meticulously clean and orderly, with a place for every piece of gear.",
     "typicalAttire": "The attire of a giff is a reflection of their personal honor and military rank. They favor well-maintained uniforms, often in deep blues, crimsons, and golds, decorated with medals, sashes, and intricate embroidery. They have a particular fondness for extravagant headgear, such as plumed hats or spiked helmets, and always carry a variety of firearms and melee weapons. Their appearance is designed to convey both authority and martial prowess, their gear always kept in peak condition.",
@@ -49,7 +48,6 @@
     "race",
     "giff",
     "humanoid",
-    "spelljammer",
     "beastfolk",
     "military"
   ],

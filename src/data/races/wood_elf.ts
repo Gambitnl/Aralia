@@ -1,6 +1,6 @@
 /**
  * @file wood_elf.ts
- * Defines the data for the Wood Elf race in the Aralia RPG, based on 2024 PHB.
+ * Defines the data for the Wood Elf race in the Aralia RPG.
  * Wood elves embody the spirit of primeval forests and possess a primal connection to nature.
  */
 import { Race } from '../../types';

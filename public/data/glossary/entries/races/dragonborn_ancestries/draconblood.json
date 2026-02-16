@@ -3,7 +3,6 @@
   "title": "Draconblood Dragonborn",
   "category": "Character Races",
   "entryLore": "Draconblood dragonborn are the product of selective breeding by the draconic sorcerers of ancient Draconia in the world of Exandria. They possess refined features and an innate connection to arcane magic. Unlike other dragonborn, they lack breath weapons but compensate with enhanced mental capabilities and magical talent.",
-  "source": "Explorer's Guide to Wildemount",
   "lore": {
     "typicalDwelling": "Draconblood dragonborn traditionally dwelt in the floating city-state of Draconia before its fall. Those who survived now live in scholarly enclaves, arcane academies, or noble courts where their magical talents are valued. They favor elegant stone towers, libraries filled with ancient texts, and chambers adorned with draconic artifacts. Their homes reflect their aristocratic heritage—refined, orderly, and filled with magical conveniences.",
     "typicalAttire": "Draconblood dragonborn favor refined, elegant clothing that reflects their noble heritage. They wear flowing robes in rich jewel tones—deep purples, royal blues, and burnished golds—often embroidered with arcane sigils or draconic motifs. Their attire tends toward the formal, with high collars, ornate clasps, and subtle magical enchantments. Many wear rings, amulets, or circlets that serve as arcane focuses or symbols of their lineage.",
@@ -46,8 +45,6 @@
   "tags": [
     "dragonborn",
     "draconblood",
-    "exandria",
-    "wildemount",
     "arcane"
   ],
   "aliases": [

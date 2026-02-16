@@ -1,5 +1,8 @@
 # World Map Rewire Mapping (Azgaar Integration)
 
+**Roadmap**: Added (Feb 13, 2026)
+**Verification Status**: 🟡 Stage R1 Verified (Azgaar Bridge Active)
+
 **Date**: 2026-02-12  
 **Status**: Active mapping artifact (Stage R1 implemented, parity validation in progress)
 

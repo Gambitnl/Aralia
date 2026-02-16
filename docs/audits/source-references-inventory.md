@@ -1,0 +1,1402 @@
+# Source Reference Inventory
+
+**Generated**: 2026-02-13T16:06:45.190Z
+
+**Stats**: Processed 1847 files, found 664 matches.
+
+## 1. By Reference Type
+
+### JSON source (579)
+
+- **public\data\glossary\entries\races\aasimar_variants\fallen.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\aasimar_variants\protector.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\aasimar_variants\scourge.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\black.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\blue.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\brass.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\bronze.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\copper.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\draconblood.json:6**: `"source": "Explorer's Guide to Wildemount",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\gold.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\green.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\ravenite.json:6**: `"source": "Explorer's Guide to Wildemount",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\red.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\silver.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\white.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonmark_variants\beastborn_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\forgeborn_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\guardian_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\hearthkeeper_halfling.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\mender_halfling.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\pathfinder_half_orc.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\runeward_dwarf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\seersight_half_elf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\shadowveil_elf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\stormborn_half_elf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\wayfarer_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\wordweaver_gnome.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dwarf_subraces\mountain_dwarf.json:6**: `"source": "PHB2014",`
+- **public\data\glossary\entries\races\eladrin_seasons\autumn.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\eladrin_seasons\spring.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\eladrin_seasons\summer.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\eladrin_seasons\winter.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\elf_lineages\astral_elf.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\elf_lineages\drow.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\elf_lineages\high_elf.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\elf_lineages\pallid_elf.json:6**: `"source": "EGtW",`
+- **public\data\glossary\entries\races\elf_lineages\sea_elf.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\elf_lineages\shadar_kai.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\elf_lineages\wood_elf.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\gnome_subraces\forest_gnome.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\gnome_subraces\rock_gnome.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\cloud_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\fire_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\frost_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\hill_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\stone_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\storm_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\halfling_subraces\lightfoot.json:6**: `"source": "PHB2014",`
+- **public\data\glossary\entries\races\halfling_subraces\lotusden_halfling.json:6**: `"source": "EGtW",`
+- **public\data\glossary\entries\races\halfling_subraces\stout.json:6**: `"source": "PHB2014",`
+- **public\data\glossary\entries\races\half_elf_variants\aquatic.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\half_elf_variants\drow.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\half_elf_variants\high.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\half_elf_variants\wood.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\shifter_variants\beasthide.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\shifter_variants\longtooth.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\shifter_variants\swiftstride.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\shifter_variants\wildhunt.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\tiefling_legacies\abyssal.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\tiefling_legacies\chthonic.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\tiefling_legacies\infernal.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\aarakocra.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\air_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\autognome.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\bugbear.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\centaur.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\changeling.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\deep_gnome.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\duergar.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\earth_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\fairy.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\firbolg.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\fire_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\giff.json:8**: `"source": "AAG",`
+- **public\data\glossary\entries\races\githyanki.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\githzerai.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goblin.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\hadozee.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\halfling.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\half_elf.json:8**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\half_orc.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\harengon.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\hill_dwarf.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\hobgoblin.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\human.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\kalashtar.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\kender.json:6**: `"source": "DSotDQ",`
+- **public\data\glossary\entries\races\kenku.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\kobold.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\leonin.json:6**: `"source": "MOoT",`
+- **public\data\glossary\entries\races\lizardfolk.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\loxodon.json:6**: `"source": "GGtR",`
+- **public\data\glossary\entries\races\minotaur.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\orc.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\plasmoid.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\satyr.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\simic_hybrid.json:6**: `"source": "GGtR",`
+- **public\data\glossary\entries\races\tabaxi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\thri_kreen.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\tortle.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\triton.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\vedalken.json:6**: `"source": "GGtR",`
+- **public\data\glossary\entries\races\verdan.json:6**: `"source": "AI",`
+- **public\data\glossary\entries\races\warforged.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\water_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\yuan_ti.json:6**: `"source": "MPMM",`
+- **public\data\spells\level-0\acid-splash.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\blade-ward.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\booming-blade.json:7**: `"source": "Tasha's Cauldron of Everything",`
+- **public\data\spells\level-0\chill-touch.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\create-bonfire.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\dancing-lights.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\druidcraft.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\eldritch-blast.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\elementalism.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\fire-bolt.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\friends.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\frostbite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\green-flame-blade.json:7**: `"source": "Tasha's Cauldron of Everything",`
+- **public\data\spells\level-0\guidance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\light.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\lightning-lure.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mage-hand.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\magic-stone.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mending.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\message.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mind-sliver.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\minor-illusion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mold-earth.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\poison-spray.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\prestidigitation.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\primal-savagery.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\produce-flame.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\ray-of-frost.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\resistance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\sacred-flame.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\sapping-sting.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\shape-water.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\shillelagh.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\shocking-grasp.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\spare-the-dying.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\starry-wisp.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\sword-burst.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\thaumaturgy.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\thorn-whip.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\thunderclap.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\toll-the-dead.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\true-strike.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\vicious-mockery.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\word-of-radiance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\absorb-elements.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\alarm.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-1\animal-friendship.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-1\armor-of-agathys.json:7**: `"source": "PHB 2024 p.243",`
+- **public\data\spells\level-1\arms-of-hadar.json:7**: `"source": "PHB 2024 p.243",`
+- **public\data\spells\level-1\bane.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-1\bless.json:7**: `"source": "PHB 2024 p.247",`
+- **public\data\spells\level-1\burning-hands.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-1\catapult.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\charm-person.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-1\chromatic-orb.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-1\color-spray.json:7**: `"source": "PHB 2024 p.251",`
+- **public\data\spells\level-1\command.json:7**: `"source": "PHB 2024 p.251",`
+- **public\data\spells\level-1\compelled-duel.json:7**: `"source": "PHB 2024 p.252",`
+- **public\data\spells\level-1\comprehend-languages.json:7**: `"source": "PHB 2024 p.252",`
+- **public\data\spells\level-1\create-or-destroy-water.json:7**: `"source": "PHB 2024 p.258",`
+- **public\data\spells\level-1\cure-wounds.json:7**: `"source": "PHB 2024 p.259",`
+- **public\data\spells\level-1\detect-evil-and-good.json:7**: `"source": "PHB 2024 p.261",`
+- **public\data\spells\level-1\detect-magic.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-1\detect-poison-and-disease.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-1\disguise-self.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-1\dissonant-whispers.json:7**: `"source": "PHB 2024 p.264",`
+- **public\data\spells\level-1\divine-favor.json:7**: `"source": "PHB 2024 p.265",`
+- **public\data\spells\level-1\divine-smite.json:7**: `"source": "PHB 2024 p.265",`
+- **public\data\spells\level-1\ensnaring-strike.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-1\entangle.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-1\expeditious-retreat.json:7**: `"source": "PHB 2024 p.270",`
+- **public\data\spells\level-1\faerie-fire.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-1\false-life.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-1\feather-fall.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-1\find-familiar.json:7**: `"source": "PHB 2024 p.272",`
+- **public\data\spells\level-1\fog-cloud.json:7**: `"source": "PHB 2024 p.276",`
+- **public\data\spells\level-1\goodberry.json:7**: `"source": "PHB 2024 p.280",`
+- **public\data\spells\level-1\grease.json:7**: `"source": "PHB 2024 p.280",`
+- **public\data\spells\level-1\guiding-bolt.json:7**: `"source": "PHB 2024 p.282",`
+- **public\data\spells\level-1\hail-of-thorns.json:7**: `"source": "PHB 2024 p.283",`
+- **public\data\spells\level-1\healing-word.json:7**: `"source": "PHB 2024 p.284",`
+- **public\data\spells\level-1\hellish-rebuke.json:7**: `"source": "PHB 2024 p.284",`
+- **public\data\spells\level-1\heroism.json:7**: `"source": "PHB 2024 p.285",`
+- **public\data\spells\level-1\hex.json:7**: `"source": "PHB 2024 p.285",`
+- **public\data\spells\level-1\hunters-mark.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-1\ice-knife.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-1\identify.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-1\illusory-script.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-1\inflict-wounds.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-1\jump.json:7**: `"source": "PHB 2024 p.290",`
+- **public\data\spells\level-1\longstrider.json:7**: `"source": "PHB 2024 p.293",`
+- **public\data\spells\level-1\mage-armor.json:7**: `"source": "PHB 2024 p.293",`
+- **public\data\spells\level-1\magic-missile.json:7**: `"source": "PHB 2024 p.295",`
+- **public\data\spells\level-1\protection-from-evil-and-good.json:7**: `"source": "PHB 2024 p.309",`
+- **public\data\spells\level-1\purify-food-and-drink.json:7**: `"source": "PHB 2024 p.310",`
+- **public\data\spells\level-1\ray-of-sickness.json:7**: `"source": "PHB 2024 p.311",`
+- **public\data\spells\level-1\sanctuary.json:7**: `"source": "PHB 2024 p.313",`
+- **public\data\spells\level-1\searing-smite.json:7**: `"source": "PHB 2024 p.314",`
+- **public\data\spells\level-1\shield-of-faith.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-1\shield.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-1\silent-image.json:7**: `"source": "PHB 2024 p.317",`
+- **public\data\spells\level-1\sleep.json:7**: `"source": "PHB 2024 p.317",`
+- **public\data\spells\level-1\snare.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\speak-with-animals.json:7**: `"source": "PHB 2024 p.318",`
+- **public\data\spells\level-1\tashas-caustic-brew.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\tashas-hideous-laughter.json:7**: `"source": "PHB 2024 p.331",`
+- **public\data\spells\level-1\tensers-floating-disk.json:7**: `"source": "PHB 2024 p.332",`
+- **public\data\spells\level-1\thunderous-smite.json:7**: `"source": "PHB 2024 p.334",`
+- **public\data\spells\level-1\thunderwave.json:7**: `"source": "PHB 2024 p.334",`
+- **public\data\spells\level-1\unseen-servant.json:7**: `"source": "PHB 2024 p.336",`
+- **public\data\spells\level-1\witch-bolt.json:7**: `"source": "PHB 2024 p.343",`
+- **public\data\spells\level-1\wrathful-smite.json:7**: `"source": "PHB 2024 p.343",`
+- **public\data\spells\level-2\aid.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-2\alter-self.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-2\animal-messenger.json:7**: `"source": "PHB 2024 p.240",`
+- **public\data\spells\level-2\arcane-lock.json:7**: `"source": "PHB 2024 p.242",`
+- **public\data\spells\level-2\arcane-vigor.json:7**: `"source": "PHB 2024 p.242",`
+- **public\data\spells\level-2\augury.json:7**: `"source": "PHB 2024 p.244",`
+- **public\data\spells\level-2\barkskin.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-2\beast-sense.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-2\blindness-deafness.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-2\blur.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-2\calm-emotions.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-2\cloud-of-daggers.json:7**: `"source": "PHB 2024 p.251",`
+- **public\data\spells\level-2\continual-flame.json:7**: `"source": "PHB 2024 p.256",`
+- **public\data\spells\level-2\cordon-of-arrows.json:7**: `"source": "PHB 2024 p.258",`
+- **public\data\spells\level-2\crown-of-madness.json:7**: `"source": "PHB 2024 p.259",`
+- **public\data\spells\level-2\darkness.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-2\darkvision.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-2\detect-thoughts.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-2\dragons-breath.json:7**: `"source": "PHB 2024 p.266",`
+- **public\data\spells\level-2\enhance-ability.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-2\enlarge-reduce.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-2\enthrall.json:7**: `"source": "PHB 2024 p.269",`
+- **public\data\spells\level-2\find-steed.json:7**: `"source": "PHB 2024 p.272",`
+- **public\data\spells\level-2\find-traps.json:7**: `"source": "PHB 2024 p.273",`
+- **public\data\spells\level-2\flame-blade.json:7**: `"source": "PHB 2024 p.275",`
+- **public\data\spells\level-2\flaming-sphere.json:7**: `"source": "PHB 2024 p.275",`
+- **public\data\spells\level-2\gentle-repose.json:7**: `"source": "PHB 2024 p.278",`
+- **public\data\spells\level-2\gust-of-wind.json:7**: `"source": "PHB 2024 p.282",`
+- **public\data\spells\level-2\heat-metal.json:7**: `"source": "PHB 2024 p.284",`
+- **public\data\spells\level-2\hold-person.json:7**: `"source": "PHB 2024 p.286",`
+- **public\data\spells\level-2\invisibility.json:7**: `"source": "PHB 2024 p.289",`
+- **public\data\spells\level-2\knock.json:7**: `"source": "PHB 2024 p.290",`
+- **public\data\spells\level-2\lesser-restoration.json:7**: `"source": "PHB 2024 p.291",`
+- **public\data\spells\level-2\levitate.json:7**: `"source": "PHB 2024 p.291",`
+- **public\data\spells\level-2\locate-animals-or-plants.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-2\locate-object.json:7**: `"source": "PHB 2024 p.293",`
+- **public\data\spells\level-2\magic-mouth.json:7**: `"source": "PHB 2024 p.295",`
+- **public\data\spells\level-2\magic-weapon.json:7**: `"source": "PHB 2024 p.295",`
+- **public\data\spells\level-2\melfs-acid-arrow.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-2\mind-spike.json:7**: `"source": "PHB 2024 p.298",`
+- **public\data\spells\level-2\mirror-image.json:7**: `"source": "PHB 2024 p.299",`
+- **public\data\spells\level-2\misty-step.json:7**: `"source": "PHB 2024 p.299",`
+- **public\data\spells\level-2\moonbeam.json:7**: `"source": "PHB 2024 p.300",`
+- **public\data\spells\level-2\nystuls-magic-aura.json:7**: `"source": "PHB 2024 p.302",`
+- **public\data\spells\level-2\pass-without-trace.json:7**: `"source": "PHB 2024 p.303",`
+- **public\data\spells\level-2\phantasmal-force.json:7**: `"source": "PHB 2024 p.304",`
+- **public\data\spells\level-2\prayer-of-healing.json:7**: `"source": "PHB 2024 p.307",`
+- **public\data\spells\level-2\protection-from-poison.json:7**: `"source": "PHB 2024 p.310",`
+- **public\data\spells\level-2\pyrotechnics.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-2\ray-of-enfeeblement.json:7**: `"source": "PHB 2024 p.311",`
+- **public\data\spells\level-2\rope-trick.json:7**: `"source": "PHB 2024 p.312",`
+- **public\data\spells\level-2\scorching-ray.json:7**: `"source": "PHB 2024 p.315",`
+- **public\data\spells\level-2\see-invisibility.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-2\shatter.json:7**: `"source": "PHB 2024 p.318",`
+- **public\data\spells\level-2\shining-smite.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-2\silence.json:7**: `"source": "PHB 2024 p.319",`
+- **public\data\spells\level-2\skywrite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-2\spider-climb.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-2\spike-growth.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-2\spiritual-weapon.json:7**: `"source": "PHB 2024 p.322",`
+- **public\data\spells\level-2\suggestion.json:7**: `"source": "PHB 2024 p.325",`
+- **public\data\spells\level-2\summon-beast.json:7**: `"source": "PHB 2024 p.326",`
+- **public\data\spells\level-2\warding-bond.json:7**: `"source": "PHB 2024 p.333",`
+- **public\data\spells\level-2\web.json:7**: `"source": "PHB 2024 p.340",`
+- **public\data\spells\level-2\zone-of-truth.json:7**: `"source": "PHB 2024 p.343",`
+- **public\data\spells\level-3\animate-dead.json:7**: `"source": "PHB 2024 p.240",`
+- **public\data\spells\level-3\aura-of-vitality.json:7**: `"source": "PHB 2024 p.244",`
+- **public\data\spells\level-3\beacon-of-hope.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-3\bestow-curse.json:7**: `"source": "PHB 2024 p.246",`
+- **public\data\spells\level-3\blinding-smite.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-3\blink.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-3\call-lightning.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-3\catnap.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-3\clairvoyance.json:7**: `"source": "PHB 2024 p.250",`
+- **public\data\spells\level-3\conjure-animals.json:7**: `"source": "PHB 2024 p.253",`
+- **public\data\spells\level-3\conjure-barrage.json:7**: `"source": "PHB 2024 p.254",`
+- **public\data\spells\level-3\counterspell.json:7**: `"source": "PHB 2024 p.256",`
+- **public\data\spells\level-3\create-food-and-water.json:7**: `"source": "PHB 2024 p.258",`
+- **public\data\spells\level-3\crusaders-mantle.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-3\daylight.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-3\dispel-magic.json:7**: `"source": "PHB 2024 p.264",`
+- **public\data\spells\level-3\elemental-weapon.json:7**: `"source": "PHB 2024 p.267",`
+- **public\data\spells\level-3\enemies-abound.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-3\erupting-earth.json:7**: `"source": "PHB 2024 p.269",`
+- **public\data\spells\level-3\fast-friends.json:7**: `"source": "PHB 2024 p.270",`
+- **public\data\spells\level-3\fear.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-3\feign-death.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-3\fireball.json:7**: `"source": "PHB 2024 p.274",`
+- **public\data\spells\level-3\flame-arrows.json:7**: `"source": "PHB 2024 p.275",`
+- **public\data\spells\level-3\fly.json:7**: `"source": "PHB 2024 p.276",`
+- **public\data\spells\level-3\galders-tower.json:7**: `"source": "PHB 2024 p.277",`
+- **public\data\spells\level-3\gaseous-form.json:7**: `"source": "PHB 2024 p.278",`
+- **public\data\spells\level-3\glyph-of-warding.json:7**: `"source": "PHB 2024 p.281",`
+- **public\data\spells\level-3\haste.json:7**: `"source": "PHB 2024 p.283",`
+- **public\data\spells\level-3\hunger-of-hadar.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-3\hypnotic-pattern.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-3\incite-greed.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-3\intellect-fortress.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-3\leomunds-tiny-hut.json:7**: `"source": "PHB 2024 p.291",`
+- **public\data\spells\level-3\life-transference.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-3\lightning-arrow.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-3\lightning-bolt.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-3\magic-circle.json:7**: `"source": "PHB 2024 p.294",`
+- **public\data\spells\level-3\major-image.json:7**: `"source": "PHB 2024 p.296",`
+- **public\data\spells\level-3\mass-healing-word.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-3\meld-into-stone.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-3\melfs-minute-meteors.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-3\motivational-speech.json:7**: `"source": "PHB 2024 p.300",`
+- **public\data\spells\level-3\nondetection.json:7**: `"source": "PHB 2024 p.301",`
+- **public\data\spells\level-3\phantom-steed.json:7**: `"source": "PHB 2024 p.304",`
+- **public\data\spells\level-3\plant-growth.json:7**: `"source": "PHB 2024 p.305",`
+- **public\data\spells\level-3\protection-from-energy.json:7**: `"source": "PHB 2024 p.310",`
+- **public\data\spells\level-3\pulse-wave.json:7**: `"source": "PHB 2024 p.311",`
+- **public\data\spells\level-3\remove-curse.json:7**: `"source": "PHB 2024 p.314",`
+- **public\data\spells\level-3\revivify.json:7**: `"source": "PHB 2024 p.314",`
+- **public\data\spells\level-3\sending.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-3\sleet-storm.json:7**: `"source": "PHB 2024 p.320",`
+- **public\data\spells\level-3\slow.json:7**: `"source": "PHB 2024 p.320",`
+- **public\data\spells\level-3\speak-with-dead.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-3\speak-with-plants.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-3\spirit-guardians.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-3\stinking-cloud.json:7**: `"source": "PHB 2024 p.322",`
+- **public\data\spells\level-3\summon-lesser-demons.json:7**: `"source": "PHB 2024 p.324",`
+- **public\data\spells\level-3\thunder-step.json:7**: `"source": "PHB 2024 p.328",`
+- **public\data\spells\level-3\tidal-wave.json:7**: `"source": "PHB 2024 p.328",`
+- **public\data\spells\level-3\tiny-servant.json:7**: `"source": "PHB 2024 p.329",`
+- **public\data\spells\level-3\tongues.json:7**: `"source": "PHB 2024 p.329",`
+- **public\data\spells\level-3\vampiric-touch.json:7**: `"source": "PHB 2024 p.331",`
+- **public\data\spells\level-3\wall-of-sand.json:7**: `"source": "PHB 2024 p.334",`
+- **public\data\spells\level-3\wall-of-water.json:7**: `"source": "PHB 2024 p.335",`
+- **public\data\spells\level-3\water-breathing.json:7**: `"source": "PHB 2024 p.336",`
+- **public\data\spells\level-3\water-walk.json:7**: `"source": "PHB 2024 p.337",`
+- **public\data\spells\level-3\wind-wall.json:7**: `"source": "PHB 2024 p.338",`
+- **public\data\spells\level-4\arcane-eye.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\aura-of-life.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\aura-of-purity.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\banishment.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\blight.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\charm-monster.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\compulsion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\confusion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\conjure-minor-elementals.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\conjure-woodland-beings.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\control-water.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\death-ward.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\dimension-door.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\divination.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\dominate-beast.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\elemental-bane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\evards-black-tentacles.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\fabricate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\find-greater-steed.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\fire-shield.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\freedom-of-movement.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\galders-speedy-courier.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\giant-insect.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\grasping-vine.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\gravity-sinkhole.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\greater-invisibility.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\guardian-of-faith.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\guardian-of-nature.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\hallucinatory-terrain.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\ice-storm.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\leomunds-secret-chest.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\locate-creature.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\mordenkainens-faithful-hound.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\mordenkainens-private-sanctum.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\otilukes-resilient-sphere.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\phantasmal-killer.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\polymorph.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\shadow-of-moil.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\sickening-radiance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\staggering-smite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\stone-shape.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\stoneskin.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\storm-sphere.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\summon-greater-demon.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\vitriolic-sphere.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\wall-of-fire.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\watery-sphere.json:7**: `"source": "Xanathar's Guide to Everything",`
+- **public\data\spells\level-5\animate-objects.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\antilife-shell.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\awaken.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\banishing-smite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\bigbys-hand.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\circle-of-power.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\cloudkill.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\commune-with-nature.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\commune.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\cone-of-cold.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\conjure-elemental.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\conjure-volley.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\contact-other-plane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\contagion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\control-winds.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\creation.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\danse-macabre.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\dawn.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\destructive-wave.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\dispel-evil-and-good.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\dominate-person.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\dream.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\enervation.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\far-step.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\flame-strike.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\geas.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\greater-restoration.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\hallow.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\hold-monster.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\holy-weapon.json:7**: `"source": "XGE p.157 (Legacy)",`
+- **public\data\spells\level-5\immolation.json:7**: `"source": "XGE p.158 (Legacy)",`
+- **public\data\spells\level-5\infernal-calling.json:7**: `"source": "XGE p.158 (Legacy)",`
+- **public\data\spells\level-5\insect-plague.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\legend-lore.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\maelstrom.json:7**: `"source": "XGE p.160 (Legacy)",`
+- **public\data\spells\level-5\mass-cure-wounds.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\mislead.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\modify-memory.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\negative-energy-flood.json:7**: `"source": "Xanathar's Guide to Everything",`
+- **public\data\spells\level-5\passwall.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\planar-binding.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\raise-dead.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\rarys-telepathic-bond.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\reincarnate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\scrying.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\seeming.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\skill-empowerment.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\steel-wind-strike.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\swift-quiver.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\synaptic-static.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\telekinesis.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\teleportation-circle.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\temporal-shunt.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\transmute-rock.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\tree-stride.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\wall-of-force.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\wall-of-light.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\wall-of-stone.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\wrath-of-nature.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-6\arcane-gate.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\blade-barrier.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\bones-of-the-earth.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\chain-lightning.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\circle-of-death.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\conjure-fey.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\contingency.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\create-homunculus.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\create-undead.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\disintegrate.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\drawmijs-instant-summons.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\druid-grove.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\eyebite.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\find-the-path.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\flesh-to-stone.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\forbiddance.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\globe-of-invulnerability.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\gravity-fissure.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-6\guards-and-wards.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\harm.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\heal.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\heroes-feast.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\investiture-of-flame.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\investiture-of-ice.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\investiture-of-stone.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\investiture-of-wind.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\magic-jar.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\mass-suggestion.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\mental-prison.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\move-earth.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\otilukes-freezing-sphere.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\ottos-irresistible-dance.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\planar-ally.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\primordial-ward.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\programmed-illusion.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\scatter.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\soul-cage.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\sunbeam.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\tensers-transformation.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\transport-via-plants.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\true-seeing.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\wall-of-ice.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\wall-of-thorns.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\wind-walk.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\word-of-recall.json:7**: `"source": "PHB",`
+- **public\data\spells\level-7\arcane-sword.json:9**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\conjure-celestial.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\crown-of-stars.json:7**: `"source": "XGE p.152",`
+- **public\data\spells\level-7\delayed-blast-fireball.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\divine-word.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\draconic-transformation.json:7**: `"source": "FTD p.19",`
+- **public\data\spells\level-7\dream-of-the-blue-veil.json:7**: `"source": "TCE p.106",`
+- **public\data\spells\level-7\etherealness.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\finger-of-death.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\fire-storm.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\forcecage.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\mirage-arcane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\mordenkainens-magnificent-mansion.json:7**: `"source": "PHB 2014",`
+- **public\data\spells\level-7\plane-shift.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\power-word-pain.json:7**: `"source": "XGE p.163",`
+- **public\data\spells\level-7\prismatic-spray.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\project-image.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\regenerate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\resurrection.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\reverse-gravity.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\sequester.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\simulacrum.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\symbol.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\teleport.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\temple-of-the-gods.json:7**: `"source": "Xanathar's Guide to Everything",`
+- **public\data\spells\level-7\tether-essence.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\whirlwind.json:7**: `"source": "XGE p.171",`
+- **public\data\spells\level-8\abi-dalzims-horrid-wilting.json:7**: `"source": "XGE",`
+- **public\data\spells\level-8\animal-shapes.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\antimagic-field.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\antipathy-sympathy.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\clone.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\control-weather.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\dark-star.json:7**: `"source": "EGW",`
+- **public\data\spells\level-8\demiplane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\dominate-monster.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\earthquake.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\feeblemind.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\glibness.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\holy-aura.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\illusory-dragon.json:7**: `"source": "XGE",`
+- **public\data\spells\level-8\incendiary-cloud.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\maddening-darkness.json:7**: `"source": "XGE",`
+- **public\data\spells\level-8\maze.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\mighty-fortress.json:7**: `"source": "XGE",`
+- **public\data\spells\level-8\mind-blank.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\power-word-stun.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\reality-break.json:7**: `"source": "EGW",`
+- **public\data\spells\level-8\sunburst.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\telepathy.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\tsunami.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\astral-projection.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\blade-of-disaster.json:7**: `"source": "TCoE",`
+- **public\data\spells\level-9\foresight.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\gate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\imprisonment.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\invulnerability.json:7**: `"source": "XGE",`
+- **public\data\spells\level-9\mass-heal.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\mass-polymorph.json:7**: `"source": "XGE",`
+- **public\data\spells\level-9\meteor-swarm.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\power-word-heal.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\power-word-kill.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\prismatic-wall.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\psychic-scream.json:7**: `"source": "XGE",`
+- **public\data\spells\level-9\ravenous-void.json:7**: `"source": "EGW",`
+- **public\data\spells\level-9\shapechange.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\storm-of-vengeance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\time-ravage.json:7**: `"source": "EGW",`
+- **public\data\spells\level-9\time-stop.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\true-polymorph.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\true-resurrection.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\weird.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\wish.json:7**: `"source": "PHB 2024",`
+- **docs\portraits\race_portrait_regen_backlog.json:4**: `"source": "User-provided manual review list. Categories A-E match docs/portraits/race_portrait_regen_backlog.md.",`
+- **docs\tasks\spell-system-overhaul\SPELL_MIGRATION_PROMPT.md:9**: `- Add `"source": "PHB 2024"` or `"source": "Tasha's Cauldron of Everything"` etc.`
+- **docs\tasks\spell-system-overhaul\SPELL_MIGRATION_PROMPT.md:9**: `- Add `"source": "PHB 2024"` or `"source": "Tasha's Cauldron of Everything"` etc.`
+- **docs\tasks\spell-system-overhaul\SPELL_MIGRATION_PROMPT.md:54**: `"source": "PHB 2024",`
+
+### Markdown citation (20)
+
+- **src\data\feats\featsData.ts:164**: `selectableSpell`
+- **src\data\races\elf.ts:43**: `swappableCantrip`
+- **docs\archive\improvements\07_invert_reducer_action_logic.md:82**: `content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,`
+- **docs\improvements\completed\07_invert_reducer_action_logic.md:82**: `content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,`
+- **docs\portraits\race_portrait_regen_handoff.md:52**: `Live preview data `
+- **docs\tasks\combat-messaging-enhancement\README.md:86**: `addDamageMessage({`
+- **docs\tasks\spell-completeness-audit\output\PHB-2024-REFERENCE.md:4**: `Last Updated: 2025-12-04 16:34 UTC`
+- **docs\tasks\spell-completeness-audit\1A~INVENTORY-LOCAL-SPELLS.md:15**: `- Codebase `public/data/spells/``
+- **docs\tasks\spell-system-overhaul\0-PRIORITY-SCHEMA-EVOLUTION.md:5**: `*
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:277**: `appliedTurn: currentState.turnState.currentTurn,`
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:481**: `appliedTurn: number`
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:525**: `appliedTurn: state.turnState.currentTurn,`
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:615**: `appliedTurn: state.turnState.currentTurn,`
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-AI-ARBITRATION-SERVICE.md:7**: `*
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-AOE-ALGORITHMS.md:7**: `*
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-AOE-ALGORITHMS.md:313**: `- **Algorithm `
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-CONCENTRATION-TRACKING.md:7**: `*
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-REMAINING-EFFECT-COMMANDS.md:7**: `*
+- **docs\review_worklogs.md:201**: `*
+- **docs\V1.1_BUG_VERIFICATION_REPORT.md:4**: `*
+
+### Setting tags (64)
+
+- **public\data\glossary\entries\races\dragonborn_ancestries\draconblood.json:49**: `"exandria",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\draconblood.json:50**: `"wildemount",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\ravenite.json:44**: `"exandria",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\ravenite.json:45**: `"wildemount",`
+- **public\data\glossary\entries\races\dragonmark_variants\beastborn_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\forgeborn_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\guardian_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\hearthkeeper_halfling.json:68**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\mender_halfling.json:68**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\pathfinder_half_orc.json:62**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\runeward_dwarf.json:67**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\seersight_half_elf.json:67**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\shadowveil_elf.json:77**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\stormborn_half_elf.json:72**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\wayfarer_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\wordweaver_gnome.json:67**: `"eberron",`
+- **public\data\glossary\entries\races\elf_lineages\astral_elf.json:76**: `"spelljammer",`
+- **public\data\glossary\entries\races\elf_lineages\pallid_elf.json:71**: `"wildemount",`
+- **public\data\glossary\entries\races\elf_lineages\pallid_elf.json:73**: `"exandria"`
+- **public\data\glossary\entries\races\halfling_subraces\lotusden_halfling.json:62**: `"wildemount",`
+- **public\data\glossary\entries\races\halfling_subraces\lotusden_halfling.json:64**: `"exandria",`
+- **public\data\glossary\entries\races\autognome.json:65**: `"spelljammer",`
+- **public\data\glossary\entries\races\giff.json:52**: `"spelljammer",`
+- **public\data\glossary\entries\races\hadozee.json:50**: `"spelljammer",`
+- **public\data\glossary\entries\races\kalashtar.json:55**: `"eberron",`
+- **public\data\glossary\entries\races\kender.json:50**: `"dragonlance",`
+- **public\data\glossary\entries\races\loxodon.json:55**: `"ravnica",`
+- **public\data\glossary\entries\races\plasmoid.json:64**: `"spelljammer",`
+- **public\data\glossary\entries\races\simic_hybrid.json:54**: `"ravnica",`
+- **public\data\glossary\entries\races\thri_kreen.json:64**: `"spelljammer",`
+- **public\data\glossary\entries\races\vedalken.json:50**: `"ravnica",`
+- **public\data\glossary\entries\races\warforged.json:55**: `"eberron",`
+- **public\data\glossary\index\character_races.json:115**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:138**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:249**: `"ravnica",`
+- **public\data\glossary\index\character_races.json:315**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:392**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:415**: `"eberron",`
+- **public\data\glossary\index\character_races.json:552**: `"exandria",`
+- **public\data\glossary\index\character_races.json:553**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:639**: `"exandria",`
+- **public\data\glossary\index\character_races.json:640**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:803**: `"eberron",`
+- **public\data\glossary\index\character_races.json:939**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:1007**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:1009**: `"exandria"`
+- **public\data\glossary\index\character_races.json:1081**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1443**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1730**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1878**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1903**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1981**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2026**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:2028**: `"exandria",`
+- **public\data\glossary\index\character_races.json:2053**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2111**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2136**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2161**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2207**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2239**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2259**: `"dragonlance",`
+- **public\data\glossary\index\character_races.json:2279**: `"ravnica",`
+- **public\data\glossary\index\character_races.json:2326**: `"ravnica",`
+- **public\data\glossary\index\character_races.json:2415**: `"spelljammer",`
+
+### Script/Log labels (1)
+
+- **docs\portraits\race_profiles\research-status.json:36**: `"message": "Attempt 1 failed: elementHandle.fill: Element is not attached to the DOM\nCall log:\n\u001b[2m    - fill(\"You are a senior RPG lore researcher writing a world-agnostic race dossier for \"Giff\" (giff).\u001b[22m\n\n\u001b[2mResearch mode requirements:\u001b[22m\n\u001b[2m- Perform live web research before drafting. Use Gemini's Deep Research workflow if available.\u001b[22m\n\u001b[2m- Cross-check multiple sources and resolve contradictions when possible.\u001b[22m\n\u001b[2m- Include only verifiable source URLs in the Sources section.\u001b[22m\n\n\u001b[2mContent constraints:\u001b[22m\n\u001b[2m- Keep this generalized for procedural world generation.\u001b[22m\n\u001b[2m- Do not anchor to named cities, kingdoms, nations, or timeline-specific events.\u001b[22m\n\u001b[2m- Avoid setting-locked proper nouns unless unavoidable for origin context; generalize them when possible.\u001b[22m\n\u001b[2m- Write in concise wiki-like prose with a light narrative flow (not a novel).\u001b[22m\n\u001b[2m- Do NOT output a Q&A table or question list format.\u001b[22m\n\n\u001b[2mOutput format (markdown only):\u001b[22m\n\u001b[2m1) # <Race Name>\u001b[22m\n\u001b[2m2) ## Overview\u001b[22m\n\u001b[2m3) ## Cultural Throughline\u001b[22m\n\u001b[2m4) ## Ten-Point Generalized Profile\u001b[22m\n\u001b[2m   - Provide 10 numbered subsections, one per required topic, each with a heading and 1-3 concise paragraphs.\u001b[22m\n\u001b[2m5) ## Design Hooks for Procedural Worldgen\u001b[22m\n\u001b[2m6) ## Sources\u001b[22m\n\u001b[2m   - List at least 5 web sources as markdown bullets with working URLs.\u001b[22m\n\n\u001b[2mRequired ten topics to cover inside 'Ten-Point Generalized Profile':\u001b[22m\n\u001b[2m1. (q1) What is this race's broad origin pattern (ancestral, planar, created, transformed, or unknown)?\u001b[22m\n\u001b[2m2. (q2) What core survival pressures historically shaped this race's behavior and values?\u001b[22m\n\u001b[2m3. (q3) Which social structures are most common (clans, houses, councils, bands, guilds, loose networks)?\u001b[22m\n\u001b[2m4. (q4) What roles or labors are most culturally typical in day-to-day life (non-combat)?\u001b[22m\n\u001b[2m5. (q5) What tensions commonly exist between this race's natural traits and broader society?\u001b[22m\n\u001b[2m6. (q6) What rites of passage or adulthood markers are culturally important?\u001b[22m\n\u001b[2m7. (q7) How does this race usually approach conflict resolution before violence?\u001b[22m\n\u001b[2m8. (q8) What family and kinship norms are typical (child-rearing, elders, obligation, inheritance)?\u001b[22m\n\u001b[2m9. (q9) What are common misunderstandings outsiders have about this race, and what is usually true instead?\u001b[22m\n\u001b[2m10. (q10) What generalized character hooks fit this race for play (duty, ambition, exile, craft, faith, curiosity, survival)?\u001b[22m\n\n\u001b[2mQuality bar:\u001b[22m\n\u001b[2m- Prefer official/primary sources first, then reputable references.\u001b[22m\n\u001b[2m- If sources disagree, include a short caveat in the relevant section.\u001b[22m\n\u001b[2m- Keep claims specific but setting-generalized.\u001b[22m\n\n\u001b[2mCandidate internal context to cross-check (may be stale; verify externally):\u001b[22m\n\u001b[2mentryLore: Giff are hippo-headed humanoids of impressive size who are renowned across the multiverse for their martial prowess and their love of firearms. Originally from a world whose name has been lost to time, giff now travel throughout Wildspace, often serving as mercenaries, bodyguards, or soldiers. They are fiercely proud of their military heritage and maintain strict hierarchies and traditions even when far from their kin. A giff's word is their bond, and they take contracts and oaths extremely seriously.\u001b[22m\n\u001b[2m\n\u001b[2mtags: race, giff, humanoid, spelljammer, beastfolk, military\u001b[22m\n\u001b[2msocietyType: Giff society is intensely hierarchical and organized around the military regiment. Loyalty to the group, the chain of command, and one's personal word is the foundation of their culture. They value discipline, tactical brilliance, and the fulfillment of one's duty above all else. Status is earned through merit, service, and the demonstration of martial skill. They possess a deep sense of honor and a collective identity as the multiverse's premier soldiers of fortune.\u001b[22m\n\u001b[2mtypicalEnvironment: Shipboard decks, fortified borderlands, and any location with a strong military presence are the giff's preferred habitats. They thrive in environments where they can establish a clear chain of command and utilize their tactical expertise. Many serve as professional mercenaries, elite bodyguards, or specialized soldiers in large interplanetary empires. They are comfortable in a variety of terrestrial and cosmic habitats, provided they have a clear mission and the means to maintain their martial traditions.\u001b[22m\n\n\u001b[2mReturn markdown only.\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and editable\u001b[22m\n"`
+
+## 2. By Source Book
+
+### PHB (475)
+
+- **public\data\glossary\entries\races\dragonborn_ancestries\black.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\blue.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\brass.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\bronze.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\copper.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\gold.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\green.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\red.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\silver.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\white.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\dwarf_subraces\mountain_dwarf.json:6**: `"source": "PHB2014",`
+- **public\data\glossary\entries\races\elf_lineages\drow.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\elf_lineages\high_elf.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\elf_lineages\wood_elf.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\gnome_subraces\forest_gnome.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\gnome_subraces\rock_gnome.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\cloud_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\fire_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\frost_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\hill_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\stone_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goliath_ancestries\storm_giant_goliath.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\halfling_subraces\lightfoot.json:6**: `"source": "PHB2014",`
+- **public\data\glossary\entries\races\halfling_subraces\stout.json:6**: `"source": "PHB2014",`
+- **public\data\glossary\entries\races\tiefling_legacies\abyssal.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\tiefling_legacies\chthonic.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\tiefling_legacies\infernal.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\aarakocra.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\air_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\bugbear.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\centaur.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\changeling.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\deep_gnome.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\duergar.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\earth_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\fairy.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\firbolg.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\fire_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\githyanki.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\githzerai.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\goblin.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\halfling.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\half_elf.json:8**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\half_orc.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\hill_dwarf.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\human.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\kenku.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\orc.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\tabaxi.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\triton.json:6**: `"source": "PHB 2024",`
+- **public\data\glossary\entries\races\water_genasi.json:6**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\acid-splash.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\blade-ward.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\chill-touch.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\create-bonfire.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\dancing-lights.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\druidcraft.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\eldritch-blast.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\elementalism.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\fire-bolt.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\friends.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\frostbite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\guidance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\light.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\lightning-lure.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mage-hand.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\magic-stone.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mending.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\message.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mind-sliver.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\minor-illusion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\mold-earth.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\poison-spray.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\prestidigitation.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\primal-savagery.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\produce-flame.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\ray-of-frost.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\resistance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\sacred-flame.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\sapping-sting.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\shape-water.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\shillelagh.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\shocking-grasp.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\spare-the-dying.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\starry-wisp.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\sword-burst.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\thaumaturgy.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\thorn-whip.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\thunderclap.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\toll-the-dead.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\true-strike.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\vicious-mockery.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-0\word-of-radiance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\absorb-elements.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\alarm.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-1\animal-friendship.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-1\armor-of-agathys.json:7**: `"source": "PHB 2024 p.243",`
+- **public\data\spells\level-1\arms-of-hadar.json:7**: `"source": "PHB 2024 p.243",`
+- **public\data\spells\level-1\bane.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-1\bless.json:7**: `"source": "PHB 2024 p.247",`
+- **public\data\spells\level-1\burning-hands.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-1\catapult.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\charm-person.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-1\chromatic-orb.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-1\color-spray.json:7**: `"source": "PHB 2024 p.251",`
+- **public\data\spells\level-1\command.json:7**: `"source": "PHB 2024 p.251",`
+- **public\data\spells\level-1\compelled-duel.json:7**: `"source": "PHB 2024 p.252",`
+- **public\data\spells\level-1\comprehend-languages.json:7**: `"source": "PHB 2024 p.252",`
+- **public\data\spells\level-1\create-or-destroy-water.json:7**: `"source": "PHB 2024 p.258",`
+- **public\data\spells\level-1\cure-wounds.json:7**: `"source": "PHB 2024 p.259",`
+- **public\data\spells\level-1\detect-evil-and-good.json:7**: `"source": "PHB 2024 p.261",`
+- **public\data\spells\level-1\detect-magic.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-1\detect-poison-and-disease.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-1\disguise-self.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-1\dissonant-whispers.json:7**: `"source": "PHB 2024 p.264",`
+- **public\data\spells\level-1\divine-favor.json:7**: `"source": "PHB 2024 p.265",`
+- **public\data\spells\level-1\divine-smite.json:7**: `"source": "PHB 2024 p.265",`
+- **public\data\spells\level-1\ensnaring-strike.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-1\entangle.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-1\expeditious-retreat.json:7**: `"source": "PHB 2024 p.270",`
+- **public\data\spells\level-1\faerie-fire.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-1\false-life.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-1\feather-fall.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-1\find-familiar.json:7**: `"source": "PHB 2024 p.272",`
+- **public\data\spells\level-1\fog-cloud.json:7**: `"source": "PHB 2024 p.276",`
+- **public\data\spells\level-1\goodberry.json:7**: `"source": "PHB 2024 p.280",`
+- **public\data\spells\level-1\grease.json:7**: `"source": "PHB 2024 p.280",`
+- **public\data\spells\level-1\guiding-bolt.json:7**: `"source": "PHB 2024 p.282",`
+- **public\data\spells\level-1\hail-of-thorns.json:7**: `"source": "PHB 2024 p.283",`
+- **public\data\spells\level-1\healing-word.json:7**: `"source": "PHB 2024 p.284",`
+- **public\data\spells\level-1\hellish-rebuke.json:7**: `"source": "PHB 2024 p.284",`
+- **public\data\spells\level-1\heroism.json:7**: `"source": "PHB 2024 p.285",`
+- **public\data\spells\level-1\hex.json:7**: `"source": "PHB 2024 p.285",`
+- **public\data\spells\level-1\hunters-mark.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-1\ice-knife.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-1\identify.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-1\illusory-script.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-1\inflict-wounds.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-1\jump.json:7**: `"source": "PHB 2024 p.290",`
+- **public\data\spells\level-1\longstrider.json:7**: `"source": "PHB 2024 p.293",`
+- **public\data\spells\level-1\mage-armor.json:7**: `"source": "PHB 2024 p.293",`
+- **public\data\spells\level-1\magic-missile.json:7**: `"source": "PHB 2024 p.295",`
+- **public\data\spells\level-1\protection-from-evil-and-good.json:7**: `"source": "PHB 2024 p.309",`
+- **public\data\spells\level-1\purify-food-and-drink.json:7**: `"source": "PHB 2024 p.310",`
+- **public\data\spells\level-1\ray-of-sickness.json:7**: `"source": "PHB 2024 p.311",`
+- **public\data\spells\level-1\sanctuary.json:7**: `"source": "PHB 2024 p.313",`
+- **public\data\spells\level-1\searing-smite.json:7**: `"source": "PHB 2024 p.314",`
+- **public\data\spells\level-1\shield-of-faith.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-1\shield.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-1\silent-image.json:7**: `"source": "PHB 2024 p.317",`
+- **public\data\spells\level-1\sleep.json:7**: `"source": "PHB 2024 p.317",`
+- **public\data\spells\level-1\snare.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\speak-with-animals.json:7**: `"source": "PHB 2024 p.318",`
+- **public\data\spells\level-1\tashas-caustic-brew.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-1\tashas-hideous-laughter.json:7**: `"source": "PHB 2024 p.331",`
+- **public\data\spells\level-1\tensers-floating-disk.json:7**: `"source": "PHB 2024 p.332",`
+- **public\data\spells\level-1\thunderous-smite.json:7**: `"source": "PHB 2024 p.334",`
+- **public\data\spells\level-1\thunderwave.json:7**: `"source": "PHB 2024 p.334",`
+- **public\data\spells\level-1\unseen-servant.json:7**: `"source": "PHB 2024 p.336",`
+- **public\data\spells\level-1\witch-bolt.json:7**: `"source": "PHB 2024 p.343",`
+- **public\data\spells\level-1\wrathful-smite.json:7**: `"source": "PHB 2024 p.343",`
+- **public\data\spells\level-2\aid.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-2\alter-self.json:7**: `"source": "PHB 2024 p.239",`
+- **public\data\spells\level-2\animal-messenger.json:7**: `"source": "PHB 2024 p.240",`
+- **public\data\spells\level-2\arcane-lock.json:7**: `"source": "PHB 2024 p.242",`
+- **public\data\spells\level-2\arcane-vigor.json:7**: `"source": "PHB 2024 p.242",`
+- **public\data\spells\level-2\augury.json:7**: `"source": "PHB 2024 p.244",`
+- **public\data\spells\level-2\barkskin.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-2\beast-sense.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-2\blindness-deafness.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-2\blur.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-2\calm-emotions.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-2\cloud-of-daggers.json:7**: `"source": "PHB 2024 p.251",`
+- **public\data\spells\level-2\continual-flame.json:7**: `"source": "PHB 2024 p.256",`
+- **public\data\spells\level-2\cordon-of-arrows.json:7**: `"source": "PHB 2024 p.258",`
+- **public\data\spells\level-2\crown-of-madness.json:7**: `"source": "PHB 2024 p.259",`
+- **public\data\spells\level-2\darkness.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-2\darkvision.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-2\detect-thoughts.json:7**: `"source": "PHB 2024 p.262",`
+- **public\data\spells\level-2\dragons-breath.json:7**: `"source": "PHB 2024 p.266",`
+- **public\data\spells\level-2\enhance-ability.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-2\enlarge-reduce.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-2\enthrall.json:7**: `"source": "PHB 2024 p.269",`
+- **public\data\spells\level-2\find-steed.json:7**: `"source": "PHB 2024 p.272",`
+- **public\data\spells\level-2\find-traps.json:7**: `"source": "PHB 2024 p.273",`
+- **public\data\spells\level-2\flame-blade.json:7**: `"source": "PHB 2024 p.275",`
+- **public\data\spells\level-2\flaming-sphere.json:7**: `"source": "PHB 2024 p.275",`
+- **public\data\spells\level-2\gentle-repose.json:7**: `"source": "PHB 2024 p.278",`
+- **public\data\spells\level-2\gust-of-wind.json:7**: `"source": "PHB 2024 p.282",`
+- **public\data\spells\level-2\heat-metal.json:7**: `"source": "PHB 2024 p.284",`
+- **public\data\spells\level-2\hold-person.json:7**: `"source": "PHB 2024 p.286",`
+- **public\data\spells\level-2\invisibility.json:7**: `"source": "PHB 2024 p.289",`
+- **public\data\spells\level-2\knock.json:7**: `"source": "PHB 2024 p.290",`
+- **public\data\spells\level-2\lesser-restoration.json:7**: `"source": "PHB 2024 p.291",`
+- **public\data\spells\level-2\levitate.json:7**: `"source": "PHB 2024 p.291",`
+- **public\data\spells\level-2\locate-animals-or-plants.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-2\locate-object.json:7**: `"source": "PHB 2024 p.293",`
+- **public\data\spells\level-2\magic-mouth.json:7**: `"source": "PHB 2024 p.295",`
+- **public\data\spells\level-2\magic-weapon.json:7**: `"source": "PHB 2024 p.295",`
+- **public\data\spells\level-2\melfs-acid-arrow.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-2\mind-spike.json:7**: `"source": "PHB 2024 p.298",`
+- **public\data\spells\level-2\mirror-image.json:7**: `"source": "PHB 2024 p.299",`
+- **public\data\spells\level-2\misty-step.json:7**: `"source": "PHB 2024 p.299",`
+- **public\data\spells\level-2\moonbeam.json:7**: `"source": "PHB 2024 p.300",`
+- **public\data\spells\level-2\nystuls-magic-aura.json:7**: `"source": "PHB 2024 p.302",`
+- **public\data\spells\level-2\pass-without-trace.json:7**: `"source": "PHB 2024 p.303",`
+- **public\data\spells\level-2\phantasmal-force.json:7**: `"source": "PHB 2024 p.304",`
+- **public\data\spells\level-2\prayer-of-healing.json:7**: `"source": "PHB 2024 p.307",`
+- **public\data\spells\level-2\protection-from-poison.json:7**: `"source": "PHB 2024 p.310",`
+- **public\data\spells\level-2\pyrotechnics.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-2\ray-of-enfeeblement.json:7**: `"source": "PHB 2024 p.311",`
+- **public\data\spells\level-2\rope-trick.json:7**: `"source": "PHB 2024 p.312",`
+- **public\data\spells\level-2\scorching-ray.json:7**: `"source": "PHB 2024 p.315",`
+- **public\data\spells\level-2\see-invisibility.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-2\shatter.json:7**: `"source": "PHB 2024 p.318",`
+- **public\data\spells\level-2\shining-smite.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-2\silence.json:7**: `"source": "PHB 2024 p.319",`
+- **public\data\spells\level-2\skywrite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-2\spider-climb.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-2\spike-growth.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-2\spiritual-weapon.json:7**: `"source": "PHB 2024 p.322",`
+- **public\data\spells\level-2\suggestion.json:7**: `"source": "PHB 2024 p.325",`
+- **public\data\spells\level-2\summon-beast.json:7**: `"source": "PHB 2024 p.326",`
+- **public\data\spells\level-2\warding-bond.json:7**: `"source": "PHB 2024 p.333",`
+- **public\data\spells\level-2\web.json:7**: `"source": "PHB 2024 p.340",`
+- **public\data\spells\level-2\zone-of-truth.json:7**: `"source": "PHB 2024 p.343",`
+- **public\data\spells\level-3\animate-dead.json:7**: `"source": "PHB 2024 p.240",`
+- **public\data\spells\level-3\aura-of-vitality.json:7**: `"source": "PHB 2024 p.244",`
+- **public\data\spells\level-3\beacon-of-hope.json:7**: `"source": "PHB 2024 p.245",`
+- **public\data\spells\level-3\bestow-curse.json:7**: `"source": "PHB 2024 p.246",`
+- **public\data\spells\level-3\blinding-smite.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-3\blink.json:7**: `"source": "PHB 2024 p.248",`
+- **public\data\spells\level-3\call-lightning.json:7**: `"source": "PHB 2024 p.249",`
+- **public\data\spells\level-3\catnap.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-3\clairvoyance.json:7**: `"source": "PHB 2024 p.250",`
+- **public\data\spells\level-3\conjure-animals.json:7**: `"source": "PHB 2024 p.253",`
+- **public\data\spells\level-3\conjure-barrage.json:7**: `"source": "PHB 2024 p.254",`
+- **public\data\spells\level-3\counterspell.json:7**: `"source": "PHB 2024 p.256",`
+- **public\data\spells\level-3\create-food-and-water.json:7**: `"source": "PHB 2024 p.258",`
+- **public\data\spells\level-3\crusaders-mantle.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-3\daylight.json:7**: `"source": "PHB 2024 p.260",`
+- **public\data\spells\level-3\dispel-magic.json:7**: `"source": "PHB 2024 p.264",`
+- **public\data\spells\level-3\elemental-weapon.json:7**: `"source": "PHB 2024 p.267",`
+- **public\data\spells\level-3\enemies-abound.json:7**: `"source": "PHB 2024 p.268",`
+- **public\data\spells\level-3\erupting-earth.json:7**: `"source": "PHB 2024 p.269",`
+- **public\data\spells\level-3\fast-friends.json:7**: `"source": "PHB 2024 p.270",`
+- **public\data\spells\level-3\fear.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-3\feign-death.json:7**: `"source": "PHB 2024 p.271",`
+- **public\data\spells\level-3\fireball.json:7**: `"source": "PHB 2024 p.274",`
+- **public\data\spells\level-3\flame-arrows.json:7**: `"source": "PHB 2024 p.275",`
+- **public\data\spells\level-3\fly.json:7**: `"source": "PHB 2024 p.276",`
+- **public\data\spells\level-3\galders-tower.json:7**: `"source": "PHB 2024 p.277",`
+- **public\data\spells\level-3\gaseous-form.json:7**: `"source": "PHB 2024 p.278",`
+- **public\data\spells\level-3\glyph-of-warding.json:7**: `"source": "PHB 2024 p.281",`
+- **public\data\spells\level-3\haste.json:7**: `"source": "PHB 2024 p.283",`
+- **public\data\spells\level-3\hunger-of-hadar.json:7**: `"source": "PHB 2024 p.287",`
+- **public\data\spells\level-3\hypnotic-pattern.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-3\incite-greed.json:7**: `"source": "PHB 2024 p.288",`
+- **public\data\spells\level-3\intellect-fortress.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-3\leomunds-tiny-hut.json:7**: `"source": "PHB 2024 p.291",`
+- **public\data\spells\level-3\life-transference.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-3\lightning-arrow.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-3\lightning-bolt.json:7**: `"source": "PHB 2024 p.292",`
+- **public\data\spells\level-3\magic-circle.json:7**: `"source": "PHB 2024 p.294",`
+- **public\data\spells\level-3\major-image.json:7**: `"source": "PHB 2024 p.296",`
+- **public\data\spells\level-3\mass-healing-word.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-3\meld-into-stone.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-3\melfs-minute-meteors.json:7**: `"source": "PHB 2024 p.297",`
+- **public\data\spells\level-3\motivational-speech.json:7**: `"source": "PHB 2024 p.300",`
+- **public\data\spells\level-3\nondetection.json:7**: `"source": "PHB 2024 p.301",`
+- **public\data\spells\level-3\phantom-steed.json:7**: `"source": "PHB 2024 p.304",`
+- **public\data\spells\level-3\plant-growth.json:7**: `"source": "PHB 2024 p.305",`
+- **public\data\spells\level-3\protection-from-energy.json:7**: `"source": "PHB 2024 p.310",`
+- **public\data\spells\level-3\pulse-wave.json:7**: `"source": "PHB 2024 p.311",`
+- **public\data\spells\level-3\remove-curse.json:7**: `"source": "PHB 2024 p.314",`
+- **public\data\spells\level-3\revivify.json:7**: `"source": "PHB 2024 p.314",`
+- **public\data\spells\level-3\sending.json:7**: `"source": "PHB 2024 p.316",`
+- **public\data\spells\level-3\sleet-storm.json:7**: `"source": "PHB 2024 p.320",`
+- **public\data\spells\level-3\slow.json:7**: `"source": "PHB 2024 p.320",`
+- **public\data\spells\level-3\speak-with-dead.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-3\speak-with-plants.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-3\spirit-guardians.json:7**: `"source": "PHB 2024 p.321",`
+- **public\data\spells\level-3\stinking-cloud.json:7**: `"source": "PHB 2024 p.322",`
+- **public\data\spells\level-3\summon-lesser-demons.json:7**: `"source": "PHB 2024 p.324",`
+- **public\data\spells\level-3\thunder-step.json:7**: `"source": "PHB 2024 p.328",`
+- **public\data\spells\level-3\tidal-wave.json:7**: `"source": "PHB 2024 p.328",`
+- **public\data\spells\level-3\tiny-servant.json:7**: `"source": "PHB 2024 p.329",`
+- **public\data\spells\level-3\tongues.json:7**: `"source": "PHB 2024 p.329",`
+- **public\data\spells\level-3\vampiric-touch.json:7**: `"source": "PHB 2024 p.331",`
+- **public\data\spells\level-3\wall-of-sand.json:7**: `"source": "PHB 2024 p.334",`
+- **public\data\spells\level-3\wall-of-water.json:7**: `"source": "PHB 2024 p.335",`
+- **public\data\spells\level-3\water-breathing.json:7**: `"source": "PHB 2024 p.336",`
+- **public\data\spells\level-3\water-walk.json:7**: `"source": "PHB 2024 p.337",`
+- **public\data\spells\level-3\wind-wall.json:7**: `"source": "PHB 2024 p.338",`
+- **public\data\spells\level-4\arcane-eye.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\aura-of-life.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\aura-of-purity.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\banishment.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\blight.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\charm-monster.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\compulsion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\confusion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\conjure-minor-elementals.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\conjure-woodland-beings.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\control-water.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\death-ward.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\dimension-door.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\divination.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\dominate-beast.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\elemental-bane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\evards-black-tentacles.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\fabricate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\find-greater-steed.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\fire-shield.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\freedom-of-movement.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\galders-speedy-courier.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\giant-insect.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\grasping-vine.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\gravity-sinkhole.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\greater-invisibility.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\guardian-of-faith.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\guardian-of-nature.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\hallucinatory-terrain.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\ice-storm.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\leomunds-secret-chest.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\locate-creature.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\mordenkainens-faithful-hound.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\mordenkainens-private-sanctum.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\otilukes-resilient-sphere.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\phantasmal-killer.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\polymorph.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\shadow-of-moil.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\sickening-radiance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\staggering-smite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\stone-shape.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\stoneskin.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\storm-sphere.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\summon-greater-demon.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\vitriolic-sphere.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-4\wall-of-fire.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\animate-objects.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\antilife-shell.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\awaken.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\banishing-smite.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\bigbys-hand.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\circle-of-power.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\cloudkill.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\commune-with-nature.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\commune.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\cone-of-cold.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\conjure-elemental.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\conjure-volley.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\contact-other-plane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\contagion.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\control-winds.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\creation.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\destructive-wave.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\dispel-evil-and-good.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\dominate-person.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\dream.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\flame-strike.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\geas.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\greater-restoration.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\hallow.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\hold-monster.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\insect-plague.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\legend-lore.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\mass-cure-wounds.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\mislead.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\modify-memory.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\passwall.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\planar-binding.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\raise-dead.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\rarys-telepathic-bond.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\reincarnate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\scrying.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\seeming.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\swift-quiver.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\telekinesis.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\teleportation-circle.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\temporal-shunt.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\tree-stride.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\wall-of-force.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-5\wall-of-stone.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-6\arcane-gate.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\blade-barrier.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\chain-lightning.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\circle-of-death.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\conjure-fey.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\contingency.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\create-undead.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\disintegrate.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\drawmijs-instant-summons.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\eyebite.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\find-the-path.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\flesh-to-stone.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\forbiddance.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\globe-of-invulnerability.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\gravity-fissure.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-6\guards-and-wards.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\harm.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\heal.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\heroes-feast.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\magic-jar.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\mass-suggestion.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\move-earth.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\otilukes-freezing-sphere.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\ottos-irresistible-dance.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\planar-ally.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\programmed-illusion.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\sunbeam.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\transport-via-plants.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\true-seeing.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\wall-of-ice.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\wall-of-thorns.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\wind-walk.json:7**: `"source": "PHB",`
+- **public\data\spells\level-6\word-of-recall.json:7**: `"source": "PHB",`
+- **public\data\spells\level-7\arcane-sword.json:9**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\conjure-celestial.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\delayed-blast-fireball.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\divine-word.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\etherealness.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\finger-of-death.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\fire-storm.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\forcecage.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\mirage-arcane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\mordenkainens-magnificent-mansion.json:7**: `"source": "PHB 2014",`
+- **public\data\spells\level-7\plane-shift.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\prismatic-spray.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\project-image.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\regenerate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\resurrection.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\reverse-gravity.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\sequester.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\simulacrum.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\symbol.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\teleport.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-7\tether-essence.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\animal-shapes.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\antimagic-field.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\antipathy-sympathy.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\clone.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\control-weather.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\demiplane.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\dominate-monster.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\earthquake.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\feeblemind.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\glibness.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\holy-aura.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\incendiary-cloud.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\maze.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\mind-blank.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\power-word-stun.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\sunburst.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\telepathy.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-8\tsunami.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\astral-projection.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\foresight.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\gate.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\imprisonment.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\mass-heal.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\meteor-swarm.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\power-word-heal.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\power-word-kill.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\prismatic-wall.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\shapechange.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\storm-of-vengeance.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\time-stop.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\true-polymorph.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\true-resurrection.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\weird.json:7**: `"source": "PHB 2024",`
+- **public\data\spells\level-9\wish.json:7**: `"source": "PHB 2024",`
+- **docs\tasks\spell-system-overhaul\SPELL_MIGRATION_PROMPT.md:9**: `- Add `"source": "PHB 2024"` or `"source": "Tasha's Cauldron of Everything"` etc.`
+- **docs\tasks\spell-system-overhaul\SPELL_MIGRATION_PROMPT.md:9**: `- Add `"source": "PHB 2024"` or `"source": "Tasha's Cauldron of Everything"` etc.`
+- **docs\tasks\spell-system-overhaul\SPELL_MIGRATION_PROMPT.md:54**: `"source": "PHB 2024",`
+
+### XGE (36)
+
+- **public\data\spells\level-5\danse-macabre.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\dawn.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\enervation.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\far-step.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\holy-weapon.json:7**: `"source": "XGE p.157 (Legacy)",`
+- **public\data\spells\level-5\immolation.json:7**: `"source": "XGE p.158 (Legacy)",`
+- **public\data\spells\level-5\infernal-calling.json:7**: `"source": "XGE p.158 (Legacy)",`
+- **public\data\spells\level-5\maelstrom.json:7**: `"source": "XGE p.160 (Legacy)",`
+- **public\data\spells\level-5\skill-empowerment.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\steel-wind-strike.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\synaptic-static.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\transmute-rock.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\wall-of-light.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-5\wrath-of-nature.json:7**: `"source": "XGE (Legacy)",`
+- **public\data\spells\level-6\bones-of-the-earth.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\create-homunculus.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\druid-grove.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\investiture-of-flame.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\investiture-of-ice.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\investiture-of-stone.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\investiture-of-wind.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\mental-prison.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\primordial-ward.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\scatter.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\soul-cage.json:7**: `"source": "XGE",`
+- **public\data\spells\level-6\tensers-transformation.json:7**: `"source": "XGE",`
+- **public\data\spells\level-7\crown-of-stars.json:7**: `"source": "XGE p.152",`
+- **public\data\spells\level-7\power-word-pain.json:7**: `"source": "XGE p.163",`
+- **public\data\spells\level-7\whirlwind.json:7**: `"source": "XGE p.171",`
+- **public\data\spells\level-8\abi-dalzims-horrid-wilting.json:7**: `"source": "XGE",`
+- **public\data\spells\level-8\illusory-dragon.json:7**: `"source": "XGE",`
+- **public\data\spells\level-8\maddening-darkness.json:7**: `"source": "XGE",`
+- **public\data\spells\level-8\mighty-fortress.json:7**: `"source": "XGE",`
+- **public\data\spells\level-9\invulnerability.json:7**: `"source": "XGE",`
+- **public\data\spells\level-9\mass-polymorph.json:7**: `"source": "XGE",`
+- **public\data\spells\level-9\psychic-scream.json:7**: `"source": "XGE",`
+
+### TCoE (0)
+
+*No entries found.*
+
+
+### AAG (7)
+
+- **public\data\glossary\entries\races\elf_lineages\astral_elf.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\autognome.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\giff.json:8**: `"source": "AAG",`
+- **public\data\glossary\entries\races\hadozee.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\plasmoid.json:6**: `"source": "AAG",`
+- **public\data\glossary\entries\races\thri_kreen.json:6**: `"source": "AAG",`
+- **docs\portraits\race_profiles\research-status.json:36**: `"message": "Attempt 1 failed: elementHandle.fill: Element is not attached to the DOM\nCall log:\n\u001b[2m    - fill(\"You are a senior RPG lore researcher writing a world-agnostic race dossier for \"Giff\" (giff).\u001b[22m\n\n\u001b[2mResearch mode requirements:\u001b[22m\n\u001b[2m- Perform live web research before drafting. Use Gemini's Deep Research workflow if available.\u001b[22m\n\u001b[2m- Cross-check multiple sources and resolve contradictions when possible.\u001b[22m\n\u001b[2m- Include only verifiable source URLs in the Sources section.\u001b[22m\n\n\u001b[2mContent constraints:\u001b[22m\n\u001b[2m- Keep this generalized for procedural world generation.\u001b[22m\n\u001b[2m- Do not anchor to named cities, kingdoms, nations, or timeline-specific events.\u001b[22m\n\u001b[2m- Avoid setting-locked proper nouns unless unavoidable for origin context; generalize them when possible.\u001b[22m\n\u001b[2m- Write in concise wiki-like prose with a light narrative flow (not a novel).\u001b[22m\n\u001b[2m- Do NOT output a Q&A table or question list format.\u001b[22m\n\n\u001b[2mOutput format (markdown only):\u001b[22m\n\u001b[2m1) # <Race Name>\u001b[22m\n\u001b[2m2) ## Overview\u001b[22m\n\u001b[2m3) ## Cultural Throughline\u001b[22m\n\u001b[2m4) ## Ten-Point Generalized Profile\u001b[22m\n\u001b[2m   - Provide 10 numbered subsections, one per required topic, each with a heading and 1-3 concise paragraphs.\u001b[22m\n\u001b[2m5) ## Design Hooks for Procedural Worldgen\u001b[22m\n\u001b[2m6) ## Sources\u001b[22m\n\u001b[2m   - List at least 5 web sources as markdown bullets with working URLs.\u001b[22m\n\n\u001b[2mRequired ten topics to cover inside 'Ten-Point Generalized Profile':\u001b[22m\n\u001b[2m1. (q1) What is this race's broad origin pattern (ancestral, planar, created, transformed, or unknown)?\u001b[22m\n\u001b[2m2. (q2) What core survival pressures historically shaped this race's behavior and values?\u001b[22m\n\u001b[2m3. (q3) Which social structures are most common (clans, houses, councils, bands, guilds, loose networks)?\u001b[22m\n\u001b[2m4. (q4) What roles or labors are most culturally typical in day-to-day life (non-combat)?\u001b[22m\n\u001b[2m5. (q5) What tensions commonly exist between this race's natural traits and broader society?\u001b[22m\n\u001b[2m6. (q6) What rites of passage or adulthood markers are culturally important?\u001b[22m\n\u001b[2m7. (q7) How does this race usually approach conflict resolution before violence?\u001b[22m\n\u001b[2m8. (q8) What family and kinship norms are typical (child-rearing, elders, obligation, inheritance)?\u001b[22m\n\u001b[2m9. (q9) What are common misunderstandings outsiders have about this race, and what is usually true instead?\u001b[22m\n\u001b[2m10. (q10) What generalized character hooks fit this race for play (duty, ambition, exile, craft, faith, curiosity, survival)?\u001b[22m\n\n\u001b[2mQuality bar:\u001b[22m\n\u001b[2m- Prefer official/primary sources first, then reputable references.\u001b[22m\n\u001b[2m- If sources disagree, include a short caveat in the relevant section.\u001b[22m\n\u001b[2m- Keep claims specific but setting-generalized.\u001b[22m\n\n\u001b[2mCandidate internal context to cross-check (may be stale; verify externally):\u001b[22m\n\u001b[2mentryLore: Giff are hippo-headed humanoids of impressive size who are renowned across the multiverse for their martial prowess and their love of firearms. Originally from a world whose name has been lost to time, giff now travel throughout Wildspace, often serving as mercenaries, bodyguards, or soldiers. They are fiercely proud of their military heritage and maintain strict hierarchies and traditions even when far from their kin. A giff's word is their bond, and they take contracts and oaths extremely seriously.\u001b[22m\n\u001b[2m\n\u001b[2mtags: race, giff, humanoid, spelljammer, beastfolk, military\u001b[22m\n\u001b[2msocietyType: Giff society is intensely hierarchical and organized around the military regiment. Loyalty to the group, the chain of command, and one's personal word is the foundation of their culture. They value discipline, tactical brilliance, and the fulfillment of one's duty above all else. Status is earned through merit, service, and the demonstration of martial skill. They possess a deep sense of honor and a collective identity as the multiverse's premier soldiers of fortune.\u001b[22m\n\u001b[2mtypicalEnvironment: Shipboard decks, fortified borderlands, and any location with a strong military presence are the giff's preferred habitats. They thrive in environments where they can establish a clear chain of command and utilize their tactical expertise. Many serve as professional mercenaries, elite bodyguards, or specialized soldiers in large interplanetary empires. They are comfortable in a variety of terrestrial and cosmic habitats, provided they have a clear mission and the means to maintain their martial traditions.\u001b[22m\n\n\u001b[2mReturn markdown only.\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and editable\u001b[22m\n"`
+
+### MPMM (21)
+
+- **public\data\glossary\entries\races\aasimar_variants\fallen.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\aasimar_variants\protector.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\aasimar_variants\scourge.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\eladrin_seasons\autumn.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\eladrin_seasons\spring.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\eladrin_seasons\summer.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\eladrin_seasons\winter.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\elf_lineages\sea_elf.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\elf_lineages\shadar_kai.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\shifter_variants\beasthide.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\shifter_variants\longtooth.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\shifter_variants\swiftstride.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\shifter_variants\wildhunt.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\harengon.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\hobgoblin.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\kobold.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\lizardfolk.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\minotaur.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\satyr.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\tortle.json:6**: `"source": "MPMM",`
+- **public\data\glossary\entries\races\yuan_ti.json:6**: `"source": "MPMM",`
+
+### MTF (0)
+
+*No entries found.*
+
+
+### GGtR (0)
+
+*No entries found.*
+
+
+### ERLW (14)
+
+- **public\data\glossary\entries\races\dragonmark_variants\beastborn_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\forgeborn_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\guardian_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\hearthkeeper_halfling.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\mender_halfling.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\pathfinder_half_orc.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\runeward_dwarf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\seersight_half_elf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\shadowveil_elf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\stormborn_half_elf.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\wayfarer_human.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\dragonmark_variants\wordweaver_gnome.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\kalashtar.json:6**: `"source": "ERLW",`
+- **public\data\glossary\entries\races\warforged.json:6**: `"source": "ERLW",`
+
+### EGW (4)
+
+- **public\data\spells\level-8\dark-star.json:7**: `"source": "EGW",`
+- **public\data\spells\level-8\reality-break.json:7**: `"source": "EGW",`
+- **public\data\spells\level-9\ravenous-void.json:7**: `"source": "EGW",`
+- **public\data\spells\level-9\time-ravage.json:7**: `"source": "EGW",`
+
+### FTD (1)
+
+- **public\data\spells\level-7\draconic-transformation.json:7**: `"source": "FTD p.19",`
+
+### VGTM (0)
+
+*No entries found.*
+
+
+### TCE (1)
+
+- **public\data\spells\level-7\dream-of-the-blue-veil.json:7**: `"source": "TCE p.106",`
+
+### EGtW (0)
+
+*No entries found.*
+
+
+### Other/Full Name (105)
+
+- **public\data\glossary\entries\races\dragonborn_ancestries\draconblood.json:6**: `"source": "Explorer's Guide to Wildemount",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\draconblood.json:49**: `"exandria",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\draconblood.json:50**: `"wildemount",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\ravenite.json:6**: `"source": "Explorer's Guide to Wildemount",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\ravenite.json:44**: `"exandria",`
+- **public\data\glossary\entries\races\dragonborn_ancestries\ravenite.json:45**: `"wildemount",`
+- **public\data\glossary\entries\races\dragonmark_variants\beastborn_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\forgeborn_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\guardian_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\hearthkeeper_halfling.json:68**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\mender_halfling.json:68**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\pathfinder_half_orc.json:62**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\runeward_dwarf.json:67**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\seersight_half_elf.json:67**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\shadowveil_elf.json:77**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\stormborn_half_elf.json:72**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\wayfarer_human.json:58**: `"eberron",`
+- **public\data\glossary\entries\races\dragonmark_variants\wordweaver_gnome.json:67**: `"eberron",`
+- **public\data\glossary\entries\races\elf_lineages\astral_elf.json:76**: `"spelljammer",`
+- **public\data\glossary\entries\races\elf_lineages\pallid_elf.json:6**: `"source": "EGtW",`
+- **public\data\glossary\entries\races\elf_lineages\pallid_elf.json:71**: `"wildemount",`
+- **public\data\glossary\entries\races\elf_lineages\pallid_elf.json:73**: `"exandria"`
+- **public\data\glossary\entries\races\halfling_subraces\lotusden_halfling.json:6**: `"source": "EGtW",`
+- **public\data\glossary\entries\races\halfling_subraces\lotusden_halfling.json:62**: `"wildemount",`
+- **public\data\glossary\entries\races\halfling_subraces\lotusden_halfling.json:64**: `"exandria",`
+- **public\data\glossary\entries\races\half_elf_variants\aquatic.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\half_elf_variants\drow.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\half_elf_variants\high.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\half_elf_variants\wood.json:6**: `"source": "SCAG",`
+- **public\data\glossary\entries\races\autognome.json:65**: `"spelljammer",`
+- **public\data\glossary\entries\races\giff.json:52**: `"spelljammer",`
+- **public\data\glossary\entries\races\hadozee.json:50**: `"spelljammer",`
+- **public\data\glossary\entries\races\kalashtar.json:55**: `"eberron",`
+- **public\data\glossary\entries\races\kender.json:6**: `"source": "DSotDQ",`
+- **public\data\glossary\entries\races\kender.json:50**: `"dragonlance",`
+- **public\data\glossary\entries\races\leonin.json:6**: `"source": "MOoT",`
+- **public\data\glossary\entries\races\loxodon.json:6**: `"source": "GGtR",`
+- **public\data\glossary\entries\races\loxodon.json:55**: `"ravnica",`
+- **public\data\glossary\entries\races\plasmoid.json:64**: `"spelljammer",`
+- **public\data\glossary\entries\races\simic_hybrid.json:6**: `"source": "GGtR",`
+- **public\data\glossary\entries\races\simic_hybrid.json:54**: `"ravnica",`
+- **public\data\glossary\entries\races\thri_kreen.json:64**: `"spelljammer",`
+- **public\data\glossary\entries\races\vedalken.json:6**: `"source": "GGtR",`
+- **public\data\glossary\entries\races\vedalken.json:50**: `"ravnica",`
+- **public\data\glossary\entries\races\verdan.json:6**: `"source": "AI",`
+- **public\data\glossary\entries\races\warforged.json:55**: `"eberron",`
+- **public\data\glossary\index\character_races.json:115**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:138**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:249**: `"ravnica",`
+- **public\data\glossary\index\character_races.json:315**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:392**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:415**: `"eberron",`
+- **public\data\glossary\index\character_races.json:552**: `"exandria",`
+- **public\data\glossary\index\character_races.json:553**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:639**: `"exandria",`
+- **public\data\glossary\index\character_races.json:640**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:803**: `"eberron",`
+- **public\data\glossary\index\character_races.json:939**: `"spelljammer",`
+- **public\data\glossary\index\character_races.json:1007**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:1009**: `"exandria"`
+- **public\data\glossary\index\character_races.json:1081**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1443**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1730**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1878**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1903**: `"eberron",`
+- **public\data\glossary\index\character_races.json:1981**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2026**: `"wildemount",`
+- **public\data\glossary\index\character_races.json:2028**: `"exandria",`
+- **public\data\glossary\index\character_races.json:2053**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2111**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2136**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2161**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2207**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2239**: `"eberron",`
+- **public\data\glossary\index\character_races.json:2259**: `"dragonlance",`
+- **public\data\glossary\index\character_races.json:2279**: `"ravnica",`
+- **public\data\glossary\index\character_races.json:2326**: `"ravnica",`
+- **public\data\glossary\index\character_races.json:2415**: `"spelljammer",`
+- **public\data\spells\level-0\booming-blade.json:7**: `"source": "Tasha's Cauldron of Everything",`
+- **public\data\spells\level-0\green-flame-blade.json:7**: `"source": "Tasha's Cauldron of Everything",`
+- **public\data\spells\level-4\watery-sphere.json:7**: `"source": "Xanathar's Guide to Everything",`
+- **public\data\spells\level-5\negative-energy-flood.json:7**: `"source": "Xanathar's Guide to Everything",`
+- **public\data\spells\level-7\temple-of-the-gods.json:7**: `"source": "Xanathar's Guide to Everything",`
+- **public\data\spells\level-9\blade-of-disaster.json:7**: `"source": "TCoE",`
+- **src\data\feats\featsData.ts:164**: `selectableSpell`
+- **src\data\races\elf.ts:43**: `swappableCantrip`
+- **docs\archive\improvements\07_invert_reducer_action_logic.md:82**: `content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,`
+- **docs\improvements\completed\07_invert_reducer_action_logic.md:82**: `content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,`
+- **docs\portraits\race_portrait_regen_backlog.json:4**: `"source": "User-provided manual review list. Categories A-E match docs/portraits/race_portrait_regen_backlog.md.",`
+- **docs\portraits\race_portrait_regen_handoff.md:52**: `Live preview data `
+- **docs\tasks\combat-messaging-enhancement\README.md:86**: `addDamageMessage({`
+- **docs\tasks\spell-completeness-audit\output\PHB-2024-REFERENCE.md:4**: `Last Updated: 2025-12-04 16:34 UTC`
+- **docs\tasks\spell-completeness-audit\1A~INVENTORY-LOCAL-SPELLS.md:15**: `- Codebase `public/data/spells/``
+- **docs\tasks\spell-system-overhaul\0-PRIORITY-SCHEMA-EVOLUTION.md:5**: `*
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:277**: `appliedTurn: currentState.turnState.currentTurn,`
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:481**: `appliedTurn: number`
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:525**: `appliedTurn: state.turnState.currentTurn,`
+- **docs\tasks\spell-system-overhaul\AGENT-PROMPTS-STUB-COMPLETION.md:615**: `appliedTurn: state.turnState.currentTurn,`
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-AI-ARBITRATION-SERVICE.md:7**: `*
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-AOE-ALGORITHMS.md:7**: `*
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-AOE-ALGORITHMS.md:313**: `- **Algorithm `
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-CONCENTRATION-TRACKING.md:7**: `*
+- **docs\tasks\spell-system-overhaul\IMPLEMENT-REMAINING-EFFECT-COMMANDS.md:7**: `*
+- **docs\review_worklogs.md:201**: `*
+- **docs\V1.1_BUG_VERIFICATION_REPORT.md:4**: `*
+

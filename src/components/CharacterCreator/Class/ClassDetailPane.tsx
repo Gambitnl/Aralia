@@ -68,16 +68,6 @@ export const ClassDetailPane: React.FC<ClassDetailPaneProps> = ({ charClass, onS
           {charClass.description}
         </p>
       </div>
-
-      {/* Action Footer */}
-      <div className="mt-auto flex justify-end sticky bottom-0 bg-gray-800 pt-4 pb-2 border-t border-gray-700">
-        <button 
-          onClick={() => onSelect(charClass.id)}
-          className={`${BTN_PRIMARY} px-8 py-3 text-lg rounded-xl shadow-lg`}
-        >
-          Confirm {charClass.name}
-        </button>
-      </div>
     </div>
   );
 };

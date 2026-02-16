@@ -58,9 +58,7 @@ export interface Spell {
 }
 
 /**
- * The eight schools of magic in D&D 5e.
- * Source: PHB 2024
- */
+ * The eight schools of magic in D&D 5e. */
 export enum SpellSchool {
   Abjuration = "Abjuration",
   Conjuration = "Conjuration",
@@ -386,9 +384,7 @@ export type SpellEffect =
 export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
 
 /**
- * The thirteen types of damage in D&D 5e.
- * Source: PHB 2024
- */
+ * The thirteen types of damage in D&D 5e. */
 export const DamageType = {
   Acid: "Acid",
   Bludgeoning: "Bludgeoning",

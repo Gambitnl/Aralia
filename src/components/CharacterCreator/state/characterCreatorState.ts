@@ -42,6 +42,7 @@ export enum CreationStep {
   Race,
   AgeSelection,
   BackgroundSelection,
+  Visuals,
   Class,
   AbilityScores,
   HumanSkillChoice,
@@ -49,14 +50,7 @@ export enum CreationStep {
   ClassFeatures,
   WeaponMastery,
   FeatSelection,
-  Visuals,
   NameAndReview,
-  DragonbornAncestry,
-  ElvenLineage,
-  GnomeSubrace,
-  GiantAncestry,
-  TieflingLegacy,
-  RacialSpellAbilityChoice,
 }
 
 export type FeatChoiceValue = AbilityScoreName | string | string[] | undefined;
@@ -125,20 +119,10 @@ export type ClassFeatureFinalSelectionAction =
   | { type: 'SELECT_DRUID_FEATURES'; payload: { order: 'Magician' | 'Warden', cantrips: Spell[]; spellsL1: Spell[] } }
   | { type: 'SELECT_WARLOCK_FEATURES'; payload: { cantrips: Spell[]; spellsL1: Spell[] } };
 
-export type RaceSpecificFinalSelectionAction =
-  | { type: 'SELECT_DRAGONBORN_ANCESTRY'; payload: DraconicAncestorType }
-  | { type: 'SELECT_ELVEN_LINEAGE'; payload: { lineageId: ElvenLineageType; spellAbility: AbilityScoreName } }
-  | { type: 'SELECT_GNOME_SUBRACE'; payload: { subraceId: GnomeSubraceType; spellAbility: AbilityScoreName } }
-  | { type: 'SELECT_GIANT_ANCESTRY'; payload: GiantAncestryType }
-  | { type: 'SELECT_TIEFLING_LEGACY'; payload: { legacyId: FiendishLegacyType; spellAbility: AbilityScoreName } };
-
-
 export type CharacterCreatorAction =
   | { type: 'SET_STEP'; payload: CreationStep }
   | { type: 'SELECT_RACE'; payload: Race }
   | { type: 'SET_RACIAL_SELECTION'; payload: { raceId: string; patch: Partial<RacialSelectionData> } }
-  | RaceSpecificFinalSelectionAction
-  | { type: 'SELECT_RACIAL_SPELL_ABILITY'; payload: AbilityScoreName }
   | { type: 'SELECT_VISUALS'; payload: Partial<CharacterVisualConfig> }
   | { type: 'SELECT_CLASS'; payload: CharClass }
   | { type: 'SET_ABILITY_SCORES'; payload: { baseScores: AbilityScores } }
@@ -207,14 +191,7 @@ export const initialCharacterCreatorState: CharacterCreationState = {
  * Determines the next step after race selection.
  * Race-specific sub-selections (ancestry, lineage, etc.) come BEFORE age/background.
  */
-function determineNextStepAfterRace(race: Race): CreationStep {
-  // Race-specific sub-selections happen immediately after race choice
-  if (race.id === 'dragonborn') return CreationStep.DragonbornAncestry;
-  if (race.id === 'elf') return CreationStep.ElvenLineage;
-  if (race.id === 'gnome') return CreationStep.GnomeSubrace;
-  if (race.id === 'goliath') return CreationStep.GiantAncestry;
-  if (race.id === 'tiefling') return CreationStep.TieflingLegacy;
-  // Races without sub-selections go directly to age
+function determineNextStepAfterRace(_race: Race): CreationStep {
   return CreationStep.AgeSelection;
 }
 
@@ -266,16 +243,6 @@ const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: Cre
   };
 
   switch (exitedStep) {
-    case CreationStep.DragonbornAncestry: pruneRacialSelection('dragonborn'); break;
-    case CreationStep.ElvenLineage: pruneRacialSelection('elf'); break;
-    case CreationStep.GnomeSubrace: pruneRacialSelection('gnome'); break;
-    case CreationStep.GiantAncestry: pruneRacialSelection('goliath'); break;
-    case CreationStep.TieflingLegacy: pruneRacialSelection('tiefling'); break;
-    case CreationStep.RacialSpellAbilityChoice:
-      if (state.selectedRace?.id) {
-        pruneRacialSelection(state.selectedRace.id);
-      }
-      break;
     case CreationStep.Class:
       resetFields.selectedClass = null;
       break;
@@ -326,14 +293,8 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.AgeSelection]: { previousStep: () => CreationStep.Race },
   [CreationStep.BackgroundSelection]: { previousStep: () => CreationStep.AgeSelection },
   [CreationStep.Visuals]: { previousStep: () => CreationStep.BackgroundSelection },
-  [CreationStep.DragonbornAncestry]: { previousStep: () => CreationStep.Race },
-  [CreationStep.ElvenLineage]: { previousStep: () => CreationStep.Race },
-  [CreationStep.GnomeSubrace]: { previousStep: () => CreationStep.Race },
-  [CreationStep.GiantAncestry]: { previousStep: () => CreationStep.Race },
-  [CreationStep.TieflingLegacy]: { previousStep: () => CreationStep.Race },
-  [CreationStep.RacialSpellAbilityChoice]: { previousStep: () => CreationStep.AbilityScores },
-  [CreationStep.AbilityScores]: { previousStep: () => CreationStep.Class },
   [CreationStep.Class]: { previousStep: () => CreationStep.Visuals },
+  [CreationStep.AbilityScores]: { previousStep: () => CreationStep.Class },
   [CreationStep.HumanSkillChoice]: { previousStep: () => CreationStep.AbilityScores },
   [CreationStep.Skills]: {
     previousStep: (state) => (state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.AbilityScores)
@@ -452,81 +413,6 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         selectedRace: race,
         racialSpellChoiceContext: spellChoiceContext,
         step: nextStep,
-      };
-    }
-    case 'SELECT_DRAGONBORN_ANCESTRY': {
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          dragonborn: { ...(state.racialSelections['dragonborn'] ?? {}), choiceId: action.payload },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    }
-    case 'SELECT_ELVEN_LINEAGE': {
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          elf: {
-            ...(state.racialSelections['elf'] ?? {}),
-            choiceId: action.payload.lineageId,
-            spellAbility: action.payload.spellAbility,
-          },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    }
-    case 'SELECT_GNOME_SUBRACE': {
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          gnome: {
-            ...(state.racialSelections['gnome'] ?? {}),
-            choiceId: action.payload.subraceId,
-            spellAbility: action.payload.spellAbility,
-          },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    }
-    case 'SELECT_GIANT_ANCESTRY': {
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          goliath: { ...(state.racialSelections['goliath'] ?? {}), choiceId: action.payload },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    }
-    case 'SELECT_TIEFLING_LEGACY': {
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          tiefling: {
-            ...(state.racialSelections['tiefling'] ?? {}),
-            choiceId: action.payload.legacyId,
-            spellAbility: action.payload.spellAbility,
-          },
-        },
-        step: CreationStep.AgeSelection,
-      };
-    }
-    case 'SELECT_RACIAL_SPELL_ABILITY': {
-      if (!state.selectedRace) return state;
-      return {
-        ...state,
-        racialSelections: {
-          ...state.racialSelections,
-          [state.selectedRace.id]: {
-            ...(state.racialSelections[state.selectedRace.id] ?? {}),
-            spellAbility: action.payload,
-          },
-        },
       };
     }
     case 'SET_CHARACTER_AGE': {

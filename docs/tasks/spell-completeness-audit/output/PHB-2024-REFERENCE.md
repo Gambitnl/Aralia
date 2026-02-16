@@ -1,9 +1,7 @@
 # PHB 2024 Spell Reference (Levels 1-9)
 
 Created: 2025-12-04 16:34 UTC
-Last Updated: 2025-12-04 16:34 UTC
-Source: Kassoon 2024 spell list scraped on same date (filtered for `PHB'24` entries and levels 1-9 only).
-
+Last Updated: 2025-12-04 16:34 UTC
 ## Summary
 
 | Level | Count |
@@ -424,4 +422,4 @@ Source: Kassoon 2024 spell list scraped on same date (filtered for `PHB'24` entr
 | Weird | weird | PHB 2024 p.341 |
 | Wish | wish | PHB 2024 p.341 |
 
-Notes: Page citations are sourced from Kassoon and reference the printed Player's Handbook 2024. Cross-check unusual entries before data use.
+Notes: Page citations are sourced from Kassoon and reference the printed  2024. Cross-check unusual entries before data use.

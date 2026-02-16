@@ -23,6 +23,7 @@ import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../..
 import { ABILITY_SCORE_NAMES } from '../../constants';
 import { POINT_BUY_TOTAL_POINTS, POINT_BUY_MIN_SCORE, POINT_BUY_MAX_SCORE, ABILITY_SCORE_COST } from '../../config/characterCreationConfig';
 import { Sparkles } from 'lucide-react';
+import { Button } from '../ui/Button';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 
@@ -146,6 +147,21 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
 
   const canSetRecommended = !!selectedClass?.recommendedPointBuyPriorities;
 
+  const headerActions = (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        setBaseScores(initialScores);
+        setFeedback({ type: 'info', message: 'Scores reset to minimum.' });
+      }}
+      disabled={Object.values(baseScores).every(s => s === POINT_BUY_MIN_SCORE)}
+      className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+    >
+      Reset
+    </Button>
+  );
+
   return (
     <CreationStepLayout
       title="Assign Ability Scores"
@@ -154,6 +170,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
       canProceed={pointsRemaining === 0}
       nextLabel={pointsRemaining === 0 ? 'Confirm Attributes' : `Spend ${pointsRemaining} more`}
       bodyScrollable={false}
+      headerActions={headerActions}
     >
       <div className="h-full min-h-0">
         <SplitPaneLayout

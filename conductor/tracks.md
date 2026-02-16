@@ -41,3 +41,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [~] **Track: roadmap population and historical backfill of past tracks/efforts/projects/implementations/changes**
 *Link: [./tracks/roadmap_backfill_20260212/](./tracks/roadmap_backfill_20260212/)*
 
+
+---
+
+- [x] **Track: Remove all D&D source material references from all git-tracked files and create a comprehensive inventory.**
+*Link: [./tracks/source_cleanup_20260213/](./tracks/source_cleanup_20260213/)*

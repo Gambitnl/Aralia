@@ -3,7 +3,6 @@
   "title": "Sea Elf",
   "category": "Character Races",
   "entryLore": "Sea elves fell in love with the wild beauty of the ocean in the earliest days of the multiverse. While other elves traveled from realm to realm, the sea elves navigated the deepest currents and explored the waters across a hundred worlds. Today, they live in small, hidden communities in the ocean shallows and on the Elemental Plane of Water. They have developed gills and webbed hands and feet, adapting perfectly to life beneath the waves. Sea elves maintain cordial relationships with their land-dwelling kin, though they may go decades without encountering them.",
-  "source": "MPMM",
   "baseRace": "elf",
   "lore": {
     "typicalDwelling": "Sea elves build their cities in the ocean shallows, underwater caverns, and coral reefs. Their architecture incorporates living coral, cultivated kelp forests, and structures adapted from natural undersea formations. Homes may be carved into underwater cliffs, grown from specially shaped coral, or constructed from materials harvested from the sea floor. Air-filled chambers provide spaces for crafts requiring fire, and bioluminescent creatures provide illumination. These hidden communities are invisible to surface dwellers and fiercely protected.",

@@ -1,8 +1,6 @@
 /**
  * @file src/types/conditions.ts
- * Defines the standard conditions that can affect creatures in the game.
- * Source: PHB 2014 / PHB 2024
- */
+ * Defines the standard conditions that can affect creatures in the game. */
 
 /**
  * Standard D&D 5e conditions that alter a creature's capabilities.
@@ -45,9 +43,7 @@ export interface ConditionTraits {
 }
 
 /**
- * Definitions for all standard conditions.
- * Source: PHB Appendix A: Conditions
- */
+ * Definitions for all standard conditions. */
 export const ConditionDefinitions: Record<ConditionType, ConditionTraits> = {
   [ConditionType.Blinded]: {
     description: "You can't see and automatically fail ability checks that require sight.",

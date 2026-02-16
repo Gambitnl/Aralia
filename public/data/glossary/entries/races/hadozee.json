@@ -3,7 +3,6 @@
   "title": "Hadozee",
   "category": "Character Races",
   "entryLore": "Hadozee are simian humanoids with wing-like flaps of skin that extend from their arms to their legs, allowing them to glide through the air. Originally from a world with towering forests, they adapted to life among the branches before taking to the stars. Hadozee are known for their adventurous spirits, quick reflexes, and adaptability. They make excellent sailors and explorers, equally at home swinging through rigging as they are navigating the void of Wildspace.",
-  "source": "AAG",
   "lore": {
     "typicalDwelling": "Hadozee are most at home in the rigging of ships or in treetop villages that offer plenty of opportunities for climbing and jumping. Their dwellings are often lightweight and well-integrated into vertical structures, featuring hammocks, climbing ropes, and multiple vantage points. They value mobility and a clear view of the surrounding area, their homes often feeling more like temporary lookout posts than permanent residences. In larger settlements, they gravitate toward high-altitude quarters or professions that reward their natural agility.",
     "typicalAttire": "Hadozee fashion is defined by functionality and the need for freedom of movement. They favor lightweight, durable garments in natural fabrics like linen and soft leather, often with multiple pockets and attachment points for rope and tools. Their clothing is designed to facilitate climbing and gliding, avoiding anything heavy or restrictive. Many choose to go barefoot to better utilize their dexterous feet. Colors favor the practical—oceanic blues, sun-faded yellows, and the earthy greens of their ancestral forests.",
@@ -47,7 +46,6 @@
     "race",
     "hadozee",
     "humanoid",
-    "spelljammer",
     "beastfolk",
     "glide"
   ],

@@ -215,9 +215,6 @@ function writeBatchFiles(batch: BatchInput, outDir: string) {
   promptLines.push('      "raceId": "...",');
   promptLines.push('      "raceName": "...",');
   promptLines.push('      "summary": "...",');
-  promptLines.push('      "researchSources": [');
-  promptLines.push('        { "title": "...", "url": "https://...", "sourceType": "official|reference|community", "note": "optional" }');
-  promptLines.push("      ],");
   promptLines.push('      "answers": [');
   promptLines.push('        { "questionId": "q1", "question": "...", "answer": "..." }');
   promptLines.push("      ]");
@@ -233,6 +230,12 @@ function writeBatchFiles(batch: BatchInput, outDir: string) {
   promptLines.push("## Race Profile Questions (Verbatim)");
   promptLines.push("");
   promptLines.push(profileQuestionsText);
+  promptLines.push("");
+  promptLines.push("## Race Profile Output Style");
+  promptLines.push("");
+  promptLines.push("- No source references, citations, bibliography sections, or URLs.");
+  promptLines.push("- No bullet lists, numbered lists, or tables in race profile prose.");
+  promptLines.push("- Keep prose generalized and setting-safe.");
   promptLines.push("");
   promptLines.push("## Batch Rows");
   promptLines.push("```json");

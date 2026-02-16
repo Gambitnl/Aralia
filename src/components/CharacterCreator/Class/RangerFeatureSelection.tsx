@@ -4,8 +4,8 @@
  * their initial known Level 1 spells. Fighting Style is a level 2 feature and is no longer selected here.
  */
 import React, { useState, useMemo } from 'react';
-import { motion, MotionProps } from 'framer-motion';
 import { Spell, Class as CharClass } from '../../../types';
+import { CreationStepLayout } from '../ui/CreationStepLayout';
 
 interface RangerFeatureSelectionProps {
   spellcastingInfo: NonNullable<CharClass['spellcasting']>;
@@ -13,13 +13,6 @@ interface RangerFeatureSelectionProps {
   onRangerFeaturesSelect: (spellsL1: Spell[]) => void;
   onBack: () => void;
 }
-
-const containerMotion: MotionProps = {
-  initial: { x: 300, opacity: 0 },
-  animate: { x: 0, opacity: 1 },
-  exit: { x: -300, opacity: 0 },
-  transition: { duration: 0.3, ease: 'easeInOut' },
-};
 
 const RangerFeatureSelection: React.FC<RangerFeatureSelectionProps> = ({
   spellcastingInfo,
@@ -57,38 +50,45 @@ const RangerFeatureSelection: React.FC<RangerFeatureSelectionProps> = ({
   const isSubmitDisabled = selectedSpellL1Ids.size !== knownSpellsL1;
 
   return (
-    <motion.div
-      key="rangerFeatures"
-      {...containerMotion}
+    <CreationStepLayout
+      title="Ranger Spell Selection"
+      onBack={onBack}
+      onNext={handleSubmit}
+      canProceed={!isSubmitDisabled}
+      nextLabel="Confirm Spells"
     >
-      <h2 className="text-2xl text-sky-300 mb-4 text-center">Ranger Spell Selection</h2>
-      
-      {/* Level 1 Spell Selection */}
-      <div className="mb-6">
-        <h3 className="text-xl text-amber-300 mb-2">Select {knownSpellsL1} Level 1 Spells</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <section>
+        <div className="flex justify-between items-end mb-3 border-b border-gray-700 pb-1">
+          <h3 className="text-xl font-cinzel text-amber-400">Select Level 1 Spells</h3>
+          <span className="text-xs font-mono text-gray-500 mb-1">
+            {selectedSpellL1Ids.size} / {knownSpellsL1}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {availableSpellsL1.map(spell => (
-            <label key={spell.id} className={`p-2 rounded-md cursor-pointer transition-colors ${selectedSpellL1Ids.has(spell.id) ? 'bg-sky-600 ring-1 ring-sky-400' : 'bg-gray-700 hover:bg-gray-600'}`}>
-              <input type="checkbox" className="mr-2 form-checkbox text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500"
-                checked={selectedSpellL1Ids.has(spell.id)}
-                onChange={() => toggleSelection(spell.id)}
-                disabled={!selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= knownSpellsL1}
-                aria-label={`Select spell ${spell.name}`}
-              />
-              {spell.name}
+            <label 
+              key={spell.id} 
+              className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                selectedSpellL1Ids.has(spell.id) 
+                  ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
+                  : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
+                  checked={selectedSpellL1Ids.has(spell.id)} 
+                  onChange={() => toggleSelection(spell.id)} 
+                  disabled={!selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= knownSpellsL1}
+                />
+                <span className="text-sm font-semibold">{spell.name}</span>
+              </div>
             </label>
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-1">Selected: {selectedSpellL1Ids.size}/{knownSpellsL1}</p>
-      </div>
-
-      <div className="flex gap-4 mt-6">
-        <button onClick={onBack} className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow">Back</button>
-        <button onClick={handleSubmit} disabled={isSubmitDisabled} className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow">
-          Confirm Spells
-        </button>
-      </div>
-    </motion.div>
+      </section>
+    </CreationStepLayout>
   );
 };
 

@@ -137,6 +137,7 @@
 | Doc | Description | Status |
 |-----|-------------|--------|
 | [@ROADMAP-SYSTEM-GUIDE](./@ROADMAP-SYSTEM-GUIDE.md) | Documentation for the interactive Roadmap Visualizer | 🟢 Active |
+| [1B-ROADMAP-VISUALIZER-HANDOVER](./tasks/roadmap/1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md) | Vision and handover for roadmap evolution | 🟢 Active |
 
 ---
 

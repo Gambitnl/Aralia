@@ -106,10 +106,12 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 | Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
 |--------|----------|--------|----------|----------|--------------|--------------|
 | [1A](./@ROADMAP-SYSTEM-GUIDE.md) | Roadmap System Guide | Active | 90% | High | - | Feb 12, 2026 |
+| [1B](./tasks/roadmap/1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md) | Roadmap Visualizer Evolution Handover | Active | 100% | High | 1A | Feb 15, 2026 |
+| [1C](./tasks/roadmap/1C-ROADMAP-IMPLEMENTATION-PLAN.md) | Roadmap Visualizer Implementation Plan | Active | 0% | High | 1B | Feb 15, 2026 |
 
 **Tags**: `tooling`, `roadmap`, `visualization`, `agent-context`
 
-**Next available number**: `1B`
+**Next available number**: `1D`
 
 ---
 

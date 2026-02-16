@@ -3,7 +3,6 @@
   "title": "Forgeborn Human",
   "category": "Character Races",
   "entryLore": "The Mark of Making grants the ability to create and repair. House Cannith carries this mark, the architects of the warforged and the lightning rail. Though diminished after the destruction of their creation forges in the Mourning, House Cannith remains the premier guild for manufacturing and artifice. Humans with the Mark of Making are natural craftspeople, able to mend broken items and create wonders.",
-  "source": "ERLW",
   "lore": {
     "typicalDwelling": "Those with the Mark of Making often dwell in the sunless reaches of deep cavern-complexes, high-altitude mountain peaks, or the most ancient districts of subterranean cities. Their homes are carved directly into the living rock and feature expansive meditation galleries, archives of technical data, and living quarters that are optimized for study and the preservation of calm. Every structure is designed with mathematical precision, with clear channels for light, air, and the flow of collective thought. They value efficiency and internal peace, their homes often devoid of unnecessary decoration unless it serves a specific cognitive or aesthetic purpose.",
     "typicalAttire": "Forgeborn humans favor attire that is governed by functionality and the need for precision. They favor layered garments in durable, high-quality fabrics like silk and brushed wool in shades of navy blue, silver, and charcoal gray. Their clothing is often fitted with multiple pockets and attachment points for specialized tools, scrolls, and measuring devices. Many wear protective gear, such as goggles or gauntlets, that can be easily adjusted for different research tasks. Their appearance is always meticulously clean and orderly, reflecting the disciplined and focused nature of their minds.",
@@ -55,7 +54,6 @@
     "dragonmark",
     "mark of making",
     "humanoid",
-    "eberron",
     "house cannith"
   ],
   "aliases": [

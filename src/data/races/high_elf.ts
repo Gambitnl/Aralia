@@ -1,6 +1,6 @@
 /**
  * @file high_elf.ts
- * Defines the data for the High Elf race in the Aralia RPG, based on 2024 PHB.
+ * Defines the data for the High Elf race in the Aralia RPG.
  * High elves are heirs to elves infused with magic of the Feywild or similar mystical places.
  */
 import { Race } from '../../types';

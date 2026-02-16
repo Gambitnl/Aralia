@@ -2,10 +2,9 @@
   "id": "half_elf",
   "title": "Half-Elf",
   "category": "Character Races",
-  "entryLore": "Half-elves are individuals born from the union of humans and elves, or those who carry the heritage of both lineages in their blood. In the 2024 rules, they are often characterized as 'Children of Different Kindreds,' allowing them to inherit the physical appearance of both parents while choosing the mechanical traits of one. They often find themselves navigating two worlds, possessing the versatility of humans and the keen senses or magical affinity of elves.",
+  "entryLore": "Half-elves are individuals born from the union of humans and elves, or those who carry the heritage of both lineages in their blood.  They often find themselves navigating two worlds, possessing the versatility of humans and the keen senses or magical affinity of elves.",
   "maleImageUrl": "/assets/images/races/Half_elf_Male.png",
   "femaleImageUrl": "/assets/images/races/Half_elf_Female.png",
-  "source": "PHB 2024",
   "lore": {
     "typicalDwelling": "Half-elves find homes in both human and elven communities, though they rarely feel entirely at home in either. In human settlements, they often gravitate toward cosmopolitan cities where diversity is celebrated. In elven lands, they may live on the edges of communities, respected but never fully embraced. Many half-elves are drawn to places where cultures mix—port cities, trade crossroads, and frontier settlements where being different is less remarkable. Their homes often reflect their dual heritage: perhaps elven art alongside human comforts.",
     "typicalAttire": "Half-elves dress to navigate both worlds they inhabit. Their clothing often blends human practicality with elven elegance—well-made garments in natural colors, perhaps with subtle elven embroidery or human-style cuts. Many adapt their dress to their current company, appearing more elven among elves and more human among humans. Personal style varies widely, but a tendency toward understated quality over flashy display is common. Jewelry is modest but meaningful, often containing personal or familial significance.",

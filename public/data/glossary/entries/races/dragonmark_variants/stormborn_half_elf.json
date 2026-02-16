@@ -3,7 +3,6 @@
   "title": "Half-Elf (Stormborn)",
   "category": "Character Races",
   "entryLore": "The Mark of Storm grants power over wind and weather. House Lyrandar carries this mark, dominating the shipping and transportation industries with their ability to control the elements. Half-elves with the Mark of Storm can call lightning, command the winds, and navigate through the fiercest tempests. They are the masters of the airships and elemental galleons that cross Eberron's skies and seas.",
-  "source": "ERLW",
   "lore": {
     "typicalDwelling": "Those with the Mark of Storm often dwell in the wave-lashed reaches of coastal cliffs, isolated island-citadels, or the grandest districts of major port cities. Their homes are constructed of durable stone and often featured submerged entrances or chambers that allow for easy access to the sea. They value structural integrity and a clear view of the ocean, their dwellings often doubling as watchtowers or lighthouses for communal safety. Their settlements are monuments to their adaptability and their ancestor's mastery over the coastal environment.",
     "typicalAttire": "Stormborn half-elves favor attire that is both durable and functional, reflecting their maritime and sea-touched nature. They wear oil-treated leathers, heavy fabrics in shades of oceanic blue, deep charcoal gray, and rich silver, often decorated with bone or ivory tokens. Their clothing is designed to be easily shed or cleaned of salt-spray and sea-debris. Many wear simple, practical sashes and belts for carrying specialized maritime tools and defensive gear. Their appearance is always disciplined and intimidating, their gear kept in peak condition.",
@@ -69,7 +68,6 @@
     "dragonmark",
     "mark of storm",
     "humanoid",
-    "eberron",
     "house lyrandar"
   ],
   "aliases": [

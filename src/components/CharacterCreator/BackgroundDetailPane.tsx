@@ -94,16 +94,6 @@ export const BackgroundDetailPane: React.FC<BackgroundDetailPaneProps> = ({ back
           </div>
         )}
       </div>
-
-      {/* Action Footer */}
-      <div className="mt-8 flex justify-end sticky bottom-0 bg-gray-800 pt-4 pb-2 border-t border-gray-700">
-        <button 
-          onClick={onSelect}
-          className={`${BTN_PRIMARY} px-8 py-3 text-lg rounded-xl shadow-lg`}
-        >
-          Confirm Background
-        </button>
-      </div>
     </div>
   );
 };

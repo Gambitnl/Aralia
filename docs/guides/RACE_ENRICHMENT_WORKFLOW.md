@@ -1,5 +1,8 @@
 # Race Enrichment Workflow
 
+**Roadmap**: Added (Feb 13, 2026)
+**Verification Status**: ✅ 100% Sync (106/106 races)
+
 Last updated: 2026-02-12
 
 ## Purpose

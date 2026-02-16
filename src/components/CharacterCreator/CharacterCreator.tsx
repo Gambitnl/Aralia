@@ -80,20 +80,6 @@ import { SafeStorage } from '../../utils/storageUtils';
 import { sanitizeAIPromptText } from '../../utils/securityUtils';
 import { ENV } from '../../config/env';
 
-// Helper function to determine the next step
-const getNextStep = (state: CharacterCreationState): CreationStep => {
-  switch (state.step) {
-    case CreationStep.AgeSelection:
-      return CreationStep.BackgroundSelection;
-    case CreationStep.BackgroundSelection:
-      return CreationStep.Visuals;
-    case CreationStep.Visuals:
-      return CreationStep.Class;
-    default:
-      return CreationStep.Class; // fallback
-  }
-};
-
 interface CharacterCreatorProps {
   onCharacterCreate: (character: PlayerCharacter, startingInventory: Item[]) => void;
   onExitToMainMenu: () => void;
@@ -302,9 +288,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId: 'changeling', patch: { skillIds: choices.changelingInstinctSkillIds } } });
     }
   }, [dispatch]);
-  // Deprecated handlers removed: handleDragonbornAncestrySelect, handleElvenLineageSelect,
-  // handleGnomeSubraceSelect, handleGiantAncestrySelect, handleTieflingLegacySelect, handleRacialSpellAbilitySelect
-  // These are now handled inline via handleRaceSelect with RacialChoiceData
+
   const handleClassSelect = useCallback((classId: string) => dispatch({ type: 'SELECT_CLASS', payload: CLASSES_DATA[classId] }), [dispatch]);
   const handleAbilityScoresSet = useCallback((scores: AbilityScores) => dispatch({ type: 'SET_ABILITY_SCORES', payload: { baseScores: scores } }), [dispatch]);
   const handleHumanSkillSelect = useCallback((skillId: string) => dispatch({ type: 'SELECT_HUMAN_SKILL', payload: skillId }), [dispatch]);
@@ -361,19 +345,17 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             onRaceSelect={handleRaceSelect}
             selectedRaceId={state.selectedRace?.id ?? null}
             racialSelections={state.racialSelections}
+            onBack={onExitToMainMenu}
           />
         );
       case CreationStep.AgeSelection:
         if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
-        return <AgeSelection selectedRace={selectedRace} currentAge={state.characterAge} onAgeChange={handleAgeChange} onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state) })} onBack={goBack} />;
+        return <AgeSelection selectedRace={selectedRace} currentAge={state.characterAge} onAgeChange={handleAgeChange} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.BackgroundSelection })} onBack={goBack} />;
       case CreationStep.BackgroundSelection:
         if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
-        return <BackgroundSelection selectedRace={selectedRace} characterAge={state.characterAge} currentBackground={state.selectedBackground} onBackgroundChange={(backgroundId) => dispatch({ type: 'SELECT_BACKGROUND', payload: backgroundId })} onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state) })} onBack={goBack} />;
+        return <BackgroundSelection selectedRace={selectedRace} characterAge={state.characterAge} currentBackground={state.selectedBackground} onBackgroundChange={(backgroundId) => dispatch({ type: 'SELECT_BACKGROUND', payload: backgroundId })} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Visuals })} onBack={goBack} />;
       case CreationStep.Visuals:
         return <VisualsSelection visuals={state.visuals} onVisualsChange={handleVisualsChange} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Class })} onBack={goBack} />;
-      // Deprecated steps removed: DragonbornAncestry, ElvenLineage, GnomeSubrace, GiantAncestry, TieflingLegacy
-      // These are now handled inline in RaceDetailPane
-      // Deprecated step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
       case CreationStep.Class:
         return <ClassSelection classes={Object.values(CLASSES_DATA)} onClassSelect={handleClassSelect} onBack={goBack} />;
       case CreationStep.AbilityScores:

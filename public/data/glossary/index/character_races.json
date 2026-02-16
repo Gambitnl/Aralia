@@ -112,7 +112,6 @@
           "race",
           "giff",
           "humanoid",
-          "spelljammer",
           "beastfolk",
           "military"
         ],
@@ -135,7 +134,6 @@
           "race",
           "hadozee",
           "humanoid",
-          "spelljammer",
           "beastfolk",
           "glide"
         ],
@@ -246,7 +244,6 @@
           "race",
           "loxodon",
           "humanoid",
-          "ravnica",
           "beastfolk",
           "elephant"
         ],
@@ -312,7 +309,6 @@
           "race",
           "thri_kreen",
           "monstrosity",
-          "spelljammer",
           "beastfolk",
           "insectoid",
           "mantis"
@@ -389,7 +385,6 @@
           "race",
           "autognome",
           "construct",
-          "spelljammer",
           "mechanical"
         ],
         "excerpt": "Autognomes are mechanical beings built by rock gnomes in their image, usually with a specific purpose in mind.",
@@ -412,7 +407,6 @@
           "race",
           "warforged",
           "humanoid",
-          "eberron",
           "construct-like",
           "living construct"
         ],
@@ -549,8 +543,6 @@
         "tags": [
           "dragonborn",
           "draconblood",
-          "exandria",
-          "wildemount",
           "arcane"
         ],
         "excerpt": "Draconblood dragonborn are the product of selective breeding by the draconic sorcerers of ancient Draconia in the world of Exandria.",
@@ -636,8 +628,6 @@
         "tags": [
           "dragonborn",
           "ravenite",
-          "exandria",
-          "wildemount",
           "warrior"
         ],
         "excerpt": "Ravenite dragonborn were once enslaved by the draconblood aristocracy but rose up to destroy the nation of Draconia.",
@@ -800,7 +790,6 @@
           "dragonmark",
           "mark of warding",
           "humanoid",
-          "eberron",
           "house kundarak"
         ],
         "excerpt": "The Mark of Warding grants power over protection and security.",
@@ -936,7 +925,6 @@
           "elf",
           "astral_elf",
           "humanoid",
-          "spelljammer",
           "astral plane"
         ],
         "excerpt": "Long ago, groups of elves ventured from the Feywild to the Astral Plane to be closer to their gods.",
@@ -1004,10 +992,7 @@
           "elf",
           "pallid elf",
           "humanoid",
-          "wildemount",
-          "critical role",
-          "exandria"
-        ],
+          "critical role"],
         "excerpt": "Pallid elves are a subrace of elves unique to Exandria, dwelling in the shadowed recesses of the Pallid Grove in the Greying Wildlands.",
         "aliases": [
           "pallid"
@@ -1078,7 +1063,6 @@
           "dragonmark",
           "mark of shadow",
           "humanoid",
-          "eberron",
           "house phiarlan",
           "house thuranni"
         ],
@@ -1440,7 +1424,6 @@
           "dragonmark",
           "mark of scribing",
           "humanoid",
-          "eberron",
           "house sivis"
         ],
         "excerpt": "The Mark of Scribing grants power over written and spoken communication.",
@@ -1727,7 +1710,6 @@
           "dragonmark",
           "mark of finding",
           "humanoid",
-          "eberron",
           "house tharashk"
         ],
         "excerpt": "The Mark of Finding grants abilities related to locating people and objects.",
@@ -1875,7 +1857,6 @@
           "dragonmark",
           "mark of detection",
           "humanoid",
-          "eberron",
           "house medani"
         ],
         "excerpt": "The Mark of Detection grants those who bear it powers of observation and insight.",
@@ -1900,7 +1881,6 @@
           "dragonmark",
           "mark of storm",
           "humanoid",
-          "eberron",
           "house lyrandar"
         ],
         "excerpt": "The Mark of Storm grants power over wind and weather.",
@@ -1978,7 +1958,6 @@
           "dragonmark",
           "mark of hospitality",
           "humanoid",
-          "eberron",
           "house ghallanda"
         ],
         "excerpt": "The Mark of Hospitality grants abilities related to food, shelter, and comfort.",
@@ -2023,9 +2002,7 @@
           "halfling",
           "lotusden",
           "humanoid",
-          "wildemount",
           "critical role",
-          "exandria",
           "nature"
         ],
         "excerpt": "Lotusden halflings are native to the Lotusden Greenwood of Exandria, where they have developed a deep connection to the natural world and d…",
@@ -2050,7 +2027,6 @@
           "dragonmark",
           "mark of healing",
           "humanoid",
-          "eberron",
           "house jorasco"
         ],
         "excerpt": "The Mark of Healing grants the ability to mend wounds and cure ailments.",
@@ -2108,7 +2084,6 @@
           "dragonmark",
           "mark of handling",
           "humanoid",
-          "eberron",
           "house vadalis"
         ],
         "excerpt": "The Mark of Handling grants the ability to calm and control animals.",
@@ -2133,7 +2108,6 @@
           "dragonmark",
           "mark of making",
           "humanoid",
-          "eberron",
           "house cannith"
         ],
         "excerpt": "The Mark of Making grants the ability to create and repair.",
@@ -2158,7 +2132,6 @@
           "dragonmark",
           "mark of sentinel",
           "humanoid",
-          "eberron",
           "house deneith"
         ],
         "excerpt": "The Mark of Sentinel grants power to protect and defend.",
@@ -2204,7 +2177,6 @@
           "dragonmark",
           "mark of passage",
           "humanoid",
-          "eberron",
           "house orien"
         ],
         "excerpt": "The Mark of Passage grants power over movement and transportation.",
@@ -2236,7 +2208,6 @@
           "race",
           "kalashtar",
           "humanoid",
-          "eberron",
           "psionic",
           "quori"
         ],
@@ -2256,7 +2227,6 @@
           "race",
           "kender",
           "humanoid",
-          "dragonlance",
           "fearless",
           "curious"
         ],
@@ -2276,7 +2246,6 @@
           "race",
           "simic_hybrid",
           "humanoid",
-          "ravnica",
           "mutant",
           "enhanced"
         ],
@@ -2323,7 +2292,6 @@
           "race",
           "vedalken",
           "humanoid",
-          "ravnica",
           "perfectionist",
           "analytical"
         ],
@@ -2412,7 +2380,6 @@
           "race",
           "plasmoid",
           "ooze",
-          "spelljammer",
           "amorphous",
           "shapechanger"
         ],

@@ -121,11 +121,12 @@ interface RaceSelectionProps {
   onRaceSelect: (raceId: string, choices?: RacialChoiceData) => void;
   selectedRaceId?: string | null;
   racialSelections?: Record<string, RacialSelectionData>;
+  onBack?: () => void;
 }
 
 type AbilityScoreName = 'Intelligence' | 'Wisdom' | 'Charisma';
 
-const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) => {
+const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBack }) => {
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
   const [selectedSpellAbility, setSelectedSpellAbility] = useState<AbilityScoreName | null>(null);
@@ -288,7 +289,13 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
   ) : null;
 
   return (
-    <CreationStepLayout title="Choose Your Race" customNextButton={customConfirmButton} bodyScrollable={false}>
+    <CreationStepLayout 
+      title="Choose Your Race" 
+      customNextButton={customConfirmButton} 
+      bodyScrollable={false}
+      onBack={onBack}
+      backLabel="Main Menu"
+    >
       <div className="h-full min-h-0">
         <SplitPaneLayout
           className="h-full min-h-0"

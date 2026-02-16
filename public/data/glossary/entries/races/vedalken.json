@@ -3,7 +3,6 @@
   "title": "Vedalken",
   "category": "Character Races",
   "entryLore": "Vedalken are tall, blue-skinned humanoids characterized by their relentless pursuit of knowledge and self-improvement. They are driven by an insatiable curiosity and a belief that nothing is perfect—therefore, everything can be improved. Vedalken tend to be methodical, patient, and analytical, approaching problems with logic rather than emotion. They are native to the plane of Ravnica, where many serve in the Azorius Senate or the Simic Combine. Their drive for perfection extends to their own minds and bodies, and they are known to modify themselves with magical enhancements in pursuit of their ideals.",
-  "source": "GGtR",
   "lore": {
     "typicalDwelling": "Vedalken live in sterile, highly organized dwellings that reflect their methodical and analytical nature. Their settlements often feature expansive research labs, archives of technical data, and living quarters that are optimized for study and the preservation of calm. Every structure is designed with mathematical precision, with clear channels for light, air, and the flow of collective thought. They value efficiency and cleanliness, their homes often devoid of unnecessary decoration unless it serves a specific cognitive or aesthetic purpose.",
     "typicalAttire": "The attire of a vedalken is governed by functionality and the need for precision. They favor layered garments in durable, high-quality fabrics like silk and brushed wool in shades of navy blue, silver, and charcoal gray. Their clothing is often fitted with multiple pockets and attachment points for specialized tools, scrolls, and measuring devices. Many wear protective gear, such as goggles or gauntlets, that can be easily adjusted for different research tasks. Their appearance is always meticulously clean and orderly, reflecting the disciplined and focused nature of their minds.",
@@ -47,7 +46,6 @@
     "race",
     "vedalken",
     "humanoid",
-    "ravnica",
     "perfectionist",
     "analytical"
   ],

@@ -8,9 +8,7 @@ import { AbilityScoreName } from './core';
 import { MechanicalEffect } from './effects';
 
 /**
- * Alignment represents the moral and ethical stance of a creature or deity.
- * Source: PHB 2024
- */
+ * Alignment represents the moral and ethical stance of a creature or deity. */
 export enum Alignment {
   LawfulGood = 'Lawful Good',
   NeutralGood = 'Neutral Good',

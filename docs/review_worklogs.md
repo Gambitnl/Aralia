@@ -198,7 +198,7 @@ if (region) {
 ```## 2024-05-24 - Missing Races & Future Implementation Plan **Learning:** A review of `src/data/races/` revealed significant gaps in official race coverage compared to *Mordenkainen's Monsters of the Multiverse* and *Volo's Guide to Monsters*. Specifically, **Tabaxi**, **Triton**, **Kenku**, and **Tortle** are missing. **Action:** Created this TODO entry to document the implementation plan for **Tabaxi** that was prepared but deferred.
 
 ### TODO: Implement Tabaxi Race
-**Source:** *Mordenkainen's Monsters of the Multiverse* (p. 26) / *Volo's Guide to Monsters* (p. 113)
+*
 
 **Proposed File Structure:**
 - Create `src/data/races/tabaxi.ts`

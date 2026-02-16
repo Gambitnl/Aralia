@@ -1,7 +1,7 @@
 
 /**
  * @file earth_genasi.ts
- * Defines the data for the Earth Genasi race in the Aralia RPG, based on PHB 2024.
+ * Defines the data for the Earth Genasi race in the Aralia RPG.
  */
 import { Race } from '../../types';
 

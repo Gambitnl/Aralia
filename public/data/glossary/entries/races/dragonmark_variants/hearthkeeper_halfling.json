@@ -3,7 +3,6 @@
   "title": "Hearthkeeper Halfling",
   "category": "Character Races",
   "entryLore": "The Mark of Hospitality grants abilities related to food, shelter, and comfort. House Ghallanda carries this mark, running the finest inns, taverns, and restaurants across Khorvaire. Halflings with the Mark of Hospitality have an innate talent for making others feel welcome, their establishments renowned for excellent service and warm atmospheres.",
-  "source": "ERLW",
   "lore": {
     "typicalDwelling": "Those with the Mark of Hospitality often dwell in the sun-drenched reaches of rolling hills, vibrant river-valleys, or the bustling districts of major metropolitan cities. Their homes are designed for social interaction and the exchange of news, featuring open balconies, comfortable seating areas, and expansive central halls. They value hospitality and structural variety, their dwellings often constructed of thick, sun-baked mud bricks or integrated into the natural contours of the hills. Their settlements are monuments to their practical nature and their ancestor's mastery over the open terrain.",
     "typicalAttire": "Hearthkeeper halflings favor attire that is both durable and functional, reflecting their rustic and straightforward nature. They wear oil-treated leathers, heavy fabrics in shades of earthy brown, deep green, and sandy tan, often decorated with bone or ivory tokens. Their clothing is designed to be easily shed or cleaned of mud and earth-debris. Many wear simple, practical sashes and belts for carrying specialized tools and defensive gear. Their appearance is always energetic and expressive, treating their clothing as a canvas for their latest stories.",
@@ -65,7 +64,6 @@
     "dragonmark",
     "mark of hospitality",
     "humanoid",
-    "eberron",
     "house ghallanda"
   ],
   "aliases": [

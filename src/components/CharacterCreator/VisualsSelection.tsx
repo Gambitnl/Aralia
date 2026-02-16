@@ -3,6 +3,7 @@ import { CharacterVisualConfig, CharacterGender } from '../../services/Character
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Z_INDEX } from '../../styles/zIndex';
 import { CreationStepLayout } from './ui/CreationStepLayout';
+import { Button } from '../ui/Button';
 
 interface VisualsSelectionProps {
     visuals: CharacterVisualConfig;
@@ -44,11 +45,26 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
         onVisualsChange({ [key]: list[nextIndex] } as Partial<CharacterVisualConfig>);
     };
 
+    const headerActions = (
+        <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+                // Placeholder for real randomization logic
+                console.log('Randomize appearance clicked');
+            }}
+            className="text-sky-400 hover:text-sky-300 hover:bg-sky-900/20"
+        >
+            Randomize
+        </Button>
+    );
+
     return (
         <CreationStepLayout
             title="Customize Appearance"
             onBack={onBack}
             onNext={onNext}
+            headerActions={headerActions}
         >
             <div className="flex flex-col items-center">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl px-4">

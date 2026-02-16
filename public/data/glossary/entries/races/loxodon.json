@@ -3,7 +3,6 @@
   "title": "Loxodon",
   "category": "Character Races",
   "entryLore": "Loxodon are elephant-like humanoids native to the plane of Ravnica, where they are known for their calm demeanor, strong sense of community, and unwavering loyalty. They are patient, methodical creatures who value tradition and the bonds of family and guild above all else. Loxodon possess an incredible memory, often recalling events from decades past with perfect clarity. Their powerful trunks serve as versatile appendages capable of delicate manipulation, and their thick skin provides natural protection. Most loxodon are drawn to callings that allow them to serve their communities, such as clerics, druids, or fighters.",
-  "source": "GGtR",
   "lore": {
     "typicalDwelling": "Loxodon live in spacious, well-constructed dwellings that reflect their calm nature and strong sense of community. Their homes often feature open-air courtyards, large central areas for communal gatherings, and sturdy stone architecture that conveys a sense of permanence and tradition. They value stability and order, their living spaces often meticulously organized and filled with objects that have deep personal or familial significance. In larger settlements, they gravitate toward the grand guild-halls of the Selesnya Conclave or the Azorius Senate.",
     "typicalAttire": "Loxodon fashion is governed by elegance, comfort, and the expression of their communal bonds. They favor flowing garments in high-quality fabrics like silk and fine wool in harmonious shades of cream, sky blue, and forest green. Their attire is designed to accommodate their large frames and powerful limbs, often featuring elaborate drapes, sashes, and sashes that denote their guild or family lineage. Many wear jewelry that incorporates polished ivory, gold filigree, and intricate engravings that serve as a record of their personal history.",
@@ -52,7 +51,6 @@
     "race",
     "loxodon",
     "humanoid",
-    "ravnica",
     "beastfolk",
     "elephant"
   ],

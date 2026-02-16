@@ -3,7 +3,6 @@
   "title": "Scourge Aasimar",
   "category": "Character Races",
   "entryLore": "Scourge aasimar are imbued with a divine energy that blazes intensely within them. It feeds a powerful desire to destroy evil—a desire that is, at its best, parsing and exacting, but at its worst, all-consuming. Many scourge aasimar wear masks to block out the world and focus on containing this power, unmasking only in battle. When they transform, their divine energy erupts in a searing radiance that burns all around them, friend and foe alike—a price they willingly pay to purge evil from the world.",
-  "source": "MPMM",
   "baseRace": "aasimar",
   "lore": {
     "typicalDwelling": "Scourge aasimar often withdraw from society, seeking seclusion where they can contain the divine fire that burns within them. They make their homes in austere monasteries, remote shrines, or isolated hermitages—anywhere they can focus on mastering their volatile power without endangering others.",

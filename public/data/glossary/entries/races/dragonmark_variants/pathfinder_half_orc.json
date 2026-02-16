@@ -3,7 +3,6 @@
   "title": "Pathfinder Half-Orc",
   "category": "Character Races",
   "entryLore": "The Mark of Finding grants abilities related to locating people and objects. House Tharashk carries this mark, providing inquisitive services, bounty hunting, and prospecting operations. Half-orcs with the Mark of Finding have an uncanny ability to track quarry across any terrain and locate hidden treasures in the depths of Eberron.",
-  "source": "ERLW",
   "lore": {
     "typicalDwelling": "Those with the Mark of Finding often dwell in the sun-dappled reaches of ancient, primeval forests, misty moorlands, or the bustling districts of major metropolitan cities. Their homes are integrated into the living tapestry of the woods, often featuring treetop villages, camouflaged ground-complexes, and central halls with high, leaf-covered canopies. They value structural harmony and a clear view of the surrounding territory, their dwellings often doubling as watchtowers for communal safety. Their settlements are monuments to their patience and their ancestor's mastery over the deep wild.",
     "typicalAttire": "Pathfinder half-orcs favor attire that is both durable and functional, reflecting their hunter-like and nature-touched nature. They wear oil-treated leathers, heavy fabrics in shades of forest green, deep moss, and charcoal gray, often decorated with bone or ivory tokens. Their clothing is designed to be easily shed or cleaned of mud and forest-debris. Many wear simple, practical sashes and belts for carrying specialized hunting tools and defensive gear. Their appearance is always disciplined and intimidating, their gear kept in peak condition.",
@@ -59,7 +58,6 @@
     "dragonmark",
     "mark of finding",
     "humanoid",
-    "eberron",
     "house tharashk"
   ],
   "aliases": [

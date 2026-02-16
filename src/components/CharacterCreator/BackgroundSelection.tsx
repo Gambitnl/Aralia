@@ -9,6 +9,7 @@ import { BACKGROUNDS, AGE_APPROPRIATE_BACKGROUNDS } from '../../data/backgrounds
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { BackgroundDetailPane } from './BackgroundDetailPane';
+import { Button } from '../ui/Button';
 
 interface BackgroundSelectionProps {
   selectedRace: Race | null;
@@ -97,8 +98,21 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
       }
   };
 
+  const customNextButton = selectedBackground ? (
+    <Button
+      variant="primary"
+      onClick={handleConfirm}
+    >
+      Confirm {selectedBackground.name}
+    </Button>
+  ) : null;
+
   return (
-    <CreationStepLayout title="Background Selection" onBack={onBack}>
+    <CreationStepLayout 
+      title="Background Selection" 
+      onBack={onBack}
+      customNextButton={customNextButton}
+    >
         <SplitPaneLayout
             controls={
                 <div className="space-y-4">

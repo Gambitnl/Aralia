@@ -3,7 +3,6 @@
   "title": "Ravenite Dragonborn",
   "category": "Character Races",
   "entryLore": "Ravenite dragonborn were once enslaved by the draconblood aristocracy but rose up to destroy the nation of Draconia. They are a proud warrior culture from Exandria that values freedom, strength, and vengeance. Unlike other dragonborn, they lack breath weapons but possess fierce combat abilities forged in the fires of rebellion.",
-  "source": "Explorer's Guide to Wildemount",
   "lore": {
     "typicalDwelling": "Ravenite dragonborn live in rugged, defensible settlements built for survival rather than comfort. After Draconia's fall, many established communities in the Dreemoth Ravine and other harsh terrains of Wildemount. Their homes are practical and fortified—stone longhouses, communal halls, and warrior barracks. They favor locations that are easily defended and difficult for enemies to approach, reflecting their history as a people who fought for their freedom.",
     "typicalAttire": "Ravenite dragonborn wear practical, durable clothing suited for combat and hard labor. They favor dark leathers, reinforced fabrics, and functional armor in muted colors—charcoals, deep reds, and weathered browns. Their clothing often bears the scars of battle and hard use, which they wear as badges of honor. Many adorn themselves with trophies taken from fallen enemies or symbols commemorating their ancestors' struggle for freedom.",
@@ -41,8 +40,6 @@
   "tags": [
     "dragonborn",
     "ravenite",
-    "exandria",
-    "wildemount",
     "warrior"
   ],
   "aliases": [

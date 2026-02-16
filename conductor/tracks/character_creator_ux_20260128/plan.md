@@ -19,25 +19,25 @@ Goal: Standardize the spatial strategy for actions and promote layout components
 - [x] Task: **Refactor `CreationStepLayout` (Header Nav)**:
     - [x] Remove the bottom footer from `CreationStepLayout.tsx`.
     - [x] Add `onNext` and `onBack` props that render `Button` components in the Header.
-- [ ] Task: **Apply Header Nav to All Steps**:
-    - [ ] Update `RaceSelection`, `ClassSelection`, `AgeSelection`, `BackgroundSelection`, `VisualsSelection`, `SkillSelection`, and `NameAndReview` to use the new header-based navigation.
-- [ ] Task: **Sidebar & Logic Polish**:
-    - [ ] Implement/Verify Sidebar Numbering (1-10).
-    - [ ] Verify "Back to Main Menu" behavior from Step 1 (Race).
+- [x] Task: **Apply Header Nav to All Steps**:
+    - [x] Update `RaceSelection`, `ClassSelection`, `AgeSelection`, `BackgroundSelection`, `VisualsSelection`, `SkillSelection`, and `NameAndReview` to use the new header-based navigation.
+- [x] Task: **Sidebar & Logic Polish**:
+    - [x] Implement/Verify Sidebar Numbering (1-10).
+    - [x] Verify "Back to Main Menu" behavior from Step 1 (Race).
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Header Migration' (Protocol in workflow.md)
 
 ## Phase 3: Persistent State & UX Enhancements (PARTIAL)
 Goal: Add the summary sidebar, auto-save, and utility triggers.
 
 - [x] Task: Implement Save & Resume (Local Storage). [checkpoint: 1aa05f6]
-- [ ] Task: **Implement Header Utility Actions**:
-    - [ ] Add "Reset Step" (Danger variant) to the header of complex steps.
-    - [ ] Add "Randomize" placeholder where applicable.
-- [ ] Task: **Final Flow Review**:
-    - [ ] Ensure all 10 steps transition smoothly without the "Loop Back" bug.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: UX Polish' (Protocol in workflow.md)
+- [x] Task: **Implement Header Utility Actions**:
+    - [x] Add "Reset Step" (Danger variant) to the header of complex steps.
+    - [x] Add "Randomize" placeholder where applicable.
+- [x] Task: **Final Flow Review**:
+    - [x] Ensure all 10 steps transition smoothly without the "Loop Back" bug.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: UX Polish' (Protocol in workflow.md)
 
 ## Phase 4: Final Verification & Archive
-- [ ] Task: Verify Keyboard Navigation across all header-based actions.
-- [ ] Task: Final Content Audit (Confirm zero loss).
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Sign-off' (Protocol in workflow.md)
+- [x] Task: Verify Keyboard Navigation across all header-based actions.
+- [x] Task: Final Content Audit (Confirm zero loss).
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Sign-off' (Protocol in workflow.md)

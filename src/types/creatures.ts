@@ -1,9 +1,7 @@
 import { DamageType, ConditionName } from './spells';
 
 /**
- * D&D creature types - affects targeting, resistances, and abilities.
- * Source: PHB 2024
- */
+ * D&D creature types - affects targeting, resistances, and abilities. */
 export enum CreatureType {
   Aberration = 'Aberration',
   Beast = 'Beast',
@@ -86,9 +84,7 @@ export const CreatureTypeTraits: Record<CreatureType, TypeTraits> = {
 };
 
 /**
- * Creature size categories.
- * Source: PHB 2024
- */
+ * Creature size categories. */
 export enum CreatureSize {
   Tiny = 'Tiny',
   Small = 'Small',

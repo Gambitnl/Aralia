@@ -3,7 +3,6 @@
   "title": "Half-Elf (Seersight)",
   "category": "Character Races",
   "entryLore": "The Mark of Detection grants those who bear it powers of observation and insight. House Medani carries this mark, using its abilities to provide bodyguard services, inquisitive work, and threat assessment. Half-elves with the Mark of Detection are prized for their ability to perceive danger and uncover secrets, making them excellent investigators, spies, and protectors.",
-  "source": "ERLW",
   "lore": {
     "typicalDwelling": "Those with the Mark of Detection often dwell in the sun-drenched reaches of isolated mountain citadels, floating sky-palaces, or the grandest districts of major metropolitan cities. Their homes are constructed of durable, often gleaming stone and feature expansive libraries, meditation gardens, and central halls with high, vaulted ceilings that allow for a clear view of the sky. They value aesthetic perfection and structural permanence, their dwellings often doubling as centers of learning or spiritual sanctuary for their communities. Their settlements are monuments to their wisdom and their ancestor's mastery over the highest reaches of the world.",
     "typicalAttire": "Seersight half-elves favor attire that is both elegant and functional, reflecting their wise and authoritative nature. They wear flowing garments in high-quality fabrics like silk and fine wool in shades of sky blue, charcoal gray, and rich silver. Their clothing is often decorated with intricate patterns of clouds or lightning and sashes that denote their personal history or spiritual lineage. Many wear jewelry that incorporates polished moonstones or clear crystals—conduits for their natural detection energy. Their appearance is always meticulously curated, conveying a sense of calm, calculated authority.",
@@ -64,7 +63,6 @@
     "dragonmark",
     "mark of detection",
     "humanoid",
-    "eberron",
     "house medani"
   ],
   "aliases": [

@@ -1,6 +1,6 @@
 /**
  * @file bugbear.ts
- * Defines the data for the Bugbear race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 8.
+ * Defines the data for the Bugbear race in the Aralia RPG. 8.
  */
 import { Race } from '../../types'; // Path relative to src/data/races/
 

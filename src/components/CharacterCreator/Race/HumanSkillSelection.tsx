@@ -4,11 +4,12 @@
  * from all available skills, as per their "Skillful" racial trait.
  */
 import React, { useState } from 'react';
-import { AbilityScores } from '../../../types'; // Path relative to src/components/CharacterCreator/Human/
+import { AbilityScores } from '../../../types'; 
 import { SKILLS_DATA } from '../../../data/skills';
+import { CreationStepLayout } from '../ui/CreationStepLayout';
 
 interface HumanSkillSelectionProps {
-  abilityScores: AbilityScores; // For displaying modifiers
+  abilityScores: AbilityScores; 
   onSkillSelect: (skillId: string) => void;
   onBack: () => void;
 }
@@ -30,54 +31,42 @@ const HumanSkillSelection: React.FC<HumanSkillSelectionProps> = ({ abilityScores
   };
 
   return (
-    <div>
-      <h2 className="text-2xl text-sky-300 mb-2 text-center">Human Trait: Skillful</h2>
+    <CreationStepLayout
+      title="Human: Skillful"
+      onBack={onBack}
+      onNext={handleSubmit}
+      canProceed={!!selectedSkillId}
+      nextLabel="Confirm Skill"
+    >
       <p className="text-sm text-gray-400 mb-6 text-center">
-        As a Human, you gain proficiency in one skill of your choice.
+        As a Human, you gain proficiency in one additional skill of your choice.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 max-h-96 overflow-y-auto scrollable-content pr-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {allSkills.map(skill => (
           <button
             key={skill.id}
             onClick={() => handleSelect(skill.id)}
-            className={`w-full text-left p-3 rounded-lg transition-colors border-2 ${
+            className={`w-full text-left p-4 rounded-xl transition-all border-2 ${
               selectedSkillId === skill.id
-                ? 'bg-sky-700 border-sky-500 ring-2 ring-sky-400'
-                : 'bg-gray-700 hover:bg-gray-600 border-gray-600 hover:border-sky-600'
+                ? 'bg-sky-900/40 border-sky-500 shadow-md'
+                : 'bg-gray-800 border-gray-700 hover:border-gray-600'
             }`}
             aria-pressed={selectedSkillId === skill.id}
-            aria-label={`Select skill: ${skill.name}`}
           >
-            <span className="text-gray-200">
-              {skill.name} <span className="text-xs text-gray-400">({skill.ability.substring(0, 3)})</span>
-              <span className="ml-1 text-xs text-green-400">(Mod: {getAbilityModifier(abilityScores[skill.ability]) >= 0 ? '+' : ''}{getAbilityModifier(abilityScores[skill.ability])})</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="font-bold text-gray-100">{skill.name}</span>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">{skill.ability}</span>
+                <span className={`text-xs font-bold ${getAbilityModifier(abilityScores[skill.ability]) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {getAbilityModifier(abilityScores[skill.ability]) >= 0 ? '+' : ''}{getAbilityModifier(abilityScores[skill.ability])}
+                </span>
+              </div>
+            </div>
           </button>
         ))}
       </div>
-       {selectedSkillId && SKILLS_DATA[selectedSkillId] && (
-        <p className="text-sm text-amber-300 mb-4 text-center">Selected: {SKILLS_DATA[selectedSkillId].name}</p>
-      )}
-
-      <div className="flex gap-4 mt-6">
-        <button
-          onClick={onBack}
-          className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors"
-          aria-label="Go back to previous step"
-        >
-          Back
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={!selectedSkillId}
-          className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors"
-          aria-label="Confirm selected skill"
-        >
-          Confirm Skill
-        </button>
-      </div>
-    </div>
+    </CreationStepLayout>
   );
 };
 

@@ -9,6 +9,7 @@ import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../../ui/SplitPaneLayout';
 import { ClassDetailPane } from './ClassDetailPane';
 import { SelectionListItem } from '../../ui/SelectionList';
+import { Button } from '../../ui/Button';
 
 interface ClassSelectionProps {
   classes: CharClass[];
@@ -29,8 +30,21 @@ const ClassSelection: React.FC<ClassSelectionProps> = ({
   const effectiveClassId = selectedClassId ?? defaultClassId;
   const selectedClass = sortedClasses.find(c => c.id === effectiveClassId) ?? null;
 
+  const customNextButton = selectedClass ? (
+    <Button
+      variant="primary"
+      onClick={() => onClassSelect(selectedClass.id)}
+    >
+      Confirm {selectedClass.name}
+    </Button>
+  ) : null;
+
   return (
-    <CreationStepLayout title="Choose Your Class" onBack={onBack}>
+    <CreationStepLayout 
+      title="Choose Your Class" 
+      onBack={onBack} 
+      customNextButton={customNextButton}
+    >
       <SplitPaneLayout
         controls={
           <div className="space-y-2">

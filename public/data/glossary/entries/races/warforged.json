@@ -3,7 +3,6 @@
   "title": "Warforged",
   "category": "Character Races",
   "entryLore": "Warforged are living constructs created during the Last War of Eberron to serve as soldiers. They are composed of wood, metal, and stone, with a body of plant-like organic material that flows around their mechanical components. Each warforged has a unique pattern of protective plates and sigils. Though built for war, many warforged have found purpose beyond battle, seeking meaning and identity in a world that often views them as weapons. They don't need to eat, drink, breathe, or sleep, though they can take on human mannerisms. The warforged struggle with questions of identity and purpose: What does it mean to be alive? What are they fighting for now that the war has ended?",
-  "source": "ERLW",
   "lore": {
     "typicalDwelling": "Warforged often live in environments that reward their lack of biological needs—sterile fortress-cells, underwater outposts, or locations with extreme temperatures that would be lethal to other races. In civilian life, they favor orderly, functional spaces that reflect their military origins. They don't require furniture for rest, but many create workshops where they can maintain their bodies and customize their integrated protection. Their homes are often meticulously organized, reflecting a mind that values structural efficiency and readiness for action.",
     "typicalAttire": "For a warforged, attire is often synonymous with their physical body. Their 'clothing' consists of various plates—metal, stone, or reinforced wood—integrated into their composite frame. When they do wear external garments, such as cloaks, sashes, or tabards, they are usually chosen to signal their rank, occupation, or personal identity in a world that often views them collectively. These items are typically rugged and easy to clean. Many warforged decorate their plates with etched sigils, family crests, or markers of their history, treating their body as a record of their existence.",
@@ -52,7 +51,6 @@
     "race",
     "warforged",
     "humanoid",
-    "eberron",
     "construct-like",
     "living construct"
   ],

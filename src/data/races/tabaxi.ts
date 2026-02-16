@@ -1,6 +1,6 @@
 /**
  * @file tabaxi.ts
- * Defines the data for the Tabaxi race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 26.
+ * Defines the data for the Tabaxi race in the Aralia RPG. 26.
  * ASIs are handled flexibly during character creation, not as fixed racial bonuses.
  */
 import { Race } from '../../types'; // Path relative to src/data/races/

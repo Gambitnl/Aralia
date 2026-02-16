@@ -52,9 +52,15 @@ npx tsx scripts/audits/run-qa-batch-agent.ts `
 
 `--web-research` options:
 
-- `required` (default): codex mode runs with live web search and each race profile must include web source URLs.
-- `optional`: codex mode runs with live web search but source URLs are not strictly enforced.
+- `required` (default): codex mode runs with live web search for race profile accuracy.
+- `optional`: codex mode runs with live web search but does not enforce it.
 - `off`: disables web search requirement (mainly for template/offline testing).
+
+Race-profile output style constraints:
+
+- No source references, citations, bibliography sections, or URLs in output text.
+- No bullet lists, numbered lists, or tables in race profile prose.
+- Keep prose wiki-like and generalized for world generation.
 
 ## Expected Output Contract
 
@@ -87,13 +93,6 @@ npx tsx scripts/audits/run-qa-batch-agent.ts `
       "raceId": "aarakocra",
       "raceName": "Aarakocra",
       "summary": "Generalized race profile summary.",
-      "researchSources": [
-        {
-          "title": "Source title",
-          "url": "https://example.com/source",
-          "sourceType": "official"
-        }
-      ],
       "answers": [
         {
           "questionId": "q1",

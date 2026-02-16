@@ -3,7 +3,6 @@
   "title": "Autognome",
   "category": "Character Races",
   "entryLore": "Autognomes are mechanical beings built by rock gnomes in their image, usually with a specific purpose in mind. Programmed with loyalty and a desire to please, each autognome is essentially a construct with a soul. They are capable of independent thought and can develop their own personalities over time. Many autognomes serve as helpers, guardians, or companions, though some break free of their original programming to seek their own destiny among the stars.",
-  "source": "AAG",
   "lore": {
     "typicalDwelling": "Autognomes often live in the workshops, laboratories, and cosmic observatories of their gnome creators. Their dwellings are filled with specialized tools, spare parts, and mechanical projects in various stages of completion. They value order and efficiency, their living spaces often organized with mathematical precision. In larger settlements, they might share quarters with other constructs or find niche roles in industrial districts where their mechanical nature is a distinct advantage.",
     "typicalAttire": "For an autognome, attire is often a matter of utility or personal expression. They favor practical garments that don't interfere with their mechanical joints—sashes, belts with multiple tool pouches, and simple tunics. Many choose to leave their armored casing partially exposed, treating the etched designs and polished metal as their primary appearance. They have a fondness for accessories that reflect their technical interests—magnifying lenses, specialized wrenches, and intricate mechanical jewelry.",
@@ -62,7 +61,6 @@
     "race",
     "autognome",
     "construct",
-    "spelljammer",
     "mechanical"
   ],
   "aliases": [

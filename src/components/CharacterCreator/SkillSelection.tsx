@@ -29,6 +29,7 @@ import {
 } from '../../types';
 import { SKILLS_DATA } from '../../data/skills';
 import Tooltip from '../ui/Tooltip';
+import { Button } from '../ui/Button';
 import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { BTN_PRIMARY } from '../../styles/buttonStyles';
@@ -76,6 +77,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
     toggleClassSkill,
     setSelectedKeenSensesSkillId,
     setViewedSkillId,
+    resetSelectedClassSkills,
   } = useSkillSelectionState();
 
   // Filter and map available skills from class data
@@ -84,6 +86,21 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
       .map((id) => SKILLS_DATA[id])
       .filter((skill): skill is Skill => !!skill);
   }, [charClass.skillProficienciesAvailable]);
+
+  const headerActions = (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => {
+        resetSelectedClassSkills();
+        setSelectedKeenSensesSkillId(null);
+      }}
+      disabled={selectedClassSkillIds.size === 0 && !selectedKeenSensesSkillId}
+      className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+    >
+      Reset
+    </Button>
+  );
 
   const filteredSkillsFromClass = useMemo(() => {
     const q = skillSearchQuery.trim().toLowerCase();
@@ -219,6 +236,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
       canProceed={!isSubmitDisabled}
       nextLabel="Confirm Skills"
       bodyScrollable={false}
+      headerActions={headerActions}
     >
       <div className="h-full min-h-0">
         <SplitPaneLayout

@@ -3,7 +3,6 @@
   "title": "Wayfarer Human",
   "category": "Character Races",
   "entryLore": "The Mark of Passage grants power over movement and transportation. House Orien carries this mark, operating the lightning rail and courier services across Khorvaire. Humans with the Mark of Passage are swift and sure, able to teleport short distances and move with supernatural speed.",
-  "source": "ERLW",
   "lore": {
     "typicalDwelling": "Those with the Mark of Passage often dwell in the sun-drenched reaches of rolling hills, vibrant river-valleys, or the bustling districts of major metropolitan cities. Their homes are designed for social interaction and the exchange of news, featuring open balconies, comfortable seating areas, and expansive central halls. They value hospitality and structural variety, their dwellings often constructed of thick, sun-baked mud bricks or integrated into the natural contours of the hills. Their settlements are monuments to their practical nature and their ancestor's mastery over the open terrain.",
     "typicalAttire": "Wayfarer humans favor attire that is both durable and functional, reflecting their rustic and straightforward nature. They wear oil-treated leathers, heavy fabrics in shades of earthy brown, deep green, and sandy tan, often decorated with bone or ivory tokens. Their clothing is designed to be easily shed or cleaned of mud and earth-debris. Many wear simple, practical sashes and belts for carrying specialized tools and defensive gear. Their appearance is always energetic and expressive, treating their clothing as a canvas for their latest stories.",
@@ -55,7 +54,6 @@
     "dragonmark",
     "mark of passage",
     "humanoid",
-    "eberron",
     "house orien"
   ],
   "aliases": [

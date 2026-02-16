@@ -8,8 +8,8 @@ This file contains an exhaustive list of all `.md` files found in the repository
 ## File List
 
 - docs/@ALL-MD-FILES.md
-- docs/guides/RACE_ENRICHMENT_WORKFLOW.md
-- docs/tasks/3d-exploration/world-map-rewire-mapping.md
+- [PROCESSED] docs/guides/RACE_ENRICHMENT_WORKFLOW.md
+- [PROCESSED] docs/tasks/3d-exploration/world-map-rewire-mapping.md
 - docs/tasks/3d-exploration/implementation_plan.md
 - docs/portraits/race_portrait_regen_handoff.md
 - scripts/audits/qa-batches/README.md

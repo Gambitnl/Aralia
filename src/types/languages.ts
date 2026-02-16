@@ -1,8 +1,6 @@
 /**
  * @file src/types/languages.ts
- * Defines the standardized taxonomy for D&D 5e Languages.
- * Source: Player's Handbook (2014/2024)
- */
+ * Defines the standardized taxonomy for D&D 5e Languages. */
 
 /**
  * The standard and exotic languages spoken across the D&D multiverse.

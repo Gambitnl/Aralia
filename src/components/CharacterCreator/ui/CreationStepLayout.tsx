@@ -13,6 +13,8 @@ export interface CreationStepLayoutProps {
   className?: string;
   /** Optional custom confirm button (replaces default Next button in header) */
   customNextButton?: React.ReactNode;
+  /** Optional additional actions to show in the header (e.g. Reset, Randomize) */
+  headerActions?: React.ReactNode;
   /** Allow disabling the outer scroll container so inner panes can scroll independently. */
   bodyScrollable?: boolean;
 }
@@ -32,6 +34,7 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
   backLabel = 'Back',
   className = '',
   customNextButton,
+  headerActions,
   bodyScrollable = true,
 }) => {
   return (
@@ -54,14 +57,16 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
 
           {/* Center: Title */}
           <div className="text-center flex-shrink-0">
-            <h2 className="text-2xl sm:text-3xl text-sky-300 font-cinzel font-bold tracking-wide drop-shadow-sm">
+            <h2 id="creation-step-title" className="text-2xl sm:text-3xl text-sky-300 font-cinzel font-bold tracking-wide drop-shadow-sm">
               {title}
             </h2>
-            <div className="h-0.5 w-24 sm:w-32 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent mx-auto mt-2" />
+            <div className="h-0.5 w-24 sm:w-32 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent mx-auto mt-2" aria-hidden="true" />
           </div>
 
-          {/* Right: Next Button or Custom Button */}
-          <div className="flex-1 flex justify-end">
+          {/* Right: Next Button or Custom Button + Utility Actions */}
+          <div className="flex-1 flex justify-end items-center gap-2">
+            {headerActions}
+            
             {customNextButton ? (
               customNextButton
             ) : onNext ? (
@@ -70,6 +75,7 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
                 size="md"
                 onClick={onNext}
                 disabled={!canProceed}
+                aria-label={nextLabel}
               >
                 {nextLabel}
               </Button>
@@ -83,6 +89,8 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
         className={`flex-grow px-4 sm:px-6 py-4 scrollable-content border border-gray-700 rounded-xl ${
           bodyScrollable ? 'overflow-y-auto' : 'overflow-hidden'
         }`}
+        role="region"
+        aria-labelledby="creation-step-title"
       >
         <motion.div
           className={bodyScrollable ? '' : 'h-full min-h-0'}

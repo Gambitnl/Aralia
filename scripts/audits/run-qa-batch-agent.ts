@@ -70,20 +70,10 @@ type BatchOutputRaceProfileAnswer = {
   answer: string;
 };
 
-type BatchOutputRaceProfileSourceType = "official" | "reference" | "community";
-
-type BatchOutputRaceProfileSource = {
-  title: string;
-  url: string;
-  sourceType: BatchOutputRaceProfileSourceType;
-  note?: string;
-};
-
 type BatchOutputRaceProfile = {
   raceId: string;
   raceName: string;
   summary: string;
-  researchSources: BatchOutputRaceProfileSource[];
   answers: BatchOutputRaceProfileAnswer[];
 };
 
@@ -120,15 +110,6 @@ function normalizeStatus(value: string | undefined): VisualStatus {
 function normalizeUniq(value: string | undefined): UniquenessStatus {
   if (value === "pending" || value === "unique" || value === "keeper" || value === "non_keeper") return value;
   return "pending";
-}
-
-function normalizeSourceType(value: unknown): BatchOutputRaceProfileSourceType {
-  if (value === "official" || value === "reference" || value === "community") return value;
-  return "reference";
-}
-
-function isWebUrl(value: string): boolean {
-  return /^https?:\/\//i.test(value.trim());
 }
 
 function normalizeChecklist(value: unknown): BatchOutputEntry["checklist"] {
@@ -279,21 +260,21 @@ function buildPrompt(
     "Return JSON only that matches the provided output schema.",
     ...evidenceLines,
     "",
-    "Internet research is required for race profiles:",
+    "Internet research is required for race profiles, but source references must not appear in output text:",
     "- Use live web search for each race profile.",
-    "- Provide at least one source URL per race profile.",
-    "- Prefer official/primary references first, then secondary references if needed.",
+    "- Use official/primary references first, then secondary references as needed.",
+    "- Do not include source names, URLs, citations, bibliography, or references in the output text.",
     "",
     "Also include race-level profiles:",
     "- Provide one race profile per unique raceId in the batch (not per gender).",
     "- Use generalized setting-safe language (no named cities/kingdoms/countries/proper-noun geopolitics).",
-    "- Each answer should be concise and practical for world generation.",
-    "- Include `researchSources` with title, url, sourceType (official|reference|community), and optional note.",
+    "- Write in concise wiki-like prose with informative section headings.",
+    "- No bullet lists. No numbered lists. No tables. No URLs.",
     "",
     "Use this canonical rubric verbatim:",
     rubricText,
     "",
-    "Race profile questions (all must be answered):",
+    "Race profile themes (all must be covered, naturally in prose):",
     questionText,
     "",
     "Batch input JSON:",
@@ -362,23 +343,18 @@ function normalizeRaceProfile(
   const raceName = typeof obj.raceName === "string" && obj.raceName.trim() ? obj.raceName.trim() : fallbackRaceName;
   const summary = typeof obj.summary === "string" && obj.summary.trim() ? obj.summary.trim() : "";
   if (!summary) throw new Error(`Missing summary for raceProfile ${expectedRaceId}`);
-  const rawSources = Array.isArray(obj.researchSources) ? obj.researchSources : [];
-  const researchSources: BatchOutputRaceProfileSource[] = [];
-  for (const rawSource of rawSources) {
-    if (!rawSource || typeof rawSource !== "object") continue;
-    const src = rawSource as Record<string, unknown>;
-    const title = typeof src.title === "string" ? src.title.trim() : "";
-    const url = typeof src.url === "string" ? src.url.trim() : "";
-    if (!title || !url) continue;
-    researchSources.push({
-      title,
-      url,
-      sourceType: normalizeSourceType(src.sourceType),
-      note: typeof src.note === "string" && src.note.trim() ? src.note.trim() : undefined,
-    });
-  }
-  if (researchSources.length === 0) {
-    throw new Error(`Missing researchSources for raceProfile ${expectedRaceId}`);
+  const textViolations = (text: string): string[] => {
+    const v: string[] = [];
+    if (/https?:\/\/|www\./i.test(text)) v.push("contains URL");
+    if (/^(\s*)([-*+]\s+|\d+\.\s+)/m.test(text)) v.push("contains list formatting");
+    if (/^\s*\|.+\|\s*$/m.test(text) || /^\s*\|?[-: ]+\|[-|: ]+\s*$/m.test(text)) v.push("contains table formatting");
+    if (/(^|\n)\s*(sources?|references?|bibliography|citations?)\b/i.test(text)) v.push("contains source/reference section");
+    if (/\[[0-9]+\]|\(source[:)]/i.test(text)) v.push("contains citation markers");
+    return v;
+  };
+  const summaryViolations = textViolations(summary);
+  if (summaryViolations.length > 0) {
+    throw new Error(`Invalid summary for ${expectedRaceId}: ${summaryViolations.join(", ")}`);
   }
 
   const answersRaw = Array.isArray(obj.answers) ? obj.answers : [];
@@ -398,6 +374,10 @@ function normalizeRaceProfile(
     if (!answer) {
       throw new Error(`Missing profile answer ${q.id} for race ${expectedRaceId}`);
     }
+    const answerViolations = textViolations(answer);
+    if (answerViolations.length > 0) {
+      throw new Error(`Invalid answer ${q.id} for ${expectedRaceId}: ${answerViolations.join(", ")}`);
+    }
     answers.push({
       questionId: q.id,
       question: q.question,
@@ -409,7 +389,6 @@ function normalizeRaceProfile(
     raceId: expectedRaceId,
     raceName,
     summary,
-    researchSources,
     answers,
   };
 }
@@ -460,15 +439,6 @@ function validateOutput(
   };
 }
 
-function enforceWebResearch(output: BatchOutput) {
-  for (const profile of output.raceProfiles) {
-    const webSources = profile.researchSources.filter((source) => isWebUrl(source.url));
-    if (webSources.length === 0) {
-      throw new Error(`Race profile ${profile.raceId} has no web URL sources`);
-    }
-  }
-}
-
 function buildTemplateOutput(batch: BatchInput, profileQuestions: ProfileQuestion[]): BatchOutput {
   const races = getRacesFromBatch(batch.rows);
   return {
@@ -496,14 +466,6 @@ function buildTemplateOutput(batch: BatchInput, profileQuestions: ProfileQuestio
       raceId: race.raceId,
       raceName: race.raceName,
       summary: "TEMPLATE: fill generalized profile summary.",
-      researchSources: [
-        {
-          title: "TEMPLATE: source title",
-          url: "https://example.com/template-source",
-          sourceType: "reference",
-          note: "TEMPLATE: replace with real web source.",
-        },
-      ],
       answers: profileQuestions.map((q) => ({
         questionId: q.id,
         question: q.question,
@@ -530,39 +492,33 @@ function writeRaceProfileFiles(batch: BatchInput, output: BatchOutput): number {
     const lines: string[] = [];
     lines.push(`# ${profile.raceName} Profile`);
     lines.push("");
-    lines.push(`- Race ID: \`${profile.raceId}\``);
-    lines.push(`- Base Race: ${baseRace ? `\`${baseRace}\`` : "n/a"}`);
-    lines.push(`- Updated: ${new Date().toISOString()}`);
-    lines.push(`- Source Batch: \`${batch.batchId}\``);
+    lines.push(`Race ID: ${profile.raceId}`);
+    lines.push(`Base Race: ${baseRace ?? "n/a"}`);
+    lines.push(`Updated: ${new Date().toISOString()}`);
+    lines.push(`Source Batch: ${batch.batchId}`);
     lines.push("");
     lines.push("## Generalized Summary");
     lines.push("");
     lines.push(profile.summary);
     lines.push("");
-    lines.push("## Research Sources");
-    lines.push("");
-    for (const source of profile.researchSources) {
-      lines.push(`- [${source.sourceType}] ${source.title}`);
-      lines.push(`  url: ${source.url}`);
-      if (source.note) lines.push(`  note: ${source.note}`);
-      lines.push("");
-    }
-    lines.push("");
     lines.push("## Profile Questions");
     lines.push("");
     for (const answer of profile.answers) {
-      lines.push(`${answer.questionId}. ${answer.question}`);
-      lines.push(`Answer: ${answer.answer}`);
+      lines.push(`### ${answer.question}`);
+      lines.push("");
+      lines.push(answer.answer);
       lines.push("");
     }
     lines.push("## Batch QA Snapshot");
     lines.push("");
     for (const row of raceRows) {
       const qa = outputEntryByKey.get(`${row.raceId}::${row.gender}`);
-      lines.push(`- ${row.gender}: visual=\`${qa?.visualStatus ?? "pending"}\`, uniqueness=\`${qa?.uniquenessStatus ?? "pending"}\``);
-      lines.push(`  observedActivity: ${row.observedActivity ?? "n/a"}`);
-      lines.push(`  targetActivity: ${qa?.targetActivity ?? row.targetActivity ?? "n/a"}`);
-      lines.push(`  notes: ${qa?.notes ?? "n/a"}`);
+      lines.push(`### ${row.gender}`);
+      lines.push(`visual: ${qa?.visualStatus ?? "pending"}`);
+      lines.push(`uniqueness: ${qa?.uniquenessStatus ?? "pending"}`);
+      lines.push(`observedActivity: ${row.observedActivity ?? "n/a"}`);
+      lines.push(`targetActivity: ${qa?.targetActivity ?? row.targetActivity ?? "n/a"}`);
+      lines.push(`notes: ${qa?.notes ?? "n/a"}`);
       lines.push("");
     }
 
@@ -623,6 +579,8 @@ async function main() {
       "Return JSON only with shape: { batchId, entries: [...], raceProfiles: [...] }.",
       "Do not include markdown or commentary.",
       "Race profiles must be generalized and setting-agnostic (no named cities/kingdoms/countries/proper nouns).",
+      "Race profile text must not contain source references, citations, bibliography, or URLs.",
+      "Race profile text must not use bullet lists, numbered lists, or tables.",
       `Visual evidence mode: ${visualEvidenceMode}.`,
       "Apply the canonical rubric exactly.",
       "",
@@ -630,7 +588,7 @@ async function main() {
     ].join("\n");
     const user = [
       "Batch input JSON follows. Produce one output entry for every row and one race profile per unique raceId.",
-      "Answer all 10 profile questions for each race.",
+      "Cover all 10 profile questions for each race naturally in prose answers.",
       JSON.stringify(batch, null, 2),
     ].join("\n\n");
     const rawOutput = await callModelWithPrompt(model, system, user);
@@ -651,10 +609,6 @@ async function main() {
     output = buildTemplateOutput(batch, profileQuestions);
   } else {
     throw new Error(`Invalid --mode value: ${mode} (expected template|codex|openai)`);
-  }
-
-  if (webResearchMode === "required" && mode !== "template") {
-    enforceWebResearch(output);
   }
 
   const outArg = parseFlag(args, "--out");
