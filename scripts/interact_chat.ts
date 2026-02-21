@@ -1,35 +1,17 @@
+#!/usr/bin/env tsx
 
-import { chromium } from 'playwright';
+/**
+ * Tombstone for the old interact_chat.ts location.
+ *
+ * The real script now lives under scripts/workflows/chat-debug.
+ */
 
-async function run() {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  try {
-    await page.goto('http://localhost:4173/');
-    
-    // Set name
-    await page.fill('#nameInput', 'Gemini Agent');
-    
-    // Type message
-    await page.fill('#messageInput', 'Hello from the Gemini CLI! I am interacting with your chat app.');
-    
-    // Click send
-    await page.click('button[type="submit"]');
-    
-    // Wait for the message to appear in the list
-    await page.waitForSelector('ul#messages li');
-    
-    const messages = await page.locator('ul#messages li').allTextContents();
-    console.log('Current Messages:', messages);
+import { runMovedScriptTombstone } from "./moved-script-tombstone";
 
-    await page.screenshot({ path: 'verification/chat_interaction.png' });
-    console.log('Interaction screenshot saved.');
-    
-  } catch (error) {
-    console.error('Error during interaction:', error);
-  } finally {
-    await browser.close();
-  }
-}
+runMovedScriptTombstone({
+  oldPath: "scripts/interact_chat.ts",
+  newPath: "scripts/workflows/chat-debug/interact-chat.ts",
+  reason: "Chat debug scripts were grouped into a workflow folder for maintainability.",
+  followUp: "Update your script runner/flow to call the new path."
+});
 
-run();

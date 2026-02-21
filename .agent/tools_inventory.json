@@ -44,9 +44,9 @@
   {
     "category": "Generators",
     "name": "Generate Race Images",
-    "command": "npx tsx scripts/generate-race-images.ts",
+    "command": "npx tsx scripts/workflows/gemini/image-gen/generate-race-images.ts",
     "description": "Generates images for races.",
-    "path": "scripts/generate-race-images.ts"
+    "path": "scripts/workflows/gemini/image-gen/generate-race-images.ts"
   },
   {
     "category": "Generators",

@@ -523,7 +523,7 @@ Current state:
 - Slice-of-life report tooling:
   - `scripts/audits/list-slice-of-life-settings.ts` outputs `scripts/audits/slice-of-life-settings.md`
 - Batch regeneration tooling:
-  - `scripts/regenerate-race-images-from-backlog.ts`
+  - `scripts/workflows/gemini/image-gen/regenerate-race-images-from-backlog.ts`
 
 Unanswered / still to decide:
 

@@ -1,4 +1,4 @@
-﻿# Race Portrait Regen (Gemini) Handoff
+# Race Portrait Regen (Gemini) Handoff
 
 Updated: 2026-02-11 (local) / 2026-02-10 (UTC)
 
@@ -68,8 +68,8 @@ For every (race, gender) listed in `docs/portraits/race_portrait_regen_backlog.j
   - Civilian attire (no armor, no weapons, no military regalia).
   - No arrows (Gemini often draws weird arrow artifacts).
 - Dataset hygiene:
-  - Each race/gender should have a unique slice-of-life activity (avoid reusing the same â€œchoreâ€ for everyone).
-  - Start a new Gemini chat between each generation to avoid â€œsame environment pastedâ€ and â€œre-download previous imageâ€ issues.
+  - Each race/gender should have a unique slice-of-life activity (avoid reusing the same “chore” for everyone).
+  - Start a new Gemini chat between each generation to avoid “same environment pasted” and “re-download previous image” issues.
 
 ## Where Progress Is Tracked
 
@@ -124,21 +124,21 @@ Post-run audits:
   - `duplicatedActivitiesAcrossRegeneratedPairs: 23`
   - `duplicatedRowsAcrossRegeneratedPairs: 53`
 
-Known â€œneeds follow-upâ€ from manual review:
+Known “needs follow-up” from manual review:
 
 - Aarakocra images tend to drift into dramatic wingspan / high-altitude scenes.
   - Overrides were added, but manual acceptance is still required.
 - Slice-of-life uniqueness is not fully clean yet:
   - 23 duplicate activity clusters remain across regenerated pairs (see `scripts/audits/slice-of-life-settings.md`).
 
-## Remaining Work (Whatâ€™s Still Left)
+## Remaining Work (What’s Still Left)
 
 Backlog generation is complete (all backlog pairs have status entries).
 
 Remaining work is manual QA:
 
 - Spot check images for the acceptance criteria (full-body, no blank margins, slice-of-life, civilian attire, no arrows).
-- If any race still fails visually, add a prompt override in `scripts/regenerate-race-images-from-backlog.ts` and re-run that race/gender.
+- If any race still fails visually, add a prompt override in `scripts/workflows/gemini/image-gen/regenerate-race-images-from-backlog.ts` and re-run that race/gender.
 
 ## How The Automation Works (Specific)
 
@@ -154,19 +154,19 @@ Remaining work is manual QA:
   - `--disable-features=SharedStorageAPI,SharedStorage`
   - This prevents a Playwright CDP crash on `shared_storage_worklet` targets.
 
-File: `scripts/launch-debug-chrome.js`
+File: `scripts/workflows/gemini/image-gen/launch-debug-chrome.js`
 
 ### 2) Backlog-driven regen runner
 
 Primary runner:
 
-- `scripts/regenerate-race-images-from-backlog.ts`
+- `scripts/workflows/gemini/image-gen/regenerate-race-images-from-backlog.ts`
 
 Behavior:
 
 - Reads `docs/portraits/race_portrait_regen_backlog.json`.
 - Resolves `raceName` to a `raceId` by parsing `src/data/races/*.ts`.
-- Builds a Gemini prompt with a structured `SPEC_JSON` and *positive* constraints (avoid heavy â€œnegative promptingâ€).
+- Builds a Gemini prompt with a structured `SPEC_JSON` and *positive* constraints (avoid heavy “negative prompting”).
 - Enforces new chat for each generation (via Gemini automation).
 - Downloads the newest generated image and saves it to the target asset path.
 - Quality gates:
@@ -178,7 +178,7 @@ Behavior:
 
 ### 3) Gemini download robustness
 
-File: `scripts/image-gen-mcp.ts`
+File: `scripts/workflows/gemini/core/image-gen-mcp.ts`
 
 Gemini download now tries:
 
@@ -198,7 +198,7 @@ cd /d F:\Repos\Aralia
 set IMAGE_GEN_USE_CDP=1
 set IMAGE_GEN_STRICT_NEW_CHAT=1
 set IMAGE_GEN_GEMINI_IMAGE_TIMEOUT_MS=360000
-npx tsx scripts\regenerate-race-images-from-backlog.ts --retries 10 --cooldown-ms 7000
+npx tsx scripts\workflows\gemini\image-gen\regenerate-race-images-from-backlog.ts --retries 10 --cooldown-ms 7000
 ```
 
 Run a single race (useful for manual review / fixes):
@@ -208,7 +208,7 @@ cd /d F:\Repos\Aralia
 set IMAGE_GEN_USE_CDP=1
 set IMAGE_GEN_STRICT_NEW_CHAT=1
 set IMAGE_GEN_GEMINI_IMAGE_TIMEOUT_MS=360000
-npx tsx scripts\regenerate-race-images-from-backlog.ts --race protector_aasimar --gender male --retries 10 --cooldown-ms 7000
+npx tsx scripts\workflows\gemini\image-gen\regenerate-race-images-from-backlog.ts --race protector_aasimar --gender male --retries 10 --cooldown-ms 7000
 ```
 
 Audit helpers:
@@ -242,21 +242,21 @@ Mitigations:
 
 ### Avoid arrows
 
-Gemini often renders arrows with â€œfeathers on both endsâ€.
+Gemini often renders arrows with “feathers on both ends”.
 
 We added a global constraint:
 
 - `Do not include arrows or arrow-like props.`
 
-But also avoid activities like â€œfletching arrowsâ€ entirely.
+But also avoid activities like “fletching arrows” entirely.
 
 ## Files Added/Modified In This Effort (Non-image)
 
 Modified:
 
-- `scripts/image-gen-mcp.ts` (robust Gemini download fallbacks)
-- `scripts/launch-debug-chrome.js` (disable SharedStorage to avoid CDP crash)
-- `scripts/regenerate-race-images-from-backlog.ts` (prompt rules, overrides, square-check gate, no arrows)
+- `scripts/workflows/gemini/core/image-gen-mcp.ts` (robust Gemini download fallbacks)
+- `scripts/workflows/gemini/image-gen/launch-debug-chrome.js` (disable SharedStorage to avoid CDP crash)
+- `scripts/workflows/gemini/image-gen/regenerate-race-images-from-backlog.ts` (prompt rules, overrides, square-check gate, no arrows)
 - `docs/portraits/race_portrait_regen_backlog.json` (reason note for aarakocra drift)
 
 Added:
@@ -278,13 +278,13 @@ Added:
 
 ## Run Log (Chronological)
 
-(Append-only notes during long runs. New lines are appended by `scripts/regenerate-race-images-from-backlog.ts`.)
+(Append-only notes during long runs. New lines are appended by `scripts/workflows/gemini/image-gen/regenerate-race-images-from-backlog.ts`.)
 - 2026-02-10T23:50:13.539Z [start] planned=11 args=--category B --skip-written-after 2026-02-10T23:23:54.266Z --retries 10 --cooldown-ms 7000
 - 2026-02-10T23:50:13.541Z [begin] B fallen_aasimar male -> assets/images/races/Aasimar_Fallen_Male.png
 - 2026-02-10T23:50:40.155Z [done] B fallen_aasimar male path=assets/images/races/Aasimar_Fallen_Male.png activity="planting herb seedlings into a small soil bed using a simple hand trowel"
 - 2026-02-11T00:11:27.128Z [start] planned=78 args=--dry-run --skip-written-after 2026-02-10T00:00:00.000Z
 
-Note: the user reported intermittent terminal prints of `{"detail":"Bad Request"}`; when this happens the long batch can stop. The download logic in `scripts/image-gen-mcp.ts` was hardened, but this still reappears intermittently.
+Note: the user reported intermittent terminal prints of `{"detail":"Bad Request"}`; when this happens the long batch can stop. The download logic in `scripts/workflows/gemini/core/image-gen-mcp.ts` was hardened, but this still reappears intermittently.
 - 2026-02-11T00:21:49.949Z [start] planned=11 args=--category B --skip-written-after 2026-02-10T23:50:40.149Z --retries 10 --cooldown-ms 7000
 - 2026-02-11T00:21:49.951Z [begin] B fallen_aasimar male -> assets/images/races/Aasimar_Fallen_Male.png
 - 2026-02-11T00:22:18.940Z [done] B fallen_aasimar male path=assets/images/races/Aasimar_Fallen_Male.png activity="planting herb seedlings into a small soil bed using a simple hand trowel"
@@ -423,7 +423,7 @@ Note: the user reported intermittent terminal prints of `{"detail":"Bad Request"
 
 ## 2026-02-13 Addendum: Gemini Deep-Research Race Profiles
 
-- New script (separate from portrait regen): `scripts/research-races-with-gemini.ts`
+- New script (separate from portrait regen): `scripts/workflows/gemini/research/research-races-with-gemini.ts`
 - Goal: generate one race-level research profile per race using Gemini Web (CDP), without modifying portrait generation scripts.
 - Output files:
   - `docs/portraits/race_profiles/<raceId>.md`
@@ -440,11 +440,11 @@ npm run mcp:chrome
 ```
 
 ```powershell
-cmd.exe /c "set IMAGE_GEN_USE_CDP=1&& npx tsx scripts/research-races-with-gemini.ts --race-id giff --overwrite"
+cmd.exe /c "set IMAGE_GEN_USE_CDP=1&& npx tsx scripts/workflows/gemini/research/research-races-with-gemini.ts --race-id giff --overwrite"
 ```
 
 ```powershell
-cmd.exe /c "set IMAGE_GEN_USE_CDP=1&& npx tsx scripts/research-races-with-gemini.ts --all --limit 3 --start-after giff --overwrite"
+cmd.exe /c "set IMAGE_GEN_USE_CDP=1&& npx tsx scripts/workflows/gemini/research/research-races-with-gemini.ts --all --limit 3 --start-after giff --overwrite"
 ```
 
 Notes:
@@ -468,3 +468,5 @@ Notes:
   - new chat confirmed fresh
   - new-chat requirement popup not visible (or dismissed)
   - Deep Research selected
+
+- 2026-02-21T16:39:04.798Z [start] planned=1 args=--dry-run --limit 1

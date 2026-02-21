@@ -102,3 +102,10 @@ generated/
 
 .mcp.json
 .mcp.json
+
+# Internal Dev Scripts & Debugging
+src/components/debug/roadmap/
+scripts/roadmap-engine/
+scripts/workflows/chat-debug/
+
+scripts/workflows/gemini/

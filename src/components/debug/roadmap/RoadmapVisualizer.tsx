@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 21/02/2026, 10:24:07
+ * Last Sync: 21/02/2026, 18:13:31
  * Dependents: RoadmapVisualizer.tsx
  * Imports: 4 files
  * 
@@ -14,18 +14,39 @@
  */
 // @dependencies-end
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue } from 'framer-motion';
 import { GRID_SIZE, THEME_STORAGE_KEY, nextThemeMode } from './constants';
 import { buildRenderGraph } from './graph';
 import type { RenderNode, RoadmapData, ThemeMode } from './types';
 import { formatLevelCounts } from './utils';
 
+/**
+ * Technical:
+ * Main React surface for the roadmap tool. It loads roadmap data, builds render graph output,
+ * handles pan/zoom/drag interactions, and renders both control chrome and node/detail UI.
+ *
+ * Layman:
+ * This is the actual roadmap screen you interact with. It fetches the roadmap content, shows
+ * nodes and connector lines, lets you move around and drag branches, and shows doc details when
+ * you click a node.
+ */
+
+// ============================================================================
+// Local Types
+// ============================================================================
+// Technical: UI-local state shapes for saved node coordinates and save lifecycle.
+// Layman: simple labels for where nodes are and whether saving is idle/saving/saved/error.
+// ============================================================================
 type LayoutPositions = Record<string, { x: number; y: number }>;
 type LayoutSaveState = 'idle' | 'saving' | 'saved' | 'error';
 
+// Technical: keeps node coordinates aligned to grid.
+// Layman: snaps dragged nodes to neat grid positions instead of messy pixels.
 const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
+// Technical: status badge color palette by theme.
+// Layman: picks badge colors for Done/Active/Planned on dark/light mode.
 const statusChipClass = (status: 'done' | 'active' | 'planned', isDark: boolean) => {
   if (isDark) {
     if (status === 'done') return 'border-emerald-500/60 bg-emerald-500/20 text-emerald-200';
@@ -37,11 +58,15 @@ const statusChipClass = (status: 'done' | 'active' | 'planned', isDark: boolean)
   return 'border-blue-300 bg-blue-50 text-blue-700';
 };
 
+// Technical: standard button style for top-row controls.
+// Layman: gives all toolbar buttons one consistent "glass panel" look.
 const glassButtonClass = (isDark: boolean) =>
   isDark
     ? 'bg-slate-900/70 border-cyan-500/30 text-slate-100 hover:bg-slate-800/90 hover:border-cyan-400/60'
     : 'bg-white/80 border-slate-300 text-slate-700 hover:bg-white';
 
+// Technical: guards layout payload so only numeric {x,y} entries survive.
+// Layman: ignores broken save data so bad coordinates do not crash layout restore.
 const sanitizeLayoutPositions = (input: unknown): LayoutPositions => {
   if (!input || typeof input !== 'object') return {};
   const output: LayoutPositions = {};
@@ -55,36 +80,85 @@ const sanitizeLayoutPositions = (input: unknown): LayoutPositions => {
   return output;
 };
 
+// Technical:
+// The roadmap uses a large world-space canvas so pan/zoom/drag still works when the user
+// moves far away from the initial center.
+//
+// Layman:
+// Think of this like a giant sheet of graph paper. Nodes and lines are drawn on that sheet
+// so you can keep moving around without "falling off" the map.
+//
+// Technical:
+// If these values change, grid layer and SVG connector layer must stay in sync or edges can
+// appear disconnected.
+//
+// Layman:
+// If someone changes these numbers in only one place, lines may look broken even when data is
+// correct.
 const CANVAS_MIN = -12000;
 const CANVAS_SIZE = 32000;
 const CANVAS_OFFSET = -CANVAS_MIN;
+const AUTO_SAVE_LAYOUT_STORAGE_KEY = 'roadmap_auto_save_layout_v1';
 
+// ============================================================================
+// Main Component
+// ============================================================================
+// Technical: orchestrates data loading, graph build, interaction state, and rendering.
+// Layman: this is the roadmap app itself.
+// ============================================================================
 export const RoadmapVisualizer: React.FC = () => {
+  // Technical: roadmap source payload and load/error lifecycle.
+  // Layman: loaded roadmap data and whether the screen is still loading or failed.
   const [data, setData] = useState<RoadmapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Technical: node selection + expansion model for collapsible branches.
+  // Layman: which node is selected and which nodes are unfolded right now.
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(() => new Set(['aralia_chronicles']));
+
+  // Technical: visual controls for zoom/theme/crosslink visibility.
+  // Layman: UI display toggles for magnification, dark mode, and crosslink lines.
   const [zoomLevel, setZoomLevel] = useState(1);
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
   const [showCrosslinks, setShowCrosslinks] = useState(true);
+
+  // Technical: user-adjusted node coordinates + save state.
+  // Layman: remembers moved node positions and whether layout changes are unsaved.
   const [positionOverrides, setPositionOverrides] = useState<LayoutPositions>({});
   const [layoutDirty, setLayoutDirty] = useState(false);
   const [layoutSaveState, setLayoutSaveState] = useState<LayoutSaveState>('idle');
+  // Technical: auto-save toggle is separate from manual save on purpose.
+  // Layman: user can choose "save only when I press button" or "save automatically."
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
+  // Technical: controls save-help explanatory panel.
+  // Layman: opens the little "what does save do?" helper panel.
+  const [showLayoutHelp, setShowLayoutHelp] = useState(false);
   const [vscodeStatus, setVscodeStatus] = useState<string | null>(null);
   const [isCanvasDragging, setIsCanvasDragging] = useState(false);
+  // Technical: tracks dynamic toolbar bottom position to avoid overlapping overlays.
+  // Layman: if buttons wrap to a second row, this pushes info panels down so they do not collide.
+  const [topControlsBottom, setTopControlsBottom] = useState(58);
 
+  // Technical: mutable refs + motion values for drag intent and canvas transform.
+  // Layman: remembers if the last click was actually a drag, and stores map pan/zoom.
   const dragWasMovementRef = useRef(false);
+  const topControlsRef = useRef<HTMLDivElement | null>(null);
   const canvasPanX = useMotionValue(0);
   const canvasPanY = useMotionValue(0);
   const canvasScale = useMotionValue(1);
   const isDark = themeMode === 'dark';
 
+  // Technical: map lookup avoids repeated object scans during graph operations.
+  // Layman: quick lookup table for moved node positions by id.
   const positionOverrideMap = useMemo(
     () => new Map(Object.entries(positionOverrides).map(([id, pos]) => [id, pos])),
     [positionOverrides]
   );
 
+  // Technical: restore theme preference from browser storage.
+  // Layman: remember if this browser last used dark or light mode.
   useEffect(() => {
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
@@ -94,6 +168,48 @@ export const RoadmapVisualizer: React.FC = () => {
     }
   }, []);
 
+  // Technical: restore auto-save preference per browser profile.
+  // Layman: keep your auto-save toggle choice between visits.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(AUTO_SAVE_LAYOUT_STORAGE_KEY);
+      setAutoSaveEnabled(saved === '1');
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Technical: persist auto-save preference whenever it changes.
+  // Layman: update browser memory when the auto-save button is toggled.
+  useEffect(() => {
+    try {
+      localStorage.setItem(AUTO_SAVE_LAYOUT_STORAGE_KEY, autoSaveEnabled ? '1' : '0');
+    } catch {
+      // ignore
+    }
+  }, [autoSaveEnabled]);
+
+  // Technical: observe toolbar height and push floating panels below it.
+  // Layman: prevents top controls from overlapping with detail/status cards.
+  useEffect(() => {
+    const controls = topControlsRef.current;
+    if (!controls) return;
+    const update = () => {
+      const rect = controls.getBoundingClientRect();
+      setTopControlsBottom(Math.round(rect.bottom));
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(controls);
+    window.addEventListener('resize', update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  // Technical: persist current theme mode.
+  // Layman: save dark/light choice after each switch.
   useEffect(() => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, themeMode);
@@ -102,6 +218,11 @@ export const RoadmapVisualizer: React.FC = () => {
     }
   }, [themeMode]);
 
+  // Technical: initial data bootstrap:
+  // 1) fetch roadmap content, 2) fetch saved layout, 3) hydrate state.
+  //
+  // Layman:
+  // On first load, this grabs roadmap nodes/edges and then applies your saved node positions.
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -132,11 +253,15 @@ export const RoadmapVisualizer: React.FC = () => {
     loadData();
   }, []);
 
+  // Technical: turn source roadmap + expansion state + drag overrides into draw-ready graph.
+  // Layman: converts raw data into exact card/line positions that the UI can render.
   const graph = useMemo(() => {
     if (!data) return null;
     return buildRenderGraph(data, expandedNodeIds, positionOverrideMap);
   }, [data, expandedNodeIds, positionOverrideMap]);
 
+  // Technical: id-index for quick node lookup (drag, selection, branch traversal).
+  // Layman: lets the UI instantly find any visible node by id.
   const nodeById = useMemo(() => {
     const map = new Map<string, RenderNode>();
     if (!graph) return map;
@@ -144,6 +269,8 @@ export const RoadmapVisualizer: React.FC = () => {
     return map;
   }, [graph]);
 
+  // Technical: adjacency map of parent -> children for subtree operations.
+  // Layman: this tells the app which child nodes belong under each parent.
   const childrenByParent = useMemo(() => {
     const map = new Map<string, string[]>();
     if (!graph) return map;
@@ -156,6 +283,8 @@ export const RoadmapVisualizer: React.FC = () => {
     return map;
   }, [graph]);
 
+  // Technical: selected detail payload + optional crosslink filtering.
+  // Layman: node panel content and whether dotted crosslinks should be hidden.
   const selectedDetail = selectedNodeId && graph ? graph.detailById.get(selectedNodeId) || null : null;
   const visibleEdges = useMemo(
     () => (graph ? (showCrosslinks ? graph.edges : graph.edges.filter((edge) => !edge.dashed)) : []),
@@ -163,6 +292,8 @@ export const RoadmapVisualizer: React.FC = () => {
   );
 
   const toggleNode = (nodeId: string) => {
+    // Technical: toggles one node id inside expansion set.
+    // Layman: fold or unfold this node's children.
     setExpandedNodeIds((prev) => {
       const next = new Set(prev);
       if (next.has(nodeId)) next.delete(nodeId);
@@ -172,6 +303,8 @@ export const RoadmapVisualizer: React.FC = () => {
   };
 
   const collectDragBranch = (rootId: string) => {
+    // Technical: drag applies to full visible subtree for root/project/branch nodes.
+    // Layman: when you drag a parent, all visible children move with it.
     const start = nodeById.get(rootId);
     if (!start) return [rootId];
     if (!(start.kind === 'project' || start.kind === 'branch' || start.kind === 'root')) return [rootId];
@@ -192,6 +325,8 @@ export const RoadmapVisualizer: React.FC = () => {
   };
 
   const onNodePointerDown = (event: React.MouseEvent<HTMLButtonElement>, nodeId: string) => {
+    // Technical: left mouse only; suppress default selection/scroll interactions.
+    // Layman: only normal left-click drag should move nodes.
     if (event.button !== 0) return;
     if (!nodeById.has(nodeId)) return;
     event.preventDefault();
@@ -203,6 +338,8 @@ export const RoadmapVisualizer: React.FC = () => {
     let lastY = event.clientY;
 
     const onMove = (moveEvent: MouseEvent | PointerEvent) => {
+      // Technical: convert screen delta to world delta by dividing by current zoom.
+      // Layman: node drag speed stays consistent even when zoomed in/out.
       const scale = Math.max(canvasScale.get(), 0.0001);
       const dx = (moveEvent.clientX - lastX) / scale;
       const dy = (moveEvent.clientY - lastY) / scale;
@@ -228,6 +365,10 @@ export const RoadmapVisualizer: React.FC = () => {
       window.removeEventListener('mouseup', onUp);
       window.removeEventListener('pointerup', onUp);
       if (!dragWasMovementRef.current) return;
+      // Technical: snap all dragged nodes to grid on release for deterministic layouts.
+      // Layman: clean "on-grid" placement makes branches readable and repeatable.
+      // DEBT: freeform positioning is currently unsupported by design; if introduced later,
+      // connector spacing and overlap behavior must be revalidated.
       setPositionOverrides((prev) => {
         const next = { ...prev };
         for (const id of dragIds) {
@@ -247,6 +388,8 @@ export const RoadmapVisualizer: React.FC = () => {
   };
 
   const onNodeClick = (nodeId: string, expandable: boolean) => {
+    // Technical: ignore click-up after drag so node does not accidentally toggle.
+    // Layman: dragging should not also count as a click.
     if (dragWasMovementRef.current) {
       dragWasMovementRef.current = false;
       return;
@@ -255,7 +398,9 @@ export const RoadmapVisualizer: React.FC = () => {
     setSelectedNodeId(nodeId);
   };
 
-  const saveLayout = async () => {
+  // Technical: single write path for layout persistence (manual + auto-save).
+  // Layman: every save route uses this one function, so behavior stays consistent.
+  const persistLayout = useCallback(async () => {
     setLayoutSaveState('saving');
     try {
       const response = await fetch('/Aralia/api/roadmap/layout', {
@@ -271,15 +416,37 @@ export const RoadmapVisualizer: React.FC = () => {
       console.error(saveErr);
       setLayoutSaveState('error');
     }
+  }, [positionOverrides]);
+
+  useEffect(() => {
+    // Technical: debounce auto-save to batch rapid drag updates into one POST.
+    // Layman: waits a moment before saving so it does not spam the server.
+    if (!autoSaveEnabled) return;
+    if (!layoutDirty) return;
+    if (layoutSaveState === 'saving') return;
+    const timer = window.setTimeout(() => {
+      void persistLayout();
+    }, 420);
+    return () => window.clearTimeout(timer);
+  }, [autoSaveEnabled, layoutDirty, layoutSaveState, persistLayout]);
+
+  const saveLayoutNow = () => {
+    // Technical: immediate manual save trigger.
+    // Layman: "save now" button action.
+    void persistLayout();
   };
 
   const resetNodePositions = () => {
+    // Technical: clear all manual offsets so graph returns to computed layout.
+    // Layman: put all moved nodes back to default positions.
     setPositionOverrides({});
     setLayoutDirty(true);
     setLayoutSaveState('idle');
   };
 
   const openInVSCode = async (docPath: string) => {
+    // Technical: bridge endpoint that asks local server to open a file path in VS Code.
+    // Layman: clicking this opens the selected doc directly in your editor.
     try {
       setVscodeStatus('Opening in VS Code...');
       const response = await fetch('/Aralia/api/roadmap/open-in-vscode', {
@@ -298,11 +465,15 @@ export const RoadmapVisualizer: React.FC = () => {
   };
 
   const handleWheelZoomCapture = (event: React.WheelEvent<HTMLDivElement>) => {
+    // Technical: intercept wheel globally for canvas zoom control.
+    // Layman: mouse wheel zooms roadmap instead of scrolling page.
     event.preventDefault();
     const currentScale = canvasScale.get();
     const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
     const nextScale = Math.min(Math.max(currentScale * factor, 0.35), 2.6);
     if (Math.abs(nextScale - currentScale) < 0.00001) return;
+    // Technical: cursor-centric zoom preserves world point under pointer while scaling.
+    // Layman: zoom happens around your mouse position, not random center drift.
     const rect = event.currentTarget.getBoundingClientRect();
     const cx = event.clientX - rect.left;
     const cy = event.clientY - rect.top;
@@ -314,7 +485,9 @@ export const RoadmapVisualizer: React.FC = () => {
     setZoomLevel(nextScale);
   };
 
-  const startCanvasDrag = (event: React.MouseEvent<HTMLDivElement>) => {
+  const startCanvasDrag = (event: React.MouseEvent<HTMLButtonElement>) => {
+    // Technical: background pan layer drag for world-space navigation.
+    // Layman: click-and-drag empty canvas to move around the roadmap.
     if (event.button !== 0) return;
     event.preventDefault();
     let lastX = event.clientX;
@@ -341,9 +514,15 @@ export const RoadmapVisualizer: React.FC = () => {
     window.addEventListener('mouseup', onUp);
   };
 
+  // Technical: expand all currently expandable nodes from graph metadata.
+  // Layman: open every foldable node in one click.
   const expandAll = () => graph && setExpandedNodeIds(new Set(graph.expandableIds));
+  // Technical: empty expansion set for complete collapse.
+  // Layman: close everything so only root stays visible.
   const collapseAll = () => setExpandedNodeIds(new Set());
   const resetView = () => {
+    // Technical: reset pan/zoom transforms without altering node position overrides.
+    // Layman: camera reset only, not node layout reset.
     canvasPanX.set(0);
     canvasPanY.set(0);
     canvasScale.set(1);
@@ -355,30 +534,68 @@ export const RoadmapVisualizer: React.FC = () => {
 
   const progressTotal = graph.stats.done + graph.stats.active + graph.stats.planned;
   const progressPercent = progressTotal > 0 ? Math.round((graph.stats.done / progressTotal) * 100) : 0;
+  // Technical: dynamic top offsets keep floating cards clear of toolbar and help popup.
+  // Layman: prevents UI boxes from stacking on top of each other.
+  const helpPanelTop = topControlsBottom + 8;
+  const helpPanelHeight = showLayoutHelp ? 148 : 0;
+  const layoutStatusTop = topControlsBottom + 8 + helpPanelHeight + 4;
+  const detailTop = topControlsBottom + 42 + helpPanelHeight;
+  const glanceTop = Math.max(24, topControlsBottom + 8 + helpPanelHeight);
 
   return (
     <div onWheelCapture={handleWheelZoomCapture} className={`relative w-full h-screen overflow-hidden select-none ${isDark ? 'bg-[#050810] text-slate-100' : 'bg-slate-100 text-slate-800'}`}>
+      {/* Technical: static title strip centered above the canvas content. */}
+      {/* Layman: main heading at the top so the screen always reads as the roadmap tool. */}
       <div className="absolute top-5 left-0 w-full text-center z-30 pointer-events-none">
         <h1 className={`text-4xl font-semibold tracking-tight ${isDark ? 'text-slate-50' : 'text-slate-800'}`}>Aralia Feature Roadmap</h1>
         <p className={`text-xs uppercase tracking-[0.3em] mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Interactive Feature Tree</p>
       </div>
 
-      <div className="absolute top-6 left-6 z-30 pointer-events-auto flex gap-2 flex-wrap max-w-[840px]">
+      {/* Technical: top-left controls for expand/collapse/crosslinks/save/layout/theme. */}
+      {/* Layman: command buttons row for how the roadmap behaves. */}
+      <div ref={topControlsRef} className="absolute top-6 left-6 z-30 pointer-events-auto flex gap-2 flex-wrap max-w-[840px]">
         <button type="button" onClick={expandAll} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Expand All</button>
         <button type="button" onClick={collapseAll} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Collapse All</button>
         <button type="button" onClick={() => setShowCrosslinks((prev) => !prev)} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Crosslinks: {showCrosslinks ? 'On' : 'Off'}</button>
-        <button type="button" onClick={saveLayout} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${layoutDirty ? (isDark ? 'bg-amber-900/60 border-amber-400/70 text-amber-100 hover:bg-amber-800/70' : 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100') : glassButtonClass(isDark)}`}>Save Layout</button>
+        <button type="button" onClick={saveLayoutNow} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${layoutDirty ? (isDark ? 'bg-amber-900/60 border-amber-400/70 text-amber-100 hover:bg-amber-800/70' : 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100') : glassButtonClass(isDark)}`}>Save Layout Now</button>
+        <button type="button" onClick={() => setAutoSaveEnabled((prev) => !prev)} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${autoSaveEnabled ? (isDark ? 'bg-emerald-900/60 border-emerald-400/70 text-emerald-100 hover:bg-emerald-800/70' : 'bg-emerald-50 border-emerald-400 text-emerald-700 hover:bg-emerald-100') : glassButtonClass(isDark)}`}>Auto-save: {autoSaveEnabled ? 'On' : 'Off'}</button>
+        <button type="button" onClick={() => setShowLayoutHelp((prev) => !prev)} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Layout Save Help</button>
         <button type="button" onClick={resetNodePositions} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Reset Node Positions</button>
         <button type="button" onClick={() => setThemeMode((prev) => nextThemeMode(prev))} className={`rounded-lg px-4 py-2 text-xs font-semibold border backdrop-blur-md transition-colors ${glassButtonClass(isDark)}`}>Theme: {isDark ? 'Dark' : 'Light'}</button>
       </div>
 
-      <div className="absolute top-[76px] left-6 z-30 pointer-events-none">
+      {showLayoutHelp && (
+        <>
+          {/* Technical: inline explanation of manual save vs auto-save semantics. */}
+          {/* Layman: clear reminder of what those save buttons actually do. */}
+        <div className="absolute left-6 z-30 pointer-events-auto w-[420px]" style={{ top: helpPanelTop }}>
+          <div className={`rounded-xl border px-4 py-3 shadow-xl backdrop-blur-md ${isDark ? 'bg-slate-900/88 border-slate-700 text-slate-200' : 'bg-white/95 border-slate-300 text-slate-700'}`}>
+            <div className={`text-[10px] uppercase tracking-[0.2em] mb-2 ${isDark ? 'text-cyan-300' : 'text-blue-700'}`}>Layout Save Behavior</div>
+            <p className="text-xs leading-relaxed">
+              <strong>Save Layout Now</strong> writes a one-time snapshot of current node positions.
+            </p>
+            <p className="text-xs leading-relaxed mt-1">
+              <strong>Auto-save: On</strong> saves position changes automatically shortly after you move nodes.
+            </p>
+            <p className="text-xs leading-relaxed mt-1">
+              These controls save <strong>layout coordinates only</strong>. They do not save roadmap content, status, or docs.
+            </p>
+          </div>
+        </div>
+        </>
+      )}
+
+      {/* Technical: compact save-status line for unsaved/saving/saved/error state. */}
+      {/* Layman: quick indicator telling you if layout changes were saved. */}
+      <div className="absolute left-6 z-30 pointer-events-none" style={{ top: layoutStatusTop }}>
         <div className={`text-[10px] uppercase tracking-[0.18em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          Layout {layoutSaveState === 'saving' ? 'saving...' : layoutSaveState === 'saved' ? 'saved' : layoutSaveState === 'error' ? 'error' : layoutDirty ? 'unsaved' : 'synced'}
+          Layout {layoutSaveState === 'saving' ? 'saving...' : layoutSaveState === 'saved' ? 'saved' : layoutSaveState === 'error' ? 'error' : layoutDirty ? 'unsaved' : 'synced'} | Auto-save {autoSaveEnabled ? 'on' : 'off'}
         </div>
       </div>
 
-      <div className="absolute top-6 right-6 z-30 pointer-events-none">
+      {/* Technical: aggregate stat widget from render graph metadata. */}
+      {/* Layman: at-a-glance counts for done/active/planned and zoom/progress. */}
+      <div className="absolute right-6 z-30 pointer-events-none" style={{ top: glanceTop }}>
         <div className={`rounded-xl px-4 py-3 shadow-xl min-w-[265px] border backdrop-blur-md ${isDark ? 'bg-slate-900/72 border-slate-700/90' : 'bg-white/88 border-slate-300'}`}>
           <div className={`text-[10px] uppercase tracking-[0.2em] mb-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>At A Glance</div>
           <div className="grid grid-cols-3 gap-2 mb-2">
@@ -392,14 +609,18 @@ export const RoadmapVisualizer: React.FC = () => {
       </div>
 
       {selectedDetail && (
+        <>
+          {/* Technical: selected-node detail drawer with docs and external actions. */}
+          {/* Layman: info panel that opens when you click a node. */}
         <motion.aside
           initial={{ x: -420, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          className={`absolute left-6 top-[112px] max-h-[calc(100vh-140px)] overflow-y-auto w-[410px] z-40 rounded-xl p-6 shadow-2xl pointer-events-auto border-l-4 ${
+          className={`absolute left-6 overflow-y-auto w-[410px] z-40 rounded-xl p-6 shadow-2xl pointer-events-auto border-l-4 ${
             isDark
               ? 'bg-[#0f121cdc] border-l-amber-500 border border-slate-700/80 backdrop-blur-md'
               : 'bg-white/96 border-l-amber-500 border border-slate-300'
           }`}
+          style={{ top: detailTop, maxHeight: `calc(100vh - ${detailTop + 20}px)` }}
         >
           <button type="button" onClick={() => setSelectedNodeId(null)} className={`absolute top-4 right-4 ${isDark ? 'text-slate-400 hover:text-slate-100' : 'text-slate-500 hover:text-slate-800'}`}>
             x
@@ -500,8 +721,11 @@ export const RoadmapVisualizer: React.FC = () => {
             </button>
           )}
         </motion.aside>
+        </>
       )}
 
+      {/* Technical: full-screen transparent interaction layer used only for panning. */}
+      {/* Layman: drag empty space to move the whole roadmap view. */}
       <button
         type="button"
         aria-label="Pan roadmap canvas"
@@ -509,7 +733,11 @@ export const RoadmapVisualizer: React.FC = () => {
         className={`absolute inset-0 z-10 pointer-events-auto select-none ${isCanvasDragging ? 'cursor-grabbing' : 'cursor-move'}`}
       />
 
+      {/* Technical: world-space transform wrapper for grid, edges, and nodes. */}
+      {/* Layman: everything in the map moves together when you pan/zoom. */}
       <motion.div style={{ x: canvasPanX, y: canvasPanY, scale: canvasScale }} className="absolute inset-0 origin-top-left z-20 pointer-events-none">
+        {/* Technical: infinite-feel grid background anchored to world coordinates. */}
+        {/* Layman: graph-paper background that stays aligned with node snapping. */}
         <div
           className="absolute pointer-events-none"
           style={{
@@ -524,6 +752,8 @@ export const RoadmapVisualizer: React.FC = () => {
           }}
         />
 
+        {/* Technical: connector rendering layer; uses glow filters and optional dashed crosslinks. */}
+        {/* Layman: draws relationship lines between node cards. */}
         <svg
           className="absolute pointer-events-none"
           style={{
@@ -551,24 +781,36 @@ export const RoadmapVisualizer: React.FC = () => {
             </filter>
           </defs>
           <g transform={`translate(${CANVAS_OFFSET} ${CANVAS_OFFSET})`}>
-            {visibleEdges.map((edge) => (
-              <path
-                key={edge.id}
-                d={edge.path}
-                fill="none"
-                stroke={isDark ? (edge.dashed ? '#94a3b8' : edge.width > 2.2 ? '#22d3ee' : '#3b82f6') : edge.color}
-                strokeWidth={edge.width}
-                strokeDasharray={edge.dashed ? '5 7' : undefined}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter={`url(#${edge.width > 2.2 ? 'roadmap-edge-glow-cyan' : 'roadmap-edge-glow-blue'})`}
-                opacity={edge.dashed ? 0.55 : 0.74}
-              />
-            ))}
+            {visibleEdges.map((edge) => {
+              // Technical: near-flat links can intermittently disappear when glow filters
+              // are applied on a near-zero-height path bbox in some browsers.
+              // Layman: almost-horizontal lines sometimes blink out with glow enabled, so
+              // for those specific lines we disable glow and slightly boost visibility.
+              const edgeFilterId = edge.flat ? undefined : edge.width > 2.2 ? 'roadmap-edge-glow-cyan' : 'roadmap-edge-glow-blue';
+              const strokeWidth = edge.flat ? Math.max(edge.width, 2.05) : edge.width;
+              const opacity = edge.dashed ? 0.55 : edge.flat ? 0.88 : 0.74;
+
+              return (
+                <path
+                  key={edge.id}
+                  d={edge.path}
+                  fill="none"
+                  stroke={isDark ? (edge.dashed ? '#94a3b8' : edge.width > 2.2 ? '#22d3ee' : '#3b82f6') : edge.color}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={edge.dashed ? '5 7' : undefined}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter={edgeFilterId ? `url(#${edgeFilterId})` : undefined}
+                  opacity={opacity}
+                />
+              );
+            })}
           </g>
         </svg>
 
         {graph.nodes.map((node) => {
+          // Technical: root node has dedicated circular treatment and larger visual weight.
+          // Layman: the top-most roadmap node uses a big center style.
           if (node.kind === 'root') {
             return (
               <motion.button
@@ -578,7 +820,7 @@ export const RoadmapVisualizer: React.FC = () => {
                 data-node-kind={node.kind}
                 style={{ left: node.x, top: node.y, width: node.width, height: node.height, position: 'absolute' }}
                 onMouseDown={(event) => onNodePointerDown(event, node.id)}
-                onClick={() => onNodeClick(node.id, false)}
+                onClick={() => onNodeClick(node.id, Boolean(node.hasChildren))}
                 className={`rounded-full border-2 text-white shadow-xl flex items-center justify-center text-center px-4 pointer-events-auto transition-colors ${
                   isDark
                     ? 'border-cyan-300/80 bg-blue-600 hover:bg-blue-500'
@@ -590,6 +832,8 @@ export const RoadmapVisualizer: React.FC = () => {
             );
           }
 
+          // Technical: project nodes are the major feature pillars shown as medium circles.
+          // Layman: big feature category nodes (like World Exploration, UI, etc.).
           if (node.kind === 'project') {
             const isExpanded = Boolean(node.expanded);
             const levelCountText = formatLevelCounts(node.descendantLevelCounts ?? []);
@@ -620,6 +864,8 @@ export const RoadmapVisualizer: React.FC = () => {
             );
           }
 
+          // Technical: branch nodes are rectangular cards for feature/subfeature hierarchy.
+          // Layman: the normal cards that represent detailed roadmap items.
           const isExpandable = Boolean(node.hasChildren);
           const isExpanded = Boolean(node.expanded);
           const levelCountText = formatLevelCounts(node.descendantLevelCounts ?? []);
@@ -655,6 +901,8 @@ export const RoadmapVisualizer: React.FC = () => {
         })}
       </motion.div>
 
+      {/* Technical: bottom dock for zoom controls + camera reset action. */}
+      {/* Layman: quick controls to zoom in/out and reset the map view. */}
       <div className="absolute bottom-10 left-0 w-full flex justify-center gap-3 z-30 pointer-events-auto">
         <div className={`flex rounded-full p-1 shadow-xl border backdrop-blur-md ${isDark ? 'bg-slate-900/82 border-slate-700/90' : 'bg-white/90 border-slate-300'}`}>
           <button type="button" onClick={() => { const current = canvasScale.get(); const next = Math.max(current / 1.12, 0.35); canvasScale.set(next); setZoomLevel(next); }} className={`w-10 h-10 flex items-center justify-center text-xl font-semibold ${isDark ? 'text-slate-100 hover:text-white' : 'text-slate-800 hover:text-slate-950'}`}>-</button>

@@ -12,7 +12,7 @@ call npx tsx scripts\audits\list-slice-of-life-settings.ts
 if errorlevel 1 exit /b 1
 
 echo [portrait-regen] Regenerating all backlog portraits (A-E)...
-call npx tsx scripts\regenerate-race-images-from-backlog.ts
+call npx tsx scripts\workflows\gemini\image-gen\regenerate-race-images-from-backlog.ts
 if errorlevel 1 exit /b 1
 
 echo [portrait-regen] Done.

@@ -40,7 +40,7 @@ const getImageApiKey = () => {
   // 3. API_KEY (General Fallback) - If no specific image key is found, we reuse the general Gemini API Key.
   //
   // This value is eventually exposed as `ENV.IMAGE_API_KEY`.
-  // Consumers (like `src/services/PortraitService.ts` or `scripts/image-gen-mcp.ts`) import `ENV`
+  // Consumers (like `src/services/PortraitService.ts` or `scripts/workflows/gemini/core/image-gen-mcp.ts`) import `ENV`
   // and use `ENV.IMAGE_API_KEY` to authenticate requests to the Gemini Imagen 3 model.
 
   // 1. Check for modern Vite-injected environment variable (specific to images)

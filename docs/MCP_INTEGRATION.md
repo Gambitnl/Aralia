@@ -196,7 +196,7 @@ General-purpose MCP CLI wrapper for listing servers, inspecting tools, and calli
 - `schema <server/tool>` - Display tool JSON schema
 - `call <server/tool> <json>` - Execute a tool
 
-### `scripts/generate-race-images.ts`
+### `scripts/workflows/gemini/image-gen/generate-race-images.ts`
 Automated race image generation using Gemini.
 
 **Features:**
@@ -253,7 +253,7 @@ const result = await execAsync(
 
 ### Creating Custom Automation Scripts
 
-Follow the pattern in `scripts/generate-race-images.ts`:
+Follow the pattern in `scripts/workflows/gemini/image-gen/generate-race-images.ts`:
 
 ```typescript
 import { exec } from 'child_process';

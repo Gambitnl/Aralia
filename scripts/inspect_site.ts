@@ -1,36 +1,18 @@
+#!/usr/bin/env tsx
 
-import { chromium } from 'playwright';
+/**
+ * Tombstone for the old inspect_site.ts location.
+ *
+ * This file exists on purpose so outdated flows fail with a clear relocation message
+ * instead of failing with "file not found".
+ */
 
-async function run() {
-  console.log('Launching browser...');
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  try {
-    console.log('Navigating to http://localhost:4173/ ...');
-    const response = await page.goto('http://localhost:4173/');
-    console.log('Status:', response?.status());
-    
-    console.log('Page Title:', await page.title());
-    
-    // Check for specific elements like "New Game"
-    const btn = page.getByRole('button', { name: /New Game/i });
-    if (await btn.isVisible()) {
-        console.log('Found "New Game" button.');
-    } else {
-        console.log('"New Game" button not found.');
-    }
+import { runMovedScriptTombstone } from "./moved-script-tombstone";
 
-    const bodyHTML = await page.locator('body').innerHTML();
-    console.log('Body Content Preview:', bodyHTML.slice(0, 500));
+runMovedScriptTombstone({
+  oldPath: "scripts/inspect_site.ts",
+  newPath: "scripts/workflows/chat-debug/inspect-site.ts",
+  reason: "Chat debug scripts were grouped into a workflow folder for maintainability.",
+  followUp: "Update your script runner/flow to call the new path."
+});
 
-    await page.screenshot({ path: 'verification/site_status.png' });
-    console.log('Screenshot saved to verification/site_status.png');
-    
-  } catch (error) {
-    console.error('Error during inspection:', error);
-  } finally {
-    await browser.close();
-  }
-}
-
-run();

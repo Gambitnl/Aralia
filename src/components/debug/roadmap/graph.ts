@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 21/02/2026, 02:27:18
+ * Last Sync: 21/02/2026, 18:13:29
  * Dependents: RoadmapVisualizer.tsx
  * Imports: 4 files
  * 
@@ -25,7 +25,7 @@ import {
   TRUNK_X
 } from './constants';
 import { buildProjectTrees } from './tree';
-import type { DetailEntry, RenderEdge, RenderGraph, RenderNode, RoadmapData, TreeNode } from './types';
+import type { DetailEntry, RenderEdge, RenderGraph, RenderNode, RoadmapData, RoadmapNode, TreeNode } from './types';
 import {
   buildCurvePath,
   centerOf,
@@ -38,8 +38,27 @@ import {
   toLevelCountArray
 } from './utils';
 
+/**
+ * Technical:
+ * This module transforms canonical roadmap data into a render graph (RenderNode + RenderEdge),
+ * including resolved positions, connector paths, detail payloads, and expandability metadata.
+ *
+ * Layman:
+ * This file is the roadmap screen arranger. It decides what cards show up, where they sit,
+ * which lines connect them, and what info appears when you click a card.
+ */
 type PositionOverrideMap = Map<string, { x: number; y: number }>;
 
+// Technical: identifies links whose endpoints are effectively on one horizontal level.
+// Layman: catches "visually flat" connectors that are prone to glow-filter render glitches.
+const isNearlyFlatEdge = (startY: number, endY: number) => Math.abs(startY - endY) < 0.5;
+
+// ============================================================================
+// Position Helper
+// ============================================================================
+// Technical: resolves a node's active position from user overrides with safe fallbacks.
+// Layman: if you moved a card before, use that saved spot; otherwise use auto layout.
+// ============================================================================
 const getNodePosition = (id: string, fallbackX: number, fallbackY: number, overrides?: PositionOverrideMap) => {
   const override = overrides?.get(id);
   if (!override) return { x: fallbackX, y: fallbackY };
@@ -49,6 +68,12 @@ const getNodePosition = (id: string, fallbackX: number, fallbackY: number, overr
   };
 };
 
+// ============================================================================
+// Crosslink Doc Helpers
+// ============================================================================
+// Technical: normalizes doc paths so overlap checks are stable and case-insensitive.
+// Layman: if two cards mention the same docs, we can draw a dotted "related" line.
+// ============================================================================
 const docsToKeySet = (entry: DetailEntry | undefined) =>
   new Set(
     (entry?.docs ?? [])
@@ -64,6 +89,12 @@ const hasAnyDocOverlap = (a: Set<string>, b: Set<string>) => {
   return false;
 };
 
+// ============================================================================
+// Cross Edge Helper
+// ============================================================================
+// Technical: appends a deduplicated dashed relationship edge between two visible nodes.
+// Layman: draws the thinner dotted "also related to" line (not the main tree line).
+// ============================================================================
 const addCrossEdge = (
   renderEdges: RenderEdge[],
   dedupe: Set<string>,
@@ -78,6 +109,7 @@ const addCrossEdge = (
   const start = centerOf(from);
   const end = centerOf(to);
   const side: 1 | -1 = end.x >= start.x ? 1 : -1;
+  const flat = isNearlyFlatEdge(start.y, end.y);
 
   const startX = start.x + side * (from.width / 2 - 3);
   const endX = end.x - side * (to.width / 2 - 3);
@@ -87,21 +119,32 @@ const addCrossEdge = (
     path: buildCurvePath(startX, start.y, endX, end.y, side),
     color: '#94a3b8',
     width: 1.2,
+    flat,
     dashed: true
   });
 };
 
+// ============================================================================
+// Main Graph Build
+// ============================================================================
+// Technical: buildRenderGraph is the pure transform from data + UI state to render state.
+// Layman: this is the main assembly line for what you currently see on the roadmap.
+// ============================================================================
 export const buildRenderGraph = (
   data: RoadmapData,
   expandedNodeIds: Set<string>,
   positionOverrides?: PositionOverrideMap
 ): RenderGraph => {
+  // Technical: root + project nodes are the anchor layer for the full tree layout.
+  // Layman: the top node and big feature nodes are the backbone for everything else.
   const rootNode = data.nodes.find((node) => node.type === 'root');
   const projectNodes = data.nodes
     .filter((node) => node.type === 'project')
     .sort((a, b) => a.initialY - b.initialY || a.initialX - b.initialX || compareNodes(a, b));
   const trees = buildProjectTrees(data, projectNodes);
 
+  // Technical: these collections become the final render payload.
+  // Layman: these are the lists/maps the UI uses to draw nodes, lines, and details.
   const renderNodes: RenderNode[] = [];
   const renderEdges: RenderEdge[] = [];
   const detailById = new Map<string, DetailEntry>();
@@ -111,7 +154,13 @@ export const buildRenderGraph = (
   const rootBaseX = snapToGrid(TRUNK_X - ROOT_SIZE / 2);
   const rootBaseY = snapToGrid(ROOT_Y);
   const rootPos = getNodePosition(rootNode?.id || 'aralia_chronicles', rootBaseX, rootBaseY, positionOverrides);
+  // Technical: root expansion state gates project/branch node materialization.
+  // Layman: the top "Aralia Game Roadmap" bubble is a real open/close switch.
+  const rootHasChildren = projectNodes.length > 0;
+  const rootExpanded = rootHasChildren ? expandedNodeIds.has(rootNode?.id || 'aralia_chronicles') : false;
 
+  // Technical: root render node is unconditional; deeper layers are conditional.
+  // Layman: we always show the top bubble first, then reveal lower layers when opened.
   const rootRender: RenderNode = {
     id: rootNode?.id || 'aralia_chronicles',
     kind: 'root',
@@ -120,9 +169,13 @@ export const buildRenderGraph = (
     x: rootPos.x,
     y: rootPos.y,
     width: ROOT_SIZE,
-    height: ROOT_SIZE
+    height: ROOT_SIZE,
+    hasChildren: rootHasChildren,
+    expanded: rootExpanded,
+    descendantLevelCounts: rootHasChildren ? [{ level: 1, count: projectNodes.length }] : []
   };
   renderNodes.push(rootRender);
+  if (rootHasChildren) expandableIds.add(rootRender.id);
   const rootCenter = centerOf(rootRender);
   detailById.set(rootRender.id, {
     id: rootRender.id,
@@ -147,6 +200,8 @@ export const buildRenderGraph = (
   const fanRowGap = 164;
   const fanXOffset = 420;
 
+  // Technical: project nodes are distributed into deterministic left/right fan lanes.
+  // Layman: major feature circles use fixed lanes so they do not jump around on reload.
   if (projectNodes.length === 1) {
     const only = projectNodes[0];
     projectPositions.set(only.id, {
@@ -171,9 +226,35 @@ export const buildRenderGraph = (
     });
   }
 
+  // Technical: populate detailById regardless of visibility so detail resolution is stable.
+  // Layman: we still prepare panel text even when sections are folded closed.
   projectNodes.forEach((project) => {
     const projectRoots = trees.get(project.id)?.roots ?? [];
     const projectLevelCounts = toLevelCountArray(collectProjectDepthCounts(projectRoots));
+    if (projectRoots.length > 0) expandableIds.add(project.id);
+    // Technical: collect expandability metadata independent of current visibility.
+    // Layman: "Expand All" should still know hidden children exist.
+    const collectTreeExpandables = (node: TreeNode) => {
+      if (node.children.length > 0) expandableIds.add(node.id);
+      for (const child of node.children) collectTreeExpandables(child);
+    };
+    for (const root of projectRoots) collectTreeExpandables(root);
+
+    detailById.set(project.id, {
+      id: project.id,
+      title: project.label,
+      type: 'feature',
+      status: project.status,
+      description: project.description,
+      docs: collectRelatedDocs(trees.get(project.id)?.roots.flatMap((root) => root.allMilestones) ?? []),
+      link: project.link,
+      relatedFeatures: []
+    });
+
+    // Technical: skip visual project nodes when root is collapsed; keep metadata intact.
+    // Layman: folded root means "hide", not "erase."
+    if (!rootExpanded) return;
+
     const plannedPosition = projectPositions.get(project.id) || { x: snapToGrid(TRUNK_X - PROJECT_SIZE / 2), y: fanYStart, side: 1 as const };
     const projectBaseX = plannedPosition.x;
     const projectBaseY = plannedPosition.y;
@@ -196,39 +277,35 @@ export const buildRenderGraph = (
     renderNodes.push(projectRender);
     projectRenderById.set(project.id, projectRender);
     projectSideById.set(project.id, effectiveSide);
-    if (projectRender.hasChildren) expandableIds.add(project.id);
-
-    detailById.set(project.id, {
-      id: project.id,
-      title: project.label,
-      type: 'feature',
-      status: project.status,
-      description: project.description,
-      docs: collectRelatedDocs(trees.get(project.id)?.roots.flatMap((root) => root.allMilestones) ?? []),
-      link: project.link,
-      relatedFeatures: []
-    });
   });
 
-  projectNodes.forEach((project, index) => {
-    const targetNode = projectRenderById.get(project.id);
-    if (!targetNode) return;
-    const target = centerOf(targetNode);
-    const side: 1 | -1 = target.x >= rootCenter.x ? 1 : -1;
-    const startX = rootCenter.x + side * (rootRender.width / 2 - 3);
-    const endX = target.x - side * (targetNode.width / 2 - 3);
+  // Technical: root->project edges are emitted only when project nodes are materialized.
+  // Layman: only draw lines to circles that are actually on screen.
+  if (rootExpanded) {
+    projectNodes.forEach((project, index) => {
+      const targetNode = projectRenderById.get(project.id);
+      if (!targetNode) return;
+      const target = centerOf(targetNode);
+      const side: 1 | -1 = target.x >= rootCenter.x ? 1 : -1;
+      const startX = rootCenter.x + side * (rootRender.width / 2 - 3);
+      const endX = target.x - side * (targetNode.width / 2 - 3);
+      const flat = isNearlyFlatEdge(rootCenter.y, target.y);
 
-    renderEdges.push({
-      id: `root_project_${project.id}`,
-      path: buildCurvePath(startX, rootCenter.y, endX, target.y, side),
-      color: '#0ea5e9',
-      width: index === 0 ? 2.5 : 2.1
+      renderEdges.push({
+        id: `root_project_${project.id}`,
+        path: buildCurvePath(startX, rootCenter.y, endX, target.y, side),
+        color: '#0ea5e9',
+        flat,
+        width: index === 0 ? 2.5 : 2.1
+      });
     });
-  });
+  }
 
   const branchRenderById = new Map<string, RenderNode>();
 
-  projectNodes.forEach((project) => {
+  // Technical: branch tree materialization requires expanded root and expanded project.
+  // Layman: deep cards appear only when parent layers are opened.
+  if (rootExpanded) projectNodes.forEach((project) => {
     const projectRender = projectRenderById.get(project.id);
     const tree = trees.get(project.id);
     if (!projectRender || !tree) return;
@@ -250,6 +327,8 @@ export const buildRenderGraph = (
       byDepth.set(node.depth, list);
 
       const nodeExpanded = expandedNodeIds.has(node.id);
+      // Technical: visibility walk is expansion-gated at each node.
+      // Layman: closed parent card means hidden children.
       if (node.children.length > 0 && nodeExpanded) {
         for (const child of node.children) {
           parentVisible.add(child.id);
@@ -275,6 +354,8 @@ export const buildRenderGraph = (
 
       const count = nodesAtDepth.length;
       const heights = nodesAtDepth.map((node) => estimateBranchHeight(node.label));
+      // Technical: depth column Y extents are centered around project center.
+      // Layman: keep child columns balanced so the branch doesn't lean awkwardly.
       const totalHeight = heights.reduce((sum, h) => sum + h, 0) + Math.max(0, count - 1) * BRANCH_ROW_GAP;
       let cursorY = snapToGrid(projectCenter.y - totalHeight / 2);
 
@@ -320,11 +401,15 @@ export const buildRenderGraph = (
           relatedFeatures: [project.label]
         });
 
+        // Technical: advance Y cursor by node height + row gap.
+        // Layman: place the next card below the previous card.
         cursorY = snapToGrid(cursorY + nodeHeight + BRANCH_ROW_GAP);
       });
     }
   });
 
+  // Technical: parent grouping enables sibling connector fan-out offsets.
+  // Layman: this prevents sibling lines from stacking on top of each other.
   const branchesByParentId = new Map<string, RenderNode[]>();
   for (const branch of Array.from(branchRenderById.values())) {
     if (!branch.parentId) continue;
@@ -346,6 +431,10 @@ export const buildRenderGraph = (
     });
 
     const siblingCount = sortedBranches.length;
+    // Technical: fanStep applies a small vertical offset per sibling edge so equal-origin
+    // connectors do not visually collapse into one line.
+    // Layman: if multiple children leave the same parent, we slightly spread the lines so
+    // they stay readable. If card sizing changes, this spacing may need retuning.
     const fanStep = siblingCount > 1 ? Math.min(16, Math.max(6, 30 / siblingCount)) : 0;
 
     sortedBranches.forEach((branch, index) => {
@@ -356,22 +445,29 @@ export const buildRenderGraph = (
       const startX = parentCenter.x + side * (parent.width / 2 - 3);
       const startY = parentCenter.y + fanOffsetY;
       const endX = end.x - side * (branch.width / 2 - 3);
+      const flat = isNearlyFlatEdge(startY, end.y);
 
       renderEdges.push({
         id: `edge_${parent.id}_${branch.id}`,
         path: buildCurvePath(startX, startY, endX, end.y, side),
         color: '#3b82f6',
+        flat,
         width: 1.85
       });
     });
   }
 
+  // Technical: visible-node lookup constrains crosslinks to currently rendered nodes.
+  // Layman: dotted links are calculated only between cards you can currently see.
   const visibleNodeById = new Map<string, RenderNode>();
   for (const project of projectRenderById.values()) visibleNodeById.set(project.id, project);
   for (const branch of branchRenderById.values()) visibleNodeById.set(branch.id, branch);
   visibleNodeById.set(rootRender.id, rootRender);
 
   const resolveRenderNode = (rawId: string) => {
+    // Technical: sequence edges may target raw milestone ids; this remaps them to
+    // the branch node id currently visible in the rendered tree.
+    // Layman: some links point to source ids, so we translate them to the card id shown now.
     const direct = visibleNodeById.get(rawId);
     if (direct) return direct;
     const mappedMilestone = milestoneToRenderNodeId.get(rawId);
@@ -381,6 +477,9 @@ export const buildRenderGraph = (
 
   const crossEdgeDedupe = new Set<string>();
 
+  // Technical: phase 1 crosslinks = explicit sequence edges from source data.
+  // Same-project sequence edges are skipped to avoid duplicate visual noise.
+  // Layman: first we draw the intentional dependency lines.
   for (const edge of data.edges) {
     if (edge.type !== 'sequence') continue;
     const fromNode = resolveRenderNode(edge.from);
@@ -392,6 +491,8 @@ export const buildRenderGraph = (
     addCrossEdge(renderEdges, crossEdgeDedupe, key, fromNode, toNode);
   }
 
+  // Technical: phase 2 crosslinks = inferred links from doc-path overlap, capped by limit.
+  // Layman: then we add "likely related" dotted lines, but with a limit to avoid spaghetti.
   const branchNodes = Array.from(branchRenderById.values());
   let inferredCount = 0;
   const inferredLimit = 16;
@@ -416,6 +517,8 @@ export const buildRenderGraph = (
     }
   }
 
+  // Technical: phase 3 fallback inserts one dashed edge if none exist.
+  // Layman: if no dotted links were created, we add one minimal example.
   if (!renderEdges.some((edge) => edge.dashed)) {
     const projectList = Array.from(projectRenderById.values());
     if (projectList.length >= 2) {
@@ -423,6 +526,8 @@ export const buildRenderGraph = (
     }
   }
 
+  // Technical: stats are derived from current renderNodes only (view-state aware).
+  // Layman: the widget counts show what's visible now, not a hidden total.
   const stats = {
     done: renderNodes.filter((node) => node.status === 'done').length,
     active: renderNodes.filter((node) => node.status === 'active').length,

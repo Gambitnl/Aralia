@@ -286,7 +286,7 @@ async function generatePortraitWithStitch(prompt: string): Promise<string> {
 async function generatePortraitWithImageGen(prompt: string): Promise<string> {
   // Use the browser automation implementation directly (single process) so generate+download share state.
   // Calling the image-gen MCP via mcp-cli is stateless per invocation, which breaks the download step.
-  const { generateImage, downloadImage } = await import('./scripts/image-gen-mcp.ts');
+  const { generateImage, downloadImage } = await import('./scripts/workflows/gemini/core/image-gen-mcp.ts');
 
   fs.mkdirSync(PORTRAIT_OUTPUT_DIR, { recursive: true });
   const stamp = Date.now();
@@ -785,7 +785,7 @@ const portraitApiManager = () => ({
         }
 
         try {
-          const { doctorGeminiCDP } = await import('./scripts/image-gen-mcp.ts');
+          const { doctorGeminiCDP } = await import('./scripts/workflows/gemini/core/image-gen-mcp.ts');
           const result = await doctorGeminiCDP({
             cdpUrl: process.env.IMAGE_GEN_CDP_URL || 'http://localhost:9222',
             attemptConsent: true,

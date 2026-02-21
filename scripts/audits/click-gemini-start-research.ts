@@ -1,44 +1,17 @@
-#!/usr/bin/env npx tsx
-import { chromium } from "playwright";
+#!/usr/bin/env tsx
 
-async function main() {
-  const cdpUrl = process.env.IMAGE_GEN_CDP_URL || "http://localhost:9222";
-  const browser = await chromium.connectOverCDP(cdpUrl, { timeout: 5000 });
-  const context = browser.contexts()[0];
-  if (!context) throw new Error("No browser context found via CDP.");
+/**
+ * Tombstone for the old click-gemini-start-research.ts location.
+ *
+ * This old path is retained only to make stale references fail loudly with guidance.
+ */
 
-  let page = context.pages().find((p) => p.url().includes("gemini.google.com")) || context.pages()[0];
-  if (!page) page = await context.newPage();
-  if (!page.url().includes("gemini.google.com")) {
-    await page.goto("https://gemini.google.com/app", { waitUntil: "domcontentloaded" });
-  }
-  await page.waitForTimeout(800);
+import { runMovedScriptTombstone } from "../moved-script-tombstone";
 
-  const clicked = await page.evaluate(
-    `(() => {
-      const isVisible = (el) => {
-        const style = window.getComputedStyle(el);
-        if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
-        const rect = el.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
-      };
+runMovedScriptTombstone({
+  oldPath: "scripts/audits/click-gemini-start-research.ts",
+  newPath: "scripts/workflows/gemini/research/debug/click-gemini-start-research.ts",
+  reason: "Gemini research debug scripts were moved to scripts/workflows/gemini/research/debug.",
+  followUp: "Update your script runner/flow to call the new path."
+});
 
-      const nodes = Array.from(document.querySelectorAll("button,[role='button'],[role='menuitem'],[role='option']"));
-      for (const node of nodes) {
-        if (!isVisible(node)) continue;
-        const text = (node.textContent || "").trim().replace(/\\s+/g, " ");
-        const aria = node.getAttribute("aria-label") || "";
-        const probe = (text + " " + aria).toLowerCase();
-        if (!/start\\s*research/.test(probe)) continue;
-        node.click();
-        return true;
-      }
-      return false;
-    })()`,
-  );
-
-  console.log(clicked ? "clicked_start_research=true" : "clicked_start_research=false");
-  await browser.close();
-}
-
-void main();

@@ -7,7 +7,7 @@ description: Generate D&D character images using Google Gemini or Whisk via manu
 Use this skill to generate character art using Google's AI tools. This approach uses the unified `image-gen` MCP server or the agent's native `devtools` tools to drive the browser.
 
 ## Prerequisites
-- **Chrome Browser**: The script `scripts/image-gen-mcp.ts` manages the browser session (launching `chrome` with a persistent profile).
+- **Chrome Browser**: The script `scripts/workflows/gemini/core/image-gen-mcp.ts` manages the browser session (launching `chrome` with a persistent profile).
   - **Manual Login**: Required on the first run. The script will pause and alert you if you are not logged in.
 - **Unified MCP Server**:
   - **Server Name**: `image-gen`
@@ -22,7 +22,7 @@ Use this skill to generate character art using Google's AI tools. This approach 
 
 ### 1. Launch & Connect
 The script handles launching automatically.
-1.  Run the server or script: `npx tsx scripts/image-gen-mcp.ts`
+1.  Run the server or script: `npx tsx scripts/workflows/gemini/core/image-gen-mcp.ts`
 2.  If it's your first time, the window will open. **Log in to Google.**
 3.  Once logged in, the script will be ready to accept tool calls.
 

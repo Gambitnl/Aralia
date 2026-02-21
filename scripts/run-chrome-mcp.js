@@ -10,7 +10,7 @@
  * 
  * 🔍 TROUBLESHOOTING:
  * - If connection fails, ensure port 9222 is listening: `netstat -ano | findstr 9222`
- * - Use `scripts/launch-debug-chrome.js` for manual robust launching.
+ * - Use `scripts/workflows/gemini/image-gen/launch-debug-chrome.js` for manual robust launching.
  */
 
 import { spawn } from 'child_process';

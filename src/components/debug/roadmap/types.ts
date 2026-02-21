@@ -1,3 +1,34 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ * 
+ * Last Sync: 21/02/2026, 18:13:23
+ * Dependents: RoadmapVisualizer.tsx, constants.ts, graph.ts, tree.ts, utils.ts
+ * Imports: None
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * Technical:
+ * Shared type contracts for roadmap data loading, tree building, and render output.
+ *
+ * Layman:
+ * This file is the roadmap dictionary. It defines what a node/edge/detail looks like
+ * so all roadmap files speak the same data language.
+ */
+
+// ============================================================================
+// Source Data Shapes
+// ============================================================================
+// Technical: types returned by roadmap data generation endpoint.
+// Layman: the raw roadmap entries before the UI lays them out.
+// ============================================================================
 export interface RoadmapNode {
   id: string;
   label: string;
@@ -24,6 +55,12 @@ export interface RoadmapData {
   edges: RoadmapEdge[];
 }
 
+// ============================================================================
+// Detail Panel Doc Shapes
+// ============================================================================
+// Technical: normalized related-doc record used by detail panel.
+// Layman: file link info shown when you click a roadmap card.
+// ============================================================================
 export interface RelatedDoc {
   sourcePath: string;
   canonicalPath?: string;
@@ -41,6 +78,12 @@ export interface DetailEntry {
   relatedFeatures: string[];
 }
 
+// ============================================================================
+// Render Graph Shapes
+// ============================================================================
+// Technical: view-model structures consumed directly by the React visualizer.
+// Layman: the "ready to draw" cards/lines/stats for the roadmap screen.
+// ============================================================================
 export type RenderNodeKind = 'root' | 'project' | 'branch';
 
 export interface RenderNode {
@@ -64,6 +107,10 @@ export interface RenderEdge {
   id: string;
   path: string;
   dashed?: boolean;
+  // Technical: marks links whose endpoints are effectively on the same Y level.
+  // Layman: this flags "almost perfectly horizontal" lines, which are the ones
+  // most likely to visually disappear when SVG glow filters are applied.
+  flat?: boolean;
   color: string;
   width: number;
 }
@@ -82,6 +129,12 @@ export interface RenderGraph {
   expandableIds: string[];
 }
 
+// ============================================================================
+// Tree-Building Shape
+// ============================================================================
+// Technical: intermediate hierarchical structure used while deriving branch nodes.
+// Layman: the parent/child branch structure before cards are placed on screen.
+// ============================================================================
 export type TreeNode = {
   id: string;
   pathKey: string;
@@ -94,4 +147,6 @@ export type TreeNode = {
   status: 'done' | 'active' | 'planned';
 };
 
+// Technical: theme mode values used by roadmap UI controls.
+// Layman: the two appearance modes the roadmap can be in.
 export type ThemeMode = 'light' | 'dark';

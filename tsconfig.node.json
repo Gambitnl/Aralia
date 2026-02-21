@@ -10,7 +10,7 @@
   },
   "include": [
     "vite.config.ts",
-    "scripts/image-gen-mcp.ts",
+    "scripts/workflows/gemini/core/image-gen-mcp.ts",
     "scripts/raceImageStatus.ts",
     "scripts/roadmap-server-logic.ts"
   ]
