@@ -1,3 +1,9 @@
+---
+description: Capture session work to the Development Chronicle.
+chain: tidy-up
+chain_via: session-ritual
+---
+
 # Workflow: Log Session to Chronicle
 
 **Trigger:** User requests to "wrap up" or the session has reached a logical conclusion.

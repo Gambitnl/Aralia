@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:44
+ * Dependents: appState.ts
+ * Imports: 7 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/state/reducers/characterReducer.ts
@@ -15,6 +30,7 @@ import { isWeaponProficient } from '../../utils/weaponUtils';
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { LOCATIONS as _LOCATIONS, ITEMS, CLASSES_DATA } from '../../constants';
+import { generateId } from '../../utils/core/idGenerator';
 
 // Helper for resetting limited uses
 const resolveMaxValue = (char: GameState['party'][0], ability: LimitedUseAbility): number => {
@@ -48,7 +64,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             }
 
             // Create independent copies of the item to avoid shared reference issues
-            const newItems = Array.from({ length: count }, () => ({ ...item, id: item.id === 'gold_piece' ? item.id : crypto.randomUUID() }));
+            const newItems = Array.from({ length: count }, () => ({ ...item, id: item.id === 'gold_piece' ? item.id : generateId() }));
 
             // For stackable items (like gold), we might want to just add them as is, but current inventory is a flat list.
             // If the item is generic (like gold_piece), we keep the ID. If it's a unique gear item, we give it a unique ID.
@@ -517,7 +533,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 // RALPH: Logic Extraction.
                 // Ensures all derived stats (HP, AC, Proficiency) are recalculated after level-up choices.
                 charToUpdate = updateDerivedStats(charToUpdate);
-                
+
                 const leveledParty = [...state.party];
                 leveledParty[charIndex] = charToUpdate;
 

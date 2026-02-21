@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:26
+ * Dependents: App.tsx
+ * Imports: 7 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -13,6 +29,7 @@ import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext, extractDiscoveredFacts } from '../services/ollama';
 import { createOllamaLogEntry } from '../utils/createOllamaLogEntry';
 import { Companion } from '../types/companions';
+import { generateId } from '../utils/core/idGenerator';
 
 interface BanterHistoryLine {
   speakerId: string;
@@ -79,7 +96,7 @@ export const useCompanionBanter = (
     // Archive the banter if it had any meaningful content
     if (banterHistoryRef.current.length > 0) {
       const moment: import('../types/companions').BanterMoment = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         timestamp: Date.now(),
         locationId: gameStateRef.current.currentLocationId,
         participants: participantsRef.current.map(p => p.id),
@@ -128,7 +145,7 @@ export const useCompanionBanter = (
               payload: {
                 companionId: p.id,
                 memory: {
-                  id: crypto.randomUUID(),
+                  id: generateId(),
                   type: 'banter',
                   text,
                   tags,
@@ -187,7 +204,7 @@ export const useCompanionBanter = (
     // If more, it's a toss-up, so we use a generic label.
     const currentLastSpeakerId = banterHistoryRef.current[banterHistoryRef.current.length - 1]?.speakerId;
     const nextLikelySpeaker = participantsRef.current.find(p => p.id !== currentLastSpeakerId);
-    
+
     if (participantsRef.current.length === 2 && nextLikelySpeaker) {
       setGeneratingSpeakerName(nextLikelySpeaker.identity.name);
     } else {
@@ -412,7 +429,7 @@ export const useCompanionBanter = (
     // Continue with NPC response after a short delay
     turnRef.current++;
     setIsGenerating(true);
-    
+
     // Guess next speaker for the indicator
     const nextLikelySpeaker = participantsRef.current.find(p => p.id !== playerId);
     if (participantsRef.current.length === 2 && nextLikelySpeaker) {

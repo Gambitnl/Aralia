@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aralia.local/docs/tasks/roadmap/schemas/move_plan.schema.json",
+  "title": "Roadmap Move or Split Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "doc_id",
+    "source_doc",
+    "operation",
+    "targets",
+    "provenance_map"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "doc_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_doc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "move",
+        "split"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/target"
+      }
+    },
+    "provenance_map": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/provenance"
+      }
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "new_path",
+        "feature_owner"
+      ],
+      "properties": {
+        "new_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "feature_owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_doc",
+        "target_path"
+      ],
+      "properties": {
+        "source_doc": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_section": {
+          "type": "string"
+        },
+        "target_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_section": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

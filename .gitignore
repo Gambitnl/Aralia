@@ -48,6 +48,7 @@ public/assets/ez-tree-lab/
 
 # Aralia Uplink (local-only coordination files)
 .uplink/
+.agent/roadmap/
 .agent/roadmap-local/
 
 # Jules Agent State

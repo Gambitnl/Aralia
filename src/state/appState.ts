@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 12/02/2026, 22:27:46
+ * Last Sync: 21/02/2026, 02:40:40
  * Dependents: App.tsx
- * Imports: 39 files
+ * Imports: 40 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -49,6 +49,7 @@ import { createEnemyFromMonster } from '../utils/combatUtils';
 import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
+import { generateId } from '../utils/core/idGenerator';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -349,7 +350,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
                 worldSeed: state.worldSeed,
                 party: newParty,
-                tempParty: newParty.map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })),
+                tempParty: newParty.map(p => ({ id: p.id || generateId(), name: p.name, level: p.level || 1, classId: p.class.id })),
                 inventory: [],
                 gold: 50,
                 currentLocationId: STARTING_LOCATION_ID,
@@ -404,7 +405,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
                 worldSeed: worldSeed,
                 party: generatedParty,
-                tempParty: generatedParty.map(p => ({ id: p.id || crypto.randomUUID(), name: p.name, level: p.level || 1, classId: p.class.id })),
+                tempParty: generatedParty.map(p => ({ id: p.id || generateId(), name: p.name, level: p.level || 1, classId: p.class.id })),
                 inventory: [...initialInventoryForDummyCharacter],
                 gold: 100, // Dummy gets some spending money
                 currentLocationId: STARTING_LOCATION_ID,
@@ -532,7 +533,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     logger.info('Migrating knownFacts for NPC', { npcId });
                     const oldStringFacts = memory.knownFacts as unknown as string[];
                     memory.knownFacts = oldStringFacts.map((factText): KnownFact => ({
-                        id: crypto.randomUUID(),
+                        id: generateId(),
                         text: factText,
                         source: 'direct',
                         isPublic: true,
@@ -808,14 +809,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         // rather than overwritten by the last spread operator.
         default: {
             let nextState = { ...state };
-            
+
             // Core UI & Systems
             nextState = { ...nextState, ...uiReducer(nextState, action) };
             nextState = { ...nextState, ...religionReducer(nextState, action) };
             nextState = { ...nextState, ...characterReducer(nextState, action) };
             nextState = { ...nextState, ...worldReducer(nextState, action) };
             nextState = { ...nextState, ...logReducer(nextState, action) };
-            
+
             // Specific Domain Systems
             nextState = { ...nextState, ...encounterReducer(nextState, action) };
             nextState = { ...nextState, ...npcReducer(nextState, action) };

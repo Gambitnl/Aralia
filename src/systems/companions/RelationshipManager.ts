@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:56
+ * Dependents: companionReducer.ts
+ * Imports: 3 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -15,6 +31,7 @@ import { Companion, RelationshipLevel, ApprovalEvent, RelationshipEvent as _Rela
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState as _GameState } from '../../types';
+import { generateId } from '../../utils/core/idGenerator';
 
 export class RelationshipManager {
   // Approval scale: -500 to +500 with 100-point step changes
@@ -115,7 +132,7 @@ export class RelationshipManager {
 
     // Create event record
     const approvalEvent: ApprovalEvent = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       timestamp: Date.now(),
       source: 'event', // Could be passed in
       change,
@@ -126,7 +143,7 @@ export class RelationshipManager {
     const history = [...currentRelationship.history];
     if (newLevel !== currentRelationship.level) {
       history.push({
-        id: crypto.randomUUID(),
+        id: generateId(),
         timestamp: Date.now(),
         description: `Relationship changed from ${currentRelationship.level} to ${newLevel}`,
         type: 'milestone'
@@ -136,7 +153,7 @@ export class RelationshipManager {
     // Add unlock events to history
     newUnlocks.forEach(unlock => {
       history.push({
-        id: crypto.randomUUID(),
+        id: generateId(),
         timestamp: Date.now(),
         description: `Unlocked: ${unlock.description}`,
         type: 'gift' // or milestone

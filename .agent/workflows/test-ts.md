@@ -1,10 +1,13 @@
 ---
 description: Run TypeScript tests (Vitest, TSD, TSC) and handle errors systematically.
+chain: tidy-up
+chain_order: 1
 ---
 
 # /test-ts Workflow
 
-Execute this workflow to run tests and resolve TypeScript errors while adhering to the **Preservationist Mentality**.
+Execute this workflow to run tests and resolve TypeScript errors while following the
+**Preservationist Rules** defined in `.agent/skills/code_commentary/SKILL.md`.
 
 ## Steps
 
@@ -21,14 +24,13 @@ Execute this workflow to run tests and resolve TypeScript errors while adhering 
 3. **Analysis Phase**
    - Categorize errors into:
      - **Leaf-Node Mismatches**: Basic property type differences (e.g., `string` vs `literal`).
-     - **Missing Propeties**: Required fields omitted in mocks.
+     - **Missing Properties**: Required fields omitted in mocks.
      - **Structural Mismatches**: Deeply nested objects failing to match interfaces.
 
-4. **Resolution (Preservationist Mentality)**
-   - **Minimalism**: Fix only the reported error; do not refactor surrounding code.
-   - **Stability**: Prioritize `@ts-expect-error` or `as any` if a formal fix threatens runtime stability (especially in legacy/procedural modules).
-   - **Structural Integrity**: Never flatten or alter object shapes to satisfy the compiler; restore the interface to match the data if appropriate.
-   - **Workflow Ritual**: Annotate risky fixes with `// TODO(next-agent): Preserve behavior; refine type...`.
+4. **Resolution**
+   - Follow the **Preservationist Rules** and **Debt Flagging** standards from the Code Commentary skill.
+   - Fix only the reported error; do not refactor surrounding code.
+   - Flag risky fixes with `// DEBT:` or `// TODO(next-agent):` as defined in the skill.
 
 5. **Final Hygiene**
    - Clear temporary logs (`tsc_output.log`).

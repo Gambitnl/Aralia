@@ -1,5 +1,7 @@
 ---
 description: Verify code quality before finishing work. Run lint, type-check, build, tests, and check for red flags.
+chain: tidy-up
+chain_via: session-ritual
 ---
 
 # Verify Workflow
@@ -19,37 +21,29 @@ npm run build         # Production build
 npm run test -- --run # Vitest (single run, no watch)
 ```
 
-If any command fails, fix the issues before proceeding. Do NOT:
-- Suppress errors with `@ts-ignore` or `@ts-expect-error` unless the fix genuinely threatens runtime stability
-- Mutate tests to make them pass — fix the code instead
-- Skip a failing check and move on
+If any command fails, fix the issues before proceeding. Follow the
+**Preservationist Rules** from `.agent/skills/code_commentary/SKILL.md` when fixing.
 
 ---
 
 ## Step 2: Red Flag Scan
 
-Search the files you modified for these patterns:
+Search the files you modified for the patterns listed in the **Red Flags Checklist**
+in `.agent/skills/code_commentary/SKILL.md`.
 
-| Pattern | What it means |
-|---------|---------------|
-| `throw new Error('not implemented')` | Stub — must be implemented or removed |
-| `// TODO` or `// FIXME` (new ones) | Acceptable if documented, but don't leave without noting |
-| `: any` (new occurrences) | Weak typing — use a specific type |
-| `console.log` (not in logger.ts) | Use `src/utils/logger.ts` instead |
-| `as any` | Type assertion hiding a real issue |
-| Mock/fake data in non-test files | Should use real data sources |
-
-Report any new instances found. If you introduced them during this session, fix them.
+Report any new instances found. If you introduced them during this session, fix them
+or flag them with a `// DEBT:` comment explaining why they're there.
 
 ---
 
-## Step 3: Preservationist Check
+## Step 3: Code Commentary Check
 
-When fixing errors, follow the **Preservationist Mentality**:
+Verify that all files you modified follow the **Code Commentary** rules from the skill:
 
-- **Minimalism**: Fix only the reported error — do not refactor surrounding code
-- **Stability**: If a formal fix threatens runtime stability in legacy code, use `@ts-expect-error` with a comment explaining why
-- **Structural Integrity**: Never flatten or alter object shapes just to satisfy the compiler — restore the interface to match the data if appropriate
+- Every file has a plain-English header
+- Logical sections have visual separators
+- Every block of code has a comment above it
+- All shortcuts are flagged with DEBT, HACK, or TODO
 
 ---
 

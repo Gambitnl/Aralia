@@ -1,9 +1,25 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:48
+ * Dependents: appState.ts
+ * Imports: 5 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { GameState, Crime, HeistActionType } from '../../types';
 import { AppAction } from '../actionTypes';
 import { CrimeSystem } from '../../systems/crime/CrimeSystem';
 import { HeistManager } from '../../systems/crime/HeistManager';
 import type { Location, HeistAction, GuildMembership, GameMessage } from '../../types';
+import { generateId } from '../../utils/core/idGenerator';
 
 const getGuildMembershipOrDefault = (guild: GameState['thievesGuild'] | undefined): GuildMembership => {
     const fallback: GuildMembership = {
@@ -128,7 +144,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // We use a mock action type 'Sneak' as a baseline if specific action type isn't passed
             // Ideally, payload should include the HeistAction object itself
             const mockAction: HeistAction = {
-                type: HeistActionType.Distract, 
+                type: HeistActionType.Distract,
                 description,
                 difficulty: actionDifficulty,
                 risk: 0,
@@ -189,7 +205,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             const normalizedSeverity = severity <= 10 ? severity * 10 : severity;
 
             const newCrime: Crime = {
-                id: crypto.randomUUID(),
+                id: generateId(),
                 type,
                 locationId,
                 timestamp: state.gameTime.getTime(),
@@ -226,21 +242,21 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                     bounties: newBounty ? [...currentBounties, newBounty] : currentBounties
                 },
                 messages: [
-                  ...state.messages,
-                  {
-                    id: Date.now(),
-                    text: witnessed
-                      ? `Crime witnessed! You are now wanted for ${type}.`
-                      : `You committed ${type} unseen, but rumors may spread.`,
-                    sender: 'system',
-                    timestamp: state.gameTime
-                  },
-                  ...(newBounty ? [{
-                    id: Date.now() + 1,
-                    text: `A bounty of ${newBounty.amount} gold has been placed on your head!`,
-                    sender: 'system' as const,
-                    timestamp: state.gameTime
-                  }] : [])
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: witnessed
+                            ? `Crime witnessed! You are now wanted for ${type}.`
+                            : `You committed ${type} unseen, but rumors may spread.`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    },
+                    ...(newBounty ? [{
+                        id: Date.now() + 1,
+                        text: `A bounty of ${newBounty.amount} gold has been placed on your head!`,
+                        sender: 'system' as const,
+                        timestamp: state.gameTime
+                    }] : [])
                 ]
             };
         }
@@ -268,14 +284,14 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
             return {
                 notoriety: newNotoriety,
-                 messages: [
-                  ...state.messages,
-                  {
-                    id: Date.now(),
-                    text: `Your notoriety has decreased.`,
-                    sender: 'system',
-                    timestamp: state.gameTime
-                  }
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `Your notoriety has decreased.`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
                 ]
             };
         }

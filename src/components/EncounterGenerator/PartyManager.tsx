@@ -1,8 +1,25 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:10
+ * Dependents: PartyEditorModal.tsx
+ * Imports: 3 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // src/components/EncounterGenerator/PartyManager.tsx
 
 import React from 'react';
 import { TempPartyMember } from '../../types';
 import { AVAILABLE_CLASSES } from '../../constants';
+import { generateId } from '../../utils/core/idGenerator';
 
 interface PartyManagerProps {
   party: TempPartyMember[];
@@ -12,7 +29,7 @@ interface PartyManagerProps {
 export const PartyManager: React.FC<PartyManagerProps> = ({ party, onPartyChange }) => {
   const handleAddMember = () => {
     const newMember: TempPartyMember = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: `New Member ${party.length + 1}`,
       level: 1,
       classId: 'fighter', // Default to fighter

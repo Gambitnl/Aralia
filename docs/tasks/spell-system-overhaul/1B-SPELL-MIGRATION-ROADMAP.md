@@ -1,123 +1,96 @@
-# Spell System - High-Level Roadmap
+# Spell System - Feature Roadmap (Rebased)
 
-**Last Updated**: November 30, 2025
-**Status**: Draft for review
-
----
-
-## Current State (Quick Summary)
-
-- **375 spell JSON files** exist (mostly old format)
-- **10 spells migrated** to new format (5 cantrips + 5 level 1)
-- **33 cantrips remaining** to migrate
-- **Goal**: All cantrips migrated for Level 1 character testing
+**Last Updated**: Feb 16, 2026  
+**Status**: Active / Rebased  
+**Purpose**: Maintain a feature-first roadmap for spell data, runtime behavior, and validation.
 
 ---
 
-## PHASE 0: Foundation Setup (Do First)
+## Verified Current State (Fact-Checked)
 
-**Purpose**: Prevent chaos before Jules starts migrating spells in batches
+- Spell JSON files in `public/data/spells/`: **469**
+- Spell manifest entries in `public/data/spells_manifest.json`: **469**
+- Folder structure is already levelized: `level-0` through `level-9`
+- No root-level spell JSON files remain under `public/data/spells/`
+- Validation command exists and is active: `npm run validate`
 
-| # | Task | Why It Matters |
-|---|------|----------------|
-| 0.1 | Archive OLD format documentation | Prevent confusion - old docs use wrong format |
-| 0.2 | Consolidate Jules workflow document | Single source of truth for spell conversion |
-| 0.3 | Audit spell scope (PHB 2024 comparison) | Know how many spells we need to migrate total |
+### Level Distribution
 
-**Deliverable**: Clear path forward, no conflicting docs
-
----
-
-## PHASE 1: File & Template Infrastructure (Before Mass Migration)
-
-**Purpose**: Set up proper structure so Jules puts files in the right place
-
-| # | Task | What It Does |
-|---|------|--------------|
-| 1.1 | Reorganize 375 spell files into level folders | `public/data/spells/level-0/`, `level-1/`, etc. |
-| 1.2 | Update spell manifest/loader | Find spells in new folder structure |
-| 1.3 | Create spell glossary template | Single template for all spell glossary entries |
-| 1.4 | Build runtime glossary renderer | Lazy-load spell JSON when user clicks glossary entry |
-| 1.5 | Update Jules workflow for new folders | Tell Jules where to put new spell files |
-
-**Deliverable**: Organized file structure, working glossary system
+- `level-0`: 44
+- `level-1`: 68
+- `level-2`: 65
+- `level-3`: 68
+- `level-4`: 47
+- `level-5`: 59
+- `level-6`: 45
+- `level-7`: 27
+- `level-8`: 24
+- `level-9`: 22
 
 ---
 
-## PHASE 2: Cantrip Migration (Jules + Gemini3 Review Loop)
+## Feature Tree for Roadmap Visualizer
 
-**Purpose**: Migrate all 33 remaining cantrips to new format
+### Feature: Spell Data Architecture
 
-| # | Task | Process |
-|---|------|---------|
-| 2.1 | Jules migrates 5 cantrips | Follow template, create JSON + glossary |
-| 2.2 | Jules validates | Run `npm run validate` |
-| 2.3 | Jules creates PR | After validation passes |
-| 2.4 | You review & approve PR creation | Manual gate |
-| 2.5 | Gemini3 critical review | Check against review checklist (TBD) |
-| 2.6 | Jules iterates on feedback | Until Gemini3 approves |
-| 2.7 | Merge PR | Move to next batch |
-| 2.8 | Jules cleans up old glossary files | Remove duplicate `.md` files for migrated spells |
+**Goal**: Keep spell data consistent, discoverable, and migration-safe.
 
-**Repeat**: 7 batches total (33 cantrips / 5 per batch)
+**Sub-features**
+- Level-based file topology (`public/data/spells/level-{N}/`) - **Active**
+- Manifest integrity (`public/data/spells_manifest.json`) - **Active**
+- Duplicate detection and ID hygiene - **Active**
+- Legacy migration cleanup tooling - **Active**
 
-**Deliverable**: All 38 cantrips in new format, validated, tested
+### Feature: Spell Retrieval and Runtime Wiring
 
----
+**Goal**: Ensure runtime systems can load and resolve spells reliably.
 
-## PHASE 3: Infrastructure Audit (Parallel Track)
+**Sub-features**
+- Manifest-driven spell lookup (`src/services/SpellService.ts`) - **Active**
+- Glossary/runtime integration (`src/context/SpellContext.tsx`, glossary components) - **Active**
+- Path and level gate checks (`src/hooks/useSpellGateChecks.ts`) - **Active**
 
-**Purpose**: Understand what infrastructure is stubbed vs. complete
+### Feature: Spell Rules Execution
 
-| # | Task | Output |
-|---|------|--------|
-| 3.1 | Create infrastructure task board | Track stubbed commands, mechanics, etc. |
-| 3.2 | Jules scans components | Report state of DamageCommand, HealingCommand, etc. |
-| 3.3 | Gemini3 reviews scan results | Validate Jules findings |
+**Goal**: Convert spell data into correct in-game behavior.
 
-**Deliverable**: Clear picture of what needs to be built for spell execution
+**Sub-features**
+- Command/effect execution pipeline - **Active**
+- Targeting and save/concentration mechanics - **Active**
+- Mechanical consistency validation - **Active**
 
----
+### Feature: Spell QA and Audit Loop
 
-## PHASE 4: Level 1 Spells (After Cantrips Complete)
+**Goal**: Continuously verify data correctness and implementation quality.
 
-**Purpose**: Migrate essential Level 1 spells for testing
-
-| # | Task | Notes |
-|---|------|-------|
-| 4.1 | Define "essential" Level 1 spell list | TBD - how many? Which ones? |
-| 4.2 | Same process as Phase 2 | Jules batches, Gemini3 review |
-
-**Deliverable**: Level 1 character has full spell loadout for testing
+**Sub-features**
+- Data validation pipeline (`scripts/validate-data.ts`) - **Active**
+- Spell integrity and consistency audits (`scripts/check-spell-integrity.ts`, validators) - **Active**
+- Batch audit/reporting workflows - **Active**
 
 ---
 
-## FUTURE PHASES (Not Scoped Yet)
+## Open Tasks (From This Pass)
 
-- **Phase 5**: Complete stubbed infrastructure (commands, mechanics)
-- **Phase 6**: Higher level spells (2-9)
-- **Phase 7**: AI arbitration system
-- **Phase 8**: Integration testing & polish
-
----
-
-## Next Steps
-
-1. **Review this roadmap** - Does the order make sense?
-2. **Pick ONE task from Phase 0** to define in detail
-3. **Define it properly** - scope, acceptance criteria, steps
-4. **Execute that one task**
-5. **Repeat** - pick next task, define, execute
+- [ ] Normalize progress tracking in registry rows to explicit percentages where possible.
+- [ ] Resolve known identifier collisions in related roadmap docs that can break deterministic node IDs.
+- [ ] Define phase gates for when spell migration is considered "complete enough" versus "fully complete."
+- [ ] Split future spell docs by feature area when one document mixes data migration, runtime logic, and QA.
 
 ---
 
-## Questions to Resolve
+## Historical Note
 
-- **0.3**: Do you have PHB 2024 spell list access?
-- **1.2**: Where should manifest/loader update happen in sequence?
-- **2.5**: What should Gemini3's review checklist include?
-- **4.1**: How many Level 1 spells are "essential"?
+The prior November 2025 version of this document was migration-batch oriented (for example: "10 spells migrated", "33 cantrips remaining").  
+Current codebase evidence indicates the spell dataset has already moved far beyond that baseline. This roadmap now tracks feature health instead of early migration batch choreography.
 
 ---
 
-**This is a living document. Update as we learn more.**
+## Working Rule
+
+This is a living feature roadmap.  
+When processing related docs, update this file to reflect:
+- what is verifiably implemented,
+- what remains open,
+- and which sub-features changed state.
+

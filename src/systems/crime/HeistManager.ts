@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:41:02
+ * Dependents: crimeReducer.ts
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/crime/HeistManager.ts
  * Core logic for managing active heists, alert levels, and turn-based resolution.
@@ -6,15 +22,16 @@
 import { HeistPlan, HeistPhase, HeistAction, HeistActionType, HeistRole } from '../../types/crime';
 import { Location } from '../../types';
 import { SeededRandom } from '@/utils/random';
+import { generateId } from '../../utils/core/idGenerator';
 
 export class HeistManager {
-    
+
     /**
      * Initializes a new heist plan.
      */
     static startPlanning(target: Location, leaderId: string): HeistPlan {
         return {
-            id: crypto.randomUUID(),
+            id: generateId(),
             targetLocationId: target.id,
             leaderId,
             participants: [leaderId],
@@ -69,7 +86,7 @@ export class HeistManager {
      */
     static calculateActionSuccessChance(plan: HeistPlan, action: HeistAction, actorRole?: HeistRole): number {
         let baseChance = 100 - action.difficulty; // DC 15 -> 85% base
-        
+
         // Alert Level Penalty: -1% per point of alert
         baseChance -= plan.alertLevel;
 
@@ -108,7 +125,7 @@ export class HeistManager {
     static assignCrew(plan: HeistPlan, characterId: string, role: HeistRole): HeistPlan {
         const currentCrew = [...plan.crew];
         const index = currentCrew.findIndex(c => c.characterId === characterId);
-        
+
         if (index >= 0) {
             currentCrew[index] = { ...currentCrew[index], role };
         } else {
@@ -140,7 +157,7 @@ export class HeistManager {
     } {
         const actor = plan.crew.find(c => c.characterId === actorId);
         const successChance = this.calculateActionSuccessChance(plan, action, actor?.role);
-        
+
         // Simple d100 check vs percentage chance
         const isSuccess = roll <= successChance;
         let alertGenerated = 0;
@@ -152,7 +169,7 @@ export class HeistManager {
         } else {
             alertGenerated = action.risk;
             message = `Failure! ${action.description} caused a disturbance. Alert +${alertGenerated}`;
-            
+
             // Lookout Mitigation (Updated to flat -5 reduction per test)
             const lookout = plan.crew.find(c => c.role === HeistRole.Lookout && c.characterId !== actorId);
             if (lookout) {

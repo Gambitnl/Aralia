@@ -1,127 +1,124 @@
 ---
-description: Create a new development track with spec and plan for a feature or bug fix
+description: Create a new track (feature, bug fix, or chore) with specification and implementation plan
 ---
 
 # Track Plan Workflow
 
-Start a new track (unit of work) by generating a specification and actionable plan.
+Create a new track (feature, bug fix, or chore) with specification and implementation plan.
 
 ---
 
-## Prerequisites
+## Instructions
 
-- `.agent/conductor/` directory must exist with product, tech-stack, and workflow docs
+### 1. Setup Check
 
----
+Verify these files exist:
+- `conductor/product.md`
+- `conductor/tech-stack.md`
+- `conductor/workflow.md`
 
-## Steps
+If missing, halt and say: "Conductor is not set up. Please run `/conductor-setup` first."
 
-### 1. Gather Track Information
+### 2. Get Track Description
 
-Ask the user (or accept as input):
-- **Type**: `feature` or `bug`
-- **Title**: Short descriptive name (e.g., "Dark mode toggle")
-- **Description**: What should be built or fixed?
+- If `$ARGUMENTS` contains a description, use it
+- If empty, ask: "Please provide a brief description of the track (feature, bug fix, chore) you want to create."
 
-### 2. Generate Track ID
+### 3. Load Project Context
 
-Create a unique ID using format: `<type>-<timestamp>`
-- Example: `feature-20260129-141600`
-- Example: `bug-20260129-152300`
+Read and understand:
+- `conductor/product.md` - product vision
+- `conductor/tech-stack.md` - technologies used
+- `conductor/workflow.md` - development workflow
 
-### 3. Create Track Directory
+### 4. Interactive Specification (spec.md)
 
-```
-.agent/conductor/tracks/<track-id>/
-├── spec.md      # Detailed requirements
-├── plan.md      # Actionable task checklist
-└── metadata.json
-```
+Announce: "I'll guide you through creating a specification for this track."
 
-### 4. Generate `spec.md`
+Ask 3-5 questions sequentially (one at a time) to gather:
+- Detailed requirements
+- Acceptance criteria
+- Edge cases
+- Out of scope items
 
-Use `.agent/templates/conductor/spec-template.md` and fill in:
+For each question, provide 2-3 suggested options plus "Type your own answer".
 
-```markdown
-# [Track Title]
+After gathering info, draft the spec.md with sections:
+- **Overview**: Brief description
+- **Functional Requirements**: What it must do
+- **Non-Functional Requirements**: Performance, security, etc.
+- **Acceptance Criteria**: How to verify completion
+- **Out of Scope**: What this track does NOT include
 
-## Overview
-[Brief description of the feature/bug]
+Present draft and ask for approval. Revise if needed.
 
-## Context
-[Reference to project context from product.md, relevant existing code]
+### 5. Generate Implementation Plan (plan.md)
 
-## Requirements
-- [ ] Requirement 1
-- [ ] Requirement 2
+Read `conductor/workflow.md` to understand the development methodology.
 
-## Acceptance Criteria
-- [ ] AC1: User can...
-- [ ] AC2: System should...
-
-## Technical Considerations
-[Architecture notes, dependencies, potential risks]
-
-## Out of Scope
-[Explicit boundaries - what this track does NOT include]
-```
-
-### 5. Generate `plan.md`
-
-Break requirements into actionable tasks using `.agent/templates/conductor/plan-template.md`:
+Generate plan.md with Phases, Tasks, and Sub-tasks using this format:
 
 ```markdown
-# Implementation Plan: [Track Title]
+# Implementation Plan: [Track Name]
 
 ## Phase 1: [Phase Name]
-
-### Tasks
-- [ ] Task 1.1: Description
-- [ ] Task 1.2: Description
+- [ ] Task: [Description]
+    - [ ] Sub-task 1
+    - [ ] Sub-task 2
+- [ ] Task: [Next task]
 
 ## Phase 2: [Phase Name]
-
-### Tasks
-- [ ] Task 2.1: Description
-
----
-
-## Status Legend
-- `[ ]` Pending
-- `[~]` In Progress
-- `[x]` Complete
-- `[!]` Blocked
+...
 ```
 
-### 6. Create `metadata.json`
+**CRITICAL**: Include `[ ]` status markers for EVERY task and sub-task.
 
+If workflow specifies TDD, each feature task should have:
+- [ ] Write tests
+- [ ] Implement feature
+
+Present draft and ask for approval.
+
+### 6. Create Track Artifacts
+
+1. **Generate Track ID**: `shortname_YYYYMMDD` (e.g., `auth_flow_20260129`)
+
+2. **Check for duplicates**: List `conductor/tracks/` and ensure no duplicate short names exist
+
+3. **Create directory**: `conductor/tracks/<track_id>/`
+
+4. **Create metadata.json**:
 ```json
 {
-  "id": "<track-id>",
-  "type": "feature|bug",
-  "title": "<title>",
-  "status": "planning",
-  "created": "<ISO timestamp>",
-  "updated": "<ISO timestamp>"
+  "track_id": "<track_id>",
+  "type": "feature",
+  "status": "new",
+  "created_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "updated_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "description": "<description>"
 }
 ```
 
-### 7. Update `tracks.md`
-
-Add a row to the tracks index:
+5. **Create index.md**:
 ```markdown
-| <track-id> | <title> | 🟡 Planning | <date> |
+# Track <track_id> Context
+
+- [Specification](./spec.md)
+- [Implementation Plan](./plan.md)
+- [Metadata](./metadata.json)
 ```
 
-### 8. Present for Review
+6. **Write spec.md and plan.md** with approved content
 
-**STOP** and present the spec and plan to the user:
-- Summarize what was created
-- Ask for approval before proceeding to implementation
-- User may request changes to spec or plan
+7. **Update tracks registry**: Append to `conductor/tracks.md`:
+```markdown
 
 ---
 
-## After Approval
+- [ ] **Track: <Track Description>**
+  *Link: [./tracks/<track_id>/](./tracks/<track_id>/)*
+```
 
-Once the user approves, they can run `/track-implement` to begin work.
+### 7. Announce Completion
+
+"New track `<track_id>` has been created and added to the tracks file. You can now start implementation by running `/conductor-implement`."

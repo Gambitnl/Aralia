@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:42
+ * Dependents: App.tsx, appState.ts
+ * Imports: 16 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/state/initialState.ts
  * Defines the initial state for the application.
@@ -19,6 +35,7 @@ import { createEmptyHistory } from '../utils/historyUtils';
 import { NavalState } from '../types/naval';
 import type { DivineFavor } from '../types/religion';
 import { getGameDay } from '../utils/core';
+import { generateId } from '../utils/core/idGenerator';
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {
@@ -70,7 +87,7 @@ export const initialGameState: GameState = {
     party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
     tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame()
         ? getDummyParty().map(p => ({
-            id: p.id || crypto.randomUUID(),
+            id: p.id || generateId(),
             name: p.name, // TempPartyMember requires a display name.
             level: p.level || 1,
             classId: p.class.id

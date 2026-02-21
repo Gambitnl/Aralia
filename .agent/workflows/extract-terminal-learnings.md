@@ -1,5 +1,7 @@
 ---
 description: Extract and implement environment learnings from current session into the correct agent file
+chain: tidy-up
+chain_via: session-ritual
 ---
 
 1. Confirm the agent's identity and environment before extracting learnings.

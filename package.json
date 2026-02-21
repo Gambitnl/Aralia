@@ -25,7 +25,11 @@
     "research:race-profiles": "tsx scripts/research-races-with-gemini.ts",
     "audit:races": "tsx scripts/audit-race-sync.ts",
     "scan": "tsx scripts/scan-quality.ts",
-    "verify": "npm run typecheck && npm run lint && npm run scan && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run scan && npm run build",
+    "roadmap:validate-packet": "tsx scripts/roadmap-validate-packet.ts",
+    "roadmap:session-close": "tsx scripts/roadmap-session-close.ts",
+    "roadmap:process-game-docs": "tsx scripts/roadmap-process-game-docs.ts",
+    "roadmap:derive-structured-doc": "tsx scripts/roadmap-derive-structured-doc.ts"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
@@ -64,6 +68,8 @@
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
     "@vitejs/plugin-react": "^5.0.0",
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
     "autoprefixer": "^10.4.23",
     "axe-core": "^4.11.0",
     "eslint": "^9.17.0",

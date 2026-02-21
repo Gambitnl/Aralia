@@ -51,7 +51,9 @@
       "WebFetch(domain:docs.anthropic.com)",
       "Bash(if exist f:ReposAraliatsc_output.log del f:ReposAraliatsc_output.log)",
       "WebFetch(domain:vitest.dev)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(copy:*)",
+      "Bash(copy \"f:\\\\Repos\\\\Aralia\\\\.agent\\\\skills\\\\code_commentary\\\\SKILL.md\" \"f:\\\\Repos\\\\Aralia\\\\.codex\\\\skills\\\\code-commentary\\\\SKILL.md\")"
     ],
     "deny": [],
     "ask": []

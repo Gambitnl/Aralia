@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 10/02/2026, 01:54:11
+ * Last Sync: 21/02/2026, 02:40:32
  * Dependents: CompanionGenerator.ts, GameGuideModal.tsx
- * Imports: 4 files
+ * Imports: 5 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -24,16 +24,17 @@ import { PlayerCharacter, AbilityScores, SpellbookData, SpellSlots, LimitedUses,
 import { RACES_DATA as ALL_RACES_DATA, CLASSES_DATA, WEAPONS_DATA, ITEMS } from '../constants';
 import { SKILLS_DATA } from '../data/skills';
 import { getAbilityModifierValue, calculateArmorClass, buildHitPointDicePools } from '../utils/characterUtils';
+import { generateId } from '../utils/core/idGenerator';
 
 export interface CharacterGenerationConfig {
-  name: string;
-  raceId: string;
-  classId: string;
-  backgroundBio?: string;
-  // Optional: If not provided, standard array or class recommendations will be used
-  abilityScores?: AbilityScores; 
-  // Optional: AI can suggest specific skills, otherwise class defaults picked
-  skillIds?: string[]; 
+    name: string;
+    raceId: string;
+    classId: string;
+    backgroundBio?: string;
+    // Optional: If not provided, standard array or class recommendations will be used
+    abilityScores?: AbilityScores;
+    // Optional: AI can suggest specific skills, otherwise class defaults picked
+    skillIds?: string[];
 }
 
 /**
@@ -58,7 +59,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     // RALPH: Intelligence Fallback.
     // If specific stats aren't provided, it uses a heuristic (Class Priorities) to assign the Standard Array intelligently.
     let baseScores: AbilityScores;
-    
+
     if (config.abilityScores) {
         baseScores = config.abilityScores;
     } else {
@@ -78,7 +79,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     // Apply Racial Bonuses (if fixed) - Note: Most 2024 races in this app use flexible/point-buy
     // For this generator, we assume the baseScores provided by AI *include* any flexible bonuses 
     // or we accept the raw scores.
-    const finalAbilityScores = { ...baseScores }; 
+    const finalAbilityScores = { ...baseScores };
     if (race.abilityBonuses) {
         race.abilityBonuses.forEach(bonus => {
             if (bonus.ability === 'Any') {
@@ -93,14 +94,14 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     // Basic logic: Pick the first N skills from the class list if not specified
     const numSkills = charClass.numberOfSkillProficiencies;
     const available = charClass.skillProficienciesAvailable;
-    
+
     if (config.skillIds) {
         // Validate and map AI suggestions
         config.skillIds.forEach(id => {
             if (SKILLS_DATA[id]) selectedSkills.push(SKILLS_DATA[id]);
         });
     }
-    
+
     // Fill remaining slots with defaults if AI didn't provide enough valid ones
     if (selectedSkills.length < numSkills) {
         for (const skillId of available) {
@@ -125,7 +126,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         const match = speedTrait.match(/(\d+)/);
         if (match) speed = parseInt(match[1], 10);
     }
-    
+
     // Darkvision
     let darkvisionRange = 0;
     const dvTrait = race.traits.find(t => t.toLowerCase().includes('darkvision'));
@@ -139,7 +140,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     // In a real app, we'd parse `charClass.startingEquipment`. Here we map manually for key classes or generic fallbacks.
     const equippedItems: Partial<Record<EquipmentSlotType, Item>> = {};
     const inventory: Item[] = [];
-    
+
     // Generic gear allocation
     const addIfExists = (id: string, slot?: EquipmentSlotType) => {
         const item = WEAPONS_DATA[id] || ITEMS[id];
@@ -174,9 +175,9 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         addIfExists('dagger', 'MainHand');
         addIfExists('leather_armor', 'Torso');
     }
-    
+
     addIfExists('healing_potion'); // Everyone gets a potion
-    
+
     // 5. Spellcasting Setup
     let spellbook: SpellbookData | undefined;
     let spellSlots: SpellSlots | undefined;
@@ -187,16 +188,16 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         if (ability === 'intelligence' || ability === 'wisdom' || ability === 'charisma') {
             spellcastingAbility = ability;
         }
-        
+
         // Assign default spells from the class list
         const cantrips = charClass.spellcasting.spellList
             .filter(_id => {
                 // In a real scenario we'd check level=0, for now relying on ID naming or external check
                 // Simplified: just take first N
-                return true; 
+                return true;
             })
             .slice(0, charClass.spellcasting.knownCantrips);
-            
+
         const level1Spells = charClass.spellcasting.spellList
             .filter(id => !cantrips.includes(id))
             .slice(0, charClass.spellcasting.knownSpellsL1);
@@ -219,25 +220,25 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
 
     const limitedUses: LimitedUses = {};
     if (charClass.id === 'fighter') {
-      limitedUses['second_wind'] = { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' };
+        limitedUses['second_wind'] = { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' };
     }
     if (charClass.id === 'barbarian') {
-      limitedUses['rage'] = { name: 'Rage', current: 2, max: 2, resetOn: 'long_rest' };
+        limitedUses['rage'] = { name: 'Rage', current: 2, max: 2, resetOn: 'long_rest' };
     }
     if (charClass.id === 'bard') {
-      const chaMod = getAbilityModifierValue(finalAbilityScores.Charisma);
-      const bardicDice = Math.max(1, chaMod);
-      limitedUses['bardic_inspiration'] = { name: 'Bardic Inspiration', current: bardicDice, max: bardicDice, resetOn: 'long_rest' };
+        const chaMod = getAbilityModifierValue(finalAbilityScores.Charisma);
+        const bardicDice = Math.max(1, chaMod);
+        limitedUses['bardic_inspiration'] = { name: 'Bardic Inspiration', current: bardicDice, max: bardicDice, resetOn: 'long_rest' };
     }
     if (charClass.id === 'paladin') {
-       limitedUses['lay_on_hands'] = { name: 'Lay on Hands', current: 5, max: 5, resetOn: 'long_rest' };
+        limitedUses['lay_on_hands'] = { name: 'Lay on Hands', current: 5, max: 5, resetOn: 'long_rest' };
     }
 
     // 6. Final Assembly
     // Track class levels so Hit Dice pools reflect the correct die size.
     const classLevels = { [charClass.id]: level };
     const character: PlayerCharacter = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name: config.name,
         level,
         proficiencyBonus,
@@ -246,15 +247,15 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         classLevels,
         abilityScores: baseScores,
         finalAbilityScores,
-	        skills: selectedSkills,
-	        hp: maxHp,
-	        maxHp,
-	        // Build Hit Dice after assembly to preserve pool formatting.
-	        hitPointDice: undefined,
-	        armorClass: 10, // Recalculated below
-	        speed,
-	        darkvisionRange,
-	        transportMode: 'foot',
+        skills: selectedSkills,
+        hp: maxHp,
+        maxHp,
+        // Build Hit Dice after assembly to preserve pool formatting.
+        hitPointDice: undefined,
+        armorClass: 10, // Recalculated below
+        speed,
+        darkvisionRange,
+        transportMode: 'foot',
         statusEffects: [],
         equippedItems,
         spellbook,

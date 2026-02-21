@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 10/02/2026, 01:54:07
+ * Last Sync: 21/02/2026, 02:40:30
  * Dependents: App.tsx
- * Imports: 10 files
+ * Imports: 11 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -55,6 +55,7 @@ import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { generateWorldSeed } from '../utils/random/generateWorldSeed';
 // Generates a full companion character (stats + AI-driven backstory) from a race/class config.
 import { generateCompanion } from '../services/CompanionGenerator';
+import { generateId } from '../utils/core/idGenerator';
 
 // Shorthand type for the chat message function passed in from the parent component.
 // Accepts message text and an optional sender tag for styling in the chat log.
@@ -135,7 +136,7 @@ export function useGameInitialization({
             companion.id = 'player';
           } else {
             // Ensure non-player companions have a unique ID (generateCompanion usually provides one).
-            companion.id = companion.id || crypto.randomUUID();
+            companion.id = companion.id || generateId();
           }
           generatedParty.push(companion);
         }

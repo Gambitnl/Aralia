@@ -1,105 +1,127 @@
 ---
-description: Execute the implementation plan for an active track
+description: Execute tasks from a track's implementation plan
 ---
 
 # Track Implement Workflow
 
-Work through a track's `plan.md`, completing tasks in order with proper status updates.
+Execute tasks from a track's implementation plan.
 
 ---
 
-## Prerequisites
+## Instructions
 
-- Track must exist at `.agent/conductor/tracks/<track-id>/`
-- Track must have an approved `spec.md` and `plan.md`
+### 1. Setup Check
 
----
+Verify these exist:
+- `conductor/product.md`
+- `conductor/tech-stack.md`
+- `conductor/workflow.md`
+- `conductor/tracks.md`
 
-## Steps
+If missing, halt: "Conductor is not set up. Please run `/conductor-setup` first."
 
-### 1. Load Track Context
+### 2. Select Track
 
-1. Read the track's `spec.md` and `plan.md`
-2. Read project context from `.agent/conductor/` (product, tech-stack, workflow)
-3. Identify the next pending task (`[ ]`)
+**If track name provided in `$ARGUMENTS`**:
+- Search `conductor/tracks.md` for matching track (case-insensitive)
+- Confirm with user: "Found track '<name>'. Is this correct?"
 
-### 2. Task Execution Loop
+**If no track name provided**:
+- Read `conductor/tracks.md`
+- List all incomplete tracks (not marked `[x]`)
+- Ask user: "Which track would you like to implement?"
+  - Present options: A) Track 1, B) Track 2, etc.
+- Wait for user selection before proceeding
 
-For each pending task:
+**If no incomplete tracks found**:
+- Announce: "All tracks are completed! Create a new track with `/conductor-newtrack`."
+- Halt
 
-#### 2.1 Mark In Progress
-Update `plan.md`: change `[ ]` to `[~]` for the current task
+### 3. Load Track Context
 
-#### 2.2 Implement the Task
-Follow the workflow defined in `.agent/conductor/workflow.md`:
-- Write tests first (if TDD is enabled)
-- Implement the code
-- Run tests to verify
-- Document any deviations
+1. Get track folder path from the link in tracks.md
+2. Read these files:
+   - `conductor/tracks/<track_id>/spec.md` - what to build
+   - `conductor/tracks/<track_id>/plan.md` - how to build it
+   - `conductor/workflow.md` - development methodology
 
-#### 2.3 Mark Complete
-Update `plan.md`: change `[~]` to `[x]`
+### 4. Update Track Status
 
-#### 2.4 Update Metadata
-Update `metadata.json` with:
-```json
-{
-  "status": "in-progress",
-  "updated": "<ISO timestamp>",
-  "currentPhase": "<phase name>",
-  "completedTasks": <count>
-}
-```
+Update `conductor/tracks.md` to mark track as in-progress:
+- Change `- [ ] **Track:` to `- [~] **Track:`
 
-### 3. Phase Completion Checkpoint
+Update `conductor/tracks/<track_id>/metadata.json`:
+- Set `"status": "in_progress"`
+- Update `"updated_at"` timestamp
+
+### 5. Execute Tasks
+
+For each task in `plan.md`:
+
+1. **Announce the task** you're starting
+
+2. **Mark task in-progress** in plan.md:
+   - Change `- [ ] Task:` to `- [~] Task:`
+
+3. **Implement the task** following the workflow:
+   - Read the spec for requirements
+   - Write code following tech-stack guidelines
+   - If workflow specifies TDD, write tests first
+   - Run tests to verify
+
+4. **Verify completion**:
+   - Run relevant tests
+   - Check acceptance criteria from spec
+   - Ensure code quality
+
+5. **Mark task complete** in plan.md:
+   - Change `- [~] Task:` to `- [x] Task:`
+
+6. **Commit changes** (if workflow requires per-task commits):
+   - Stage changed files
+   - Commit with descriptive message referencing the task
+
+7. **Move to next task**
+
+### 6. Phase Completion
 
 When all tasks in a phase are complete:
+1. Announce phase completion
+2. If workflow defines "Phase Completion Verification", ask user to verify
+3. Proceed to next phase
 
-1. **Announce**: "Phase [X] complete. Starting verification checkpoint."
-2. **Run Tests**: Execute the full test suite
-3. **Propose Verification**: Give user specific steps to manually verify
-4. **Await Approval**: STOP and wait for user confirmation
-5. **Record**: Note the verification in `plan.md` with timestamp
+### 7. Track Completion
 
-### 4. Track Completion
+When all phases are done:
 
-When all phases are complete:
+1. **Update tracks.md**: Change `- [~] **Track:` to `- [x] **Track:`
 
-1. Update `metadata.json`:
-   ```json
-   {
-     "status": "complete",
-     "completed": "<ISO timestamp>"
-   }
-   ```
+2. **Update metadata.json**: Set `"status": "completed"`
 
-2. Update `tracks.md` index:
-   Change status to `✅ Complete`
+3. **Sync documentation** (ask user approval for each):
+   - Check if `conductor/product.md` needs updates based on new features
+   - Check if `conductor/tech-stack.md` needs updates for new technologies
+   - Present proposed changes and get confirmation before editing
 
-3. Summarize:
-   - What was built
-   - Files changed
-   - Tests added
-   - Any deviations from the original plan
+4. **Offer cleanup**:
+   > "Track complete! What would you like to do?
+   > A) **Archive** - Move to conductor/archive/
+   > B) **Delete** - Permanently remove
+   > C) **Keep** - Leave in tracks file"
 
----
+   Handle each option:
+   - **Archive**: Move folder to `conductor/archive/<track_id>/`, remove from tracks.md
+   - **Delete**: Confirm twice, then delete folder and remove from tracks.md
+   - **Keep**: Do nothing
 
-## Handling Blockers
+5. **Announce completion**: "Track '<name>' is complete!"
 
-If a task cannot be completed:
+### 8. Error Handling
 
-1. Mark as `[!]` in `plan.md`
-2. Add a blocker note: `<!-- BLOCKED: reason -->`
-3. Notify the user with specifics
-4. Move to next unblocked task (if any)
-
----
-
-## Pausing Work
-
-To pause mid-track:
-1. Ensure current task is marked `[~]` (not left as `[ ]`)
-2. Update `metadata.json` status to `"paused"`
-3. Add a note in `plan.md`: `<!-- PAUSED: <timestamp> - reason -->`
-
-Resume by running `/track-implement` again.
+- If a task fails, stop and report the error clearly
+- Ask user how to proceed:
+  - Retry the task
+  - Skip and continue
+  - Abort implementation
+- Never mark failed tasks as complete
+- Log any blockers for the status report

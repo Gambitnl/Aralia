@@ -2,15 +2,15 @@
 
 **Purpose**: Master index of all numbered documentation files in the project.
 
-**Last Updated**: Jan 13, 2026
+**Last Updated**: Feb 16, 2026
 
 ---
 
 ## Quick Stats
 
-- **Total Active**: 18 documents (9 spell-system, 6 doc-cleanup, 2 spell-completeness, 1 3d-exploration)
+- **Total Active**: 22 documents (9 spell-system, 7 doc-cleanup, 2 spell-completeness, 1 3d-exploration, 3 infrastructure/tooling)
 - **Total Retired**: 4 documents
-- **Active Projects**: 4
+- **Active Projects**: 5
 
 ---
 
@@ -35,7 +35,7 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 | Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
 |--------|----------|--------|----------|----------|--------------|--------------|
 | [1A](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md) | Project Master Springboard | Active | Ongoing | High | - | Nov 30, 2025 |
-| [1B](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md) | Spell Migration Roadmap | Active | Ongoing | High | 1A | Nov 30, 2025 |
+| [1B](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md) | Spell Migration Roadmap | Active | Ongoing | High | 1A | Feb 16, 2026 |
 | [1D](./tasks/spell-system-overhaul/1D-ARCHIVE-OLD-SPELL-DOCS.md) | Archive Old Spell Docs | Active | 0% (Phase 0.1) | High | 1B | Nov 28, 2025 |
 | [1E](./tasks/spell-system-overhaul/1E-CONSOLIDATE-JULES-WORKFLOW.md) | Consolidate Jules Workflow | Pending | 0% (Phase 0.2) | High | 1D | Nov 28, 2025 |
 | [1F](./tasks/spell-system-overhaul/1F-AUDIT-SPELL-SCOPE.md) | Audit Spell Scope (PHB 2024) | Pending | 0% (Phase 0.3) | High | 1E | Nov 28, 2025 |
@@ -105,7 +105,7 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 
 | Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
 |--------|----------|--------|----------|----------|--------------|--------------|
-| [1A](./@ROADMAP-SYSTEM-GUIDE.md) | Roadmap System Guide | Active | 90% | High | - | Feb 12, 2026 |
+| [1A](./@ROADMAP-SYSTEM-GUIDE.md) | Roadmap System Guide | Active | 100% | High | - | Feb 17, 2026 |
 | [1B](./tasks/roadmap/1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md) | Roadmap Visualizer Evolution Handover | Active | 100% | High | 1A | Feb 15, 2026 |
 | [1C](./tasks/roadmap/1C-ROADMAP-IMPLEMENTATION-PLAN.md) | Roadmap Visualizer Implementation Plan | Active | 0% | High | 1B | Feb 15, 2026 |
 
@@ -151,7 +151,7 @@ touch docs/tasks/spell-system-overhaul/1J-NEW-TASK-NAME.md
 
 ### When Retiring a Document
 
-1. **Rename file**: `1C-DOC.md` → `1C~DOC.md`
+1. **Rename file**: `1C-DOC.md` -> `1C~DOC.md`
 2. **Move entry** from "Active Documents" to "Retired Documents" in this file
 3. **Add to [@RETIRED-DOCS.md](./@RETIRED-DOCS.md)** with reason and category
 4. **Remove from [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)** if listed there
@@ -177,19 +177,19 @@ git mv 1D-TASK-NAME.md 1D~TASK-NAME.md
 
 ## Validation Checks
 
-### ⚠️ Current Issues
+### Current Issues
 
-- ✅ No duplicate numbers detected (fixed)
-- ✅ All active documents have valid paths
-- ⚠️ Some documents missing progress tracking details
-- ℹ️ Consider adding tags for better searchability
+- Duplicate number in Spell System Overhaul: 1F appears twice (active + concept entry).
+- All active documents have valid paths.
+- Some documents still use coarse progress tracking labels (for example, Ongoing) rather than explicit percentages.
+- Consider expanding tags for feature-level searchability.
 
 ### Registry Health
 
-- **Numbering continuity**: Phase-based numbering in spell-completeness project uses `2A` after `1C` (intentional); all referenced files exist.
-- **File existence**: All referenced files exist
-- **Project scoping**: Properly separated
-- **Tilde markers**: Consistent with retired status
+- Numbering continuity: Spell-completeness 2A continuation after retired 1C~ is intentional; Spell System has an unresolved duplicate 1F identifier that should be normalized.
+- File existence: All referenced files exist.
+- Project scoping: Properly separated across 5 active projects.
+- Tilde markers: Consistent with retired status.
 
 ---
 
@@ -232,6 +232,7 @@ Example: @WORKFLOW-GUIDE.md
 
 | Date | Change | Project | Details |
 |------|--------|---------|---------|
+| Feb 16, 2026 | Registry refresh | All | Updated stats, flagged duplicate Spell System identifier (1F), aligned validation section |
 | Jan 13, 2026 | Created 1A | 3D Exploration | Added 3D exploration/combat roadmap |
 | Dec 4, 2025 | Documentation merge | Spell System | Merged COMPONENT_DEPENDENCIES.md into SPELL_INTEGRATION_CHECKLIST.md; archived to docs/archive/spell-docs-2025-12/ |
 | Dec 4, 2025 | Documentation review | Spell System | Reviewed SPELL_INTEGRATION_CHECKLIST.md and SPELL_SYSTEM_ARCHITECTURE.md; verified all component paths |
@@ -259,9 +260,9 @@ Example: @WORKFLOW-GUIDE.md
 
 ### Project Relationships
 
-- **Spell System Overhaul** and **Documentation Cleanup** are independent projects
-- Documents can reference across projects but dependencies tracked separately
-- Each project maintains its own sequential numbering
+- Projects can reference across project boundaries while keeping local numbering scopes.
+- Number identifiers should remain unique within each project scope to avoid roadmap node collisions.
+- Registry includes infrastructure and tooling roadmap documents that coordinate multi-project workflows.
 
 ### Progress Tracking
 

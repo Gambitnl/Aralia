@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:20
+ * Dependents: actionHandlers.ts
+ * Imports: 9 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/actions/handleNpcInteraction.ts
@@ -12,6 +27,7 @@ import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTyp
 import { NPCS } from '../../constants';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
+import { generateId } from '../../utils/core/idGenerator';
 
 interface HandleTalkProps {
   action: Action;
@@ -39,33 +55,33 @@ export async function handleStartDialogue({
   // If not found, and ID looks like an ambient one (or we treat unknown as generative opportunity)
   if (!npc) {
     addMessage("Approaching a villager...", "system");
-    
+
     // Generate new NPC
     const config: NPCGenerationConfig = {
       id: npcId,
       role: 'civilian',
       // In future, pull town wealth/biome from gameState to influence race/clothing
     };
-    
+
     const generatedNpc = generateNPC(config);
     npc = generatedNpc;
-    
+
     // Register them permanently
     dispatch({ type: 'REGISTER_GENERATED_NPC', payload: { npc: generatedNpc } });
-    
+
     // Add "Met" fact immediately so they remember you
     const metFact: KnownFact = {
-        id: crypto.randomUUID(),
-        text: `Met the adventurer.`,
-        source: 'direct',
-        isPublic: true,
-        timestamp: gameState.gameTime.getTime(),
-        strength: 3,
-        lifespan: 999,
+      id: generateId(),
+      text: `Met the adventurer.`,
+      source: 'direct',
+      isPublic: true,
+      timestamp: gameState.gameTime.getTime(),
+      strength: 3,
+      lifespan: 999,
     };
     dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: generatedNpc.id, fact: metFact } });
     dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generatedNpc.id } });
-    
+
     addMessage(`You greet ${generatedNpc.name}, a ${generatedNpc.biography.age}-year-old ${generatedNpc.biography.classId}.`, "system");
   }
 
@@ -94,19 +110,19 @@ export async function handleTalk({
   if (npc) {
     // Add NPC to met list on first successful interaction
     if (!gameState.metNpcIds.includes(npc.id)) {
-        const metFact: KnownFact = {
-            id: crypto.randomUUID(),
-            text: `Met ${playerContext}.`,
-            source: 'direct',
-            isPublic: true,
-            timestamp: gameState.gameTime.getTime(),
-            strength: 3,
-            lifespan: 999,
-        };
-        dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: npc.id, fact: metFact } });
-        dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
+      const metFact: KnownFact = {
+        id: generateId(),
+        text: `Met ${playerContext}.`,
+        source: 'direct',
+        isPublic: true,
+        timestamp: gameState.gameTime.getTime(),
+        strength: 3,
+        lifespan: 999,
+      };
+      dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: npc.id, fact: metFact } });
+      dispatch({ type: 'ADD_MET_NPC', payload: { npcId: npc.id } });
     }
-    
+
     // 1. Retrieve NPC memory from gameState
     const memory = gameState.npcMemory[npc.id];
     if (!memory) {
@@ -136,7 +152,7 @@ export async function handleTalk({
     // Add active goals to the prompt since memoryUtils doesn't handle goals yet
     const activeGoals = memory.goals?.filter(g => g.status === GoalStatus.Active);
     if (activeGoals && activeGoals.length > 0) {
-        fullPrompt += `\nMy Current Goals: ["${activeGoals.map(g => g.description).join('", "')}"]`;
+      fullPrompt += `\nMy Current Goals: ["${activeGoals.map(g => g.description).join('", "')}"]`;
     }
 
     fullPrompt += `\n\nYour EXTREMELY BRIEF response (1-2 sentences MAX):`;
@@ -148,12 +164,12 @@ export async function handleTalk({
       fullPrompt,
       npcMemoryContext
     );
-    
+
     const promptSent = npcResponseResult.data?.promptSent || npcResponseResult.metadata?.promptSent || 'Unknown prompt';
     const rawResponse = npcResponseResult.data?.rawResponse || npcResponseResult.metadata?.rawResponse || npcResponseResult.error || 'No response';
-    
+
     addGeminiLog('generateNPCResponse', promptSent, rawResponse);
-    
+
     if (npcResponseResult.data?.rateLimitHit || npcResponseResult.metadata?.rateLimitHit) {
       dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
     }
@@ -166,10 +182,10 @@ export async function handleTalk({
       await resolveAndRegisterEntities(responseText, gameState, dispatch, addGeminiLog);
 
       dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: responseText } });
-      
+
       dispatch({ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP', payload: { npcId: npc.id, timestamp: gameState.gameTime.getTime() } });
       dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId: npc.id, amount: 1 } });
-      
+
       // Dispatch START_DIALOGUE_SESSION to open the UI
       dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId: npc.id } });
 

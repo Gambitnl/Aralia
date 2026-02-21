@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * 
+ * Last Sync: 21/02/2026, 02:41:06
+ * Dependents: None (Orphan)
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { StolenItem, Fence } from '../../../types/crime';
 import { PlayerCharacter } from '../../../types/character';
@@ -6,6 +21,7 @@ import { Item } from '../../../types';
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState as _GameState } from '../../../types';
+import { generateId } from '../../../utils/core/idGenerator';
 
 export interface FenceTransactionResult {
   success: boolean;
@@ -27,8 +43,8 @@ export class FenceSystem {
     const cut = 0.2 + (Math.random() * 0.3);
 
     return {
-      id: crypto.randomUUID(),
-      npcId: `fence_${locationId}_${crypto.randomUUID().slice(0, 8)}`,
+      id: generateId(),
+      npcId: `fence_${locationId}_${generateId().slice(0, 8)}`,
       locationId,
       gold: Math.floor(500 + Math.random() * 2000), // 500-2500 gold
       acceptedCategories,
@@ -95,7 +111,7 @@ export class FenceSystem {
     }
 
     if (fence.gold < offer) {
-       return {
+      return {
         success: false,
         goldEarned: 0,
         heatGenerated: 0,
@@ -160,7 +176,7 @@ export class FenceSystem {
     };
   }
 
-  private static calculateSocialBonus(player: PlayerCharacter): number {        
+  private static calculateSocialBonus(player: PlayerCharacter): number {
     // Simple bonus: +2% per +1 CHA mod, max +20%
     // TODO(2026-01-03 pass 4 Codex-CLI): fallback charisma until player stats are guaranteed.
     const charisma = player.stats?.charisma ?? 10;

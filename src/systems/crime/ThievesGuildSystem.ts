@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:41:04
+ * Dependents: ThievesGuildInterface.tsx
+ * Imports: 5 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import {
     GuildJob,
@@ -8,6 +23,7 @@ import {
 import { Location } from '../../types';
 import { SeededRandom } from '@/utils/random';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
+import { generateId } from '../../utils/core/idGenerator';
 
 export class ThievesGuildSystem {
 
@@ -48,7 +64,7 @@ export class ThievesGuildSystem {
 
             const targetLoc = allTargets.length > 0
                 ? rng.pick(allTargets)
-                : { id: 'loc_capital', name: 'The Capital', baseDescription: 'The seat of power.', mapCoordinates: {x:0,y:0}, biomeId: 'city', exits: {} } as Location;
+                : { id: 'loc_capital', name: 'The Capital', baseDescription: 'The seat of power.', mapCoordinates: { x: 0, y: 0 }, biomeId: 'city', exits: {} } as Location;
 
             jobs.push(this.createProceduralJob(guildId, difficulty, targetLoc, rng));
         }
@@ -72,7 +88,7 @@ export class ThievesGuildSystem {
         const rewardGold = rewardBase + Math.floor(rng.next() * (rewardBase * 0.5));
 
         return {
-            id: crypto.randomUUID(),
+            id: generateId(),
             guildId,
             title: this.generateJobTitle(type, location.name, rng),
             description: `The guild requires a ${type} operation at ${location.name}. Discretion is advised.`,

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * 
+ * Last Sync: 21/02/2026, 02:41:08
+ * Dependents: None (Orphan)
+ * Imports: 3 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -20,6 +36,7 @@ import {
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
   MemoryImportance as _MemoryImportance
 } from '../../types/memory';
+import { generateId } from '../../utils/core/idGenerator';
 
 /**
  * Manages the addition and retrieval of memories for NPCs.
@@ -50,7 +67,7 @@ export class MemorySystem {
     const memory = memoryNpc.memory || MemorySystem.createEmptyMemory(currentDate);
 
     const newInteraction: Interaction = {
-      id: interaction.id || crypto.randomUUID(),
+      id: interaction.id || generateId(),
       date: interaction.date || currentDate,
       type: interaction.type,
       summary: interaction.summary,

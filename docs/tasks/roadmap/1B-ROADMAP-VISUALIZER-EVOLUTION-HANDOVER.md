@@ -11,7 +11,7 @@
 The Roadmap is the primary visualization layer for project health and milestone tracking.
 
 -   **Elastic (Spring Physics)**: It feels alive. Nodes have mass and spring constraints. Dragging a Project node **pulls its children** in a "spring-like" manner (non-rigid), allowing for fluid reorganization while maintaining hierarchy.
--   **Terminal-First**: The aesthetic is "Terminal" by default (Neon Green/Black, scanlines, monospace).
+-   **Theme-Configurable**: Visual theme is configurable and should not enforce a preferred theme default.
 -   **Status-Only**: This tool is for **visualizing** projects, feature implementations, and milestone sub-branches. It is NOT intended for "task creation."
 -   **Context-Aware**: It knows *what* code implements *which* task (via `// RALPH:` tags and file imports).
 
@@ -36,11 +36,11 @@ The Roadmap is the primary visualization layer for project health and milestone 
 1.  **Persistence**:
     -   Save `(x, y)` coordinates of every node to `.agent/roadmap-local/layout.json` (gitignored internal workspace).
 2.  **Thematic Skins**:
-    -   **Terminal (Default)**:
+    -   **Terminal (Optional)**:
         -   Font: Consolas / Monospace.
         -   Colors: Neon Green (#4ade80), Black (#000), Scanlines.
         -   VFX: Glitch effect on hover, rigid grid background.
-    -   **Arcane (Toggle)**:
+    -   **Arcane (Optional)**:
         -   Font: Cinzel / Serif.
         -   Colors: Gold (#fbbf24), Deep Blue (#1e3a8a).
 3.  **Interaction Design**:
@@ -69,6 +69,25 @@ The following execution constraints are now approved for this initiative:
     -   Parent-child nodes move together during drag interactions.
 -   **Mining Cadence**: Process one document at a time, with full read + fact check + stale-content correction.
 -   **Pilot Shape**: First pass is a 5-document sequential pilot.
+
+## 2.2 Visualization Rebase (Feb 18, 2026)
+
+The current implementation trajectory is now explicitly aligned to "feature-first readability":
+
+-   **Master Trunk Taxonomy**:
+    -   Top-level roadmap nodes are now game-ingredient pillars (not raw doc buckets).
+    -   This makes the trunk read like "what the game is made of," not "what files existed."
+-   **Branch Auditability**:
+    -   Expandable nodes now surface descendant depth counts (`L1/L2/L3/...`) to expose hidden branch mass.
+-   **Interaction Baseline**:
+    -   Graph starts collapsed; expansion is granular and branch-local.
+    -   Grid is no longer cosmetic-only; node layout is snapped and grid transforms with zoom/pan.
+-   **3D Feature Cleanup Direction**:
+    -   Context-only headings (for example layman clarifications/objective boilerplate) are being removed from feature branches.
+    -   Operational/checklist prose is being translated into capability-style nodes so branches describe actual features.
+-   **Pending Target-State Items**:
+    -   Cross-feature dependency crosslinks as thin dotted lines with a user toggle.
+    -   Continued normalization of legacy sentence-style nodes into concise capability labels.
 
 ---
 
@@ -117,7 +136,7 @@ When a node is selected, the side panel must provide:
 -   **Top Center**: "ARALIA CHRONICLES" (Cinzel, Gold Gradient).
 -   **Top Right**:
     -   [Filter]: Dropdown (By Domain, By Status, By Assignee).
-    -   [Theme]: Toggle (Arcane / Terminal).
+    -   [Theme]: Toggle (user-selectable style; no preferred default).
     -   [Save]: Disk Icon (flashes when layout is dirty).
 -   **Bottom Left**: Minimap (dots representation).
 -   **Bottom Right**: Zoom Controls (+ / - / Reset).
@@ -139,7 +158,7 @@ When a node is selected, the side panel must provide:
 2.  **[TICKET-002] Bi-Directional API**:
     -   Deferred in current execution phase (visualizer-only).
     -   Re-evaluate after feature/sub-feature graph and mining workflow stabilize.
-3.  **[TICKET-003] Terminal-First Visual Alignment**:
-    -   Set Terminal as default presentation.
-    -   Keep Arcane as optional toggle (non-default).
+3.  **[TICKET-003] Theme Configuration Alignment**:
+    -   Keep theme selection user-configurable without default bias.
+    -   Preserve optional style variants.
     -   Ensure hierarchy readability for Feature -> Sub-feature -> Component trees.

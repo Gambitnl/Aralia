@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * 
+ * Last Sync: 21/02/2026, 02:40:58
+ * Dependents: None (Orphan)
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import {
     BlackMarketListing,
@@ -6,6 +21,7 @@ import {
 } from '../../types/crime';
 import { SeededRandom } from '@/utils/random';
 import { Item, ItemType } from '../../types/items';
+import { generateId } from '../../utils/core/idGenerator';
 
 export class BlackMarketSystem {
 
@@ -35,7 +51,7 @@ export class BlackMarketSystem {
             const finalPrice = Math.floor(basePrice * priceMultiplier * variance);
 
             listings.push({
-                id: crypto.randomUUID(),
+                id: generateId(),
                 sellerId: `smuggler_${rng.nextInt(1000, 9999)}`,
                 item,
                 price: finalPrice,
@@ -87,7 +103,7 @@ export class BlackMarketSystem {
         const name = rng.pick(names[category]);
 
         return {
-            id: crypto.randomUUID(),
+            id: generateId(),
             name,
             description: `Illegal contraband of type ${category}.`,
             type: ItemType.Treasure, // Using generic type for now, strictly it's Contraband

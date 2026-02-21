@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ * 
+ * Last Sync: 21/02/2026, 02:40:54
+ * Dependents: DamageCommand.ts, StatusConditionCommand.ts, UtilityCommand.ts, useCombatEngine.ts
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/combat/SavePenaltySystem.ts
  * 
@@ -10,6 +26,7 @@
 import { CombatState, CombatCharacter, SavePenaltyRider } from '@/types/combat';
 import { rollDice } from '@/utils/combatUtils';
 import { SavingThrowModifier } from '@/utils/savingThrowUtils';
+import { generateId } from '@/utils/core/idGenerator';
 
 /**
  * System for registering, consuming, and expiring save penalty riders.
@@ -38,7 +55,7 @@ export class SavePenaltySystem {
         if (!target) return state;
 
         const rider: SavePenaltyRider = {
-            id: crypto.randomUUID(), // Required for rider tracking/cleanup.
+            id: generateId(), // Required for rider tracking/cleanup.
             spellId: spellId || sourceName,
             casterId: casterId,
             sourceName: sourceName,

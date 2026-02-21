@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:41:10
+ * Dependents: religion/index.ts
+ * Imports: 5 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { Dispatch } from 'react';
 import {
@@ -7,6 +22,7 @@ import {
 import { AppAction } from '../../state/actionTypes';
 import { canAffordService, getDivineStanding } from '../../utils/religionUtils';
 import { logger } from '../../utils/logger';
+import { generateId } from '../../utils/core/idGenerator';
 
 export interface ServiceResult {
   success: boolean;
@@ -37,27 +53,27 @@ export class TempleSystem {
     const affordability = canAffordService(service, gameState.gold, currentFavor);
 
     if (!affordability.allowed) {
-        // Enhance the reason if it's about favor
-        if (affordability.reason?.includes('favor')) {
-             const minFavor = service.minFavor || 0;
-             return {
-                 allowed: false,
-                 reason: `Requires '${getDivineStanding(minFavor)}' standing with deity (${minFavor} favor).`
-             };
-        }
-        return affordability;
+      // Enhance the reason if it's about favor
+      if (affordability.reason?.includes('favor')) {
+        const minFavor = service.minFavor || 0;
+        return {
+          allowed: false,
+          reason: `Requires '${getDivineStanding(minFavor)}' standing with deity (${minFavor} favor).`
+        };
+      }
+      return affordability;
     }
 
     // 2. Check Complex Requirements (Items, Quests)
     if (service.requirement) {
-       // Item cost check
-       if (service.requirement.itemCost) {
-           const { itemId, count } = service.requirement.itemCost;
-           const ownedCount = gameState.inventory.filter(i => i.id === itemId).length;
-           const hasItem = ownedCount >= count;
-           if (!hasItem) return { allowed: false, reason: `Missing required item offering.` };
-       }
-       // Quest requirement check would go here
+      // Item cost check
+      if (service.requirement.itemCost) {
+        const { itemId, count } = service.requirement.itemCost;
+        const ownedCount = gameState.inventory.filter(i => i.id === itemId).length;
+        const hasItem = ownedCount >= count;
+        if (!hasItem) return { allowed: false, reason: `Missing required item offering.` };
+      }
+      // Quest requirement check would go here
     }
 
     return { allowed: true };
@@ -95,9 +111,9 @@ export class TempleSystem {
     // Handle effect logging safely
     let effectLogString: string;
     if (typeof service.effect === 'string') {
-        effectLogString = service.effect;
+      effectLogString = service.effect;
     } else {
-        effectLogString = JSON.stringify(service.effect);
+      effectLogString = JSON.stringify(service.effect);
     }
 
     return {
@@ -126,7 +142,7 @@ export class TempleSystem {
           dispatch({
             type: 'ADD_NOTIFICATION',
             payload: {
-              id: crypto.randomUUID(),
+              id: generateId(),
               type: 'success',
               message: 'You feel a warm presence. (Minor Blessing granted)'
             }
@@ -147,40 +163,40 @@ export class TempleSystem {
         case 'remove_curse':
           // Logic to remove curses
           dispatch({
-              type: 'ADD_NOTIFICATION',
-              payload: {
-                  id: crypto.randomUUID(),
-                  type: 'info',
-                  message: 'A cleansing wave washes over you.'
-              }
+            type: 'ADD_NOTIFICATION',
+            payload: {
+              id: generateId(),
+              type: 'info',
+              message: 'A cleansing wave washes over you.'
+            }
           });
           return { message: 'You feel a heavy burden lift.' };
 
         case 'Divine Intervention':
-           return { message: 'The deity acknowledges your plea. (Narrative Event Triggered)' };
+          return { message: 'The deity acknowledges your plea. (Narrative Event Triggered)' };
 
         default:
-           // Specific named blessings from data
-           if (effect.startsWith('grant_blessing_')) {
-               return { message: 'You receive a specific divine blessing.' };
-           }
-           logger.warn(`Unknown temple effect string: ${effect}`);
-           return { message: 'The ritual concludes.' };
+          // Specific named blessings from data
+          if (effect.startsWith('grant_blessing_')) {
+            return { message: 'You receive a specific divine blessing.' };
+          }
+          logger.warn(`Unknown temple effect string: ${effect}`);
+          return { message: 'The ritual concludes.' };
       }
     }
 
     // Handle structured effects (future proofing)
     if (typeof effect === 'object') {
-        if (effect.type === 'heal') {
-            const amount = effect.value || 10;
-            gameState.party.forEach(char => {
-                dispatch({
-                  type: 'HEAL_CHARACTER',
-                  payload: { characterId: char.id, amount }
-                });
-              });
-            return { message: `Party healed for ${amount} HP.` };
-        }
+      if (effect.type === 'heal') {
+        const amount = effect.value || 10;
+        gameState.party.forEach(char => {
+          dispatch({
+            type: 'HEAL_CHARACTER',
+            payload: { characterId: char.id, amount }
+          });
+        });
+        return { message: `Party healed for ${amount} HP.` };
+      }
     }
 
     return { message: 'Service completed.' };

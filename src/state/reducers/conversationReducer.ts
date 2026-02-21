@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:47
+ * Dependents: appState.ts
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -9,6 +25,7 @@
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import { ActiveConversation } from '../../types/conversation';
+import { generateId } from '../../utils/core/idGenerator';
 
 export function conversationReducer(state: GameState, action: AppAction): Partial<GameState> {
     switch (action.type) {
@@ -16,7 +33,7 @@ export function conversationReducer(state: GameState, action: AppAction): Partia
             const { companionIds, initialMessage } = action.payload;
 
             const newConversation: ActiveConversation = {
-                id: crypto.randomUUID(),
+                id: generateId(),
                 participants: companionIds,
                 messages: [initialMessage],
                 startedAt: Date.now(),

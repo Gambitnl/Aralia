@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:41:00
+ * Dependents: crimeReducer.ts
+ * Imports: 3 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import {
     Crime,
@@ -13,6 +28,7 @@ import {
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState as _GameState, NotorietyState } from '../../types';
+import { generateId } from '../../utils/core/idGenerator';
 
 export class CrimeSystem {
 
@@ -64,7 +80,7 @@ export class CrimeSystem {
         }
 
         return {
-            id: crypto.randomUUID(),
+            id: generateId(),
             targetId: 'player', // Default to player for now
             issuerId: victimId || 'local_guard',
             amount: Math.floor(amount),

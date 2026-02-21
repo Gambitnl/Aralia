@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ * 
+ * Last Sync: 21/02/2026, 02:40:35
+ * Dependents: CompanionGenerator.ts, ThreeDModal.tsx, handleMerchantInteraction.ts, handleNpcInteraction.ts
+ * Imports: 12 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { NPC, GoalStatus, Goal, TTSVoiceOption, SuspicionLevel, RichNPC, FamilyMember, NpcMemory } from '../types/world';
 import { NPCVisualSpec } from '../types/visuals';
 import { RACE_NAMES } from '../data/names/raceNames';
@@ -9,6 +25,7 @@ import type { EquipmentSlotType, Item } from '../types/items';
 import { getAbilityModifierValue, calculateArmorClass, calculatePassiveScore } from '../utils/character/statUtils';
 import { ALL_RACES_DATA } from '../data/races';
 import { ALL_ITEMS, WEAPONS_DATA, ITEMS } from '../data/items';
+import { generateId } from '../utils/core/idGenerator';
 
 // Helper to simulate dice rolls string (e.g. "2d10")
 function rollDiceString(diceString: string): number {
@@ -246,7 +263,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
   const firstName = config.name ? config.name.split(' ')[0] : (isFemale ? getRandomElement(femaleNames) : getRandomElement(maleNames));
   const surname = config.name && config.name.includes(' ') ? config.name.split(' ')[1] : getRandomElement(surnames);
   const finalName = config.name || `${firstName} ${surname}`;
-  const id = config.id || crypto.randomUUID();
+  const id = config.id || generateId();
 
   // --- 2. Physical Description ---
   // Height and weight use dice strings to ensure variety within logical race bounds.
@@ -354,7 +371,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
   ['Father', 'Mother'].forEach(rel => {
     const isAlive = Math.random() > parentDeadChance;
     family.push({
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: `${generateName(raceId, rel === 'Father' ? 'male' : 'female')} ${surname}`,
       relation: 'parent',
       age: parentAgeBase,
@@ -366,7 +383,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
   if (age > racePhysicalData.ageMaturity + 5 && Math.random() > 0.3) {
     const spouseAge = age + Math.floor(Math.random() * 10) - 5;
     family.push({
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: `${generateName(raceId, isFemale ? 'male' : 'female')} ${surname}`,
       relation: 'spouse',
       age: spouseAge,
@@ -381,7 +398,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
         const childAge = Math.floor(Math.random() * potentialChildYears);
         const childGender = Math.random() > 0.5 ? 'male' : 'female';
         family.push({
-          id: crypto.randomUUID(),
+          id: generateId(),
           name: `${generateName(raceId, childGender)} ${surname}`,
           relation: 'child',
           age: childAge,
@@ -394,7 +411,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
           for (let j = 0; j < numGrandKids; j++) {
             const gcAge = Math.floor(Math.random() * (childAge - fertilityStart));
             family.push({
-              id: crypto.randomUUID(),
+              id: generateId(),
               name: `${generateName(raceId, Math.random() > 0.5 ? 'male' : 'female')} ${surname}`,
               relation: 'grandchild',
               age: gcAge,

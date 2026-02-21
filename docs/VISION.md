@@ -47,6 +47,8 @@ A sandbox D&D 5e experience where player agency is paramount. Not a linear story
 
 ## 🏰 World Pillars
 
+These pillars are a living working set, not a locked final taxonomy. As features are processed, pillars and sub-pillars may be split, merged, or renamed.
+
 ---
 
 ### 1. Politics & Power
@@ -677,7 +679,7 @@ A sandbox D&D 5e experience where player agency is paramount. Not a linear story
 - Every problem has combat, stealth, social, and magical solutions
 - No "right" way to play
 - Unconventional solutions rewarded
-- AI Gemini helps improvise
+- AI-assisted systems help improvise
 
 ### 4. Time Moves
 - The world doesn't freeze while the player sleeps
@@ -696,7 +698,7 @@ A sandbox D&D 5e experience where player agency is paramount. Not a linear story
 ## 🛠️ Technical Vision
 
 ### AI-Driven Narrative
-- Gemini generates contextual descriptions, dialogue, outcomes
+- AI narrative tooling generates contextual descriptions, dialogue, and outcomes
 - No pre-written dialogue trees - every conversation is unique
 - AI maintains consistency through world state tracking
 - AI can improvise based on player actions
@@ -867,6 +869,8 @@ When working on any system, always consider:
 
 ### Domain Vision Tree
 
+This table is illustrative, not binding. It helps frame direction, but roadmap taxonomy may evolve as feature and sub-feature processing gets more granular.
+
 Each architecture domain should expand outward like branches of a tree:
 
 | Domain | Current State | Future Vision |
@@ -902,4 +906,4 @@ Every session, the world should feel different because:
 
 *This document is a living vision. It will evolve as the game develops.*
 
-*Last updated: 2025-12-19*
+*Last updated: 2026-02-16*

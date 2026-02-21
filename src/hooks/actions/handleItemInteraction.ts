@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:18
+ * Dependents: actionHandlers.ts
+ * Imports: 10 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/actions/handleItemInteraction.ts
@@ -13,6 +28,7 @@ import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
+import { generateId } from '../../utils/core/idGenerator';
 
 interface HandleTakeItemProps {
   action: Action;
@@ -42,45 +58,45 @@ export async function handleTakeItem({
     return;
   }
   const itemsCurrentlyInLoc = gameState.dynamicLocationItemIds[currentLocId] || [];
-  
+
   if (itemToTake && itemsCurrentlyInLoc.includes(targetId)) {
     // Create the discovery entry here in the handler
     const newDiscoveryEntry: DiscoveryEntry = {
-        id: crypto.randomUUID(),
-        gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-        type: DiscoveryType.ITEM_ACQUISITION,
-        title: `Item Acquired: ${itemToTake.name}`,
-        content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,
-        source: { type: 'LOCATION', id: currentLocId, name: LOCATIONS[currentLocId]?.name },
-        flags: [{ key: 'itemId', value: itemToTake.id, label: itemToTake.name }],
-        timestamp: Date.now(),
-        isRead: false,
+      id: generateId(),
+      gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+      type: DiscoveryType.ITEM_ACQUISITION,
+      title: `Item Acquired: ${itemToTake.name}`,
+      content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,
+      source: { type: 'LOCATION', id: currentLocId, name: LOCATIONS[currentLocId]?.name },
+      flags: [{ key: 'itemId', value: itemToTake.id, label: itemToTake.name }],
+      timestamp: Date.now(),
+      isRead: false,
     };
 
     // Dispatch the update action with the full payload
-    dispatch({ 
-        type: 'APPLY_TAKE_ITEM_UPDATE', 
-        payload: { 
-            item: itemToTake, 
-            locationId: currentLocId,
-            discoveryEntry: newDiscoveryEntry
-        } 
+    dispatch({
+      type: 'APPLY_TAKE_ITEM_UPDATE',
+      payload: {
+        item: itemToTake,
+        locationId: currentLocId,
+        discoveryEntry: newDiscoveryEntry
+      }
     });
     addMessage(`You take the ${itemToTake.name}.`, 'system');
 
     // TODO(FEATURES): Swap hardcoded item quest triggers for data-driven quest hooks tied to item metadata (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     // Check for quest triggers based on item ID
     if (targetId === 'old_map_fragment') {
-       // Trigger 'The Lost Map' quest if not already active/completed
-       const questId = 'lost_map';
-       const quest = INITIAL_QUESTS[questId];
-       if (quest && !gameState.questLog.some(q => q.id === questId)) {
-           dispatch({ type: 'ACCEPT_QUEST', payload: quest });
-           // Also immediately complete the objective "find_map"
-           dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
-       } else if (gameState.questLog.some(q => q.id === questId)) {
-           dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
-       }
+      // Trigger 'The Lost Map' quest if not already active/completed
+      const questId = 'lost_map';
+      const quest = INITIAL_QUESTS[questId];
+      if (quest && !gameState.questLog.some(q => q.id === questId)) {
+        dispatch({ type: 'ACCEPT_QUEST', payload: quest });
+        // Also immediately complete the objective "find_map"
+        dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
+      } else if (gameState.questLog.some(q => q.id === questId)) {
+        dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
+      }
     }
   } else {
     addMessage(`Cannot take ${ITEMS[targetId]?.name || targetId}. It's not here or doesn't exist.`, 'system');
@@ -107,82 +123,82 @@ export function handleDropItem(dispatch: React.Dispatch<AppAction>, payload: Dro
 
 
 interface HandleHarvestProps {
-    action: Action;
-    gameState: GameState;
-    dispatch: React.Dispatch<AppAction>;
-    addMessage: AddMessageFn;
-    addGeminiLog: AddGeminiLogFn;
+  action: Action;
+  gameState: GameState;
+  dispatch: React.Dispatch<AppAction>;
+  addMessage: AddMessageFn;
+  addGeminiLog: AddGeminiLogFn;
 }
 
 export async function handleHarvestResource({
-    action,
-    gameState,
-    dispatch,
-    addMessage,
-    addGeminiLog
+  action,
+  gameState,
+  dispatch,
+  addMessage,
+  addGeminiLog
 }: HandleHarvestProps): Promise<void> {
-    const payload = (action as any).payload;
-    const harvestContext = payload?.harvestContext;
-    const player = gameState.party[0];
-    
-    if (!player) return;
+  const payload = (action as any).payload;
+  const harvestContext = payload?.harvestContext;
+  const player = gameState.party[0];
 
-    const survivalSkill = SKILLS_DATA['survival'];
-    const natureSkill = SKILLS_DATA['nature'];
-    
-    const survivalBonus = getAbilityModifierValue(player.finalAbilityScores[survivalSkill.ability]) + (player.skills.some(s => s.id === 'survival') ? (player.proficiencyBonus || 2) : 0);
-    const natureBonus = getAbilityModifierValue(player.finalAbilityScores[natureSkill.ability]) + (player.skills.some(s => s.id === 'nature') ? (player.proficiencyBonus || 2) : 0);
-    
-    const bonus = Math.max(survivalBonus, natureBonus);
-    const roll = Math.floor(Math.random() * 20) + 1;
-    const total = roll + bonus;
-    
-    const usedSkillName = survivalBonus > natureBonus ? 'Survival' : 'Nature';
-    
-    addMessage(`You attempt to harvest resources from the ${harvestContext || 'area'}... (${usedSkillName} check: ${roll} + ${bonus} = ${total})`, 'system');
-    
-    const biome = 'wilds';
-    if (gameState.currentLocationId.startsWith('coord_')) {
-         // Logic to get biome from map data if needed
-    }
+  if (!player) return;
 
-    dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Harvesting..." } });
+  const survivalSkill = SKILLS_DATA['survival'];
+  const natureSkill = SKILLS_DATA['nature'];
 
-    const lootResult = await GeminiService.generateHarvestLoot(
-      harvestContext || 'local flora/fauna',
-      `Biome: ${biome}; harvest check total=${total}`,
-      gameState.devModelOverride ?? null
-    );
-    
-    addGeminiLog('generateHarvestLoot', lootResult.data?.promptSent || lootResult.metadata?.promptSent || "", lootResult.data?.rawResponse || lootResult.metadata?.rawResponse || lootResult.error || "");
-    
-    if (lootResult.data?.items && lootResult.data.items.length > 0) {
-        const items = lootResult.data.items;
-        addMessage(`Success! You found: ${items.map(i => i.name).join(', ')}.`, 'system');
-        
-        items.forEach(item => {
-             dispatch({ type: 'BUY_ITEM', payload: { item, cost: 0 } }); 
-             
-             dispatch({ 
-                type: 'ADD_DISCOVERY_ENTRY', 
-                payload: {
-                    id: crypto.randomUUID(),
-                    gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-                    type: DiscoveryType.HARVEST,
-                    title: `Harvested: ${item.name}`,
-                    content: `You successfully harvested ${item.name}. ${item.description}`,
-                    source: { type: 'PLAYER_ACTION', name: 'Harvest' },
-                    flags: [{key: 'itemId', value: item.id, label: item.name}],
-                    timestamp: Date.now(),
-                    isRead: false
-                }
-            });
-        });
+  const survivalBonus = getAbilityModifierValue(player.finalAbilityScores[survivalSkill.ability]) + (player.skills.some(s => s.id === 'survival') ? (player.proficiencyBonus || 2) : 0);
+  const natureBonus = getAbilityModifierValue(player.finalAbilityScores[natureSkill.ability]) + (player.skills.some(s => s.id === 'nature') ? (player.proficiencyBonus || 2) : 0);
 
-    } else {
-        addMessage("You fail to find anything useful.", 'system');
-    }
-    
-    dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
-    dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+  const bonus = Math.max(survivalBonus, natureBonus);
+  const roll = Math.floor(Math.random() * 20) + 1;
+  const total = roll + bonus;
+
+  const usedSkillName = survivalBonus > natureBonus ? 'Survival' : 'Nature';
+
+  addMessage(`You attempt to harvest resources from the ${harvestContext || 'area'}... (${usedSkillName} check: ${roll} + ${bonus} = ${total})`, 'system');
+
+  const biome = 'wilds';
+  if (gameState.currentLocationId.startsWith('coord_')) {
+    // Logic to get biome from map data if needed
+  }
+
+  dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Harvesting..." } });
+
+  const lootResult = await GeminiService.generateHarvestLoot(
+    harvestContext || 'local flora/fauna',
+    `Biome: ${biome}; harvest check total=${total}`,
+    gameState.devModelOverride ?? null
+  );
+
+  addGeminiLog('generateHarvestLoot', lootResult.data?.promptSent || lootResult.metadata?.promptSent || "", lootResult.data?.rawResponse || lootResult.metadata?.rawResponse || lootResult.error || "");
+
+  if (lootResult.data?.items && lootResult.data.items.length > 0) {
+    const items = lootResult.data.items;
+    addMessage(`Success! You found: ${items.map(i => i.name).join(', ')}.`, 'system');
+
+    items.forEach(item => {
+      dispatch({ type: 'BUY_ITEM', payload: { item, cost: 0 } });
+
+      dispatch({
+        type: 'ADD_DISCOVERY_ENTRY',
+        payload: {
+          id: generateId(),
+          gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          type: DiscoveryType.HARVEST,
+          title: `Harvested: ${item.name}`,
+          content: `You successfully harvested ${item.name}. ${item.description}`,
+          source: { type: 'PLAYER_ACTION', name: 'Harvest' },
+          flags: [{ key: 'itemId', value: item.id, label: item.name }],
+          timestamp: Date.now(),
+          isRead: false
+        }
+      });
+    });
+
+  } else {
+    addMessage("You fail to find anything useful.", 'system');
+  }
+
+  dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+  dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
 }

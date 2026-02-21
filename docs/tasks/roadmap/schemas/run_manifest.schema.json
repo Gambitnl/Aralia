@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aralia.local/docs/tasks/roadmap/schemas/run_manifest.schema.json",
+  "title": "Roadmap Run Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "session_id",
+    "doc_id",
+    "source_doc",
+    "worker_model",
+    "status",
+    "started_at"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "doc_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_doc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "worker_model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "blocked",
+        "completed",
+        "failed"
+      ]
+    },
+    "review_result": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected",
+        "needs_clarification"
+      ],
+      "default": "pending"
+    },
+    "roadmap_applied": {
+      "type": "boolean",
+      "default": false
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "why_blocked": {
+      "type": "string"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "error_reason": {
+      "type": "string"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "blocked"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "why_blocked",
+          "questions"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "error_reason"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "completed",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "finished_at"
+        ]
+      }
+    }
+  ]
+}

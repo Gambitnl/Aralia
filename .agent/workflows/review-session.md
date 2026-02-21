@@ -1,5 +1,7 @@
 ---
 description: Review session work and propose inline TODO comments, then apply them on approval.
+chain: tidy-up
+chain_via: session-ritual
 ---
 
 # Review Session Workflow
@@ -25,14 +27,8 @@ A two-phase workflow for reviewing code changes and adding inline TODO comments.
 
 3.  **Analyze for Quality Issues**
 
-    Check for these concerns in priority order:
-
-    **Red Flags (must catch):**
-    - Stubs, placeholder implementations, or `throw new Error('not implemented')`
-    - `any` types introduced where specific types should be used
-    - Mocked or faked functionality that should be real
-    - Tests that were mutated to pass rather than code being fixed
-    - Hardcoded values that should come from data/config
+    Use the **Red Flags Checklist** from `.agent/skills/code_commentary/SKILL.md` as the
+    primary scan. Then check for these additional quality concerns in priority order:
 
     **Quality concerns:**
     - Code quality (DRY violations, dead code, clarity)

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:51
+ * Dependents: appState.ts
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/state/reducers/questReducer.ts
  * Reducer for managing quest state.
@@ -12,6 +28,7 @@
 import { GameState, QuestStatus, Quest } from '../../types';
 import { AppAction } from '../actionTypes';
 import { ITEMS } from '../../constants';
+import { generateId } from '../../utils/core/idGenerator';
 
 // TODO(Schemer): Migrate questReducer to use the new `src/types/quests.ts` structure (QuestDefinition, QuestStage, QuestObjectiveType).
 // Currently, it relies on the legacy flat `objectives` array from `src/types/world.ts`.
@@ -38,7 +55,7 @@ const pushNotification = (
   notifications: [
     ...state.notifications,
     {
-      id: crypto.randomUUID(),
+      id: generateId(),
       type,
       message,
       duration,

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:28
+ * Dependents: ConversationPanel.tsx
+ * Imports: 5 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -10,6 +26,7 @@ import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext } from '../services/ollama';
 import { ConversationMessage } from '../types/conversation';
+import { generateId } from '../utils/core/idGenerator';
 
 export interface UseConversationResult {
     /** Start a new conversation with a companion */
@@ -98,7 +115,7 @@ export function useConversation(
             dispatch({
                 type: 'ADD_OLLAMA_LOG_ENTRY',
                 payload: {
-                    id: result.metadata.id || crypto.randomUUID(),
+                    id: result.metadata.id || generateId(),
                     timestamp: new Date(),
                     model: result.metadata.model,
                     prompt: result.metadata.prompt,
@@ -112,7 +129,7 @@ export function useConversation(
 
         if (response) {
             const initialMessage: ConversationMessage = {
-                id: crypto.randomUUID(),
+                id: generateId(),
                 speakerId: response.speakerId,
                 text: response.text,
                 emotion: response.emotion,
@@ -129,7 +146,7 @@ export function useConversation(
         } else {
             // Fallback if Ollama unavailable
             const initialMessage: ConversationMessage = {
-                id: crypto.randomUUID(),
+                id: generateId(),
                 speakerId: companionId,
                 text: `*${companion.identity.name} looks at you expectantly.*`,
                 timestamp: Date.now(),
@@ -172,7 +189,7 @@ export function useConversation(
 
         // Add player message
         const playerMessage: ConversationMessage = {
-            id: crypto.randomUUID(),
+            id: generateId(),
             speakerId: 'player',
             text,
             timestamp: Date.now(),
@@ -201,7 +218,7 @@ export function useConversation(
             dispatch({
                 type: 'ADD_OLLAMA_LOG_ENTRY',
                 payload: {
-                    id: result.metadata.id || crypto.randomUUID(),
+                    id: result.metadata.id || generateId(),
                     timestamp: new Date(),
                     model: result.metadata.model,
                     prompt: result.metadata.prompt,
@@ -215,7 +232,7 @@ export function useConversation(
 
         if (response) {
             const aiMessage: ConversationMessage = {
-                id: crypto.randomUUID(),
+                id: generateId(),
                 speakerId: response.speakerId,
                 text: response.text,
                 emotion: response.emotion,
@@ -255,7 +272,7 @@ export function useConversation(
                 dispatch({
                     type: 'ADD_OLLAMA_LOG_ENTRY',
                     payload: {
-                        id: result.metadata.id || crypto.randomUUID(),
+                        id: result.metadata.id || generateId(),
                         timestamp: new Date(),
                         model: result.metadata.model,
                         prompt: result.metadata.prompt,
@@ -275,7 +292,7 @@ export function useConversation(
                         payload: {
                             companionId,
                             memory: {
-                                id: crypto.randomUUID(),
+                                id: generateId(),
                                 type: 'banter',
                                 text: summary.text,
                                 tags: summary.tags,

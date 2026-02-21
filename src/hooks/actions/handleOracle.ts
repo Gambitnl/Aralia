@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:22
+ * Dependents: actionHandlers.ts
+ * Imports: 7 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/actions/handleOracle.ts
@@ -10,6 +25,7 @@ import * as OllamaTextService from '../../services/ollamaTextService';
 import * as GeminiService from '../../services/geminiService';
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
+import { generateId } from '../../utils/core/idGenerator';
 
 interface HandleOracleProps {
   action: Action;
@@ -40,39 +56,39 @@ export async function handleOracle({
     // it provides is directly relevant to an NPC's objective.
     // TODO(lint-intent): Oracle responses should use a dedicated generator; for now reuse social outcome with a generic prompt.
     const oracleResponseResult = await GeminiService.generateSocialCheckOutcome(
-        null,
-        null,
-        `oracle response: ${playerQuery} | context: ${generalActionContext}`,
-        gameState.devModelOverride ?? null,
+      null,
+      null,
+      `oracle response: ${playerQuery} | context: ${generalActionContext}`,
+      gameState.devModelOverride ?? null,
     );
 
     addGeminiLog('generateSocialCheckOutcome (oracle)', oracleResponseResult.data?.promptSent || oracleResponseResult.metadata?.promptSent || "", oracleResponseResult.data?.rawResponse || oracleResponseResult.metadata?.rawResponse || oracleResponseResult.error || "");
-    
+
     if (oracleResponseResult.data?.rateLimitHit || oracleResponseResult.metadata?.rateLimitHit) {
       dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
     }
-    
+
     if (oracleResponseResult.data?.text) {
       const responseText = oracleResponseResult.data.text;
       addMessage(`Oracle: "${responseText}"`, 'system');
-      
+
       if (oracleResponseResult.data.goalUpdate) {
         const { npcId, goalId, newStatus } = oracleResponseResult.data.goalUpdate;
-        dispatch({ type: 'UPDATE_NPC_GOAL_STATUS', payload: { npcId, goalId, newStatus }});
-        
+        dispatch({ type: 'UPDATE_NPC_GOAL_STATUS', payload: { npcId, goalId, newStatus } });
+
         const goalFact: KnownFact = {
-            id: crypto.randomUUID(),
-            text: oracleResponseResult.data.memoryFactText, 
-            source: 'direct', 
-            isPublic: true,    
-            timestamp: gameState.gameTime.getTime(),
-            strength: 10,      
-            lifespan: 9999,
+          id: generateId(),
+          text: oracleResponseResult.data.memoryFactText,
+          source: 'direct',
+          isPublic: true,
+          timestamp: gameState.gameTime.getTime(),
+          strength: 10,
+          lifespan: 9999,
         };
         dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId, fact: goalFact } });
 
         const dispositionBoost = newStatus === GoalStatus.Completed ? 50 : -50;
-        dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId, amount: dispositionBoost }});
+        dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId, amount: dispositionBoost } });
         addMessage(`This information seems vital! An NPC's goal has been updated to: ${newStatus}. Their disposition towards you changes dramatically.`, 'system');
       }
 

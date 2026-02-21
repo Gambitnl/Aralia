@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file is part of a complex dependency web.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  * 
- * Last Sync: 26/01/2026, 01:37:32
+ * Last Sync: 21/02/2026, 02:41:12
  * Dependents: character/index.ts, companionFactories.ts
- * Imports: 1 files
+ * Imports: 2 files
  * 
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,6 +23,7 @@
  */
 
 import { Companion, CompanionGoal, PersonalityTraits } from '../../types/companions';
+import { generateId } from '../core/idGenerator';
 
 export const createDefaultPersonality = (): PersonalityTraits => ({
   openness: 50,
@@ -37,9 +38,9 @@ export const createDefaultPersonality = (): PersonalityTraits => ({
 
 export const createMockCompanion = (overrides: Partial<Companion> = {}): Companion => {
   return {
-    id: overrides.id || crypto.randomUUID(),
+    id: overrides.id || generateId(),
     identity: overrides.identity || {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: 'Mock Companion',
       race: 'Human',
       class: 'Fighter',
@@ -61,7 +62,7 @@ export const createMockCompanion = (overrides: Partial<Companion> = {}): Compani
 };
 
 export const createMockCompanionGoal = (overrides: Partial<CompanionGoal> = {}): CompanionGoal => ({
-  id: overrides.id || crypto.randomUUID(),
+  id: overrides.id || generateId(),
   description: overrides.description || 'Test Goal',
   isSecret: overrides.isSecret || false,
   status: overrides.status || 'active',

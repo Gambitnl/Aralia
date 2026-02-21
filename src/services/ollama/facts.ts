@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:36
+ * Dependents: ollama/index.ts
+ * Imports: 5 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -10,6 +26,7 @@ import type { DiscoveredFact } from '../../types/companions';
 import type { OllamaResult, OllamaMetadata } from '../../types/ollama';
 import { OllamaClient, getDefaultClient } from './client';
 import { parseJsonRobustly } from './jsonParser';
+import { generateId } from '../../utils/core/idGenerator';
 
 interface ParticipantData {
     id: string;
@@ -136,7 +153,7 @@ export async function extractDiscoveredFacts(
             participants.some(p => p.id === f.companionId)
         )
         .map((f: ExtractedFactRaw) => ({
-            id: crypto.randomUUID(),
+            id: generateId(),
             companionId: f.companionId, // Include for dispatch
             category: validCategories.includes(f.category) ? f.category : 'other',
             fact: f.fact,

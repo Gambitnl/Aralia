@@ -1,81 +1,67 @@
 ---
-description: View status of all tracks or a specific track
+description: Display the current progress of all tracks in this project
 ---
 
 # Track Status Workflow
 
-Display the current state of development tracks.
+Display the current progress of all tracks in this project.
 
 ---
 
-## Usage
+## Instructions
 
-- `/track-status` — Show all tracks
-- `/track-status <track-id>` — Show details for a specific track
+### 1. Verify Setup
 
----
+Check that these files exist:
+- `conductor/tracks.md`
+- `conductor/product.md`
+- `conductor/tech-stack.md`
+- `conductor/workflow.md`
 
-## Steps
+If any are missing, inform the user: "Conductor is not set up. Please run `/conductor-setup` first."
 
-### For All Tracks
+### 2. Read Tracks Registry
 
-1. Read `.agent/conductor/tracks.md`
-2. Display as a formatted table:
+Read `conductor/tracks.md` and parse all tracks. Look for entries in format:
+- `- [ ] **Track: <Description>**` (pending)
+- `- [~] **Track: <Description>**` (in progress)
+- `- [x] **Track: <Description>**` (completed)
+
+### 3. Read Each Track's Plan
+
+For each track found, read its `conductor/tracks/<track_id>/plan.md` file.
+
+### 4. Parse and Count Tasks
+
+For each plan, count:
+- Tasks marked `[ ]` = pending
+- Tasks marked `[~]` = in progress
+- Tasks marked `[x]` = completed
+
+### 5. Present Status Report
+
+Present the status in this format:
 
 ```
-# Track Status
+## Conductor Status Report
+**Date**: [current date/time]
 
-| ID | Title | Status | Progress | Updated |
-|----|-------|--------|----------|---------|
-| feature-20260129-141600 | Dark Mode | 🟢 In Progress | 4/7 | Jan 29 |
-| bug-20260128-093000 | Login fix | ✅ Complete | 3/3 | Jan 28 |
+### Overall Progress
+- **Tracks**: X total (Y completed, Z in progress, W pending)
+- **Tasks**: X total (Y completed, Z in progress, W pending)
+- **Progress**: XX%
+
+### Current Work
+- **Active Track**: [track name or "None"]
+- **Current Task**: [task name or "None"]
+- **Next Action**: [next pending task]
+
+### Track Details
+1. [x] **Track: <name>** - Completed
+2. [~] **Track: <name>** - In Progress (X/Y tasks done)
+3. [ ] **Track: <name>** - Pending
 ```
 
-3. Show summary:
-   - Total tracks
-   - In progress
-   - Complete
-   - Blocked
+### 6. Highlight Blockers
 
-### For Specific Track
-
-1. Read `.agent/conductor/tracks/<track-id>/metadata.json`
-2. Read `.agent/conductor/tracks/<track-id>/plan.md`
-3. Display:
-
-```
-# Track: Dark Mode Toggle
-
-**ID**: feature-20260129-141600
-**Status**: 🟢 In Progress
-**Created**: Jan 29, 2026
-
-## Progress
-
-### Phase 1: Setup ✅
-- [x] Create theme context
-- [x] Add toggle component
-
-### Phase 2: Implementation 🟡
-- [x] Implement dark theme CSS
-- [~] Connect to user preferences
-- [ ] Add transition animations
-
-### Phase 3: Polish
-- [ ] Keyboard shortcut
-- [ ] Remember preference
-
-**Overall**: 4/7 tasks (57%)
-```
-
----
-
-## Status Icons
-
-| Icon | Status |
-|------|--------|
-| 🔵 | Planning |
-| 🟢 | In Progress |
-| 🟡 | Paused |
-| 🔴 | Blocked |
-| ✅ | Complete |
+If any tasks mention blockers, list them separately.

@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 21/02/2026, 02:40:24
+ * Dependents: handleGeminiCustom.ts, handleMovement.ts, handleResourceActions.ts
+ * Imports: 8 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/actions/handleWorldEvents.ts
@@ -11,6 +26,7 @@ import { AddGeminiLogFn } from './actionHandlerTypes';
 import { NPCS, LOCATIONS } from '../../constants';
 import * as NpcBehaviorConfig from '../../config/npcBehaviorConfig';
 import { formatGameTime } from '../../utils/core';
+import { generateId } from '../../utils/core/idGenerator';
 
 // TODO(FEATURES): Add NPC daily routines and faction-driven schedules to world events (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -22,98 +38,98 @@ export async function handleGossipEvent(
   addGeminiLog: AddGeminiLogFn,
   dispatch: React.Dispatch<AppAction>
 ): Promise<void> {
-    const allNpcIds = Object.keys(NPCS);
-    
-    const npcsByLocation: Record<string, string[]> = {};
-    for (const location of Object.values(gameState.mapData?.tiles.flat() || [])) {
-        if(location.locationId && LOCATIONS[location.locationId]?.npcIds) {
-            npcsByLocation[location.locationId] = [
-                ...(npcsByLocation[location.locationId] || []),
-                ...LOCATIONS[location.locationId].npcIds!,
-            ];
+  const allNpcIds = Object.keys(NPCS);
+
+  const npcsByLocation: Record<string, string[]> = {};
+  for (const location of Object.values(gameState.mapData?.tiles.flat() || [])) {
+    if (location.locationId && LOCATIONS[location.locationId]?.npcIds) {
+      npcsByLocation[location.locationId] = [
+        ...(npcsByLocation[location.locationId] || []),
+        ...LOCATIONS[location.locationId].npcIds!,
+      ];
+    }
+  }
+  if (gameState.currentLocationActiveDynamicNpcIds) {
+    npcsByLocation[gameState.currentLocationId] = [
+      ...(npcsByLocation[gameState.currentLocationId] || []),
+      ...gameState.currentLocationActiveDynamicNpcIds,
+    ];
+  }
+
+  const spreadableFacts: Array<{ npcId: string; fact: KnownFact }> = [];
+  for (const npcId of allNpcIds) {
+    const memory = gameState.npcMemory[npcId];
+    if (memory) {
+      memory.knownFacts.forEach(fact => {
+        if (fact.isPublic && fact.source === 'direct') {
+          spreadableFacts.push({ npcId, fact });
         }
+      });
     }
-    if (gameState.currentLocationActiveDynamicNpcIds) {
-        npcsByLocation[gameState.currentLocationId] = [
-            ...(npcsByLocation[gameState.currentLocationId] || []),
-            ...gameState.currentLocationActiveDynamicNpcIds,
-        ];
+  }
+
+  if (spreadableFacts.length === 0) return;
+
+  const gossipUpdatePayload: GossipUpdatePayload = {};
+  let totalExchanges = 0;
+
+  for (const locationId in npcsByLocation) {
+    const localNpcs = npcsByLocation[locationId];
+    if (localNpcs.length < 2) continue;
+
+    const exchangesInLocation = Math.min(NpcBehaviorConfig.MAX_GOSSIP_EXCHANGES_PER_LOCATION, Math.floor(localNpcs.length / 2));
+
+    for (let i = 0; i < exchangesInLocation; i++) {
+      if (totalExchanges >= NpcBehaviorConfig.MAX_TOTAL_GOSSIP_EXCHANGES) break;
+
+      const potentialSpeakers = localNpcs.filter(id => spreadableFacts.some(sf => sf.npcId === id));
+      if (potentialSpeakers.length === 0) continue;
+      const speakerId = potentialSpeakers[Math.floor(Math.random() * potentialSpeakers.length)];
+      const speakerFacts = spreadableFacts.filter(sf => sf.npcId === speakerId);
+      const factToSpread = speakerFacts[Math.floor(Math.random() * speakerFacts.length)];
+
+      const potentialListeners = localNpcs.filter(id => id !== speakerId && !gameState.npcMemory[id]?.knownFacts.some(kf => kf.text === factToSpread.fact.text));
+      if (potentialListeners.length === 0) continue;
+      const listenerId = potentialListeners[Math.floor(Math.random() * potentialListeners.length)];
+
+      const speaker = NPCS[speakerId];
+      const listener = NPCS[listenerId];
+
+      if (!speaker || !listener) continue;
+
+      const rephraseResult = await OllamaTextService.rephraseFactForGossip(factToSpread.fact.text, speaker.initialPersonalityPrompt, listener.initialPersonalityPrompt);
+
+      addGeminiLog('rephraseFactForGossip', rephraseResult.data?.promptSent || rephraseResult.metadata?.promptSent || "", rephraseResult.data?.rawResponse || rephraseResult.metadata?.rawResponse || rephraseResult.error || "");
+
+      const rephrasedText = (rephraseResult.data?.text) ? rephraseResult.data.text : factToSpread.fact.text;
+
+      const newGossipFact: KnownFact = {
+        id: generateId(),
+        text: rephrasedText,
+        source: 'gossip',
+        sourceNpcId: speakerId,
+        isPublic: false,
+        timestamp: gameState.gameTime.getTime(),
+        strength: factToSpread.fact.strength - 1,
+        lifespan: 10,
+      };
+
+      if (!gossipUpdatePayload[listenerId]) {
+        gossipUpdatePayload[listenerId] = { newFacts: [], dispositionNudge: 0 };
+      }
+      gossipUpdatePayload[listenerId].newFacts.push(newGossipFact);
+      gossipUpdatePayload[listenerId].dispositionNudge += factToSpread.fact.text.includes('succeeded') ? 1 : -1;
+
+      totalExchanges++;
     }
-    
-    const spreadableFacts: Array<{ npcId: string; fact: KnownFact }> = [];
-    for (const npcId of allNpcIds) {
-        const memory = gameState.npcMemory[npcId];
-        if (memory) {
-            memory.knownFacts.forEach(fact => {
-                if (fact.isPublic && fact.source === 'direct') {
-                    spreadableFacts.push({ npcId, fact });
-                }
-            });
-        }
-    }
+    if (totalExchanges >= NpcBehaviorConfig.MAX_TOTAL_GOSSIP_EXCHANGES) break;
+  }
 
-    if (spreadableFacts.length === 0) return;
+  // Cross-Location Gossip Propagation (omitted for brevity, but would follow same pattern using rephraseResult.data?.text)
 
-    const gossipUpdatePayload: GossipUpdatePayload = {};
-    let totalExchanges = 0;
-
-    for (const locationId in npcsByLocation) {
-        const localNpcs = npcsByLocation[locationId];
-        if (localNpcs.length < 2) continue;
-
-        const exchangesInLocation = Math.min(NpcBehaviorConfig.MAX_GOSSIP_EXCHANGES_PER_LOCATION, Math.floor(localNpcs.length / 2));
-
-        for (let i = 0; i < exchangesInLocation; i++) {
-            if (totalExchanges >= NpcBehaviorConfig.MAX_TOTAL_GOSSIP_EXCHANGES) break;
-
-            const potentialSpeakers = localNpcs.filter(id => spreadableFacts.some(sf => sf.npcId === id));
-            if (potentialSpeakers.length === 0) continue;
-            const speakerId = potentialSpeakers[Math.floor(Math.random() * potentialSpeakers.length)];
-            const speakerFacts = spreadableFacts.filter(sf => sf.npcId === speakerId);
-            const factToSpread = speakerFacts[Math.floor(Math.random() * speakerFacts.length)];
-            
-            const potentialListeners = localNpcs.filter(id => id !== speakerId && !gameState.npcMemory[id]?.knownFacts.some(kf => kf.text === factToSpread.fact.text));
-            if (potentialListeners.length === 0) continue;
-            const listenerId = potentialListeners[Math.floor(Math.random() * potentialListeners.length)];
-
-            const speaker = NPCS[speakerId];
-            const listener = NPCS[listenerId];
-            
-            if (!speaker || !listener) continue;
-
-            const rephraseResult = await OllamaTextService.rephraseFactForGossip(factToSpread.fact.text, speaker.initialPersonalityPrompt, listener.initialPersonalityPrompt);
-            
-            addGeminiLog('rephraseFactForGossip', rephraseResult.data?.promptSent || rephraseResult.metadata?.promptSent || "", rephraseResult.data?.rawResponse || rephraseResult.metadata?.rawResponse || rephraseResult.error || "");
-            
-            const rephrasedText = (rephraseResult.data?.text) ? rephraseResult.data.text : factToSpread.fact.text;
-
-            const newGossipFact: KnownFact = {
-                id: crypto.randomUUID(),
-                text: rephrasedText,
-                source: 'gossip',
-                sourceNpcId: speakerId,
-                isPublic: false,
-                timestamp: gameState.gameTime.getTime(),
-                strength: factToSpread.fact.strength - 1,
-                lifespan: 10,
-            };
-
-            if (!gossipUpdatePayload[listenerId]) {
-                gossipUpdatePayload[listenerId] = { newFacts: [], dispositionNudge: 0 };
-            }
-            gossipUpdatePayload[listenerId].newFacts.push(newGossipFact);
-            gossipUpdatePayload[listenerId].dispositionNudge += factToSpread.fact.text.includes('succeeded') ? 1 : -1;
-            
-            totalExchanges++;
-        }
-         if (totalExchanges >= NpcBehaviorConfig.MAX_TOTAL_GOSSIP_EXCHANGES) break;
-    }
-    
-    // Cross-Location Gossip Propagation (omitted for brevity, but would follow same pattern using rephraseResult.data?.text)
-
-    if (Object.keys(gossipUpdatePayload).length > 0) {
-        dispatch({ type: 'PROCESS_GOSSIP_UPDATES', payload: gossipUpdatePayload });
-    }
+  if (Object.keys(gossipUpdatePayload).length > 0) {
+    dispatch({ type: 'PROCESS_GOSSIP_UPDATES', payload: gossipUpdatePayload });
+  }
 }
 
 export async function handleResidueChecks(
@@ -130,10 +146,10 @@ export async function handleResidueChecks(
         const location = LOCATIONS[locationId];
         if (!discovererNpc || !location) continue;
 
-        const discoveryEntryId = crypto.randomUUID();
+        const discoveryEntryId = generateId();
 
         const newFact: KnownFact = {
-          id: crypto.randomUUID(),
+          id: generateId(),
           text: residue.text,
           source: 'direct',
           isPublic: true,
@@ -142,7 +158,7 @@ export async function handleResidueChecks(
           lifespan: 999,
           sourceDiscoveryId: discoveryEntryId,
         };
-        dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: residue.discovererNpcId, fact: newFact }});
+        dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: residue.discovererNpcId, fact: newFact } });
 
         dispatch({ type: 'REMOVE_LOCATION_RESIDUE', payload: { locationId } });
 
@@ -181,7 +197,7 @@ export async function handleImmediateGossip(
   if (!speaker) return;
 
   const gossipUpdatePayload: GossipUpdatePayload = {};
-  
+
   const listeners = witnesses.filter(id => id !== sourceNpcId);
 
   for (const listenerId of listeners) {
@@ -189,13 +205,13 @@ export async function handleImmediateGossip(
     if (!listener) continue;
 
     const rephraseResult = await OllamaTextService.rephraseFactForGossip(factToSpread.text, speaker.initialPersonalityPrompt, listener.initialPersonalityPrompt);
-    
+
     addGeminiLog('rephraseFactForGossip (immediate)', rephraseResult.data?.promptSent || rephraseResult.metadata?.promptSent || "", rephraseResult.data?.rawResponse || rephraseResult.metadata?.rawResponse || rephraseResult.error || "");
-    
+
     const rephrasedText = (rephraseResult.data?.text) ? rephraseResult.data.text : factToSpread.text;
 
     const newGossipFact: KnownFact = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       text: rephrasedText,
       source: 'gossip',
       sourceNpcId: sourceNpcId,
@@ -218,31 +234,31 @@ export async function handleImmediateGossip(
 }
 
 export function handleLongRestWorldEvents(gameState: GameState): GameState['npcMemory'] {
-    const DRIFT_THRESHOLD_MS = NpcBehaviorConfig.DRIFT_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
-    const currentTime = gameState.gameTime.getTime();
+  const DRIFT_THRESHOLD_MS = NpcBehaviorConfig.DRIFT_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
+  const currentTime = gameState.gameTime.getTime();
 
-    const newNpcMemory: Record<string, NpcMemory> = JSON.parse(JSON.stringify(gameState.npcMemory));
+  const newNpcMemory: Record<string, NpcMemory> = JSON.parse(JSON.stringify(gameState.npcMemory));
 
-    for (const npcId in newNpcMemory) {
-        const memory = newNpcMemory[npcId];
-        
-        memory.knownFacts = memory.knownFacts.map((fact: KnownFact) => ({
-            ...fact,
-            lifespan: (fact.lifespan < 999) ? fact.lifespan - 1 : fact.lifespan,
-        })).filter((fact: KnownFact) => fact.lifespan > 0);
+  for (const npcId in newNpcMemory) {
+    const memory = newNpcMemory[npcId];
 
-        if (memory.knownFacts.length > NpcBehaviorConfig.MAX_FACTS_PER_NPC) {
-            memory.knownFacts.sort((a: KnownFact, b: KnownFact) => a.strength - b.strength || a.timestamp - b.timestamp);
-            memory.knownFacts = memory.knownFacts.slice(memory.knownFacts.length - NpcBehaviorConfig.MAX_FACTS_PER_NPC);
-        }
-        
-        const timeSinceInteraction = currentTime - (memory.lastInteractionTimestamp || 0);
+    memory.knownFacts = memory.knownFacts.map((fact: KnownFact) => ({
+      ...fact,
+      lifespan: (fact.lifespan < 999) ? fact.lifespan - 1 : fact.lifespan,
+    })).filter((fact: KnownFact) => fact.lifespan > 0);
 
-        if (timeSinceInteraction > DRIFT_THRESHOLD_MS && memory.disposition !== 0) {
-           const newDisposition = Math.round(memory.disposition * 0.95);
-           memory.disposition = (Math.abs(newDisposition) < 1) ? 0 : newDisposition;
-        }
+    if (memory.knownFacts.length > NpcBehaviorConfig.MAX_FACTS_PER_NPC) {
+      memory.knownFacts.sort((a: KnownFact, b: KnownFact) => a.strength - b.strength || a.timestamp - b.timestamp);
+      memory.knownFacts = memory.knownFacts.slice(memory.knownFacts.length - NpcBehaviorConfig.MAX_FACTS_PER_NPC);
     }
-    return newNpcMemory;
+
+    const timeSinceInteraction = currentTime - (memory.lastInteractionTimestamp || 0);
+
+    if (timeSinceInteraction > DRIFT_THRESHOLD_MS && memory.disposition !== 0) {
+      const newDisposition = Math.round(memory.disposition * 0.95);
+      memory.disposition = (Math.abs(newDisposition) < 1) ? 0 : newDisposition;
+    }
+  }
+  return newNpcMemory;
 }
 

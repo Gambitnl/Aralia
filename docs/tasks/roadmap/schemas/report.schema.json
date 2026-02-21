@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aralia.local/docs/tasks/roadmap/schemas/report.schema.json",
+  "title": "Roadmap Worker Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "doc_id",
+    "source_doc",
+    "feature_extractions",
+    "completion_claims",
+    "stale_claims",
+    "todo_proposals",
+    "uncertainties",
+    "confidence"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "doc_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_doc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string"
+    },
+    "feature_extractions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/featureExtraction"
+      }
+    },
+    "completion_claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/completionClaim"
+      }
+    },
+    "stale_claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/staleClaim"
+      }
+    },
+    "todo_proposals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/todoProposal"
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/uncertainty"
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    }
+  },
+  "$defs": {
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "path"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "doc",
+            "code",
+            "test",
+            "other"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "featureExtraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature",
+        "subfeatures"
+      ],
+      "properties": {
+        "pillar": {
+          "type": "string"
+        },
+        "feature": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subfeatures": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        }
+      }
+    },
+    "completionClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_type",
+        "target_name",
+        "state",
+        "rationale"
+      ],
+      "properties": {
+        "target_type": {
+          "type": "string",
+          "enum": [
+            "feature",
+            "subfeature",
+            "component"
+          ]
+        },
+        "target_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "done",
+            "active",
+            "planned",
+            "unknown"
+          ]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        }
+      }
+    },
+    "staleClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_text",
+        "reason"
+      ],
+      "properties": {
+        "claim_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposed_replacement": {
+          "type": "string"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        }
+      }
+    },
+    "todoProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "parent_feature",
+        "reason"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_feature": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_subfeature": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "question",
+        "why_uncertain"
+      ],
+      "properties": {
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "why_uncertain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "blocking": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

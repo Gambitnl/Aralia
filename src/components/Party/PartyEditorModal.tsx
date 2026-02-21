@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * 
+ * Last Sync: 21/02/2026, 02:40:12
+ * Dependents: None (Orphan)
+ * Imports: 6 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file PartyEditorModal.tsx
  * A dedicated modal for editing the encounter party composition.
@@ -8,6 +24,7 @@ import { PartyManager } from '../EncounterGenerator/PartyManager';
 import { getDummyParty } from '../../data/dev/dummyCharacter';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import { generateId } from '../../utils/core/idGenerator';
 
 interface PartyEditorModalProps {
   isOpen: boolean;
@@ -26,7 +43,7 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
       // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
       // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
       const initialTempParty = (initialParty.length > 0 ? initialParty : getDummyParty()).map((p, index) => ({
-        id: p.id || crypto.randomUUID(),
+        id: p.id || generateId(),
         name: p.name || `Character ${index + 1}`,
         level: p.level || 1,
         classId: p.class?.id || 'fighter',

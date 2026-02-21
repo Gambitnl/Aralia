@@ -16,7 +16,7 @@ When requested by the user, the AI can maintain a "Dependency Block" at the top 
 ```typescript
 /**
  * [File Description]
- * 
+ *
  * DEPENDENCIES:
  * - Exports used by: [FileA], [FileB]
  * - Imports from: [FileX], [FileY]
@@ -29,10 +29,16 @@ When requested by the user, the AI can maintain a "Dependency Block" at the top 
 ## Solo Architect Modus Operandi
 - **Verification over Assumption**: Even if a file *seems* isolated, always run a quick `grep` for its path before making structural changes.
 - **Surgical Sync**: After modifying core logic (utils, hooks, stats), re-run `npx tsx scripts/codebase-visualizer-server.ts --sync path/to/file.ts`. This ensures the "Stop Sign" header is accurate for future tasks.
-- **Preservationist Mentality**: When resolving type errors or technical debt, prioritize minimal, behavior-preserving changes.
-  - **Minimal Impact**: Add types or guards rather than restructuring.
-  - **No Deletion**: NEVER remove features or exports simply to satisfy the linter/compiler.
-  - **Explicit Intent**: If a loose type or assertion is necessary, mark it with `// TODO(next-agent): Preserve behavior; refine type for [symbol] (was any/undefined).`
+
+## Code Standards (Canonical Reference)
+
+The following standards are defined in **`.agent/skills/code_commentary/SKILL.md`** and apply to all agents and workflows. Do not duplicate them here — refer to that file:
+
+- **Code Commentary**: Plain-English commenting rules (file headers, section separators, block-level comments)
+- **Preservationist Mentality**: Minimal impact, no deletion, structural integrity, don't mutate tests
+- **Debt Flagging**: `// DEBT:`, `// HACK:`, `// TODO(next-agent):` prefixes and placement rules
+- **Red Flags Checklist**: Patterns to scan for before finishing any task (`: any`, `as any`, stubs, console.log, etc.)
+- **Pickle Rick Overrides**: How these rules change in `/pickle-rick` mode
 
 ## Nominal Clarity & Naming
 To prevent collisions and AI confusion:

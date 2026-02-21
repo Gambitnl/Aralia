@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * 
+ * Last Sync: 21/02/2026, 02:40:38
+ * Dependents: None (Orphan)
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { UnderdarkState, LightSource, LightSourceType } from '../types/underdark';
 // TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
@@ -5,6 +20,7 @@ import { UnderdarkState, LightSource, LightSourceType } from '../types/underdark
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState as _GameState } from '../types';
 import { FaerzressSystem } from '../systems/underdark/FaerzressSystem';
+import { generateId } from '../utils/core/idGenerator';
 
 /**
  * Calculates the current light level based on depth and active light sources.
@@ -160,7 +176,7 @@ export const createLightSource = (
     durationMinutes: number
 ): LightSource => {
     return {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name,
         type,
         radius,

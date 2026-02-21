@@ -386,20 +386,123 @@ const visualizerManager = () => ({
 const roadmapManager = () => ({
   name: 'roadmap-manager',
   configureServer(server: any) {
+    const workspaceDir = path.resolve(process.cwd(), '.agent', 'roadmap-local');
+    const layoutPath = path.join(workspaceDir, 'layout.json');
+    const rootDir = path.resolve(process.cwd());
+    const rootLower = rootDir.toLowerCase();
+
+    const layoutResponse = (positions: Record<string, { x: number; y: number }> = {}) => ({ positions });
+    const isRoadmapPath = (pathname: string, suffix: string) => pathname === suffix || pathname === `/Aralia${suffix}`;
+
+    const readLayout = () => {
+      if (!fs.existsSync(layoutPath)) return layoutResponse();
+      try {
+        const parsed = JSON.parse(fs.readFileSync(layoutPath, 'utf-8')) as { positions?: unknown };
+        const positions: Record<string, { x: number; y: number }> = {};
+        const input = parsed.positions;
+        if (input && typeof input === 'object') {
+          for (const [id, point] of Object.entries(input as Record<string, unknown>)) {
+            if (!point || typeof point !== 'object') continue;
+            const x = Number((point as { x?: unknown }).x);
+            const y = Number((point as { y?: unknown }).y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+            positions[id] = { x, y };
+          }
+        }
+        return layoutResponse(positions);
+      } catch {
+        return layoutResponse();
+      }
+    };
+
+    const normalizeDocPath = (rawPath: string) => {
+      const trimmed = String(rawPath || '').trim().replace(/\\/g, '/');
+      if (!trimmed) return null;
+      const withoutPrefix = trimmed.replace(/^\/?Aralia\//i, '').replace(/^\/+/, '');
+      if (!withoutPrefix.toLowerCase().endsWith('.md')) return null;
+      const resolved = path.resolve(rootDir, withoutPrefix);
+      if (!resolved.toLowerCase().startsWith(rootLower)) return null;
+      return resolved;
+    };
+
     server.middlewares.use((req: any, res: any, next: any) => {
+      const pathname = new URL(req.url || '/', 'http://localhost').pathname;
+
       // Handle both with and without base path for dev flexibility
-      if (req.url === '/api/roadmap/data' || req.url === '/Aralia/api/roadmap/data') {
+      if (isRoadmapPath(pathname, '/api/roadmap/data')) {
         try {
           const data = generateRoadmapData();
           res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
           res.end(JSON.stringify(data));
         } catch (error) {
           console.error('[dev] Failed to generate roadmap data:', error);
+          const message = error instanceof Error ? error.message : String(error);
           res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Failed to generate roadmap data' }));
+          res.end(JSON.stringify({ error: 'Failed to generate roadmap data', message }));
         }
         return;
       }
+
+      if (isRoadmapPath(pathname, '/api/roadmap/layout') && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(readLayout()));
+        return;
+      }
+
+      if (isRoadmapPath(pathname, '/api/roadmap/layout') && req.method === 'POST') {
+        readBody(req)
+          .then((body) => {
+            const parsed = JSON.parse(body || '{}') as { positions?: unknown };
+            const sanitized: Record<string, { x: number; y: number }> = {};
+            const incoming = parsed.positions;
+            if (incoming && typeof incoming === 'object') {
+              for (const [id, point] of Object.entries(incoming as Record<string, unknown>)) {
+                if (!point || typeof point !== 'object') continue;
+                const x = Number((point as { x?: unknown }).x);
+                const y = Number((point as { y?: unknown }).y);
+                if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+                sanitized[id] = { x, y };
+              }
+            }
+            fs.mkdirSync(workspaceDir, { recursive: true });
+            fs.writeFileSync(layoutPath, JSON.stringify(layoutResponse(sanitized), null, 2), 'utf-8');
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true, positions: Object.keys(sanitized).length }));
+          })
+          .catch((saveError) => {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to save roadmap layout: ${String(saveError)}` }));
+          });
+        return;
+      }
+
+      if (isRoadmapPath(pathname, '/api/roadmap/open-in-vscode') && req.method === 'POST') {
+        readBody(req)
+          .then((body) => {
+            const parsed = JSON.parse(body || '{}') as { path?: string };
+            const fullPath = normalizeDocPath(parsed.path || '');
+            if (!fullPath) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Invalid file path. Only in-repo .md files are allowed.' }));
+              return;
+            }
+            if (!fs.existsSync(fullPath)) {
+              res.writeHead(404, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Target file not found.' }));
+              return;
+            }
+            const child = spawn('code', ['-r', fullPath], { detached: true, stdio: 'ignore', shell: true });
+            child.unref();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true, path: fullPath }));
+          })
+          .catch((openError) => {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to open VS Code: ${String(openError)}` }));
+          });
+        return;
+      }
+
       next();
     });
   }
@@ -565,15 +668,56 @@ const devHubApiManager = () => ({
             if (!fs.existsSync(dir)) return [];
             return fs.readdirSync(dir, { withFileTypes: true })
               .filter((d: any) => d.isFile() && d.name.endsWith('.md'))
-              .map((d: any) => ({ name: d.name.replace('.md', ''), path: `.agent/${sub}/${d.name}` }));
+              .map((d: any) => {
+                const item: any = { name: d.name.replace('.md', ''), path: `.agent/${sub}/${d.name}` };
+                // Parse frontmatter for chain metadata
+                try {
+                  const content = fs.readFileSync(path.join(dir, d.name), 'utf-8');
+                  const fm = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+                  if (fm) {
+                    const block = fm[1].replace(/\r/g, '');
+                    const chainMatch = block.match(/^chain:\s*(.+)$/m);
+                    const viaMatch = block.match(/^chain_via:\s*(.+)$/m);
+                    const orderMatch = block.match(/^chain_order:\s*(\d+)$/m);
+                    if (chainMatch) item.chain = chainMatch[1].trim();
+                    if (viaMatch) item.chainVia = viaMatch[1].trim();
+                    if (orderMatch) item.chainOrder = parseInt(orderMatch[1], 10);
+                  }
+                } catch (_) { /* ignore read errors */ }
+                return item;
+              });
           };
           const skillsDir = path.join(agentDir, 'skills');
+          const skillsInTidyUp = ['code_commentary'];
           const skills = fs.existsSync(skillsDir)
             ? fs.readdirSync(skillsDir, { withFileTypes: true })
                 .filter((d: any) => d.isDirectory())
-                .map((d: any) => ({ name: d.name, path: `.agent/skills/${d.name}/SKILL.md` }))
+                .map((d: any) => {
+                  const item: any = { name: d.name, path: `.agent/skills/${d.name}/SKILL.md` };
+                  if (skillsInTidyUp.includes(d.name)) { item.chain = 'tidy-up'; item.chainVia = 'session-ritual'; }
+                  return item;
+                })
             : [];
-          json({ rules: readMdFiles('rules'), skills, workflows: readMdFiles('workflows') });
+          // Conductor commands — the track management slash commands from .claude/commands
+          const claudeCmdsDir = path.resolve(process.cwd(), '.claude/commands');
+          const conductorCommands = fs.existsSync(claudeCmdsDir)
+            ? fs.readdirSync(claudeCmdsDir, { withFileTypes: true })
+                .filter((d: any) => d.isFile() && d.name.startsWith('conductor-') && d.name.endsWith('.md'))
+                .map((d: any) => ({ name: d.name.replace('.md', ''), path: `.claude/commands/${d.name}`, source: 'claude' }))
+            : [];
+          // Track workflows — the conductor workflow mirrors from .agent/workflows
+          const allWorkflows = readMdFiles('workflows');
+          const trackWorkflows = allWorkflows
+            .filter((w: any) => w.name.startsWith('track-'))
+            .map((w: any) => ({ ...w, source: 'agent' }));
+          const workflows = allWorkflows.filter((w: any) => !w.name.startsWith('track-'));
+          const conductor = [...conductorCommands, ...trackWorkflows];
+          // Extra chain items that don't have their own workflow files
+          const chainExtras = [
+            { name: 'sync-dependencies', path: 'scripts/codebase-visualizer-server.ts', chain: 'tidy-up', chainVia: 'session-ritual' },
+            { name: 'codexception', path: '.codex/steer.md', chain: 'tidy-up', chainOrder: 3 },
+          ];
+          json({ rules: readMdFiles('rules'), skills, workflows: [...workflows, ...chainExtras], conductor });
         } catch (e) {
           json({ error: String(e) }, 500);
         }
@@ -813,6 +957,9 @@ export default defineConfig(({ mode, command }) => {
             : {}),
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap.html'))
             ? { roadmap: path.resolve(__dirname, 'misc', 'roadmap.html') }
+            : {}),
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap_docs.html'))
+            ? { roadmap_docs: path.resolve(__dirname, 'misc', 'roadmap_docs.html') }
             : {})
         },
         output: {
