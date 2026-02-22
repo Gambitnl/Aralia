@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 22/02/2026, 16:18:45
+ * Dependents: CharacterCreator.tsx
+ * Imports: 4 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
 import { CharacterVisualConfig, CharacterGender } from '../../services/CharacterAssetService';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -67,9 +83,9 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
             headerActions={headerActions}
         >
             <div className="flex flex-col items-center">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl px-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl px-4">
                 {/* Controls Area */}
-                <div className="space-y-8 bg-black/40 p-8 rounded-2xl border border-gray-700 shadow-xl">
+                <div className="space-y-5 bg-black/40 p-5 rounded-2xl border border-gray-700 shadow-xl">
                     {/* Gender Selection */}
                     <div className="space-y-3">
                         <p className="text-gray-400 uppercase text-xs font-bold tracking-widest">Gender</p>

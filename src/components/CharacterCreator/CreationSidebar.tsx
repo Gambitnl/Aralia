@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * 
+ * Last Sync: 22/02/2026, 16:18:42
+ * Dependents: CharacterCreator.tsx
+ * Imports: 2 files
+ * 
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
+ * See scripts/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file CreationSidebar.tsx
  * Persistent left sidebar for character creation, showing step progress,
@@ -82,10 +98,10 @@ const SidebarStepRow: React.FC<{
       disabled={!canNavigate}
       className={`
         w-full flex items-center gap-3 py-2 px-3 rounded-md text-left transition-colors
-	        ${isNested ? 'ml-4' : ''}
-	        ${isCurrent ? 'bg-gray-700/50' : ''}
-	        ${canNavigate ? 'hover:bg-gray-700/70 cursor-pointer' : 'cursor-default'}
-	      `}
+        ${isNested ? 'ml-4' : ''}
+        ${isCurrent ? 'bg-gray-700/50' : ''}
+        ${canNavigate ? 'hover:bg-gray-700/70 cursor-pointer' : 'cursor-default'}
+      `}
       aria-current={isCurrent ? 'step' : undefined}
       aria-label={`${index}. ${config.label}${summary ? `: ${summary}` : ''}${isComplete ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
     >
@@ -136,7 +152,7 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
 
   return (
     <aside
-      className="w-64 bg-gray-850 border-r border-gray-700 flex flex-col h-full hidden md:flex"
+      className="w-64 bg-gray-850 border-r border-gray-700 flex flex-col h-full"
       aria-label="Character creation progress"
     >
       {/* Header */}

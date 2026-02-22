@@ -251,7 +251,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
       onNext={onConfirm}
       canProceed={canProceed}
       nextLabel="Confirm Feat"
-      customNextButton={skipButton}
+      headerActions={skipButton}
       bodyScrollable={false} // Important for SplitPaneLayout to handle scrolling
     >
         <div className="h-full min-h-0">

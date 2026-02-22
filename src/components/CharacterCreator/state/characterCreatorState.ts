@@ -492,8 +492,10 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       };
     }
     case 'CONFIRM_FEAT_STEP': {
-      const { step, skipped } = getFeatStepOrReview(state);
-      return { ...state, step, featStepSkipped: skipped };
+      // The user has completed the feat step (with or without a selection).
+      // Always advance to NameAndReview — do NOT call getFeatStepOrReview here,
+      // as that function determines whether to SHOW the feat step, not what comes after it.
+      return { ...state, step: CreationStep.NameAndReview, featStepSkipped: false };
     }
     case 'SET_CHARACTER_NAME': {
       return { ...state, characterName: action.payload };
