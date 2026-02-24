@@ -11,10 +11,10 @@
 import { safeJSONParse } from '../utils/securityUtils';
 
 export interface PortraitRequest {
-    name: string;
-    description: string;
-    race: string;
-    className: string;
+  name: string;
+  description: string;
+  race: string;
+  className: string;
 }
 
 export interface PortraitGenerateRequest {
@@ -38,6 +38,9 @@ export async function generatePortraitUrl(request: PortraitGenerateRequest): Pro
   }
 
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('AI Portrait generation is a local-only feature and is not available on the live web version. Please run the game locally to use this functionality.');
+    }
     const message = typeof payload?.error === 'string' && payload.error.trim()
       ? payload.error.trim()
       : `Portrait generation failed (${response.status}).`;
@@ -56,28 +59,28 @@ export async function generatePortraitUrl(request: PortraitGenerateRequest): Pro
  * Sends a portrait request to the Agent Uplink local chat server (localhost:8000).
  */
 export async function requestPortrait(request: PortraitRequest): Promise<void> {
-    const payload = {
-        name: request.name,
-        description: request.description,
-        race: request.race,
-        class: request.className,
-    };
-    // Build JSON with JSON.stringify to avoid broken payloads when inputs contain quotes/newlines.
-    const message = `#Human #portrait_request ${JSON.stringify(payload)}`;
-    
-    try {
-        const response = await fetch('http://localhost:8000/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
-        });
-        if (!response.ok) {
-            throw new Error(`Agent Uplink responded with ${response.status}`);
-        }
-    } catch (error) {
-        console.error('Failed to send portrait request to agent:', error);
-        throw new Error('Agent Uplink not responding. Ensure local_chat.py is running.');
+  const payload = {
+    name: request.name,
+    description: request.description,
+    race: request.race,
+    class: request.className,
+  };
+  // Build JSON with JSON.stringify to avoid broken payloads when inputs contain quotes/newlines.
+  const message = `#Human #portrait_request ${JSON.stringify(payload)}`;
+
+  try {
+    const response = await fetch('http://localhost:8000/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+    if (!response.ok) {
+      throw new Error(`Agent Uplink responded with ${response.status}`);
     }
+  } catch (error) {
+    console.error('Failed to send portrait request to agent:', error);
+    throw new Error('Agent Uplink not responding. Ensure local_chat.py is running.');
+  }
 }
 
 /**
@@ -86,32 +89,32 @@ export async function requestPortrait(request: PortraitRequest): Promise<void> {
  */
 // TODO(agent-uplink): This polling path is kept for backwards-compatibility. Prefer generatePortraitUrl().
 export async function pollForPortrait(characterName: string): Promise<string | null> {
-    try {
-        const response = await fetch('http://localhost:8000/api/messages');
-        if (!response.ok) {
-            throw new Error(`Agent Uplink responded with ${response.status}`);
-        }
-        const messages = await response.json();
-        if (!Array.isArray(messages)) return null;
-        
-        // Find the latest reply from the agent for this character's portrait
-        // The agent should reply with something like "#Gemini #portrait_ready { "name": "...", "url": "..." }"
-        const reply = [...messages].reverse().find((msg: any) =>
-            msg?.agent === 'Gemini' &&
-            typeof msg?.message === 'string' &&
-            msg.message.includes('#portrait_ready') &&
-            msg.message.includes(characterName)
-        );
-
-        if (reply) {
-            const jsonMatch = reply.message.match(/\{[\s\S]*?\}/);
-            if (jsonMatch) {
-                const data = safeJSONParse<{ url: string }>(jsonMatch[0]);
-                return data ? data.url : null;
-            }
-        }
-    } catch (error) {
-        console.error('Error polling for portrait:', error);
+  try {
+    const response = await fetch('http://localhost:8000/api/messages');
+    if (!response.ok) {
+      throw new Error(`Agent Uplink responded with ${response.status}`);
     }
-    return null;
+    const messages = await response.json();
+    if (!Array.isArray(messages)) return null;
+
+    // Find the latest reply from the agent for this character's portrait
+    // The agent should reply with something like "#Gemini #portrait_ready { "name": "...", "url": "..." }"
+    const reply = [...messages].reverse().find((msg: any) =>
+      msg?.agent === 'Gemini' &&
+      typeof msg?.message === 'string' &&
+      msg.message.includes('#portrait_ready') &&
+      msg.message.includes(characterName)
+    );
+
+    if (reply) {
+      const jsonMatch = reply.message.match(/\{[\s\S]*?\}/);
+      if (jsonMatch) {
+        const data = safeJSONParse<{ url: string }>(jsonMatch[0]);
+        return data ? data.url : null;
+      }
+    }
+  } catch (error) {
+    console.error('Error polling for portrait:', error);
+  }
+  return null;
 }

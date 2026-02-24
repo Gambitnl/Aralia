@@ -12,3 +12,4 @@ Set-Location $root
 
 Write-Host "The tidy-up script is now an agent workflow." -ForegroundColor Yellow
 Write-Host "Please ask your active AI agent to execute the '/tidy-up' workflow instead, so it can use your actual conversation history to log changes." -ForegroundColor Cyan
+Write-Host "The '/tidy-up' workflow now includes a mandatory roadmap update checkpoint with an explicit roadmap report block." -ForegroundColor Cyan

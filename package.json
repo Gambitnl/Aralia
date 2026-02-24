@@ -27,6 +27,9 @@
     "scan": "tsx scripts/scan-quality.ts",
     "verify": "npm run typecheck && npm run lint && npm run scan && npm run build",
     "roadmap:validate-packet": "tsx scripts/roadmap-validate-packet.ts",
+    "roadmap:test-node": "tsx scripts/roadmap-node-test.ts",
+    "roadmap:audit-done-node-tests": "tsx scripts/roadmap-audit-done-node-tests.ts",
+    "roadmap:run-done-node-tests": "tsx scripts/roadmap-run-done-node-tests.ts",
     "roadmap:session-close": "tsx scripts/roadmap-session-close.ts",
     "roadmap:process-game-docs": "tsx scripts/roadmap-process-game-docs.ts",
     "roadmap:derive-structured-doc": "tsx scripts/roadmap-derive-structured-doc.ts"

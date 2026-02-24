@@ -23,6 +23,8 @@ interface MainMenuProps {
   isDevDummyActive: boolean; // New prop
   onSkipCharacterCreator: () => void; // New prop
   onClearAllSaves?: () => void; // New prop
+  hasActiveRun?: boolean;
+  onAbandonRun?: () => void;
   // Callback to trigger the developer menu from the main menu phase
   onOpenDevMenu?: () => void;
   onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
@@ -51,6 +53,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
   isDevDummyActive: _isDevDummyActive,
   onSkipCharacterCreator,
   onClearAllSaves,
+  hasActiveRun = false,
+  onAbandonRun,
   onOpenDevMenu,
   onSaveGame,
   onGoBack,
@@ -62,6 +66,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([]);
+  const [pendingConfirm, setPendingConfirm] = useState<'abandon' | 'wipe' | null>(null);
 
   useEffect(() => {
     // Load slot metadata up front so the menu can render previews and continue targets.
@@ -103,11 +108,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
     refreshSlots();
   };
 
-  const handleClearAllSaves = () => {
-    if (window.confirm(t('main_menu.clear_save_confirm'))) {
+  const handleConfirm = () => {
+    if (pendingConfirm === 'wipe') {
       onClearAllSaves?.();
       refreshSlots();
+    } else if (pendingConfirm === 'abandon') {
+      onAbandonRun?.();
     }
+    setPendingConfirm(null);
   };
 
   const handleSaveSlot = (slotId: string, displayName?: string, isAutoSave?: boolean) => {
@@ -215,14 +223,43 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.load_game')}
           </button>
+          {hasActiveRun && onAbandonRun && (
+            pendingConfirm === 'abandon' ? (
+              <div className="w-full bg-gray-700 rounded-lg p-3 space-y-2">
+                <p className="text-sm text-amber-300 text-center">{t('main_menu.abandon_run_confirm')}</p>
+                <div className="flex gap-2">
+                  <button onClick={handleConfirm} className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
+                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setPendingConfirm('abandon')}
+                className="w-full bg-orange-700 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
+                aria-label={t('main_menu.abandon_run')}
+              >
+                {t('main_menu.abandon_run')}
+              </button>
+            )
+          )}
           {(hasSaveGame || saveSlots.length > 0) && (
-            <button
-              onClick={handleClearAllSaves}
-              className="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
-              aria-label={t('main_menu.clear_save')}
-            >
-              {t('main_menu.clear_save')}
-            </button>
+            pendingConfirm === 'wipe' ? (
+              <div className="w-full bg-gray-700 rounded-lg p-3 space-y-2">
+                <p className="text-sm text-red-300 text-center">{t('main_menu.clear_save_confirm')}</p>
+                <div className="flex gap-2">
+                  <button onClick={handleConfirm} className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Confirm</button>
+                  <button onClick={() => setPendingConfirm(null)} className="flex-1 bg-gray-500 hover:bg-gray-400 text-white font-bold py-2 px-3 rounded-lg text-sm transition-colors">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setPendingConfirm('wipe')}
+                className="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+                aria-label={t('main_menu.clear_save')}
+              >
+                {t('main_menu.clear_save')}
+              </button>
+            )
           )}
           <button
             onClick={onShowCompendium} // This prop now correctly opens the Glossary

@@ -109,3 +109,4 @@ scripts/roadmap-engine/
 scripts/workflows/chat-debug/
 
 scripts/workflows/gemini/
+.agent/workflows/

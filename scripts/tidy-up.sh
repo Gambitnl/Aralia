@@ -12,10 +12,18 @@ Run the full tidy-up chain (all steps), in this order:
    - For dependency sync, use `git status --porcelain` to list modified files.
    - Run: npx tsx scripts/codebase-visualizer-server.ts --sync path/to/modified_file
    - Skip deleted files and non-code files.
+   - Perform the mandatory "Update Roadmap State" checkpoint from session-ritual Step 3.
+   - Include the required roadmap report block in your final tidy-up summary:
+     - Roadmap Update: yes|no (with reason)
+     - Roadmap Files Reviewed: <paths>
+     - Roadmap Files Updated: <paths or none>
+     - Status/Naming Corrections Applied: <list or none>
+     - Open Follow-ups: <list or none>
 3) Execute /codexception to extract any reusable learnings from this tidy-up run.
 
 Rules:
 - Follow the workflows exactly; do not skip steps unless a prerequisite fails.
+- Do not mark tidy-up complete if the roadmap report block is missing.
 - If no terminal learnings are found, explicitly say so.
 - For /review-session (Phase 1), propose TODOs only; do not edit files.
 - Summarize what ran and stop.

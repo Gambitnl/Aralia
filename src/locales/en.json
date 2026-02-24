@@ -38,6 +38,8 @@
     "load_game_empty_title": "Resume Journey (No chronicles found)",
     "clear_save": "Wipe Chronicles",
     "clear_save_confirm": "Are you sure you want to delete all saved chronicles? This action cannot be undone.",
+    "abandon_run": "Abandon Run",
+    "abandon_run_confirm": "Abandon your current run? The in-memory session will be cleared. Any unsaved progress will be lost.",
     "glossary": "Lore & Rules",
     "glossary_aria": "View game glossary",
     "glossary_title": "View Game Glossary",

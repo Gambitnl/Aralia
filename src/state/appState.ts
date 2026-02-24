@@ -177,6 +177,23 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return { ...state, phase: action.payload, ...additionalUpdates };
         }
 
+        case 'ABANDON_RUN': {
+            return {
+                ...initialGameState,
+                phase: GamePhase.MAIN_MENU,
+                autoSaveEnabled: state.autoSaveEnabled ?? initialGameState.autoSaveEnabled,
+                worldSeed: state.worldSeed,
+                mapData: state.mapData,
+                // Always clear run-specific state regardless of how initialGameState was evaluated
+                party: [],
+                tempParty: null,
+                messages: [],
+                isLoading: false,
+                loadingMessage: null,
+                inventory: [],
+            };
+        }
+
         case 'START_NEW_GAME_SETUP': {
             const allFactions = getAllFactions(action.payload.worldSeed);
             // Initialize standings for generated factions

@@ -412,10 +412,14 @@ const App: React.FC = () => {
 
   const handleClearAllSaves = useCallback(() => {
     SaveLoadService.clearAllSaves();
-    // Force a re-render of the Main Menu by updating a local state if necessary, 
+    // Force a re-render of the Main Menu by updating a local state if necessary,
     // or just rely on the fact that MainMenu calls refreshSlots which calls getSaveSlots.
     // However, App needs to know that hasSaveGame might have changed.
     dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
+  }, [dispatch]);
+
+  const handleAbandonRun = useCallback(() => {
+    dispatch({ type: 'ABANDON_RUN' });
   }, [dispatch]);
 
   const handleTileClick = useCallback((x: number, y: number, tile: MapTile) => {
@@ -808,6 +812,8 @@ const App: React.FC = () => {
           isDevDummyActive={canUseDevTools()}
           onSkipCharacterCreator={handleSkipCharacterCreator}
           onClearAllSaves={handleClearAllSaves}
+          hasActiveRun={hasActiveRunInMemory}
+          onAbandonRun={handleAbandonRun}
           onOpenWorldGeneration={handleOpenWorldGenerationFromMainMenu}
           isWorldGenerationLocked={!canRegenerateWorldMap}
           worldGenerationLockedReason={worldGenerationLockedReason}

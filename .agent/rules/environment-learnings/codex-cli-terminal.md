@@ -31,6 +31,15 @@ powershell -NoLogo -Command "rg -n 'TODO' src\\file.ts"
 rg -n 'TODO' src\\file.ts > out.log 2>&1
 ```
 
+### Avoid Complex Nested Escaping In One-Liners
+If a `powershell -Command "..."` string mixes escaped double quotes, variable interpolation (like `$LASTEXITCODE`), and output redirection in one line, PowerShell may throw:
+`The string is missing the terminator: ".`
+
+Safer pattern:
+- Run the main tool command in one call.
+- Run summary/parsing in a second call.
+- Prefer direct shell commands over deeply nested `powershell -Command` wrappers.
+
 ### `python -c` In PowerShell
 Multi-line Python snippets are easy for PowerShell to misparse. Prefer:
 - `Get-Content | Select-Object -Skip/-First` for slicing files
@@ -48,4 +57,3 @@ Identity & Environment Checklist
 - Config or tool rules path:
 - Environment learnings file path:
 - Verification steps used:
-

@@ -286,7 +286,18 @@ async function generatePortraitWithStitch(prompt: string): Promise<string> {
 async function generatePortraitWithImageGen(prompt: string): Promise<string> {
   // Use the browser automation implementation directly (single process) so generate+download share state.
   // Calling the image-gen MCP via mcp-cli is stateless per invocation, which breaks the download step.
-  const { generateImage, downloadImage } = await import('./scripts/workflows/gemini/core/image-gen-mcp.ts');
+  let generateImage: any;
+  let downloadImage: any;
+  try {
+    const mod = await import('./scripts/workflows/gemini/core/image-gen-mcp.ts');
+    generateImage = mod.generateImage;
+    downloadImage = mod.downloadImage;
+  } catch (err) {
+    if (process.env.GITHUB_ACTIONS || process.env.CI) {
+      throw new Error('AI Portrait generation is a local-only feature and is not available in the GitHub environment. Please run the game locally to use this functionality.');
+    }
+    throw new Error('Local image generation script is unavailable. Please ensure you have the required scripts to use this feature locally.');
+  }
 
   fs.mkdirSync(PORTRAIT_OUTPUT_DIR, { recursive: true });
   const stamp = Date.now();
@@ -353,6 +364,12 @@ const addProxyDiagnostics = (
 });
 
 import { generateRoadmapData } from './scripts/roadmap-server-logic';
+import {
+  loadLatestOpportunityScan,
+  readOpportunitySettings,
+  scanRoadmapOpportunities,
+  writeOpportunitySettings
+} from './scripts/roadmap-engine/opportunities';
 
 const visualizerManager = () => ({
   name: 'visualizer-manager',
@@ -393,6 +410,7 @@ const roadmapManager = () => ({
 
     const layoutResponse = (positions: Record<string, { x: number; y: number }> = {}) => ({ positions });
     const isRoadmapPath = (pathname: string, suffix: string) => pathname === suffix || pathname === `/Aralia${suffix}`;
+    const opportunitiesResponseHeaders = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
 
     const readLayout = () => {
       if (!fs.existsSync(layoutPath)) return layoutResponse();
@@ -423,6 +441,30 @@ const roadmapManager = () => ({
       const resolved = path.resolve(rootDir, withoutPrefix);
       if (!resolved.toLowerCase().startsWith(rootLower)) return null;
       return resolved;
+    };
+
+    // Technical: strict node id validation to avoid shell-injection when tests are executed.
+    // Layman: only plain roadmap node ids are allowed in test-run API requests.
+    const isSafeRoadmapNodeId = (value: string) => /^[a-zA-Z0-9:_-]+$/.test(value);
+
+    // Technical: runs one roadmap node test command and captures pass/fail plus short output.
+    // Layman: executes the same node test you can run in terminal and returns a compact result.
+    const runRoadmapNodeTest = (nodeId: string) => {
+      const command = `npx tsx scripts/roadmap-node-test.ts --node-id ${nodeId}`;
+      try {
+        const stdout = execSync(command, {
+          cwd: process.cwd(),
+          shell: true,
+          encoding: 'utf-8',
+          timeout: 240000
+        }).trim();
+        return { nodeId, ok: true, message: stdout || 'PASS' };
+      } catch (error: any) {
+        const stderr = typeof error?.stderr === 'string' ? error.stderr.trim() : '';
+        const stdout = typeof error?.stdout === 'string' ? error.stdout.trim() : '';
+        const message = stderr || stdout || String(error?.message || 'Unknown failure');
+        return { nodeId, ok: false, message: message.split('\n')[0] || 'Node test failed.' };
+      }
     };
 
     server.middlewares.use((req: any, res: any, next: any) => {
@@ -503,6 +545,131 @@ const roadmapManager = () => ({
         return;
       }
 
+      if (isRoadmapPath(pathname, '/api/roadmap/tests/run-nodes') && req.method === 'POST') {
+        readBody(req)
+          .then((body) => {
+            const parsed = JSON.parse(body || '{}') as { nodeIds?: unknown };
+            const nodeIds = Array.isArray(parsed.nodeIds)
+              ? parsed.nodeIds
+                  .filter((value): value is string => typeof value === 'string')
+                  .map((value) => value.trim())
+                  .filter(Boolean)
+              : [];
+
+            if (nodeIds.length === 0) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'nodeIds[] is required.' }));
+              return;
+            }
+
+            const uniqueNodeIds = Array.from(new Set(nodeIds));
+            if (uniqueNodeIds.some((id) => !isSafeRoadmapNodeId(id))) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Invalid node id format.' }));
+              return;
+            }
+
+            const roadmap = generateRoadmapData();
+            const byId = new Map(roadmap.nodes.map((node) => [node.id, node]));
+
+            const results = uniqueNodeIds.map((nodeId) => {
+              const node = byId.get(nodeId);
+              if (!node) return { nodeId, ok: false, message: 'Node not found.' };
+              if (node.status !== 'done' || !node.testCommand) {
+                return { nodeId, ok: false, message: 'Node is not testable (only done nodes have tests).' };
+              }
+              return runRoadmapNodeTest(nodeId);
+            });
+
+            const pass = results.filter((row) => row.ok).length;
+            const fail = results.length - pass;
+
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ total: results.length, pass, fail, results }));
+          })
+          .catch((runError) => {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to run roadmap tests: ${String(runError)}` }));
+          });
+        return;
+      }
+
+      // Technical: roadmap opportunities latest payload endpoint.
+      // Layman: the UI calls this to read the current collector state quickly.
+      if (isRoadmapPath(pathname, '/api/roadmap/opportunities') && req.method === 'GET') {
+        try {
+          const latest = loadLatestOpportunityScan();
+          if (latest) {
+            res.writeHead(200, opportunitiesResponseHeaders);
+            res.end(JSON.stringify(latest));
+            return;
+          }
+
+          const roadmap = generateRoadmapData();
+          const payload = scanRoadmapOpportunities(roadmap, { trigger: 'on-demand' });
+          res.writeHead(200, opportunitiesResponseHeaders);
+          res.end(JSON.stringify(payload));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Failed to read roadmap opportunities: ${message}` }));
+        }
+        return;
+      }
+
+      // Technical: manual/auto scan trigger endpoint.
+      // Layman: this runs a fresh opportunities scan and returns updated results.
+      if (isRoadmapPath(pathname, '/api/roadmap/opportunities/scan') && req.method === 'POST') {
+        readBody(req)
+          .then((body) => {
+            const parsed = JSON.parse(body || '{}') as { trigger?: unknown };
+            const trigger = parsed.trigger === 'manual' || parsed.trigger === 'auto' ? parsed.trigger : 'manual';
+            const roadmap = generateRoadmapData();
+            const payload = scanRoadmapOpportunities(roadmap, { trigger });
+            res.writeHead(200, opportunitiesResponseHeaders);
+            res.end(JSON.stringify(payload));
+          })
+          .catch((error) => {
+            const message = error instanceof Error ? error.message : String(error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to scan roadmap opportunities: ${message}` }));
+          });
+        return;
+      }
+
+      // Technical: read scanner settings endpoint.
+      // Layman: returns local opportunities settings such as scan interval and stale threshold.
+      if (isRoadmapPath(pathname, '/api/roadmap/opportunities/settings') && req.method === 'GET') {
+        try {
+          const settings = readOpportunitySettings();
+          res.writeHead(200, opportunitiesResponseHeaders);
+          res.end(JSON.stringify(settings));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Failed to read opportunity settings: ${message}` }));
+        }
+        return;
+      }
+
+      // Technical: update scanner settings endpoint.
+      // Layman: saves local opportunities settings and returns the normalized values.
+      if (isRoadmapPath(pathname, '/api/roadmap/opportunities/settings') && req.method === 'POST') {
+        readBody(req)
+          .then((body) => {
+            const parsed = JSON.parse(body || '{}');
+            const settings = writeOpportunitySettings(parsed);
+            res.writeHead(200, opportunitiesResponseHeaders);
+            res.end(JSON.stringify(settings));
+          })
+          .catch((error) => {
+            const message = error instanceof Error ? error.message : String(error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to write opportunity settings: ${message}` }));
+          });
+        return;
+      }
+
       next();
     });
   }
@@ -536,7 +703,7 @@ const conductorManager = () => ({
         try {
           const url = new URL(req.url, 'http://localhost');
           const relativePath = url.searchParams.get('path');
-          
+
           if (!relativePath) {
             res.writeHead(400);
             res.end(JSON.stringify({ error: 'Missing path param' }));
@@ -687,23 +854,28 @@ const devHubApiManager = () => ({
                 return item;
               });
           };
+          // Load tidy-up chain config for tagging skills and injecting extras
+          const chainConfigPath = path.join(agentDir, 'tidy-up-chain.json');
+          const chainConfig = fs.existsSync(chainConfigPath)
+            ? JSON.parse(fs.readFileSync(chainConfigPath, 'utf-8'))
+            : { extras: [], skills: [] };
+          const skillsInTidyUp: string[] = chainConfig.skills || [];
           const skillsDir = path.join(agentDir, 'skills');
-          const skillsInTidyUp = ['code_commentary'];
           const skills = fs.existsSync(skillsDir)
             ? fs.readdirSync(skillsDir, { withFileTypes: true })
-                .filter((d: any) => d.isDirectory())
-                .map((d: any) => {
-                  const item: any = { name: d.name, path: `.agent/skills/${d.name}/SKILL.md` };
-                  if (skillsInTidyUp.includes(d.name)) { item.chain = 'tidy-up'; item.chainVia = 'session-ritual'; }
-                  return item;
-                })
+              .filter((d: any) => d.isDirectory())
+              .map((d: any) => {
+                const item: any = { name: d.name, path: `.agent/skills/${d.name}/SKILL.md` };
+                if (skillsInTidyUp.includes(d.name)) { item.chain = 'tidy-up'; item.chainVia = 'session-ritual'; }
+                return item;
+              })
             : [];
           // Conductor commands — the track management slash commands from .claude/commands
           const claudeCmdsDir = path.resolve(process.cwd(), '.claude/commands');
           const conductorCommands = fs.existsSync(claudeCmdsDir)
             ? fs.readdirSync(claudeCmdsDir, { withFileTypes: true })
-                .filter((d: any) => d.isFile() && d.name.startsWith('conductor-') && d.name.endsWith('.md'))
-                .map((d: any) => ({ name: d.name.replace('.md', ''), path: `.claude/commands/${d.name}`, source: 'claude' }))
+              .filter((d: any) => d.isFile() && d.name.startsWith('conductor-') && d.name.endsWith('.md'))
+              .map((d: any) => ({ name: d.name.replace('.md', ''), path: `.claude/commands/${d.name}`, source: 'claude' }))
             : [];
           // Track workflows — the conductor workflow mirrors from .agent/workflows
           const allWorkflows = readMdFiles('workflows');
@@ -712,11 +884,11 @@ const devHubApiManager = () => ({
             .map((w: any) => ({ ...w, source: 'agent' }));
           const workflows = allWorkflows.filter((w: any) => !w.name.startsWith('track-'));
           const conductor = [...conductorCommands, ...trackWorkflows];
-          // Extra chain items that don't have their own workflow files
-          const chainExtras = [
-            { name: 'sync-dependencies', path: 'scripts/codebase-visualizer-server.ts', chain: 'tidy-up', chainVia: 'session-ritual' },
-            { name: 'codexception', path: '.codex/steer.md', chain: 'tidy-up', chainOrder: 3 },
-          ];
+          // Extra chain items from tidy-up-chain.json (scripts/commands without their own workflow files)
+          const chainExtras = (chainConfig.extras || []).map((e: any) => ({
+            ...e,
+            chain: 'tidy-up',
+          }));
           json({ rules: readMdFiles('rules'), skills, workflows: [...workflows, ...chainExtras], conductor });
         } catch (e) {
           json({ error: String(e) }, 500);
@@ -813,20 +985,20 @@ const portraitApiManager = () => ({
         return;
       }
 
-        try {
-          const rawBody = await readBody(req);
-          const parsed = rawBody ? JSON.parse(rawBody) : {};
-          const description = sanitizePromptText(String(parsed?.description || ''), 500);
+      try {
+        const rawBody = await readBody(req);
+        const parsed = rawBody ? JSON.parse(rawBody) : {};
+        const description = sanitizePromptText(String(parsed?.description || ''), 500);
         const race = sanitizePromptText(String(parsed?.race || ''), 80);
         const className = sanitizePromptText(String(parsed?.className || ''), 80);
 
-          const prompt = [
-            'High fantasy character portrait. Head-and-shoulders. Detailed. Dramatic lighting. Neutral background.',
-            race ? `Race: ${race}.` : '',
-            className ? `Class: ${className}.` : '',
-            description ? `Description: ${description}` : '',
-            'No text. No UI. No watermark.'
-          ].filter(Boolean).join(' ');
+        const prompt = [
+          'High fantasy character portrait. Head-and-shoulders. Detailed. Dramatic lighting. Neutral background.',
+          race ? `Race: ${race}.` : '',
+          className ? `Class: ${className}.` : '',
+          description ? `Description: ${description}` : '',
+          'No text. No UI. No watermark.'
+        ].filter(Boolean).join(' ');
 
         try {
           const url = await generatePortraitWithStitch(prompt);

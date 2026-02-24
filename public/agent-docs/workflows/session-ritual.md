@@ -17,10 +17,38 @@ This workflow automates the maintenance tasks that should be performed before en
      - `docs/architecture/_generated/file-inventory.json` may still show legacy paths when tombstone wrappers intentionally remain.
      - Tombstone wrapper files are expected hits and should not be treated as stale docs.
 
-3. **Extract Terminal Learnings**: Capture any new PowerShell quirks or environment-specific fixes discovered during the session.
+3. **Update Roadmap State (Mandatory Checkpoint)**: Perform a roadmap update pass before ending the ritual.
+   - This checkpoint is required on every tidy-up run.
+   - If no roadmap-visible changes happened, still record an explicit "N/A" result.
+   - Do a full roadmap update when changed files touch:
+     - `scripts/roadmap-engine/**`
+     - `src/components/debug/roadmap/**`
+     - `misc/roadmap_docs.html`
+     - `misc/dev_hub.html`
+     - `docs/tasks/roadmap/**`
+     - `.agent/roadmap-local/**` (except temporary run artifacts that do not affect roadmap state)
+   - Required outcomes when triggered:
+     - Refresh roadmap-facing status/naming text so shipped work is not left as planned.
+     - Confirm roadmap docs/evidence links still resolve after file changes.
+     - Refresh high-level roadmap docs language when capability or workflow behavior changed.
+   - Required reporting block in tidy-up summary:
+     - `Roadmap Update: yes|no (with reason)`
+     - `Roadmap Files Reviewed: <paths>`
+     - `Roadmap Files Updated: <paths or none>`
+     - `Status/Naming Corrections Applied: <list or none>`
+     - `Open Follow-ups: <list or none>`
+
+4. **Extract Terminal Learnings**: Capture any new PowerShell quirks or environment-specific fixes discovered during the session.
    Execute the `/extract-terminal-learnings` workflow.
 
-4. **Session Review**: Review the changes made and propose future improvements or cleanup tasks.
+5. **Session Review**: Review the changes made and propose future improvements or cleanup tasks.
    Execute the `/review-session` workflow.
 
-5. **Update Handover Docs**: If significant architectural changes were made, ensure `AGENTS.md` is updated with the latest context for the next agent.
+6. **Verify**: Run the pre-completion QA checklist - lint, type-check, build, tests, and red flag scan.
+   Execute the `/verify` workflow.
+
+7. **Code Commentary Check**: Verify that all files touched during the session follow the Code Commentary skill standards.
+   Reference: `.agent/skills/code_commentary/SKILL.md`
+
+8. **Log Session**: Capture a summary of the session's work to the Development Chronicle.
+   Execute the `/log-session` workflow.

@@ -47,12 +47,14 @@ A two-phase workflow for reviewing the session's code changes and adding inline 
 5.  **Draft Proposals**
     - Output up to **5 high-value proposals** as text blocks.
     - **At least 1 must be a creative idea**: A feature enhancement, gameplay improvement, aesthetic polish, or UI functionality idea. Something that says *"this could be great here."*
+    - Each proposal must include a clear **Layman Explanation** that explains the same point in plain, non-technical language.
     ```
     📝 Proposal 1
     File: src/components/Foo.tsx
     Line: ~42 (above handleClick function)
     Comment: // TODO: Add error boundary for async state updates
     Rationale: If fetchData fails, the component silently swallows the error.
+    Layman Explanation: If this action fails, the page can break silently. Add a safety net so users see a stable fallback instead of a broken screen.
     ```
 
 6.  **STOP. Do NOT apply edits.**

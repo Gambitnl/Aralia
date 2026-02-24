@@ -56,6 +56,17 @@
 8. Mark doc `processed` only after successful integration.
 9. Append audit trail for the run.
 
+### Orchestrator CLI Helper
+- Script: `scripts/roadmap-orchestrate-one-doc.ts`
+- Purpose: stage one run folder, generate strict worker instructions, launch worker CLI, validate packet schemas, enforce feature-oriented naming gate, and optionally auto-apply accepted runs.
+- Typical flow:
+  - dry-run staging only:
+    - `npx tsx scripts/roadmap-orchestrate-one-doc.ts --source <doc-path> --dry-run`
+  - worker execution (example template):
+    - `npx tsx scripts/roadmap-orchestrate-one-doc.ts --source <doc-path> --worker-cmd "gemini --yolo --prompt-file {{PROMPT_FILE}}"`
+  - accepted + apply in one shot (only when desired):
+    - `npx tsx scripts/roadmap-orchestrate-one-doc.ts --source <doc-path> --worker-cmd "<worker command>" --auto-accept --auto-apply`
+
 ### Orchestrator Hard Guards
 - Reject packets with invalid schema.
 - Reject packets that write outside run staging.

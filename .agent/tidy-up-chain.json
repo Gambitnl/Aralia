@@ -1,0 +1,23 @@
+{
+  "description": "Defines the tidy-up chain: which workflows, skills, and scripts participate and in what order.",
+  "extras": [
+    {
+      "name": "sync-dependencies",
+      "path": "scripts/codebase-visualizer-server.ts",
+      "chainVia": "session-ritual"
+    },
+    {
+      "name": "update-roadmap-state",
+      "path": ".agent/workflows/session-ritual.md",
+      "chainVia": "session-ritual"
+    },
+    {
+      "name": "codexception",
+      "path": ".codex/steer.md",
+      "chainOrder": 3
+    }
+  ],
+  "skills": [
+    "code_commentary"
+  ]
+}
