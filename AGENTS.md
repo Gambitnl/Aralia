@@ -1,12 +1,12 @@
 # AGENTS.md
 
 **Application Intent & Developer Tools**
-- **Intent**: Aralia is a web-based application/game that features procedural systems and complex mechanics (e.g., encounters, crime systems).
+- **Intent**: Aralia is a web-based application/game that features procedural systems and complex mechanics.
 - **Human Dev Tools**: The repository includes dedicated tools to assist human developers, such as the **Dev Hub** (`misc/dev_hub.html`) for modular tool management and the **Codebase Visualizer** (`scripts/codebase-visualizer-server.ts`) for tracking code quality and dependencies.
 
 **Environment**
 - **Shell**: The environment is Windows PowerShell. Run commands using `powershell -NoLogo -Command` (do not use `pwsh`).
-- **Paths**: Project root is `C:\Users\gambi\Documents\Git\AraliaV4\Aralia`. Use backslashes for native commands and avoid `Users\Users` nesting errors.
+- **Paths**: Project root is `F:\Repos\Aralia`. Use backslashes for native commands and avoid `Users\Users` nesting errors.
 - **Node Execution**: Setting `{ shell: true }` is mandatory when spawning Windows `.cmd` or `.ps1` wrappers via Node.js.
 
 **Project Tooling & Commands**
