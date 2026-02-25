@@ -454,7 +454,6 @@ const roadmapManager = () => ({
       try {
         const stdout = execSync(command, {
           cwd: process.cwd(),
-          shell: true,
           encoding: 'utf-8',
           timeout: 240000
         }).trim();
@@ -551,9 +550,9 @@ const roadmapManager = () => ({
             const parsed = JSON.parse(body || '{}') as { nodeIds?: unknown };
             const nodeIds = Array.isArray(parsed.nodeIds)
               ? parsed.nodeIds
-                  .filter((value): value is string => typeof value === 'string')
-                  .map((value) => value.trim())
-                  .filter(Boolean)
+                .filter((value): value is string => typeof value === 'string')
+                .map((value) => value.trim())
+                .filter(Boolean)
               : [];
 
             if (nodeIds.length === 0) {

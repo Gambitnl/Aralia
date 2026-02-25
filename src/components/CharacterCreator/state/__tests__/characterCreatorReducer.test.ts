@@ -79,32 +79,32 @@ function walkCompleteFlow(
     switch (raceId) {
         case 'dragonborn':
             state = characterCreatorReducer(state, {
-                type: 'SELECT_DRAGONBORN_ANCESTRY',
-                payload: options?.dragonbornAncestry || 'Black',
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'dragonborn', patch: { choiceId: options?.dragonbornAncestry || 'Black' } },
             });
             break;
         case 'elf':
             state = characterCreatorReducer(state, {
-                type: 'SELECT_ELVEN_LINEAGE',
-                payload: options?.elvenLineage || { lineageId: 'high_elf', spellAbility: 'Intelligence' },
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'elf', patch: { choiceId: options?.elvenLineage?.lineageId || 'high_elf', spellAbility: options?.elvenLineage?.spellAbility || 'Intelligence' } },
             });
             break;
         case 'gnome':
             state = characterCreatorReducer(state, {
-                type: 'SELECT_GNOME_SUBRACE',
-                payload: options?.gnomeSubrace || { subraceId: 'rock_gnome', spellAbility: 'Intelligence' },
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'gnome', patch: { choiceId: options?.gnomeSubrace?.subraceId || 'rock_gnome', spellAbility: options?.gnomeSubrace?.spellAbility || 'Intelligence' } },
             });
             break;
         case 'goliath':
             state = characterCreatorReducer(state, {
-                type: 'SELECT_GIANT_ANCESTRY',
-                payload: options?.giantAncestry || 'Cloud',
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'goliath', patch: { choiceId: options?.giantAncestry || 'Cloud' } },
             });
             break;
         case 'tiefling':
             state = characterCreatorReducer(state, {
-                type: 'SELECT_TIEFLING_LEGACY',
-                payload: options?.tieflingLegacy || { legacyId: 'abyssal', spellAbility: 'Charisma' },
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'tiefling', patch: { choiceId: options?.tieflingLegacy?.legacyId || 'abyssal', spellAbility: options?.tieflingLegacy?.spellAbility || 'Charisma' } },
             });
             break;
         case 'centaur':
@@ -287,10 +287,10 @@ describe('Character Creator Reducer', () => {
         // Test that each race navigates to the correct next step
         const raceNavigationTests: Array<{ raceId: string; expectedStep: CreationStep }> = [
             // Races with sub-selections
-            { raceId: 'dragonborn', expectedStep: CreationStep.DragonbornAncestry },
-            { raceId: 'elf', expectedStep: CreationStep.ElvenLineage },
-            { raceId: 'goliath', expectedStep: CreationStep.GiantAncestry },
-            { raceId: 'tiefling', expectedStep: CreationStep.TieflingLegacy },
+            { raceId: 'dragonborn', expectedStep: CreationStep.AgeSelection },
+            { raceId: 'elf', expectedStep: CreationStep.AgeSelection },
+            { raceId: 'goliath', expectedStep: CreationStep.AgeSelection },
+            { raceId: 'tiefling', expectedStep: CreationStep.AgeSelection },
             // Races without sub-selections (go directly to age)
             { raceId: 'centaur', expectedStep: CreationStep.AgeSelection },
             { raceId: 'changeling', expectedStep: CreationStep.AgeSelection },
@@ -332,28 +332,28 @@ describe('Character Creator Reducer', () => {
             expect(result.step).toBe(CreationStep.Race);
         });
 
-        it('returns to Race from race sub-selection steps', () => {
+        it('returns to Race from AgeSelection', () => {
             const race = ALL_RACES_DATA['elf'];
             let state = characterCreatorReducer(initialCharacterCreatorState, {
                 type: 'SELECT_RACE',
                 payload: race,
             });
-            expect(state.step).toBe(CreationStep.ElvenLineage);
+            expect(state.step).toBe(CreationStep.AgeSelection);
 
             state = characterCreatorReducer(state, { type: 'GO_BACK' });
             expect(state.step).toBe(CreationStep.Race);
         });
 
-        it('clears race-specific selection when going back from that sub-selection step', () => {
+        it('preserves race-specific selection when going back', () => {
             const race = ALL_RACES_DATA['elf'];
             let state = characterCreatorReducer(initialCharacterCreatorState, {
                 type: 'SELECT_RACE',
                 payload: race,
             });
-            // Now at ElvenLineage step - make a selection
+            // Make a selection
             state = characterCreatorReducer(state, {
-                type: 'SELECT_ELVEN_LINEAGE',
-                payload: { lineageId: 'high_elf', spellAbility: 'Intelligence' },
+                type: 'SET_RACIAL_SELECTION',
+                payload: { raceId: 'elf', patch: { choiceId: 'high_elf', spellAbility: 'Intelligence' } },
             });
             expect(state.step).toBe(CreationStep.AgeSelection);
 
@@ -467,7 +467,7 @@ describe('Character Creator Reducer', () => {
             });
 
             expect(state.selectedRace?.id).toBe('elf');
-            expect(state.step).toBe(CreationStep.ElvenLineage);
+            expect(state.step).toBe(CreationStep.AgeSelection);
             // Background should be reset
             expect(state.selectedBackground).toBeNull();
         });

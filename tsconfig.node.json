@@ -3,6 +3,7 @@
     "composite": true,
     "skipLibCheck": true,
     "module": "ESNext",
+    "target": "ES2022",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,
@@ -12,6 +13,7 @@
     "vite.config.ts",
     "scripts/workflows/gemini/core/image-gen-mcp.ts",
     "scripts/raceImageStatus.ts",
-    "scripts/roadmap-server-logic.ts"
+    "scripts/roadmap-server-logic.ts",
+    "scripts/roadmap-engine/**/*.ts"
   ]
 }
