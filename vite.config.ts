@@ -62,6 +62,29 @@ const readBody = (req: any): Promise<string> =>
     req.on('error', reject);
   });
 
+// ==================== Codex Run Manager ====================
+interface CodexJob {
+  proc: ReturnType<typeof spawn> | null; // null between multi-turn continues
+  subscribers: Array<(chunk: string) => void>;
+  done: boolean;
+  exitCode: number | null;
+  buffer: string[];
+}
+const codexJobs = new Map<string, CodexJob>();
+const SAFE_SCRIPT_NAME_RE = /^[a-zA-Z0-9:_\-]+$/;
+function isSafeScriptName(name: string): boolean {
+  return SAFE_SCRIPT_NAME_RE.test(name);
+}
+
+// ==================== Codex Chat Manager ====================
+interface CodexChatSession {
+  proc: ReturnType<typeof spawn> | null;
+  subscribers: Array<(chunk: string) => void>;
+  buffer: string[];
+  alive: boolean;
+}
+const codexChatSessions = new Map<string, CodexChatSession>();
+
 function sanitizePromptText(input: string, maxLength = 500): string {
   if (!input) return '';
   let sanitized = input.slice(0, maxLength);
@@ -117,7 +140,7 @@ function parseToolsFromOutput(output: string): string[] {
 
 async function listTools(serverName: string): Promise<string[]> {
   const cmd = `"${MCP_CLI}" --config "${MCP_CONFIG}" ${serverName} -d`;
-  const { stdout } = await execAsync(cmd, { shell: true, timeout: 30000 });
+  const { stdout } = await execAsync(cmd, { shell: true, timeout: 30000, windowsHide: true });
   return parseToolsFromOutput(stdout);
 }
 
@@ -151,7 +174,7 @@ async function callMcpTool(
     const child = spawn(
       BUN_BIN,
       [MCP_CLI_ENTRY, '--config', MCP_CONFIG, `${server}/${tool}`, JSON.stringify(args)],
-      { shell: false }
+      { shell: false, windowsHide: true }
     );
 
     let stdout = '';
@@ -363,13 +386,13 @@ const addProxyDiagnostics = (
   }
 });
 
-import { generateRoadmapData } from './scripts/roadmap-server-logic';
 import {
+  generateRoadmapData,
   loadLatestOpportunityScan,
   readOpportunitySettings,
   scanRoadmapOpportunities,
   writeOpportunitySettings
-} from './scripts/roadmap-engine/opportunities';
+} from './scripts/roadmap-server-logic';
 
 const visualizerManager = () => ({
   name: 'visualizer-manager',
@@ -379,10 +402,11 @@ const visualizerManager = () => ({
         console.info('[dev] Starting Codebase Visualizer server...');
         try {
           // Use npx tsx to run the script in the background
-          const child = spawn('npx', ['tsx', 'scripts/codebase-visualizer-server.ts'], {
+          const child = spawn('npx', ['tsx', 'misc/dev_hub/codebase-visualizer/server/index.ts'], {
             detached: true,
             stdio: 'ignore',
             shell: true,
+            windowsHide: true,
           });
           child.unref();
 
@@ -455,7 +479,8 @@ const roadmapManager = () => ({
         const stdout = execSync(command, {
           cwd: process.cwd(),
           encoding: 'utf-8',
-          timeout: 240000
+          timeout: 240000,
+          windowsHide: true,
         }).trim();
         return { nodeId, ok: true, message: stdout || 'PASS' };
       } catch (error: any) {
@@ -532,7 +557,7 @@ const roadmapManager = () => ({
               res.end(JSON.stringify({ error: 'Target file not found.' }));
               return;
             }
-            const child = spawn('code', ['-r', fullPath], { detached: true, stdio: 'ignore', shell: true });
+            const child = spawn('code', ['-r', fullPath], { detached: true, stdio: 'ignore', shell: true, windowsHide: true });
             child.unref();
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true, path: fullPath }));
@@ -738,7 +763,7 @@ const scanManager = () => ({
   configureServer(server: any) {
     server.middlewares.use((req: any, res: any, next: any) => {
       if (req.url === '/api/scan') {
-        exec('npx tsx scripts/scan-quality.ts --json', { cwd: process.cwd(), timeout: 30000 }, (error: any, stdout: string, stderr: string) => {
+        exec('npx tsx scripts/scan-quality.ts --json', { cwd: process.cwd(), timeout: 30000, windowsHide: true }, (error: any, stdout: string, stderr: string) => {
           res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
           if (error) {
             res.end(JSON.stringify({ error: 'Scan failed', message: stderr || error.message }));
@@ -759,11 +784,11 @@ const gitStatusManager = () => ({
     server.middlewares.use((req: any, res: any, next: any) => {
       if (req.url === '/api/git/status') {
         try {
-          const branch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
-          const porcelain = execSync('git status --porcelain', { encoding: 'utf-8' });
+          const branch = execSync('git branch --show-current', { encoding: 'utf-8', windowsHide: true }).trim();
+          const porcelain = execSync('git status --porcelain', { encoding: 'utf-8', windowsHide: true });
           const dirty = porcelain.split('\n').filter(Boolean).length;
-          const lastCommit = execSync('git log -1 --format=%s', { encoding: 'utf-8' }).trim();
-          const lastCommitDate = execSync('git log -1 --format=%cr', { encoding: 'utf-8' }).trim();
+          const lastCommit = execSync('git log -1 --format=%s', { encoding: 'utf-8', windowsHide: true }).trim();
+          const lastCommitDate = execSync('git log -1 --format=%cr', { encoding: 'utf-8', windowsHide: true }).trim();
 
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ branch, dirty, lastCommit, lastCommitDate }));
@@ -789,7 +814,7 @@ const devHubApiManager = () => ({
 
       // Test runner - runs vitest and reads the JSON results file
       if (req.url === '/api/test') {
-        exec('npx vitest run', { cwd: process.cwd(), timeout: 120000 }, (_error: any) => {
+        exec('npx vitest run', { cwd: process.cwd(), timeout: 120000, windowsHide: true }, (_error: any) => {
           try {
             const resultsPath = path.resolve(process.cwd(), 'vitest-results.json');
             if (fs.existsSync(resultsPath)) {
@@ -809,7 +834,7 @@ const devHubApiManager = () => ({
       if (req.url === '/api/ci/status') {
         exec(
           'gh run list --limit 5 --json status,conclusion,name,createdAt,headBranch,databaseId',
-          { cwd: process.cwd(), timeout: 10000 },
+          { cwd: process.cwd(), timeout: 10000, windowsHide: true },
           (_error: any, stdout: string) => {
             if (_error) { json({ error: 'gh CLI unavailable' }); return; }
             try { json({ runs: JSON.parse(stdout.trim()) }); }
@@ -900,6 +925,432 @@ const devHubApiManager = () => ({
   }
 });
 
+// ============================================================================
+// Script Registry API
+// ============================================================================
+// Technical: serves script-registry.json + .run-log.json data, and handles
+// "touch" requests that reset lastRun timestamps for an entire feature branch.
+// Layman: powers the Branch View tab in misc/tooling.html so agents/devs can
+// see which tooling scripts belong to which feature area and when they last ran.
+// ============================================================================
+const SCRIPT_REGISTRY_PATH = path.resolve(process.cwd(), 'scripts', 'tooling', 'script-registry.json');
+const SCRIPT_RUN_LOG_PATH = path.resolve(process.cwd(), 'scripts', 'tooling', '.run-log.json');
+
+const scriptRegistryManager = () => ({
+  name: 'script-registry-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+      if (urlPath !== '/api/script-registry' && urlPath !== '/api/script-touch') {
+        next();
+        return;
+      }
+
+      const json = (data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      // GET /api/script-registry — merged registry + run-log data
+      if (urlPath === '/api/script-registry' && req.method === 'GET') {
+        try {
+          if (!fs.existsSync(SCRIPT_REGISTRY_PATH)) {
+            json({ error: 'script-registry.json not found.' }, 404);
+            return;
+          }
+          const registry = JSON.parse(fs.readFileSync(SCRIPT_REGISTRY_PATH, 'utf8'));
+          const runLog = fs.existsSync(SCRIPT_RUN_LOG_PATH)
+            ? JSON.parse(fs.readFileSync(SCRIPT_RUN_LOG_PATH, 'utf8'))
+            : { entries: {} };
+
+          // Merge run-log data into each script entry.
+          // registry.scripts entries are now objects: { path, type?, note? }
+          const now = Date.now();
+          const branches: Record<string, any> = {};
+          for (const [branchId, branch] of Object.entries(registry.featureBranches as Record<string, any>)) {
+            const scriptEntries = (branch.scripts as Array<string | { path: string; type?: string; note?: string }>);
+            branches[branchId] = {
+              ...branch,
+              id: branchId,
+              scripts: scriptEntries.map((scriptDef) => {
+                const relPath = typeof scriptDef === 'string' ? scriptDef : scriptDef.path;
+                const scriptType = typeof scriptDef === 'object' ? (scriptDef.type ?? branch.bucket) : branch.bucket;
+                const scriptNote = typeof scriptDef === 'object' ? (scriptDef.note ?? null) : null;
+                const entry = runLog.entries?.[relPath];
+                const lastRunMs = entry?.lastRun ? new Date(entry.lastRun).getTime() : null;
+                const ageDays = lastRunMs ? Math.floor((now - lastRunMs) / 86400000) : null;
+                return {
+                  path: relPath,
+                  name: path.basename(relPath, path.extname(relPath)),
+                  type: scriptType,   // 'pipeline' | 'devworkflow'
+                  note: scriptNote,
+                  lastRun: entry?.lastRun ?? null,
+                  runCount: entry?.runCount ?? 0,
+                  ageDays,
+                  ageClass: ageDays === null ? 'never' : ageDays < 30 ? 'fresh' : ageDays < 90 ? 'aging' : 'stale',
+                };
+              }),
+            };
+          }
+
+          json({ branches, buckets: registry.buckets ?? {}, logUpdated: runLog.updated ?? null });
+        } catch (e) {
+          json({ error: String(e) }, 500);
+        }
+        return;
+      }
+
+      // POST /api/script-touch { branch: "branch-id" } — reset lastRun for all scripts in branch
+      if (urlPath === '/api/script-touch' && req.method === 'POST') {
+        try {
+          const body = await readBody(req);
+          const { branch: branchId } = JSON.parse(body);
+          if (!branchId || typeof branchId !== 'string') {
+            json({ error: 'Missing or invalid branch field.' }, 400);
+            return;
+          }
+
+          if (!fs.existsSync(SCRIPT_REGISTRY_PATH)) {
+            json({ error: 'script-registry.json not found.' }, 404);
+            return;
+          }
+          const registry = JSON.parse(fs.readFileSync(SCRIPT_REGISTRY_PATH, 'utf8'));
+          const branch = registry.featureBranches?.[branchId];
+          if (!branch) {
+            json({ error: `Branch '${branchId}' not found.` }, 404);
+            return;
+          }
+
+          const runLog: any = fs.existsSync(SCRIPT_RUN_LOG_PATH)
+            ? JSON.parse(fs.readFileSync(SCRIPT_RUN_LOG_PATH, 'utf8'))
+            : { updated: new Date().toISOString(), entries: {} };
+
+          const now = new Date().toISOString();
+          for (const scriptDef of branch.scripts as Array<string | { path: string }>) {
+            const relPath = typeof scriptDef === 'string' ? scriptDef : scriptDef.path;
+            const existing = runLog.entries?.[relPath] ?? { scriptPath: relPath, runCount: 0 };
+            runLog.entries[relPath] = { ...existing, lastRun: now };
+          }
+          runLog.updated = now;
+          fs.writeFileSync(SCRIPT_RUN_LOG_PATH, JSON.stringify(runLog, null, 2), 'utf8');
+
+          json({ ok: true, branch: branchId, touchedAt: now, count: (branch.scripts as string[]).length });
+        } catch (e) {
+          json({ error: String(e) }, 500);
+        }
+        return;
+      }
+
+      next();
+    });
+  },
+});
+
+const codexRunManager = () => ({
+  name: 'codex-run-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+
+      const jsonReply = (res: any, data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      // ── POST /api/npm-run  →  spawn codex, return jobId ──────────────
+      if (urlPath === '/api/npm-run' && req.method === 'POST') {
+        try {
+          const body = JSON.parse(await readBody(req));
+          const script = String(body?.script || '');
+          if (!isSafeScriptName(script)) {
+            jsonReply(res, { error: 'Invalid script name.' }, 400);
+            return;
+          }
+
+          const jobId = Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+          const cwd = process.cwd();
+
+          // On Windows, npm installs executables as .cmd wrappers (codex.cmd).
+          // shell: false can't resolve .cmd files — the shell is required to find them.
+          // --dangerously-bypass-approvals-and-sandbox lets codex shell out to npm;
+          // the default read-only sandbox blocks it. Safe here: script names are validated
+          // by SAFE_SCRIPT_NAME_RE. --color never suppresses ANSI codes in the browser terminal.
+          // Prompt is double-quoted so cmd.exe passes it as one argument to codex.
+          const proc = spawn(
+            'codex',
+            ['exec', '--dangerously-bypass-approvals-and-sandbox', '--color', 'never', `"npm run ${script}"`],
+            { cwd, shell: process.platform === 'win32', windowsHide: true }
+          );
+
+          const job: CodexJob = { proc, subscribers: [], done: false, exitCode: null, buffer: [] };
+          codexJobs.set(jobId, job);
+
+          const emit = (chunk: string) => {
+            job.buffer.push(chunk);
+            for (const fn of job.subscribers) fn(chunk);
+          };
+
+          proc.stdout?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
+          proc.stderr?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
+
+          // Critical: handle spawn errors (e.g. codex not installed / ENOENT)
+          // Without this, an unhandled 'error' event would crash the Vite server process.
+          // Subscribers are NOT cleared on exit — the SSE stream stays open for multi-turn continues.
+          proc.on('error', (err: Error) => {
+            emit(Buffer.from(`[spawn error: ${err.message}]\n`).toString('base64'));
+            job.done = true;
+            job.exitCode = -1;
+            for (const fn of job.subscribers) fn('__EXIT__:-1');
+            setTimeout(() => codexJobs.delete(jobId), 30 * 60 * 1000);
+          });
+
+          proc.on('close', (code: number | null) => {
+            if (job.done) return; // already handled by 'error' event
+            job.done = true;
+            job.exitCode = code;
+            for (const fn of job.subscribers) fn(`__EXIT__:${code ?? -1}`);
+            setTimeout(() => codexJobs.delete(jobId), 30 * 60 * 1000);
+          });
+
+          jsonReply(res, { jobId });
+        } catch (e) {
+          jsonReply(res, { error: String(e) }, 500);
+        }
+        return;
+      }
+
+      // ── GET /api/npm-run/:jobId/stream  →  SSE ────────────────────────
+      const streamMatch = urlPath.match(/^\/api\/npm-run\/([0-9a-f]+)\/stream$/);
+      if (streamMatch && req.method === 'GET') {
+        const jobId = streamMatch[1];
+        const job = codexJobs.get(jobId);
+        if (!job) { jsonReply(res, { error: 'Job not found.' }, 404); return; }
+
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+        });
+
+        const send = (chunk: string) => { if (!res.writableEnded) res.write(`data: ${chunk}\n\n`); };
+
+        // Replay buffered output so late-connecting clients catch up
+        for (const chunk of job.buffer) send(chunk);
+
+        // If already done, send the exit marker but keep stream open for future continues.
+        if (job.done) send(`__EXIT__:${job.exitCode ?? -1}`);
+
+        // Subscribe to live output — stream stays open indefinitely for multi-turn.
+        // __EXIT__ is passed through as data (client shows input area); res is not ended here.
+        const subscriber = (chunk: string) => send(chunk);
+        job.subscribers.push(subscriber);
+
+        // Heartbeat keeps the connection alive through proxies / idle timeouts
+        const heartbeat = setInterval(() => {
+          if (!res.writableEnded) res.write(': keepalive\n\n');
+          else clearInterval(heartbeat);
+        }, 25_000);
+
+        // Clean up on client disconnect
+        req.on('close', () => {
+          clearInterval(heartbeat);
+          job.subscribers = job.subscribers.filter((fn: any) => fn !== subscriber);
+        });
+        return;
+      }
+
+      // ── POST /api/npm-run/:jobId/kill  →  SIGTERM ─────────────────────
+      const killMatch = urlPath.match(/^\/api\/npm-run\/([0-9a-f]+)\/kill$/);
+      if (killMatch && req.method === 'POST') {
+        const jobId = killMatch[1];
+        const job = codexJobs.get(jobId);
+        if (!job) { jsonReply(res, { error: 'Job not found.' }, 404); return; }
+        if (job.proc) try { job.proc.kill('SIGTERM'); } catch { /* already exited */ }
+        jsonReply(res, { ok: true });
+        return;
+      }
+
+      // ── POST /api/npm-run/:jobId/continue  →  multi-turn conversation ──
+      const continueMatch = urlPath.match(/^\/api\/npm-run\/([0-9a-f]+)\/continue$/);
+      if (continueMatch && req.method === 'POST') {
+        try {
+          const jobId = continueMatch[1];
+          const job = codexJobs.get(jobId);
+          if (!job) { jsonReply(res, { error: 'Job not found.' }, 404); return; }
+
+          const body = JSON.parse(await readBody(req));
+          const message = String(body?.message || '').trim();
+          if (!message) { jsonReply(res, { error: 'Empty message.' }, 400); return; }
+
+          // Reuse the same emit → SSE subscribers channel
+          const emit = (chunk: string) => {
+            job.buffer.push(chunk);
+            for (const fn of job.subscribers) fn(chunk);
+          };
+
+          // Reset done so new output flows through
+          job.done = false;
+          job.exitCode = null;
+
+          // Resume the most recent codex session. Prompt is read from stdin ('-')
+          // to avoid any shell-quoting issues with arbitrary user text.
+          const newProc = spawn(
+            'codex',
+            ['exec', '--dangerously-bypass-approvals-and-sandbox', '--color', 'never', 'resume', '--last', '-'],
+            { cwd: process.cwd(), shell: process.platform === 'win32', windowsHide: true }
+          );
+          job.proc = newProc;
+
+          // Write user message to codex stdin
+          newProc.stdin?.write(message);
+          newProc.stdin?.end();
+
+          newProc.stdout?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
+          newProc.stderr?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
+          newProc.on('error', (err: Error) => {
+            emit(Buffer.from(`[spawn error: ${err.message}]\n`).toString('base64'));
+            job.done = true;
+            job.exitCode = -1;
+            for (const fn of job.subscribers) fn('__EXIT__:-1');
+          });
+          newProc.on('close', (code: number | null) => {
+            if (job.done) return;
+            job.done = true;
+            job.exitCode = code;
+            for (const fn of job.subscribers) fn(`__EXIT__:${code ?? -1}`);
+          });
+
+          jsonReply(res, { ok: true });
+        } catch (e) {
+          jsonReply(res, { error: String(e) }, 500);
+        }
+        return;
+      }
+
+      next();
+    });
+  },
+});
+
+const codexChatManager = () => ({
+  name: 'codex-chat-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+      const jsonReply = (res: any, data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      // -- POST /api/codex-chat/start  ->  spawn codex, return sessionId --
+      if (urlPath === '/api/codex-chat/start' && req.method === 'POST') {
+        try {
+          const sessionId = Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+          const cwd = process.cwd();
+          const proc = spawn(
+            'codex',
+            ['--no-alt-screen', '--dangerously-bypass-approvals-and-sandbox', '--search'],
+            { cwd, shell: process.platform === 'win32', windowsHide: true }
+          );
+          const session: CodexChatSession = { proc, subscribers: [], buffer: [], alive: true };
+          codexChatSessions.set(sessionId, session);
+
+          const emit = (chunk: string) => {
+            session.buffer.push(chunk);
+            for (const fn of session.subscribers) fn(chunk);
+          };
+
+          proc.stdout?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
+          proc.stderr?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
+          proc.on('error', (err: Error) => {
+            emit(Buffer.from('[spawn error: ' + err.message + ']\n').toString('base64'));
+            session.alive = false;
+            for (const fn of session.subscribers) fn('__SESSION_END__:-1');
+            setTimeout(() => codexChatSessions.delete(sessionId), 30 * 60 * 1000);
+          });
+          proc.on('close', (code: number | null) => {
+            if (!session.alive) return;
+            session.alive = false;
+            for (const fn of session.subscribers) fn('__SESSION_END__:' + (code ?? -1));
+            setTimeout(() => codexChatSessions.delete(sessionId), 30 * 60 * 1000);
+          });
+
+          jsonReply(res, { sessionId });
+        } catch (e) {
+          jsonReply(res, { error: String(e) }, 500);
+        }
+        return;
+      }
+
+      // -- GET /api/codex-chat/:id/stream  ->  SSE --
+      const streamMatch = urlPath.match(/^\/api\/codex-chat\/([0-9a-f]+)\/stream$/);
+      if (streamMatch && req.method === 'GET') {
+        const sessionId = streamMatch[1];
+        const session = codexChatSessions.get(sessionId);
+        if (!session) { jsonReply(res, { error: 'Session not found.' }, 404); return; }
+
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+        });
+
+        const send = (chunk: string) => { if (!res.writableEnded) res.write('data: ' + chunk + '\n\n'); };
+        for (const chunk of session.buffer) send(chunk);
+        if (!session.alive) send('__SESSION_END__:-1');
+
+        const subscriber = (chunk: string) => send(chunk);
+        session.subscribers.push(subscriber);
+
+        const heartbeat = setInterval(() => {
+          if (!res.writableEnded) res.write(': keepalive\n\n');
+          else clearInterval(heartbeat);
+        }, 25_000);
+
+        req.on('close', () => {
+          clearInterval(heartbeat);
+          session.subscribers = session.subscribers.filter((fn: any) => fn !== subscriber);
+        });
+        return;
+      }
+
+      // -- POST /api/codex-chat/:id/send  ->  write to stdin --
+      const sendMatch = urlPath.match(/^\/api\/codex-chat\/([0-9a-f]+)\/send$/);
+      if (sendMatch && req.method === 'POST') {
+        try {
+          const sessionId = sendMatch[1];
+          const session = codexChatSessions.get(sessionId);
+          if (!session || !session.alive || !session.proc) {
+            jsonReply(res, { error: 'Session not found or dead.' }, 404); return;
+          }
+          const body = JSON.parse(await readBody(req));
+          const message = String(body?.message || '').slice(0, 2000);
+          if (!message.trim()) { jsonReply(res, { error: 'Empty message.' }, 400); return; }
+          session.proc.stdin?.write(message + '\n');
+          jsonReply(res, { ok: true });
+        } catch (e) {
+          jsonReply(res, { error: String(e) }, 500);
+        }
+        return;
+      }
+
+      // -- POST /api/codex-chat/:id/kill  ->  SIGTERM --
+      const killMatch = urlPath.match(/^\/api\/codex-chat\/([0-9a-f]+)\/kill$/);
+      if (killMatch && req.method === 'POST') {
+        const sessionId = killMatch[1];
+        const session = codexChatSessions.get(sessionId);
+        if (!session) { jsonReply(res, { error: 'Session not found.' }, 404); return; }
+        if (session.proc) try { session.proc.kill('SIGTERM'); } catch { /* already exited */ }
+        jsonReply(res, { ok: true });
+        return;
+      }
+
+      next();
+    });
+  },
+});
 const portraitApiManager = () => ({
   name: 'portrait-api-manager',
   configureServer(server: any) {
@@ -1100,7 +1551,7 @@ export default defineConfig(({ mode, command }) => {
         )
       }
     },
-    plugins: [react(), visualizerManager(), roadmapManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), portraitApiManager()],
+    plugins: [react(), visualizerManager(), roadmapManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), scriptRegistryManager(), portraitApiManager(), codexRunManager(), codexChatManager()],
     define: {
       // Shim process.env for legacy support (allows process.env.API_KEY to work).
       // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.
