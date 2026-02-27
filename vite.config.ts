@@ -4,6 +4,7 @@ import { defineConfig, loadEnv } from 'vite';
 import type { ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import { spawn, exec, execSync } from 'child_process';
+import { WebSocket } from 'ws';
 
 const MCP_CLI = path.resolve(process.cwd(), 'node_modules/.bin/mcp-cli');
 const MCP_CONFIG = path.resolve(process.cwd(), '.mcp.json');
@@ -79,11 +80,42 @@ function isSafeScriptName(name: string): boolean {
 // ==================== Codex Chat Manager ====================
 interface CodexChatSession {
   proc: ReturnType<typeof spawn> | null;
-  subscribers: Array<(chunk: string) => void>;
+  ws: WebSocket | null;
+  threadId: string | null;
+  nextId: number;
+  subscribers: Array<(event: string) => void>;
   buffer: string[];
   alive: boolean;
 }
 const codexChatSessions = new Map<string, CodexChatSession>();
+
+async function findFreePort(): Promise<number> {
+  const { createServer } = await import('net');
+  return new Promise((resolve, reject) => {
+    const srv = createServer();
+    srv.listen(0, '127.0.0.1', () => {
+      const port = (srv.address() as { port: number }).port;
+      srv.close(() => resolve(port));
+    });
+    srv.on('error', reject);
+  });
+}
+
+async function waitForPort(port: number, maxMs = 8000): Promise<void> {
+  const { createConnection } = await import('net');
+  const start = Date.now();
+  while (Date.now() - start < maxMs) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const ok = await new Promise<boolean>(resolve => {
+      const sock = createConnection(port, '127.0.0.1');
+      sock.on('connect', () => { sock.destroy(); resolve(true); });
+      sock.on('error', () => resolve(false));
+      sock.setTimeout(150, () => { sock.destroy(); resolve(false); });
+    });
+    if (ok) return;
+  }
+  throw new Error(`codex app-server did not start within ${maxMs}ms`);
+}
 
 function sanitizePromptText(input: string, maxLength = 500): string {
   if (!input) return '';
@@ -1238,43 +1270,127 @@ const codexChatManager = () => ({
   configureServer(server: any) {
     server.middlewares.use(async (req: any, res: any, next: any) => {
       const urlPath = (req.url || '').split('?')[0];
-      const jsonReply = (res: any, data: any, status = 200) => {
-        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-        res.end(JSON.stringify(data));
+      const jsonReply = (r: any, data: any, status = 200) => {
+        r.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        r.end(JSON.stringify(data));
       };
 
-      // -- POST /api/codex-chat/start  ->  spawn codex, return sessionId --
+      // ── POST /api/codex-chat/start  →  spawn app-server, connect WS, return sessionId ──
       if (urlPath === '/api/codex-chat/start' && req.method === 'POST') {
         try {
           const sessionId = Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
           const cwd = process.cwd();
+          const port = await findFreePort();
+
           const proc = spawn(
             'codex',
-            ['--no-alt-screen', '--dangerously-bypass-approvals-and-sandbox', '--search'],
+            [
+              'app-server',
+              '--listen', `ws://127.0.0.1:${port}`,
+              '-c', 'approval_policy="never"',
+              '-c', 'search=true',
+            ],
             { cwd, shell: process.platform === 'win32', windowsHide: true }
           );
-          const session: CodexChatSession = { proc, subscribers: [], buffer: [], alive: true };
+
+          const session: CodexChatSession = {
+            proc, ws: null, threadId: null, nextId: 1,
+            subscribers: [], buffer: [], alive: true,
+          };
           codexChatSessions.set(sessionId, session);
 
-          const emit = (chunk: string) => {
-            session.buffer.push(chunk);
-            for (const fn of session.subscribers) fn(chunk);
+          const emit = (type: string, payload?: Record<string, unknown>) => {
+            const event = JSON.stringify({ type, ...payload });
+            session.buffer.push(event);
+            for (const fn of session.subscribers) fn(event);
           };
 
-          proc.stdout?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
-          proc.stderr?.on('data', (data: Buffer) => emit(Buffer.from(data).toString('base64')));
-          proc.on('error', (err: Error) => {
-            emit(Buffer.from('[spawn error: ' + err.message + ']\n').toString('base64'));
-            session.alive = false;
-            for (const fn of session.subscribers) fn('__SESSION_END__:-1');
-            setTimeout(() => codexChatSessions.delete(sessionId), 30 * 60 * 1000);
-          });
-          proc.on('close', (code: number | null) => {
+          const killSession = (code?: number) => {
             if (!session.alive) return;
             session.alive = false;
+            if (session.ws) try { session.ws.close(); } catch { /* ignore */ }
+            session.ws = null;
             for (const fn of session.subscribers) fn('__SESSION_END__:' + (code ?? -1));
             setTimeout(() => codexChatSessions.delete(sessionId), 30 * 60 * 1000);
+          };
+
+          proc.on('error', (err: Error) => {
+            emit('error', { text: 'spawn error: ' + err.message });
+            killSession(-1);
           });
+          proc.on('close', (code: number | null) => killSession(code ?? -1));
+
+          // Connect WebSocket once the app-server is listening
+          (async () => {
+            try {
+              await waitForPort(port);
+
+              const ws = new WebSocket(`ws://127.0.0.1:${port}`);
+              session.ws = ws;
+
+              ws.on('error', (err: Error) => {
+                emit('error', { text: 'ws error: ' + err.message });
+                killSession(-1);
+              });
+              ws.on('close', () => killSession(-1));
+
+              ws.on('open', () => {
+                ws.send(JSON.stringify({
+                  method: 'initialize', id: session.nextId++,
+                  params: {
+                    clientInfo: { name: 'aralia-dev-hub', title: 'Aralia Dev Hub', version: '1.0.0' },
+                    capabilities: { experimentalApi: false },
+                  },
+                }));
+              });
+
+              ws.on('message', (raw: Buffer) => {
+                let msg: any;
+                try { msg = JSON.parse(raw.toString()); } catch { return; }
+
+                const method: string | undefined = msg.method;
+                const params: any = msg.params;
+
+                // Initialize response → start thread
+                if (!method && msg.result !== undefined && session.threadId === null) {
+                  ws.send(JSON.stringify({
+                    method: 'thread/start', id: session.nextId++,
+                    params: {
+                      cwd,
+                      approvalPolicy: 'never',
+                      experimentalRawEvents: false,
+                      persistExtendedHistory: false,
+                    },
+                  }));
+                  return;
+                }
+
+                if (method === 'thread/started') {
+                  session.threadId = params?.thread?.id ?? null;
+                  emit('sessionReady');
+                  return;
+                }
+
+                if (method === 'item/agentMessage/delta') {
+                  emit('text', { text: params?.delta ?? '' });
+                  return;
+                }
+
+                if (method === 'turn/completed') {
+                  emit('turnComplete');
+                  return;
+                }
+
+                if (method === 'error') {
+                  emit('error', { text: params?.message ?? 'Unknown error' });
+                }
+              });
+
+            } catch (err: any) {
+              emit('error', { text: 'startup error: ' + err.message });
+              killSession(-1);
+            }
+          })();
 
           jsonReply(res, { sessionId });
         } catch (e) {
@@ -1283,7 +1399,7 @@ const codexChatManager = () => ({
         return;
       }
 
-      // -- GET /api/codex-chat/:id/stream  ->  SSE --
+      // ── GET /api/codex-chat/:id/stream  →  SSE ────────────────────────────
       const streamMatch = urlPath.match(/^\/api\/codex-chat\/([0-9a-f]+)\/stream$/);
       if (streamMatch && req.method === 'GET') {
         const sessionId = streamMatch[1];
@@ -1297,11 +1413,11 @@ const codexChatManager = () => ({
           'Access-Control-Allow-Origin': '*',
         });
 
-        const send = (chunk: string) => { if (!res.writableEnded) res.write('data: ' + chunk + '\n\n'); };
+        const send = (event: string) => { if (!res.writableEnded) res.write('data: ' + event + '\n\n'); };
         for (const chunk of session.buffer) send(chunk);
         if (!session.alive) send('__SESSION_END__:-1');
 
-        const subscriber = (chunk: string) => send(chunk);
+        const subscriber = (event: string) => send(event);
         session.subscribers.push(subscriber);
 
         const heartbeat = setInterval(() => {
@@ -1316,19 +1432,27 @@ const codexChatManager = () => ({
         return;
       }
 
-      // -- POST /api/codex-chat/:id/send  ->  write to stdin --
+      // ── POST /api/codex-chat/:id/send  →  turn/start via WS ──────────────
       const sendMatch = urlPath.match(/^\/api\/codex-chat\/([0-9a-f]+)\/send$/);
       if (sendMatch && req.method === 'POST') {
         try {
           const sessionId = sendMatch[1];
           const session = codexChatSessions.get(sessionId);
-          if (!session || !session.alive || !session.proc) {
-            jsonReply(res, { error: 'Session not found or dead.' }, 404); return;
+          if (!session || !session.alive || !session.ws || !session.threadId) {
+            jsonReply(res, { error: 'Session not ready.' }, 404); return;
           }
           const body = JSON.parse(await readBody(req));
           const message = String(body?.message || '').slice(0, 2000);
           if (!message.trim()) { jsonReply(res, { error: 'Empty message.' }, 400); return; }
-          session.proc.stdin?.write(message + '\n');
+
+          session.ws.send(JSON.stringify({
+            method: 'turn/start', id: session.nextId++,
+            params: {
+              threadId: session.threadId,
+              input: [{ type: 'text', text: message, text_elements: [] }],
+              approvalPolicy: 'never',
+            },
+          }));
           jsonReply(res, { ok: true });
         } catch (e) {
           jsonReply(res, { error: String(e) }, 500);
@@ -1336,12 +1460,13 @@ const codexChatManager = () => ({
         return;
       }
 
-      // -- POST /api/codex-chat/:id/kill  ->  SIGTERM --
+      // ── POST /api/codex-chat/:id/kill  →  close WS + SIGTERM ─────────────
       const killMatch = urlPath.match(/^\/api\/codex-chat\/([0-9a-f]+)\/kill$/);
       if (killMatch && req.method === 'POST') {
         const sessionId = killMatch[1];
         const session = codexChatSessions.get(sessionId);
         if (!session) { jsonReply(res, { error: 'Session not found.' }, 404); return; }
+        if (session.ws) try { session.ws.close(); } catch { /* ignore */ }
         if (session.proc) try { session.proc.kill('SIGTERM'); } catch { /* already exited */ }
         jsonReply(res, { ok: true });
         return;

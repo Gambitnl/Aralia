@@ -491,7 +491,6 @@
     let _ctermResize = null;
     let _ctermMaximized = false;
     let _ctermPreMax = null;
-    let _ctermQuietTimer = null;
 
     // ── Layout persistence ──────────────────────────────────────────
     function ctermLoadLayout() {
@@ -573,13 +572,14 @@
     // ── Session events ──────────────────────────────────────────────
     function ctermOnSse(e) {
         const raw = e.data;
-        if (raw.startsWith('__SESSION_END__:')) {
-            ctermMarkDead();
-            return;
-        }
-        try { ctermAppend(atob(raw)); } catch { ctermAppend(raw); }
-        clearTimeout(_ctermQuietTimer);
-        _ctermQuietTimer = setTimeout(ctermMarkReady, 300);
+        if (raw.startsWith('__SESSION_END__:')) { ctermMarkDead(); return; }
+        try {
+            const evt = JSON.parse(raw);
+            if (evt.type === 'text')          { ctermAppend(evt.text ?? ''); }
+            else if (evt.type === 'sessionReady') { ctermMarkReady(); }
+            else if (evt.type === 'turnComplete') { ctermMarkReady(); }
+            else if (evt.type === 'error')    { ctermAppend('[error: ' + (evt.text ?? '?') + ']\n'); }
+        } catch { ctermAppend(raw); }
     }
 
     function ctermAppend(text) {
@@ -609,7 +609,6 @@
         input.value = '';
         input.disabled = true;
         document.getElementById('ctermSendBtn').disabled = true;
-        clearTimeout(_ctermQuietTimer);
         try {
             const res = await fetch('/api/codex-chat/' + _ctermSessionId + '/send', {
                 method: 'POST',
