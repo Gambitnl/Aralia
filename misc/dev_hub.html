@@ -1,0 +1,758 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aralia Developer Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="dev_hub.css">
+<style>
+/* ── Codex Terminal Window ─────────────────────────────────────── */
+.cterm-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 8000;
+    pointer-events: none;
+}
+.cterm-overlay.open { display: block; pointer-events: auto; }
+
+.cterm-window {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    background: #050a14;
+    border: 1px solid #7c3aed;
+    border-radius: 6px;
+    box-shadow: 0 8px 40px rgba(124,58,237,0.35);
+    z-index: 8100;
+    min-width: 600px;
+    min-height: 400px;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Title bar */
+.cterm-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.75rem;
+    background: #0d0920;
+    border-bottom: 1px solid #4c1d95;
+    cursor: move;
+    flex-shrink: 0;
+}
+.cterm-title {
+    flex: 1;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 0.8rem;
+    color: #c4b5fd;
+    pointer-events: none;
+}
+.cterm-status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+.cterm-status-dot.dead { background: #ef4444; }
+.cterm-btn {
+    background: transparent;
+    border: 1px solid #4c1d95;
+    color: #94a3b8;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+    cursor: pointer;
+    line-height: 1.4;
+}
+.cterm-btn:hover { background: #1e1b4b; color: #e2e8f0; }
+.cterm-btn.danger { border-color: #7f1d1d; color: #fca5a5; }
+.cterm-btn.danger:hover { background: #450a0a; }
+
+/* Body */
+.cterm-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.cterm-terminal {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.6rem 0.9rem;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 0.8rem;
+    color: #c7d2fe;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    background: #050a14;
+    scrollbar-width: thin;
+    scrollbar-color: #4c1d95 transparent;
+}
+.cterm-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    background: #0d0920;
+    border-top: 1px solid #4c1d95;
+    flex-shrink: 0;
+}
+.cterm-input-row input {
+    flex: 1;
+    background: #050a14;
+    border: 1px solid #4c1d95;
+    border-radius: 4px;
+    color: #c4b5fd;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    outline: none;
+}
+.cterm-input-row input:focus { border-color: #7c3aed; }
+.cterm-input-row input::placeholder { color: #4c1d95; }
+.cterm-input-row input:disabled { opacity: 0.4; cursor: not-allowed; }
+.cterm-send-btn {
+    background: #3b0764;
+    color: #c4b5fd;
+    border: 1px solid #7c3aed;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.cterm-send-btn:hover { background: #4c1d95; }
+.cterm-send-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* Resize handles — amber-400 theme matching WindowFrame.tsx */
+.cterm-rh {
+    position: absolute;
+    z-index: 8200;
+}
+/* Corners */
+.cterm-rh-nw, .cterm-rh-ne, .cterm-rh-sw, .cterm-rh-se {
+    width: 12px; height: 12px;
+    background: rgba(251,191,36,0.3);
+    border-radius: 2px;
+}
+.cterm-rh-nw:hover, .cterm-rh-ne:hover, .cterm-rh-sw:hover, .cterm-rh-se:hover {
+    background: rgba(251,191,36,0.8);
+    box-shadow: 0 0 6px rgba(251,191,36,0.6);
+}
+.cterm-rh-nw { top: 0; left: 0; cursor: nwse-resize; }
+.cterm-rh-ne { top: 0; right: 0; cursor: nesw-resize; }
+.cterm-rh-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.cterm-rh-se { bottom: 0; right: 0; cursor: nwse-resize; }
+/* Edges */
+.cterm-rh-n, .cterm-rh-s {
+    height: 6px; left: 12px; right: 12px;
+    background: rgba(251,191,36,0.15);
+}
+.cterm-rh-n { top: 0; cursor: ns-resize; }
+.cterm-rh-s { bottom: 0; cursor: ns-resize; }
+.cterm-rh-n:hover, .cterm-rh-s:hover { background: rgba(251,191,36,0.35); }
+.cterm-rh-w, .cterm-rh-e {
+    width: 6px; top: 12px; bottom: 12px;
+    background: rgba(251,191,36,0.15);
+}
+.cterm-rh-w { left: 0; cursor: ew-resize; }
+.cterm-rh-e { right: 0; cursor: ew-resize; }
+.cterm-rh-w:hover, .cterm-rh-e:hover { background: rgba(251,191,36,0.35); }
+</style>
+</head>
+
+<body>
+    <h1>Aralia Dev Hub</h1>
+    <p class="subtitle">Centralized access for standalone development tools</p>
+
+    <!-- Git Status Bar -->
+    <div class="git-bar" id="gitBar">
+        <span class="git-branch" id="gitBranch">...</span>
+        <span class="git-dirty" id="gitDirty"></span>
+        <span class="git-commit" id="gitCommit">loading...</span>
+        <span class="git-date" id="gitDate"></span>
+    </div>
+
+    <!-- Environment Health Strip -->
+    <div class="env-strip" id="envStrip">
+        <div class="env-dot"><span class="dot checking" id="envRDrive"></span> R: Drive</div>
+        <div class="env-dot"><span class="dot checking" id="envOllama"></span> Ollama</div>
+        <div class="env-dot"><span class="dot checking" id="envImageSrv"></span> Image Server</div>
+        <div class="env-dot"><span class="dot checking" id="envChrome"></span> Chrome Debug</div>
+        <div class="env-dot"><span class="dot checking" id="envDevSrv"></span> Dev Server</div>
+    </div>
+
+    <!-- Image Generation -->
+    <section class="panel" id="imageGenPanel">
+        <div class="panel-header">
+            <h2>Image Generation</h2>
+            <div class="imggen-actions">
+                <button class="action-btn" id="imggenRefreshBtn" onclick="refreshImageGen()">Refresh</button>
+                <button class="action-btn" id="imggenDoctorBtn" onclick="runCdpDoctor()">CDP Doctor</button>
+                <button class="action-btn" id="imggenGenerateBtn" onclick="generateSamplePortrait()">Generate Hadozee
+                    Portrait</button>
+            </div>
+        </div>
+        <div class="imggen-wrap">
+            <div class="imggen-status" id="imggenStatus">Loading image generation status...</div>
+            <div class="imggen-split">
+                <div class="imggen-card">
+                    <h3>Generated Portraits</h3>
+                    <p class="imggen-hint">
+                        Files saved under <code>public/assets/images/portraits/generated/</code>.
+                        The Character Creator stores a URL string pointing here.
+                    </p>
+                    <div class="thumb-grid" id="portraitThumbs"></div>
+                </div>
+                <div class="imggen-card">
+                    <h3>Docs & Commands</h3>
+                    <p class="imggen-hint">These are the key entrypoints used by the portrait pipeline.</p>
+                    <div class="tool-cmd" style="margin-top: 0.6rem;">
+                        <code>npm run mcp:chrome</code>
+                        <div class="tool-actions">
+                            <button class="tool-btn" onclick="copyCmd(this, 'npm run mcp:chrome')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="tool-cmd" style="margin-top: 0.5rem;">
+                        <code>npm run image-gen:login</code>
+                        <div class="tool-actions">
+                            <button class="tool-btn" onclick="copyCmd(this, 'npm run image-gen:login')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="tool-cmd" style="margin-top: 0.5rem;">
+                        <code>npm run mcp inspect image-gen</code>
+                        <div class="tool-actions">
+                            <button class="tool-btn"
+                                onclick="copyCmd(this, 'npm run mcp inspect image-gen')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="tool-cmd" style="margin-top: 0.5rem;">
+                        <code>npm run mcp inspect stitch</code>
+                        <div class="tool-actions">
+                            <button class="tool-btn" onclick="copyCmd(this, 'npm run mcp inspect stitch')">Copy</button>
+                        </div>
+                    </div>
+                    <p class="imggen-hint" style="margin-top: 0.75rem;">
+                        Portrait endpoint: <code>POST /api/portraits/generate</code>
+                        <br>
+                        List endpoint: <code>GET /api/portraits/list</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quality Dashboard -->
+    <section class="panel" id="qualityPanel">
+        <div class="panel-header">
+            <h2>Code Quality</h2>
+            <button class="action-btn" id="scanBtn" onclick="runScan()">Run Scan</button>
+        </div>
+        <div id="qualityContent">
+            <div class="placeholder">Click "Run Scan" to analyze the codebase.</div>
+        </div>
+    </section>
+
+    <!-- Test Runner -->
+    <section class="panel" id="testPanel">
+        <div class="panel-header">
+            <h2>Test Runner</h2>
+            <button class="action-btn" id="testBtn" onclick="runTests()">Run Tests</button>
+        </div>
+        <div id="testContent">
+            <div class="placeholder">Click "Run Tests" to execute vitest suite.</div>
+        </div>
+    </section>
+
+    <!-- CI/CD Status -->
+    <section class="panel" id="ciPanel">
+        <div class="panel-header">
+            <h2>CI/CD Pipeline</h2>
+            <button class="action-btn" id="ciBtn" onclick="loadCiStatus()">Refresh</button>
+        </div>
+        <div id="ciContent">
+            <div class="placeholder">Loading CI status...</div>
+        </div>
+    </section>
+
+    <!-- Navigation Cards -->
+    <div class="grid">
+        <a href="/Aralia/" class="card">
+            <span class="badge badge-app">Core Application</span>
+            <h2>MAIN GAME</h2>
+            <p>Launch the main Aralia RPG experience. Play, test gameplay systems, and access the in-game dev menu.</p>
+        </a>
+
+        <a href="/Aralia/misc/design.html" class="card">
+            <span class="badge badge-tool">Developer Tool</span>
+            <h2>DESIGN PREVIEW</h2>
+            <p>UI Component Playground. Test layouts, icons, and specialized creation steps in isolation.</p>
+        </a>
+
+        <div id="visualizer-card" class="card" onclick="handleVisualizerClick()">
+            <button class="kill-btn" onclick="killVisualizer(event)" title="Stop Server">&times;</button>
+            <span class="badge badge-debug">
+                External System
+                <span id="visualizer-status" class="status-inactive">
+                    <span class="status-dot"></span>
+                    <span id="status-text">OFFLINE</span>
+                </span>
+            </span>
+            <h2>CODEBASE VISUALIZER</h2>
+            <p id="visualizer-desc">Interactive tree map and dependency visualizer. Click to launch server and open.</p>
+        </div>
+
+        <a href="/Aralia/misc/design.html?step=components" class="card">
+            <span class="badge badge-tool">Design System</span>
+            <h2>COMPONENT SHOWCASE</h2>
+            <p>View and test reusable Atomic UI components (Buttons, Tables, Typography) in isolation.</p>
+        </a>
+
+        <a href="/Aralia/misc/agent_docs.html" class="card">
+            <span class="badge badge-tool">Documentation</span>
+            <h2>AGENT DOCS</h2>
+            <p>Interactive viewer for agent configuration files. Fetches live rules, skills, and workflows from the
+                source.</p>
+        </a>
+
+        <a href="/Aralia/misc/openclaw_install.html" class="card dev-only">
+            <span class="badge badge-tool">Documentation</span>
+            <h2>OPENCLAW INSTALL</h2>
+            <p>Current OpenClaw install snapshot for the desktop machine.</p>
+        </a>
+
+        <a href="/Aralia/misc/agent_matrix.html" class="card dev-only">
+            <span class="badge badge-tool">Coordination</span>
+            <h2>AGENT MATRIX</h2>
+            <p>Track which agents run where, their execution keywords, and trigger commands.</p>
+        </a>
+
+        <a href="/Aralia/misc/chronicle.html" class="card dev-only">
+            <span class="badge badge-tool">Logbook</span>
+            <h2>DEVELOPMENT CHRONICLE</h2>
+            <p>Session logs and feature history. Filter by category to track development progress.</p>
+        </a>
+
+        <div class="card" onclick="ctermOpen()" style="cursor:pointer">
+            <span class="badge badge-tool">Agent Tool</span>
+            <h2>&#x25C8; CODEX TERMINAL</h2>
+            <p>Live AI session with web search enabled. Codex sits idle until you send a prompt.</p>
+        </div>
+    </div>
+
+    <!-- Interactive Roadmap -->
+    <section class="panel" id="roadmapPanel">
+        <h2>Interactive Roadmap</h2>
+        <div class="card-grid">
+            <button type="button" class="card card-button dev-only" onclick="openRoadmapModal()">
+                <span class="badge badge-beta">Interactive</span>
+                <h2>ARALIA CHRONICLES</h2>
+                <p>Open roadmap planning, status tracking, and verification tools from one entrypoint.</p>
+            </button>
+        </div>
+    </section>
+
+    <!-- Roadmap Modal -->
+    <div class="modal-overlay" id="roadmapModalOverlay" onclick="closeRoadmapModal(event)">
+        <div class="modal-panel" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Roadmap Tools</h2>
+                <button class="action-btn" onclick="document.getElementById('roadmapModalOverlay').classList.remove('active')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="roadmap-modal-subtitle">
+                    Choose where you want to go in the roadmap system.
+                </p>
+                <div class="roadmap-option-grid">
+                    <a href="/Aralia/misc/roadmap.html" class="roadmap-option-card">
+                        <span class="roadmap-option-badge">Visualizer</span>
+                        <h3>Open Roadmap Visualizer</h3>
+                        <p>Launch the interactive roadmap graph.</p>
+                    </a>
+                    <a href="/Aralia/misc/roadmap_docs.html" class="roadmap-option-card">
+                        <span class="roadmap-option-badge">Documentation</span>
+                        <h3>Open Roadmap Documentation</h3>
+                        <p>Review high-level roadmap functionality, workflow steps, and architecture references.</p>
+                    </a>
+                    <a href="/Aralia/docs/tasks/roadmap/1C-ROADMAP-IMPLEMENTATION-PLAN.md" class="roadmap-option-card">
+                        <span class="roadmap-option-badge">Plan</span>
+                        <h3>Open Implementation Plan</h3>
+                        <p>Review high-level roadmap phases and open tasks.</p>
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" onclick="document.getElementById('roadmapModalOverlay').classList.remove('active')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conductor Tracks -->
+    <section class="panel" id="conductorPanel">
+        <h2>Conductor Tracks</h2>
+        <div id="conductorContent">
+            <div class="placeholder">Loading tracks...</div>
+        </div>
+    </section>
+
+    <!-- Agent Knowledge -->
+    <section class="panel" id="agentPanel">
+        <h2>Agent Knowledge Base</h2>
+        <div id="agentContent">
+            <div class="placeholder">Loading agent config...</div>
+        </div>
+    </section>
+
+    <!-- Tooling Catalog (moved to tooling.html) -->
+    <div class="grid" style="margin-bottom: 2rem;">
+        <a href="/Aralia/misc/tooling.html" class="card">
+            <span class="badge badge-tool">Developer Tool</span>
+            <h2>TOOLING CATALOG</h2>
+            <p>Full catalog of npm scripts, agent workflows, and dev tools with safety ratings, search, and VS Code links. Open on the Tooling page.</p>
+        </a>
+    </div>
+
+    <!-- OpenClaw Control -->
+    <section class="panel">
+        <h2>OpenClaw Control</h2>
+        <p class="openclaw-desc">Targets each machine's OpenClaw bridge. The bridge must be running on the target
+            machine.</p>
+        <div class="openclaw-grid">
+            <div class="openclaw-card" data-openclaw="desktop">
+                <span class="badge badge-tool">Desktop</span>
+                <h3>Desktop Machine</h3>
+                <div class="openclaw-field"><label>Host</label><input type="text" data-field="host"
+                        placeholder="192.168.178.115"></div>
+                <div class="openclaw-field"><label>Port</label><input type="text" data-field="port" placeholder="18790">
+                </div>
+                <div class="openclaw-field"><label>Token</label><input type="password" data-field="token"
+                        placeholder="optional"></div>
+                <div class="openclaw-field"><label>Pair IP</label><input type="text" data-field="remoteIp"
+                        placeholder="100.89.244.108"></div>
+                <div class="openclaw-actions">
+                    <button class="openclaw-button primary" type="button" data-action="health">Bridge Health</button>
+                    <button class="openclaw-button" type="button" data-action="status">Gateway Status</button>
+                    <button class="openclaw-button primary" type="button" data-action="run">Start Gateway</button>
+                    <button class="openclaw-button danger" type="button" data-action="stop-run">Stop Gateway</button>
+                    <button class="openclaw-button" type="button" data-action="start-service">Start Service</button>
+                    <button class="openclaw-button danger" type="button" data-action="stop-service">Stop
+                        Service</button>
+                    <button class="openclaw-button" type="button" data-action="pair-control-ui">Pair Pending UI</button>
+                </div>
+                <div class="openclaw-output" data-output></div>
+            </div>
+            <div class="openclaw-card" data-openclaw="laptop">
+                <span class="badge badge-tool">Laptop</span>
+                <h3>Laptop Machine</h3>
+                <div class="openclaw-field"><label>Host</label><input type="text" data-field="host"
+                        placeholder="127.0.0.1"></div>
+                <div class="openclaw-field"><label>Port</label><input type="text" data-field="port" placeholder="18790">
+                </div>
+                <div class="openclaw-field"><label>Token</label><input type="password" data-field="token"
+                        placeholder="optional"></div>
+                <div class="openclaw-field"><label>Pair IP</label><input type="text" data-field="remoteIp"
+                        placeholder="100.89.244.108"></div>
+                <div class="openclaw-actions">
+                    <button class="openclaw-button primary" type="button" data-action="health">Bridge Health</button>
+                    <button class="openclaw-button" type="button" data-action="status">Gateway Status</button>
+                    <button class="openclaw-button primary" type="button" data-action="run">Start Gateway</button>
+                    <button class="openclaw-button danger" type="button" data-action="stop-run">Stop Gateway</button>
+                    <button class="openclaw-button" type="button" data-action="start-service">Start Service</button>
+                    <button class="openclaw-button danger" type="button" data-action="stop-service">Stop
+                        Service</button>
+                    <button class="openclaw-button" type="button" data-action="pair-control-ui">Pair Pending UI</button>
+                </div>
+                <div class="openclaw-output" data-output></div>
+            </div>
+        </div>
+    </section>
+
+    <div class="footer">&copy; 2026 Aralia RPG</div>
+
+    <script>
+    // ── Codex Terminal ───────────────────────────────────────────────
+    const CTERM_KEY = 'codex-terminal-window';
+    const CTERM_MIN_W = 600, CTERM_MIN_H = 400;
+
+    let _ctermSessionId = null;
+    let _ctermEvtSrc = null;
+    let _ctermDrag = null;
+    let _ctermResize = null;
+    let _ctermMaximized = false;
+    let _ctermPreMax = null;
+    let _ctermQuietTimer = null;
+
+    // ── Layout persistence ──────────────────────────────────────────
+    function ctermLoadLayout() {
+        try { return JSON.parse(localStorage.getItem(CTERM_KEY) || 'null'); } catch { return null; }
+    }
+    function ctermSaveLayout(x, y, w, h) {
+        localStorage.setItem(CTERM_KEY, JSON.stringify({ x, y, w, h }));
+    }
+    function ctermApplyLayout(x, y, w, h) {
+        const win = document.getElementById('ctermWindow');
+        win.style.left   = x + 'px';
+        win.style.top    = y + 'px';
+        win.style.width  = w + 'px';
+        win.style.height = h + 'px';
+    }
+    function ctermDefaultLayout() {
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const w = Math.min(760, vw - 80), h = Math.min(540, vh - 80);
+        const x = Math.round((vw - w) / 2), y = Math.round((vh - h) / 2);
+        return { x, y, w, h };
+    }
+
+    // ── Open / Close ────────────────────────────────────────────────
+    async function ctermOpen() {
+        if (_ctermSessionId) {
+            document.getElementById('ctermOverlay').classList.add('open');
+            document.getElementById('ctermWindow').style.display = 'flex';
+            return;
+        }
+
+        const saved = ctermLoadLayout() || ctermDefaultLayout();
+        ctermApplyLayout(saved.x, saved.y, saved.w, saved.h);
+        document.getElementById('ctermOverlay').classList.add('open');
+        document.getElementById('ctermWindow').style.display = 'flex';
+        document.getElementById('ctermTerminal').textContent = '';
+        document.getElementById('ctermInput').value = '';
+        document.getElementById('ctermInput').disabled = true;
+        document.getElementById('ctermSendBtn').disabled = true;
+        document.getElementById('ctermStatusDot').className = 'cterm-status-dot';
+
+        document.addEventListener('keydown', _ctermEscHandler);
+
+        try {
+            const res = await fetch('/api/codex-chat/start', { method: 'POST' });
+            const data = await res.json();
+            if (data.error) { ctermAppend('[error: ' + data.error + ']\n'); return; }
+            _ctermSessionId = data.sessionId;
+            _ctermEvtSrc = new EventSource('/api/codex-chat/' + _ctermSessionId + '/stream');
+            _ctermEvtSrc.onmessage = ctermOnSse;
+            _ctermEvtSrc.onerror = () => {
+                ctermAppend('\n[SSE connection lost]\n');
+                ctermMarkDead();
+            };
+        } catch (e) {
+            ctermAppend('[network error: ' + e.message + ']\n');
+            ctermMarkDead();
+        }
+    }
+
+    function _ctermEscHandler(e) {
+        if (e.key === 'Escape') ctermClose();
+    }
+
+    function ctermClose() {
+        document.removeEventListener('keydown', _ctermEscHandler);
+        document.getElementById('ctermOverlay').classList.remove('open');
+        document.getElementById('ctermWindow').style.display = 'none';
+        if (_ctermSessionId) {
+            fetch('/api/codex-chat/' + _ctermSessionId + '/kill', { method: 'POST' }).catch(() => {});
+            _ctermSessionId = null;
+        }
+        if (_ctermEvtSrc) { _ctermEvtSrc.close(); _ctermEvtSrc = null; }
+    }
+
+    function ctermOverlayClick(e) {
+        if (e.target === document.getElementById('ctermOverlay')) ctermClose();
+    }
+
+    // ── Session events ──────────────────────────────────────────────
+    function ctermOnSse(e) {
+        const raw = e.data;
+        if (raw.startsWith('__SESSION_END__:')) {
+            ctermMarkDead();
+            return;
+        }
+        try { ctermAppend(atob(raw)); } catch { ctermAppend(raw); }
+        clearTimeout(_ctermQuietTimer);
+        _ctermQuietTimer = setTimeout(ctermMarkReady, 300);
+    }
+
+    function ctermAppend(text) {
+        const t = document.getElementById('ctermTerminal');
+        t.textContent += text;
+        t.scrollTop = t.scrollHeight;
+    }
+
+    function ctermMarkReady() {
+        document.getElementById('ctermInput').disabled = false;
+        document.getElementById('ctermSendBtn').disabled = false;
+        setTimeout(() => document.getElementById('ctermInput').focus(), 30);
+    }
+
+    function ctermMarkDead() {
+        document.getElementById('ctermStatusDot').className = 'cterm-status-dot dead';
+        document.getElementById('ctermInput').disabled = true;
+        document.getElementById('ctermSendBtn').disabled = true;
+        ctermAppend('\n[session ended]\n');
+    }
+
+    // ── Send message ────────────────────────────────────────────────
+    async function ctermSend() {
+        const input = document.getElementById('ctermInput');
+        const msg = input.value.trim();
+        if (!msg || !_ctermSessionId) return;
+        input.value = '';
+        input.disabled = true;
+        document.getElementById('ctermSendBtn').disabled = true;
+        clearTimeout(_ctermQuietTimer);
+        try {
+            const res = await fetch('/api/codex-chat/' + _ctermSessionId + '/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg }),
+            });
+            const data = await res.json();
+            if (data.error) ctermAppend('[error: ' + data.error + ']\n');
+        } catch (e) {
+            ctermAppend('[network error: ' + e.message + ']\n');
+            ctermMarkReady();
+        }
+    }
+
+    async function ctermKillSession() {
+        if (!_ctermSessionId) return;
+        await fetch('/api/codex-chat/' + _ctermSessionId + '/kill', { method: 'POST' }).catch(() => {});
+    }
+
+    // ── Maximize / Restore ──────────────────────────────────────────
+    function ctermToggleMaximize() {
+        const win = document.getElementById('ctermWindow');
+        if (_ctermMaximized) {
+            const { x, y, w, h } = _ctermPreMax;
+            ctermApplyLayout(x, y, w, h);
+            _ctermMaximized = false;
+            _ctermPreMax = null;
+        } else {
+            const r = win.getBoundingClientRect();
+            _ctermPreMax = { x: r.left, y: r.top, w: r.width, h: r.height };
+            const margin = 20;
+            ctermApplyLayout(margin, margin, window.innerWidth - margin*2, window.innerHeight - margin*2);
+            _ctermMaximized = true;
+        }
+    }
+
+    // ── Drag ────────────────────────────────────────────────────────
+    function ctermStartDrag(e) {
+        if (e.button !== 0) return;
+        if (e.target.closest('button')) return;
+        e.preventDefault();
+        const win = document.getElementById('ctermWindow');
+        const r = win.getBoundingClientRect();
+        _ctermDrag = { startX: e.clientX, startY: e.clientY, winX: r.left, winY: r.top };
+        document.addEventListener('mousemove', ctermDoDrag);
+        document.addEventListener('mouseup', ctermStopDrag);
+    }
+    function ctermDoDrag(e) {
+        if (!_ctermDrag) return;
+        const dx = e.clientX - _ctermDrag.startX;
+        const dy = e.clientY - _ctermDrag.startY;
+        const win = document.getElementById('ctermWindow');
+        const margin = 20;
+        const maxX = window.innerWidth  - win.offsetWidth  - margin;
+        const maxY = window.innerHeight - win.offsetHeight - margin;
+        const x = Math.max(margin, Math.min(_ctermDrag.winX + dx, maxX));
+        const y = Math.max(margin, Math.min(_ctermDrag.winY + dy, maxY));
+        win.style.left = x + 'px';
+        win.style.top  = y + 'px';
+    }
+    function ctermStopDrag() {
+        if (!_ctermDrag) return;
+        _ctermDrag = null;
+        document.removeEventListener('mousemove', ctermDoDrag);
+        document.removeEventListener('mouseup', ctermStopDrag);
+        const win = document.getElementById('ctermWindow');
+        const r = win.getBoundingClientRect();
+        ctermSaveLayout(r.left, r.top, win.offsetWidth, win.offsetHeight);
+    }
+
+    // ── Resize ──────────────────────────────────────────────────────
+    function ctermStartResize(handle, e) {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const win = document.getElementById('ctermWindow');
+        const r = win.getBoundingClientRect();
+        _ctermResize = {
+            handle,
+            startX: e.clientX, startY: e.clientY,
+            winX: r.left, winY: r.top, winW: r.width, winH: r.height,
+        };
+        document.addEventListener('mousemove', ctermDoResize);
+        document.addEventListener('mouseup', ctermStopResize);
+    }
+    function ctermDoResize(e) {
+        if (!_ctermResize) return;
+        const { handle, startX, startY, winX, winY, winW, winH } = _ctermResize;
+        const dx = e.clientX - startX, dy = e.clientY - startY;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let x = winX, y = winY, w = winW, h = winH;
+        if (handle.includes('e')) w = Math.max(CTERM_MIN_W, winW + dx);
+        if (handle.includes('s')) h = Math.max(CTERM_MIN_H, winH + dy);
+        if (handle.includes('w')) { w = Math.max(CTERM_MIN_W, winW - dx); if (w !== winW) x = winX + dx; }
+        if (handle.includes('n')) { h = Math.max(CTERM_MIN_H, winH - dy); if (h !== winH) y = winY + dy; }
+        w = Math.min(w, vw - x - 10);
+        h = Math.min(h, vh - y - 10);
+        ctermApplyLayout(x, y, w, h);
+    }
+    function ctermStopResize() {
+        if (!_ctermResize) return;
+        _ctermResize = null;
+        document.removeEventListener('mousemove', ctermDoResize);
+        document.removeEventListener('mouseup', ctermStopResize);
+        const win = document.getElementById('ctermWindow');
+        const r = win.getBoundingClientRect();
+        ctermSaveLayout(r.left, r.top, win.offsetWidth, win.offsetHeight);
+    }
+    </script>
+
+    <!-- ── Codex Terminal Window ────────────────────────────────────── -->
+    <div class="cterm-overlay" id="ctermOverlay" onclick="ctermOverlayClick(event)"></div>
+    <div class="cterm-window" id="ctermWindow" style="display:none">
+        <!-- Resize handles -->
+        <div class="cterm-rh cterm-rh-nw" onmousedown="ctermStartResize('nw',event)"></div>
+        <div class="cterm-rh cterm-rh-n"  onmousedown="ctermStartResize('n',event)"></div>
+        <div class="cterm-rh cterm-rh-ne" onmousedown="ctermStartResize('ne',event)"></div>
+        <div class="cterm-rh cterm-rh-w"  onmousedown="ctermStartResize('w',event)"></div>
+        <div class="cterm-rh cterm-rh-e"  onmousedown="ctermStartResize('e',event)"></div>
+        <div class="cterm-rh cterm-rh-sw" onmousedown="ctermStartResize('sw',event)"></div>
+        <div class="cterm-rh cterm-rh-s"  onmousedown="ctermStartResize('s',event)"></div>
+        <div class="cterm-rh cterm-rh-se" onmousedown="ctermStartResize('se',event)"></div>
+        <!-- Title bar -->
+        <div class="cterm-titlebar" id="ctermTitlebar" onmousedown="ctermStartDrag(event)">
+            <span class="cterm-title">&#x25C8; Codex</span>
+            <span class="cterm-status-dot" id="ctermStatusDot"></span>
+            <button class="cterm-btn" onclick="ctermToggleMaximize()" title="Maximize/Restore">&#x26F6;</button>
+            <button class="cterm-btn danger" onclick="ctermKillSession()" id="ctermKillBtn">&#x25A0; Kill</button>
+            <button class="cterm-btn" onclick="ctermClose()" title="Close (Esc)">&#x2715;</button>
+        </div>
+        <!-- Body -->
+        <div class="cterm-body">
+            <pre class="cterm-terminal" id="ctermTerminal"></pre>
+            <div class="cterm-input-row">
+                <input type="text" id="ctermInput" placeholder="Ask codex anything&#x2026;" autocomplete="off"
+                       onkeydown="if(event.key==='Enter')ctermSend()" />
+                <button class="cterm-send-btn" id="ctermSendBtn" onclick="ctermSend()">Send &#x21B5;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="dev_hub_tools.js"></script>
+    <script src="dev_hub_app.js"></script>
+</body>
+
+</html>
