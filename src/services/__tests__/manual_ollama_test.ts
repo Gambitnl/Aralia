@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+ 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OllamaService, resetDefaultClient } from '../ollama';
 import { BanterContext } from '../../types/ollama';

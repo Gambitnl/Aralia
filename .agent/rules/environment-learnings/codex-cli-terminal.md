@@ -7,6 +7,9 @@ Identity & Environment Checklist
 - Environment learnings file path: .agent/rules/environment-learnings/codex-cli-terminal.md
 - Verification steps used: confirmed cwd/shell via session context; validated AGENTS.md exists via Test-Path; confirmed PowerShell host via Get-Host
 
+Agent Identity & Environment Note
+- Verified on 2026-02-27 in Codex-CLI + Windows PowerShell at `F:\Repos\Aralia` before applying terminal learnings.
+
 ## PowerShell Quoting Pitfalls
 
 ### Ripgrep Patterns Containing `|`
@@ -39,6 +42,26 @@ Safer pattern:
 - Run the main tool command in one call.
 - Run summary/parsing in a second call.
 - Prefer direct shell commands over deeply nested `powershell -Command` wrappers.
+
+### `$` Variable Expansion Can Be Stripped In `exec_command` One-Liners
+Inline commands that rely on PowerShell variables such as `$_` inside `ForEach-Object` can lose the variable token and pass empty values to downstream commands.
+
+```powershell
+# Risky in this environment: $_ can be stripped, causing --sync to receive no path
+powershell -NoLogo -Command "'file.ts' | ForEach-Object { npx tsx ... --sync $_ }"
+```
+
+Safer pattern:
+- Avoid PowerShell loop variables in nested one-liners.
+- Use explicit command chaining with full file paths, or write a temporary `.cjs`/`.ps1` script and execute it.
+
+### Long Inline Node Commands Through `powershell -Command` Are Fragile
+Large `node -e "..."` payloads with nested quotes often fail before Node executes.
+
+Safer pattern:
+- Write the Node logic into a temporary script file.
+- Run `node temp-script.cjs`.
+- Delete the temporary script after use.
 
 ### `python -c` In PowerShell
 Multi-line Python snippets are easy for PowerShell to misparse. Prefer:

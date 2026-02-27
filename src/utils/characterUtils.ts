@@ -1,16 +1,16 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file is part of a complex dependency web.
- * 
- * Last Sync: 26/01/2026, 01:36:03
+ * DEPRECATED BRIDGE / MIDDLEMAN: Redirects to a new location. (Clean me up!)
+ *
+ * Last Sync: 27/02/2026, 09:31:15
  * Dependents: ArtificerFeatureSelection.tsx, CharacterCreator.tsx, CharacterOverview.tsx, CharacterSheetModal.tsx, DefensiveCommand.ts, EquipmentMannequin.tsx, InventoryList.tsx, LevelUpModal.tsx, NameAndReview.tsx, RacialSpellAbilitySelection.tsx, RestModal.tsx, SkillDetailDisplay.tsx, SkillsTab.tsx, appState.ts, characterCreatorState.ts, characterGenerator.ts, characterReducer.ts, dummyCharacter.ts, handleGeminiCustom.ts, handleItemInteraction.ts, handleResourceActions.ts, saveLoadService.ts, useCharacterAssembly.ts, useCharacterAssembly.ts
  * Imports: 1 files
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

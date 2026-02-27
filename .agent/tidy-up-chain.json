@@ -3,7 +3,7 @@
   "extras": [
     {
       "name": "sync-dependencies",
-      "path": "scripts/codebase-visualizer-server.ts",
+      "path": "misc/dev_hub/codebase-visualizer/server/index.ts",
       "chainVia": "session-ritual"
     },
     {

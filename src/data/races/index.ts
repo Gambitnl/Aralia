@@ -2,15 +2,15 @@
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
- * 
- * Last Sync: 10/02/2026, 01:54:14
- * Dependents: CharacterCreator.tsx, characterUtils.ts, characterValidation.ts, constants.ts, dummyCharacter.ts, npcGenerator.ts, quickCharacterGenerator.ts, raceSyncAuditor.ts, useCharacterAssembly.ts
+ *
+ * Last Sync: 27/02/2026, 09:28:07
+ * Dependents: CharacterCreator.tsx, PreviewRaceImages.tsx, characterUtils.ts, characterValidation.ts, constants.ts, dummyCharacter.ts, npcGenerator.ts, quickCharacterGenerator.ts, raceSyncAuditor.ts, useCharacterAssembly.ts
  * Imports: 4 files
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 
@@ -18,6 +18,11 @@
  * @file index.ts
  * Aggregates all race data exports for centralized access using import.meta.glob.
  * Race files are automatically discovered - no manual imports needed!
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added an 'as any' cast to 
+ * 'import.meta' to resolve type errors in script-specific type 
+ * checking environments while maintaining Vite compatibility.
  *
  * To add a new race:
  * 1. Create a new .ts file in src/data/races/ (e.g., kobold.ts)
@@ -28,7 +33,7 @@ import { Race } from '../../types';
 
 // Auto-import all race files using Vite's import.meta.glob
 // This scans for all .ts files in the current directory, excluding index.ts and raceGroups.ts
-const raceModules = import.meta.glob<{ [key: string]: Race | any }>('./*.ts', { eager: true });
+const raceModules: any = (import.meta as any).glob('./*.ts', { eager: true });
 
 // Build the races data map dynamically
 const racesData: Record<string, Race> = {};

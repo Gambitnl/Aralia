@@ -2,15 +2,15 @@
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- * 
- * Last Sync: 26/01/2026, 01:39:44
- * Dependents: BlackMarketSystem.ts, BountyHunterSystem.ts, CrewManager.ts, IdentityManager.ts, LeverageSystem.ts, NobleHouseGenerator.ts, NobleIntrigueManager.ts, SecretGenerator.ts, SmugglingSystem.ts, TavernGossipSystem.ts, ThievesGuildSystem.ts, TradeRouteManager.ts, TravelNavigation.ts, WorldEventManager.ts, battleMapGenerator.ts, cellularAutomataService.ts, items.ts, mapService.ts, useAmbientLife.ts, useBattleMapGeneration.ts, useGameInitialization.ts, utils/index.ts
+ *
+ * Last Sync: 27/02/2026, 09:33:25
+ * Dependents: BlackMarketSystem.ts, BountyHunterSystem.ts, BusinessAcquisition.ts, BusinessManagement.ts, BusinessSimulation.ts, CrewManager.ts, EconomicIntelSystem.ts, FactionEconomyManager.ts, HeistManager.ts, IdentityManager.ts, InvestmentManager.ts, LeverageSystem.ts, NobleHouseGenerator.ts, NobleIntrigueManager.ts, NpcBusinessManager.ts, RegionalEconomySystem.ts, SecretGenerator.ts, SmugglingSystem.ts, TavernGossipSystem.ts, ThievesGuildSystem.ts, TradeRouteManager.ts, TravelNavigation.ts, WorldEventManager.ts, azgaarDerivedMapService.ts, battleMapGenerator.ts, cellularAutomataService.ts, economyReducer.ts, handleMerchantInteraction.ts, items.ts, mapService.ts, useAmbientLife.ts, useBattleMapGeneration.ts, utils/index.ts, worldReducer.ts
  * Imports: 3 files
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

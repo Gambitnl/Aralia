@@ -4740,12 +4740,12 @@
       "sizeBytes": 3322
     },
     {
-      "path": "scripts/codebase-visualizer-server.ts",
+      "path": "misc/dev_hub/codebase-visualizer/server/index.ts",
       "extension": ".ts",
       "sizeBytes": 80310
     },
     {
-      "path": "scripts/codebase-visualizer.ts",
+      "path": "misc/dev_hub/codebase-visualizer/server/staticGenerator.ts",
       "extension": ".ts",
       "sizeBytes": 49171
     },
@@ -5085,7 +5085,7 @@
       "sizeBytes": 13186
     },
     {
-      "path": "scripts/VISUALIZER_README.md",
+      "path": "misc/dev_hub/codebase-visualizer/VISUALIZER_README.md",
       "extension": ".md",
       "sizeBytes": 970
     },

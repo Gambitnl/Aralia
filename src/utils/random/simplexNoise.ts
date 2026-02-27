@@ -1,7 +1,23 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/02/2026, 09:33:33
+ * Dependents: VoxelTerrain.tsx, voxelMesher.worker.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // Port of a standard Simplex Noise 3D implementation
 // Based on Stefan Gustavson's implementation
 
-/* eslint-disable no-bitwise */
+ 
 
 const F3 = 1.0 / 3.0;
 const G3 = 1.0 / 6.0;

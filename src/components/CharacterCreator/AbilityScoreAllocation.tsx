@@ -2,23 +2,29 @@
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
- * 
- * Last Sync: 27/01/2026, 01:35:18
+ *
+ * Last Sync: 27/02/2026, 09:26:33
  * Dependents: CharacterCreator.tsx
- * Imports: 5 files
- * 
+ * Imports: 6 files
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 
 /**
  * @file AbilityScoreAllocation.tsx
  * Refactored to use Split Config Style (Calculator vs Stat Preview).
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Pruning] Removed unused 'useCallback' import, 
+ * 'firstUnaffordableScore' state and its associated logic in useEffect, 
+ * and the unused 'handleScoreSelect' function to resolve ESLint warnings 
+ * and improve code maintainability.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../../types';
 import { ABILITY_SCORE_NAMES } from '../../constants';
 import { POINT_BUY_TOTAL_POINTS, POINT_BUY_MIN_SCORE, POINT_BUY_MAX_SCORE, ABILITY_SCORE_COST } from '../../config/characterCreationConfig';
@@ -58,7 +64,6 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
 
   const [baseScores, setBaseScores] = useState<AbilityScores>(initialScores);
   const [pointsRemaining, setPointsRemaining] = useState<number>(POINT_BUY_TOTAL_POINTS);
-  const [firstUnaffordableScore, setFirstUnaffordableScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'info' | 'error' | 'success'; message: string; targetAbility?: AbilityScoreName } | null>(null);
 
   useEffect(() => {
@@ -68,17 +73,6 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
     }
     const newPointsRemaining = POINT_BUY_TOTAL_POINTS - spentPoints;
     setPointsRemaining(newPointsRemaining);
-
-    const currentHighestScore = Math.max(...Object.values(baseScores));
-    let firstUnaffordable = null;
-    for (let score = currentHighestScore + 1; score <= POINT_BUY_MAX_SCORE; score++) {
-      const costToReach = ABILITY_SCORE_COST[score] - ABILITY_SCORE_COST[score - 1];
-      if (newPointsRemaining < costToReach) {
-        firstUnaffordable = score;
-        break;
-      }
-    }
-    setFirstUnaffordableScore(firstUnaffordable);
   }, [baseScores]);
 
   const handleScoreChange = (abilityName: AbilityScoreName, change: 1 | -1) => {
@@ -93,24 +87,6 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
 
     setBaseScores(prev => ({ ...prev, [abilityName]: newScore }));
     setFeedback(null);
-  };
-
-  const handleScoreSelect = (abilityName: AbilityScoreName, newScoreValue: number) => {
-    const currentScore = baseScores[abilityName];
-    if (newScoreValue === currentScore) return;
-
-    const costDiff = ABILITY_SCORE_COST[newScoreValue] - ABILITY_SCORE_COST[currentScore];
-
-    if (pointsRemaining >= costDiff) {
-      setBaseScores(prev => ({ ...prev, [abilityName]: newScoreValue }));
-      setFeedback(null);
-    } else {
-      setFeedback({
-        type: 'error',
-        message: `Cannot afford ${abilityName} at ${newScoreValue}. Need ${Math.abs(costDiff)} more point${Math.abs(costDiff) === 1 ? '' : 's'}.`,
-        targetAbility: abilityName,
-      });
-    }
   };
 
   const handleSubmit = () => {

@@ -1,7 +1,29 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/02/2026, 09:27:30
+ * Dependents: Crafting/index.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/Crafting/AlchemyBenchPanel.tsx
  * UI component for the alchemy crafting bench with tabs for Recipe Browser,
  * Experimental Alchemy, and Ingredient Glossary.
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Replaced multiple 'as any' casts 
+ * with proper type-safe 'CrafterProgression' objects and updated 
+ * 'handleProgressionUpdate' function signature to improve type safety 
+ * and maintainability.
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { useGameState } from '../../state/GameContext';
@@ -212,7 +234,11 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                     crafterModifier,
                     state.inventory,
                     state.gold,
-                    { ...craftingState, knownRecipes: knownRecipesSet } as any
+                    { 
+                        ...craftingState, 
+                        knownRecipes: knownRecipesSet,
+                        toolProficiencies: new Set(craftingState.toolProficiencies)
+                    } as import('../../systems/crafting/crafterProgression').CrafterProgression
                 );
 
                 const actions = generateCraftingActions(selectedRecipe.recipe, result);
@@ -271,10 +297,10 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
         }, 800);
     };
 
-    const handleProgressionUpdate = (newProgression: any) => {
+    const handleProgressionUpdate = (newProgression: import('../../systems/crafting/crafterProgression').CrafterProgression) => {
         // When recipes are discovered via experiment, update state
         if (newProgression.knownRecipes) {
-            const newRecipes = Array.from(newProgression.knownRecipes as Set<string>);
+            const newRecipes = Array.from(newProgression.knownRecipes);
             for (const recipeId of newRecipes) {
                 if (!craftingState.knownRecipes.includes(recipeId)) {
                     dispatch({ type: 'LEARN_RECIPE', payload: { recipeId } });
@@ -333,7 +359,7 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                             knownRecipes: knownRecipesSet,
                             toolProficiencies: new Set(craftingState.toolProficiencies),
                             stats: craftingState.stats
-                        } as any}
+                        } as import('../../systems/crafting/crafterProgression').CrafterProgression}
                         onProgressionUpdate={handleProgressionUpdate}
                     />
                 );

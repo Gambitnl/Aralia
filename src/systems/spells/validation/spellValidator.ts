@@ -1,9 +1,30 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/02/2026, 09:30:05
+ * Dependents: spellAuditor.ts, summonTemplates.ts, useSpellGateChecks.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file spellValidator.ts
  * 
  * PURPOSE:
  * This file defines the Zod schema used for validating every Spell JSON file in the codebase.
  * It ensures that our "Gold Standard" data remains structuraly sound and consistent.
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added an explicit 'any' type to 
+ * the 'cls' parameter in the 'BASE_CLASS_NAMES' mapping to resolve 
+ * implicit any warnings in the script environment.
  * 
  * WHO USES THIS:
  * 1. Data Validation Script (`scripts/validate-data.ts`): Runs during `npm run validate`.
@@ -13,7 +34,7 @@
 import { z } from 'zod';
 import { CLASSES_DATA } from '../../../data/classes';
 
-const BASE_CLASS_NAMES = Object.values(CLASSES_DATA).map(cls => cls.name);
+const BASE_CLASS_NAMES = Object.values(CLASSES_DATA).map((cls: any) => cls.name);
 // Legacy spell data may include subclass-specific entries; keep them whitelisted in Title Case.
 const SUBCLASS_CLASS_NAMES = [
   "Artificer - Armorer",

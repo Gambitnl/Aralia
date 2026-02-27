@@ -2,15 +2,15 @@
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
- * 
- * Last Sync: 11/02/2026, 16:30:44
+ *
+ * Last Sync: 27/02/2026, 09:28:40
  * Dependents: Minimap.tsx, SubmapPane.tsx, submapVisuals.ts
  * Imports: 5 files
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

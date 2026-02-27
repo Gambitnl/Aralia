@@ -2,15 +2,15 @@
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- * 
- * Last Sync: 26/01/2026, 01:39:49
- * Dependents: LabGrass.tsx, LabRocks.tsx, PropField.tsx, PropsLayer.tsx, Scene3D.tsx, marketEvents.ts, nobleHouseGenerator.ts, perlinNoise.ts, random/index.ts, secretGenerator.ts, templeUtils.ts
+ *
+ * Last Sync: 27/02/2026, 09:33:31
+ * Dependents: LabGrass.tsx, LabRocks.tsx, PropField.tsx, PropsLayer.tsx, Scene3D.tsx, marketEvents.ts, nobleHouseGenerator.ts, perlinNoise.ts, random/index.ts, secretGenerator.ts, templeUtils.ts, terrainUtils.ts
  * Imports: None
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

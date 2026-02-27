@@ -6,7 +6,7 @@ This workflow automates the maintenance tasks that should be performed before en
 
 1. **Sync Dependencies**: For every file you have modified, run the visualizer sync command to update the architectural "Stop Signs".
    // turbo
-   `npx tsx scripts/codebase-visualizer-server.ts --sync path/to/modified_file.ts`
+   `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync path/to/modified_file.ts`
 
 2. **Script Path Migration Sweep**: If any script was moved or renamed, run a reference sweep and patch stale command docs/UI prompts in the same session.
    - Find direct references:

@@ -10,7 +10,7 @@ Run the full tidy-up chain (all steps), in this order:
 1) Execute the /test-ts workflow end-to-end as written in .agent/workflows/test-ts.md.
 2) Execute the /session-ritual workflow end-to-end as written in .agent/workflows/session-ritual.md.
    - For dependency sync, use `git status --porcelain` to list modified files.
-   - Run: npx tsx scripts/codebase-visualizer-server.ts --sync path/to/modified_file
+   - Run: npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync path/to/modified_file
    - Skip deleted files and non-code files.
    - Perform the mandatory "Update Roadmap State" checkpoint from session-ritual Step 3.
    - Include the required roadmap report block in your final tidy-up summary:

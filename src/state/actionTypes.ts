@@ -2,15 +2,15 @@
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
- * 
- * Last Sync: 12/02/2026, 22:27:44
- * Dependents: CharacterCreator.tsx, CombatReligionAdapter.ts, ConversationPanel.tsx, FeatSelection.tsx, GameContext.tsx, GameGuideModal.tsx, GameModals.tsx, NotificationSystem.tsx, TempleSystem.ts, actionHandlers.ts, appState.ts, characterReducer.ts, companionReducer.ts, conversationReducer.ts, craftingReducer.ts, crimeActions.ts, crimeReducer.ts, dialogueReducer.ts, economyReducer.ts, encounterReducer.ts, entityIntegrationUtils.ts, handleEncounter.ts, handleGeminiCustom.ts, handleItemInteraction.ts, handleMerchantInteraction.ts, handleMovement.ts, handleNpcInteraction.ts, handleObservation.ts, handleOracle.ts, handleResourceActions.ts, handleSystemAndUi.ts, handleWorldEvents.ts, identityReducer.ts, journalReducer.ts, legacyReducer.ts, logReducer.ts, navalReducer.ts, npcReducer.ts, questReducer.ts, religionReducer.ts, ritualReducer.ts, townReducer.ts, types/index.ts, uiReducer.ts, useCompanionBanter.ts, useConversation.ts, useDialogueSystem.ts, useGameActions.ts, useGameInitialization.ts, useHistorySync.ts, useOllamaCheck.ts, worldReducer.ts
+ *
+ * Last Sync: 27/02/2026, 09:29:07
+ * Dependents: CharacterCreator.tsx, CombatReligionAdapter.ts, ConversationPanel.tsx, FeatSelection.tsx, GameContext.tsx, GameGuideModal.tsx, GameModals.tsx, NotificationSystem.tsx, TempleSystem.ts, actionHandlers.ts, appState.ts, characterReducer.ts, companionReducer.ts, conversationReducer.ts, craftingReducer.ts, crimeActions.ts, crimeReducer.ts, dialogueReducer.ts, economyReducer.ts, encounterReducer.ts, entityIntegrationUtils.ts, handleEncounter.ts, handleGeminiCustom.ts, handleItemInteraction.ts, handleMerchantInteraction.ts, handleMovement.ts, handleNpcInteraction.ts, handleObservation.ts, handleOracle.ts, handleResourceActions.ts, handleSystemAndUi.ts, handleWorldEvents.ts, identityReducer.ts, index.d.ts, journalReducer.ts, legacyReducer.ts, logReducer.ts, navalReducer.ts, npcReducer.ts, questReducer.ts, religionReducer.ts, ritualReducer.ts, townReducer.ts, types/index.ts, uiReducer.ts, useCompanionBanter.ts, useConversation.ts, useDialogueSystem.ts, useGameActions.ts, useGameInitialization.ts, useHistorySync.ts, useOllamaCheck.ts, worldReducer.ts
  * Imports: 7 files
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

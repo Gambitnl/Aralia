@@ -1,8 +1,29 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/02/2026, 09:27:26
+ * Dependents: Overview/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file InventoryList.tsx
  * This component displays a list of inventory items with their details and actions.
  * It's used within the CharacterSheetModal.
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Removed redundant 'as any' casts 
+ * when accessing 'rarity' and simplified the 'isContainerItem' type 
+ * guard by removing unnecessary type assertions, improving type safety 
+ * and code readability.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
@@ -25,9 +46,9 @@ interface InventoryListProps {
  * determine if an inventory entry can behave like a bag/container.
  */
 const isContainerItem = (item: InventoryEntry): item is ItemContainer =>
-  (item as ItemContainer).isContainer === true ||
-  typeof (item as ItemContainer).capacitySlots === 'number' ||
-  typeof (item as ItemContainer).capacityWeight === 'number';
+  item.isContainer === true ||
+  typeof item.capacitySlots === 'number' ||
+  typeof item.capacityWeight === 'number';
 
 // TODO(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -59,8 +80,8 @@ const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode =>
     if (item.perishable) details += ` | Perishable`;
   } else if (item.type === 'reagent') {
     // Display detailed reagent info for herbalism/alchemy
-    if ((item as any).rarity) {
-      const r = (item as any).rarity;
+    if (item.rarity) {
+      const r = item.rarity;
       details += `\nRarity: ${r.charAt(0).toUpperCase() + r.slice(1)}`;
     }
     if (item.properties?.length) {

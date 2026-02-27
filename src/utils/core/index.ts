@@ -1,16 +1,16 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
- * 
- * Last Sync: 26/01/2026, 01:39:03
- * Dependents: utils/index.ts
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 27/02/2026, 09:31:55
+ * Dependents: CalendarSystem.ts, DiscoveryLogPane.tsx, FactionManager.ts, FeywildMechanics.ts, HistoryService.ts, NobleIntrigueManager.ts, PassTimeModal.tsx, PortalSystem.ts, QuestManager.ts, RitualManager.ts, SeasonalSystem.ts, TavernGossipSystem.ts, TimeWidget.tsx, WeatherSystem.ts, WorldEventManager.ts, WorldPane.tsx, actionHandlers.ts, appState.ts, dialogueService.ts, economyReducer.ts, handleMerchantInteraction.ts, handleMovement.ts, handleResourceActions.ts, handleWorldEvents.ts, initialState.ts, questUtils.ts, saveLoadService.ts, useDayNightOverlay.ts, useQuickTravel.ts, utils/index.ts, worldReducer.ts
  * Imports: 10 files
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

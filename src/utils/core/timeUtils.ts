@@ -2,15 +2,15 @@
 /**
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
- * 
- * Last Sync: 26/01/2026, 01:39:12
- * Dependents: contextUtils.ts, core/index.ts, factionUtils.ts, timeUtils.ts
+ *
+ * Last Sync: 27/02/2026, 09:32:07
+ * Dependents: WorldHistoryService.ts, contextUtils.ts, core/index.ts, factionUtils.ts, factories.ts
  * Imports: None
- * 
+ *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx scripts/codebase-visualizer-server.ts --sync [this-file-path]
- * See scripts/VISUALIZER_README.md for more info.
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 

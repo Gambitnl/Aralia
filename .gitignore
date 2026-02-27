@@ -83,7 +83,11 @@ pnpm-lock.yaml
 # Design Preview Tool (local-only developer tool)
 src/components/DesignPreview/
 src/design-preview.tsx
-misc/
+misc/*
+!misc/dev_hub/
+misc/dev_hub/*
+!misc/dev_hub/codebase-visualizer/
+!misc/dev_hub/codebase-visualizer/**
 png_collection/
 playwright-report/
 playwright/
@@ -109,4 +113,5 @@ scripts/roadmap-engine/
 scripts/workflows/chat-debug/
 
 scripts/workflows/gemini/
+scripts/tooling/
 .agent/workflows/

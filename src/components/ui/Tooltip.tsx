@@ -1,8 +1,29 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 27/02/2026, 09:28:03
+ * Dependents: CharacterOverview.tsx, CoinDisplay.tsx, CompassPane/index.tsx, DiscoveryLogPane.tsx, EquipmentMannequin.tsx, InventoryList.tsx, NameAndReview.tsx, PartyMemberCard.tsx, PartyOverlay.tsx, SkillDetailDisplay.tsx, SkillSelection.tsx, SkillsTab.tsx, SubmapTile.tsx, TempleModal.tsx, TimeWidget.tsx, Tooltip.tsx, WindowFrame.tsx, WorldPane.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file Tooltip.tsx
  * This component displays a small pop-up with information when a user hovers over or focuses its trigger element.
  * It uses React Portals to render the tooltip into document.body, allowing it to escape parent clipping.
  * Position is calculated dynamically using JavaScript to stay within viewport bounds.
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added 'data-testid="tooltip"' to 
+ * the portal container to enable reliable element selection in 
+ * automated tests.
  */
 import React, { useState, useRef, useEffect, useCallback, ReactElement, HTMLAttributes, useId } from 'react';
 import ReactDOM from 'react-dom';
@@ -125,6 +146,7 @@ const Tooltip: React.FC<TooltipProps> = ({
         <div
           ref={tooltipRef}
           id={tooltipId}
+          data-testid="tooltip"
           role="tooltip"
           className={`fixed z-[${Z_INDEX.TOOLTIP}] px-3 py-2 text-sm font-normal text-white bg-gray-700 rounded-lg shadow-xl transition-opacity duration-150 max-w-sm max-h-60 overflow-y-auto scrollable-content`}
           style={{

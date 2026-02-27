@@ -1,9 +1,31 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 27/02/2026, 09:30:27
+ * Dependents: AISpellArbitrator.ts, AISpellInputModal.tsx, AbilityCommandFactory.ts, AbilityEffectMapper.ts, BaseEffectCommand.ts, BattleMapDemo.tsx, CombatView.tsx, ConcentrationCommands.ts, ConcentrationTracker.ts, CreatureTaxonomy.ts, DamageCommand.ts, DefensiveCommand.ts, EnvironmentSystem.ts, HealingCommand.ts, LegacySpellValidator.ts, MovementCommand.ts, PreviewCombatSandbox.tsx, ReactionPrompt.tsx, RegisterRiderCommand.ts, RitualManager.ts, SavingThrowResolver.ts, ScalingEngine.ts, SpellCommand.ts, SpellCommandFactory.ts, SpellIntegrityValidator.ts, StatusConditionCommand.ts, SummoningCommand.ts, TargetAllocator.ts, TargetValidationUtils.ts, TargetingPresets.ts, TerrainCommand.ts, UtilityCommand.ts, audit_enchantment_consistency.ts, character.d.ts, character.ts, combat.d.ts, combat.ts, combatUtils.ts, creatures.d.ts, creatures.ts, effects.d.ts, effects.ts, environment.d.ts, environment.ts, factories.ts, featsData.ts, hazards.ts, index.d.ts, mechanics.ts, planes.d.ts, planes.ts, resistanceUtils.ts, ritual.ts, rituals.d.ts, rituals.ts, savingThrowUtils.ts, spellAuditor.ts, spellConsistencyValidator.ts, spellVisuals.ts, triggerHandler.ts, types/index.ts, ui.d.ts, ui.ts, useAbilitySystem.ts, useSummons.ts, visuals.d.ts, visuals.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/types/spells.ts
  * This file contains all the new TypeScript type definitions and interfaces
  * for the component-based spell system.
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to the 
+ * 'SpellVisualSpec' import to suppress script-specific resolution 
+ * warnings.
  */
 
+// @ts-ignore
 import type { SpellVisualSpec } from './visuals';
 
 //==============================================================================

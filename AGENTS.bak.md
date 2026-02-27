@@ -9,11 +9,11 @@ In a multi-agent environment, different agents run in different shells. If you a
 - Browser use is permitted when helpful; prefer DevTools MCP snapshots for UI context and headless browsing where appropriate.
 - PowerShell quirks: no POSIX head/tail/heredocs; use `Select-Object` for slicing and stick to `powershell` (not `pwsh`). Typecheck output is large - fix in batches directly in terminal.
 - Paths: root is `C:\Users\gambi\Documents\Git\AraliaV4\Aralia`; avoid double `Users\Users` prefixes when using cd.
-- Visualizer Sync: Use `npx tsx scripts/codebase-visualizer-server.ts --sync <path>` to update a file dependency header. This provides a Stop Sign for agents to prevent breaking exports.
+- Visualizer Sync: Use `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync <path>` to update a file dependency header. This provides a Stop Sign for agents to prevent breaking exports.
 
 ## Architecture & Reliability (per `.agent/rules/Architecture.md`)
 - Before renaming, deleting, or changing exported signatures, run a quick `rg` for dependents or use the Codebase Visualizer and update every impacted file in the same task to keep the tree buildable.
-- When touching internal helpers (especially in `utils`, `hooks`, or `state`), rerun `npx tsx scripts/codebase-visualizer-server.ts --sync path/to/file.ts` to keep the dependency header accurate.
+- When touching internal helpers (especially in `utils`, `hooks`, or `state`), rerun `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync path/to/file.ts` to keep the dependency header accurate.
 - Favor descriptive, unique export names and avoid duplicate basenames within the same subsystem to reduce ambiguity and AI confusion.
 
 ## Terminal Best Practices (per `.agent/rules/Terminal.md`)

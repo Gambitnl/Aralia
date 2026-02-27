@@ -7,7 +7,7 @@ describe('SavePenaltySystem', () => {
     let system: SavePenaltySystem;
     let mockState: CombatState;
     let mockTarget: CombatCharacter;
-    let mockCasterId = 'caster-1';
+    const mockCasterId = 'caster-1';
 
     beforeEach(() => {
         system = new SavePenaltySystem();

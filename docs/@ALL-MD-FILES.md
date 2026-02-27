@@ -1409,7 +1409,7 @@ This file contains an exhaustive list of all `.md` files found in the repository
 - public/vendor/azgaar/libs/tinymce/langs/README.md
 - public/vendor/azgaar/libs/tinymce/license.md
 - README.md
-- scripts/VISUALIZER_README.md
+- misc/dev_hub/codebase-visualizer/VISUALIZER_README.md
 - sideprojects/basic-chat/README.md
 - skills/character-creator-steps/SKILL.md
 - skills/glossary-modal-editor/references/component-architecture.md

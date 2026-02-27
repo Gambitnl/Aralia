@@ -28,7 +28,7 @@ When requested by the user, the AI can maintain a "Dependency Block" at the top 
 
 ## Solo Architect Modus Operandi
 - **Verification over Assumption**: Even if a file *seems* isolated, always run a quick `grep` for its path before making structural changes.
-- **Surgical Sync**: After modifying core logic (utils, hooks, stats), re-run `npx tsx scripts/codebase-visualizer-server.ts --sync path/to/file.ts`. This ensures the "Stop Sign" header is accurate for future tasks.
+- **Surgical Sync**: After modifying core logic (utils, hooks, stats), re-run `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync path/to/file.ts`. This ensures the "Stop Sign" header is accurate for future tasks.
 - **Preservationist Mentality**: When resolving type errors or technical debt, prioritize minimal, behavior-preserving changes.
   - **Minimal Impact**: Add types or guards rather than restructuring.
   - **No Deletion**: NEVER remove features or exports simply to satisfy the linter/compiler.

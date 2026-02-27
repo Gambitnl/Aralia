@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/02/2026, 09:27:56
+ * Dependents: Scene3D.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useEffect, useMemo, useRef } from 'react';
 import { useLoader } from '@react-three/fiber';
 import type { InstancedMesh } from 'three';
@@ -155,7 +171,7 @@ const LabRocks = ({
     <>
       {rockMeshes.map((mesh, index) => (
         <instancedMesh
-          // eslint-disable-next-line react/no-array-index-key
+           
           key={`lab-rock-${index}`}
           ref={refs[index]}
           args={[geometries[index], mesh.material, MAX_INSTANCES_PER_TYPE]}
