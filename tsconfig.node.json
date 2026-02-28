@@ -14,6 +14,7 @@
     "scripts/workflows/gemini/core/image-gen-mcp.ts",
     "scripts/raceImageStatus.ts",
     "scripts/roadmap-server-logic.ts",
-    "scripts/roadmap-engine/**/*.ts"
+    "scripts/roadmap-engine/**/*.ts",
+    "scripts/roadmap/**/*.ts"
   ]
 }
