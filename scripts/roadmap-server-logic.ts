@@ -29,6 +29,14 @@ export type RoadmapNode = {
   label: string;
   type: 'root' | 'project' | 'milestone';
   status: 'planned' | 'active' | 'done';
+  // Optional test source path and latest execution metadata for health-signal UI.
+  testFile?: string;
+  lastTestRun?: {
+    timestamp: string;
+    status: 'pass' | 'fail' | 'unverified';
+  };
+  // Optional list of component files tied to this node for atomization checks.
+  componentFiles?: string[];
   [key: string]: unknown;
 };
 
