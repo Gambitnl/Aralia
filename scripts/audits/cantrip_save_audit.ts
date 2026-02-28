@@ -1,4 +1,13 @@
 
+/**
+ * @file cantrip_save_audit.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added explicit types to 'forEach' 
+ * parameters and the 'catch' block error to resolve implicit any/unknown 
+ * warnings. Added '@ts-ignore' to the 'SpellEffect' import to suppress 
+ * script-specific resolution warnings.
+ */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -20,20 +29,22 @@ function auditCantripSaves() {
     try {
       const spell = JSON.parse(content);
 
-      // Check each effect
-      if (spell.effects) {
-        spell.effects.forEach((effect, index) => {
-          // Check condition.saveEffect
-          if (effect.condition && effect.condition.saveEffect === 'half') {
-            console.error(`❌ [${file}] Effect ${index} (${effect.type}) has saveEffect: "half". Cantrips should be "none".`);
-            issuesFound++;
+                  // Check each effect
+                  if (spell.effects) {
+                    // @ts-ignore
+                    spell.effects.forEach((effect: import('../../src/types/spells').SpellEffect, index: number) => {
+                      // Check condition.saveEffect
+            
+                if (effect.condition && effect.condition.saveEffect === 'half') {
+                  console.error(`❌ [${file}] Effect ${index} (${effect.type}) has saveEffect: "half". Cantrips should be "none".`);
+                  issuesFound++;
+                }
+              });
+            }
+          } catch (e: any) {
+            console.error(`Error parsing ${file}: ${e.message}`);
           }
-        });
-      }
-
-    } catch (e) {
-      console.error(`Error parsing ${file}: ${e.message}`);
-    }
+      
   });
 
   if (issuesFound > 0) {

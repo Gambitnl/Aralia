@@ -13,6 +13,12 @@ import {
 } from './roadmap-engine/node-test-status.js';
 
 /**
+ * @file roadmap-node-test.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added 'as any' cast to 
+ * 'shell: true' in execSync options to satisfy Node.js type definitions.
+ * 
  * Technical:
  * CLI for roadmap node verification.
  *
@@ -63,7 +69,7 @@ function runIsolatedCommand(definition: NodeTestDefinition): NodeTestCheck {
   try {
     execSync(definition.testCommand, {
       cwd: process.cwd(),
-      shell: true,
+      shell: true as any,
       stdio: 'pipe',
       encoding: 'utf8'
     });

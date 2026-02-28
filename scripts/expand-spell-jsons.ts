@@ -9,6 +9,12 @@ import { globSync } from 'glob';
  * It ensures that all 469+ spell JSON files in the codebase contain every possible
  * variable defined in the schema, even if those variables are empty.
  * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Fixed circular type alias 
+ * references by introducing the 'JsonObject' interface. Added explicit 
+ * 'any' types to 'map' callback parameters to resolve implicit any 
+ * warnings.
+ * 
  * WHY:
  * 1. Predictability: Data consumers (Combat Engine, AI Arbitrator, UI) can rely on keys existing.
  * 2. Strict Validation: Allows us to remove `.optional()` from the Zod schema.
@@ -22,8 +28,8 @@ const SHOULD_WRITE = process.argv.includes('--write');
 
 const SPELL_DATA_DIR = 'public/data/spells/**/*.json';
 
+interface JsonObject { [key: string]: JsonValue }
 type JsonValue = string | number | boolean | null | JsonObject | JsonValue[];
-type JsonObject = Record<string, JsonValue>;
 
 const isJsonObject = (value: JsonValue | unknown): value is JsonObject =>
     typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -191,7 +197,7 @@ function expandEffect(effect: JsonObject): JsonObject {
             condition.targetFilter = deepMerge(condition.targetFilter as JsonValue, TARGET_CONDITION_FILTER_TEMPLATE);
         }
         if (Array.isArray(condition.saveModifiers)) {
-            condition.saveModifiers = condition.saveModifiers.map((modifier) =>
+            condition.saveModifiers = condition.saveModifiers.map((modifier: any) =>
                 deepMerge(modifier as JsonValue, SAVE_MODIFIER_TEMPLATE)
             );
         }
@@ -270,7 +276,7 @@ function processSpell(filePath: string) {
     }
 
     if (Array.isArray(expandedData.effects)) {
-        expandedData.effects = expandedData.effects.map((effect) =>
+        expandedData.effects = expandedData.effects.map((effect: any) =>
             isJsonObject(effect) ? expandEffect(effect) : effect
         );
     }

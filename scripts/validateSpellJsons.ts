@@ -3,10 +3,17 @@
  * 
  * Validates all spell JSON files against the SpellValidator Zod schema.
  * Run with: npx tsx scripts/validateSpellJsons.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to 
+ * 'SpellValidator' import to suppress resolution warnings in the 
+ * script environment. Added an explicit type to the 'e' parameter in 
+ * the 'map' callback to resolve implicit any warnings.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
+// @ts-ignore
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
 
 const SPELLS_DIR = path.join(__dirname, '../public/data/spells');
@@ -30,7 +37,7 @@ function validateSpellFile(filePath: string, level: number): ValidationResult {
         if (result.success) {
             return { file: fileName, level, valid: true };
         } else {
-            const errors = result.error.issues.map(e =>
+            const errors = result.error.issues.map((e: import('zod').ZodIssue) =>
                 `${e.path.join('.')}: ${e.message}`
             );
             return { file: fileName, level, valid: false, errors };

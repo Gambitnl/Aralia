@@ -4,7 +4,8 @@ import { defineConfig, loadEnv } from 'vite';
 import type { ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import { spawn, exec, execSync } from 'child_process';
-import { WebSocket } from 'ws';
+import { WebSocket, WebSocketServer } from 'ws';
+import * as pty from 'node-pty';
 
 const MCP_CLI = path.resolve(process.cwd(), 'node_modules/.bin/mcp-cli');
 const MCP_CONFIG = path.resolve(process.cwd(), '.mcp.json');
@@ -418,13 +419,6 @@ const addProxyDiagnostics = (
   }
 });
 
-import {
-  generateRoadmapData,
-  loadLatestOpportunityScan,
-  readOpportunitySettings,
-  scanRoadmapOpportunities,
-  writeOpportunitySettings
-} from './scripts/roadmap-server-logic';
 
 const visualizerManager = () => ({
   name: 'visualizer-manager',
@@ -523,7 +517,17 @@ const roadmapManager = () => ({
       }
     };
 
-    server.middlewares.use((req: any, res: any, next: any) => {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      // Dynamic import keeps roadmap-server-logic.ts out of Vite's config
+      // dependency graph — changes to it no longer trigger a server restart.
+      const {
+        generateRoadmapData,
+        loadLatestOpportunityScan,
+        readOpportunitySettings,
+        scanRoadmapOpportunities,
+        writeOpportunitySettings,
+      } = await import('./scripts/roadmap-server-logic.ts');
+
       const pathname = new URL(req.url || '/', 'http://localhost').pathname;
 
       // Handle both with and without base path for dev flexibility
@@ -1299,6 +1303,7 @@ const codexChatManager = () => ({
           };
           codexChatSessions.set(sessionId, session);
 
+          const sid = sessionId.slice(0, 8);
           const emit = (type: string, payload?: Record<string, unknown>) => {
             const event = JSON.stringify({ type, ...payload });
             session.buffer.push(event);
@@ -1314,11 +1319,25 @@ const codexChatManager = () => ({
             setTimeout(() => codexChatSessions.delete(sessionId), 30 * 60 * 1000);
           };
 
+          // Forward codex stdout/stderr to the Vite terminal so we can see why it exits
+          proc.stdout?.on('data', (d: Buffer) => {
+            const msg = d.toString().trimEnd();
+            if (msg) server.config.logger.info(`[codex:${sid}] ${msg}`);
+          });
+          proc.stderr?.on('data', (d: Buffer) => {
+            const msg = d.toString().trimEnd();
+            if (msg) server.config.logger.warn(`[codex:${sid}] ${msg}`);
+          });
+
           proc.on('error', (err: Error) => {
+            server.config.logger.error(`[codex:${sid}] spawn error: ${err.message}`);
             emit('error', { text: 'spawn error: ' + err.message });
             killSession(-1);
           });
-          proc.on('close', (code: number | null) => killSession(code ?? -1));
+          proc.on('close', (code: number | null) => {
+            server.config.logger.warn(`[codex:${sid}] process exited with code ${code}`);
+            killSession(code ?? -1);
+          });
 
           // Connect WebSocket once the app-server is listening
           (async () => {
@@ -1630,6 +1649,111 @@ const portraitApiManager = () => ({
   },
 });
 
+// ── PTY Web Terminal ──────────────────────────────────────────────────────────
+// Spins up a standalone WebSocketServer on a random port.
+// Client fetches the port via GET /api/pty/port, then connects via WebSocket.
+// On connect, spawns node-pty with the requested cmd (default: shell).
+// Bidirectional: PTY output → ws.send, ws.message → pty.write
+//                resize msg  → pty.resize
+// Sticky PTY: one persistent PTY per server instance. HMR page-reloads reconnect
+// to the same running process instead of spawning a new one.
+let _ptyWssPort: number | null = null;
+let _stickyPtyProc: ReturnType<typeof pty.spawn> | null = null;
+let _ptyClients: Set<WebSocket> = new Set();
+let _ptyOutputBuffer = '';          // replay buffer for reconnecting clients
+const PTY_BUFFER_CHARS = 200_000;   // ~200 KB of recent output
+
+const ptyTerminalManager = () => ({
+  name: 'pty-terminal-manager',
+  configureServer(server: any) {
+    // Standalone WSS on OS-assigned free port (avoids Vite HMR conflict)
+    const wss = new WebSocketServer({ port: 0 });
+
+    wss.on('listening', () => {
+      const addr = wss.address() as { port: number };
+      _ptyWssPort = addr.port;
+      server.config.logger.info(`[pty] WebSocket server ready on port ${_ptyWssPort}`);
+    });
+
+    const spawnStickyPty = () => {
+      const cmd = process.platform === 'win32' ? 'cmd.exe' : 'bash';
+      const sid = Math.random().toString(16).slice(2, 10);
+      try {
+        _stickyPtyProc = pty.spawn(cmd, [], {
+          name: 'xterm-256color',
+          cols: 220,
+          rows: 50,
+          cwd: process.cwd(),
+          env: process.env as Record<string, string>,
+        });
+        server.config.logger.info(`[pty:${sid}] spawned sticky "${cmd}"`);
+      } catch (err: any) {
+        server.config.logger.error(`[pty:${sid}] spawn failed: ${err.message}`);
+        return;
+      }
+
+      _stickyPtyProc.onData((data: string) => {
+        _ptyOutputBuffer += data;
+        if (_ptyOutputBuffer.length > PTY_BUFFER_CHARS) {
+          _ptyOutputBuffer = _ptyOutputBuffer.slice(-PTY_BUFFER_CHARS);
+        }
+        for (const client of _ptyClients) {
+          if (client.readyState === WebSocket.OPEN) client.send(data);
+        }
+      });
+
+      _stickyPtyProc.onExit(({ exitCode }: { exitCode: number }) => {
+        server.config.logger.info(`[pty:${sid}] exited with code ${exitCode}`);
+        _stickyPtyProc = null;
+        _ptyOutputBuffer = '';
+        for (const client of _ptyClients) {
+          if (client.readyState === WebSocket.OPEN) client.close();
+        }
+        _ptyClients.clear();
+      });
+    };
+
+    wss.on('connection', (ws: WebSocket, _req: any) => {
+      // Spawn sticky PTY if none exists yet
+      if (!_stickyPtyProc) spawnStickyPty();
+
+      _ptyClients.add(ws);
+
+      // Replay recent output so reconnecting client catches up
+      if (_ptyOutputBuffer.length > 0) {
+        ws.send(_ptyOutputBuffer);
+      }
+
+      ws.on('message', (msg: Buffer) => {
+        if (!_stickyPtyProc) return;
+        try {
+          const d = JSON.parse(msg.toString());
+          if (d.type === 'input')  _stickyPtyProc.write(d.data);
+          if (d.type === 'resize') _stickyPtyProc.resize(Math.max(2, d.cols), Math.max(2, d.rows));
+        } catch {
+          _stickyPtyProc.write(msg.toString());
+        }
+      });
+
+      ws.on('close', () => {
+        _ptyClients.delete(ws);
+        // Do NOT kill the PTY on disconnect — it stays alive for reconnects.
+        // PTY only dies when the process itself exits.
+      });
+    });
+
+    // REST endpoint so the client can discover the WSS port
+    server.middlewares.use((req: any, res: any, next: any) => {
+      if ((req.url || '').split('?')[0] === '/api/pty/port') {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ port: _ptyWssPort }));
+        return;
+      }
+      next();
+    });
+  },
+});
+
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
   const isDevServer = command === 'serve';
@@ -1676,7 +1800,7 @@ export default defineConfig(({ mode, command }) => {
         )
       }
     },
-    plugins: [react(), visualizerManager(), roadmapManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), scriptRegistryManager(), portraitApiManager(), codexRunManager(), codexChatManager()],
+    plugins: [react(), visualizerManager(), roadmapManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), scriptRegistryManager(), portraitApiManager(), codexRunManager(), codexChatManager(), ptyTerminalManager()],
     define: {
       // Shim process.env for legacy support (allows process.env.API_KEY to work).
       // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.

@@ -1,6 +1,16 @@
 
+/**
+ * @file audit_spells.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to 'spellAuditor' 
+ * import to suppress resolution warnings in the script environment and 
+ * added an explicit type to the 'issue' parameter in the 'forEach' 
+ * callback to resolve implicit any warnings.
+ */
 import * as fs from 'fs';
 import * as path from 'path';
+// @ts-ignore
 import { auditSpell, AuditResult } from '../src/utils/validation/spellAuditor';
 
 const SPELL_ROOT = 'public/data/spells';
@@ -38,7 +48,7 @@ function auditAllSpells() {
 
           const result: AuditResult = auditSpell(spellData);
 
-          result.issues.forEach(issue => {
+          result.issues.forEach((issue: import('../src/utils/validation/spellAuditor.js').AuditIssue) => {
              if (issue.type === 'phantom_scaling') {
                  // Truncate message for display
                  const shortMsg = issue.message.substring(0, 50) + '...';

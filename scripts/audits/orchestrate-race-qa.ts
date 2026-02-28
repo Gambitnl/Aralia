@@ -1,4 +1,12 @@
 #!/usr/bin/env npx tsx
+/**
+ * @file orchestrate-race-qa.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Pruning] Refactored 'shouldQueue' to remove redundant 
+ * 'Boolean()' casts on 'manualReviewRequired' to comply with project 
+ * linting rules.
+ */
 import fs from "fs";
 import path from "path";
 import { spawnSync } from "child_process";
@@ -111,7 +119,7 @@ function shouldQueue(row: LedgerRow): boolean {
   if (visual !== "approved") return true;
   if (uniq === "pending") return true;
   if (!hasTarget) return true;
-  if (Boolean(row.manualReviewRequired)) return true;
+  if (row.manualReviewRequired) return true;
   return false;
 }
 

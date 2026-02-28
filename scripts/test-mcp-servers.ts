@@ -2,6 +2,11 @@
 /**
  * Test suite for MCP servers
  * Validates that all configured MCP servers are working correctly
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added 'as any' casts to 
+ * 'shell: true' options in exec calls to satisfy Node.js type 
+ * definitions which expect string or undefined.
  *
  * Usage:
  *   npm run test:mcp              # Test all servers
@@ -53,7 +58,7 @@ async function testServerConnection(serverName: string): Promise<TestResult> {
     console.log(`  Command: ${cmd}`);
 
     const { stdout, stderr } = await execAsync(cmd, {
-      shell: true,
+      shell: true as any,
       timeout: 30000 // 30 seconds
     });
 
@@ -116,7 +121,7 @@ async function _testToolInvocation(serverName: string, toolName: string, args: o
 
     const cmd = `"${MCP_CLI}" ${serverName}/${toolName} '${JSON.stringify(args)}'`;
     const { stdout, stderr } = await execAsync(cmd, {
-      shell: true,
+      shell: true as any,
       timeout: 30000
     });
 

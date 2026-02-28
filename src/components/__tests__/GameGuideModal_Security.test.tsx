@@ -1,19 +1,28 @@
 
+/**
+ * @file GameGuideModal_Security.test.tsx
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Migrated tests to mock 
+ * 'ollamaTextService' instead of 'geminiService' to match the 
+ * component's current implementation. Added 'success: true' to mocked 
+ * responses to satisfy the internal result validation.
+ */
 import React from 'react';
 // TODO(lint-intent): 'waitFor' is unused in this test; use it in the assertion path or remove it.
 import { render, screen, fireEvent, waitFor as _waitFor } from '@testing-library/react';
 // TODO(lint-intent): 'expect' is unused in this test; use it in the assertion path or remove it.
 import { vi, describe, it, expect as _expect } from 'vitest';
 import GameGuideModal from '../ui/GameGuideModal';
-import * as geminiService from '../../services/geminiService';
+import * as ollamaService from '../../services/ollamaTextService';
 // TODO(lint-intent): 't' is unused in this test; use it in the assertion path or remove it.
 import { t as _t } from '../../utils/i18n';
 
-// Mock geminiService
-vi.mock('../../services/geminiService', () => ({
+// Mock ollamaService
+vi.mock('../../services/ollamaTextService', () => ({
   generateGuideResponse: vi.fn(),
 }));
-const mockGenerateGuideResponse = geminiService.generateGuideResponse as unknown as ReturnType<typeof vi.fn>;
+const mockGenerateGuideResponse = ollamaService.generateGuideResponse as unknown as ReturnType<typeof vi.fn>;
 
 // Mock i18n
 vi.mock('../../utils/i18n', () => ({
@@ -53,6 +62,7 @@ describe('GameGuideModal Security Tests', () => {
     `; // Missing closing brace
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     mockGenerateGuideResponse.mockResolvedValue({        
+      success: true,
       data: { text: maliciousPayload }
     });
 
@@ -76,6 +86,7 @@ describe('GameGuideModal Security Tests', () => {
     `;
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     mockGenerateGuideResponse.mockResolvedValue({        
+      success: true,
       data: { text: nullConfigPayload }
     });
 

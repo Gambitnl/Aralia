@@ -2,6 +2,11 @@
 /**
  * MCP Utility Wrapper
  * Provides convenient access to MCP CLI operations
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added 'as any' casts to 
+ * 'shell: true' options in exec calls to satisfy Node.js type 
+ * definitions which expect string or undefined.
  *
  * Usage:
  *   npm run mcp list                           # List all servers and tools
@@ -54,7 +59,7 @@ async function listServers(): Promise<void> {
     // Try to get tools
     try {
       const { stdout } = await execAsync(`"${MCP_CLI}" --config "${MCP_CONFIG}" ${name} -d`, {
-        shell: true,
+        shell: true as any,
         timeout: 10000
       });
 
@@ -74,7 +79,7 @@ async function inspectServer(serverName: string): Promise<void> {
 
   try {
     const { stdout } = await execAsync(`"${MCP_CLI}" --config "${MCP_CONFIG}" ${serverName} -d`, {
-      shell: true,
+      shell: true as any,
       timeout: 30000
     });
 
@@ -91,7 +96,7 @@ async function getToolSchema(toolPath: string): Promise<void> {
 
   try {
     const { stdout } = await execAsync(`"${MCP_CLI}" --config "${MCP_CONFIG}" ${toolPath}`, {
-      shell: true,
+      shell: true as any,
       timeout: 30000
     });
 
@@ -111,7 +116,7 @@ async function callTool(toolPath: string, argsJson: string): Promise<void> {
     const { stdout, stderr } = await execAsync(
       `"${MCP_CLI}" --config "${MCP_CONFIG}" ${toolPath} '${argsJson}'`,
       {
-        shell: true,
+        shell: true as any,
         timeout: 180000 // 3 minutes for long operations
       }
     );

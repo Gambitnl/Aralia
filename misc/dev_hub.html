@@ -11,6 +11,7 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="dev_hub.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.19.0/css/xterm.css">
 <style>
 /* ── Codex Terminal Window ─────────────────────────────────────── */
 .cterm-overlay {
@@ -84,56 +85,41 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
 }
-.cterm-terminal {
+/* xterm.js container — fills the body, xterm renders its canvas inside */
+.cterm-xterm {
     flex: 1;
-    overflow-y: auto;
-    padding: 0.6rem 0.9rem;
-    font-family: 'JetBrains Mono', Consolas, monospace;
-    font-size: 0.8rem;
-    color: #c7d2fe;
-    white-space: pre-wrap;
-    word-break: break-all;
-    margin: 0;
-    background: #050a14;
-    scrollbar-width: thin;
-    scrollbar-color: #4c1d95 transparent;
+    overflow: hidden;
+    padding: 4px;
+    background: #000;
+    min-height: 0;
 }
-.cterm-input-row {
+/* Flag toggles on the Codex Terminal card */
+.cterm-flags {
+    margin-top: 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+}
+.cterm-flag-toggle {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.75rem;
-    background: #0d0920;
-    border-top: 1px solid #4c1d95;
-    flex-shrink: 0;
-}
-.cterm-input-row input {
-    flex: 1;
-    background: #050a14;
-    border: 1px solid #4c1d95;
-    border-radius: 4px;
-    color: #c4b5fd;
-    font-family: 'JetBrains Mono', Consolas, monospace;
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-    outline: none;
-}
-.cterm-input-row input:focus { border-color: #7c3aed; }
-.cterm-input-row input::placeholder { color: #4c1d95; }
-.cterm-input-row input:disabled { opacity: 0.4; cursor: not-allowed; }
-.cterm-send-btn {
-    background: #3b0764;
-    color: #c4b5fd;
-    border: 1px solid #7c3aed;
-    border-radius: 4px;
-    font-size: 0.72rem;
-    padding: 0.3rem 0.7rem;
+    gap: 0.4rem;
     cursor: pointer;
-    white-space: nowrap;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 0.62rem;
+    color: #6d7fa8;
+    user-select: none;
+    line-height: 1.3;
 }
-.cterm-send-btn:hover { background: #4c1d95; }
-.cterm-send-btn:disabled { opacity: 0.45; cursor: default; }
+.cterm-flag-toggle input[type=checkbox] {
+    accent-color: #7c3aed;
+    width: 11px; height: 11px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.cterm-flag-toggle:hover { color: #c4b5fd; }
 
 /* Resize handles — amber-400 theme matching WindowFrame.tsx */
 .cterm-rh {
@@ -344,10 +330,20 @@
             <p>Session logs and feature history. Filter by category to track development progress.</p>
         </a>
 
-        <div class="card" onclick="ctermOpen()" style="cursor:pointer">
+        <div class="card" onclick="ctermOpenPage()" style="cursor:pointer">
             <span class="badge badge-tool">Agent Tool</span>
             <h2>&#x25C8; CODEX TERMINAL</h2>
-            <p>Live AI session with web search enabled. Codex sits idle until you send a prompt.</p>
+            <p>Live AI session. Opens in a separate tab. Flags below apply to the start command.</p>
+            <div class="cterm-flags" onclick="event.stopPropagation()">
+                <label class="cterm-flag-toggle">
+                    <input type="checkbox" id="ctermFlagBypass">
+                    <span>--dangerously-bypass-approvals-and-sandbox</span>
+                </label>
+                <label class="cterm-flag-toggle">
+                    <input type="checkbox" id="ctermFlagSearch">
+                    <span>--search</span>
+                </label>
+            </div>
         </div>
     </div>
 
@@ -481,16 +477,52 @@
     <div class="footer">&copy; 2026 Aralia RPG</div>
 
     <script>
-    // ── Codex Terminal ───────────────────────────────────────────────
-    const CTERM_KEY = 'codex-terminal-window';
+    // ── Codex Terminal (PTY + xterm.js) ─────────────────────────────
+    const CTERM_KEY         = 'codex-terminal-window';
+    const CTERM_FLAGS_KEY   = 'codex-terminal-flags';
+    const CTERM_OPEN_KEY    = 'codex-terminal-was-open';   // auto-reopen on HMR reload
+    const CTERM_LAUNCHED_KEY = 'codex-terminal-launched';  // skip auto-type on reconnect
     const CTERM_MIN_W = 600, CTERM_MIN_H = 400;
 
-    let _ctermSessionId = null;
-    let _ctermEvtSrc = null;
+    // ── Flag persistence ────────────────────────────────────────────
+    function ctermLoadFlags() {
+        try { return JSON.parse(localStorage.getItem(CTERM_FLAGS_KEY) || '{}'); } catch { return {}; }
+    }
+    function ctermSaveFlags() {
+        localStorage.setItem(CTERM_FLAGS_KEY, JSON.stringify({
+            bypass: document.getElementById('ctermFlagBypass')?.checked ?? false,
+            search: document.getElementById('ctermFlagSearch')?.checked ?? false,
+        }));
+    }
+    function ctermRestoreFlags() {
+        const f = ctermLoadFlags();
+        const bypass = document.getElementById('ctermFlagBypass');
+        const search = document.getElementById('ctermFlagSearch');
+        if (bypass) bypass.checked = f.bypass ?? true;
+        if (search) search.checked = f.search ?? true;
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        ctermRestoreFlags();
+        document.getElementById('ctermFlagBypass')?.addEventListener('change', ctermSaveFlags);
+        document.getElementById('ctermFlagSearch')?.addEventListener('change', ctermSaveFlags);
+    });
+
+    // ── Build the codex launch command from current flag state ──────
+    function ctermBuildLaunchCmd() {
+        let cmd = 'codex';
+        if (document.getElementById('ctermFlagBypass')?.checked) cmd += ' --dangerously-bypass-approvals-and-sandbox';
+        if (document.getElementById('ctermFlagSearch')?.checked)  cmd += ' --search';
+        return cmd;
+    }
+
     let _ctermDrag = null;
     let _ctermResize = null;
     let _ctermMaximized = false;
     let _ctermPreMax = null;
+    let _ptyWs = null;
+    let _xtermInstance = null;
+    let _fitAddon = null;
+    let _ptyResizeObserver = null;
 
     // ── Layout persistence ──────────────────────────────────────────
     function ctermLoadLayout() {
@@ -508,16 +540,27 @@
     }
     function ctermDefaultLayout() {
         const vw = window.innerWidth, vh = window.innerHeight;
-        const w = Math.min(760, vw - 80), h = Math.min(540, vh - 80);
+        const w = Math.min(960, vw - 80), h = Math.min(600, vh - 80);
         const x = Math.round((vw - w) / 2), y = Math.round((vh - h) / 2);
         return { x, y, w, h };
     }
 
-    // ── Open / Close ────────────────────────────────────────────────
+    // ── Open terminal in a separate tab (HMR-immune) ────────────────
+    function ctermOpenPage() {
+        // Persist flag state so the terminal page reads the same values
+        ctermSaveFlags();
+        // Open dedicated terminal page — no local module imports, so Vite HMR
+        // never reloads it when source files change.
+        window.open('/Aralia/misc/codex-terminal.html', 'codex-terminal');
+    }
+
+    // ── Open / Close (legacy inline overlay — kept for reference) ───
     async function ctermOpen() {
-        if (_ctermSessionId) {
+        // If already open (just hidden), show it
+        if (_xtermInstance && _ptyWs && _ptyWs.readyState <= 1) {
             document.getElementById('ctermOverlay').classList.add('open');
             document.getElementById('ctermWindow').style.display = 'flex';
+            setTimeout(() => { if (_fitAddon) _fitAddon.fit(); }, 50);
             return;
         }
 
@@ -525,28 +568,96 @@
         ctermApplyLayout(saved.x, saved.y, saved.w, saved.h);
         document.getElementById('ctermOverlay').classList.add('open');
         document.getElementById('ctermWindow').style.display = 'flex';
-        document.getElementById('ctermTerminal').textContent = '';
-        document.getElementById('ctermInput').value = '';
-        document.getElementById('ctermInput').disabled = true;
-        document.getElementById('ctermSendBtn').disabled = true;
         document.getElementById('ctermStatusDot').className = 'cterm-status-dot';
 
         document.addEventListener('keydown', _ctermEscHandler);
+        localStorage.setItem(CTERM_OPEN_KEY, 'true');  // persist across HMR reloads
 
+        // Discover PTY WebSocket port, then connect
         try {
-            const res = await fetch('/api/codex-chat/start', { method: 'POST' });
-            const data = await res.json();
-            if (data.error) { ctermAppend('[error: ' + data.error + ']\n'); return; }
-            _ctermSessionId = data.sessionId;
-            _ctermEvtSrc = new EventSource('/api/codex-chat/' + _ctermSessionId + '/stream');
-            _ctermEvtSrc.onmessage = ctermOnSse;
-            _ctermEvtSrc.onerror = () => {
-                ctermAppend('\n[SSE connection lost]\n');
-                ctermMarkDead();
+            const portRes = await fetch('/api/pty/port');
+            const { port } = await portRes.json();
+            if (!port) throw new Error('PTY server not ready');
+
+            // Boot xterm.js (loaded from CDN below)
+            const container = document.getElementById('ctermXterm');
+            container.innerHTML = ''; // clear any previous instance
+
+            const term = new Terminal({
+                cursorBlink: true,
+                fontFamily: '"JetBrains Mono", Consolas, "Courier New", monospace',
+                fontSize: 13,
+                theme: {
+                    background: '#000000',
+                    foreground: '#c4b5fd',
+                    cursor:     '#fbbf24',
+                    selection:  'rgba(124,58,237,0.3)',
+                },
+                allowTransparency: false,
+                scrollback: 5000,
+            });
+
+            const fit = new FitAddon.FitAddon();
+            term.loadAddon(fit);
+            term.open(container);
+            fit.fit();
+            _xtermInstance = term;
+            _fitAddon = fit;
+
+            // Resize observer → keep terminal cols/rows in sync with window size
+            if (_ptyResizeObserver) _ptyResizeObserver.disconnect();
+            _ptyResizeObserver = new ResizeObserver(() => {
+                if (_fitAddon) {
+                    _fitAddon.fit();
+                    if (_ptyWs && _ptyWs.readyState === WebSocket.OPEN) {
+                        _ptyWs.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+                    }
+                }
+            });
+            _ptyResizeObserver.observe(container);
+
+            // Connect WebSocket to PTY server (spawns cmd.exe / bash shell)
+            const ws = new WebSocket(`ws://localhost:${port}`);
+            _ptyWs = ws;
+
+            ws.onopen = () => {
+                document.getElementById('ctermStatusDot').className = 'cterm-status-dot';
+                // Send initial resize so PTY cols/rows match the rendered terminal
+                ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+                // Only auto-launch codex on first connect; on HMR reconnects the PTY is
+                // already running, so skip the launch command.
+                const alreadyLaunched = localStorage.getItem(CTERM_LAUNCHED_KEY) === 'true';
+                if (!alreadyLaunched) {
+                    setTimeout(() => {
+                        ws.send(JSON.stringify({ type: 'input', data: ctermBuildLaunchCmd() + '\r' }));
+                        localStorage.setItem(CTERM_LAUNCHED_KEY, 'true');
+                    }, 400);
+                }
             };
+
+            ws.onmessage = (e) => {
+                term.write(typeof e.data === 'string' ? e.data : new Uint8Array(e.data));
+            };
+
+            ws.onclose = () => {
+                term.write('\r\n\x1b[31m[session ended]\x1b[0m\r\n');
+                document.getElementById('ctermStatusDot').className = 'cterm-status-dot dead';
+            };
+
+            ws.onerror = () => {
+                term.write('\r\n\x1b[31m[WebSocket error]\x1b[0m\r\n');
+            };
+
+            // User keystrokes → PTY stdin
+            term.onData((data) => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'input', data }));
+                }
+            });
+
         } catch (e) {
-            ctermAppend('[network error: ' + e.message + ']\n');
-            ctermMarkDead();
+            document.getElementById('ctermStatusDot').className = 'cterm-status-dot dead';
+            console.error('[cterm]', e);
         }
     }
 
@@ -558,74 +669,22 @@
         document.removeEventListener('keydown', _ctermEscHandler);
         document.getElementById('ctermOverlay').classList.remove('open');
         document.getElementById('ctermWindow').style.display = 'none';
-        if (_ctermSessionId) {
-            fetch('/api/codex-chat/' + _ctermSessionId + '/kill', { method: 'POST' }).catch(() => {});
-            _ctermSessionId = null;
-        }
-        if (_ctermEvtSrc) { _ctermEvtSrc.close(); _ctermEvtSrc = null; }
+        // Leave session alive so re-open resumes the same PTY
     }
 
     function ctermOverlayClick(e) {
         if (e.target === document.getElementById('ctermOverlay')) ctermClose();
     }
 
-    // ── Session events ──────────────────────────────────────────────
-    function ctermOnSse(e) {
-        const raw = e.data;
-        if (raw.startsWith('__SESSION_END__:')) { ctermMarkDead(); return; }
-        try {
-            const evt = JSON.parse(raw);
-            if (evt.type === 'text')          { ctermAppend(evt.text ?? ''); }
-            else if (evt.type === 'sessionReady') { ctermMarkReady(); }
-            else if (evt.type === 'turnComplete') { ctermMarkReady(); }
-            else if (evt.type === 'error')    { ctermAppend('[error: ' + (evt.text ?? '?') + ']\n'); }
-        } catch { ctermAppend(raw); }
-    }
-
-    function ctermAppend(text) {
-        const t = document.getElementById('ctermTerminal');
-        t.textContent += text;
-        t.scrollTop = t.scrollHeight;
-    }
-
-    function ctermMarkReady() {
-        document.getElementById('ctermInput').disabled = false;
-        document.getElementById('ctermSendBtn').disabled = false;
-        setTimeout(() => document.getElementById('ctermInput').focus(), 30);
-    }
-
-    function ctermMarkDead() {
+    function ctermKillSession() {
+        if (_ptyWs) { try { _ptyWs.close(); } catch {} _ptyWs = null; }
+        if (_xtermInstance) { _xtermInstance.dispose(); _xtermInstance = null; }
+        if (_ptyResizeObserver) { _ptyResizeObserver.disconnect(); _ptyResizeObserver = null; }
+        _fitAddon = null;
+        // Clear persistence so next open starts fresh
+        localStorage.removeItem(CTERM_OPEN_KEY);
+        localStorage.removeItem(CTERM_LAUNCHED_KEY);
         document.getElementById('ctermStatusDot').className = 'cterm-status-dot dead';
-        document.getElementById('ctermInput').disabled = true;
-        document.getElementById('ctermSendBtn').disabled = true;
-        ctermAppend('\n[session ended]\n');
-    }
-
-    // ── Send message ────────────────────────────────────────────────
-    async function ctermSend() {
-        const input = document.getElementById('ctermInput');
-        const msg = input.value.trim();
-        if (!msg || !_ctermSessionId) return;
-        input.value = '';
-        input.disabled = true;
-        document.getElementById('ctermSendBtn').disabled = true;
-        try {
-            const res = await fetch('/api/codex-chat/' + _ctermSessionId + '/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: msg }),
-            });
-            const data = await res.json();
-            if (data.error) ctermAppend('[error: ' + data.error + ']\n');
-        } catch (e) {
-            ctermAppend('[network error: ' + e.message + ']\n');
-            ctermMarkReady();
-        }
-    }
-
-    async function ctermKillSession() {
-        if (!_ctermSessionId) return;
-        await fetch('/api/codex-chat/' + _ctermSessionId + '/kill', { method: 'POST' }).catch(() => {});
     }
 
     // ── Maximize / Restore ──────────────────────────────────────────
@@ -643,6 +702,7 @@
             ctermApplyLayout(margin, margin, window.innerWidth - margin*2, window.innerHeight - margin*2);
             _ctermMaximized = true;
         }
+        setTimeout(() => { if (_fitAddon) _fitAddon.fit(); }, 50);
     }
 
     // ── Drag ────────────────────────────────────────────────────────
@@ -677,6 +737,7 @@
         const win = document.getElementById('ctermWindow');
         const r = win.getBoundingClientRect();
         ctermSaveLayout(r.left, r.top, win.offsetWidth, win.offsetHeight);
+        setTimeout(() => { if (_fitAddon) _fitAddon.fit(); }, 50);
     }
 
     // ── Resize ──────────────────────────────────────────────────────
@@ -716,6 +777,49 @@
         const win = document.getElementById('ctermWindow');
         const r = win.getBoundingClientRect();
         ctermSaveLayout(r.left, r.top, win.offsetWidth, win.offsetHeight);
+        setTimeout(() => { if (_fitAddon) _fitAddon.fit(); }, 50);
+    }
+
+    // ── Programmatic API (for Claude to drive via preview_eval) ─────
+    // window.wtSend(text)          — type text into the terminal (append \r\n for Enter)
+    // window.wtGetText()           — returns current visible buffer as plain text
+    // window.wtWaitFor(re, ms)     — Promise: resolves when pattern appears in buffer
+    window.wtSend = function(text) {
+        if (_ptyWs && _ptyWs.readyState === WebSocket.OPEN) {
+            _ptyWs.send(JSON.stringify({ type: 'input', data: text }));
+        }
+    };
+    window.wtGetText = function() {
+        if (!_xtermInstance) return '';
+        const buf = _xtermInstance.buffer.active;
+        const lines = [];
+        for (let i = 0; i < buf.length; i++) {
+            lines.push(buf.getLine(i)?.translateToString(true) ?? '');
+        }
+        return lines.join('\n').trimEnd();
+    };
+    window.wtWaitFor = function(pattern, timeoutMs) {
+        const ms = timeoutMs || 60000;
+        const re = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+        return new Promise((resolve, reject) => {
+            const start = Date.now();
+            const check = () => {
+                const text = window.wtGetText();
+                const m = text.match(re);
+                if (m) { resolve(m[0]); return; }
+                if (Date.now() - start > ms) { reject(new Error('wtWaitFor timeout: ' + pattern)); return; }
+                setTimeout(check, 250);
+            };
+            setTimeout(check, 250);
+        });
+    };
+
+    // ── Auto-reopen on HMR reload ────────────────────────────────────
+    // If the terminal was open when HMR fired, reopen it automatically so
+    // xterm.js reconnects to the sticky PTY without user intervention.
+    if (localStorage.getItem(CTERM_OPEN_KEY) === 'true') {
+        // Small delay lets the page finish rendering before opening the overlay
+        setTimeout(() => ctermOpen(), 300);
     }
     </script>
 
@@ -739,17 +843,15 @@
             <button class="cterm-btn danger" onclick="ctermKillSession()" id="ctermKillBtn">&#x25A0; Kill</button>
             <button class="cterm-btn" onclick="ctermClose()" title="Close (Esc)">&#x2715;</button>
         </div>
-        <!-- Body -->
+        <!-- Body: xterm.js renders here, handles all keyboard input natively -->
         <div class="cterm-body">
-            <pre class="cterm-terminal" id="ctermTerminal"></pre>
-            <div class="cterm-input-row">
-                <input type="text" id="ctermInput" placeholder="Ask codex anything&#x2026;" autocomplete="off"
-                       onkeydown="if(event.key==='Enter')ctermSend()" />
-                <button class="cterm-send-btn" id="ctermSendBtn" onclick="ctermSend()">Send &#x21B5;</button>
-            </div>
+            <div class="cterm-xterm" id="ctermXterm"></div>
         </div>
     </div>
 
+    <!-- xterm.js — full terminal emulator for the PTY web terminal -->
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
     <script src="dev_hub_tools.js"></script>
     <script src="dev_hub_app.js"></script>
 </body>

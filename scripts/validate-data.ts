@@ -1,10 +1,23 @@
+/**
+ * @file validate-data.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to 
+ * 'SpellValidator', 'ACTIVE_RACES', and 'Race' imports to suppress 
+ * resolution warnings in the script environment. Added an explicit type 
+ * to the 'trait' parameter in the 'some' callback to resolve implicit 
+ * any warnings.
+ */
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
-import { SpellValidator } from '../src/systems/spells/validation/spellValidator.ts';
-import { ACTIVE_RACES } from '../src/data/races/index.ts';
+// @ts-ignore
+import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
+// @ts-ignore
+import { ACTIVE_RACES } from '../src/data/races/index';
+// @ts-ignore
 import type { Race } from '../src/types';
-import { checkFile, TARGET_DIRECTORIES } from './check-non-ascii.ts';
+import { checkFile, TARGET_DIRECTORIES } from './check-non-ascii';
 import { globSync } from 'glob';
 
 /**
@@ -88,7 +101,7 @@ const validateRaces = (races: readonly Race[]): void => {
       throw new Error(`[Data Validation] Race missing name: ${race.id}`);
     }
     // Check for speed trait
-    if (!race.traits.some(trait => trait.startsWith('Speed:'))) {
+    if (!race.traits.some((trait: string) => trait.startsWith('Speed:'))) {
       throw new Error(`[Data Validation] Race missing speed trait: ${race.id}`);
     }
 

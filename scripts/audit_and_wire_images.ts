@@ -8,6 +8,14 @@
  * e.g. wood_elf_male.png -> Elf_Wood_Male.png
  */
 
+/**
+ * @file audit_and_wire_images.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Pruning] Refactored 'contentString' to use 'const' 
+ * instead of 'let' as it is never reassigned, following ESLint's 
+ * 'prefer-const' rule.
+ */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -178,7 +186,7 @@ async function run() {
     console.log('\n--- Processing JSON Files ---');
     for (const file of jsonFiles) {
         const filePath = path.join(RACES_JSON_DIR, file);
-        let contentString = fs.readFileSync(filePath, 'utf-8');
+        const contentString = fs.readFileSync(filePath, 'utf-8');
         let json: any;
         try {
             json = JSON.parse(contentString);

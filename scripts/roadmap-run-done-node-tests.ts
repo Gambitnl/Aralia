@@ -3,6 +3,12 @@ import { execSync } from 'child_process';
 import { generateRoadmapData } from './roadmap-engine/generate.js';
 
 /**
+ * @file roadmap-run-done-node-tests.ts
+ * 
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added 'as any' cast to 
+ * 'shell: true' in execSync options to satisfy Node.js type definitions.
+ * 
  * Technical:
  * Executes roadmap node tests for every node currently marked as done.
  *
@@ -28,7 +34,7 @@ function runNodeTest(nodeId: string) {
   try {
     const output = execSync(command, {
       cwd: process.cwd(),
-      shell: true,
+      shell: true as any,
       stdio: 'pipe',
       encoding: 'utf8'
     }).trim();
