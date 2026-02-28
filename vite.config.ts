@@ -1757,50 +1757,132 @@ const ptyTerminalManager = () => ({
 export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
   const isDevServer = command === 'serve';
+  const isRoadmapMode = mode === 'roadmap';
+  const isRoadmapOnlyDev = isDevServer && isRoadmapMode;
   const ollamaTarget = 'http://localhost:11434/api';
   const imageTarget = 'http://localhost:3001';
 
+  // ============================================================================
+  // Dev Profile Isolation
+  // ============================================================================
+  // Technical:
+  // The main app and roadmap tool can run as separate dev profiles so HMR updates
+  // in one profile do not bounce the other profile's browser session.
+  //
+  // Layman:
+  // This is the keep-roadmap-separate switch.
+  // - Normal npm run dev: game app only, roadmap files are ignored by file watching.
+  // - vite --mode roadmap: roadmap only, on a separate port.
+  // ============================================================================
+  const mainDevRoadmapWatchIgnored = [
+    '**/.agent/roadmap/**',
+    '**/.agent/roadmap-local/**',
+    '**/scripts/roadmap-engine/**',
+    '**/scripts/roadmap-server-logic.ts',
+    '**/scripts/roadmap-local-bridge.ts',
+    '**/scripts/roadmap-*.ts',
+    '**/src/roadmap-entry.tsx',
+    '**/src/components/debug/roadmap/**',
+    '**/src/components/debug/RoadmapVisualizer.tsx',
+    '**/misc/roadmap.html',
+    '**/misc/roadmap_docs.html',
+    '**/misc/roadmap_docs.css'
+  ];
+
+  // ============================================================================
+  // Plugin Profiles
+  // ============================================================================
+  // Technical:
+  // Main profile keeps existing dev tooling but intentionally excludes roadmap API
+  // middleware. Roadmap-only profile includes only the roadmap middleware plus React.
+  //
+  // Layman:
+  // We load only the tools each profile needs, so roadmap edits do not poke the
+  // main app server and main app edits do not disturb the roadmap server.
+  // ============================================================================
+  const mainPlugins = [
+    react(),
+    visualizerManager(),
+    conductorManager(),
+    scanManager(),
+    gitStatusManager(),
+    devHubApiManager(),
+    scriptRegistryManager(),
+    portraitApiManager(),
+    codexRunManager(),
+    codexChatManager(),
+    ptyTerminalManager()
+  ];
+  const roadmapOnlyPlugins = [react(), roadmapManager()];
+  const plugins = isRoadmapOnlyDev ? roadmapOnlyPlugins : mainPlugins;
+
+  // ============================================================================
+  // Build Entry Gating
+  // ============================================================================
+  // Technical:
+  // Roadmap HTML entries are only added when explicitly building in roadmap mode.
+  // This avoids pulling roadmap bundles into regular app builds by accident.
+  //
+  // Layman:
+  // The roadmap page now joins builds only when you ask for roadmap mode on purpose.
+  // ============================================================================
+  const includeRoadmapBuildEntries = isRoadmapMode;
+
   if (isDevServer) {
-    console.info('[dev] Proxy routes:');
-    console.info(`[dev] /api/ollama -> ${ollamaTarget} (Ollama server)`);
-    console.info(`[dev] /api/image-gen -> ${imageTarget} (image server)`);
-    console.info(`[dev] /generated -> ${imageTarget} (image server)`);
+    if (isRoadmapOnlyDev) {
+      console.info('[dev] Mode: roadmap-only (isolated from main app HMR).');
+      console.info('[dev] Roadmap server port: 3010');
+      console.info('[dev] Open: /Aralia/misc/roadmap.html');
+    } else {
+      console.info('[dev] Mode: main-app (roadmap APIs and roadmap watch paths are disabled).');
+      console.info('[dev] Proxy routes:');
+      console.info('[dev] /api/ollama -> ' + ollamaTarget + ' (Ollama server)');
+      console.info('[dev] /api/image-gen -> ' + imageTarget + ' (image server)');
+      console.info('[dev] /generated -> ' + imageTarget + ' (image server)');
+    }
   }
 
   return {
     base: '/Aralia/',
     server: {
-      port: 3000,
+      port: isRoadmapOnlyDev ? 3010 : 3000,
       host: '0.0.0.0',
-      proxy: {
-        '/api/ollama': addProxyDiagnostics(
-          '/api/ollama',
-          {
-            target: ollamaTarget,
-            changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/api\/ollama/, ''),
-          },
-          'Start Ollama (ollama serve) or update the target in vite.config.ts.'
-        ),
-        '/api/image-gen': addProxyDiagnostics(
-          '/api/image-gen',
-          {
-            target: imageTarget,
-            changeOrigin: true,
-          },
-          'Start the image server on port 3001 or update the target in vite.config.ts.'
-        ),
-        '/generated': addProxyDiagnostics(
-          '/generated',
-          {
-            target: imageTarget,
-            changeOrigin: true,
-          },
-          'Start the image server on port 3001 or update the target in vite.config.ts.'
-        )
-      }
+      ...(isRoadmapOnlyDev
+        ? {}
+        : {
+            watch: {
+              ignored: mainDevRoadmapWatchIgnored
+            },
+            proxy: {
+              '/api/ollama': addProxyDiagnostics(
+                '/api/ollama',
+                {
+                  target: ollamaTarget,
+                  changeOrigin: true,
+                  rewrite: (path) => path.replace(/^\/api\/ollama/, ''),
+                },
+                'Start Ollama (ollama serve) or update the target in vite.config.ts.'
+              ),
+              '/api/image-gen': addProxyDiagnostics(
+                '/api/image-gen',
+                {
+                  target: imageTarget,
+                  changeOrigin: true,
+                },
+                'Start the image server on port 3001 or update the target in vite.config.ts.'
+              ),
+              '/generated': addProxyDiagnostics(
+                '/generated',
+                {
+                  target: imageTarget,
+                  changeOrigin: true,
+                },
+                'Start the image server on port 3001 or update the target in vite.config.ts.'
+              )
+            }
+          })
     },
-    plugins: [react(), visualizerManager(), roadmapManager(), conductorManager(), scanManager(), gitStatusManager(), devHubApiManager(), scriptRegistryManager(), portraitApiManager(), codexRunManager(), codexChatManager(), ptyTerminalManager()],
+    plugins,
     define: {
       // Shim process.env for legacy support (allows process.env.API_KEY to work).
       // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.
@@ -1826,10 +1908,10 @@ export default defineConfig(({ mode, command }) => {
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'agent_docs.html'))
             ? { agent_docs: path.resolve(__dirname, 'misc', 'agent_docs.html') }
             : {}),
-          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap.html'))
+          ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap.html'))
             ? { roadmap: path.resolve(__dirname, 'misc', 'roadmap.html') }
             : {}),
-          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap_docs.html'))
+          ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap_docs.html'))
             ? { roadmap_docs: path.resolve(__dirname, 'misc', 'roadmap_docs.html') }
             : {})
         },

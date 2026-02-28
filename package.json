@@ -32,7 +32,8 @@
     "roadmap:run-done-node-tests": "tsx scripts/roadmap-run-done-node-tests.ts",
     "roadmap:session-close": "tsx scripts/roadmap-session-close.ts",
     "roadmap:process-game-docs": "tsx scripts/roadmap-process-game-docs.ts",
-    "roadmap:derive-structured-doc": "tsx scripts/roadmap-derive-structured-doc.ts"
+    "roadmap:derive-structured-doc": "tsx scripts/roadmap-derive-structured-doc.ts",
+    "dev:roadmap": "vite --mode roadmap --host 0.0.0.0 --port 3010"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",

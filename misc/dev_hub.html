@@ -354,7 +354,7 @@
             <button type="button" class="card card-button dev-only" onclick="openRoadmapModal()">
                 <span class="badge badge-beta">Interactive</span>
                 <h2>ARALIA CHRONICLES</h2>
-                <p>Open roadmap planning, status tracking, and verification tools from one entrypoint.</p>
+                <p>Open roadmap planning, status tracking, and verification tools from one entrypoint. Run it in isolated mode so roadmap HMR does not affect the main game.</p>
             </button>
         </div>
     </section>
@@ -369,6 +369,22 @@
             <div class="modal-body">
                 <p class="roadmap-modal-subtitle">
                     Choose where you want to go in the roadmap system.
+                    Main app: <code>npm run dev</code>. Roadmap-only (LAN-visible): <code>npm run dev:roadmap</code>.
+                </p>
+                <div class="tool-cmd" style="margin: 0.4rem 0 0.45rem;">
+                    <code>npm run dev</code>
+                    <div class="tool-actions">
+                        <button class="tool-btn" onclick="copyCmd(this, 'npm run dev')">Copy</button>
+                    </div>
+                </div>
+                <div class="tool-cmd" style="margin: 0.4rem 0 0.8rem;">
+                    <code>npm run dev:roadmap</code>
+                    <div class="tool-actions">
+                        <button class="tool-btn" onclick="copyCmd(this, 'npm run dev:roadmap')">Copy</button>
+                    </div>
+                </div>
+                <p class="roadmap-modal-subtitle" style="margin-top: 0;">
+                    Roadmap LAN URL pattern: <code>http://&lt;LAN-IP&gt;:3010/Aralia/misc/roadmap.html</code>
                 </p>
                 <div class="roadmap-option-grid">
                     <a href="/Aralia/misc/roadmap.html" class="roadmap-option-card">
