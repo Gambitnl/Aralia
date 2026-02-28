@@ -41,9 +41,9 @@ export function computeHealthSignals(node: RoadmapNode, siblings: RoadmapNode[])
     });
   }
 
-  // Treat undefined component metadata as an empty list so the atomization rule
-  // can run without extra null checks.
-  const componentFiles = node.componentFiles ?? [];
+  // The shared roadmap node shape includes a broad index signature, so this guard
+  // ensures we only treat a real string-array as component metadata.
+  const componentFiles = Array.isArray(node.componentFiles) ? node.componentFiles : [];
 
   // A node tied to multiple component files likely combines too much scope and
   // should be split into smaller roadmap units.
