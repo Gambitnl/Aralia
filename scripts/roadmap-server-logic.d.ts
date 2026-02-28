@@ -18,6 +18,12 @@ export type RoadmapNode = {
     label: string;
     type: 'root' | 'project' | 'milestone';
     status: 'planned' | 'active' | 'done';
+    testFile?: string;
+    lastTestRun?: {
+        timestamp: string;
+        status: 'pass' | 'fail' | 'unverified';
+    };
+    componentFiles?: string[];
     [key: string]: unknown;
 };
 export type RoadmapEdge = {
