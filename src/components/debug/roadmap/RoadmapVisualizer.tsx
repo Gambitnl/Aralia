@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 28/02/2026, 16:32:37
+ * Last Sync: 28/02/2026, 16:54:28
  * Dependents: RoadmapVisualizer.tsx
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,9 +16,13 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useMotionValue } from 'framer-motion';
-import type { RoadmapNode as HealthSignalRoadmapNode } from '../../../../scripts/roadmap-server-logic';
+import type {
+  OpportunitySettings as OpportunitySettingsContract,
+  RoadmapNode as HealthSignalRoadmapNode
+} from '../../../../scripts/roadmap-server-logic';
 import { GRID_SIZE, THEME_STORAGE_KEY, nextThemeMode } from './constants';
 import { buildRenderGraph } from './graph';
+import { OpportunitySettingsForm } from './OpportunitySettingsForm';
 import { NodeHealthBadge } from './health-signals/NodeHealthBadge';
 import { computeHealthSignals } from './health-signals/compute-health-signals';
 import type { RenderNode, RoadmapData, ThemeMode } from './types';
@@ -91,13 +95,8 @@ type OpportunityScanPayload = {
   summary: OpportunityScanSummary;
   nodes: OpportunityNodeRecord[];
 };
-type OpportunitySettings = {
-  autoScanMinutes: number;
-  staleDays: number;
-  parentModeDefault: OpportunityViewMode;
-  keepSnapshots: boolean;
-  maxSnapshotEntries: number;
-  maxCrosslinkMatchesPerNode: number;
+type OpportunitySettings = OpportunitySettingsContract & {
+  parentModeDefault?: OpportunityViewMode;
 };
 
 // Technical: keeps node coordinates aligned to grid.
@@ -407,6 +406,18 @@ export const RoadmapVisualizer: React.FC = () => {
       setOpportunityError('Failed to load opportunities settings.');
     }
   }, []);
+
+  // Technical: persists edited opportunity settings from the UI form.
+  // Layman: when user clicks Save Settings, send those values to the roadmap API
+  // and then reload settings so the drawer reflects the server-confirmed values.
+  const handleSaveOpportunitySettings = useCallback(async (updated: OpportunitySettingsContract) => {
+    await fetch('/api/roadmap/opportunities/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    });
+    void loadOpportunitySettings();
+  }, [loadOpportunitySettings]);
 
   // Technical: reads latest opportunities collector data (or computes it on demand server-side).
   // Layman: this fetches the current flagged-node list that powers the drawer.
@@ -1236,6 +1247,17 @@ export const RoadmapVisualizer: React.FC = () => {
                 Stale {opportunitySettings?.staleDays ?? 30}d
               </div>
             </div>
+
+            {/* Technical: inline form for editing scanner interval + stale threshold. */}
+            {/* Layman: this is where users change opportunities settings and save them. */}
+            {opportunitySettings && (
+              <div className={`mb-4 rounded border ${isDark ? 'border-slate-700 bg-slate-900/45' : 'border-slate-300 bg-slate-100/75'}`}>
+                <OpportunitySettingsForm
+                  settings={opportunitySettings}
+                  onSave={handleSaveOpportunitySettings}
+                />
+              </div>
+            )}
 
             {opportunityData && (
               <div className={`mb-3 text-[10px] uppercase tracking-[0.12em] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
