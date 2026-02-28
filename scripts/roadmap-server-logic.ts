@@ -17,6 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
+import { checkTestPresence } from './roadmap/node-test-presence/test-presence-checker.js';
 
 // ============================================================================
 // Shared Types (Minimal Contract)
@@ -155,9 +156,10 @@ const runBridge = <T>(action: BridgeAction, payload?: unknown): T | null => {
 // ============================================================================
 export function generateRoadmapData(): RoadmapData {
   const local = runBridge<RoadmapData>('generate-roadmap');
-  if (local) return local;
 
-  return {
+  // Technical: choose local engine output when available, otherwise deterministic fallback.
+  // Layman: use real roadmap data in local dev; otherwise use one safe placeholder node.
+  const data: RoadmapData = local ?? {
     version: '2.1.0-fallback',
     root: 'aralia_chronicles',
     nodes: [
@@ -172,6 +174,22 @@ export function generateRoadmapData(): RoadmapData {
     ],
     edges: []
   };
+
+  // Technical: annotate each node with whether test metadata is declared and whether
+  // the declared test path exists at the current repository root.
+  // Layman: every roadmap card gets "did we declare a test?" and "does that file exist?"
+  // flags so downstream health UI can show accurate warnings.
+  const repoRoot = process.cwd();
+  data.nodes = data.nodes.map((node: RoadmapNode) => {
+    const presence = checkTestPresence(node, repoRoot);
+    return {
+      ...node,
+      testFileExists: presence.testFileExists,
+      testFileDeclared: presence.testFileDeclared
+    };
+  });
+
+  return data;
 }
 
 // ============================================================================
