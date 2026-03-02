@@ -46,19 +46,25 @@ Prioritize minimal, behavior-preserving changes:
 - Add explicit types to values, parameters, and returns.
 - Add type guards or runtime checks before access.
 - Narrow unions with `in`, `typeof`, or discriminants.
-- Prefer local fixes over refactors that move or delete logic.
+- Confine your fixes to local scopes rather than moving or deleting logic.
 
-Avoid these unless explicitly asked:
+Maintain strict architectural boundaries:
 
-- Removing features or deleting code to silence errors
-- Broad refactors that change API shape
-- Rewriting modules without a clear bug or type error driver
+- Retain all existing features and working code blocks, even if they currently cause linting or type errors.
+- Preserve the existing API shape and structure of data objects.
+- Limit module rewrites strictly to paths required to resolve proven bugs or type errors.
 
-### 4) Flag debt where types are still risky
+### 4) Flag debt and ambiguity where types are risky
 
 If the only safe path is a temporary assertion or loose type, flag it using the
 debt prefixes from the Code Commentary skill. Be specific about what the shortcut
 is and why the proper fix wasn't possible now.
+
+If the intent of a code block is ambiguous (e.g., determining if an unused variable is dead code to be pruned or a "feature bud" to be preserved), do not guess or autonomously delete it.
+
+- Apply the `// REVIEW_INTENT:` flag directly above the ambiguous code.
+- Provide a brief comment explaining the uncertainty (e.g., "Unused state variable, possibly intended for future UX").
+- Skip fixing this specific error and include it in your final report for human review and direction.
 
 ### 5) Re-run until error count is 0 (phased)
 

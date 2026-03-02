@@ -149,6 +149,15 @@ needs doing and why you couldn't do it now.
 // flow is being rewritten in a separate branch.
 ```
 
+### `// REVIEW_INTENT:`
+For code where the intent is ambiguous (e.g., you cannot determine if it is objectively dead code or a planned "feature bud"). Instead of guessing and autonomously deleting potentially valuable logic, flag it for human review.
+
+```ts
+// REVIEW_INTENT: This state variable and its setter are currently unused. 
+// It appears to be tracking a "first unaffordable score" for a future UX 
+// enhancement. Left intact to avoid destructive janitoring. Human review needed.
+```
+
 ### Rules for debt flags:
 
 - Place them **directly above** the line or block they describe. Never on the same line.
@@ -164,21 +173,20 @@ These rules apply to all code-editing work. They are the canonical version — o
 skills and workflows reference this section rather than repeating it.
 
 ### Minimal Impact
-Fix only the problem you were asked to fix. Don't refactor surrounding code, rename
-variables for style, or "improve" things that aren't broken. Every change is a risk.
+Restrict your changes strictly to the requested problem. Preserve the existing structure, naming conventions, and surrounding logic exactly as you found them to minimize unintended side effects.
 
-### No Deletion
-Never remove features, exports, or working code just to make the compiler happy or
-the linter quiet. Add types, add guards, add narrowing — but don't delete.
+### Preserve Intent and Logic (Beware the "Destructive Janitor")
+Retain all existing features, exports, and working code blocks. Resolve compiler and linter errors by adding explicit types, implementing type guards, or narrowing unions.
+
+**Pruning vs. Janitoring:**
+- **Good Pruning (Signal Preservation):** Target your removals exclusively to objectively dead code, unused imports, or logically unreachable artifacts to clarify the file's signal.
+- **Destructive Janitoring (Intent Destruction):** Treat unused state, disabled elements, or commented-out logic as intentional "feature buds" for future development. When encountering broken but intentional logic, repair the implementation or document it using a DEBT or REVIEW_INTENT comment to preserve the original architectural roadmap.
 
 ### Structural Integrity
-Don't reshape objects, flatten nested data, or change API signatures to satisfy
-type errors. If the data has a certain shape, the types should match the data — not
-the other way around.
+Adapt your TypeScript definitions to match the existing runtime data structures. Ensure objects, nested data, and API signatures maintain their current shape when resolving type errors.
 
-### Don't Mutate Tests to Pass
-If a test fails, the code is probably wrong — not the test. Fix the code. If you
-genuinely believe the test is outdated, explain why in a comment above the change.
+### Test Alignment
+Treat test failures as indicators of incorrect application logic. Focus your fixes on the source code to satisfy the existing test assertions. If you genuinely believe the test is outdated, explain why in a comment above the change.
 
 ---
 
