@@ -31,8 +31,8 @@ function auditCantripSaves() {
 
                   // Check each effect
                   if (spell.effects) {
-                    // @ts-ignore
-                    spell.effects.forEach((effect: import('../../src/types/spells').SpellEffect, index: number) => {
+                    // @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep explicit extension for CLI use.
+                    spell.effects.forEach((effect: import('../../src/types/spells.js').SpellEffect, index: number) => {
                       // Check condition.saveEffect
             
                 if (effect.condition && effect.condition.saveEffect === 'half') {
@@ -41,8 +41,11 @@ function auditCantripSaves() {
                 }
               });
             }
-          } catch (e: any) {
-            console.error(`Error parsing ${file}: ${e.message}`);
+          } catch (err: unknown) {
+            // DEBT: Cast to any to safely access message on unknown catch variable.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const _e = err as any;
+            console.error(`Error parsing ${file}: ${_e.message}`);
           }
       
   });

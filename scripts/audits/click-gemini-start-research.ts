@@ -6,7 +6,7 @@
  * This old path is retained only to make stale references fail loudly with guidance.
  */
 
-import { runMovedScriptTombstone } from "../moved-script-tombstone";
+import { runMovedScriptTombstone } from "../moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/audits/click-gemini-start-research.ts",

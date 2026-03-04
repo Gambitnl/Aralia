@@ -1,6 +1,5 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
-import path from 'path';
 import { globSync } from 'glob';
 
 const OUTPUT_FILE = '.agent/roadmap/file_dates.json';
@@ -11,7 +10,7 @@ function getCreationDate(filePath: string): string | null {
     if (!output) return null;
     const dates = output.split('\n');
     return dates[dates.length - 1]; // First creation date
-  } catch (e) {
+  } catch {
     return null;
   }
 }

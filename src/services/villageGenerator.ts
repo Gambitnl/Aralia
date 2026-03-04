@@ -468,7 +468,10 @@ export const generateVillageLayout = ({
   const integrationProfile = resolveVillageIntegrationProfile(personality);
   const normalizedIntegrationProfile: VillageIntegrationProfile = {
     // TODO(2026-01-03 pass 1 Codex-CLI): Village profiles lack name/description in some paths; default to id/tagline to keep UI stable.
+    // DEBT: Cast profile to any to probe dynamic response shapes from generation services.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     name: (integrationProfile as any).name ?? integrationProfile.id ?? 'Village Profile',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     description: (integrationProfile as any).description ?? integrationProfile.tagline ?? '',
     ...integrationProfile,
   };

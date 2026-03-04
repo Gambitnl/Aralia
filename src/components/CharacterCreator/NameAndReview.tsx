@@ -272,6 +272,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
                   id="characterName"
                   value={name}
                   onChange={handleNameChange}
+                  // TODO(lint): autoFocus is discouraged for accessibility, but essential for the rapid-name flow here.
                   autoFocus
                   className={`w-full px-4 py-3 bg-gray-800 border rounded-xl text-white focus:ring-2 outline-none transition-all shadow-inner ${
                     validationError

@@ -149,6 +149,8 @@ describe('Planar Utils', () => {
       activeRitual: null,
       underdark: { currentDepth: 0, currentBiomeId: 'cavern', lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
       activeConversation: null
+    // DEBT: Cast to any to allow partial mock implementation in tests.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     it('should return true if requirement is met (item)', () => {

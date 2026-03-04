@@ -18,15 +18,15 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types';
-import { RitualState } from '../types/rituals';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types/index.js';
+import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
-import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
-import { DialogueSession } from '../types/dialogue';
-import { WorldHistoryEvent } from '../types/history';
-import { CrewRole } from '../types/naval';
-import { InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions';
+import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads.js';
+import { DialogueSession } from '../types/dialogue.js';
+import { WorldHistoryEvent } from '../types/history.js';
+import { CrewRole } from '../types/naval.js';
+import { InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions.js';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -128,7 +128,7 @@ export type AppAction =
   | { type: 'ADD_MET_NPC'; payload: { npcId: string } }
   // Gemini Log
   | { type: 'ADD_GEMINI_LOG_ENTRY'; payload: GeminiLogEntry }
-  | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: import('../types').OllamaLogEntry }
+  | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: import('../types/index.js').OllamaLogEntry }
   | { type: 'UPDATE_OLLAMA_LOG_ENTRY'; payload: { id: string; response: string; model?: string } }
   | { type: 'TOGGLE_OLLAMA_LOG_VIEWER' } | { type: 'TOGGLE_UNIFIED_LOG_VIEWER' }
   | { type: 'ADD_BANTER_DEBUG_LOG'; payload: { timestamp: Date; check: string; result: boolean | string; details?: string } }
@@ -159,9 +159,9 @@ export type AppAction =
   // Companion Actions
   | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source?: string } }
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
-  | { type: 'ADD_COMPANION_MEMORY'; payload: { companionId: string; memory: import('../types/companions').CompanionMemory } }
-  | { type: 'ADD_DISCOVERED_FACT'; payload: { companionId: string; fact: import('../types/companions').DiscoveredFact } }
-  | { type: 'ARCHIVE_BANTER'; payload: import('../types/companions').BanterMoment }
+  | { type: 'ADD_COMPANION_MEMORY'; payload: { companionId: string; memory: import('../types/companions.js').CompanionMemory } }
+  | { type: 'ADD_DISCOVERED_FACT'; payload: { companionId: string; fact: import('../types/companions.js').DiscoveredFact } }
+  | { type: 'ARCHIVE_BANTER'; payload: import('../types/companions.js').BanterMoment }
   | { type: 'UPDATE_BANTER_COOLDOWN'; payload: { banterId: string; timestamp: number } }
   // Notification Actions
   | { type: 'ADD_NOTIFICATION'; payload: { id?: string; type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
@@ -173,11 +173,11 @@ export type AppAction =
   // Quest UI Actions
   | { type: 'TOGGLE_QUEST_LOG' }
   // Town Navigation Actions
-  | { type: 'ENTER_TOWN'; payload: { townMap: import('../types/town').TownState['townMap']; entryPoint: import('../types/town').TownState['entryPoint']; spawnPosition: import('../types/town').TownPosition } }
+  | { type: 'ENTER_TOWN'; payload: { townMap: import('../types/town.js').TownState['townMap']; entryPoint: import('../types/town.js').TownState['entryPoint']; spawnPosition: import('../types/town.js').TownPosition } }
   | { type: 'SET_TOWN_ENTRY_DIRECTION'; payload: { direction: 'north' | 'east' | 'south' | 'west' | null } }
-  | { type: 'MOVE_IN_TOWN'; payload: { direction: import('../types/town').TownDirection } }
+  | { type: 'MOVE_IN_TOWN'; payload: { direction: import('../types/town.js').TownDirection } }
   | { type: 'STOP_MOVING_IN_TOWN' }
-  | { type: 'SET_TOWN_VIEWPORT'; payload: { center?: import('../types/town').TownPosition; zoom?: number } }
+  | { type: 'SET_TOWN_VIEWPORT'; payload: { center?: import('../types/town.js').TownPosition; zoom?: number } }
   | { type: 'EXIT_TOWN' }
   // Notoriety Actions
   | { type: 'COMMIT_CRIME'; payload: { type: CrimeType; locationId: string; severity: number; witnessed: boolean } }
@@ -246,18 +246,18 @@ export type AppAction =
   | { type: 'TOGGLE_ECONOMY_LEDGER' }
   | { type: 'TOGGLE_COURIER_POUCH' }
   // Business Actions
-  | { type: 'FOUND_BUSINESS'; payload: { strongholdId: string; businessType: import('../types/business').BusinessType } }
+  | { type: 'FOUND_BUSINESS'; payload: { strongholdId: string; businessType: import('../types/business.js').BusinessType } }
   | { type: 'SET_BUSINESS_PRICES'; payload: { businessId: string; priceMultiplier: number } }
-  | { type: 'SIGN_SUPPLY_CONTRACT'; payload: { businessId: string; contract: import('../types/business').SupplyContract } }
+  | { type: 'SIGN_SUPPLY_CONTRACT'; payload: { businessId: string; contract: import('../types/business.js').SupplyContract } }
   | { type: 'CANCEL_SUPPLY_CONTRACT'; payload: { businessId: string; contractId: string } }
   // World Business Actions (NPC-owned & acquisition)
-  | { type: 'REGISTER_WORLD_BUSINESS'; payload: { business: import('../types/business').WorldBusiness } }
+  | { type: 'REGISTER_WORLD_BUSINESS'; payload: { business: import('../types/business.js').WorldBusiness } }
   | { type: 'PURCHASE_BUSINESS'; payload: { businessId: string; negotiatedPrice: number } }
   | { type: 'COERCE_BUSINESS_SALE'; payload: { businessId: string; discountPercent: number } }
   | { type: 'CREATE_PARTNERSHIP'; payload: { businessId: string; investmentAmount: number; playerSharePercent: number } }
   | { type: 'BUYOUT_PARTNER'; payload: { businessId: string; buyoutPrice: number } }
-  | { type: 'ACCEPT_FACTION_GRANT'; payload: { factionId: string; locationId: string; businessType: import('../types/business').BusinessType } }
-  | { type: 'FOUND_STANDALONE_BUSINESS'; payload: { locationId: string; businessType: import('../types/business').BusinessType } }
+  | { type: 'ACCEPT_FACTION_GRANT'; payload: { factionId: string; locationId: string; businessType: import('../types/business.js').BusinessType } }
+  | { type: 'FOUND_STANDALONE_BUSINESS'; payload: { locationId: string; businessType: import('../types/business.js').BusinessType } }
   | { type: 'ASSIGN_MANAGER'; payload: { businessId: string; npcId: string } }
   | { type: 'REMOVE_MANAGER'; payload: { businessId: string } }
   | { type: 'MANAGE_BUSINESS'; payload: { businessId: string } }
@@ -270,13 +270,13 @@ export type AppAction =
   | { type: 'UNLOCK_ACHIEVEMENT'; payload: { achievementId: string } }
   | { type: 'SET_CRAFTING_LOCATION'; payload: { locationId: string } }
   // Interactive Conversation Actions
-  | { type: 'START_CONVERSATION'; payload: { companionIds: string[]; initialMessage: import('../types/conversation').ConversationMessage } }
-  | { type: 'ADD_CONVERSATION_MESSAGE'; payload: import('../types/conversation').ConversationMessage }
+  | { type: 'START_CONVERSATION'; payload: { companionIds: string[]; initialMessage: import('../types/conversation.js').ConversationMessage } }
+  | { type: 'ADD_CONVERSATION_MESSAGE'; payload: import('../types/conversation.js').ConversationMessage }
   | { type: 'SET_CONVERSATION_PENDING'; payload: boolean }
   | { type: 'END_CONVERSATION' }
   // Lockpicking Modal Actions
   | { type: 'TOGGLE_LOCKPICKING_MODAL' }
-  | { type: 'OPEN_LOCKPICKING_MODAL'; payload: import('../systems/puzzles/types').Lock }
+  | { type: 'OPEN_LOCKPICKING_MODAL'; payload: import('../systems/puzzles/types.js').Lock }
   | { type: 'CLOSE_LOCKPICKING_MODAL' }
   // Dice Roller Actions
   | { type: 'TOGGLE_DICE_ROLLER' }
@@ -284,8 +284,8 @@ export type AppAction =
   | { type: 'RESTART_WITH_PROCEDURAL_PARTY'; payload: PlayerCharacter[] }
   // Journal Actions
   | { type: 'INIT_JOURNAL_STATE' }
-  | { type: 'ADD_JOURNAL_ENTRY'; payload: import('../types/journal').JournalEntry }
-  | { type: 'UPDATE_JOURNAL_ENTRY'; payload: { entryId: string; updates: Partial<import('../types/journal').JournalEntry> } }
-  | { type: 'LOG_JOURNAL_EVENT'; payload: import('../types/journal').JournalEvent }
+  | { type: 'ADD_JOURNAL_ENTRY'; payload: import('../types/journal.js').JournalEntry }
+  | { type: 'UPDATE_JOURNAL_ENTRY'; payload: { entryId: string; updates: Partial<import('../types/journal.js').JournalEntry> } }
+  | { type: 'LOG_JOURNAL_EVENT'; payload: import('../types/journal.js').JournalEvent }
   | { type: 'CLEAR_PENDING_EVENTS' }
   | { type: 'INCREMENT_SESSION' };

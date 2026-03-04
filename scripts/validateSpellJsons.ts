@@ -13,7 +13,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-// @ts-ignore
+// @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep extensionless for script stability.
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
 
 const SPELLS_DIR = path.join(__dirname, '../public/data/spells');

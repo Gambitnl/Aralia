@@ -15,7 +15,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { getRaceGroupById } from '../src/data/races/raceGroups';
+import { getRaceGroupById } from '../src/data/races/raceGroups.js';
 
 interface CharacterCreatorRaceInfo {
   id: string;

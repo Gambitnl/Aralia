@@ -48,6 +48,8 @@ export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // RALPH: Geopolitical Simulation.
     // 1. Weather Check: Logic-gate. Military activity is hindered by storms (90% cancellation).
+    // DEBT: Cast state to any to probe optional weather property without full GameState schema mapping here.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const weather = (state as any).weather;
     if (weather) {
         const p = weather.precipitation;
@@ -224,7 +226,7 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
         // Secret about the Loser being weak/corrupt, or the Winner using dark magic?
         // For simplicity, let's just generate a faction secret about the loser.
         // We pass 'others' as just the winner to create conflict-specific secrets.
-        const _secret = secretGen.generateFactionSecret(loser, [winner]);
+        secretGen.generateFactionSecret(loser, [winner]);
     }
 
     // Apply Player Reputation ripple
@@ -319,6 +321,8 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     ];
 
     // Modify weights based on weather
+    // DEBT: Cast state to any to probe optional weather property without full GameState schema mapping here.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const weather = (state as any).weather;
     if (weather) {
         const p = weather.precipitation;
@@ -516,6 +520,8 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
         marketFactors: state.economy?.marketFactors ?? { scarcity: [], surplus: [] },
         buyMultiplier: state.economy?.buyMultiplier ?? 1,
         sellMultiplier: state.economy?.sellMultiplier ?? 1,
+        // DEBT: Cast to any to probe dynamic economy event array without strict schema mapping here.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         activeEvents: (state.economy?.activeEvents as any) ?? []
     } as EconomyState;
 
@@ -542,6 +548,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
     // Clean up expired market events
     if (currentState.economy && currentState.economy.activeEvents) {
         let eventsChanged = false;
+        // DEBT: Cast to any array to allow dynamic mapping/filtering of economy events.
         const newActiveEvents = (currentState.economy.activeEvents as any[])
             .map(e => ({ ...e, duration: e.duration - 1 }))
             .filter((e: any) => e.duration > 0);

@@ -187,10 +187,12 @@ async function run() {
     for (const file of jsonFiles) {
         const filePath = path.join(RACES_JSON_DIR, file);
         const contentString = fs.readFileSync(filePath, 'utf-8');
+        // DEBT: Cast to any to probe dynamic property updates on the parsed JSON without full schema overhead here.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let json: any;
         try {
             json = JSON.parse(contentString);
-        } catch (e) {
+        } catch {
             continue;
         }
 

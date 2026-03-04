@@ -6,7 +6,7 @@
  * This wrapper prevents silent path drift in scripts that still call the old path.
  */
 
-import { runMovedScriptTombstone } from "../moved-script-tombstone";
+import { runMovedScriptTombstone } from "../moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/audits/click-gemini-start-research-locator.ts",

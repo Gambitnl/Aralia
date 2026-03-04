@@ -29,7 +29,7 @@
  * 2. Export a constant named <RACE_ID>_DATA (e.g., KOBOLD_DATA)
  * 3. That's it! The race will be automatically included.
  */
-import { Race } from '../../types';
+import { Race } from '../../types/index.js';
 
 // Auto-import all race files using Vite's import.meta.glob
 // This scans for all .ts files in the current directory, excluding index.ts and raceGroups.ts
@@ -68,9 +68,9 @@ export const ALL_RACES_DATA: Record<string, Race> = racesData;
 
 // Import legacy data bundles that are still used by deprecated systems
 // TODO: These can be removed once deprecated race selection components are cleaned up
-import { DRAGONBORN_ANCESTRIES_DATA } from './dragonborn';
-import { GIANT_ANCESTRY_BENEFITS_DATA } from './goliath';
-import { FIENDISH_LEGACIES_DATA } from './tiefling';
+import { DRAGONBORN_ANCESTRIES_DATA } from './dragonborn.js';
+import { GIANT_ANCESTRY_BENEFITS_DATA } from './goliath.js';
+import { FIENDISH_LEGACIES_DATA } from './tiefling.js';
 
 // Bundled exports for subraces/legacies that need to be accessed by constants.ts
 // This prevents circular dependencies or missing exports

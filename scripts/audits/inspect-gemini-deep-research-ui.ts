@@ -6,7 +6,7 @@
  * The executable script moved into a workflow-specific debug folder.
  */
 
-import { runMovedScriptTombstone } from "../moved-script-tombstone";
+import { runMovedScriptTombstone } from "../moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/audits/inspect-gemini-deep-research-ui.ts",

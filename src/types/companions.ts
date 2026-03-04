@@ -10,7 +10,7 @@
 // TODO(lint-intent): 'NPC' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import type { NPC as _NPC } from './world';
+import type { NPC as _NPC } from './world.js';
 
 // 11 relationship levels with 100-point steps from -500 to +500
 export type RelationshipLevel =

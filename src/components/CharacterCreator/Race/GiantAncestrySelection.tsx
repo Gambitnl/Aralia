@@ -80,7 +80,7 @@ const GiantAncestrySelection: React.FC<GiantAncestrySelectionProps> = ({ onAnces
         Choose Your Giant Ancestry
       </h2>
       <p className="text-gray-400 text-sm text-center mb-8">
-        Your giant ancestry determines the specialized benefit you can use with your Stone's Endurance
+        Your giant ancestry determines the specialized benefit you can use with your Stone&apos;s Endurance
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -121,7 +121,7 @@ const GiantAncestrySelection: React.FC<GiantAncestrySelectionProps> = ({ onAnces
                     ? 'bg-sky-500/20 text-sky-100'
                     : `${info.accentColor} text-gray-300`
                   }`}>
-                  Stone's Endurance Enhancement
+                  Stone&apos;s Endurance Enhancement
                 </div>
               </div>
             </button>

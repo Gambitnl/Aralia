@@ -5,8 +5,8 @@
  * This structure prevents logic duplication and `any` types in domain-specific interfaces.
  */
 
-import { AbilityScoreName, CharacterStats } from './core';
-import { DamageType, ConditionName, SavingThrowAbility, TargetConditionFilter } from './spells';
+import { AbilityScoreName, CharacterStats } from './core.js';
+import { DamageType, ConditionName, SavingThrowAbility, TargetConditionFilter } from './spells.js';
 
 /**
  * Base interface for all effects.

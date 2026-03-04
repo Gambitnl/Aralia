@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, _statSync } from 'fs';
 import { join, relative } from 'path';
 
 const SRC = join(import.meta.dirname, '..', 'src');

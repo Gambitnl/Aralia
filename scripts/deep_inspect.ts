@@ -6,7 +6,7 @@
  * We keep this wrapper so stale calls provide an actionable migration message.
  */
 
-import { runMovedScriptTombstone } from "./moved-script-tombstone";
+import { runMovedScriptTombstone } from "./moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/deep_inspect.ts",

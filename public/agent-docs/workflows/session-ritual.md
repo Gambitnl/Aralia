@@ -17,26 +17,11 @@ This workflow automates the maintenance tasks that should be performed before en
      - `docs/architecture/_generated/file-inventory.json` may still show legacy paths when tombstone wrappers intentionally remain.
      - Tombstone wrapper files are expected hits and should not be treated as stale docs.
 
-3. **Update Roadmap State (Mandatory Checkpoint)**: Perform a roadmap update pass before ending the ritual.
+3. **Roadmap Node Orchestration Checkpoint (Mandatory)**:
    - This checkpoint is required on every tidy-up run.
-   - If no roadmap-visible changes happened, still record an explicit "N/A" result.
-   - Do a full roadmap update when changed files touch:
-     - `scripts/roadmap-engine/**`
-     - `src/components/debug/roadmap/**`
-     - `misc/roadmap_docs.html`
-     - `misc/dev_hub.html`
-     - `docs/tasks/roadmap/**`
-     - `.agent/roadmap-local/**` (except temporary run artifacts that do not affect roadmap state)
-   - Required outcomes when triggered:
-     - Refresh roadmap-facing status/naming text so shipped work is not left as planned.
-     - Confirm roadmap docs/evidence links still resolve after file changes.
-     - Refresh high-level roadmap docs language when capability or workflow behavior changed.
-   - Required reporting block in tidy-up summary:
-     - `Roadmap Update: yes|no (with reason)`
-     - `Roadmap Files Reviewed: <paths>`
-     - `Roadmap Files Updated: <paths or none>`
-     - `Status/Naming Corrections Applied: <list or none>`
-     - `Open Follow-ups: <list or none>`
+   - If `/roadmap-node-orchestration` already ran earlier in tidy-up, confirm its report block exists in the final summary and continue.
+   - If it did not run, execute `/roadmap-node-orchestration` before continuing.
+   - Required reporting fields are defined in `public/agent-docs/workflows/roadmap-node-orchestration.md`.
 
 4. **Extract Terminal Learnings**: Capture any new PowerShell quirks or environment-specific fixes discovered during the session.
    Execute the `/extract-terminal-learnings` workflow.

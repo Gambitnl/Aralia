@@ -14,8 +14,8 @@
  */
 // @dependencies-end
 
-import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../../types';
-import { ActiveEffect } from '../../types/effects';
+import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../../types/index.js';
+import { ActiveEffect } from '../../types/effects.js';
 
 /**
  * Calculates the D&D ability score modifier as a number.
@@ -45,11 +45,11 @@ export const getAbilityModifierString = (score: number): string => {
 export const calculateFixedRacialBonuses = (baseScores: AbilityScores, race: Race | null): AbilityScores => {
   const finalScores: AbilityScores = { ...baseScores };
   if (race && race.abilityBonuses) {
-    race.abilityBonuses.forEach(bonus => {
+    race.abilityBonuses.forEach((bonus: any) => {
       if (bonus.ability === 'Any') {
         return;
       }
-      finalScores[bonus.ability] = (finalScores[bonus.ability] || 0) + bonus.bonus;
+      finalScores[bonus.ability as keyof AbilityScores] = (finalScores[bonus.ability as keyof AbilityScores] || 0) + bonus.bonus;
     });
   }
   return finalScores;

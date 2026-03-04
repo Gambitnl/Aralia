@@ -6,7 +6,7 @@
 // TODO(lint-intent): 'FiendishLegacyType' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Race, FiendishLegacy, FiendishLegacyType as _FiendishLegacyType } from '../../types'; // Path relative to src/data/races/
+import { Race, FiendishLegacy, FiendishLegacyType as _FiendishLegacyType } from '../../types/index.js'; // Path relative to src/data/races/
 
 export const FIENDISH_LEGACIES_DATA: FiendishLegacy[] = [
   {

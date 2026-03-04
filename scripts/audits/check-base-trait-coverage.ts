@@ -48,6 +48,8 @@ async function loadAllRaces(): Promise<RaceLike[]> {
     const mod = await import(pathToFileURL(abs).href);
     for (const value of Object.values(mod)) {
       if (!value || typeof value !== "object") continue;
+      // DEBT: Cast to any to probe dynamic module exports for race data without a strict registry.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyV = value as any;
       if (typeof anyV.id !== "string") continue;
       if (typeof anyV.name !== "string") continue;
@@ -77,6 +79,8 @@ async function main() {
   const races = await loadAllRaces();
   const byId = new Map(races.map((r) => [r.id, r]));
 
+  // DEBT: Cast to any for the report object to allow dynamic key assignment for parent race summaries.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const report: any = {
     generatedAt: new Date().toISOString(),
     parents: {},

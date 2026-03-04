@@ -47,6 +47,8 @@ async function loadAllRaces(): Promise<RaceLike[]> {
     const abs = path.join(RACES_DIR, file);
     const mod = await import(pathToFileURL(abs).href);
     for (const value of Object.values(mod)) {
+      // DEBT: Cast to any to probe dynamic module exports for race data without a strict registry.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyV = value as any;
       if (!anyV || typeof anyV !== "object") continue;
       if (typeof anyV.id !== "string") continue;
@@ -55,10 +57,10 @@ async function loadAllRaces(): Promise<RaceLike[]> {
       races.push({
         id: anyV.id,
         name: anyV.name,
-        baseRace: typeof anyV.baseRace === "string" ? anyV.baseRace : undefined,
+        // DEBT: Cast x to any to safely convert unknown trait array members to strings.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         traits: anyV.traits.map((x: any) => String(x)),
-      });
-    }
+        });    }
   }
 
   const byId = new Map<string, RaceLike>();
@@ -85,6 +87,8 @@ async function main() {
   const races = await loadAllRaces();
   const byId = new Map(races.map((r) => [r.id, r]));
 
+  // DEBT: Cast to any for the report object to allow dynamic key assignment for parent race summaries.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const report: any = { generatedAt: new Date().toISOString(), parents: {} };
 
   for (const parentId of PARENTS) {

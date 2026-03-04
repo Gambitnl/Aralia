@@ -1,6 +1,6 @@
 import React from 'react';
-import { CombatCharacter, CharacterStats } from './combat';
-import { DamageType } from './spells';
+import { CombatCharacter, CharacterStats } from './combat.js';
+import { DamageType } from './spells.js';
 
 // -----------------------------------------------------------------------------
 // UI & Visuals

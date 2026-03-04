@@ -3,7 +3,7 @@
  * @file src/data/items/index.ts
  * Defines all item data (gear, consumables, etc.) for the Aralia RPG.
  */
-import { Item } from '../../types';
+import { Item } from '../../types/index.js';
 
 export const WEAPONS_DATA: Record<string, Item> = {
   // --- Simple Melee Weapons ---
@@ -155,7 +155,7 @@ export const ITEMS: Record<string, Item> = {
 };
 
 // Import gatherable items and merge them
-import { GATHERABLE_ITEMS } from '../gatherableItems';
+import { GATHERABLE_ITEMS } from '../gatherableItems.js';
 
 // Combined ITEMS export including all gatherable ingredients
 export const ALL_ITEMS: Record<string, Item> = {

@@ -707,6 +707,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
             // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
             // Use 'as any' to bypass the discriminated union strictness for now, relying on runtime shape
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const payload = action.payload as any;
             const encounterPayload = payload.startBattleMapEncounterData as import('../types').StartBattleMapEncounterPayload;
             const combatants = encounterPayload.monsters.flatMap((monster, _monsterIndex) =>

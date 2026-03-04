@@ -255,6 +255,8 @@ export function processAreaEntryTriggers(
             );
 
             for (const effect of entryEffects) {
+                // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this handler.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                     continue;
                 }
@@ -385,6 +387,7 @@ export function processAreaEndTurnTriggers(
         );
 
         for (const effect of endTurnEffects) {
+            // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this handler.
             if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                 continue;
             }
@@ -455,7 +458,7 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
             });
             break;
 
-        case 'STATUS_CONDITION':
+        case 'STATUS_CONDITION': {
             // TODO(2026-01-03 pass 4 Codex-CLI): SpellEffect.statusCondition typing is loose; casting for now.
             const statusEffect = effect as unknown as {
                 statusCondition?: { name?: string };
@@ -472,6 +475,7 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
                 saveEffect: statusEffect.condition?.saveEffect
             });
             break;
+        }
     }
 
     return processed;
@@ -504,14 +508,16 @@ export function createSpellZone(
         casterId,
         position,
         areaOfEffect,
-        effects: effects.filter(e =>
-            (e.trigger as any)?.type === 'on_enter_area' ||
-            (e.trigger as any)?.type === 'on_exit_area' ||
-            (e.trigger as any)?.type === 'on_end_turn_in_area' ||
-            (e.trigger as any)?.type === 'on_move_in_area' ||
-            (e.trigger as any)?.type === 'turn_end' ||
-            (e.trigger as any)?.type === 'turn_start'
-        ),
+        effects: effects.filter(e => {
+            // DEBT: Cast trigger to any to probe optional type property without complex typing in this zone factory.
+            const t = e.trigger as any;
+            return t?.type === 'on_enter_area' ||
+                t?.type === 'on_exit_area' ||
+                t?.type === 'on_end_turn_in_area' ||
+                t?.type === 'on_move_in_area' ||
+                t?.type === 'turn_end' ||
+                t?.type === 'turn_start';
+        }),
         triggeredThisTurn: new Set(),
         triggeredEver: new Set(),
         expiresAtRound: durationRounds ? currentRound + durationRounds : undefined

@@ -129,7 +129,7 @@ const SidebarStepRow: React.FC<{
 /**
  * Group header in the sidebar
  */
-const GroupHeader: React.FC<{ group: StepGroup }> = ({ group }) => {
+const _GroupHeader: React.FC<{ group: StepGroup }> = ({ group }) => {
   const { label } = STEP_GROUPS[group];
 
   return (

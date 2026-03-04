@@ -91,7 +91,7 @@ function getCharacterCreatorRaces(): RaceInfo[] {
     );
 
     for (const exportMatch of raceExportMatches) {
-      const exportName = exportMatch[1];
+      const _exportName = exportMatch[1];
 
       // Find the block for this export and extract id/name/baseRace
       // We look for the id: field that appears after this export and before the next export or EOF

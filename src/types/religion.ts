@@ -4,8 +4,8 @@
  * Defines types and interfaces for the religion system, including deities,
  * divine favor, and temple services.
  */
-import { AbilityScoreName } from './core';
-import { MechanicalEffect } from './effects';
+import { AbilityScoreName } from './core.js';
+import { MechanicalEffect } from './effects.js';
 
 /**
  * Alignment represents the moral and ethical stance of a creature or deity. */

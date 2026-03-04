@@ -8,7 +8,7 @@
 // TODO(lint-intent): 'VoyageEvent' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Ship, VoyageState, VoyageEvent as _VoyageEvent, RationingLevel } from '../../types/naval';
+import { Ship, VoyageState, VoyageEvent as _VoyageEvent, RationingLevel as _RationingLevel } from '../../types/naval';
 import { VOYAGE_EVENTS } from '../../data/naval/voyageEvents';
 import { CrewManager } from './CrewManager';
 import { WeatherState } from '../../types/environment';

@@ -7,14 +7,14 @@
       "chainVia": "session-ritual"
     },
     {
-      "name": "update-roadmap-state",
-      "path": ".agent/workflows/session-ritual.md",
-      "chainVia": "session-ritual"
+      "name": "roadmap-node-orchestration",
+      "path": ".agent/workflows/roadmap-node-orchestration.md",
+      "chainOrder": 2
     },
     {
       "name": "codexception",
       "path": ".codex/steer.md",
-      "chainOrder": 3
+      "chainOrder": 4
     }
   ],
   "skills": [

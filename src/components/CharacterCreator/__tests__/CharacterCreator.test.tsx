@@ -19,6 +19,8 @@ const mockSpells = {
   getByLevel: vi.fn(() => []),
   getByIds: vi.fn(() => []),
   getBySchool: vi.fn(() => []),
+// DEBT: Cast to any to allow partial mock of SpellContext without full interface implementation in tests.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 // We need to wrap the component in a test provider to supply the context

@@ -29,6 +29,8 @@ function coerceScatterRules(raw: unknown): ScatterRule[] {
   // Best-effort parsing: keep entries with the required fields and coerce numbers.
   return raw
     .filter((r) => r && typeof r === 'object')
+    // DEBT: Cast r to any to probe dynamic response properties without full schema mapping.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((r: any) => ({
       id: String(r.id || ''),
       assetType: r.assetType === 'tree' || r.assetType === 'rock' || r.assetType === 'grass' ? r.assetType : 'tree',
@@ -108,6 +110,8 @@ export const useBiomeGenerator = (): UseBiomeGeneratorResult => {
     setError(null);
 
     try {
+      // DEBT: Cast to any to probe dynamic JSON response from generation service.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let resultJSON: any;
 
       if (provider === 'ollama') {

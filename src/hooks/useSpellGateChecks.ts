@@ -151,6 +151,8 @@ export const useSpellGateChecks = () => {
               const parsed = SpellValidator.safeParse(spell);
               if (parsed.success) {
                 checklist.spellJsonValid = true;
+                // DEBT: Cast to any to probe optional legacy property on generic Spell type.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 if ((spell as any)?.legacy === true) {
                   checklist.noKnownGaps = false;
                   reasons.push("Marked as legacy spell");

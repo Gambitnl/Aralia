@@ -76,6 +76,7 @@ verification/
 *_temp.json
 server_log.txt
 spell_gate_report.txt
+.tmp_roadmap_node_audit_v2.mjs
 
 # Lock file (using npm, not pnpm)
 pnpm-lock.yaml
@@ -104,9 +105,14 @@ generated/
 .mcp.json
 
 # Internal Dev Scripts & Debugging
-src/components/debug/roadmap/
-scripts/roadmap-engine/
+devtools/roadmap/
 scripts/workflows/chat-debug/
+docs/tasks/roadmap/ROADMAP-TOOL-NODE-AUDIT.md
+docs/tasks/roadmap/ROADMAP-TOOL-REFERENCE.md
+docs/tasks/roadmap/
+docs/@ROADMAP-SYSTEM-GUIDE.md
+docs/plans/*roadmap*.md
+artifacts/roadmap-playwright-audit-*/
 
 scripts/workflows/gemini/
 scripts/tooling/

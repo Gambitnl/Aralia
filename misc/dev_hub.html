@@ -370,6 +370,8 @@
                 <p class="roadmap-modal-subtitle">
                     Choose where you want to go in the roadmap system.
                     Main app: <code>npm run dev</code>. Roadmap-only (LAN-visible): <code>npm run dev:roadmap</code>.
+                    Roadmap docs and audits are local-only under <code>devtools/roadmap/</code>.
+                    Visualizer and Documentation cards below auto-start roadmap mode when needed.
                 </p>
                 <div class="tool-cmd" style="margin: 0.4rem 0 0.45rem;">
                     <code>npm run dev</code>
@@ -383,24 +385,49 @@
                         <button class="tool-btn" onclick="copyCmd(this, 'npm run dev:roadmap')">Copy</button>
                     </div>
                 </div>
+                <div class="tool-cmd" style="margin: 0.4rem 0 0.8rem;">
+                    <code>npm run roadmap:audit-all</code>
+                    <div class="tool-actions">
+                        <button class="tool-btn" onclick="copyCmd(this, 'npm run roadmap:audit-all')">Copy</button>
+                    </div>
+                </div>
                 <p class="roadmap-modal-subtitle" style="margin-top: 0;">
-                    Roadmap LAN URL pattern: <code>http://&lt;LAN-IP&gt;:3010/Aralia/misc/roadmap.html</code>
+                    Roadmap LAN URL pattern: <code>http://&lt;LAN-IP&gt;:3010/Aralia/devtools/roadmap/roadmap.html</code>
                 </p>
+                <!-- Roadmap docs are local-only and intentionally grouped here so all operator references
+                     point at the same devtools/roadmap workspace. -->
                 <div class="roadmap-option-grid">
-                    <a href="/Aralia/misc/roadmap.html" class="roadmap-option-card">
+                    <a href="/Aralia/devtools/roadmap/roadmap.html" class="roadmap-option-card"
+                        onclick="launchRoadmapAndOpen(event, '/Aralia/devtools/roadmap/roadmap.html')">
                         <span class="roadmap-option-badge">Visualizer</span>
                         <h3>Open Roadmap Visualizer</h3>
                         <p>Launch the interactive roadmap graph.</p>
                     </a>
-                    <a href="/Aralia/misc/roadmap_docs.html" class="roadmap-option-card">
+                    <a href="/Aralia/devtools/roadmap/roadmap_docs.html" class="roadmap-option-card"
+                        onclick="launchRoadmapAndOpen(event, '/Aralia/devtools/roadmap/roadmap_docs.html')">
                         <span class="roadmap-option-badge">Documentation</span>
                         <h3>Open Roadmap Documentation</h3>
                         <p>Review high-level roadmap functionality, workflow steps, and architecture references.</p>
                     </a>
-                    <a href="/Aralia/docs/tasks/roadmap/1C-ROADMAP-IMPLEMENTATION-PLAN.md" class="roadmap-option-card">
-                        <span class="roadmap-option-badge">Plan</span>
-                        <h3>Open Implementation Plan</h3>
-                        <p>Review high-level roadmap phases and open tasks.</p>
+                    <a href="/Aralia/devtools/roadmap/ROADMAP-TOOL-REFERENCE.local.md" class="roadmap-option-card">
+                        <span class="roadmap-option-badge">Reference</span>
+                        <h3>Open Local Feature Reference</h3>
+                        <p>Canonical runtime-aligned Roadmap Tool feature naming list.</p>
+                    </a>
+                    <a href="/Aralia/devtools/roadmap/ROADMAP_AUDIT_RUNBOOK.local.md" class="roadmap-option-card">
+                        <span class="roadmap-option-badge">Runbook</span>
+                        <h3>Open Audit Runbook</h3>
+                        <p>Command guide and remediation flow for roadmap crosscheck and evidence audits.</p>
+                    </a>
+                    <a href="/Aralia/devtools/roadmap/ROADMAP_FEATURE_CROSSCHECK.md" class="roadmap-option-card">
+                        <span class="roadmap-option-badge">Audit</span>
+                        <h3>Open Feature Crosscheck</h3>
+                        <p>Current runtime-vs-doc coverage report for roadmap feature evidence.</p>
+                    </a>
+                    <a href="/Aralia/devtools/roadmap/TEMP_IMPLEMENTATION_PLANS/README.md" class="roadmap-option-card">
+                        <span class="roadmap-option-badge">Temporary</span>
+                        <h3>Open Temporary Plan Set</h3>
+                        <p>Sequenced temporary implementation plans and completion tracking.</p>
                     </a>
                 </div>
             </div>

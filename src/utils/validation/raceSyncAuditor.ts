@@ -140,7 +140,7 @@ function getGlossaryEntryCount(): number {
  * @param race - The race to check
  * @returns true if this race should have a dedicated glossary entry
  */
-function shouldHaveGlossaryEntry(race: Race): boolean {
+function shouldHaveGlossaryEntry(_race: Race): boolean {
   // Races with a baseRace are variants - they might be covered by the parent
   // But we still want to track them as potentially missing
   // This function can be refined based on project conventions

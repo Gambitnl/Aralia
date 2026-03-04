@@ -227,7 +227,7 @@ function createFailureResult(outcome: ExperimentOutcome, _properties: Alchemical
                 xpGained: 5
             };
 
-        case 'wild_magic':
+        case 'wild_magic': {
             const wildEffect = rollDice('1d4');
             const effects = [
                 'You briefly turn blue.',
@@ -241,8 +241,9 @@ function createFailureResult(outcome: ExperimentOutcome, _properties: Alchemical
                 message: `✨ WILD MAGIC! ${effects[wildEffect - 1]}`,
                 xpGained: 10
             };
+        }
 
-        case 'mutation':
+        case 'mutation': {
             return {
                 outcome,
                 success: false,
@@ -250,6 +251,7 @@ function createFailureResult(outcome: ExperimentOutcome, _properties: Alchemical
                 condition: { effect: 'polymorphed', duration: 10 },
                 xpGained: 15
             };
+        }
 
         default:
             return {

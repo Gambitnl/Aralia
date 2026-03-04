@@ -1,27 +1,27 @@
-import { GamePhase } from './core';
-import { Item } from './items';
-import { PlayerCharacter, TempPartyMember } from './character';
-import { Faction, PlayerFactionStanding } from './factions';
-import { Companion } from './companions';
-import { DivineFavor, Temple, ReligionState } from './religion';
-import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime';
-import { UnderdarkState } from './underdark';
-import { EconomyState } from './economy';
-import { Action, GroundingChunk } from './actions';
-import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world';
-import { Quest } from './quests';
-import { RitualState } from './rituals';
-import { WorldHistory } from './history';
-import { PlayerLegacy } from './legacy';
-import { Stronghold } from './stronghold';
-import { NavalState, Ship } from './naval';
-import { CraftingState } from './crafting';
-import { JournalState } from './journal';
+import { GamePhase } from './core.js';
+import { Item } from './items.js';
+import { PlayerCharacter, TempPartyMember } from './character.js';
+import { Faction, PlayerFactionStanding } from './factions.js';
+import { Companion } from './companions.js';
+import { DivineFavor, Temple, ReligionState } from './religion.js';
+import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime/index.js';
+import { UnderdarkState } from './underdark.js';
+import { EconomyState } from './economy.js';
+import { Action, GroundingChunk } from './actions.js';
+import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC, RichNPC } from './world.js';
+import { Quest } from './quests.js';
+import { RitualState } from './rituals.js';
+import { WorldHistory } from './history.js';
+import { PlayerLegacy } from './legacy.js';
+import { Stronghold } from './stronghold.js';
+import { NavalState, Ship } from './naval.js';
+import { CraftingState } from './crafting.js';
+import { JournalState } from './journal.js';
 // TODO(lint-intent): 'Notification' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Notification } from './ui';
-import { PlayerIdentityState } from './identity';
+import { Notification } from './ui.js';
+import { PlayerIdentityState } from './identity.js';
 
 // -----------------------------------------------------------------------------
 // Notoriety State
@@ -160,11 +160,11 @@ export interface GameState {
   banterDebugLog: { timestamp: Date; check: string; result: boolean | string; details?: string }[];
 
   isEncounterModalVisible: boolean;
-  generatedEncounter: import('./world').Monster[] | null;
+  generatedEncounter: import('./world.js').Monster[] | null;
   encounterSources: GroundingChunk[] | null;
   encounterError: string | null;
 
-  currentEnemies: import('./combat').CombatCharacter[] | null;
+  currentEnemies: import('./combat.js').CombatCharacter[] | null;
 
   saveVersion?: string;
   saveTimestamp?: number;
@@ -241,14 +241,14 @@ export interface GameState {
   strongholds?: Record<string, Stronghold>;
 
   // Economy: Investments & Information Delivery
-  playerInvestments: import('./economy').PlayerInvestment[];
-  pendingCouriers: import('./economy').PendingCourier[];
-  businesses: Record<string, import('./business').BusinessState>;
-  worldBusinesses: Record<string, import('./business').WorldBusiness>;
+  playerInvestments: import('./economy.js').PlayerInvestment[];
+  pendingCouriers: import('./economy.js').PendingCourier[];
+  businesses: Record<string, import('./business.js').BusinessState>;
+  worldBusinesses: Record<string, import('./business.js').WorldBusiness>;
 
   underdark: UnderdarkState;
 
-  environment?: import('./environment').WeatherState;
+  environment?: import('./environment.js').WeatherState;
 
   isThievesGuildVisible: boolean;
   isThievesGuildSafehouseVisible?: boolean; // New flag for Safehouse UI
@@ -261,16 +261,16 @@ export interface GameState {
 
   activeRitual?: RitualState | null;
 
-  townState: import('./town').TownState | null;
+  townState: import('./town.js').TownState | null;
 
   townEntryDirection: 'north' | 'east' | 'south' | 'west' | null;
 
-  activeDialogueSession: import('./dialogue').DialogueSession | null;
+  activeDialogueSession: import('./dialogue.js').DialogueSession | null;
   isDialogueInterfaceOpen: boolean;
 
   // Lockpicking Modal State
   isLockpickingModalVisible: boolean;
-  activeLock: import('../systems/puzzles/types').Lock | null;
+  activeLock: import('../systems/puzzles/types.js').Lock | null;
 
   // Dice Roller Modal State
   isDiceRollerVisible: boolean;
@@ -292,10 +292,10 @@ export interface GameState {
   journal?: JournalState;
 
   // Interactive companion conversation state
-  activeConversation?: import('./conversation').ActiveConversation | null;
+  activeConversation?: import('./conversation.js').ActiveConversation | null;
 
   // Archive of completed banter moments
-  archivedBanters: import('./companions').BanterMoment[];
+  archivedBanters: import('./companions.js').BanterMoment[];
 
   // Party-level short rest pacing and daily tracking.
   shortRestTracker: ShortRestTracker;

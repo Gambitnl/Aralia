@@ -1,11 +1,11 @@
-import type { SpellSchool } from './spells';
-import type { ActiveEffect, StatusEffect } from './effects';
-import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core';
-import type { EquipmentSlotType, Item } from './items';
-import type { RaceVisualSpec } from './visuals';
-import type { FamilyMember } from './world';
+import type { SpellSchool } from './spells.js';
+import type { ActiveEffect, StatusEffect } from './effects.js';
+import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core.js';
+import type { EquipmentSlotType, Item } from './items.js';
+import type { RaceVisualSpec } from './visuals.js';
+import type { FamilyMember } from './world.js';
 
-export type { AbilityScores, AbilityScoreName } from './core';
+export type { AbilityScores, AbilityScoreName } from './core.js';
 
 // -----------------------------------------------------------------------------
 // Racial data

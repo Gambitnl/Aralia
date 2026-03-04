@@ -36,6 +36,8 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
   // 2. Sort candidates by XP (descending) to try and fill budget efficiently
   // We need to look up XP by CR.
   // TODO(2026-01-03 Codex-CLI): Define a slimmer Monster-like type for fallback encounters; using permissive accessors until data is refit.
+  // DEBT: Cast baseStats to any to probe optional CR property without full schema mapping.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getXp = (m: MonsterData) => XP_BY_CR[(m?.baseStats as any)?.cr as keyof typeof XP_BY_CR] || 0;
 
   // Sort by XP descending, but filter out monsters that are too strong (XP > budget)

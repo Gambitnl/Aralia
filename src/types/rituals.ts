@@ -6,7 +6,7 @@
 // TODO(lint-intent): 'Spell' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Spell as _Spell, SavingThrowAbility } from './spells';
+import { Spell as _Spell, SavingThrowAbility } from './spells.js';
 
 /**
  * Represents the current state of a ritual being cast.

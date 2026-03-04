@@ -8,7 +8,7 @@
 // TODO(lint-intent): 'Tile' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { TownMap, Tile as _Tile, Building as _Building, TileType } from './realmsmith';
+import { TownMap, Tile as _Tile, Building as _Building, TileType } from './realmsmith.js';
 
 // ============================================================================
 // CORE TOWN STATE

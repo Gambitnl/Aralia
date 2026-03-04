@@ -6,7 +6,7 @@
  * This script was moved into the Gemini image-gen workflow folder.
  */
 
-import { runMovedScriptTombstone } from "./moved-script-tombstone";
+import { runMovedScriptTombstone } from "./moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/open-gemini-profile.ts",

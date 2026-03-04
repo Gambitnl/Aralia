@@ -13,8 +13,8 @@
     "vite.config.ts",
     "scripts/workflows/gemini/core/image-gen-mcp.ts",
     "scripts/raceImageStatus.ts",
-    "scripts/roadmap-server-logic.ts",
-    "scripts/roadmap-engine/**/*.ts",
-    "scripts/roadmap/**/*.ts"
+    "devtools/roadmap/scripts/roadmap-server-logic.ts",
+    "devtools/roadmap/scripts/roadmap-engine/**/*.ts",
+    "devtools/roadmap/scripts/roadmap/**/*.ts"
   ]
 }

@@ -26,6 +26,8 @@ export function generateLoot(monsters: Monster[]): LootResult {
 
     monsters.forEach(monster => {
       if (!monster) return;
+      // DEBT: Cast monster to any to probe for optional id property on dynamic monster objects.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const monsterId = (monster as any).id ?? 'unknown_monster';
       // TODO(2026-01-03 Codex-CLI): Monster typings lack stable IDs; synthesize for logging until data/model carries identifiers.
 

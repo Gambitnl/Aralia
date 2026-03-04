@@ -90,6 +90,8 @@ export function useGameActions({
       // RALPH: UI Toggle Gate.
       // Uses the centralized UIToggleAction enum to determine if an action should trigger
       // the global loading spinner. This prevents "Ghost Spinners" during pure UI transitions.
+      // DEBT: Cast to any to allow loose membership check against UI toggle union.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const isUiToggle = Object.values(UIToggleAction).includes(action.type as any);
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });

@@ -328,7 +328,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
 
                 {filteredSkillsFromClass.length === 0 && (
                   <div className="text-xs text-gray-500 text-center py-3 italic">
-                    No skills match "{skillSearchQuery.trim()}"
+                    No skills match &quot;{skillSearchQuery.trim()}&quot;
                   </div>
                 )}
               </div>

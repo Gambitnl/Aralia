@@ -70,13 +70,16 @@ async function generateText(
     });
 
     if (!result.ok) {
+      // DEBT: Cast to any to probe dynamic error property from client result without full schema mapping.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyResult = result as any;
       return {
         success: false,
-        error: (result as any).error,
+        error: anyResult.error,
         data: null,
         metadata: {
           promptSent: prompt,
-          rawResponse: (result as any).error,
+          rawResponse: anyResult.error,
           rateLimitHit: false
         }
       };
@@ -96,6 +99,8 @@ async function generateText(
       }
     };
   } catch (error: any) {
+    // DEBT: Cast error to any to access message property on unknown catch variable.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return {
       success: false,
       error: error.message || 'Unknown error in Ollama text generation',

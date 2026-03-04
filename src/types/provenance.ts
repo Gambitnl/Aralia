@@ -7,7 +7,7 @@
  * "If they don't remember, it didn't happen." - Recorder
  */
 
-import { GameDate } from './memory';
+import { GameDate } from './memory.js';
 
 export type ProvenanceEventType =
   | 'CRAFTED'

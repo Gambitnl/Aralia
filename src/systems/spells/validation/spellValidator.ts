@@ -32,7 +32,7 @@
  * 3. Combat Engine: Relies on these keys existing to avoid runtime undefined errors.
  */
 import { z } from 'zod';
-import { CLASSES_DATA } from '../../../data/classes';
+import { CLASSES_DATA } from '../../../data/classes/index.js';
 
 const BASE_CLASS_NAMES = Object.values(CLASSES_DATA).map((cls: any) => cls.name);
 // Legacy spell data may include subclass-specific entries; keep them whitelisted in Title Case.

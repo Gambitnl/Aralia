@@ -7,7 +7,7 @@
  * instead of failing with "file not found".
  */
 
-import { runMovedScriptTombstone } from "./moved-script-tombstone";
+import { runMovedScriptTombstone } from "./moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/inspect_site.ts",

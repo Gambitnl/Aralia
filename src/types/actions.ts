@@ -14,12 +14,12 @@
  */
 // @dependencies-end
 
-import { EquipmentSlotType, Item } from './items';
-import { Monster, Location, VillageActionContext, DiscoveryResidue, GoalStatus, GossipUpdatePayload } from './world';
-import { Quest } from './quests';
-import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './character';
-import { Faction } from './factions';
-import { DialogueSession } from './dialogue';
+import { EquipmentSlotType, Item } from './items.js';
+import { Monster, Location, VillageActionContext, DiscoveryResidue, GoalStatus, GossipUpdatePayload } from './world.js';
+import { Quest } from './quests.js';
+import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './character.js';
+import { Faction } from './factions.js';
+import { DialogueSession } from './dialogue.js';
 
 // -----------------------------------------------------------------------------
 // Actions & payloads
@@ -240,7 +240,7 @@ export interface QuickTravelPayload {
 
 export interface StartGameSuccessPayload {
   character: PlayerCharacter;
-  mapData: import('./world').MapData;
+  mapData: import('./world.js').MapData;
   dynamicLocationItemIds: Record<string, string[]>;
   initialLocationDescription: string;
   initialSubMapCoordinates: { x: number; y: number };
@@ -298,7 +298,7 @@ export type Action =
   | { type: 'OBSERVE_VILLAGE'; payload?: never; label?: string }
   | { type: 'APPROACH_TOWN'; payload?: never; label?: string }
   | { type: 'OBSERVE_TOWN'; payload?: never; label?: string }
-  | { type: 'OPEN_MERCHANT'; payload: { merchantName: string; inventory: Item[]; economy?: import('./economy').EconomyState }; label?: string }
+  | { type: 'OPEN_MERCHANT'; payload: { merchantName: string; inventory: Item[]; economy?: import('./economy.js').EconomyState }; label?: string }
   | { type: 'CLOSE_MERCHANT'; payload?: unknown; label?: string }
   | { type: 'BUY_ITEM'; payload: MerchantActionPayload; label?: string }
   | { type: 'SELL_ITEM'; payload: MerchantActionPayload; label?: string }

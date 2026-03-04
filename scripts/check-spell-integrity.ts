@@ -10,9 +10,9 @@
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
-// @ts-ignore
+// @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep extensionless for script stability.
 import { CLASSES_DATA } from '../src/data/classes';
-// @ts-ignore
+// @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep extensionless for script stability.
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
 
 type SpellManifestEntry = {
@@ -37,6 +37,8 @@ const main = () => {
   const manifestIds = new Set(Object.keys(manifest));
 
   const missingFromManifest: { classId: string; spellId: string }[] = [];
+  // DEBT: Cast cls to any to access the spellcasting property without detailed class typing in this audit script.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Object.values(CLASSES_DATA).forEach((cls: any) => {
     if (!cls.spellcasting?.spellList) return;
     cls.spellcasting.spellList.forEach((id: unknown) => {

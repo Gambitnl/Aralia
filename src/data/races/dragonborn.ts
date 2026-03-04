@@ -8,7 +8,7 @@ import {
   Race,
   DraconicAncestorType,
   DraconicAncestryInfo,
-} from '../../types'; // Path relative to src/data/races/
+} from '../../types/index.js'; // Path relative to src/data/races/
 
 /**
  * A record mapping each Draconic Ancestor type to its specific information,

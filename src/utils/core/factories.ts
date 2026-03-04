@@ -213,6 +213,8 @@ export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
       tradeGoodPriorities: [],
 
       ...overrides,
+    // DEBT: Cast to any to allow dynamic property assignment in object factory.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     base.treasury = base.treasury ?? 0;
@@ -585,6 +587,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       archivedBanters: [],
 
       ...overrides,
+    // DEBT: Cast to any to allow dynamic property assignment in object factory.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     // Ensure required fields remain non-optional even after spreading Partial<GameState>.

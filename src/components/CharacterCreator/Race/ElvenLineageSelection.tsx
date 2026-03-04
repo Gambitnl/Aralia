@@ -133,7 +133,7 @@ const ElvenLineageSelection: React.FC<ElvenLineageSelectionProps> = ({
             Spellcasting Ability
           </h3>
           <p className="text-sm text-gray-400 mb-4">
-            Select the ability score you will use for your lineage's innate magic:
+            Select the ability score you will use for your lineage&apos;s innate magic:
           </p>
           <div className="flex flex-wrap gap-3">
             {RELEVANT_SPELLCASTING_ABILITIES.map((ability) => (

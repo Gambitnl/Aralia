@@ -74,6 +74,7 @@ const RangerFeatureSelection: React.FC<RangerFeatureSelectionProps> = ({
                   : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
               }`}
             >
+              <span className="sr-only">Select {spell.name}</span>
               <div className="flex items-center gap-3">
                 <input 
                   type="checkbox" 

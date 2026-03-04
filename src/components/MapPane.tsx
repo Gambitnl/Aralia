@@ -260,6 +260,8 @@ const MapPane: React.FC<MapPaneProps> = ({
     const fallbackNormalizedY = (clientY - bounds.top) / bounds.height;
 
     // Prefer transform-aware mapping once the iframe bridge is installed.
+    // DEBT: Cast to any to probe dynamic Azgaar bridge object on the iframe content window.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bridge = (iframeRef.current?.contentWindow as any)?.__araliaAzgaar;
     const transform = bridge?.getTransform?.() as
       | { graphWidth: number; graphHeight: number; viewX: number; viewY: number; scale: number }

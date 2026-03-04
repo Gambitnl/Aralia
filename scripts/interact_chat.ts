@@ -6,7 +6,7 @@
  * The real script now lives under scripts/workflows/chat-debug.
  */
 
-import { runMovedScriptTombstone } from "./moved-script-tombstone";
+import { runMovedScriptTombstone } from "./moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/interact_chat.ts",

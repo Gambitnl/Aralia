@@ -27,7 +27,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
-import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType } from '../../../types';
+import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType as _ItemType } from '../../../types';
 import { canEquipItem, calculatePotentialAcChange } from '../../../utils/characterUtils';
 import Tooltip from '../../ui/Tooltip';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';

@@ -4,7 +4,7 @@
  * This system allows for topic-based conversations, knowledge tracking, and social skill checks.
  */
 
-import { Skill } from './core';
+import { Skill } from './core.js';
 
 export type TopicCategory = 'rumor' | 'personal' | 'quest' | 'lore' | 'trade' | 'intimidate' | 'flirt';
 

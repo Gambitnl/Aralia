@@ -32,11 +32,12 @@ function auditLevel1Saves() {
     try {
       const spell = JSON.parse(content);
 
-      if (spell.effects) {
-        // @ts-ignore
-        spell.effects.forEach((effect: any, index: number) => {
-          if (effect.type === 'DAMAGE' && effect.condition && effect.condition.type === 'save') {
-            damageSpells.push({
+        if (spell.effects) {
+          // @ts-expect-error -- tsx resolves local TS entrypoints at runtime; keep extensionless for script stability.
+          // DEBT: Cast to any to probe dynamic effect objects without a strict registry.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          spell.effects.forEach((effect: any, index: number) => {
+            if (effect.type === 'DAMAGE' && effect.condition && effect.condition.type === 'save') {            damageSpells.push({
               file,
               spellName: spell.name,
               effectIndex: index,
@@ -47,12 +48,17 @@ function auditLevel1Saves() {
           }
         });
       }
-    } catch (e: any) {
-      console.error(`Error parsing ${file}: ${e.message}`);
+    } catch (err: unknown) {
+      // DEBT: Cast to any to safely access message on unknown catch variable.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const _e = err as any;
+      console.error(`Error parsing ${file}: ${_e.message}`);
     }
   });
 
   console.log('--- Level 1 Damage Spells with Saves ---');
+  // DEBT: Cast s to any to allow dynamic property access on the damageSpells list items.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   damageSpells.forEach((s: any) => {
     const status = s.saveEffect === 'half' ? '✅ Half' : (s.saveEffect === 'none' ? '⚠️ None' : `❓ ${s.saveEffect}`);
     console.log(`[${s.file}] ${s.spellName} (${s.damageType}): ${status} (Save: ${s.saveType})`);

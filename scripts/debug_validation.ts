@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
+import { SpellValidator } from '../src/systems/spells/validation/spellValidator.js';
 
 const main = () => {
     const filePath = path.join(process.cwd(), 'public/data/spells/level-0/dancing-lights.json');

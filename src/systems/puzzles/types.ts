@@ -8,12 +8,12 @@
 // TODO(lint-intent): 'CharacterStats' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { CharacterStats as _CharacterStats } from '../../types/combat';
+import { CharacterStats as _CharacterStats } from '../../types/combat.js';
 // TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Item as _Item } from '../../types/items';
-import { AbilityScoreName } from '../../types/core';
+import { Item as _Item } from '../../types/items.js';
+import { AbilityScoreName } from '../../types/core.js';
 
 export type DamageType =
   | 'acid' | 'bludgeoning' | 'cold' | 'fire' | 'force'

@@ -7,7 +7,7 @@
  * Supports multi-layered identity, espionage, and information warfare.
  */
 
-import type { FactionReputationChange } from './factions';
+import type { FactionReputationChange } from './factions.js';
 
 export type IdentityType = 'true' | 'alias';
 

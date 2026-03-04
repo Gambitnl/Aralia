@@ -132,7 +132,7 @@ const CharacterDetailsTab: React.FC<CharacterDetailsTabProps> = ({ character, co
                             Physical Description
                         </h3>
                         <p className="font-serif italic text-lg leading-relaxed text-gray-300">
-                            "{identity.physicalDescription}"
+                            &quot;{identity.physicalDescription}&quot;
                         </p>
                     </section>
                 )}

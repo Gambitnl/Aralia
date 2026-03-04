@@ -21,8 +21,8 @@
  * that are derived from a character's base stats, equipment, and class features.
  */
 
-import { PlayerCharacter, AbilityScoreName } from '../../types';
-import { getAbilityModifierValue, getAbilityModifierString } from './statUtils';
+import { PlayerCharacter, AbilityScoreName } from '../../types/index.js';
+import { getAbilityModifierValue, getAbilityModifierString } from './statUtils.js';
 
 // -----------------------------------------------------------------------------
 // Types for attack bonus display
@@ -157,11 +157,11 @@ function calculateMeleeAttackBonus(character: PlayerCharacter): AttackBonus {
     // Use the better modifier if finesse is available, otherwise use STR
     // For monks, rogues, etc. who typically use finesse, DEX will often be higher
     let abilityMod = strMod;
-    let abilityUsed = 'STR';
+    let _abilityUsed = 'STR';
 
     if (isFinesse && dexMod > strMod) {
         abilityMod = dexMod;
-        abilityUsed = 'DEX';
+        _abilityUsed = 'DEX';
     }
 
     // Check for magic weapon bonus

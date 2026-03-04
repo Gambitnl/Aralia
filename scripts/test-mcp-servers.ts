@@ -58,6 +58,8 @@ async function testServerConnection(serverName: string): Promise<TestResult> {
     console.log(`  Command: ${cmd}`);
 
     const { stdout, stderr } = await execAsync(cmd, {
+      // DEBT: Cast to any because the 'shell' property in our Node.js types only accepts string or undefined, but runtime expects boolean.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       shell: true as any,
       timeout: 30000 // 30 seconds
     });
@@ -121,6 +123,8 @@ async function _testToolInvocation(serverName: string, toolName: string, args: o
 
     const cmd = `"${MCP_CLI}" ${serverName}/${toolName} '${JSON.stringify(args)}'`;
     const { stdout, stderr } = await execAsync(cmd, {
+      // DEBT: Cast to any because the 'shell' property in our Node.js types only accepts string or undefined, but runtime expects boolean.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       shell: true as any,
       timeout: 30000
     });

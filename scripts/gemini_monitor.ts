@@ -6,7 +6,7 @@
  * This keeps old flow calls fail-fast with a migration message.
  */
 
-import { runMovedScriptTombstone } from "./moved-script-tombstone";
+import { runMovedScriptTombstone } from "./moved-script-tombstone.js";
 
 runMovedScriptTombstone({
   oldPath: "scripts/gemini_monitor.ts",

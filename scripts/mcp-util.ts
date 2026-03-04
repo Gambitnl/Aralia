@@ -59,6 +59,8 @@ async function listServers(): Promise<void> {
     // Try to get tools
     try {
       const { stdout } = await execAsync(`"${MCP_CLI}" --config "${MCP_CONFIG}" ${name} -d`, {
+        // DEBT: Cast to any because the 'shell' property in our Node.js types only accepts string or undefined, but runtime expects boolean.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         shell: true as any,
         timeout: 10000
       });
@@ -79,6 +81,8 @@ async function inspectServer(serverName: string): Promise<void> {
 
   try {
     const { stdout } = await execAsync(`"${MCP_CLI}" --config "${MCP_CONFIG}" ${serverName} -d`, {
+      // DEBT: Cast to any because the 'shell' property in our Node.js types only accepts string or undefined, but runtime expects boolean.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       shell: true as any,
       timeout: 30000
     });
@@ -96,6 +100,8 @@ async function getToolSchema(toolPath: string): Promise<void> {
 
   try {
     const { stdout } = await execAsync(`"${MCP_CLI}" --config "${MCP_CONFIG}" ${toolPath}`, {
+      // DEBT: Cast to any because the 'shell' property in our Node.js types only accepts string or undefined, but runtime expects boolean.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       shell: true as any,
       timeout: 30000
     });
@@ -116,6 +122,8 @@ async function callTool(toolPath: string, argsJson: string): Promise<void> {
     const { stdout, stderr } = await execAsync(
       `"${MCP_CLI}" --config "${MCP_CONFIG}" ${toolPath} '${argsJson}'`,
       {
+        // DEBT: Cast to any because the 'shell' property in our Node.js types only accepts string or undefined, but runtime expects boolean.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         shell: true as any,
         timeout: 180000 // 3 minutes for long operations
       }
@@ -133,7 +141,7 @@ async function callTool(toolPath: string, argsJson: string): Promise<void> {
   }
 }
 
-async function showHelp(): void {
+async function showHelp(): Promise<void> {
   console.log(`
 MCP Utility Wrapper
 ===================

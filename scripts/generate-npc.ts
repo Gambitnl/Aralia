@@ -3,8 +3,8 @@
  * CLI Tool to generate functional NPC objects for the Aralia RPG.
  * Usage: npx tsx scripts/generate-npc.ts --role [role] --race [race] --level [n] --count [n]
  */
-import { generateNPC, NPCGenerationConfig } from '../src/services/npcGenerator';
-import { NPC } from '../src/types/world';
+import { generateNPC, NPCGenerationConfig } from '../src/services/npcGenerator.js';
+import { NPC } from '../src/types/world.js';
 
 const args = process.argv.slice(2);
 

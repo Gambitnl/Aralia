@@ -1,7 +1,7 @@
-import type { AbilityScoreName, AbilityScores } from './core';
-import type { MagicItemProperties } from './magicItems';
-import type { ItemProvenance } from './provenance';
-import type { ItemVisualSpec } from './visuals';
+import type { AbilityScoreName, AbilityScores } from './core.js';
+import type { MagicItemProperties } from './magicItems.js';
+import type { ItemProvenance } from './provenance.js';
+import type { ItemVisualSpec } from './visuals.js';
 
 /**
  * Equipment and inventory focused types.

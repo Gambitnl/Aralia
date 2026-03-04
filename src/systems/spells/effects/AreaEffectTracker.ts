@@ -93,6 +93,8 @@ export class AreaEffectTracker {
             // Trigger if moving *within* the zone (start and end are both in)
             if (wasInZone && isNowInZone) {
                 const moveEffects = zone.effects.filter(effect =>
+                    // DEBT: Cast trigger to any to probe optional type property without complex typing in this tracker.
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     (effect.trigger as any)?.type === 'on_move_in_area'
                 );
 
@@ -104,7 +106,9 @@ export class AreaEffectTracker {
                 // Trigger once per tile (5 feet) moved
                 for (let i = 0; i < distanceInTiles; i++) {
                     for (const effect of moveEffects) {
-                        if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
+                        // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                             continue;
                         }
 
@@ -161,7 +165,9 @@ export class AreaEffectTracker {
                 );
 
                 for (const effect of entryEffects) {
-                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
+                    // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                         continue;
                     }
 
@@ -213,7 +219,9 @@ export class AreaEffectTracker {
                 );
 
                 for (const effect of exitEffects) {
-                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
+                    // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                         continue;
                     }
 
@@ -259,7 +267,9 @@ export class AreaEffectTracker {
                 );
 
                 for (const effect of endTurnEffects) {
-                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
+                    // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                         continue;
                     }
 

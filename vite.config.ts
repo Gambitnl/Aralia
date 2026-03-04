@@ -419,6 +419,62 @@ const addProxyDiagnostics = (
   }
 });
 
+const ROADMAP_DEV_HEALTH_URL = 'http://127.0.0.1:3010/api/roadmap/data';
+
+// Technical: checks whether the isolated roadmap dev server is already alive on port 3010.
+// Layman: this avoids spawning duplicate roadmap dev servers when one is already running.
+const isRoadmapDevServerRunning = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(ROADMAP_DEV_HEALTH_URL, { signal: AbortSignal.timeout(1500) });
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
+const roadmapLauncherManager = () => ({
+  name: 'roadmap-launcher-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      if (req.url !== '/api/roadmap/start') {
+        next();
+        return;
+      }
+
+      if (req.method && req.method !== 'GET' && req.method !== 'POST') {
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Method not allowed.' }));
+        return;
+      }
+
+      try {
+        if (await isRoadmapDevServerRunning()) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ status: 'already-running' }));
+          return;
+        }
+
+        console.info('[dev] Starting isolated roadmap server (npm run dev:roadmap)...');
+        const child = spawn('npm', ['run', 'dev:roadmap'], {
+          detached: true,
+          stdio: 'ignore',
+          shell: true,
+          windowsHide: true,
+          cwd: process.cwd(),
+        });
+        child.unref();
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'starting', command: 'npm run dev:roadmap' }));
+      } catch (error) {
+        console.error('[dev] Failed to start roadmap server:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Failed to start roadmap server' }));
+      }
+    });
+  },
+});
+
 
 const visualizerManager = () => ({
   name: 'visualizer-manager',
@@ -455,6 +511,7 @@ const roadmapManager = () => ({
   configureServer(server: any) {
     const workspaceDir = path.resolve(process.cwd(), '.agent', 'roadmap-local');
     const layoutPath = path.join(workspaceDir, 'layout.json');
+    const labelOverridesPath = path.join(workspaceDir, 'node-label-overrides.json');
     const rootDir = path.resolve(process.cwd());
     const rootLower = rootDir.toLowerCase();
 
@@ -483,6 +540,37 @@ const roadmapManager = () => ({
       }
     };
 
+    const labelOverridesResponse = (overrides: Record<string, string> = {}) => ({ overrides });
+
+    // Technical: loads saved node display-name overrides keyed by stable node id.
+    // Layman: remembers custom node names without changing identity/test/layout keys.
+    const readNodeLabelOverrides = () => {
+      if (!fs.existsSync(labelOverridesPath)) return labelOverridesResponse();
+      try {
+        const parsed = JSON.parse(fs.readFileSync(labelOverridesPath, 'utf-8')) as { overrides?: unknown };
+        const overrides: Record<string, string> = {};
+        const input = parsed.overrides;
+        if (input && typeof input === 'object') {
+          for (const [id, value] of Object.entries(input as Record<string, unknown>)) {
+            if (typeof value !== 'string') continue;
+            if (!/^[a-zA-Z0-9:_-]+$/.test(id)) continue;
+            const normalized = value.trim();
+            if (!normalized) continue;
+            overrides[id] = normalized;
+          }
+        }
+        return labelOverridesResponse(overrides);
+      } catch {
+        return labelOverridesResponse();
+      }
+    };
+
+    // Technical: persists node display-name overrides to roadmap-local storage.
+    // Layman: saves renamed node titles so they stay after refresh/restart.
+    const writeNodeLabelOverrides = (overrides: Record<string, string>) => {
+      fs.mkdirSync(workspaceDir, { recursive: true });
+      fs.writeFileSync(labelOverridesPath, JSON.stringify(labelOverridesResponse(overrides), null, 2), 'utf-8');
+    };
     const normalizeDocPath = (rawPath: string) => {
       const trimmed = String(rawPath || '').trim().replace(/\\/g, '/');
       if (!trimmed) return null;
@@ -500,7 +588,7 @@ const roadmapManager = () => ({
     // Technical: runs one roadmap node test command and captures pass/fail plus short output.
     // Layman: executes the same node test you can run in terminal and returns a compact result.
     const runRoadmapNodeTest = (nodeId: string) => {
-      const command = `npx tsx scripts/roadmap-node-test.ts --node-id ${nodeId}`;
+      const command = `npx tsx devtools/roadmap/scripts/roadmap-node-test.ts --node-id ${nodeId}`;
       try {
         const stdout = execSync(command, {
           cwd: process.cwd(),
@@ -526,7 +614,7 @@ const roadmapManager = () => ({
         readOpportunitySettings,
         scanRoadmapOpportunities,
         writeOpportunitySettings,
-      } = await import('./scripts/roadmap-server-logic.ts');
+      } = await import('./devtools/roadmap/scripts/roadmap-server-logic.ts');
 
       const pathname = new URL(req.url || '/', 'http://localhost').pathname;
 
@@ -548,6 +636,12 @@ const roadmapManager = () => ({
       if (isRoadmapPath(pathname, '/api/roadmap/layout') && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify(readLayout()));
+        return;
+      }
+
+      if (isRoadmapPath(pathname, '/api/roadmap/labels') && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(readNodeLabelOverrides()));
         return;
       }
 
@@ -578,6 +672,43 @@ const roadmapManager = () => ({
         return;
       }
 
+      if (isRoadmapPath(pathname, '/api/roadmap/labels/rename') && req.method === 'POST') {
+        readBody(req)
+          .then((body) => {
+            const parsed = JSON.parse(body || '{}') as { nodeId?: unknown; label?: unknown };
+            const nodeId = typeof parsed.nodeId === 'string' ? parsed.nodeId.trim() : '';
+            const rawLabel = typeof parsed.label === 'string' ? parsed.label : '';
+            const normalizedLabel = rawLabel.replace(/\s+/g, ' ').trim();
+
+            if (!nodeId || !isSafeRoadmapNodeId(nodeId)) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Invalid node id format.' }));
+              return;
+            }
+            if (!normalizedLabel) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Label cannot be empty.' }));
+              return;
+            }
+            if (normalizedLabel.length > 180) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Label is too long (max 180 characters).' }));
+              return;
+            }
+
+            const { overrides } = readNodeLabelOverrides();
+            overrides[nodeId] = normalizedLabel;
+            writeNodeLabelOverrides(overrides);
+
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true, nodeId, label: normalizedLabel, overrides }));
+          })
+          .catch((renameError) => {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to rename roadmap node: ${String(renameError)}` }));
+          });
+        return;
+      }
       if (isRoadmapPath(pathname, '/api/roadmap/open-in-vscode') && req.method === 'POST') {
         readBody(req)
           .then((body) => {
@@ -1777,16 +1908,7 @@ export default defineConfig(({ mode, command }) => {
   const mainDevRoadmapWatchIgnored = [
     '**/.agent/roadmap/**',
     '**/.agent/roadmap-local/**',
-    '**/scripts/roadmap-engine/**',
-    '**/scripts/roadmap-server-logic.ts',
-    '**/scripts/roadmap-local-bridge.ts',
-    '**/scripts/roadmap-*.ts',
-    '**/src/roadmap-entry.tsx',
-    '**/src/components/debug/roadmap/**',
-    '**/src/components/debug/RoadmapVisualizer.tsx',
-    '**/misc/roadmap.html',
-    '**/misc/roadmap_docs.html',
-    '**/misc/roadmap_docs.css'
+    '**/devtools/roadmap/**'
   ];
 
   // ============================================================================
@@ -1803,6 +1925,7 @@ export default defineConfig(({ mode, command }) => {
   const mainPlugins = [
     react(),
     visualizerManager(),
+    roadmapLauncherManager(),
     conductorManager(),
     scanManager(),
     gitStatusManager(),
@@ -1832,7 +1955,7 @@ export default defineConfig(({ mode, command }) => {
     if (isRoadmapOnlyDev) {
       console.info('[dev] Mode: roadmap-only (isolated from main app HMR).');
       console.info('[dev] Roadmap server port: 3010');
-      console.info('[dev] Open: /Aralia/misc/roadmap.html');
+      console.info('[dev] Open: /Aralia/devtools/roadmap/roadmap.html');
     } else {
       console.info('[dev] Mode: main-app (roadmap APIs and roadmap watch paths are disabled).');
       console.info('[dev] Proxy routes:');
@@ -1908,11 +2031,11 @@ export default defineConfig(({ mode, command }) => {
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'agent_docs.html'))
             ? { agent_docs: path.resolve(__dirname, 'misc', 'agent_docs.html') }
             : {}),
-          ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap.html'))
-            ? { roadmap: path.resolve(__dirname, 'misc', 'roadmap.html') }
+          ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'devtools', 'roadmap', 'roadmap.html'))
+            ? { roadmap: path.resolve(__dirname, 'devtools', 'roadmap', 'roadmap.html') }
             : {}),
-          ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'misc', 'roadmap_docs.html'))
-            ? { roadmap_docs: path.resolve(__dirname, 'misc', 'roadmap_docs.html') }
+          ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'devtools', 'roadmap', 'roadmap_docs.html'))
+            ? { roadmap_docs: path.resolve(__dirname, 'devtools', 'roadmap', 'roadmap_docs.html') }
             : {})
         },
         output: {

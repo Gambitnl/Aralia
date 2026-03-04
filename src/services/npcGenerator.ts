@@ -14,18 +14,18 @@
  */
 // @dependencies-end
 
-import { NPC, GoalStatus, Goal, TTSVoiceOption, SuspicionLevel, RichNPC, FamilyMember, NpcMemory } from '../types/world';
-import { NPCVisualSpec } from '../types/visuals';
-import { RACE_NAMES } from '../data/names/raceNames';
-import { RACE_PHYSICAL_TRAITS, FALLBACK_TRAITS, SCARS_AND_MARKS } from '../data/names/physicalTraits';
-import { AVAILABLE_CLASSES, CLASSES_DATA } from '../data/classes';
-import { BACKGROUNDS } from '../data/backgrounds';
-import { AbilityScores, AbilityScoreName, PlayerCharacter } from '../types/character';
-import type { EquipmentSlotType, Item } from '../types/items';
-import { getAbilityModifierValue, calculateArmorClass, calculatePassiveScore } from '../utils/character/statUtils';
-import { ALL_RACES_DATA } from '../data/races';
-import { ALL_ITEMS, WEAPONS_DATA, ITEMS } from '../data/items';
-import { generateId } from '../utils/core/idGenerator';
+import { GoalStatus, Goal, SuspicionLevel, RichNPC, FamilyMember, NpcMemory, TTSVoiceOption } from '../types/world.js';
+import { NPCVisualSpec } from '../types/visuals.js';
+import { RACE_NAMES } from '../data/names/raceNames.js';
+import { RACE_PHYSICAL_TRAITS, FALLBACK_TRAITS, SCARS_AND_MARKS } from '../data/names/physicalTraits.js';
+import { AVAILABLE_CLASSES, CLASSES_DATA } from '../data/classes/index.js';
+import { BACKGROUNDS } from '../data/backgrounds.js';
+import { AbilityScores, PlayerCharacter } from '../types/character.js';
+import type { EquipmentSlotType, Item } from '../types/items.js';
+import { getAbilityModifierValue, calculateArmorClass, calculatePassiveScore } from '../utils/character/statUtils.js';
+import { ALL_RACES_DATA } from '../data/races/index.js';
+import { ALL_ITEMS } from '../data/items/index.js';
+import { generateId } from '../utils/core/idGenerator.js';
 
 // Helper to simulate dice rolls string (e.g. "2d10")
 function rollDiceString(diceString: string): number {
@@ -93,9 +93,9 @@ function generateAbilityScores(classId: string): AbilityScores {
     Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
   };
 
-  priorities.forEach((ability, index) => {
+  priorities.forEach((ability: string, index: number) => {
     if (index < standardArray.length) {
-      scores[ability] = standardArray[index];
+      scores[ability as keyof AbilityScores] = standardArray[index];
     }
   });
 
@@ -352,7 +352,7 @@ export function generateNPC(config: NPCGenerationConfig): RichNPC {
 
   // Parse speed from race traits (defaults to 30).
   let speed = 30;
-  const speedTrait = raceData.traits.find(t => t.toLowerCase().includes('speed:'));
+  const speedTrait = raceData.traits.find((t: string) => t.toLowerCase().includes('speed:'));
   if (speedTrait) {
     const match = speedTrait.match(/(\d+)/);
     if (match) speed = parseInt(match[1], 10);

@@ -197,6 +197,8 @@ function expandEffect(effect: JsonObject): JsonObject {
             condition.targetFilter = deepMerge(condition.targetFilter as JsonValue, TARGET_CONDITION_FILTER_TEMPLATE);
         }
         if (Array.isArray(condition.saveModifiers)) {
+            // DEBT: Cast to any to probe dynamic save modifier objects without a strict registry.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             condition.saveModifiers = condition.saveModifiers.map((modifier: any) =>
                 deepMerge(modifier as JsonValue, SAVE_MODIFIER_TEMPLATE)
             );
@@ -276,11 +278,12 @@ function processSpell(filePath: string) {
     }
 
     if (Array.isArray(expandedData.effects)) {
+        // DEBT: Cast to any to probe dynamic effect objects without a strict registry.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expandedData.effects = expandedData.effects.map((effect: any) =>
             isJsonObject(effect) ? expandEffect(effect) : effect
         );
     }
-
     // Re-order keys to match MASTER_TEMPLATE for consistency
     const orderedData: JsonObject = {};
     Object.keys(MASTER_TEMPLATE).forEach(key => {
