@@ -181,7 +181,7 @@ export function SpellGraphOverlay({
     for (const axis of topResult.availableAxes) {
       const id = axisNodeId(axis.axisId);
       const isOpen = expandedIds.has(id);
-      result.push({ id, depth: 1, parentId: 'pillar_spells', label: axis.label, hasChildren: isOpen });
+      result.push({ id, depth: 1, parentId: 'pillar_spells', label: axis.label, hasChildren: true });
 
       if (!isOpen) continue;
 
@@ -195,7 +195,7 @@ export function SpellGraphOverlay({
           depth: 2,
           parentId: id,
           label: `${axisValueLabel(axis.axisId, val.value)} [${val.count}]`,
-          hasChildren: isValueOpen,
+          hasChildren: true,
         });
 
         if (!isValueOpen) continue;
@@ -210,7 +210,7 @@ export function SpellGraphOverlay({
           depth: 3,
           parentId: valueId,
           label: `Show Spells (${afterResult.spellCount})`,
-          hasChildren: isShowOpen,
+          hasChildren: afterResult.spellCount > 0,
         });
 
         if (isShowOpen) {
@@ -235,7 +235,7 @@ export function SpellGraphOverlay({
             depth: 3,
             parentId: valueId,
             label: remainAxis.label,
-            hasChildren: isAxOpen,
+            hasChildren: true,
           });
 
           if (!isAxOpen) continue;
@@ -250,7 +250,7 @@ export function SpellGraphOverlay({
               depth: 4,
               parentId: axId,
               label: `${axisValueLabel(remainAxis.axisId, rv.value)} [${rv.count}]`,
-              hasChildren: isDeepOpen,
+              hasChildren: true,
             });
 
             if (!isDeepOpen) continue;
@@ -263,7 +263,7 @@ export function SpellGraphOverlay({
               depth: 5,
               parentId: deepValueId,
               label: `Show Spells (${deepResult.spellCount})`,
-              hasChildren: isDeepShowOpen,
+              hasChildren: deepResult.spellCount > 0,
             });
 
             if (isDeepShowOpen) {
