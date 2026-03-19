@@ -76,7 +76,10 @@ export function SpellBranchNavigator() {
       {/* Breadcrumb of choices made */}
       {choices.length > 0 && (
         <div style={{ marginBottom: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {choices.filter((c) => c.value !== 'either').map((c, i) => (
+          {choices
+            .map((c, i) => ({ c, i }))
+            .filter(({ c }) => c.value !== 'either')
+            .map(({ c, i }) => (
             <button
               key={i}
               onClick={() => removeChoice(i)}
