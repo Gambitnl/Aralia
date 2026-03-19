@@ -275,7 +275,9 @@ export const buildRenderGraph = (
       y: projectPos.y,
       width: PROJECT_SIZE,
       height: PROJECT_SIZE,
-      hasChildren: projectRoots.length > 0,
+      // Technical: spellTree projects are expandable via the overlay even with no roadmap data children.
+      // Layman: the Spells node has live virtual children (axis nodes), so treat it as expandable.
+      hasChildren: projectRoots.length > 0 || Boolean(project.spellTree),
       expanded: expandedNodeIds.has(project.id),
       descendantLevelCounts: projectLevelCounts
     };
