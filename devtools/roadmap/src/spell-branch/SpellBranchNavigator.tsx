@@ -145,7 +145,7 @@ export function SpellBranchNavigator() {
               gap: 6,
             }}
           >
-            {filteredSpells
+            {[...filteredSpells]
               .sort((a, b) => a.name.localeCompare(b.name))
               .map((s) => (
                 <div
