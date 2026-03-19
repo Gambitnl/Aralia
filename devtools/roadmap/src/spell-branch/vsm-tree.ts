@@ -17,6 +17,9 @@ export function resolveComponentCombination(
   if (c.somatic && c.material) return 'somatic-material';
   if (c.verbal) return 'verbal-only';
   if (c.somatic) return 'somatic-only';
+  if (c.material) return 'material-only';
+  // All-false: malformed data — warn and fall back to material-only
+  console.warn('resolveComponentCombination: all components are false — malformed spell data');
   return 'material-only';
 }
 

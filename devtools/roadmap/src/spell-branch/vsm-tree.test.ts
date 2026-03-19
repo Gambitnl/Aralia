@@ -1,5 +1,5 @@
 // devtools/roadmap/src/spell-branch/vsm-tree.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { resolveComponentCombination, VSM_COMBINATION_LABELS } from './vsm-tree';
 
 describe('resolveComponentCombination', () => {
@@ -43,6 +43,16 @@ describe('resolveComponentCombination', () => {
     expect(
       resolveComponentCombination({ verbal: false, somatic: false, material: true })
     ).toBe('material-only');
+  });
+
+  it('returns material-only and warns for all-false components (malformed data)', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const result = resolveComponentCombination({ verbal: false, somatic: false, material: false });
+    expect(result).toBe('material-only');
+    expect(warnSpy).toHaveBeenCalledWith(
+      'resolveComponentCombination: all components are false — malformed spell data'
+    );
+    warnSpy.mockRestore();
   });
 });
 
