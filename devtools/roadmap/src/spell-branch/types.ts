@@ -103,3 +103,26 @@ export interface AxisEngineResult {
   availableAxes: AxisState[];
   spellCount: number;
 }
+
+// ============================================================================
+// Virtual Graph Overlay Types
+// ============================================================================
+
+/**
+ * Detail payload for a selected virtual node in the spell graph overlay.
+ * Passed from SpellGraphOverlay to RoadmapVisualizer for the info panel.
+ */
+export type VirtualNodeKind = 'axis' | 'value' | 'show-spells' | 'entry';
+
+export interface VirtualNodeDetail {
+  id: string;
+  kind: VirtualNodeKind;
+  /** Human-readable title (axis label, value label, "Show Spells", or spell name). */
+  label: string;
+  /** Number of spells matching the selection path at this node. */
+  spellCount: number;
+  /** The selection choices accumulated up to and including this node. */
+  choices: AxisChoice[];
+  /** Only present when kind === 'entry'. */
+  spellProfile?: SpellCanonicalProfile;
+}
