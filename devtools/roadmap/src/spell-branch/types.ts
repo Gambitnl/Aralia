@@ -18,11 +18,18 @@ export interface SpellCanonicalProfile {
   components: SpellComponents;
   effectTypes: string[];         // e.g. ["DAMAGE"] or ["TERRAIN","STATUS_CONDITION"]
   targetingType: string;         // e.g. "area", "single", "self"
-  attackType: string;            // "melee" | "ranged" | "none" | ""
+  attackType: string;            // "melee" | "ranged" | "" (empty string = no attack roll)
   arbitrationRequired: boolean;  // true if arbitrationType !== "mechanical"
   legacy: boolean;
 }
 
+/**
+ * Normalised casting time unit for the roadmap branch navigator.
+ * 'special' is a catch-all applied by the generator for any raw value
+ * that is not 'action', 'bonus_action', or 'reaction' — including
+ * 'minute', 'hour', 'day', and any other extended cast durations.
+ * These raw values are NOT preserved in the canonical profile.
+ */
 export type CastingTimeUnit = 'action' | 'bonus_action' | 'reaction' | 'special';
 
 export interface SpellComponents {
