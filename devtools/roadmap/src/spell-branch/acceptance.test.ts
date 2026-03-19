@@ -128,15 +128,17 @@ describe('Acceptance — Criterion 4: no phantom axis values', () => {
   });
 
   it('Impossible combination returns 0 spells (not phantom values)', () => {
-    // Level 9 Cantrips do not exist
+    // No level-9 spell has reaction casting time in the dataset
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'level', value: '9' },
-      { axisId: 'castingTime', value: 'bonus_action' },
+      { axisId: 'castingTime', value: 'reaction' },
     ]);
-    // Either 0 spells or only actual level-9 bonus-action spells
+    // Verify emptiness explicitly — the for-loop alone would pass trivially on an empty array
+    expect(filteredSpells).toHaveLength(0);
+    // Coherence check: if this ever fails (a level-9 reaction spell is added), each result must still be valid
     for (const spell of filteredSpells) {
       expect(spell.level).toBe(9);
-      expect(spell.castingTimeUnit).toBe('bonus_action');
+      expect(spell.castingTimeUnit).toBe('reaction');
     }
   });
 });
