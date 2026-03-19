@@ -861,6 +861,27 @@ const roadmapManager = () => ({
         return;
       }
 
+      // Technical: serves the pre-generated spell canonical profile dataset.
+      // Layman: the Spell Branch Navigator reads all 469 spell profiles from this endpoint.
+      if (isRoadmapPath(pathname, '/api/spell-profiles') && req.method === 'GET') {
+        const spellProfilesPath = path.resolve(process.cwd(), '.agent', 'roadmap', 'spell-profiles.json');
+        if (!fs.existsSync(spellProfilesPath)) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'spell-profiles.json not found — run: npx tsx devtools/roadmap/scripts/generate-spell-profiles.ts' }));
+          return;
+        }
+        try {
+          const data = fs.readFileSync(spellProfilesPath, 'utf-8');
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(data);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Failed to read spell-profiles.json', message }));
+        }
+        return;
+      }
+
       next();
     });
   }
