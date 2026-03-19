@@ -28,12 +28,20 @@ function axisValueLabel(axisId: AxisId, value: string): string {
   return value;
 }
 
-export function SpellBranchNavigator() {
+interface SpellBranchNavigatorProps {
+  initialChoices?: AxisChoice[];
+}
+
+export function SpellBranchNavigator({ initialChoices = [] }: SpellBranchNavigatorProps) {
   const [profiles, setProfiles] = useState<SpellCanonicalProfile[]>([]);
-  const [choices, setChoices] = useState<AxisChoice[]>([]);
+  const [choices, setChoices] = useState<AxisChoice[]>(initialChoices);
   const [showSpells, setShowSpells] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setChoices(initialChoices);
+  }, [initialChoices]);
 
   useEffect(() => {
     fetch('/Aralia/api/roadmap/spell-profiles')

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RoadmapVisualizer } from './components/debug/RoadmapVisualizer';
 import { SpellBranchNavigator } from './spell-branch/SpellBranchNavigator';
+import type { AxisChoice } from './spell-branch/types';
 import '../../../src/index.css';
 
 /**
@@ -24,6 +25,12 @@ const TABS: { id: TabId; label: string }[] = [
 
 function RoadmapApp() {
   const [activeTab, setActiveTab] = useState<TabId>('roadmap');
+  const [spellBranchChoices, setSpellBranchChoices] = useState<AxisChoice[]>([]);
+
+  const handleOpenSpellBranch = (choices: AxisChoice[]) => {
+    setSpellBranchChoices(choices);
+    setActiveTab('spell-branch');
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
@@ -69,10 +76,10 @@ function RoadmapApp() {
       </div>
 
       {/* Panels — only the active one is rendered */}
-      {activeTab === 'roadmap' && <RoadmapVisualizer />}
+      {activeTab === 'roadmap' && <RoadmapVisualizer onOpenSpellBranch={handleOpenSpellBranch} />}
       {activeTab === 'spell-branch' && (
         <div style={{ flex: 1, overflowY: 'auto', paddingTop: 48, background: '#050810', color: '#e2e8f0', minHeight: '100vh' }}>
-          <SpellBranchNavigator />
+          <SpellBranchNavigator initialChoices={spellBranchChoices} />
         </div>
       )}
     </div>
