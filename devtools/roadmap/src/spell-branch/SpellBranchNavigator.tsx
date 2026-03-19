@@ -36,7 +36,7 @@ export function SpellBranchNavigator() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/Aralia/api/spell-profiles')
+    fetch('/Aralia/api/roadmap/spell-profiles')
       .then((r) => r.json())
       .then((data: SpellCanonicalProfile[]) => {
         setProfiles(data);

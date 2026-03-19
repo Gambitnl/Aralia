@@ -27,7 +27,7 @@ function RoadmapApp() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
-      {/* Tab bar — only visible on Spell Branch tab to avoid cluttering the roadmap canvas */}
+      {/* Tab bar — fixed top-right corner, switching between Roadmap and Spell Branch views */}
       <div
         style={{
           position: 'fixed',
