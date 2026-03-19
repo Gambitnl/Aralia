@@ -60,7 +60,13 @@ function readAllSpellFiles(): any[] {
     if (!fs.existsSync(dir)) continue;
     const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
     for (const file of files) {
-      const raw = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf-8'));
+      const filePath = path.join(dir, file);
+      let raw: any;
+      try {
+        raw = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      } catch (err: any) {
+        throw new Error(`Failed to parse ${filePath}: ${err.message}`);
+      }
       spells.push(raw);
     }
   }
@@ -69,9 +75,8 @@ function readAllSpellFiles(): any[] {
 
 // Only run as a script — not during tests
 // ESM-compatible entry point detection
-const isMain = process.argv[1] === __filename ||
-  process.argv[1]?.endsWith('generate-spell-profiles.ts') ||
-  process.argv[1]?.endsWith('generate-spell-profiles.js');
+const normalisePath = (p: string) => p.replace(/\\/g, '/');
+const isMain = normalisePath(process.argv[1] ?? '') === normalisePath(__filename);
 
 if (isMain) {
   const rawSpells = readAllSpellFiles();
