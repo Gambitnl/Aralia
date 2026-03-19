@@ -18,7 +18,7 @@ export interface SpellCanonicalProfile {
   components: SpellComponents;
   effectTypes: string[];         // e.g. ["DAMAGE"] or ["TERRAIN","STATUS_CONDITION"]
   targetingType: string;         // e.g. "area", "single", "self"
-  attackType: string;            // "melee" | "ranged" | "" (empty string = no attack roll)
+  attackType: string;            // "melee" | "ranged" | "none" (empty string in source JSON is normalised to "none" by generator)
   arbitrationRequired: boolean;  // true if arbitrationType !== "mechanical"
   legacy: boolean;
 }

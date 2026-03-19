@@ -47,7 +47,7 @@ export function buildSpellProfile(raw: any): SpellCanonicalProfile {
     },
     effectTypes: (raw.effects ?? []).map((e: any) => e.type).filter(Boolean),
     targetingType: raw.targeting?.type ?? '',
-    attackType: raw.attackType ?? '',
+    attackType: raw.attackType || 'none',
     arbitrationRequired: raw.arbitrationType !== 'mechanical',
     legacy: raw.legacy ?? false,
   };

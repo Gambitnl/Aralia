@@ -33,7 +33,7 @@ describe('buildSpellProfile', () => {
       components: { verbal: true, somatic: true, material: false },
       effectTypes: ['DAMAGE'],
       targetingType: 'area',
-      attackType: '',
+      attackType: 'none',
       arbitrationRequired: false,
       legacy: false,
     });
