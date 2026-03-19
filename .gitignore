@@ -1,3 +1,6 @@
+# Git worktrees
+.worktrees/
+
 # Logs
 logs
 *.log
@@ -77,6 +80,12 @@ verification/
 server_log.txt
 spell_gate_report.txt
 .tmp_roadmap_node_audit_v2.mjs
+.tmp/
+.tmp_codex_backup_*/
+.tmp_codex_session_recovery_*.txt
+.codex-global-state.json
+session_index.jsonl
+state_*.sqlite
 
 # Lock file (using npm, not pnpm)
 pnpm-lock.yaml
@@ -84,7 +93,11 @@ pnpm-lock.yaml
 # Design Preview Tool (local-only developer tool)
 src/components/DesignPreview/
 src/design-preview.tsx
-misc/
+misc/*
+!misc/dev_hub.html
+!misc/spell_data_validation.html
+!misc/spell_data_validation.css
+!misc/spell_data_validation_app.js
 png_collection/
 playwright-report/
 playwright/
@@ -117,3 +130,6 @@ artifacts/roadmap-playwright-audit-*/
 scripts/workflows/gemini/
 scripts/tooling/
 .agent/workflows/
+.playwright-cli/
+docs/tasks/documentation-cleanup/
+docs/archive/
