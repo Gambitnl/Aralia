@@ -139,3 +139,54 @@ describe('computeAxisEngine — effectType axis (multi-value spells)', () => {
     expect(types).toEqual(['STATUS_CONDITION', 'TERRAIN']);
   });
 });
+
+describe('computeAxisEngine — binary axes', () => {
+  it('produces yes/no/either values for concentration axis', () => {
+    const result = computeAxisEngine(PROFILES, []);
+    const concAxis = result.availableAxes.find((a) => a.axisId === 'concentration')!;
+    expect(concAxis).toBeDefined();
+    const values = concAxis.values.map((v) => v.value);
+    expect(values).toEqual(['yes', 'no', 'either']);
+  });
+
+  it('counts yes/no correctly for concentration', () => {
+    const result = computeAxisEngine(PROFILES, []);
+    const concAxis = result.availableAxes.find((a) => a.axisId === 'concentration')!;
+    const yes = concAxis.values.find((v) => v.value === 'yes')!;
+    const no = concAxis.values.find((v) => v.value === 'no')!;
+    const either = concAxis.values.find((v) => v.value === 'either')!;
+    // detect-magic has concentration: true; magic-missile and shield have false
+    expect(yes.count).toBe(1);
+    expect(no.count).toBe(2);
+    expect(either.count).toBe(3); // always equals total filtered spells
+  });
+
+  it("'either' choice passes all spells through and removes axis from available", () => {
+    const result = computeAxisEngine(PROFILES, [
+      { axisId: 'concentration', value: 'either' },
+    ]);
+    expect(result.filteredSpells).toHaveLength(3);
+    const axisIds = result.availableAxes.map((a) => a.axisId);
+    expect(axisIds).not.toContain('concentration');
+  });
+
+  it("'yes' choice on concentration returns only concentration spells", () => {
+    const result = computeAxisEngine(PROFILES, [
+      { axisId: 'concentration', value: 'yes' },
+    ]);
+    expect(result.filteredSpells).toHaveLength(1);
+    expect(result.filteredSpells[0].id).toBe('detect-magic');
+  });
+});
+
+describe('computeAxisEngine — requirements axis', () => {
+  it('maps component combinations to named values in the requirements axis', () => {
+    const result = computeAxisEngine(PROFILES, []);
+    const reqAxis = result.availableAxes.find((a) => a.axisId === 'requirements')!;
+    expect(reqAxis).toBeDefined();
+    // All three fixture spells have verbal: true, somatic: true, material: false
+    const values = reqAxis.values.map((v) => v.value);
+    expect(values).toEqual(['verbal-somatic']);
+    expect(reqAxis.values[0].count).toBe(3);
+  });
+});
