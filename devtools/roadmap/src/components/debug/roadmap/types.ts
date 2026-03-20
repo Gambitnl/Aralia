@@ -54,6 +54,9 @@ export interface RoadmapNode {
   // Technical: marks nodes that activate the live spell graph overlay in the Visualizer.
   // Layman: set to true on the Spells project node so the visualizer knows to mount the overlay.
   spellTree?: boolean;
+  // Technical: true when .media/<id>.* exists on the server — set by generateRoadmapData().
+  // Layman: controls whether the "View Preview" button appears in the info panel.
+  hasMedia?: boolean;
 }
 
 export interface RoadmapEdge {
