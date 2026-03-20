@@ -6,6 +6,30 @@ import react from '@vitejs/plugin-react';
 import { spawn, exec, execSync } from 'child_process';
 import { WebSocket, WebSocketServer } from 'ws';
 import * as pty from 'node-pty';
+import {
+  buildSpellFieldInventory,
+  createSpellFieldInventorySummary,
+  querySpellFieldInventory,
+  type SpellFieldInventory,
+} from './scripts/spellFieldInventory';
+
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This file is the 'Development Command Center'. It configures the 
+ * Vite dev server, proxies, and custom middleware for internal tooling 
+ * like the Roadmap, Codebase Visualizer, and AI Portrait Generator.
+ *
+ * Recent updates focus on 'Tooling Decoupling and Persistence'. 
+ * - The Roadmap server logic was moved to a dynamic import to prevent 
+ *   server restarts when its logic changes.
+ * - Isolated server support was added for Roadmap-only mode.
+ * - Node label overrides are now persisted to a local file, allowing 
+ *   custom names to survive server restarts.
+ * - Enhanced proxy diagnostics were added to help debug connection 
+ *   refusal issues in complex multi-server environments.
+ * 
+ * @file vite.config.ts
+ */
 
 const MCP_CLI = path.resolve(process.cwd(), 'node_modules/.bin/mcp-cli');
 const MCP_CONFIG = path.resolve(process.cwd(), '.mcp.json');
@@ -419,16 +443,36 @@ const addProxyDiagnostics = (
   }
 });
 
-const ROADMAP_DEV_HEALTH_URL = 'http://127.0.0.1:3010/api/roadmap/data';
+const ROADMAP_DEV_PORT = 3010;
+const ROADMAP_DEV_HOST = '127.0.0.1';
+const ROADMAP_DEV_OPEN_PATH = '/Aralia/devtools/roadmap/roadmap.html';
+const ROADMAP_DEV_HEALTH_URL = `http://${ROADMAP_DEV_HOST}:${ROADMAP_DEV_PORT}/api/roadmap/data`;
+const ROADMAP_DEV_OPEN_URL = `http://${ROADMAP_DEV_HOST}:${ROADMAP_DEV_PORT}${ROADMAP_DEV_OPEN_PATH}`;
 
-// Technical: checks whether the isolated roadmap dev server is already alive on port 3010.
-// Layman: this avoids spawning duplicate roadmap dev servers when one is already running.
-const isRoadmapDevServerRunning = async (): Promise<boolean> => {
+type RoadmapDevServerStatus = {
+  running: boolean;
+  openUrl: string;
+  healthUrl: string;
+};
+
+// Technical: checks whether the isolated roadmap dev server is already alive on the fixed
+// roadmap port and returns the URLs the user should open when it is.
+// Layman: this tells us whether roadmap mode should reuse the existing server instead of
+// starting another copy on the next free port.
+const getRoadmapDevServerStatus = async (): Promise<RoadmapDevServerStatus> => {
   try {
     const response = await fetch(ROADMAP_DEV_HEALTH_URL, { signal: AbortSignal.timeout(1500) });
-    return response.ok;
+    return {
+      running: response.ok,
+      openUrl: ROADMAP_DEV_OPEN_URL,
+      healthUrl: ROADMAP_DEV_HEALTH_URL
+    };
   } catch {
-    return false;
+    return {
+      running: false,
+      openUrl: ROADMAP_DEV_OPEN_URL,
+      healthUrl: ROADMAP_DEV_HEALTH_URL
+    };
   }
 };
 
@@ -448,9 +492,15 @@ const roadmapLauncherManager = () => ({
       }
 
       try {
-        if (await isRoadmapDevServerRunning()) {
+        const roadmapServer = await getRoadmapDevServerStatus();
+        if (roadmapServer.running) {
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ status: 'already-running' }));
+          res.end(JSON.stringify({
+            status: 'already-running',
+            port: ROADMAP_DEV_PORT,
+            url: roadmapServer.openUrl,
+            healthUrl: roadmapServer.healthUrl
+          }));
           return;
         }
 
@@ -606,11 +656,16 @@ const roadmapManager = () => ({
     };
 
     server.middlewares.use(async (req: any, res: any, next: any) => {
-      // Dynamic import keeps roadmap-server-logic.ts out of Vite's config
-      // dependency graph — changes to it no longer trigger a server restart.
+      // WHAT CHANGED: Switched to dynamic import for roadmap server logic.
+      // WHY IT CHANGED: Importing roadmap logic statically at the top 
+      // of vite.config.ts caused any edit to the logic file to trigger 
+      // a full Vite server restart. Dynamic import allows us to hot-swap 
+      // the backend logic for dev tools without interrupting the 
+      // primary application dev server.
       const {
         generateRoadmapData,
         loadLatestOpportunityScan,
+        loadRoadmapHistoryTraceability,
         readOpportunitySettings,
         scanRoadmapOpportunities,
         writeOpportunitySettings,
@@ -785,6 +840,44 @@ const roadmapManager = () => ({
         return;
       }
 
+      // Technical: roadmap history endpoint for selected doc/component file traces.
+      // Layman: the visualizer calls this to show recent git history for the files a node points at.
+      if (isRoadmapPath(pathname, '/api/roadmap/history') && req.method === 'POST') {
+        readBody(req)
+          .then((body) => {
+            const parsed = JSON.parse(body || '{}') as {
+              selectedNodeId?: unknown;
+              selectedNodeLabel?: unknown;
+              selectedPaths?: unknown;
+              componentFiles?: unknown;
+              docPaths?: unknown;
+              limit?: unknown;
+            };
+            const toStringArray = (value: unknown) =>
+              Array.isArray(value)
+                ? value.filter((entry): entry is string => typeof entry === 'string').map((entry) => entry.trim()).filter(Boolean)
+                : [];
+
+            const payload = loadRoadmapHistoryTraceability({
+              selectedNodeId: typeof parsed.selectedNodeId === 'string' ? parsed.selectedNodeId : null,
+              selectedNodeLabel: typeof parsed.selectedNodeLabel === 'string' ? parsed.selectedNodeLabel : null,
+              selectedPaths: toStringArray(parsed.selectedPaths),
+              componentFiles: toStringArray(parsed.componentFiles),
+              docPaths: toStringArray(parsed.docPaths),
+              limit: typeof parsed.limit === 'number' ? parsed.limit : undefined
+            });
+
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify(payload));
+          })
+          .catch((error) => {
+            const message = error instanceof Error ? error.message : String(error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Failed to load roadmap history: ${message}` }));
+          });
+        return;
+      }
+
       // Technical: roadmap opportunities latest payload endpoint.
       // Layman: the UI calls this to read the current collector state quickly.
       if (isRoadmapPath(pathname, '/api/roadmap/opportunities') && req.method === 'GET') {
@@ -880,6 +973,40 @@ const roadmapManager = () => ({
             })
           );
         }
+        return;
+      }
+
+      // Technical: serves a captured media file (PNG/GIF) for a roadmap node by id.
+      // Layman: the "View Preview" button in the info panel fetches from here.
+      const mediaMatch = pathname.match(/^\/api\/roadmap\/media\/([^/?]+)$/);
+      if (mediaMatch && req.method === 'GET') {
+        const nodeId = decodeURIComponent(mediaMatch[1]);
+        const mediaDir = path.resolve(process.cwd(), 'devtools', 'roadmap', '.media');
+        const extensions = ['.gif', '.png', '.webp', '.jpg', '.jpeg'];
+        let found: string | null = null;
+        for (const ext of extensions) {
+          const candidate = path.join(mediaDir, `${nodeId}${ext}`);
+          if (fs.existsSync(candidate)) { found = candidate; break; }
+        }
+        if (!found) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'No media found for node', nodeId }));
+          return;
+        }
+        const ext = path.extname(found).toLowerCase();
+        const contentTypeMap: Record<string, string> = {
+          '.gif': 'image/gif',
+          '.png': 'image/png',
+          '.webp': 'image/webp',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg'
+        };
+        res.writeHead(200, {
+          'Content-Type': contentTypeMap[ext] ?? 'application/octet-stream',
+          'Cache-Control': 'no-cache',
+          'Access-Control-Allow-Origin': '*'
+        });
+        fs.createReadStream(found).pipe(res);
         return;
       }
 
@@ -995,11 +1122,86 @@ const gitStatusManager = () => ({
 const devHubApiManager = () => ({
   name: 'devhub-api-manager',
   configureServer(server: any) {
+    let spellFieldInventoryCache: SpellFieldInventory | null = null;
+    let spellFieldInventoryLoadedAt = 0;
+
+    // ============================================================================
+    // Spell field inventory cache helper
+    // ============================================================================
+    // Technical:
+    // The spell inventory scan is fast enough for on-demand use, but still expensive
+    // enough that repeated keystroke-level queries should not rebuild it every time.
+    // We keep a short-lived in-memory cache and allow the client to force-refresh it.
+    //
+    // Layman:
+    // The Dev Hub can search all spell JSON files without rescanning the whole spell
+    // dataset on every single click. The Refresh button still forces a clean rebuild.
+    // ============================================================================
+    const getSpellFieldInventory = (forceRefresh = false): SpellFieldInventory => {
+      const now = Date.now();
+      const cacheIsFresh = spellFieldInventoryCache && (now - spellFieldInventoryLoadedAt) < 15_000;
+      if (!forceRefresh && cacheIsFresh) {
+        return spellFieldInventoryCache;
+      }
+
+      spellFieldInventoryCache = buildSpellFieldInventory();
+      spellFieldInventoryLoadedAt = now;
+      return spellFieldInventoryCache;
+    };
+
     server.middlewares.use((req: any, res: any, next: any) => {
       const json = (data: any, status = 200) => {
         res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify(data));
       };
+
+      const parsedUrl = new URL(req.url || '/', 'http://localhost');
+      const urlPath = parsedUrl.pathname;
+
+      // ============================================================================
+      // Spell field inventory API
+      // ============================================================================
+      // Technical:
+      // These endpoints expose the normalized spell field/value inventory to the Dev Hub.
+      // One route returns a compact summary for browsing field paths, and another returns
+      // filtered matches for reverse lookups like "show every spell that contains 1d4".
+      //
+      // Layman:
+      // This is the browser-friendly search layer for the spell crawler. It lets the Dev
+      // Hub show all known fields and search across spell values without dumping one giant
+      // static report into a markdown file.
+      // ============================================================================
+      if (urlPath === '/api/spells/field-inventory/summary') {
+        try {
+          const forceRefresh = parsedUrl.searchParams.get('refresh') === '1';
+          const inventory = getSpellFieldInventory(forceRefresh);
+          const summary = createSpellFieldInventorySummary(inventory);
+          json(summary);
+        } catch (e) {
+          json({ error: String(e) }, 500);
+        }
+        return;
+      }
+
+      if (urlPath === '/api/spells/field-inventory/query') {
+        try {
+          const forceRefresh = parsedUrl.searchParams.get('refresh') === '1';
+          const inventory = getSpellFieldInventory(forceRefresh);
+          const levelParam = parsedUrl.searchParams.get('level');
+          const level = levelParam !== null && levelParam !== '' ? Number(levelParam) : undefined;
+          const query = querySpellFieldInventory(inventory, {
+            fieldPath: parsedUrl.searchParams.get('fieldPath') ?? '',
+            value: parsedUrl.searchParams.get('value') ?? '',
+            level: Number.isFinite(level as number) ? level : undefined,
+            includeFreeText: parsedUrl.searchParams.get('includeFreeText') === '1',
+            limit: Number(parsedUrl.searchParams.get('limit') ?? 200),
+          });
+          json(query);
+        } catch (e) {
+          json({ error: String(e) }, 500);
+        }
+        return;
+      }
 
       // Test runner - runs vitest and reads the JSON results file
       if (req.url === '/api/test') {
@@ -1907,11 +2109,12 @@ const ptyTerminalManager = () => ({
   },
 });
 
-export default defineConfig(({ mode, command }) => {
+export default defineConfig(async ({ mode, command }) => {
   const env = loadEnv(mode, '.', '');
   const isDevServer = command === 'serve';
   const isRoadmapMode = mode === 'roadmap';
   const isRoadmapOnlyDev = isDevServer && isRoadmapMode;
+  const roadmapServer = isRoadmapOnlyDev ? await getRoadmapDevServerStatus() : null;
   const ollamaTarget = 'http://localhost:11434/api';
   const imageTarget = 'http://localhost:3001';
 
@@ -1975,9 +2178,19 @@ export default defineConfig(({ mode, command }) => {
 
   if (isDevServer) {
     if (isRoadmapOnlyDev) {
+      if (roadmapServer?.running) {
+        // Technical: roadmap mode is intentionally single-port. If another roadmap server
+        // already owns that port, print the active URL and exit cleanly instead of letting
+        // Vite spill over to 3011/3012 and leaving multiple roadmap servers around.
+        // Layman: when roadmap is already running, this command now tells you where it is
+        // and stops, rather than secretly starting a second copy on another port.
+        console.info(`[dev] Roadmap server already active on port ${ROADMAP_DEV_PORT}.`);
+        console.info(`[dev] Open: ${roadmapServer.openUrl}`);
+        setTimeout(() => process.exit(0), 0);
+      }
       console.info('[dev] Mode: roadmap-only (isolated from main app HMR).');
-      console.info('[dev] Roadmap server port: 3010');
-      console.info('[dev] Open: /Aralia/devtools/roadmap/roadmap.html');
+      console.info(`[dev] Roadmap server port: ${ROADMAP_DEV_PORT}`);
+      console.info(`[dev] Open: ${ROADMAP_DEV_OPEN_PATH}`);
     } else {
       console.info('[dev] Mode: main-app (roadmap APIs and roadmap watch paths are disabled).');
       console.info('[dev] Proxy routes:');
@@ -1990,7 +2203,13 @@ export default defineConfig(({ mode, command }) => {
   return {
     base: '/Aralia/',
     server: {
-      port: isRoadmapOnlyDev ? 3010 : 3000,
+      // WHAT CHANGED: Strict port and persistent port for Roadmap server.
+      // WHY IT CHANGED: When running in Roadmap-only mode (npm run dev:roadmap), 
+      // we want a predictable port (3010) so that the main app's proxy 
+      // can always find it. `strictPort` ensures it doesn't drift if 
+      // already occupied, making the proxy connection reliable.
+      port: isRoadmapOnlyDev ? ROADMAP_DEV_PORT : 3000,
+      strictPort: isRoadmapOnlyDev,
       host: '0.0.0.0',
       ...(isRoadmapOnlyDev
         ? {}
@@ -2001,6 +2220,12 @@ export default defineConfig(({ mode, command }) => {
             proxy: {
               '/api/ollama': addProxyDiagnostics(
                 '/api/ollama',
+                // WHAT CHANGED: Wrapped proxies in diagnostic helper.
+                // WHY IT CHANGED: Identifying why a dev server proxy failed 
+                // used to require checking Vite's internal debug logs. 
+                // `addProxyDiagnostics` provides human-readable hints 
+                // in the console for common issues like 'Ollama not running', 
+                // drastically reducing setup friction for new agents.
                 {
                   target: ollamaTarget,
                   changeOrigin: true,
@@ -2049,6 +2274,12 @@ export default defineConfig(({ mode, command }) => {
             : {}),
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'dev_hub.html'))
             ? { dev_hub: path.resolve(__dirname, 'misc', 'dev_hub.html') }
+            : {}),
+          // This gives the standalone spell validation page its own build entry
+          // so it can live beside the Dev Hub without being treated as a hidden
+          // sub-panel that only exists inside that larger page.
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'spell_data_validation.html'))
+            ? { spell_data_validation: path.resolve(__dirname, 'misc', 'spell_data_validation.html') }
             : {}),
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'agent_docs.html'))
             ? { agent_docs: path.resolve(__dirname, 'misc', 'agent_docs.html') }
