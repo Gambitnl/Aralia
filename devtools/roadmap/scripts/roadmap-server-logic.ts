@@ -18,6 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { checkTestPresence } from './roadmap/node-test-presence/test-presence-checker.js';
+import { buildMediaSet, hasMediaFile } from './roadmap/node-media-presence/media-scanner';
 import {
   buildRoadmapHistoryTraceabilityPayload,
   normalizeRoadmapHistoryLimit,
@@ -48,6 +49,7 @@ export type RoadmapNode = {
   componentFiles?: string[];
   // Optional flag marking this node as the live Spells navigator entry point.
   spellTree?: boolean;
+  hasMedia?: boolean;   // true when .media/<id>.* exists on disk
   [key: string]: unknown;
 };
 
@@ -200,6 +202,15 @@ export function generateRoadmapData(): RoadmapData {
       testFileDeclared: presence.testFileDeclared
     };
   });
+
+  // Technical: scan .media/ once per data request and stamp hasMedia on matching nodes.
+  // Layman: each node gets a flag that tells the UI whether a preview image exists for it.
+  const mediaDir = path.resolve(process.cwd(), 'devtools', 'roadmap', '.media');
+  const mediaSet = buildMediaSet(mediaDir);
+  data.nodes = data.nodes.map((node: RoadmapNode) => ({
+    ...node,
+    hasMedia: hasMediaFile(node.id, mediaSet) || undefined
+  }));
 
   // Technical: inject the live Spells navigator node if not already present.
   // Layman: this is the "Spells" circle on the roadmap — clicking it opens the live spell tree.
