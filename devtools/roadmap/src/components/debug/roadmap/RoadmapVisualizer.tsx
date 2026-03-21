@@ -433,6 +433,7 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
   const [opportunityLoading, setOpportunityLoading] = useState(false);
   const [opportunityStatus, setOpportunityStatus] = useState<string | null>(null);
   const [opportunityError, setOpportunityError] = useState<string | null>(null);
+  const [showMediaPreview, setShowMediaPreview] = useState(false);
   // Technical: center-focus request used by opportunity drawer "go to node".
   // Layman: when you jump from the opportunities list, this puts that node in the screen center.
   const [pendingFocusNodeId, setPendingFocusNodeId] = useState<string | null>(null);
@@ -1053,6 +1054,7 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
   // Layman: node panel content and whether dotted crosslinks should be hidden.
   const selectedDetail = selectedNodeId && graph ? graph.detailById.get(selectedNodeId) || null : null;
   const selectedFullDetail = selectedNodeId && fullGraph ? fullGraph.detailById.get(selectedNodeId) || null : null;
+  const nodeHasMedia = selectedNodeId ? hasMediaIds.has(selectedNodeId) : false;
   // Technical: panel rename/title should use the exact same short label source as node cards.
   // Layman: this keeps "Display Name" aligned with what you see on the node itself.
   const selectedRenderNode = selectedNodeId ? nodeById.get(selectedNodeId) || null : null;
@@ -1117,6 +1119,12 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
   const scopedProjectIds = useMemo(
     () => new Set((scopedData?.nodes ?? []).filter((node) => node.type === 'project').map((node) => node.id)),
     [scopedData]
+  );
+  // Technical: set of node IDs that have a media file on disk (flagged by server).
+  // Layman: fast lookup for whether the "View Preview" button should appear.
+  const hasMediaIds = useMemo(
+    () => new Set((data?.nodes ?? []).filter(n => n.hasMedia).map(n => n.id)),
+    [data]
   );
 
   // Technical: filtered/sorted opportunities rows shown in the collector drawer.
@@ -2850,6 +2858,19 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
             >
               Open in VS Code
             </button>
+            {nodeHasMedia && (
+              <button
+                type="button"
+                onClick={() => setShowMediaPreview(true)}
+                className={`mt-2 text-[10px] uppercase tracking-[0.12em] px-2 py-1 rounded border ${
+                  isDark
+                    ? 'border-violet-500/40 bg-violet-900/35 text-violet-100 hover:bg-violet-800/45'
+                    : 'border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100'
+                }`}
+              >
+                View Preview
+              </button>
+            )}
 
             <div className="mt-3 grid grid-cols-1 gap-2">
               <button
