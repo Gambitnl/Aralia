@@ -3578,7 +3578,7 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
           aria-label="Node preview"
           data-wheel-no-zoom="true"
           onClick={() => setShowMediaPreview(false)}
-          className="absolute inset-0 z-[200] flex items-center justify-center pointer-events-auto"
+          className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-auto"
           style={{ background: 'rgba(0,0,0,0.78)' }}
         >
           <div
