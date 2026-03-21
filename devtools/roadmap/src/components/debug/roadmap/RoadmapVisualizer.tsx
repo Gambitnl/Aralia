@@ -752,6 +752,13 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showNodeExplanation]);
 
+  useEffect(() => {
+    if (!showMediaPreview) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowMediaPreview(false); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [showMediaPreview]);
+
   // Technical: lock page scrolling while the node guide modal is open so the
   // roadmap canvas underneath does not keep moving independently of the guide.
   // Layman: when this help popout is open, the background page should stay put.
@@ -3555,6 +3562,39 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
           </button>
         </div>
       </div>
+      {/* Technical: media preview lightbox — dark overlay + centred image, dismissed by overlay click or Escape. */}
+      {/* Layman: the full-size preview that opens when you click "View Preview" on a roadmap node. */}
+      {showMediaPreview && selectedNodeId && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Node preview"
+          data-wheel-no-zoom="true"
+          onClick={() => setShowMediaPreview(false)}
+          className="absolute inset-0 z-[200] flex items-center justify-center pointer-events-auto"
+          style={{ background: 'rgba(0,0,0,0.78)' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-[90vw] max-h-[90vh] rounded-xl overflow-hidden shadow-2xl"
+          >
+            <button
+              type="button"
+              aria-label="Close preview"
+              onClick={() => setShowMediaPreview(false)}
+              className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/60 text-white text-sm flex items-center justify-center hover:bg-black/80"
+            >
+              ×
+            </button>
+            <img
+              src={`/api/roadmap/media/${selectedNodeId}`}
+              alt={`Preview: ${selectedDetailTitle}`}
+              className="block max-w-full max-h-[88vh] object-contain"
+              onError={() => setShowMediaPreview(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
