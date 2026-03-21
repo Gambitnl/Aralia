@@ -1057,6 +1057,13 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
     return map;
   }, [fullGraph]);
 
+  // Technical: set of node IDs that have a media file on disk (flagged by server).
+  // Layman: fast lookup for whether the "View Preview" button should appear.
+  const hasMediaIds = useMemo(
+    () => new Set((data?.nodes ?? []).filter(n => n.hasMedia).map(n => n.id)),
+    [data]
+  );
+
   // Technical: selected detail payload + optional crosslink filtering.
   // Layman: node panel content and whether dotted crosslinks should be hidden.
   const selectedDetail = selectedNodeId && graph ? graph.detailById.get(selectedNodeId) || null : null;
@@ -1127,13 +1134,6 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
     () => new Set((scopedData?.nodes ?? []).filter((node) => node.type === 'project').map((node) => node.id)),
     [scopedData]
   );
-  // Technical: set of node IDs that have a media file on disk (flagged by server).
-  // Layman: fast lookup for whether the "View Preview" button should appear.
-  const hasMediaIds = useMemo(
-    () => new Set((data?.nodes ?? []).filter(n => n.hasMedia).map(n => n.id)),
-    [data]
-  );
-
   // Technical: filtered/sorted opportunities rows shown in the collector drawer.
   // Layman: this is the node list you browse when looking for flagged opportunities.
   const opportunityRows = useMemo(() => {
