@@ -1068,7 +1068,14 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
   // Layman: node panel content and whether dotted crosslinks should be hidden.
   const selectedDetail = selectedNodeId && graph ? graph.detailById.get(selectedNodeId) || null : null;
   const selectedFullDetail = selectedNodeId && fullGraph ? fullGraph.detailById.get(selectedNodeId) || null : null;
-  const nodeHasMedia = selectedNodeId ? hasMediaIds.has(selectedNodeId) : false;
+  // Technical: tree node IDs use `branch_${projectId}_${slug}` format, not the raw `sub_pillar_...`
+  // IDs from data.nodes. hasMediaIds is keyed by raw IDs. We bridge via sourceNodeIds on the detail
+  // (which maps back to the original milestone IDs from the API).
+  // Layman: checks whether any underlying data node for the selected card has a captured preview file.
+  const mediaNodeId = selectedDetail
+    ? ((selectedDetail.sourceNodeIds ?? []).find(id => hasMediaIds.has(id)) ?? null)
+    : null;
+  const nodeHasMedia = mediaNodeId !== null;
   // Technical: panel rename/title should use the exact same short label source as node cards.
   // Layman: this keeps "Display Name" aligned with what you see on the node itself.
   const selectedRenderNode = selectedNodeId ? nodeById.get(selectedNodeId) || null : null;
@@ -3564,7 +3571,7 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
       </div>
       {/* Technical: media preview lightbox — dark overlay + centred image, dismissed by overlay click or Escape. */}
       {/* Layman: the full-size preview that opens when you click "View Preview" on a roadmap node. */}
-      {showMediaPreview && selectedNodeId && (
+      {showMediaPreview && mediaNodeId && (
         <div
           role="dialog"
           aria-modal="true"
@@ -3587,7 +3594,7 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
               ×
             </button>
             <img
-              src={`/api/roadmap/media/${selectedNodeId}`}
+              src={`/api/roadmap/media/${mediaNodeId}`}
               alt={`Preview: ${selectedDetailTitle}`}
               className="block max-w-full max-h-[88vh] object-contain"
               onError={() => setShowMediaPreview(false)}
