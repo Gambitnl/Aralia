@@ -1,238 +1,113 @@
-# Spell Implementation Checklist
+﻿# Spell Implementation Checklist
 
-**For New Contributors**  
-**Last Updated:** 2025-12-13  
-**Purpose:** Step-by-step guide for implementing new spells in the V2 system
+Last Updated: 2026-03-11
+Purpose: Current implementation checklist for adding or repairing spell JSON in the live repo.
 
-## Overview
+## How To Use This Checklist
 
-This checklist helps new contributors implement spells correctly in the Aralia RPG spell system. Follow these steps in order to ensure quality and consistency.
+Use this when you are actively creating or updating a spell JSON file.
 
-## Pre-Implementation Preparation
+This checklist assumes:
+- spell files live under public/data/spells/level-{N}/
+- the manifest is public/data/spells_manifest.json
+- validation truth is defined by src/systems/spells/validation/spellValidator.ts
 
-### 1. Research Phase
-- [ ] **Identify the spell** you want to implement
-- [ ] **Check existing status** in `docs/spells/STATUS_LEVEL_{N}.md`
-- [ ] **Verify it's not already in progress** by checking recent PRs/issues
-- [ ] **Review spell mechanics** in official D&D 5e sources
-- [ ] **Find reference implementation** by examining similar existing spells
+It does not assume a package command called validate:spells, because that script is not present in the current package.json.
 
-### 2. Environment Setup
-- [ ] **Fork and clone** the repository
-- [ ] **Install dependencies:** `npm install`
-- [ ] **Verify development environment:** `npm run dev`
-- [ ] **Run initial validation:** `npm run validate`
+## Phase 1: Research
 
-## Implementation Steps
+- [ ] Confirm the spell's current status in docs/spells/STATUS_LEVEL_{N}.md
+- [ ] Read one similar spell JSON from the same level band
+- [ ] Review docs/spells/SPELL_JSON_EXAMPLES.md
+- [ ] Check docs/spells/SPELL_INTEGRATION_CHECKLIST.md for the broader integration surface
+- [ ] If the spell touches a known mechanic like concentration, terrain, light, or summon behavior, inspect a current spell that already uses that mechanic
 
-### Phase 1: Data Creation
+## Phase 2: File And Metadata Setup
 
-#### 1.1 File Setup
-- [ ] **Create directory** if it doesn't exist: `public/data/spells/level-{N}/`
-- [ ] **Name file correctly:** `spell-name.json` (kebab-case)
-- [ ] **Copy template** from similar spell or use example from `docs/spells/SPELL_JSON_EXAMPLES.md`
+- [ ] Place the file under public/data/spells/level-{N}/
+- [ ] Make the filename kebab-case and match id
+- [ ] Fill out current root fields expected by the validator, including:
+  - id
+  - name
+  - aliases
+  - level
+  - school
+  - source
+  - legacy
+  - classes
+  - ritual
+  - rarity
+  - attackType
+  - castingTime
+  - range
+  - components
+  - duration
+  - targeting
+  - effects
+  - arbitrationType
+  - aiContext
+  - description
+  - higherLevels
+  - tags
 
-#### 1.2 Basic Metadata
-- [ ] **Set `id`:** kebab-case matching filename
-- [ ] **Set `name`:** Proper title case
-- [ ] **Set `level`:** 0-9 (0 for cantrips)
-- [ ] **Set `school`:** From approved spell schools list
-- [ ] **Set `ritual`:** boolean value
-- [ ] **Write `description`:** Accurate flavor text
-- [ ] **Add `higherLevels`:** If applicable, otherwise `null`
+## Phase 3: Effect And Targeting Structure
 
-#### 1.3 Mechanical Properties
-- [ ] **Define `castingTime`:** Value, unit, and combatCost
-- [ ] **Define `range`:** Type and distance
-- [ ] **Define `components`:** Verbal, somatic, material flags
-- [ ] **Define `duration`:** Type, concentration flag, value if needed
-- [ ] **Define `targeting`:** Type, range, validTargets array
+- [ ] Every effect includes trigger and condition
+- [ ] Effect type values match the current validator exactly
+- [ ] Damage, healing, defensive, utility, terrain, movement, summoning, and status payloads match current schema expectations
+- [ ] targeting.validTargets uses the current plural field name
+- [ ] Area-of-effect shape, size, and optional fields match the current validator if used
+- [ ] Class names match the current validator whitelist rather than older normalization assumptions in stale docs
 
-#### 1.4 Class Access
-- [ ] **Populate `classes` array** using official subclass list
-- [ ] **Normalize class names** to uppercase
-- [ ] **Include valid subclasses** only
-- [ ] **Verify against source material**
+## Phase 4: Manifest And Validation
 
-#### 1.5 Effects Definition
-- [ ] **Create `effects` array** with at least one effect
-- [ ] **Add `trigger` object** to each effect
-- [ ] **Add `condition` object** to each effect
-- [ ] **Define primary effect type** (DAMAGE, HEALING, etc.)
-- [ ] **Include scaling information** if applicable
-- [ ] **Add `engineHook` section** with implementation status
+- [ ] If spell files were added, removed, or moved, regenerate the manifest with npx tsx scripts/regenerate-manifest.ts
+- [ ] Run focused spell validation with:
+  - npx tsx scripts/validateSpellJsons.ts
+  - npx tsx scripts/check-spell-integrity.ts
+- [ ] Run the broader repo validation flow with:
+  - npm run validate
+  - npm run typecheck
+  - npm run build
+- [ ] Fix any schema, manifest, class-list, or path issues before moving on
 
-### Phase 2: Validation
+## Phase 5: Integration Checks
 
-#### 2.1 Automated Validation
-- [ ] **Run spell validation:** `npm run validate:spells`
-- [ ] **Fix any schema errors** reported
-- [ ] **Run TypeScript check:** `npm run typecheck`
-- [ ] **Verify no compilation errors**
-- [ ] **Run full build:** `npm run build`
-- [ ] **Confirm successful build**
+- [ ] Verify the spell appears in the expected class or race spell surface
+- [ ] Verify the spell resolves through the spellbook or character sheet surface if relevant
+- [ ] Verify the spell can be selected or loaded where the gameplay flow expects it
+- [ ] Verify the combat or runtime path still understands the effect structure you used
+- [ ] If the spell depends on a partially implemented mechanic, record that clearly instead of calling the spell fully complete
 
-#### 2.2 Manual Validation
-- [ ] **Check JSON formatting** (proper indentation, no trailing commas)
-- [ ] **Verify all required fields** are present
-- [ ] **Confirm enum values** match approved lists
-- [ ] **Test filename matches** `id` field exactly
-- [ ] **Validate class normalization** against official list
+## Phase 6: Documentation Follow-Through
 
-### Phase 3: Integration Testing
+- [ ] Update the relevant docs/spells/STATUS_LEVEL_{N}.md entry if current truth changed
+- [ ] Update a nearby note only if your work actually changed the documented state
+- [ ] Avoid copying stale Gold, Bronze, or Silver claims forward without re-verification
 
-#### 3.1 Character Creation Test
-- [ ] **Start development server:** `npm run dev`
-- [ ] **Create test character** of appropriate class
-- [ ] **Navigate to spell selection** step
-- [ ] **Verify spell appears** in available options
-- [ ] **Select the spell** and complete character creation
-- [ ] **Confirm spell is in** character's spellbook
+## High-Risk Failure Points
 
-#### 3.2 Spellbook Test
-- [ ] **Open character sheet**
-- [ ] **Access spellbook overlay**
-- [ ] **Verify spell displays** with correct information
-- [ ] **Check spell details** (range, components, duration)
-- [ ] **Test prepared/unprepared** functionality if applicable
+- [ ] File path does not match the spell level
+- [ ] id and filename drift apart
+- [ ] A required root field from the current validator is missing
+- [ ] Effect payload shape reflects an older example rather than the live validator
+- [ ] Manifest was not regenerated after file changes
+- [ ] A doc still says the spell is missing even though the file now exists
 
-#### 3.3 Combat Test
-- [ ] **Enter combat scenario**
-- [ ] **Access spell abilities**
-- [ ] **Verify spell appears** as usable ability
-- [ ] **Test targeting system** works correctly
-- [ ] **Cast spell** and verify effects apply
-- [ ] **Check spell slot** consumption (if applicable)
-- [ ] **Verify combat log** shows correct messages
+## Completion Standard
 
-#### 3.4 Edge Case Testing
-- [ ] **Test with different character levels**
-- [ ] **Test higher-level casting** if applicable
-- [ ] **Test concentration** mechanics if applicable
-- [ ] **Test saving throws** if required
-- [ ] **Test range limitations**
-- [ ] **Test with different targets** (ally, enemy, self)
+Treat a spell update as complete only when:
+- focused spell checks pass
+- broader repo validation passes for the touched surface
+- the spell's manifest entry is correct
+- the relevant gameplay surface still consumes it cleanly
+- the nearby status docs no longer contradict the repo
 
-### Phase 4: Documentation
+## Related References
 
-#### 4.1 Status Tracking
-- [ ] **Update appropriate** `STATUS_LEVEL_{N}.md` file
-- [ ] **Change status** from Bronze/Silver to Gold
-- [ ] **Add implementation notes** if needed
-- [ ] **Update completion date**
-
-#### 4.2 Integration Checklist
-- [ ] **Update** `SPELL_INTEGRATION_CHECKLIST.md`
-- [ ] **Mark completed sections**
-- [ ] **Note any remaining gaps**
-
-#### 4.3 Pull Request Preparation
-- [ ] **Write clear PR title:** "feat(spells): Add [Spell Name]"
-- [ ] **Include validation results** in PR description
-- [ ] **List tested scenarios**
-- [ ] **Mention any known limitations**
-- [ ] **Reference related issues** if applicable
-
-## Quality Assurance Checklist
-
-### Code Quality
-- [ ] **No validation errors** from Zod schema
-- [ ] **No TypeScript compilation errors**
-- [ ] **Consistent field ordering** with other spells
-- [ ] **Proper enum casing** (lowercase units, Title Case schools)
-- [ ] **Clear, descriptive field names**
-
-### Data Accuracy
-- [ ] **Mechanics match** official source material
-- [ ] **Class access is correct** and normalized
-- [ ] **Level scaling is accurate** if applicable
-- [ ] **Descriptions are faithful** to source
-- [ ] **Components are properly** specified
-
-### Integration Quality
-- [ ] **Works in character creation**
-- [ ] **Appears in spellbook correctly**
-- [ ] **Functions in combat as expected**
-- [ ] **Handles edge cases gracefully**
-- [ ] **Provides proper user feedback**
-
-## Common Pitfalls to Avoid
-
-### Data Structure Issues
-- ❌ **Missing required fields** - Always check the complete schema
-- ❌ **Incorrect enum values** - Use exact values from reference lists
-- ❌ **Wrong file location** - Ensure correct level directory
-- ❌ **Filename mismatch** - ID must exactly match filename
-
-### Implementation Issues
-- ❌ **Incomplete effects** - Every spell needs at least one effect
-- ❌ **Missing trigger/condition** - Required for all effects
-- ❌ **Invalid class names** - Only use approved base classes/subclasses
-- ❌ **Poor scaling definition** - Level scaling should be explicit
-
-### Testing Issues
-- ❌ **Skipping integration tests** - Always test in actual gameplay
-- ❌ **Only testing happy path** - Include edge cases and error conditions
-- ❌ **Ignoring validation errors** - Fix all reported issues
-- ❌ **Not testing multiple classes** - Verify class access works correctly
-
-## Resources and Help
-
-### Primary Documentation
-- **Main Guide:** `docs/guides/SPELL_ADDITION_WORKFLOW_GUIDE.md`
-- **Data Creation:** `docs/guides/SPELL_DATA_CREATION_GUIDE.md`
-- **Examples:** `docs/spells/SPELL_JSON_EXAMPLES.md`
-- **Architecture:** `docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md`
-
-### Validation Tools
-- **Schema Validator:** `src/systems/spells/validation/spellValidator.ts`
-- **JSON Schema:** `src/systems/spells/schema/spell.schema.json`
-- **Validation Command:** `npm run validate:spells`
-
-### Status Tracking
-- **Overall Progress:** `docs/SPELL_INTEGRATION_STATUS.md`
-- **Per-Level Status:** `docs/spells/STATUS_LEVEL_{N}.md`
-- **Integration Details:** `docs/spells/SPELL_INTEGRATION_CHECKLIST.md`
-
-### Community Support
-- **Check existing issues** for similar problems
-- **Review recent PRs** for implementation patterns
-- **Ask in discussions** if you're stuck
-- **Pair with experienced** contributor if available
-
-## Completion Criteria
-
-A spell implementation is complete when:
-
-### ✅ Technical Requirements
-- [ ] Passes all validation checks
-- [ ] Compiles without errors
-- [ ] Builds successfully
-- [ ] All required fields present
-- [ ] Proper effect structure
-- [ ] Correct class normalization
-
-### ✅ Functional Requirements
-- [ ] Appears in character creation
-- [ ] Shows correctly in spellbook
-- [ ] Works in combat scenarios
-- [ ] Handles edge cases appropriately
-- [ ] Provides user feedback
-
-### ✅ Documentation Requirements
-- [ ] Status files updated
-- [ ] Integration checklist marked complete
-- [ ] PR ready with proper description
-- [ ] Clear implementation notes
-
-## Next Steps After Completion
-
-1. **Submit Pull Request** with complete implementation
-2. **Request review** from maintainers
-3. **Address feedback** promptly
-4. **Merge when approved**
-5. **Celebrate your contribution!**
-
----
-
-**Remember:** Quality over speed. Take time to understand the system and implement correctly. The spell system is critical to gameplay, so thorough implementation and testing are essential.
+- docs/guides/SPELL_ADDITION_WORKFLOW_GUIDE.md
+- docs/guides/SPELL_DATA_CREATION_GUIDE.md
+- docs/guides/SPELL_TROUBLESHOOTING_GUIDE.md
+- docs/spells/SPELL_JSON_EXAMPLES.md
+- docs/spells/SPELL_INTEGRATION_CHECKLIST.md
+- docs/SPELL_INTEGRATION_STATUS.md

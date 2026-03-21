@@ -1,0 +1,173 @@
+{
+    "id": "premade_thalren_deeproot",
+    "name": "Thalren Deeproot",
+    "age": 42,
+    "background": "hermit",
+    "level": 1,
+    "xp": 0,
+    "proficiencyBonus": 2,
+    "race": {
+        "id": "earth_genasi",
+        "name": "Earth Genasi",
+        "baseRace": "genasi",
+        "description": "Earth genasi trace their ancestry to dao, the genies of the Elemental Plane of Earth. They inherit a steadfast strength and a mystical control over the ground beneath their feet.",
+        "abilityBonuses": [],
+        "traits": [
+            "Creature Type: Humanoid",
+            "Size: Medium",
+            "Speed: 30 feet",
+            "Earth Walk: You can move across Difficult Terrain without expending extra movement if you are walking on the ground or a floor.",
+            "Merge with Stone: You know the Blade Ward cantrip. You can cast it as a Bonus Action a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. Starting at 5th level, you can cast Pass without Trace once per long rest without components."
+        ],
+        "visual": {
+            "id": "earth_genasi",
+            "color": "#8B4513",
+            "maleIllustrationPath": "assets/images/races/Genasi_Earth_Male.png",
+            "femaleIllustrationPath": "assets/images/races/Genasi_Earth_Female.png"
+        },
+        "racialSpellChoice": {
+            "traitName": "Merge with Stone",
+            "traitDescription": "Choose your spellcasting ability for these spells: Intelligence, Wisdom, or Charisma."
+        },
+        "knownSpells": [
+            {
+                "minLevel": 1,
+                "spellId": "blade-ward"
+            },
+            {
+                "minLevel": 5,
+                "spellId": "pass-without-trace"
+            }
+        ]
+    },
+    "class": {
+        "id": "monk",
+        "name": "Monk",
+        "description": "A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.",
+        "hitDie": 8,
+        "primaryAbility": [
+            "Dexterity",
+            "Wisdom"
+        ],
+        "savingThrowProficiencies": [
+            "Strength",
+            "Dexterity"
+        ],
+        "skillProficienciesAvailable": [
+            "acrobatics",
+            "athletics",
+            "history",
+            "insight",
+            "religion",
+            "stealth"
+        ],
+        "numberOfSkillProficiencies": 2,
+        "armorProficiencies": [],
+        "weaponProficiencies": [
+            "Simple weapons",
+            "Shortswords"
+        ],
+        "features": [
+            {
+                "id": "unarmored_defense",
+                "name": "Unarmored Defense",
+                "description": "Your AC equals 10 + your Dexterity modifier + your Wisdom modifier.",
+                "levelAvailable": 1
+            }
+        ],
+        "weaponMasterySlots": 2,
+        "statRecommendationFocus": [
+            "Dexterity",
+            "Wisdom",
+            "Constitution"
+        ],
+        "statRecommendationDetails": "Dexterity is crucial for your attacks and AC. Wisdom boosts your AC and powers your special abilities. Constitution is important for hit points.",
+        "recommendedPointBuyPriorities": [
+            "Dexterity",
+            "Wisdom",
+            "Constitution",
+            "Strength",
+            "Charisma",
+            "Intelligence"
+        ]
+    },
+    "classLevels": {
+        "monk": 1
+    },
+    "abilityScores": {
+        "Strength": 10,
+        "Dexterity": 16,
+        "Constitution": 14,
+        "Intelligence": 8,
+        "Wisdom": 15,
+        "Charisma": 8
+    },
+    "finalAbilityScores": {
+        "Strength": 10,
+        "Dexterity": 16,
+        "Constitution": 14,
+        "Intelligence": 8,
+        "Wisdom": 15,
+        "Charisma": 8
+    },
+    "skills": [
+        {
+            "id": "stealth",
+            "name": "Stealth",
+            "ability": "Dexterity",
+            "description": "Make a Dexterity (Stealth) check when you attempt to conceal yourself."
+        },
+        {
+            "id": "insight",
+            "name": "Insight",
+            "ability": "Wisdom",
+            "description": "Make a Wisdom (Insight) check to determine the true intentions of a creature."
+        },
+        {
+            "id": "medicine",
+            "name": "Medicine",
+            "ability": "Wisdom",
+            "description": "A Wisdom (Medicine) check lets you try to stabilize a dying companion or diagnose an illness."
+        },
+        {
+            "id": "religion",
+            "name": "Religion",
+            "ability": "Intelligence",
+            "description": "Your Intelligence (Religion) check measures your ability to recall lore about deities and religious practices."
+        }
+    ],
+    "savingThrowProficiencies": [
+        "Strength",
+        "Dexterity"
+    ],
+    "feats": [
+        "mobile"
+    ],
+    "hp": 10,
+    "maxHp": 10,
+    "hitPointDice": [
+        {
+            "die": 8,
+            "current": 1,
+            "max": 1
+        }
+    ],
+    "armorClass": 15,
+    "speed": 40,
+    "darkvisionRange": 0,
+    "selectedWeaponMasteries": [
+        "quarterstaff",
+        "handaxe"
+    ],
+    "transportMode": "foot",
+    "equippedItems": {},
+    "activeEffects": [],
+    "statusEffects": [],
+    "limitedUses": {},
+    "racialSelections": {},
+    "visuals": {
+        "gender": "Male",
+        "skinColor": 3
+    },
+    "visualDescription": "A weathered Earth Genasi monk in his early forties with dark earthy skin shot through with veins of stone. His eyes glow with a faint amber light. He moves with the fluid patience of a river carving through rock."
+}

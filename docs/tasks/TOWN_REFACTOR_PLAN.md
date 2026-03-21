@@ -1,4 +1,11 @@
 # Architectural Improvement: Town Component Consolidation
+This file was re-verified on 2026-03-14.
+It is preserved as architectural provenance for a town-component consolidation that substantially landed.
+
+Current reality:
+- the town components it wanted grouped are already under `src/components/Town/`
+- this file is now historical evidence for the consolidation direction rather than a still-live refactor plan
+
 
 **Status:** Proposed / To-Do
 **Date:** 2024-05-23
@@ -23,10 +30,10 @@ Move the UI components into a dedicated folder.
 **Target Structure:**
 ```text
 src/components/Town/
-├── TownCanvas.tsx
-├── TownNavigationControls.tsx
-├── VillageScene.tsx
-└── VillageScene.README.md
+â”œâ”€â”€ TownCanvas.tsx
+â”œâ”€â”€ TownNavigationControls.tsx
+â”œâ”€â”€ VillageScene.tsx
+â””â”€â”€ VillageScene.README.md
 ```
 
 **Steps:**
@@ -42,11 +49,11 @@ Move the services into a `services` subdirectory within the component folder, or
 
 ```text
 src/components/Town/
-├── services/
-│   ├── RealmSmithTownGenerator.ts
-│   └── RealmSmithAssetPainter.ts
-├── TownCanvas.tsx
-└── ...
+â”œâ”€â”€ services/
+â”‚   â”œâ”€â”€ RealmSmithTownGenerator.ts
+â”‚   â””â”€â”€ RealmSmithAssetPainter.ts
+â”œâ”€â”€ TownCanvas.tsx
+â””â”€â”€ ...
 ```
 
 **Option B: Promotion to `src/features/`**
@@ -54,15 +61,15 @@ If the "Town" is considered a major game mode (like Combat), it might belong in 
 
 ```text
 src/features/Town/
-├── components/
-│   ├── TownCanvas.tsx
-│   └── TownNavigationControls.tsx
-├── services/
-│   ├── RealmSmithTownGenerator.ts
-│   └── RealmSmithAssetPainter.ts
-├── hooks/
-│   └── useTownNavigation.ts (extract logic from Canvas)
-└── index.ts (public API)
+â”œâ”€â”€ components/
+â”‚   â”œâ”€â”€ TownCanvas.tsx
+â”‚   â””â”€â”€ TownNavigationControls.tsx
+â”œâ”€â”€ services/
+â”‚   â”œâ”€â”€ RealmSmithTownGenerator.ts
+â”‚   â””â”€â”€ RealmSmithAssetPainter.ts
+â”œâ”€â”€ hooks/
+â”‚   â””â”€â”€ useTownNavigation.ts (extract logic from Canvas)
+â””â”€â”€ index.ts (public API)
 ```
 
 ## 3. Detailed Execution Plan (Phase 1)

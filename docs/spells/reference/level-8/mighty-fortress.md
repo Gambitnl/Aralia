@@ -28,6 +28,7 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Type**: other
 
 - **Description**:
   A fortress of stone erupts from a square area of ground of your choice that you can see within range. The area is 120 feet on each side, and it must not have any buildings or other structures on it. Any creatures in the area are harmlessly lifted up as the fortress rises.
@@ -44,5 +45,3 @@
 
   Casting this spell on the same spot once every 7 days for a year makes the fortress permanent.
 - **Higher Levels**:
-- **Source**: XGE
-- **Status**: Complete

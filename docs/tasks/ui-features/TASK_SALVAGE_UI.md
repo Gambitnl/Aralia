@@ -1,4 +1,11 @@
 ## UI Integration Task - Salvage System
+This file was re-verified on 2026-03-14.
+It is preserved as a salvage-UI backlog note rather than a current path-accurate implementation brief.
+
+What drifted:
+- the salvage backend still exists in `src/systems/crafting/salvageSystem.ts`
+- the old target path `src/components/Inventory/InventoryList.tsx` does not exist in that flat form, so any future UI work should start from the current inventory surfaces instead
+
 
 **Status:** Ready for UI Implementation
 **System Owner:** Alchemist

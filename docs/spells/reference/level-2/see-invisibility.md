@@ -26,10 +26,9 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Type**: sensory
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: For the duration, you see creatures and objects that are currently Invisible as if they were visible, and you can see into the Ethereal Plane. Ethereal creatures and objects appear ghostly and translucent.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.316
-- **Status**: Complete

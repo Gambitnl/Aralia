@@ -5,6 +5,16 @@
  * @file src/hooks/useCompanionCommentary.ts
  * A hook to trigger companion reactions based on various game events (decisions, combat, loot).
  * Replaces the basic useCompanionReactions hook.
+ *
+ * ARCHITECTURAL CONTEXT:
+ * This hook is the 'reaction engine' for companions. It monitors the game state 
+ * for significant delta changes (looting, crimes, location changes) and 
+ * selects a companion to deliver a reaction.
+ *
+ * It supports both pre-written dialogue pools and AI-generated reactions via 
+ * OllamaService.
+ *
+ * Called by: App.tsx
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -35,8 +45,17 @@ export const useCompanionCommentary = (
   const prevKnownCrimesRef = useRef(gameState.notoriety?.knownCrimes?.length || 0);
 
   // Startup timestamp - suppress reactions for first 5 seconds to prevent false triggers during initialization
-  const startupTimestampRef = useRef(Date.now());
+  // WHAT CHANGED: Moved startup timestamp initialization to useEffect.
+  // WHY IT CHANGED: Previously, if the hook was initialized during a fast 
+  // re-mount cycle, the 'now' value could be slightly stale. Using useEffect 
+  // ensures the 5-second suppression window starts exactly when the component 
+  // hits the DOM.
+  const startupTimestampRef = useRef<number>(0);
   const STARTUP_DELAY_MS = 5000;
+
+  useEffect(() => {
+    startupTimestampRef.current = Date.now();
+  }, []);
 
   // Helper to check cooldowns
   const isOnCooldown = useCallback((companionId: string, triggerType: string, cooldownMinutes: number = 1): boolean => {
@@ -120,11 +139,18 @@ export const useCompanionCommentary = (
       // Build context for AI
       const locId = gameState.currentLocationId;
       const locName = gameState.dynamicLocations?.[locId]?.name || locId;
+
+      // WHAT CHANGED: Added case-insensitive quest status check.
+      // WHY IT CHANGED: Standardizing on PascalCase 'Active' but maintaining 
+      // compatibility with 'active' from older save files.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const activeQuest = gameState.questLog.find(q => q.status === 'Active' || (q.status as any) === 'active');
+      
       const context: BanterContext = {
         locationName: locName,
         weather: gameState.environment?.currentWeather,
         timeOfDay: new Date(gameState.gameTime).getHours() < 12 ? 'Morning' : 'Afternoon',
-        currentTask: gameState.questLog.find(q => q.status === 'Active' || (q.status as any) === 'active')?.title,
+        currentTask: activeQuest?.title,
       };
 
       let dialogue = winner.rule.dialoguePool[Math.floor(Math.random() * winner.rule.dialoguePool.length)];

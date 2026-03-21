@@ -36,5 +36,3 @@
   - **Turn 4.** Hailstones rain down. Each creature under the cloud takes 2d6 Bludgeoning damage.
   - **Turns 5-10.** Gusts and freezing rain assail the area under the cloud. Each creature there takes 1d6 Cold damage. Until the spell ends, the area is Difficult Terrain and Heavily Obscured, ranged attacks with weapons are impossible there, and strong wind blows through the area.
 - **Higher Levels**: N/A
-- **Source**: PHB 2024
-- **Status**: Complete

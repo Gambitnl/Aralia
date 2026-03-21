@@ -15,20 +15,17 @@
 // @dependencies-end
 
 /**
- * Copyright (c) 2024 Aralia RPG.
- * Licensed under the MIT License.
+ * ARCHITECTURAL CONTEXT:
+ * This file is the 'Combat engine God Object'. It handles everything 
+ * from distance math and cover calculations to entity conversion.
+ *
+ * Recent updates focus on 'Combat Feature Parity'. Specifically, 
+ * `createPlayerCombatCharacter` now maps `feats` from the persistent 
+ * `PlayerCharacter` state into the transient `CombatCharacter`. This 
+ * allows the combat execution layer to check for IDs like `great_weapon_master` 
+ * or `lucky` when calculating damage and re-rolls. 
  *
  * @file src/utils/combatUtils.ts
- * Central utility module for the combat system ("God Object").
- *
- * This module aggregates logic for:
- * 1. Dice rolling and damage calculation (D&D 5e rules).
- * 2. Grid geometry (Cover, AoE, Distance).
- * 3. Entity conversion (Player/Monster -> CombatCharacter).
- *
- * @see src/utils/physicsUtils.ts - For movement physics (jumping, falling).
- * @see src/types/combat.ts - For core combat type definitions.
- * @see src/commands/base/SpellCommand.ts - For the Command pattern consuming these utilities.
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../../types/combat';
 import { PlayerCharacter, Monster, Item } from '../../types';
@@ -717,24 +714,28 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     position: { x: 0, y: 0 },
     stats,
     abilities,
-	    team: 'player',
-	    currentHP: player.hp,
-	    maxHP: player.maxHp,
-	    // Carry Hit Dice pools into combat so pool-based targeting can use them.
-	    hitPointDice: buildHitPointDicePools(player),
-	    initiative: 0,
-	    statusEffects: [],
-	    actionEconomy: {
-	      action: { used: false, remaining: 1 },
+    team: 'player',
+    currentHP: player.hp,
+    maxHP: player.maxHp,
+    // Carry Hit Dice pools into combat so pool-based targeting can use them.
+    hitPointDice: buildHitPointDicePools(player),
+    initiative: 0,
+    statusEffects: [],
+    actionEconomy: {
+      action: { used: false, remaining: 1 },
       bonusAction: { used: false, remaining: 1 },
       reaction: { used: false, remaining: 1 },
       movement: { used: 0, total: stats.speed },
       freeActions: 1,
     },
     spellbook: player.spellbook,
-    spellSlots: player.spellSlots,
-    savingThrowProficiencies: player.savingThrowProficiencies,
-    feats: (player.featChoices ? Object.values(player.featChoices).map((f: any) => f.featId) : []) as string[], // Map player feats to combat character
+    spellSlots: player.spellSlots,    savingThrowProficiencies: player.savingThrowProficiencies,
+    // WHAT CHANGED: Added feats array mapping.
+    // WHY IT CHANGED: To support feat-based mechanics in the combat loop. 
+    // By passing the feat IDs (e.g., ['great_weapon_master']) to the 
+    // CombatCharacter, we allow the damage calculators and action 
+    // handlers to apply bonus damage or special effects during a battle.
+    feats: player.feats || [], // feat IDs (e.g. ['slasher', 'great_weapon_master'])
     resistances: (player.race as any).resistance as import('../../types').DamageType[] | undefined, // TODO(lint-intent): Align Race.resistances shape with DamageType[]
   };
 

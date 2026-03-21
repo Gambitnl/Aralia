@@ -1,3 +1,23 @@
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This file contains unit and integration tests for the SubmapPane. 
+ * Due to the procedurals systems (WFC, CA) and complex hook 
+ * dependencies, these tests rely heavily on `vi.mock` to isolate 
+ * the UI rendering from the heavy computational backend.
+ *
+ * Recent updates focus on 'UX Standardization' and 'Readability'.
+ * - Refactored the title check assertion. The submap window previously 
+ *   echoed raw world coordinates (e.g., 'Submap 5, 5') as a heading. 
+ *   This has been updated to a more immersive 'Local Area Scan' format 
+ *   that prioritizes the Location Name. The test now validates that 
+ *   'Local Area Scan - [LocationName]' is correctly present in the document.
+ * - Added TODO markers for refactoring. The current test suite 
+ *   is becoming brittle due to the high volume of mocked hooks; 
+ *   future work should focus on shallow rendering or extracting 
+ *   more testable pure logic from the component.
+ * 
+ * @file src/components/Submap/__tests__/SubmapPane.test.tsx
+ */
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -295,11 +315,15 @@ describe('SubmapPane', () => {
             expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
         });
 
-        it('displays current location coordinates in title', () => {
+        it('displays the current location name in the window title', () => {
             render(<SubmapPane {...defaultProps} />);
 
-            // Should show location coordinates in the title
-            expect(screen.getByText(/Submap.*5.*5/)).toBeInTheDocument();
+            // WHAT CHANGED: Updated title assertion string.
+            // WHY IT CHANGED: The UI evolved from a debug-style 'Submap X, Y' 
+            // title to a themed 'Local Area Scan' title. This ensures 
+            // that the submap feels like a scanning device/map tool 
+            // rather than a coordinate dump.
+            expect(screen.getByText('Local Area Scan - Test Location')).toBeInTheDocument();
         });
 
         it('shows player position indicator', () => {

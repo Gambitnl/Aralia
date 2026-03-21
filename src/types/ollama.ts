@@ -1,9 +1,17 @@
 /**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
+ * ARCHITECTURAL CONTEXT:
+ * This file defines the 'AI Integration Schema' for the Ollama service. 
+ * It models how context is passed to the LLM and how structured JSON 
+ * responses are mapped back into game data.
  *
+ * Recent updates focus on 'Rich Context Inoculation'. The `BanterContext` 
+ * interface has been significantly expanded to include real-time player 
+ * state (equipment, class, level) and NPC psychological markers 
+ * (extraversion, neuroticism). This allows the AI to generate dialogue 
+ * that is hyper-aware of the current game state, moving beyond generic 
+ * fantasy banter to true situational awareness.
+ * 
  * @file src/types/ollama.ts
- * Types and interfaces for the Ollama AI service integration.
  */
 
 // ============================================================================
@@ -109,6 +117,30 @@ export interface BanterContext {
     recentEvents?: string[];
     currentTask?: string;
     conversationHistory?: string[];
+    // WHAT CHANGED: Added player-state and NPC-personality fields.
+    // WHY IT CHANGED: To enable 'Situational Awareness' in banter. 
+    // By passing the player's level, class, and equipped gear, we allow 
+    // the LLM to make specific comments (e.g., 'That's a fine suit of 
+    // Plate for a level 5 Fighter'). The NPC personality traits 
+    // drive the 'Escalation/Ignore' logic in the conversation service layer.
+    // Player-directed banter additions:
+    /** When true the NPC should address the player directly, not other NPCs. */
+    isPlayerDirected?: boolean;
+    /** Player's name — used in the prompt so the NPC can address them by name. */
+    playerName?: string;
+    /** 0-100 extraversion score of the speaking NPC — drives persistence when ignored. */
+    npcExtraversion?: number;
+    /** 0-100 neuroticism score of the speaking NPC — drives emotional intensity of escalation. */
+    npcNeuroticism?: number;
+    /**
+     * Items the player currently has equipped, so NPCs can reference real gear.
+     * Built from `party[0].equippedItems` — only non-null slots are included.
+     */
+    playerEquippedItems?: Array<{ name: string; slot: string; category?: string }>;
+    /** Player's class name (e.g. "Rogue", "Fighter"). */
+    playerClass?: string;
+    /** Player's current level. */
+    playerLevel?: number;
 }
 
 // ============================================================================

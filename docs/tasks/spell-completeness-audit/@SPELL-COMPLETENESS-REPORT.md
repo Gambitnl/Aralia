@@ -1,3 +1,6 @@
+> Archived-status note (reviewed 2026-03-11): This report is preserved as a Dec 2025 audit snapshot.
+> The current pass verified that its source files still exist, but did not fully rerun the PHB comparison against fresh external sources.
+
 # Spell Completeness Report (Local vs PHB 2024)
 
 Created: 2025-12-04 15:48 UTC

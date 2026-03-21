@@ -34,5 +34,3 @@
 
 - **Description**: You unleash a blast of cold air. Each creature in a 60-foot Cone originating from you makes a Constitution saving throw, taking 8d8 Cold damage on a failed save or half as much damage on a successful one. A creature killed by this spell becomes a frozen statue until it thaws.
 - **Higher Levels**: When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.
-- **Source**: PHB 2024
-- **Status**: Complete

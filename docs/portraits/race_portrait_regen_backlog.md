@@ -1,23 +1,27 @@
 # Race Portrait Regeneration Backlog
 
-Last updated: 2026-02-10
+Last reviewed: 2026-03-12
 
-This is a working backlog of race portrait assets that should be regenerated because they fail the current portrait criteria.
+This file is a human-readable seed list for the portrait-regeneration lane.
+
+Use these files for current state before deciding what is still open:
+- docs/portraits/race_portrait_regen_backlog.json for the machine-readable backlog seed
+- public/assets/images/races/race-image-status.json for per-image generation history
+- scripts/audits/slice-of-life-settings.json for the current QA and uniqueness ledger
+
+Important status note:
+- the checkboxes in this markdown file are not the canonical completion signal anymore
+- the dual-state QA ledger now carries the live visual and uniqueness status
+- keep this file as a readable reason list, not as the final source of truth
 
 Legend:
 - Category A: character is cut off (not fully visible head-to-toe)
-- Category B: not "slice of life" setting (must be mundane daily activity; activities should not repeat)
-- Category C: output quality issues (appearance, composition, sameness, etc.)
-- Category D: visible white edge/border artifact
-- Category E: no images loaded / missing
+- Category B: not slice-of-life setting
+- Category C: output quality issues
+- Category D: visible white edge or border artifact
+- Category E: no images loaded or missing
 
-Status:
-- [ ] Pending
-- [x] Done
-
----
-
-## Category A (Cropped / Not Fully Visible)
+## Category A (Cropped or not fully visible)
 
 - [ ] Verdan (Male, Female)
 - [ ] Aarakocra (Male, Female)
@@ -46,11 +50,9 @@ Status:
 - [ ] Triton (Female)
 - [ ] Vedalken (Female)
 
----
+## Category B (Not slice-of-life, needs a new activity)
 
-## Category B (Not Slice Of Life, Need New Activity)
-
-Note: must maintain a list of already-used slice-of-life activities/settings and always pick a new one.
+Note: keep a list of already-used slice-of-life activities and avoid reusing the same one across many races.
 
 - [ ] Fallen Aasimar (Male, Female)
 - [ ] Protector Aasimar (Male, Female)
@@ -59,32 +61,28 @@ Note: must maintain a list of already-used slice-of-life activities/settings and
 - [ ] Abyssal Tiefling (Male, Female)
 - [ ] Infernal Tiefling (Male)
 
----
-
-## Category C (Not Happy With Output)
+## Category C (Output quality concerns)
 
 - [ ] Giff (Male, Female): Male not hippo enough; Female too hippo-like.
-- [ ] Hadozee (Female): not simian enough (reads rodent).
+- [ ] Hadozee (Female): not simian enough.
 - [ ] Minotaur (Female): head size too large.
-- [ ] Gold Dragonborn (Male): cookie cutter duplicate.
-- [ ] Blue Dragonborn (Male): cookie cutter duplicate.
+- [ ] Gold Dragonborn (Male): duplicate or cookie-cutter feel.
+- [ ] Blue Dragonborn (Male): duplicate or cookie-cutter feel.
 - [ ] Kobold (Female): gender not readable.
 - [ ] Centaur (Female): humanoid torso not aligned to horse body properly.
 - [ ] Firbolg (Female): not matching male racial visuals.
-- [ ] Githyanki (Male): quality issues (see also Category A).
-- [ ] Bugbear (Male, Female): male/female mismatch in racial visuals.
-- [ ] Hobgoblin (Male): weird nose.
+- [ ] Githyanki (Male): quality issues.
+- [ ] Bugbear (Male, Female): male and female mismatch in racial visuals.
+- [ ] Hobgoblin (Male): nose shape issue.
 - [ ] Half-Elf (Male, Female): too samey.
 - [ ] Wood Half-Elf (Male, Female): green skin questionable; needs research-backed prompt guidance.
 - [ ] Hearthkeeper Halfling (Male): clones in background.
 - [ ] Forgeborn Human (Male, Female): blue skin questionable; needs research-backed prompt guidance.
 - [ ] Kalashtar (Male, Female): too samey.
 - [ ] Kender (Male, Female): too samey.
-- [ ] Changeling (Male, Female): try "mid transformation" slice-of-life prompt (identity shift scene).
+- [ ] Changeling (Male, Female): try a mid-transformation slice-of-life prompt.
 
----
-
-## Category D (White Edge / Border Artifact)
+## Category D (White edge or border artifact)
 
 - [ ] Kobold (Male)
 - [ ] Pallid Elf (Male)
@@ -95,9 +93,6 @@ Note: must maintain a list of already-used slice-of-life activities/settings and
 - [ ] Orc (Male)
 - [ ] Mender Halfling (Male)
 
----
-
-## Category E (Missing / Not Loading)
+## Category E (Missing or not loading)
 
 - [ ] Half-Orc (Male, Female)
-

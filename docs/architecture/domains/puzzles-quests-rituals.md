@@ -1,52 +1,63 @@
-# Puzzles, Quests & Rituals
+﻿# Puzzles, Quests & Rituals
 
 ## Purpose
 
-Handles the logic for game quests, environmental puzzles (locks, plates), and the ritual magic system.
+This domain covers the quest, puzzle, and ritual subsystems: quest tracking and progression, environmental puzzle mechanics, ritual-state handling, and the UI or reducer surfaces that consume those systems.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `src/systems/quests/` | Quest management |
-| `src/systems/rituals/` | Ritual system |
-| `src/systems/puzzles/` | Puzzle mechanics |
+- src/systems/quests/
+- src/systems/puzzles/
+- src/systems/rituals/
+- src/state/reducers/ritualReducer.ts
+- src/components/QuestLog/
+- src/types/rituals.ts
 
-## Subcomponents
+## Current Shape
 
-- **Quests**: Tracking and progression.
-- **Rituals**: Complex magic rituals.
-- **Puzzles**: Interactive environment logic.
+### Quest lane
 
-## File Ownership
+This pass verified:
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/systems/quests/*.ts` | Directory | Quest systems |
-| `src/systems/rituals/*.ts` | Directory | Ritual systems |
-| `src/systems/puzzles/*.ts` | Directory | Puzzle mechanics |
-| `src/components/QuestLog/**/*.ts*` | Directory | Quest tracking interface |
-| `src/state/reducers/ritualReducer.ts` | Reducer | Ritual state |
-| `src/data/quests/**/*.ts` | Data | Quest definitions |
-| `src/types/rituals.ts` | Types | Ritual types |
+- src/systems/quests/QuestManager.ts
+- src/systems/quests/__tests__/QuestManager.test.ts
+- src/components/QuestLog/QuestLog.tsx
+- src/components/QuestLog/QuestCard.tsx
+- src/components/QuestLog/QuestHistoryRow.tsx
+- src/components/QuestLog/__tests__/QuestLog.test.tsx
+- src/data/quests/index.ts
 
-## Dependencies
+### Puzzle lane
 
-### Used By
+This pass verified the live puzzle subtree under src/systems/puzzles/, including:
 
-- **[Submap](./submap.md)**: Puzzles and quests found in overworld
-- **[Combat](./combat.md)**: Rituals during combat
+- arcaneGlyphSystem.ts
+- lockSystem.ts
+- mechanism.ts
+- pressurePlateSystem.ts
+- puzzleSystem.ts
+- secretDoorSystem.ts
+- skillChallengeSystem.ts
+- the current puzzle test suite under src/systems/puzzles/__tests__/
 
-### Claimed Tests (Auto-generated)
+### Ritual lane
 
-| Test File | Description |
-|-----------|-------------|
-| `src/systems/puzzles/__tests__/lockSystem.test.ts` | Lock system tests |
-| `src/systems/puzzles/__tests__/pressurePlateSystem.test.ts` | Pressure plate system tests |
-| `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | Puzzle system tests |
-| `src/systems/puzzles/__tests__/secretDoorSystem.test.ts` | Secret door system tests |
-| `src/systems/quests/__tests__/QuestManager.test.ts` | Quest manager tests |
-| `src/systems/rituals/__tests__/RitualBacklash.test.ts` | Ritual backlash tests |
-| `src/systems/rituals/__tests__/RitualConstraints.test.ts` | Ritual constraint tests |
-| `src/systems/rituals/__tests__/RitualManager.test.ts` | Ritual manager tests |
-| `src/state/reducers/__tests__/ritualReducer.test.ts` | Ritual reducer tests |
+This pass verified:
+
+- src/systems/rituals/RitualManager.ts
+- src/systems/rituals/__tests__/RitualConstraints.test.ts
+- src/systems/rituals/__tests__/RitualManager.test.ts
+- src/state/reducers/ritualReducer.ts
+- src/state/reducers/__tests__/ritualReducer.test.ts
+- src/types/rituals.ts
+
+## Important Corrections
+
+- The puzzle lane is broader than the older doc suggested. It now includes arcane glyphs and skill-challenge support in addition to locks, plates, and secret doors.
+- The quest lane has a real QuestLog component subtree and QuestManager-backed test coverage.
+- The current ritual lane has a manager plus reducer-backed state, but this doc should avoid pretending that every combat or magic interaction automatically belongs here.
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this domain as the quest plus puzzle plus ritual lane: quest progression, environmental puzzle mechanics, ritual-state handling, and the UI or reducer surfaces that expose those systems.

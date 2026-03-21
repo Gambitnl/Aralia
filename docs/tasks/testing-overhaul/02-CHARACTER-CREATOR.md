@@ -1,4 +1,11 @@
 # Phase 2: Character Creator
+This file was re-verified on 2026-03-14.
+It is now a preserved character-creator testing backlog note rather than a claim that the entire wizard lacks meaningful test coverage.
+
+Current reality:
+- the repo already contains Character Creator tests and reducer/util helpers under `src/components/CharacterCreator/**/__tests__` plus related test files beside components.
+- this phase still points at useful behavior areas, but it should be resumed from the live tests rather than treated as untouched scope.
+
 
 ## Objective
 Add comprehensive tests for the multi-step Character Creator wizard.

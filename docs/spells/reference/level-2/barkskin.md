@@ -31,5 +31,3 @@
 
 - **Description**: You touch a willing creature. Until the spell ends, the target's skin has a rough, bark-like appearance, and the target's AC can't be less than 17, regardless of what kind of armor it is wearing.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.245
-- **Status**: Complete

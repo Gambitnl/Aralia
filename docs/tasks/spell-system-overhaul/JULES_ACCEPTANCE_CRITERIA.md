@@ -3,6 +3,11 @@
 **Target Audience**: Jules (AI Agent)
 **Purpose**: Define strict "Definition of Done" for spell migration tasks and provide a protocol for flagging system gaps.
 
+> **Status Note (2026-03-11):**
+> - this file remains the strict local acceptance contract for the spell-overhaul migration workflow
+> - it has been updated to match the current nested spell-data layout, current validation commands, and the actual glossary/doc structure now present in the repo
+> - where a rule is stricter than what the validator alone proves, treat it as local migration policy for this subtree rather than as a claim about universal runtime enforcement
+
 ---
 
 ## 1. Definition of Done (The "Iron Rules")
@@ -17,16 +22,17 @@ You are NOT done with a spell until **ALL** of the following are true.
 
 ### A. Required Reference Material (Source of Truth)
 - [ ] **Examples Used**: You have read and followed `docs/spells/SPELL_JSON_EXAMPLES.md`.
-- [ ] **Level-Aware Examples Reviewed**: Inspect at least one complete leveled spell pair (JSON + glossary) such as:
-  - `public/data/spells/level-2/web.json` and `public/data/glossary/entries/spells/level-2/web.md`
-  - `public/data/spells/level-2/moonbeam.json` and `public/data/glossary/entries/spells/level-2/moonbeam.md`
-  - `public/data/spells/level-1/thunderwave.json` and `public/data/glossary/entries/spells/level-1/thunderwave.md`
-  - **Gold Standard Level 0**: `public/data/spells/level-0/guidance.json` (Clone this for structure!)
+- [ ] **Level-Aware Examples Reviewed**: Inspect at least one complete leveled spell JSON example such as:
+  - `public/data/spells/level-2/web.json`
+  - `public/data/spells/level-2/moonbeam.json`
+  - `public/data/spells/level-1/thunderwave.json`
+  - **Gold Standard Level 0**: `public/data/spells/level-0/guidance.json`
+- [ ] **Companion Docs Verified Only If They Exist**: Do not assume there is a matching spell glossary markdown file. Verify the current repo structure before adding or updating any companion documentation.
 
 ### B. Deliverables
 <!-- TODO: Make `source` and `legacy` fields part of Deliverables to enforce 2024 PHB alignment and legacy tagging. -->
 - [ ] **JSON File Created**: `public/data/spells/level-{N}/{id}.json` exists (always nested by level; no flattened `public/data/spells/{id}.json` files).
-- [ ] **Glossary Entry Created**: `public/data/glossary/entries/spells/level-{N}/{id}.md` exists (frontmatter `filePath` must match the level-aware path). Remove any stale flat glossary copies if present.
+- [ ] **Companion Documentation Checked**: If the current repo has companion documentation for that spell or the active workflow explicitly requires it, update it in the correct location. Do not invent a `public/data/glossary/entries/spells/level-{N}/{id}.md` path.
 - [ ] **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
 - [ ] **Field Comparison Check (CRITICAL)**: If an old file exists at `public/data/spells/{id}.json`:
     1. **Read the old file FIRST** - It may contain fields not in the new template
@@ -59,7 +65,7 @@ You are NOT done with a spell until **ALL** of the following are true.
 - [ ] **Level 0 (Cantrip) Rules**:
     - `level`: `0`
     - `ritual`: `false`
-    - `scaling`: `{ "type": "character_level", ... }`
+    - if the spell includes scaling, use `scaling.type: "character_level"` for cantrip progression
 
 ### D. Validation
 - [ ] **Manifest Updated**: You have run `npx tsx scripts/regenerate-manifest.ts`.
@@ -89,7 +95,7 @@ During migration, you may encounter spell mechanics that the current system (Typ
 ### Solved Gaps (Use These Features!)
 *   **"Willingly Moves"**: Use `trigger: { type: "on_target_move" }`.
 *   **"Enters Area"**: Use `trigger: { type: "on_enter_area", frequency: "first_per_turn" }`.
-*   **"Undead Target"**: Use `condition: { targetFilter: { creatureType: ["Undead"] } }`.
+*   **"Undead Target"**: Use `condition: { targetFilter: { creatureTypes: ["Undead"] } }`.
 *   **"On Hit" Rider**: Use `trigger: { type: "on_attack_hit" }` with `consumption` (e.g., `unlimited` for Hunter's Mark, `first_hit` for Smites).
 
 ### How to Log Gaps

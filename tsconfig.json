@@ -36,7 +36,8 @@
     "src"
   ],
   "exclude": [
-    "scripts/**/*.js"
+    "scripts/**/*.js",
+    "**/*.test-d.ts"
   ],
   "references": [
     {

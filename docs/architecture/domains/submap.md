@@ -1,79 +1,70 @@
-# Submap
+﻿# Submap
 
 ## Purpose
 
-The Submap is the primary exploration interface where players navigate tile-based terrain within a region. It handles procedural terrain generation, travel mechanics, feature discovery, and day/night cycles. This is where most overworld gameplay occurs.
+The Submap domain is the main local exploration surface for moving through a world-map region, resolving terrain presentation, local travel affordances, inspection, and nearby world-to-town or world-to-combat transitions.
 
-## Key Entry Points
+## Verified Current Entry Points
 
-| File | Role |
-|------|------|
-| `src/components/Submap/SubmapPane.tsx` | Main submap container (31KB) |
-| `src/hooks/useSubmapProceduralData.ts` | Procedural generation hook |
-| `src/components/Submap/submapData.ts` | Tile and feature data definitions |
+High-signal current entry points verified in this pass:
+- src/components/Submap/SubmapPane.tsx
+- src/hooks/useSubmapProceduralData.ts
+- src/components/Submap/SubmapTile.tsx
+- src/components/Submap/useQuickTravel.ts
+- src/components/Submap/useInspectableTiles.ts
+- src/components/Submap/submapVisuals.ts
+- src/config/submapVisualsConfig.ts
 
-## Subcomponents
+## Current Domain Shape
 
-- **Rendering**: `SubmapTile.tsx` - Visual tile rendering
-- **Quick Travel**: `useQuickTravel.ts` - Fast travel mechanics
-- **Tile Inspection**: `useInspectableTiles.ts` - Tile info on hover/click
-- **Day/Night**: `useDayNightOverlay.ts` - Time-of-day visual effects
-- **Procedural Data**: `useSubmapProceduralData.ts` - Terrain generation
-- **Visuals**: `submapVisuals.ts` - Visual configuration and styling
+The live submap stack currently splits across several layers:
+- SubmapPane.tsx is the main orchestration surface.
+- useSubmapProceduralData.ts generates deterministic path, feature, CA, WFC, and biome-blend data.
+- Colocated helpers such as useQuickTravel.ts, useInspectableTiles.ts, useSubmapGlossaryItems.ts, useSubmapGrid.ts, and useTileHintGenerator.ts support interaction and presentation.
+- submapVisuals.ts resolves per-tile visuals, while src/config/submapVisualsConfig.ts supplies the underlying visual configuration.
 
-// TODO: Update documentation to reflect current state - remove references to PixiJS painters
-// Line 29 still mentions "PixiJS painter classes" which were removed
-// Update component ownership to reflect actual current architecture
+The repo still contains a src/components/Submap/painters/ lane and hooks/usePixiApplication.ts, so the older painter-related notes were not fully obsolete.
+What drifted was the assumption that those painter files still define the whole domain.
+The live submap architecture is now broader and more React/UI-driven than that older wording implied.
 
-## File Ownership
+## Historical Drift Corrected
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/Submap/*.tsx` | Directory | All submap components |
-| `src/components/Submap/painters/*.ts` | Directory | PixiJS painter classes |
-| `src/components/Submap/hooks/*.ts` | Directory | Submap-specific hooks |
-| `src/components/Submap/use*.ts` | Hook | Submap-related hooks |
-| `src/hooks/useSubmap*.ts` | Hook | Procedural generation |
-| `src/services/cellularAutomataService.ts` | Service | Procedural generation |
-| `src/services/wfcService.ts` | Service | Procedural generation |
-| `src/utils/submapUtils.ts` | Utils | Submap utility functions |
-| `src/utils/realmsmithRng.ts` | Utils | RNG utilities |
+The older version of this file drifted in three main ways:
+- it treated submapData.ts as a more central domain entry point than the current hook-plus-config-plus-helper split supports
+- it described src/components/Submap/hooks/*.ts as a stable ownership directory, but the current submap hooks are mostly colocated directly in src/components/Submap/ plus src/hooks/useSubmapProceduralData.ts
+- it overcorrected against the painter lane by suggesting Pixi-related references were simply gone, when those files still exist in the repo
 
-## Battle Map Systems (Owned by Battle Map Domain)
+That older explanation should not be treated as the current implementation guide.
 
-Battle map systems (hooks and services for tactical grid generation and state management) are owned by the [Battle Map](./battle-map.md) domain and not claimed by submap.
+## Boundaries And Constraints
 
+- Submap remains the local exploration surface, not the owner of combat execution or town rendering.
+- World context still flows in from the world-map layer, while town and combat remain downstream transition surfaces.
+- Procedural generation should stay deterministic for a given seed and coordinate set.
+- Boundary rules like trap-detection ownership or deeper town-transition semantics should be documented as architecture notes unless verified directly in code.
 
-## Dependencies
+## What Is Materially Implemented
 
-### Depends On
+This pass verified that the submap domain already has:
+- a live SubmapPane surface
+- deterministic procedural generation based on seed, biome, and parent world coordinates
+- quick-travel and pathfinding helper surfaces
+- inspectable tile support
+- day/night overlay handling
+- glossary-item support for submap visuals
+- WFC and cellular-automata generation lanes
+- a still-present painter lane alongside the newer UI/helper split
 
-- **[World Map](./world-map.md)**: Receives region context from world map navigation
-- **[Combat](./combat.md)**: Triggers combat encounters
-- **[Planes / Travel](./planes-travel.md)**: Travel event system
-- **[Glossary](./glossary.md)**: Displays tile/feature information
+## Verified Test Surface
 
-### Used By
+Verified tests in this pass:
+- src/components/Submap/__tests__/SubmapPane.test.tsx
+- src/services/villageGenerator.test.ts
 
-- **[Town Map](./town-map.md)**: Submap navigates to towns via village tiles
-- **[Battle Map](./battle-map.md)**: Combat transitions from submap encounters
-- **App.tsx**: Main game view renders submap
+The older claims about src/utils/__tests__/visualUtils.test.ts and src/utils/__tests__/pathfindingHeuristic.test.ts were not accurate in the current repo.
 
-## Boundaries / Constraints
+## Open Follow-Through Questions
 
-- Submap should NOT directly modify combat state (use Combat domain)
-- Village tiles should trigger Town Map transition, not render town internally
-- Procedural generation should be deterministic given the same seed
-
-## Open Questions / TODOs
-
-- [ ] Clarify boundary between submapData.ts and biomes.ts
-- [ ] TODO(Lockpick): Integrate trap detection into Submap movement logic.
-
-## Claimed Tests
-
-| Test File | Description |
-|-----------|-------------|
-| `src/services/villageGenerator.test.ts` | Village generator tests |
-| `src/utils/__tests__/visualUtils.test.ts` | Visual utility tests |
-| `src/utils/__tests__/pathfindingHeuristic.test.ts` | Pathfinding heuristic tests |
+- How should the painter lane be described now that it still exists but no longer fully defines the submap architecture?
+- Should submapData.ts remain a named domain entry point, or should the docs emphasize the current hook/config/helper split instead?
+- Which trap, hazard, and discovery systems still belong in submap documentation versus broader exploration or combat references?

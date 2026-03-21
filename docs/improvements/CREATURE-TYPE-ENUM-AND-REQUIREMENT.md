@@ -1,22 +1,37 @@
-# Future Feature: Canonical Creature Types & Required Typing
+# Improvement Note: Canonical Creature Types & Required Typing
 
-## Goal
-Enforce a single canonical list of 5e creature types across monsters/NPCs/summons and require a `creatureType` when generating enemies. Avoid homebrew types unless a spell explicitly calls for one.
+## Status
 
-## Canonical Types (no extras unless a spell demands it)
-- Aberration, Beast, Celestial, Construct, Dragon, Elemental, Fey, Fiend, Giant, Humanoid, Monstrosity, Ooze, Plant, Undead (optionally Swarm if already present).
+This remains a live improvement brief.
+It has been tightened to reflect the current repo state rather than a generic future request.
 
-## Requirements
-- Add a shared enum/source of truth (e.g., `src/data/creatureTypes.ts` exporting a zod enum).
-- Update monster/NPC/summon schemas to require `creatureType` and validate against the enum.
-- Update spell filters that reference creature types (e.g., Detect Evil and Good, Protection from Evil and Good) to consume the enum to prevent string drift.
-- Enemy generation must require `creatureType`; if not provided, select from the enum (with weights) and log if absent-never invent new types.
-- Audit: one-time script to flag any non-canonical creatureType strings in existing data; fix or map them.
+## Verified Current State
 
-## Nice-to-haves
-- Prefill creatureType in bestiary entries and display/filter by type in UI.
-- Add a lint/check in CI to prevent introducing non-canonical types.
+- Creature-type filtering is already used across spell targeting and validation surfaces.
+- Current spell validation still accepts creature-type strings rather than a shared canonical enum source.
+- Combat and targeting types still expose `creatureTypes?: string[]` rather than a stricter shared creature-type type.
+- Preset targeting rules already hardcode values like `Humanoid`, `Beast`, and `Undead`.
 
-## Risks/Mitigations
-- **Legacy data drift**: run the audit and fix; add CI check.
-- **Spell coverage**: if a spell introduces a new type, extend the enum deliberately with a comment pointing to that spell.
+Verified surfaces include:
+- [`src/systems/spells/validation/spellValidator.ts`](F:\Repos\Aralia\src\systems\spells\validation\spellValidator.ts)
+- [`src/systems/spells/validation/TargetingPresets.ts`](F:\Repos\Aralia\src\systems\spells\validation\TargetingPresets.ts)
+- [`src/systems/spells/targeting/TargetValidationUtils.ts`](F:\Repos\Aralia\src\systems\spells\targeting\TargetValidationUtils.ts)
+- [`src/systems/logic/ConditionEvaluator.ts`](F:\Repos\Aralia\src\systems\logic\ConditionEvaluator.ts)
+- [`src/types/combat.ts`](F:\Repos\Aralia\src\types\combat.ts)
+
+## Verified Gap
+
+There is not yet a single canonical exported creature-type enum or schema that all of those surfaces consume.
+That leaves room for string drift even though the feature category already exists in practice.
+
+## Improvement Direction
+
+- add one shared source of truth for canonical creature types
+- use it in spell targeting and validation
+- use it in combat-facing creature typing where practical
+- treat any new creature type as an intentional extension, not an ad hoc string
+
+## Caution
+
+This should be approached as a convergence pass, not a cleanup-only pass.
+Several systems already depend on the current string-based shape, so the migration should preserve behavior while tightening the type source.

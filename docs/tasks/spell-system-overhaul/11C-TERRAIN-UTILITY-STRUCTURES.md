@@ -1,41 +1,39 @@
 # 11C - Structured Terrain/Utility Actions (Cantrip Gap: Mold Earth)
 
-## Context
-- Gap from `1K-MIGRATE-CANTRIPS-BATCH-3.md`: Mold Earth's excavation, difficult terrain creation, and cosmetic changes are only encoded in `UTILITY` text. No structured way to model small earth moves or terrain state changes.
+## Current Repo Status
 
-## Problem
-- The engine cannot automate terrain changes (digging a 5-foot cube, making terrain difficult, cosmetic effects) because they are unstructured. AI can't evaluate impact.
+This file is preserved as task context, but its original "missing feature" framing is now stale.
 
-## Goals
-1. Add structured fields for small-scale terrain manipulation (dig/fill, difficult terrain, cosmetic earth shaping).
-2. Allow action resolution to mark terrain tiles with state (e.g., difficult, excavated depth) and duration where applicable.
-3. Keep optional/compatible so existing spells aren't broken.
+Repo verification on 2026-03-11 confirmed that the structured terrain-manipulation model already exists:
+- `public/data/spells/level-0/mold-earth.json` already uses populated `manipulation` blocks for excavation, difficult terrain, normalization, and cosmetic shaping.
+- `src/commands/effects/TerrainCommand.ts` already branches on `effect.manipulation` and handles `excavate`, `fill`, `difficult`, `normal`, and `cosmetic` cases.
+- The command already applies and removes difficult terrain and records structured manipulation actions in combat logs.
 
-## Proposed Approach
-- Schema:
-  - Extend `TERRAIN` effect with optional `manipulation` block, e.g.:
-    ```json
-    {
-      "manipulation": {
-        "type": "excavate" | "fill" | "difficult" | "cosmetic",
-        "volume": { "shape": "Cube", "size": 5, "depth": 5 },
-        "duration": { "type": "minutes", "value": 1 }
-      }
-    }
-    ```
-  - Allow `cosmetic` to be non-mechanical but recorded.
-- Validator:
-  - Add optional `manipulation` schema.
-- Engine:
-  - Update terrain system to apply `difficult` flags, track excavated tiles/depth, and clear on duration end if applicable.
-- Data migration:
-  - Update `mold-earth.json` to use `manipulation` for dig/difficult/cosmetic entries instead of pure prose.
+## What Became Historical
 
-## Acceptance Criteria
-- Schema and validator updated; `npm run validate` passes.
-- Terrain state updates occur when the effect resolves; state is cleared/maintained per duration.
-- `public/data/spells/level-0/mold-earth.json` updated to structured fields; validation/tests green.
+The original version assumed:
+- the schema still needed a `manipulation` block
+- the terrain system could not read structured Mold Earth actions
+- `mold-earth.json` still needed to be migrated out of prose-only terrain descriptions
 
-## Notes
-- Keep units in feet; align shapes with existing AoE enums (`Cube`, etc.).
-- Make fields optional to avoid impacting unrelated terrain spells.
+Those claims no longer describe the repo.
+
+## What Still Looks Incomplete
+
+There are still follow-through gaps worth preserving:
+- `src/commands/effects/TerrainCommand.ts` still carries a TODO about preserving terrain effects when map data is absent.
+- This audit does not prove that non-battle or longer-lived map/state surfaces consume terrain manipulation with the same fidelity.
+- So the live gap is now persistence/integration depth, not absence of the structure itself.
+
+## Maintained Interpretation
+
+Use this file as a current-status reminder:
+1. do not reopen the already-implemented `manipulation` schema work
+2. focus future work on persistence, broader map integration, and end-to-end proof
+3. treat the older text here as historical context for why this surface was added
+
+## Verification Basis
+
+Checked against:
+- `public/data/spells/level-0/mold-earth.json`
+- `src/commands/effects/TerrainCommand.ts`

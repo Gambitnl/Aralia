@@ -1,11 +1,15 @@
 /**
- * @file GameModals.tsx
- * @description
- * This component functions as a "Modal Manager" for the application.
- * It is responsible for the conditional rendering of all full-screen modals, overlays, and dialogs.
+ * ARCHITECTURAL CONTEXT:
+ * This component is the 'Modal Manager' for the Aralia RPG. It centralizes 
+ * conditional rendering for all overlays (Map, Quest Log, Submap, Character Sheets).
+ *
+ * By extracting modal state management from App.tsx, we keep the main render 
+ * loop lean and ensure a consistent stacking order (using AnimatePresence and z-index).
+ *
+ * Most components are lazy-loaded to optimize initial bundle size, as many 
+ * modals (like Trade or Heist) are only accessed after significant gameplay.
  * 
- * By separating this logic from `App.tsx`, we declutter the main render function and centralize
- * the logic for what overlays are active on top of the main game view.
+ * @file src/components/layout/GameModals.tsx
  */
 import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -272,6 +276,12 @@ const GameModals: React.FC<GameModalsProps> = ({
                             onClose={() => dispatch({ type: 'TOGGLE_PARTY_EDITOR_MODAL' })}
                             initialParty={gameState.party}
                             onSave={(newParty) => dispatch({ type: 'SET_PARTY_COMPOSITION', payload: newParty })}
+                            // WHAT CHANGED: Added onSaveFullParty callback.
+                            // WHY IT CHANGED: To support deep cloning of premade characters 
+                            // (preserving custom spells/gear) during party editing. 
+                            // SET_FULL_PARTY in characterReducer handles the heavy lifting, 
+                            // and this exposes that logic to the dev tool interface.
+                            onSaveFullParty={(fullParty) => dispatch({ type: 'SET_FULL_PARTY', payload: fullParty })}
                         />
                     </ErrorBoundary>
                 </Suspense>

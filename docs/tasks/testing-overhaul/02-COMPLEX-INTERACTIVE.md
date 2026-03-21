@@ -1,4 +1,12 @@
 # Phase 2: Complex Interactive Components
+This file was re-verified on 2026-03-14.
+It is preserved as an older alternate phase slice, not the authoritative current testing roadmap.
+
+What drifted:
+- the numbering overlaps with `02-CHARACTER-CREATOR.md`
+- several listed targets now already have meaningful tests
+- this file should be treated as historical backlog decomposition rather than the current phase contract
+
 
 ## Objective
 Add tests for components with significant internal state, forms, or complex user interactions.

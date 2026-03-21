@@ -1,26 +1,33 @@
-# Spell Integration Status: Level 8
+﻿# Spell Integration Status: Level 8
 
-**Legend:**
-*   🟢 **Gold (Structured)**: JSON has `effects` array. Engine uses precise data.
-*   🟡 **Silver (Inferred)**: `spellAbilityFactory` regex-parses description for damage/saves.
-*   ⚪ **Bronze (Metadata)**: Basic metadata only. No mechanical execution.
+Last Updated: 2026-03-12
 
-| Spell | Mechanics | Narrative Support | Notes |
-| :--- | :--- | :--- | :--- |
-| **Animal Shapes** | ⚪ Bronze | ❌ None | Mass polymorph |
-| **Antimagic Field** | ⚪ Bronze | ❌ None | Disable magic |
-| **Antipathy/Sympathy** | ⚪ Bronze | ❌ None | Area influence |
-| **Befuddlement** | ⚪ Bronze | ❌ None | Int/Cha lock (Feeblemind) |
-| **Clone** | ⚪ Bronze | ❌ None | Death contingency |
-| **Control Weather** | ⚪ Bronze | 🟡 Basic | Environmental |
-| **Demiplane** | ⚪ Bronze | 🟡 Basic | Storage / Trap |
-| **Dominate Monster** | ⚪ Bronze | ❌ None | Mind control (Any) |
-| **Earthquake** | 🟡 Silver | 🟡 Basic | AoE Damage / Structure destroy |
-| **Glibness** | ⚪ Bronze | 🟡 Basic | Social / Counterspell buff |
-| **Holy Aura** | ⚪ Bronze | ❌ None | Aura Buff (Adv/Disadv) |
-| **Incendiary Cloud** | 🟡 Silver | ❌ None | Moving AoE Damage |
-| **Maze** | ⚪ Bronze | ❌ None | Banish (Int check) |
-| **Mind Blank** | ⚪ Bronze | ❌ None | Immunity (Psychic/Divination) |
-| **Power Word Stun** | ⚪ Bronze | ❌ None | HP Threshold Stun |
-| **Sunburst** | 🟡 Silver | ❌ None | Massive AoE Blind/Dmg |
-| **Tsunami** | 🟡 Silver | ❌ None | Massive AoE Push/Dmg |
+## Verified Current Inventory Fact
+
+A manual repo check during the 2026-03-12 doc pass confirmed:
+- ../../public/data/spells/level-8 currently contains 24 spell JSON files
+- the level-8 folder remains part of the active manifest-backed spell-data lane
+
+## Current Interpretation
+
+This file no longer treats the older Gold, Silver, and Bronze labels as a current status dashboard.
+That shorthand was already too coarse for lower levels and is even less trustworthy for high-level spells with broad system interactions.
+
+What this file can honestly say now:
+- level-8 has a real migrated inventory
+- level-8 spell data participates in the same validator, manifest, loader, and glossary path as the lower levels
+- direct behavior for a specific level-8 spell still needs file-specific verification
+
+## Where To Verify A Specific Level-8 Spell
+
+Use:
+- ./SPELL_INTEGRATION_CHECKLIST.md
+- ../../src/systems/spells/validation/spellValidator.ts
+- ../../scripts/check-spell-integrity.ts
+- ../../src/context/SpellContext.tsx
+- ../../src/utils/character/spellAbilityFactory.ts
+- any refreshed spell-overhaul note that covers the mechanic in question
+
+## Historical Note
+
+The older level-8 table remains preserved migration context, not a current operational dashboard.

@@ -35,5 +35,3 @@
 
 - **Description**: You create a twisting pattern of colors that weaves through the air inside a 30-foot Cube within range. The pattern appears for a moment and vanishes. Each creature in the area who sees the pattern must make a Wisdom saving throw. On a failed save, the creature becomes Charmed for the duration. While Charmed by this spell, the creature is Incapacitated and has a Speed of 0. The spell ends for an affected creature and it is no longer Charmed if it takes any damage or if someone else uses an action to shake the creature out of its stupor.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.288
-- **Status**: Complete

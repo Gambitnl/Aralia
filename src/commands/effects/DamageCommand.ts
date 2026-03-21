@@ -1,3 +1,21 @@
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This command is the 'Heavy Lifter' of the combat system. It handles 
+ * the complexity of 5e damage resolution, including dice rolling, 
+ * saving throw reductions, planar modifiers, and feat-based overrides.
+ *
+ * Recent updates focus on 'Feat System Integration'.
+ * - Added `Heavy Armor Master` (HAM) logic to reduce incoming physical 
+ *   damage by Proficiency Bonus.
+ * - Integrated `Great Weapon Master` (GWM) to add Proficiency Bonus 
+ *   damage when using 'heavy' weapons.
+ * - Implemented `Slasher` feat logic, creating a 'Slasher Slow' status 
+ *   and applying disadvantage on critical hits.
+ * - These changes leverage the `weaponProperties` passed in the context 
+ *   to differentiate between magical spells and physical weapon strikes.
+ * 
+ * @file src/commands/effects/DamageCommand.ts
+ */
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState, StatusEffect, ActiveEffect } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
@@ -84,6 +102,21 @@ export class DamageCommand extends BaseEffectCommand {
         damageRoll = Math.max(0, damageRoll); // Damage cannot go below 0
       }
 
+      // --- GWM FEAT (2024): +Proficiency Bonus damage on every Heavy weapon hit ---
+      // WHAT CHANGED: Added GWM damage bonus check.
+      // WHY IT CHANGED: Following the 2024 PHB rules, GWM now adds a 
+      // reliable flat bonus (Proficiency) instead of the old -5/+10 
+      // mechanic. This is implemented here so it applies to any damage 
+      // command tagged with 'heavy' weapon properties, ensuring consistency 
+      // across all martial attacks.
+      if (
+        caster.feats?.includes('great_weapon_master') &&
+        this.context.weaponProperties?.includes('heavy')
+      ) {
+        const gwmPB = Math.ceil((caster.level || 1) / 4) + 1;
+        damageRoll += gwmPB;
+      }
+
       // --- Step 3: Handle Saving Throw ---
       // If the effect requires a save (e.g., Dex save for Fireball), roll it here.
       // saveEffect determines damage on success: 'half' (most spells), 'none' (cantrips), or 'negates_condition'
@@ -137,12 +170,30 @@ export class DamageCommand extends BaseEffectCommand {
       // --- Step 4: Apply Resistances and Vulnerabilities ---
       // Reduces damage by half if resistant, doubles if vulnerable, or 0 if immune.
       // Also checks for bypasses (e.g., magical weapons bypassing non-magical resistance).
-      const finalDamage = ResistanceCalculator.applyResistances(
+      let finalDamage = ResistanceCalculator.applyResistances(
         damageRoll,
         this.effect.damage.type,
         target,
         caster
       );
+
+      // --- HAM FEAT (2024): Reduce nonmagical physical damage by Proficiency Bonus ---
+      // WHAT CHANGED: Added HAM damage reduction check.
+      // WHY IT CHANGED: To support 2024 tanking mechanics. HAM now scales 
+      // with Proficiency Bonus. By placing this check after standard 
+      // resistances, we ensure the flat reduction applies to the final 
+      // calculated damage, making it a powerful tool for heavily armored 
+      // survivors.
+      // TODO(FEATURES): Also gate on target wearing Heavy Armor once armor-type tracking exists.
+      const physicalDamageTypes = ['bludgeoning', 'piercing', 'slashing', 'physical'];
+      if (
+        target.feats?.includes('heavy_armor_master') &&
+        physicalDamageTypes.includes(this.effect.damage.type.toLowerCase()) &&
+        this.context.weaponProperties !== undefined
+      ) {
+        const hamPB = Math.ceil((target.level || 1) / 4) + 1;
+        finalDamage = Math.max(0, finalDamage - hamPB);
+      }
 
       // --- Step 5: Apply final damage to target's HP ---
       // HP cannot go below 0 (death handling is elsewhere)

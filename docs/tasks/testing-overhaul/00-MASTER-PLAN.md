@@ -1,5 +1,13 @@
 # Testing Overhaul Master Plan
 
+This file was re-verified on 2026-03-14.
+It remains useful as a backlog organizer, but its old baseline severely understates the current test surface.
+
+## Rebased Status
+
+- The repo now contains a broad test surface across src/components, src/hooks, src/services, src/systems, src/utils, and src/test/contracts.
+- The current problem is no longer "testing barely exists"; it is prioritizing remaining coverage gaps and removing stale phase assumptions.
+- This file should be read as a preserved backlog structure, not as a current inventory of only a few passing tests.
 ## Objective
 Ensure that the app has an appropriate testing suite for all components, increasing code reliability and preventing regressions.
 

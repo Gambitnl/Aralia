@@ -1,318 +1,107 @@
 # Town Description System - Quick Start
 
-## Immediate Action Items (Start Today)
+Status: preserved restart guide, rewritten on 2026-03-11 after repo verification.
 
-### 0. Save State Architecture (30 minutes - CRITICAL FIRST STEP)
+This file is for resuming the town-description project from the current repo, not from the older greenfield assumptions that originally shaped this folder.
 
-**Why First?** Prevents the exact problem you described - world changes between saves.
+## Start From What Already Exists
 
-```typescript
-// Add to src/types/save.ts
-interface GameSaveData {
-  metadata: {
-    version: string;
-    savedAt: Date;
-    needsSave: boolean;
-  };
-  gameState: GameState;
-  worldState: WorldState;
-}
+Before adding anything new, re-check these live surfaces:
 
-interface WorldState {
-  worldSeed: number;              // Master seed - NEVER changes
-  townStates: Map<string, PersistentTownData>;
-  generatedAt: Date;
-  integrityHash: string;
-}
+- `src/components/Town/TownCanvas.tsx`
+- `src/hooks/useTownController.ts`
+- `src/services/villageGenerator.ts`
+- `src/utils/world/settlementGeneration.ts`
+- `src/types/state.ts`
+- `src/types/town.ts`
+- `src/services/saveLoadService.ts`
 
-interface PersistentTownData {
-  metadata: TownMetadata;
-  layout: VillageLayout;
-  npcs: TownNPC[];
-  events: TownEvent[];
-  generatedAt: Date;
-  integrityHash: string;
-}
+Those files already provide:
 
-// Basic save/load functions
-function saveGameData(slotName: string): void {
-  const saveData: GameSaveData = {
-    metadata: { version: '1.0.0', savedAt: new Date(), needsSave: false },
-    gameState: currentGameState,
-    worldState: currentWorldState
-  };
-  localStorage.setItem(`aralia_save_${slotName}`, JSON.stringify(saveData));
-}
+- deterministic town entry using `worldSeed` plus world coordinates
+- a generated town layout and interactive town canvas
+- settlement personality and race/biome-aware settlement traits
+- whole-game save/load with checksum validation
+- session-level town exploration state
 
-function loadGameData(slotName: string): GameSaveData | null {
-  const stored = localStorage.getItem(`aralia_save_${slotName}`);
-  return stored ? JSON.parse(stored) : null;
-}
+## Do Not Start By Rebuilding These
 
-// Town persistence integration
-function persistTown(townData: TownData): void {
-  currentWorldState.townStates.set(townData.metadata.id, {
-    metadata: townData.metadata,
-    layout: townData.layout,
-    npcs: townData.npcs || [],
-    events: townData.events || [],
-    generatedAt: new Date(),
-    integrityHash: generateIntegrityHash(townData)
-  });
-  currentGameState.metadata.needsSave = true;
-}
-```
-```bash
-# Add to src/types/index.ts
-interface TownMetadata {
-  id: string;
-  name: string;
-  worldCoords: { x: number; y: number };
-  submapCoords: { x: number; y: number };
-  biomeId: string;
-  settlementType: SettlementType;
-  population: TownPopulation;
-  primaryIndustry: TownIndustry;
-  governingBody: TownGovernment;
-  culturalAlignment: TownCulture;
-  generationSeed: number;
-  detailLevel: DetailLevel;
-  description?: TownDescription;
-}
+Do not start by creating a second town generator, a second town scene, or a standalone save system. Those foundations already exist.
 
-enum DetailLevel {
-  BASIC = 'basic',
-  DESCRIPTIVE = 'descriptive',
-  POPULATED = 'populated'
-}
-```
+## Immediate Resume Order
 
-### 2. Basic Name Generation (30 minutes)
-```typescript
-// Create src/utils/townGeneration.ts
-export class TownNameGenerator {
-  static generate(settlementType: SettlementType, biomeId: string, seed: number): string {
-    const rng = new SeededRandom(seed);
-    const templates = settlementType.namePatterns || ['{prefix}{suffix}'];
+### 1. Define The Missing Metadata Layer
 
-    // Simple implementation
-    const prefixes = ['Oak', 'Stone', 'River', 'Hill', 'Green', 'Mist', 'Shadow', 'Bright'];
-    const suffixes = ['ford', 'brook', 'vale', 'wood', 'field', 'haven', 'spire', 'cross'];
+Add one shared town metadata shape that can sit between world generation and town presentation.
 
-    const prefix = prefixes[Math.floor(rng.next() * prefixes.length)];
-    const suffix = suffixes[Math.floor(rng.next() * suffixes.length)];
+The missing lane is roughly:
 
-    return `${prefix}${suffix}`;
-  }
-}
-```
+- stable town identifier
+- display name
+- world coordinates
+- settlement/biome context
+- generation seeds
+- detail level
+- optional generated description package
 
-### 3. Unified Seed System (25 minutes)
-```typescript
-// Add to src/utils/townGeneration.ts
-export interface TownSeeds {
-  nameSeed: number;
-  layoutSeed: number;
-  descriptionSeed: number;
-  npcSeed: number;
-  eventSeed: number;
-}
+Current repo check:
 
-export function generateTownSeeds(masterSeed: number, coords: {x: number, y: number}): TownSeeds {
-  const rng = new SeededRandom(masterSeed + coords.x * 1000 + coords.y);
-  return {
-    nameSeed: rng.nextInt(),
-    layoutSeed: rng.nextInt(),
-    descriptionSeed: rng.nextInt(),
-    npcSeed: rng.nextInt(),
-    eventSeed: rng.nextInt()
-  };
-}
-```
+- settlement traits exist conceptually
+- a dedicated persisted `TownMetadata` structure was not verified
 
-### 4. Town Metadata with Persistence (20 minutes)
-```typescript
-// Update TownMetadata interface
-interface TownMetadata {
-  id: string;
-  name: string;
-  worldCoords: { x: number; y: number };
-  submapCoords: { x: number; y: number };
-  biomeId: string;
-  settlementType: SettlementType;
-  generationSeed: number;      // Master seed
-  townSeed: number;           // Specific town generation seed
-  detailLevel: DetailLevel;
-  townLayout?: VillageLayout; // Persisted layout
-  lastGenerated?: Date;       // For cache validation
-  description?: TownDescription;
-  // ... other fields
-}
+### 2. Decide Where Persistence Actually Lives
 
-// Modify src/services/mapService.ts or villageGenerator.ts
-function generateTownMetadata(worldSeed: number, coords: {x: number, y: number}, biomeId: string): TownMetadata {
-  const settlementType = getSettlementTypeForBiome(biomeId);
-  const seeds = generateTownSeeds(worldSeed, coords);
+Do not invent a parallel town-only save silo unless it is truly necessary.
 
-  const metadata: TownMetadata = {
-    id: `town_${coords.x}_${coords.y}_${worldSeed}`,
-    name: TownNameGenerator.generate(settlementType, biomeId, seeds.nameSeed),
-    worldCoords: coords,
-    submapCoords: { x: 10, y: 10 }, // Center of submap
-    biomeId,
-    settlementType,
-    generationSeed: worldSeed,
-    townSeed: seeds.layoutSeed,  // Specific seed for town generation
-    detailLevel: DetailLevel.BASIC
-  };
-  return metadata;
-}
-```
+Current repo check:
 
-### 4. Add Proximity Detection (25 minutes)
-```typescript
-// Add to game state management
-function checkTownProximity(playerCoords: WorldCoords): void {
-  // Find towns within PROXIMITY_RANGE (e.g., 3 tiles)
-  const nearbyTowns = getTownsInRange(playerCoords, 3)
-    .filter(town => town.detailLevel === DetailLevel.BASIC);
+- `saveLoadService.ts` already persists the full `GameState`
+- `GameState` does not currently expose a verified `worldState.townStates` lane
 
-  nearbyTowns.forEach(town => {
-    // Trigger detail generation
-    generateTownDetails(town.id);
-  });
-}
-```
+So the first concrete design choice is:
 
-### 5. Coordinated Town Loading (25 minutes)
-```typescript
-// Add to src/services/townDescriptionService.ts (new file)
-export async function loadTown(townId: string): Promise<TownData> {
-  // Check persistence first
-  const cached = loadTownState(townId);
-  if (cached && isRecent(cached.metadata.lastGenerated)) {
-    return cached;
-  }
+- extend current save-state structures to host town metadata and generated town details
+- or formally introduce a world-content persistence lane inside the existing save payload
 
-  const metadata = getTownMetadata(townId);
-  const seeds = generateTownSeeds(metadata.generationSeed, metadata.worldCoords);
+### 3. Add A Description Layer On Top Of Existing Town Generation
 
-  // Generate town layout using town-specific seed
-  const layout = await generateVillageLayout({
-    worldSeed: seeds.layoutSeed,
-    dominantRace: metadata.settlementType.dominantRace,
-    biomeId: metadata.biomeId,
-    isStartingSettlement: false
-  });
+The current town stack already generates layout and presentation. The missing layer is rich descriptive content informed by that layout and settlement context.
 
-  // Generate description informed by actual layout
-  const layoutFeatures = extractLayoutFeatures(layout);
-  const description = await TownDescriptionGenerator.generate(metadata, {
-    layoutInfluence: layoutFeatures,
-    seed: seeds.descriptionSeed
-  });
+Current repo check:
 
-  const townData: TownData = {
-    metadata: {
-      ...metadata,
-      townLayout: layout,
-      description,
-      lastGenerated: new Date()
-    },
-    layout,
-    description
-  };
+- no verified `TownDescriptionGenerator`
+- no verified proximity-driven town-description loading
 
-  // Persist for future visits
-  saveTownState(townData);
+So the next implementation slice should be:
 
-  return townData;
-}
+- derive layout features from the generated town
+- feed them into a single description generator
+- store the result in the town metadata/persistence lane
 
-// Extract features from generated layout
-function extractLayoutFeatures(layout: VillageLayout): LayoutFeatures {
-  const tiles = layout.tiles.flat();
-  return {
-    buildingCount: tiles.filter(tile => tile.type.startsWith('house_')).length,
-    shopTypes: [...new Set(tiles
-      .filter(tile => tile.type.startsWith('shop_'))
-      .map(tile => tile.type))],
-    hasTemple: tiles.some(tile => tile.type.includes('temple')),
-    hasTavern: tiles.some(tile => tile.type.includes('tavern')),
-    architecturalStyle: layout.personality?.architecturalStyle
-  };
-}
-```
+### 4. Choose The First Presentation Surface
 
-### 6. Persistence Implementation (15 minutes)
-```typescript
-// Add persistence functions
-function saveTownState(townData: TownData): void {
-  const persistentData = {
-    metadata: townData.metadata,
-    layout: townData.layout,
-    description: townData.description,
-    savedAt: new Date()
-  };
-  localStorage.setItem(`town_${townData.metadata.id}`, JSON.stringify(persistentData));
-}
+Do not spread the feature across every town UI surface at once.
 
-function loadTownState(townId: string): TownData | null {
-  const stored = localStorage.getItem(`town_${townId}`);
-  if (!stored) return null;
-  return JSON.parse(stored);
-}
+Best first target:
 
-function isRecent(lastGenerated: Date): boolean {
-  const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
-  return Date.now() - new Date(lastGenerated).getTime() < oneHour;
-}
-```
+- one reliable town-facing surface, likely the existing town canvas entry flow or a closely related town detail panel
 
-## Testing Checklist
+The older docs suggested multiple targets such as tooltips and town canvas integration. Those remain possible, but they should come after the shared metadata and description path exists.
 
-- [ ] Generate a new world and verify towns have unique names
-- [ ] Move near a town and check if console logs show proximity detection
-- [ ] Verify town metadata saves/loads correctly
-- [ ] Test that descriptions generate without errors
+## Suggested First Real Task Stack
 
-## Next Steps (Tomorrow)
+1. Define a town metadata type in the existing type system.
+2. Add a persistence lane for generated town details inside the current save architecture.
+3. Create one layout-to-description transformer/service.
+4. Attach that result to one town-facing UI surface.
+5. Only then consider proximity loading, background generation, or richer NPC/event bundles.
 
-1. **Integrate with tooltips** - Show rich descriptions when available
-2. **Add to town canvas** - Display generated details in town view
-3. **Expand templates** - Add more variety and cultural specificity
-4. **Performance testing** - Ensure generation is fast enough
+## What Remains Explicitly Unverified
 
-## Key Files to Modify
+These older assumptions were not confirmed during the 2026-03-11 pass and should not be treated as already implemented:
 
-- `src/types/index.ts` - Add TownMetadata interface
-- `src/utils/townGeneration.ts` - Create generators (new file)
-- `src/services/villageGenerator.ts` - Integrate metadata generation
-- `src/types.ts` - Update MapData to include town metadata
-- `src/components/Submap/SubmapPane.tsx` - Update tooltips
-- `src/components/TownCanvas.tsx` - Show rich descriptions
-
-## Success Indicators
-
-- ✅ **Save State Consistency**: Towns remain identical across save/load cycles
-- ✅ **No World Changes**: Generated content preserved between sessions
-- ✅ **Immediate Persistence**: Content saved instantly upon generation
-- ✅ Towns have unique, fitting names that persist
-- ✅ Moving near towns triggers detail generation (from save data first)
-- ✅ Tooltips show rich descriptions for nearby towns
-- ✅ Performance remains smooth with town generation
-- ✅ System works for both procedural and predefined towns
-
-## Questions to Answer
-
-1. How many towns should be detailed at once? (Memory limits)
-2. What's the ideal proximity range for detail generation?
-3. How much detail variation do we want per town type?
-4. Should town details change over time/player actions?
-
-## Get Help
-
-- Review existing settlement generation code
-- Check how tooltips currently work
-- Look at existing NPC generation patterns
-- Study the world map data structures
+- immediate autosave on town-content generation
+- complete town-specific integrity validation
+- LRU town-detail cache
+- background preloading of anticipated nearby towns
+- integrated persistence of town layout, NPCs, events, and player interactions as one package

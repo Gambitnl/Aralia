@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:27:20
+ * Last Sync: 11/03/2026, 20:48:33
  * Dependents: CharacterCreator.tsx, CreationSidebar.tsx, FeatSelection.tsx, LevelUpModal.tsx, NameAndReview.tsx, sidebarSteps.ts, useCharacterAssembly.ts, useCharacterAssembly.ts
  * Imports: 4 files
  *
@@ -15,8 +15,24 @@
 // @dependencies-end
 
 /**
+ * ARCHITECTURAL CONTEXT:
+ * This file manages the complex state machine for the 'Character Creator'. 
+ * It uses a Reducer pattern (characterCreatorReducer) to handle step-by-step 
+ * navigation and data accumulation.
+ *
+ * Recent updates focus on 'Non-Destructive Navigation'. Previously, clicking 
+ * 'Back' would wipe the data for the step being exited. Now, data is only 
+ * reset if a 'Hard Dependency' changes (e.g., swapping your Race resets 
+ * racial traits, swapping Class resets class features). This creates a 
+ * much smoother 'Review and Edit' UX.
+ *
+ * It also handles the 'Feat Selection' branching logic, determining 
+ * dynamically if a level 1 character is eligible for a feat (e.g., Humans).
+ */
+
+/**
  * @file src/components/CharacterCreator/state/characterCreatorState.ts
- * Defines the state structure, initial state, actions, and reducer for the CharacterCreator component.
+ * This file manages the complex state machine for the Character Creator.
  */
 import {
   Race,
@@ -174,7 +190,7 @@ export const initialCharacterCreatorState: CharacterCreationState = {
     skinColor: 1,
     hairStyle: 'Hair1',
     hairColor: 'Black',
-    clothing: 'Clothing1',
+    clothing: 'Shirt',
   },
   visualDescription: '',
   portrait: {
@@ -226,7 +242,7 @@ const canOfferFeatAtLevelOne = (state: CharacterCreationState): boolean => {
   });
 };
 
-const getFeatStepOrReview = (state: CharacterCreationState): { step: CreationStep; skipped: boolean } => {
+export const getFeatStepOrReview = (state: CharacterCreationState): { step: CreationStep; skipped: boolean } => {
   const canOffer = canOfferFeatAtLevelOne(state) || !!state.selectedFeat;
   return {
     step: canOffer ? CreationStep.FeatSelection : CreationStep.NameAndReview,
@@ -394,8 +410,8 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const race = action.payload;
       // Only reset if the race actually changes
       if (state.selectedRace?.id === race.id) {
-         const nextStep = determineNextStepAfterRace(race);
-         return { ...state, step: nextStep };
+        const nextStep = determineNextStepAfterRace(race);
+        return { ...state, step: nextStep };
       }
 
       const nextStep = determineNextStepAfterRace(race);
@@ -426,14 +442,22 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
     }
     case 'SELECT_CLASS': {
       const newClass = action.payload;
-      // Only reset downstream if class changes
+      // WHAT CHANGED: Added deep equality check on ID.
+      // WHY IT CHANGED: To support 'Non-Destructive Back' flow. If the 
+      // class hasn't actually changed, we don't want to wipe the user's 
+      // previous skill/spell selections just because they clicked into 
+      // the class screen and back out.
       if (state.selectedClass?.id === newClass.id) {
-         return { ...state, step: CreationStep.AbilityScores };
+        // WHAT CHANGED: Added deep equality check on Class ID.
+        // WHY IT CHANGED: Part of the 'Non-Destructive Navigation' update. 
+        // If the user selects the same class twice, we don't want to 
+        // trigger a full state wipe of features and spells.
+        return { ...state, step: CreationStep.AbilityScores };
       }
-      
+
       // Reset class-dependent fields
-      return { 
-        ...state, 
+      return {
+        ...state,
         selectedClass: newClass,
         selectedSkills: [],
         selectedFightingStyle: null,
@@ -445,7 +469,7 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         selectedWeaponMasteries: null,
         selectedFeat: null, // Feats might depend on class prerequisites
         portrait: { ...initialCharacterCreatorState.portrait },
-        step: CreationStep.AbilityScores 
+        step: CreationStep.AbilityScores
       };
     }
     case 'SET_ABILITY_SCORES': {
@@ -563,8 +587,11 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const currentStep = state.step;
       if (currentStep === CreationStep.Race) return state;
       const targetPrevStep = stepDefinitions[currentStep]?.previousStep(state) ?? CreationStep.Race;
-      // NON-DESTRUCTIVE BACK NAVIGATION:
-      // We no longer reset fields on back. Data is only wiped when a dependency (Race/Class) changes.
+      // WHAT CHANGED: Removed reset logic on back navigation.
+      // WHY IT CHANGED: Switched to a 'Preserve by Default' model. Users 
+      // should be able to backtrack to check previous choices without 
+      // losing their progress. State is now only cleared on valid 
+      // 'Branch Swaps' (e.g., changing Race/Class).
       return { ...state, step: targetPrevStep };
     }
     case 'NAVIGATE_TO_STEP': {

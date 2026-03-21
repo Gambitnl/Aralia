@@ -22,6 +22,7 @@
 - **Concentration**: false
 
 - **Effect Type**: DEBUFF, BANISHMENT
+- **Utility Type**: other
 - **Save Stat**: Charisma
 - **Save Outcome**: none
 
@@ -35,5 +36,3 @@
   | 31-40 | The target has the Blinded and Deafened conditions for 10 minutes. |
   | 41-50 | The target has the Deafened condition for 1 minute. |
 - **Higher Levels**:
-- **Source**: PHB 2024
-- **Status**: Complete

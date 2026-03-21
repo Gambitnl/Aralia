@@ -22,11 +22,10 @@
 - **Duration Unit**: minute
 - **Concentration**: true
 
-- **Effect Type**: BUFF
+- **Effect Type**: UTILITY
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: This spell allows you to move at an incredible pace. When you cast this spell, and then as a Bonus Action on each of your turns until the spell ends, you can take the Dash action.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.270
-- **Status**: Complete

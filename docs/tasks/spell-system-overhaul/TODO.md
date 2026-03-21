@@ -1,23 +1,11 @@
 # Spell System Overhaul - Outstanding TODOs
 
+> **Status Note (2026-03-11):**
+> - this is the live mixed technical backlog for the spell-overhaul area
+> - some entries below were freshly spot-verified during the current docs pass, while others remain inherited backlog items that still need engineering re-verification before implementation
+> - where a claim was known to be stale against the current repo, it has been corrected or demoted to historical context
+
 ## High Priority
-
-### flat-to-nested-migration
-**Issue**: 214 legacy spell JSONs exist in flat `public/data/spells/*.json` while new spells use nested `public/data/spells/level-{N}/` structure.
-
-**Risk**: Dual directory structure may cause loading inconsistencies.
-
-**Action Required**:
-1. Audit which flat files are duplicates of nested files
-2. Create migration script to move remaining flat files to level-N folders
-3. Update manifest generation to handle transition
-4. Delete flat files once nested migration complete
-
-**Related Files**:
-- `src/context/SpellContext.tsx` - spell loading logic
-- `public/data/spells_manifest.json` - spell manifest
-
----
 
 ### status-level-0-sync
 **Issue**: `STATUS_LEVEL_0.md` shows ~38 cantrips but `level-0/` folder has 44 files. Table is out of sync.
@@ -47,10 +35,10 @@
 ---
 
 ### repeat-save-system
-**Issue**: Repeat/save modifiers (end-of-turn, on-damage, size-based advantage) are prose-only; schema/runtime do not resurface them.
+**Issue**: Repeat/save modifiers are no longer schema-only TODOs, but runtime/UI support still needs verification and follow-through.
 
 **Action Required**:
-1. Add `repeatSave` and expanded `saveModifiers` to `STATUS_CONDITION` schema.
+1. Verify the current `repeatSave` and `saveModifiers` schema against runtime behavior.
 2. Track "damaged this turn" and prompt repeat saves at the correct timings.
 3. Add on-action escape handling (wrathful smite) and migrate laugh/hold/ensnaring spells.
 
@@ -268,8 +256,9 @@
 
 ## Completed
 
+- [x] Historical flat-root migration concern retired from active backlog after the current doc pass verified `0` flat spell JSON files directly under `public/data/spells/`
 - [x] Fix SPELL_TEMPLATE.json references (archived to `archive/SPELL_TEMPLATE.json`)
-- [x] Update FINAL_SUMMARY.md broken link
+- [x] Move `FINAL_SUMMARY.md` into archive and repair live references away from it
 - [x] Update TASK_STRATEGY_UPDATE.md references
 - [x] Absorb Elements now has DAMAGE effect with `on_attack_hit` trigger
 - [x] Armor of Agathys now has DAMAGE effect (trigger needs refinement per above)

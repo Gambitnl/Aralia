@@ -1,11 +1,42 @@
-
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { VoyageManager } from '../VoyageManager';
 import { Ship } from '../../../types/naval';
 import { CrewManager } from '../CrewManager';
 import { WeatherState } from '../../../types/environment';
 
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This test suite validates the 'Voyage Engine' (VoyageManager). It 
+ * simulates days at sea, supply consumption, and crew morale changes 
+ * during naval travel.
+ *
+ * Recent updates focus on 'Deterministic Simulation'. By mocking `Math.random` 
+ * to return a high value (0.99), we suppress random 'Voyage Events' (like 
+ * pirate encounters) that would otherwise compete with the specific 
+ * mechanical assertions (like starvation warnings) in the event log. 
+ * This ensures the tests validate the logic they claim to, without 
+ * intermittent flakes.
+ * 
+ * @file src/systems/naval/__tests__/VoyageManager.test.ts
+ */
+
 describe('VoyageManager', () => {
+    // WHAT CHANGED: Added Math.random mocking in beforeEach.
+    // WHY IT CHANGED: VoyageManager rolls for random events every day. 
+    // If a random encounter triggers during a supply test, it might 
+    // overwrite or precede the 'Starvation' log entry, causing 
+    // assertion failures. Mocking it to 0.99 effectively disables 
+    // random events for these specific unit tests.
+    const originalRandom = Math.random;
+
+    beforeEach(() => {
+        Math.random = vi.fn().mockReturnValue(0.99);
+    });
+
+    afterEach(() => {
+        Math.random = originalRandom;
+    });
+
     // Mock Ship
     const createMockShip = (): Ship => {
         const baseStats: Ship['stats'] = {

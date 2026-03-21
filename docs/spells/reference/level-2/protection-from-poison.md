@@ -23,10 +23,9 @@
 - **Concentration**: false
 
 - **Effect Type**: BUFF
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: You touch a creature. If it is Poisoned, you neutralize the poison. If more than one poison afflicts the target, you neutralize one poison that you know is present, or you neutralize one at random. For the duration, the target has Advantage on saving throws against being poisoned, and it has Resistance to Poison damage.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.310
-- **Status**: Complete

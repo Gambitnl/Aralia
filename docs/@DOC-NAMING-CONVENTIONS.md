@@ -1,304 +1,152 @@
 # Documentation Naming Conventions
 
-**Last Updated**: November 30, 2025
+**Last Updated**: 2026-03-11  
+**Purpose**: Explain the naming systems that currently coexist in Aralia docs, with special focus on the legacy numbered work-doc families that still need explicit handling.
 
-**Purpose**: Standard system for naming and managing project documentation.
+## Scope Of This File
 
----
+This file does not define the naming rules for every markdown file in the repository.
 
-## Document Types
+It governs:
+- the legacy numbered work-doc families that still appear under `docs/tasks/` and related work areas
+- the retirement marker used by those families
+- the relationship between those legacy schemes and the newer doc-system taxonomy in [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md)
 
-### Static/Permanent Documents
-**Prefix**: `@`
-**Purpose**: Organizational files that don't track work
-**Examples**: Workflows, README files, naming conventions
-**Lifecycle**: No completion/retirement - always available for reference
+It does not override the canonical root-doc naming choices already in use at the root of `docs/`.
 
-```
-@WORKFLOW-GUIDE.md
-@NAMING-CONVENTIONS.md
-@README.md
-```
+## Current Naming Eras
 
-### Task Documents
-**Format**: `[NUMBER]-TASK-NAME.md`
-**Purpose**: Single, well-defined unit of work
-**Completion trigger**: When implementation is coded, tested, committed, and pushed
-**Lifecycle**: Active → Completed (tilde marker)
+Aralia currently has more than one naming era on disk.
 
-```
-1C-VERSION-DISPLAY-AND-PACKAGE-FIX.md  →  1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md
-```
+### 1. Canonical root docs
 
-### Project Documents
-**Format**: `[NUMBER]-PROJECT-NAME.md`
-**Purpose**: Overarching documents containing multiple tasks/phases
-**Completion trigger**: When ALL tasks within the project are complete
-**Lifecycle**: Active until entire project done
+These are stable orientation docs at the root of `docs/`.
 
-```
-1A-PROJECT-MASTER-SPRINGBOARD.md  (stays active during entire spell project)
-1B-SPELL-MIGRATION-ROADMAP.md     (stays active until roadmap complete)
-```
+Examples:
+- `@PROJECT-OVERVIEW.README.md`
+- `ARCHITECTURE.md`
+- `DEVELOPMENT_GUIDE.md`
+- `@DOCUMENTATION-GUIDE.md`
+- `@README-INDEX.md`
 
-### Concept Documents
-**Format**: `[NUMBER]-CONCEPT-NAME.md`
-**Purpose**: Roadmap items, future considerations, design proposals
-**Completion trigger**: When implemented OR explicitly marked as abandoned
-**Lifecycle**: Active until decision made
+Important rule:
+- canonical root docs do not all use the `@` prefix
+- do not introduce `AGENT` into new filenames unless the file is specifically about agent behavior or compatibility
 
-```
-1F-VERSION-REVIEW-AGENT-CONCEPT.md  (roadmap item, stays active)
-```
+### 2. Legacy numbered work-doc families
 
----
+Several active or historical work trees use local numbering systems.
 
-## The Numbering System
+Examples currently on disk:
+- `1A-PROJECT-MASTER-SPRINGBOARD.md`
+- `1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md`
+- `1G.4-EXTERNALIZE-CSS.md`
+- `00-TASK-INDEX.md`
+- `11A-DYNAMIC-LIGHTING-SUPPORT.md`
 
-All **work-tracking** documents use **sequential alphanumeric numbering**:
+Important rule:
+- treat numbering as local to the work tree where it already exists
+- do not assume a single global numbering system for all docs
 
-`1A`, `1B`, `1C` ... `1Z` → `2A`, `2B`, `2C` ... `2Z` → `3A`, etc.
+### 3. Source-adjacent implementation docs
 
-**Static documents** use the `@` prefix and are **not numbered**.
+These live near code and usually use `README.md` or `[Name].README.md`.
 
-### Format
+They are governed primarily by location and local purpose, not by the numbered work-doc rules in this file.
 
-**Active document:**
-```
+## Legacy Numbered Work-Doc Rules
+
+### Active numbered docs
+
+The most common historical format is:
+
+```text
 [NUMBER]-[DESCRIPTIVE-NAME].md
+```
 
 Examples:
-1A-PROJECT-MASTER-SPRINGBOARD.md
-1B-SPELL-MIGRATION-ROADMAP.md
-1C-JULES-WORKFLOW-CONSOLIDATED.md
-```
+- `1A-PROJECT-MASTER-SPRINGBOARD.md`
+- `2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md`
 
-**Retired document:**
-```
+### Retired numbered docs
+
+The retirement marker is still the tilde:
+
+```text
 [NUMBER]~[DESCRIPTIVE-NAME].md
+```
 
 Examples:
-1D~OLD-APPROACH-DEPRECATED.md
-1E~DUPLICATE-WORKFLOW-MERGED.md
-```
+- `1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md`
+- `1A~INVENTORY-LOCAL-SPELLS.md`
 
-The **tilde (`~`)** character marks a document as retired.
+Important rule:
+- keep the identifier when retiring a numbered doc
+- prefer retirement or archive tracking over silently deleting history
 
----
+### Local subseries and alternate numbered strands
 
-## Why This System?
+Some work trees already contain subseries or alternate numbered strands.
 
-1. **Chronological ordering** - See which docs were created in what order
-2. **Easy to find latest work** - Highest number = most recent
-3. **No cognitive overload** - Don't need to remember complex names
-4. **Natural sorting** - Alphabetically sorts by creation order
-5. **Visual retirement marker** - Tilde clearly indicates "not active"
+Examples currently on disk:
+- `1G.1` through `1G.10` under `docs/tasks/documentation-cleanup/`
+- `00-*`, `01-*`, `03-*`, `11A-*`, and `19-*` under `docs/tasks/spell-system-overhaul/`
 
----
+Important rule:
+- preserve these existing identifiers during the migration
+- do not renumber historical files just to force a cleaner universal scheme
+- if a subtree eventually gets normalized, record that change in the migration and review ledgers instead of silently rewriting numbering history
 
-## Creating a New Document
+## How To Name A New Doc
 
-**Steps:**
+Choose the file class first.
 
-1. Check [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) for "Next available number"
-2. Create file with that number: `1C-YOUR-DOC-NAME.md`
-3. Add entry to @DOC-REGISTRY.md
-4. If this is active work, add to [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)
+### If it is a canonical root doc
 
-**Example:**
-```bash
-# Latest doc is 1B, so next is 1C
-touch docs/tasks/spell-system-overhaul/1C-JULES-WORKFLOW.md
+- keep the name human-readable and role-based
+- prefer names like `PROJECT_OVERVIEW`, `ARCHITECTURE`, `DEVELOPMENT_GUIDE`, `WORKFLOW`, `TECHNICAL_SPEC`, or `README_INDEX`
+- use the `@` prefix only when that is already part of the root naming pattern for that kind of doc
 
-# Update registry
-# Add to @ACTIVE-DOCS.md if currently working on it
-```
+### If it is a new doc inside an established numbered work tree
 
----
+- inspect adjacent files in that same subtree first
+- continue the local pattern already in use there
+- check [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) if that subtree is one of the families the registry still tracks
+- if the subtree already has numbering anomalies, preserve them and document the exception rather than inventing a second competing sequence
 
-## Task Completion Procedure
+### If it is a source-adjacent implementation doc
 
-**For Task Documents** (single units of work):
+- use `README.md` for a directory overview
+- use `[Name].README.md` only when a more specific implementation note is needed near code
 
-After implementation is coded, tested, committed, and pushed:
+## Retirement Guidance For Numbered Work Docs
 
-1. **Rename immediately** with tilde marker:
-   ```bash
-   mv 1C-TASK-NAME.md 1C~TASK-NAME.md
-   ```
+Retirement is still represented by `~`, but retirement is a documentation-state choice, not a git-state guarantee.
 
-2. **Update @DOC-REGISTRY.md**:
-   - Move entry from "Active" to "Retired" section
-   - Add completion date
+When retiring a numbered work doc:
+- rename the file with the `~` marker if that numbering family actually uses the tilde convention
+- update the local registry surfaces that still depend on that family
+- preserve meaningful history instead of rewriting the old doc into fake current authority
 
-3. **Log in @RETIRED-DOCS.md**:
-   - Add to "📦 Archived" category
-   - Include completion reason and date
+Do not rely on a rule like "coded, tested, committed, and pushed" as a universal retirement trigger. Some docs are plans, some are handover notes, and some are retired because they became obsolete or were split.
 
-4. **Remove from @ACTIVE-DOCS.md** if listed there
+## Naming Boundaries To Preserve
 
-**For Project Documents** (containing multiple tasks):
+- Do not assume every static doc uses `@`.
+- Do not assume every project restarts at the same clean `1A` to `1Z` progression.
+- Do not assume every numbered file is currently tracked correctly by `@DOC-REGISTRY.md`.
+- Do not assume a file is current just because it lacks `~`; some historical numbered docs remain active-looking and need manual review.
 
-Only retire when ALL tasks within the project are complete.
+## Practical Checks Before Creating Or Renaming Docs
 
-**For Concept Documents**:
+1. Decide whether the file is a canonical doc, workflow/reference doc, work-item doc, registry doc, archive doc, or source-adjacent implementation doc.
+2. Look at neighboring files in the same subtree before choosing a name.
+3. Keep numbering local to that subtree if a numbered family is already established there.
+4. Preserve existing identifiers when retiring or splitting older work docs.
+5. Update [@DOC-REGISTRY.md](./@DOC-REGISTRY.md), [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md), or [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) only when that subtree still uses those registry surfaces.
 
-Retire when implemented OR explicitly marked as abandoned.
+## Related Guides
 
-**Important**: Keep the number! Don't create gaps in the sequence.
-
----
-
-## Retiring Other Documents
-
-**When to retire:**
-- Document was superseded by a better approach
-- Content was consolidated into another doc
-- Work was abandoned/deprioritized
-
-**Steps:** Same as task completion above, but choose appropriate category in @RETIRED-DOCS.md (🚫 Abandoned, ⚠️ Obsolete, 📋 Duplicate)
-
----
-
-## Naming Guidelines
-
-**DO:**
-- ✅ Use descriptive names: `1C-JULES-WORKFLOW-CONSOLIDATED.md`
-- ✅ Use ALL-CAPS for the descriptive part of the filename: `1A-PROJECT-MASTER-SPRINGBOARD.md`
-- ✅ Use hyphens to separate words: `SPELL-MIGRATION-ROADMAP`
-- ✅ Be specific: `JULES-WORKFLOW` not just `WORKFLOW`
-
-**DON'T:**
-- ❌ Use generic names: `1C-NOTES.md`
-- ❌ Use special characters beyond `@` and `~`: `1C-DOC!.md`, `1C-DOC*.md`
-- ❌ Skip numbers: If 1B exists, next must be 1C (not 1D)
-- ❌ Reuse numbers: Each number is used exactly once
-
----
-
-## Folder Organization
-
-Each **project** gets its own subfolder under `docs/tasks/` with numbering that restarts at `1A`.
-
-```
-docs/tasks/
-  spell-system-overhaul/
-    1A-PROJECT-MASTER-SPRINGBOARD.md
-    1B-SPELL-MIGRATION-ROADMAP.md
-    1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md
-    @WORKFLOW-GUIDE.md                    ← Static file with @ prefix
-
-  character-refactor/                     ← Different project
-    1A-PROJECT-OVERVIEW.md                ← Numbering restarts at 1A
-    1B-IMPLEMENTATION-PLAN.md
-    @TESTING-CHECKLIST.md                 ← Static file
-```
-
-**Benefits:**
-- Clear project boundaries
-- Easier to navigate
-- Numbers stay small and manageable
-- Static organizational files clearly marked with `@`
-
----
-
-## Number Progression
-
-```
-1A → 1B → 1C → ... → 1Y → 1Z → 2A → 2B → ...
-```
-
-**After 1Z, go to 2A** (not 10A or AA)
-
-This gives you:
-- 26 docs per "tier" (A-Z)
-- Tier 1: 1A-1Z (26 docs)
-- Tier 2: 2A-2Z (26 docs)
-- Tier 3: 3A-3Z (26 docs)
-- etc.
-
-**Unlikely to run out** - by the time you hit 3A, you've created 52 documents!
-
----
-
-## Finding Documents
-
-**To find active work:**
-1. Open [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)
-2. See what's currently being worked on
-3. Click links to relevant docs
-
-**To find a specific doc:**
-1. Check [@DOC-REGISTRY.md](./@DOC-REGISTRY.md)
-2. Search by number or name
-3. See if it's active or retired
-
-**To see all numbered docs:**
-```bash
-# In docs/ or any subfolder
-ls -1 [0-9]*-*.md
-ls -1 [0-9]*~*.md  # retired only
-```
-
----
-
-## Maintenance
-
-**Weekly:**
-- Review @ACTIVE-DOCS.md
-- Retire docs that are no longer being worked on
-- Update registry if new docs were created
-
-**Monthly:**
-- Audit @DOC-REGISTRY.md for accuracy
-- Check for gaps in numbering (there shouldn't be any!)
-- Archive very old retired docs if needed
-
----
-
-## Special Cases
-
-**Multiple people working in parallel:**
-- Check @DOC-REGISTRY.md before creating
-- Reserve your number by creating empty file immediately
-- Prevents number conflicts
-
-**Document gets split into multiple:**
-- Original: `1D-BIG-DOC.md`
-- Split into: `1E-PART-ONE.md`, `1F-PART-TWO.md`
-- Retire original: `1D~BIG-DOC-SPLIT-INTO-1E-1F.md`
-
-**Document gets merged:**
-- Sources: `1G-DOC-ONE.md`, `1H-DOC-TWO.md`
-- Merged into: `1I-COMBINED-DOC.md`
-- Retire sources: `1G~DOC-ONE-MERGED-INTO-1I.md`, etc.
-
----
-
-## Registry Files
-
-**[@DOC-REGISTRY.md](./@DOC-REGISTRY.md)**
-- Master list of ALL numbered docs (active + retired)
-- Shows next available number
-- Single source of truth
-
-**[@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)**
-- Quick reference for current work
-- Your main entry point when returning to project
-- Links to relevant docs
-
-**[@RETIRED-DOCS.md](./@RETIRED-DOCS.md)**
-- Archive of retired docs with reasons
-- Categorized: Archived, Abandoned, Obsolete, Duplicate
-- Searchable history
-
----
-
-## Questions?
-
-If unsure about numbering:
-1. Check @DOC-REGISTRY.md for "Next available number"
-2. Use that number
-3. Don't overthink it!
-
-The system is designed to be simple and automatic.
+- [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md) defines the broader documentation taxonomy and placement rules.
+- [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) tracks the numbered work-doc families that still rely on an explicit registry.
+- [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md) is the current work-entry surface, not the authority for naming rules.

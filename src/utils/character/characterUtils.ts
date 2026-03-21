@@ -15,9 +15,21 @@
 // @dependencies-end
 
 /**
+ * ARCHITECTURAL CONTEXT:
+ * This file is the 'Character Lifecycle' utility engine. It handles 
+ * complex stat derivations, equipment validation, and 'Feat Application'.
+ *
+ * Recent updates implement '2024 Rulebook' feat logic. The `applyFeatToCharacter` 
+ * function has been updated to support dynamic scaling for feats like 
+ * Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool = 
+ * Proficiency Bonus). 
+ *
+ * It also handles 'Party Template' creation: `createPlayerCharacterFromTemp` 
+ * now supports custom names from the Party Editor, ensuring that when a 
+ * player renames a character in the build phase, that name persists into 
+ * the fully realized character object.
+ * 
  * @file src/utils/characterUtils.ts
- * This file contains utility functions related to player characters,
- * such as calculating ability score modifiers, armor class, and equipment rules.
  */
 import {
   PlayerCharacter,
@@ -436,7 +448,13 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
 
   const newChar: PlayerCharacter = {
     id: tempMember.id,
-    name: `${classData.name} ${tempMember.level}`,
+    // WHAT CHANGED: Support for tempMember.name.
+    // WHY IT CHANGED: When using the 'Character Template' system, 
+    // characters originally used a generic name (e.g., 'Fighter 1'). 
+    // This change allows the Party Editor to pass a custom name 
+    // (from the user input) during the conversion process, ensuring 
+    // custom names are preserved.
+    name: tempMember.name || `${classData.name} ${tempMember.level}`,
     level: tempMember.level,
     xp: 0,
     race: raceData,
@@ -745,6 +763,14 @@ export const applyFeatToCharacter = (
   if (benefit?.initiativeBonus) {
     updated.initiativeBonus = (updated.initiativeBonus || 0) + benefit.initiativeBonus;
   }
+  // Alert (2024): Initiative bonus = Proficiency Bonus (scales with level)
+  if (benefit?.initiativeBonusProficiency) {
+    // WHAT CHANGED: Added proficiency-based initiative calculation.
+    // WHY IT CHANGED: To match the 2024 Alert feat rules. Instead of 
+    // a flat +5, it now uses your Proficiency Bonus. This ensures the 
+    // bonus scales naturally as the character levels up.
+    updated.initiativeBonus = (updated.initiativeBonus || 0) + (updated.proficiencyBonus || 2);
+  }
 
   // Handle saving throw proficiencies
   if (benefit?.savingThrowLinkedToAbility && options?.selectedAbilityScore) {
@@ -773,6 +799,27 @@ export const applyFeatToCharacter = (
       selectedLeveledSpells: options?.selectedLeveledSpells,
       selectedSpellSource: options?.selectedSpellSource,
     });
+  }
+
+  // Lucky (2024): Creates a luck_points pool = Proficiency Bonus, resets on Long Rest.
+  // TODO(FEATURES): Wire luck point spending into attack rolls, skill checks, and saving throws
+  //   (spend to gain Advantage on a d20 test; force attacker re-roll when targeted).
+  if (benefit?.luckyPoints) {
+    // WHAT CHANGED: Added luck_points to limitedUses.
+    // WHY IT CHANGED: To support the 2024 Lucky feat. The pool size 
+    // is dynamic (Proficiency Bonus). By initializing it as a 
+    // 'limitedUse', the UI and rest logic can track usage and 
+    // restoration automatically.
+    const pb = updated.proficiencyBonus || 2;
+    updated.limitedUses = {
+      ...updated.limitedUses,
+      luck_points: {
+        name: 'Luck Points',
+        current: pb,
+        max: 'proficiency_bonus' as const,
+        resetOn: 'long_rest' as const,
+      },
+    };
   }
 
   // Recalculate derived properties when ability scores change.

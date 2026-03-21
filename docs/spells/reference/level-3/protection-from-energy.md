@@ -23,10 +23,9 @@
 - **Concentration**: true
 
 - **Effect Type**: BUFF
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: For the duration, the willing creature you touch has Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.310
-- **Status**: Complete

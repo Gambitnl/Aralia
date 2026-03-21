@@ -1,71 +1,40 @@
-# Spell Integration Status: Level 2
+﻿# Spell Integration Status: Level 2
 
-**Legend:**
-*   🟢 **Gold (Structured)**: JSON has `effects` array. Engine uses precise data.
-*   🟡 **Silver (Inferred)**: `spellAbilityFactory` regex-parses description for damage/saves.
-*   ⚪ **Bronze (Metadata)**: Basic metadata only. No mechanical execution.
+Last Updated: 2026-03-12
 
-| Spell | Mechanics | Narrative Support | Notes |
-| :--- | :--- | :--- | :--- |
-| **Aid** | ⚪ Bronze | ❌ None | Max HP buff |
-| **Alter Self** | ⚪ Bronze | 🟡 Basic | Exploration/Social |
-| **Animal Messenger** | ⚪ Bronze | 🟡 Basic | Long range comms |
-| **Arcane Lock** | ⚪ Bronze | 🟡 Basic | Lock logic |
-| **Augury** | ⚪ Bronze | 🟡 Basic | DM Hint system |
-| **Barkskin** | ⚪ Bronze | ❌ None | Min AC 16 |
-| **Beast Sense** | ⚪ Bronze | 🟡 Basic | Scout mode |
-| **Blindness/Deafness** | ⚪ Bronze | ❌ None | Debuff |
-| **Blur** | ⚪ Bronze | ❌ None | Disadv to hit |
-| **Calm Emotions** | ⚪ Bronze | 🟡 Basic | End hostility |
-| **Cloud of Daggers** | 🟡 Silver | ❌ None | AoE DoT |
-| **Continual Flame** | ⚪ Bronze | 🟡 Basic | Light source |
-| **Cordon of Arrows** | 🟡 Silver | ❌ None | Trap |
-| **Crown of Madness** | ⚪ Bronze | ❌ None | Control |
-| **Darkness** | ⚪ Bronze | ❌ None | LoS block |
-| **Darkvision** | ⚪ Bronze | 🟡 Basic | Map visibility |
-| **Detect Thoughts** | ⚪ Bronze | 🟡 Basic | Social insight |
-| **Dragon's Breath** | 🟡 Silver | ❌ None | Buff grant attack |
-| **Enhance Ability** | ⚪ Bronze | 🟡 Basic | Check advantage |
-| **Enlarge/Reduce** | ⚪ Bronze | 🟡 Basic | Size change/Dmg |
-| **Enthrall** | ⚪ Bronze | 🟡 Basic | Social distraction |
-| **Find Steed** | ⚪ Bronze | 🟡 Basic | Mount system |
-| **Find Traps** | ⚪ Bronze | 🟡 Basic | Detection |
-| **Flame Blade** | 🟡 Silver | ❌ None | Summon weapon |
-| **Flaming Sphere** | 🟡 Silver | ❌ None | Summon entity |
-| **Gentle Repose** | ⚪ Bronze | ❌ None | Timer pause |
-| **Gust of Wind** | ⚪ Bronze | ❌ None | Push line |
-| **Heat Metal** | 🟡 Silver | ❌ None | Dmg/Disarm |
-| **Hold Person** | ⚪ Bronze | ❌ None | Paralyze |
-| **Invisibility** | ⚪ Bronze | 🟡 Basic | Stealth adv |
-| **Knock** | ⚪ Bronze | 🟡 Basic | Unlock |
-| **Lesser Restoration** | ⚪ Bronze | ❌ None | Cure cond |
-| **Levitate** | 🟢 Gold | 🟡 Basic | Vert movement |
-| **Locate Animals/Plants** | ⚪ Bronze | 🟡 Basic | Radar |
-| **Locate Object** | ⚪ Bronze | 🟡 Basic | Radar |
-| **Magic Mouth** | ⚪ Bronze | 🟡 Basic | Triggered msg |
-| **Magic Weapon** | ⚪ Bronze | ❌ None | +1 buff |
-| **Melf's Acid Arrow** | 🟡 Silver | ❌ None | DoT |
-| **Mind Spike** | 🟡 Silver | ❌ None | No hidden |
-| **Mirror Image** | ⚪ Bronze | ❌ None | Defense |
-| **Misty Step** | ⚪ Bronze | 🟡 Basic | Teleport |
-| **Moonbeam** | 🟡 Silver | ❌ None | Moveable AoE |
-| **Pass without Trace** | ⚪ Bronze | 🟡 Basic | Stealth +10 |
-| **Phantasmal Force** | 🟡 Silver | ❌ None | Int save |
-| **Prayer of Healing** | 🟡 Silver | ❌ None | Group heal |
-| **Protection from Poison** | ⚪ Bronze | ❌ None | Buff |
-| **Pyrotechnics** | ⚪ Bronze | ❌ None | Blind/Fog |
-| **Ray of Enfeeblement** | ⚪ Bronze | ❌ None | Dmg debuff |
-| **Rope Trick** | ⚪ Bronze | 🟡 Basic | Safe rest |
-| **Scorching Ray** | 🟡 Silver | ❌ None | Multi-attack |
-| **See Invisibility** | ⚪ Bronze | 🟡 Basic | Vision |
-| **Shatter** | 🟡 Silver | ❌ None | Object dmg |
-| **Shining Smite** | 🟡 Silver | ❌ None | Glow |
-| **Silence** | ⚪ Bronze | 🟡 Basic | Anti-caster |
-| **Skywrite** | ⚪ Bronze | 🟡 Basic | Comms |
-| **Spider Climb** | ⚪ Bronze | 🟡 Basic | Movement |
-| **Spike Growth** | 🟡 Silver | ❌ None | Hazard terrain |
-| **Spiritual Weapon** | 🟡 Silver | ❌ None | Bonus atk |
-| **Suggestion** | ⚪ Bronze | 🟡 Basic | Mind control |
-| **Warding Bond** | ⚪ Bronze | ❌ None | Dmg share |
-| **Web** | ⚪ Bronze | ❌ None | Restrain |
-| **Zone of Truth** | ⚪ Bronze | 🟡 Basic | Social truth |
+This file no longer uses the old Gold, Silver, and Bronze maturity scoring as if it were a current behavioral truth table.
+
+## Verified Current Inventory Fact
+
+A manual repo check during the 2026-03-12 doc pass confirmed:
+- ../../public/data/spells/level-2 currently contains 65 spell JSON files
+- the level-2 lane is active in the same manifest-backed structure as the rest of the spell system
+
+## Why The Older Maturity Grid Was Replaced
+
+The old grid assumed a cleaner split between structured execution and description inference than the repo currently has.
+That model is now too stale to present as current truth because:
+- the repo contains broader structured spell data than the old table described
+- some mechanics now route through command systems and newer utility lanes instead of only through a single spell-ability heuristic
+- the old grid implied a level of per-spell certainty that this doc pass did not freshly re-verify across all 65 level-2 spells
+
+## Current Interpretation
+
+What this file can honestly say now:
+- level-2 has a substantial migrated inventory
+- level-2 spell data participates in the current validator, manifest, loader, and glossary lanes
+- per-spell execution maturity still varies, but the old Bronze and Silver shorthand is no longer trusted as a live metric
+
+## Where To Verify A Specific Level-2 Spell
+
+For actual current-state verification, use:
+- ./SPELL_INTEGRATION_CHECKLIST.md
+- ../../src/systems/spells/validation/spellValidator.ts
+- ../../scripts/check-spell-integrity.ts
+- ../../src/context/SpellContext.tsx
+- ../../src/utils/character/spellAbilityFactory.ts
+- any spell-specific task note that has been refreshed more recently than this level summary
+
+## Historical Note
+
+The older table remains useful as a migration-era picture of how the team once thought about spell maturity. It is no longer presented here as a reliable current map of level-2 behavior.

@@ -11,7 +11,8 @@
 - **Range Type**: ranged
 - **Range Distance**: 30
 - **Targeting Type**: single
-- **Valid Targets**: beast
+- **Valid Targets**: creatures
+- **Target Filter Creature Types**: Beast
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -26,12 +27,10 @@
 - **Duration Unit**: hour
 - **Concentration**: false
 
-- **Effect Type**: STATUS
+- **Effect Type**: STATUS_CONDITION
 - **Save Stat**: Wisdom
-- **Save Outcome**: negates
+- **Save Outcome**: negates_condition
 - **Conditions Applied**: Charmed
 
 - **Description**: This spell lets you convince a Beast that you mean it no harm. Choose a Beast that you can see within range. It must succeed on a Wisdom saving throw or be Charmed by you for the duration. If you or one of your companions causes damage to the target, the spell ends.
 - **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, you can affect one additional Beast for each slot level above 1st.
-- **Source**: PHB 2024 p.239
-- **Status**: Complete

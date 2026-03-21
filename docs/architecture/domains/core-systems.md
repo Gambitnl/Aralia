@@ -1,210 +1,74 @@
-# Core Systems Domain
-
-Foundational infrastructure: types, configuration, state management, and core hooks.
+﻿# Core Systems Domain
 
 ## Purpose
 
-The shared foundation that all other domains depend on. Contains type definitions, configuration, state management, and core React hooks that power the application.
+This domain covers the shared foundation that the rest of the app builds on: root application orchestration, shared state wiring, common configuration and types, and the cross-cutting services or hooks that multiple feature domains still depend on.
+It should be kept narrower than the older version of this doc. Many hooks, components, and services that once looked central now belong more naturally to individual feature domains.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Description |
-|------|-------------|
-| `src/App.tsx` | Root component, game orchestration |
-| `src/state/GameContext.tsx` | Game state context provider |
-| `src/types/index.ts` | Central type exports |
-| `src/constants.ts` | Global constants |
+- src/App.tsx is still the main orchestration surface for game phases, lazy-loaded feature entry points, provider composition, and top-level transitions.
+- src/state/GameContext.tsx provides the shared state context for components that need global access.
+- src/state/appState.ts remains the root reducer lane that delegates into many slice reducers.
+- src/state/initialState.ts provides the default state surface used by the app reducer.
+- src/types/index.ts is still the central type export barrel.
+- src/constants.ts remains one of the main shared data and configuration surfaces imported by the app shell.
 
-## Subcomponents
+## What Still Fits In This Domain
 
-### Configuration
-| File | Purpose |
-|------|---------|
-| `src/config/characterCreationConfig.ts` | Character creation settings |
-| `src/config/combatConfig.ts` | Combat system configuration |
-| `src/config/env.ts` | Environment variables |
-| `src/config/features.ts` | Feature flags |
-| `src/config/geminiConfig.ts` | AI service configuration |
-| `src/config/mapConfig.ts` | Map rendering configuration |
-| `src/config/npcBehaviorConfig.ts` | NPC AI behavior settings |
-| `src/config/statusIcons.ts` | Status effect icon mappings |
-| `src/config/submapVisualsConfig.ts` | Submap visual settings |
-| `src/config/wfcRulesets/index.ts` | Wave Function Collapse rules |
+### Shared state and app shell
 
-### Types (Core)
-| File | Purpose |
-|------|---------|
-| `src/types/index.ts` | Central type exports |
-| `src/types/core.ts` | Core game types |
-| `src/types/state.ts` | Global GameState types |
-| `src/types/actions.ts` | Player action types |
-| `src/types/ui.ts` | UI system types |
-| `src/types/visuals.ts` | Visual effect types |
-| `src/types/languages.ts` | Language types |
-| `src/types/effects.ts` | Universal effect types |
-| `src/types/creatures.ts` | Shared creature types |
-| `src/types/dice.ts` | Dice rolling types |
-| `src/types/elemental.ts` | Elemental types |
-| `src/types/logic.ts` | Logic types |
-| `src/types/legacy.ts` | Migration types |
+- src/App.tsx
+- src/state/
+- src/components/providers/
+- src/constants.ts
 
-### State Management
-| File | Purpose |
-|------|---------|
-| `src/state/GameContext.tsx` | Game state context |
-| `src/state/actionTypes.ts` | Action type constants |
-| `src/state/appState.ts` | Initial state and shape |
-| `src/state/payloads/identityPayloads.ts` | Identity action payloads |
-| `src/state/reducers/uireducer.ts` | UI state reducer |
-| `src/state/reducers/uiReducer.ts` | UI state reducer (alt casing) |
-| `src/state/reducers/legacyReducer.ts` | Legacy migration reducer |
+This is the layer that still decides how the game starts, which phase is active, which large UI surfaces are lazy-loaded, and how reducer-driven state gets exposed to the rest of the app.
 
-### Context
-| File | Purpose |
-|------|---------|
-| `src/context/GlossaryContext.tsx` | Glossary state context |
-| `src/context/SpellContext.tsx` | Spell state context |
+### Shared types and configuration
 
-### Core Hooks
-| File | Purpose |
-|------|---------|
-| `src/hooks/useAudio.ts` | Audio playback |
-| `src/hooks/useFocusTrap.ts` | Focus trapping for modals |
-| `src/hooks/useGameActions.ts` | Core game action dispatch |
-| `src/hooks/useGameInitialization.ts` | Game setup |
-| `src/hooks/useHistorySync.ts` | Browser history sync |
-| `src/hooks/useLocalStorage.ts` | Local storage persistence |
-| `src/hooks/useUnderdarkLighting.ts` | Underdark lighting effects |
+- src/types/
+- src/config/
 
-### UI Components (Core)
-| File | Purpose |
-|------|---------|
-| `src/assets/icons/*.tsx` | Common UI icons |
-| `src/components/ui/*.tsx` | Reusable UI primitives |
-| `src/components/layout/*.tsx` | Core layout components |
-| `src/components/providers/*.tsx` | React context providers |
-| `src/components/SaveSlotSelector.tsx` | Persistence UI |
-| `src/components/LoadGame*.tsx` | Persistence UI |
-| `src/components/PassTimeModal.tsx` | Time UI |
-| `src/components/GameGuideModal.tsx` | Help UI |
-| `src/components/GeminiLogViewer.tsx` | Debug UI |
-| `src/components/NotificationSystem.tsx` | Global notifications |
-| `src/components/Tooltip.tsx` | Common tooltip component |
-| `src/components/ErrorBoundary.tsx` | Application error handling |
-| `src/components/NotFound.tsx` | 404 page |
-| `src/components/MainMenu.tsx` | Game main menu |
-| `src/components/VersionDisplay.*` | Version info |
-| `src/components/CompassPane.tsx` | UI Compass |
-| `src/components/DiscoveryLogPane.tsx` | UI Logs |
-| `src/components/Image*.tsx` | UI Image display |
-| `src/components/MissingChoiceModal.tsx` | UI Choice handling |
-| `src/components/PlayerSprite.tsx` | UI Character sprite |
-| `src/components/PassTimeModal.tsx` | UI Time skip |
-| `src/components/DevMenu.tsx` | Developer tools |
+These folders are still foundational, but they are no longer a clean everything-core-lives-here lane. Many feature-heavy type files now sit beside the systems they serve, so this doc should treat src/types/ and src/config/ as shared infrastructure rather than as ownership claims over every downstream behavior.
 
-### Core Data
-| File | Purpose |
-|------|---------|
-| `src/data/dndData.ts` | Base D&D definitions |
-| `src/data/settings/*.ts` | Shared settings |
-| `src/locales/*.json` | Localization data |
-| `src/styles/*.ts` | Shared styles |
-| `src/index.css` | Global CSS |
-| `src/test/setup.ts` | Test configuration |
+### Cross-cutting services and hooks verified in this pass
 
-### Core Services & Hooks
-| File | Purpose |
-|------|---------|
-| `src/services/aiClient.ts` | AI client foundation |
-| `src/services/geminiSchemas.ts` | AI schemas |
-| `src/services/legacyService.ts` | Migration support |
-| `src/services/saveLoadService.ts` | Persistence foundation |
-| `src/services/ttsService.ts` | Text-to-speech |
-| `src/hooks/useAudio.ts` | Audio hook |
-| `src/hooks/useFocusTrap.ts` | Accessibility hook |
-| `src/hooks/useGameActions.ts` | Dispatch hook |
-| `src/hooks/useGameInitialization.ts` | Setup hook |
-| `src/hooks/useHistorySync.ts` | Router-like hook |
-| `src/hooks/useLocalStorage.ts` | Persistence hook |
-| `src/hooks/useUnderdarkLighting.ts` | Core visual hook |
+- src/services/saveLoadService.ts
+- src/services/aiClient.ts
+- src/services/geminiSchemas.ts
+- src/services/legacyService.ts
+- src/services/ttsService.ts
+- src/hooks/useGameInitialization.ts
+- src/hooks/useHistorySync.ts
+- src/hooks/useAudio.ts
 
-### Utilities (Core)
-| File | Purpose |
-|------|---------|
-| `src/utils/actionUtils.ts` | Action helper functions |
-| `src/utils/contextUtils.ts` | Context utilities |
-| `src/utils/factories.ts` | Factory functions |
-| `src/utils/hashUtils.ts` | Hashing utilities |
-| `src/utils/historyUtils.ts` | History utilities |
-| `src/utils/i18n.ts` | Internationalization |
-| `src/utils/idGenerator.ts` | ID generation |
-| `src/utils/logger.ts` | Logging utilities |
-| `src/utils/networkUtils.ts` | Network utilities |
-| `src/utils/pathfinding.ts` | Pathfinding algorithms |
-| `src/utils/perlinNoise.ts` | Noise generation |
-| `src/utils/permissions.ts` | Permission checking |
-| `src/utils/seededRandom.ts` | Seeded random generation |
-| `src/utils/storageUtils.ts` | Storage utilities |
-| `src/utils/testUtils.ts` | Test utilities |
-| `src/utils/visualUtils.ts` | Visual utilities |
+These are still useful examples of genuinely shared foundation surfaces, but they should be read as examples rather than as an exhaustive inventory of every service or hook that matters.
 
-## Dependencies
+## Important Boundary Correction
 
-- **Imports from:** (none - foundation layer)
-- **Imported by:** All other domains
+The previous version of this doc overclaimed ownership and mixed in a large number of domain-specific components, duplicate tests, and stale paths.
+The current repo has moved toward a broader set of domain-owned subtrees such as CharacterCreator, CharacterSheet, BattleMap, Town, Submap, Combat, and Spells.
+This core-systems doc should therefore answer a narrower question:
 
-## Boundaries
+- what still acts as shared foundation across many domains
 
-### Owned by this domain
-- `src/types/` (except domain-specific like `spells.ts`)
-- `src/config/`
-- `src/state/`
-- `src/context/`
-- `src/constants.ts`
-- Core hooks in `src/hooks/` (not domain-specific hooks)
+not:
 
-### Shared (modify with care)
-- `src/App.tsx` - affects all domains
+- what files are important anywhere in the repo
 
-### DO NOT MODIFY without coordination
-- `src/types/index.ts` - re-exports many types
+## Tests And Verification Notes
 
-### Claimed Tests (Auto-generated)
+This pass verified the live foundation surfaces directly against:
 
-| Test File | Description |
-|-----------|-------------|
-| `src/components/ui/__tests__/LoadingSpinner.test.tsx` | UI primitive tests |
-| `src/hooks/__tests__/useHistorySync.test.ts` | History sync tests |
-| `src/hooks/__tests__/useLocalStorage.test.ts` | Storage persistence tests |
-| `src/hooks/__tests__/useLocalStorageIntegration.test.ts` | Integration test |
-| `src/hooks/__tests__/useHistorySync.test.ts` | Router logic test |
-| `src/utils/__tests__/networkUtils.test.ts` | Network logic test |
-| `src/utils/__tests__/storageUtils.test.ts` | Storage logic test |
-| `src/services/__tests__/saveLoadService.test.ts` | Persistence logic test |
-| `src/services/ttsService.ts` | TTS logic |
-| `src/components/__tests__/MainMenu.test.tsx` | Main menu UI test |
-| `src/components/__tests__/NotificationSystem.test.tsx` | UI test |
-| `src/components/__tests__/GameLayoutErrorBoundary.test.tsx` | UI test |
-| `src/components/__tests__/CharacterSheetModal.test.tsx` | Sheet modal tests |
-| `src/components/__tests__/CompassPane.test.tsx` | Compass UI tests |
-| `src/components/__tests__/GameLayoutErrorBoundary.test.tsx` | Error boundary tests |
-| `src/components/__tests__/MainMenu.test.tsx` | Main menu tests |
-| `src/components/__tests__/NotificationSystem.test.tsx` | Notification system tests |
-| `src/components/__tests__/NotificationSystem_ReducedMotion.test.tsx` | Reduced motion tests |
-| `src/services/__tests__/legacyService.test.ts` | Legacy service migration tests |
-| `src/services/__tests__/saveLoadService.test.ts` | Save/load persistence tests |
-| `src/test/config.test.ts` | Configuration tests |
-| `src/types/__tests__/languages.test.ts` | Language type tests |
-| `src/utils/__tests__/contextEnhancement.test.ts` | Context enhancement tests |
-| `src/utils/__tests__/contextUtils.test.ts` | Context utility tests |
-| `src/utils/__tests__/factories.test.ts` | Factory function tests |
-| `src/utils/__tests__/i18n.test.ts` | Internationalization tests |
-| `src/utils/__tests__/identityUtils.test.ts` | Identity utility tests |
-| `src/utils/__tests__/logger.test.ts` | Logger utility tests |
-| `src/utils/__tests__/memoryUtils.test.ts` | Memory utility tests |
-| `src/utils/__tests__/networkUtils.test.ts` | Network utility tests |
-| `src/utils/__tests__/securityUtils.test.ts` | Security utility tests |
-| `src/utils/__tests__/securityUtils_validation.test.ts` | Security validation tests |
-| `src/utils/__tests__/storageUtils.test.ts` | Storage utility tests |
-| `src/utils/securityUtils.test.ts` | Security core tests |
-| `src/components/__tests__/PartyPane.test.tsx` | Party pane component tests |
+- src/App.tsx
+- src/state/GameContext.tsx
+- src/state/appState.ts
+- package.json
+
+It also confirmed that the older doc's test inventory had drifted and included stale or duplicated claims, so this rewritten version intentionally avoids pretending to maintain a comprehensive auto-generated test roster.
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this domain as the app shell and shared foundation lane, not as a catch-all owner of every reusable hook, component, or utility in the repository.

@@ -33,5 +33,3 @@
 
 - **Description**: Choose a Humanoid that you can see within range. The target must succeed on a Wisdom saving throw or be Paralyzed for the duration. At the end of each of its turns, the target can make another Wisdom saving throw. On a success, the spell ends on the target.
 - **Higher Levels**: When you cast this spell using a spell slot of 3rd level or higher, you can target one additional Humanoid for each slot level above 2nd. The Humanoids must be within 30 feet of each other when you target them.
-- **Source**: PHB 2024 p.286
-- **Status**: Complete

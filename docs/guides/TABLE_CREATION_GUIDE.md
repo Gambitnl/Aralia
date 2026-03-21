@@ -1,118 +1,62 @@
-# Guide: Creating Tables in Glossary Entries
+﻿# Guide: Creating Tables in Glossary Entries
 
-This guide outlines the two primary methods for creating tables in Aralia RPG glossary entries, ensuring they are styled correctly and consistently.
+Last Updated: 2026-03-11
+Purpose: Describe the current table-authoring rules for glossary content without relying on stale renderer-path or styling assumptions.
 
-## Method 1: Standard Markdown Tables (For Most Content)
+## Current Context
 
-For most data, like class feature progressions, spell lists, or simple data comparisons, you should use standard GitHub Flavored Markdown (GFM) table syntax. These tables are automatically styled by the application's global `.prose table` CSS rules, giving them a consistent, themed look.
+Verified anchors in this pass:
+- public/data/glossary/entries/
+- src/components/Glossary/GlossaryContentRenderer.tsx
+- docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md
 
-### Syntax
+Important current-state rule:
+- glossary source entries are JSON files that contain markdown content
+- when this guide talks about writing tables, it is talking about the markdown field inside those JSON entries
 
-```markdown
-| Header 1          | Header 2            | Header 3      |
-|-------------------|---------------------|---------------|
-| Row 1, Cell 1     | Row 1, Cell 2       | Row 1, Cell 3 |
-| Row 2, Cell 1     | Row 2, Cell 2       | Row 2, Cell 3 |
-| A longer entry... | And another one...  | And a third.  |
-```
+## Method 1: Standard Markdown Tables
 
-### Example: Barbarian Class Features Table
+Use standard markdown tables for most glossary content.
 
-The main features table for the Barbarian class is a perfect example of a standard Markdown table:
+This is the default choice for:
+- feature progressions
+- rule comparisons
+- class or race summaries that do not need custom layout
+- straightforward reference tables
 
-```markdown
-| Level | Proficiency Bonus | Class Features                               | Rages | Rage Damage | Weapon Mastery |
-|-------|-------------------|----------------------------------------------|-------|-------------|----------------|
-| 1     | +2                | Rage, Unarmored Defense, Weapon Mastery      | 2     | +2          | 2              |
-| 2     | +2                | Danger Sense, Reckless Attack                | 2     | +2          | 2              |
-```
+## Method 2: Custom HTML Tables
 
-This table will automatically receive the dark theme, borders, and hover effects defined in `index.html`.
+Use custom HTML tables only when the content genuinely needs tighter visual control than a standard markdown table can provide.
 
-## Method 2: Custom HTML Tables (For "At a Glance" Summaries)
+If you use custom HTML tables, keep them intentional and localized rather than turning whole entries into HTML-heavy layouts.
 
-For special cases, like the "At a Glance" summary table at the top of a class entry, you might need more control over styling than the default `.prose` rules allow. In these cases, you can use a raw HTML `<table>` wrapped in a `<div class="not-prose">`.
+## Current Renderer Note
 
-### `not-prose` Wrapper
+The current glossary renderer lives at src/components/Glossary/GlossaryContentRenderer.tsx.
 
-The `.not-prose` class from Tailwind's Typography plugin tells the browser to *not* apply the default prose styles to the elements inside it. This allows you to use standard Tailwind utility classes for custom styling.
+This matters because older versions of the guide pointed at outdated renderer paths or older styling assumptions.
 
-### Syntax
+The verified current renderer still contains logic that programmatically wraps certain h3-led sections into details-style feature cards.
 
-```html
-<div class="not-prose my-6">
-  <table class="min-w-full divide-y divide-gray-600 border border-gray-600 rounded-lg shadow-md">
-    <thead class="bg-gray-700/50">
-      <tr>
-        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-sky-300 uppercase tracking-wider border-b border-gray-600">Trait</th>
-        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-sky-300 uppercase tracking-wider border-b border-gray-600">Details</th>
-      </tr>
-    </thead>
-    <tbody class="bg-gray-800/50 divide-y divide-gray-700">
-      <tr class="hover:bg-gray-700/40 transition-colors duration-150">
-        <td class="px-4 py-3 text-sm font-medium text-amber-300 align-top">Primary Ability</td>
-        <td class="px-4 py-3 text-sm text-gray-300 align-top">Strength</td>
-      </tr>
-      <!-- ... other rows ... -->
-    </tbody>
-  </table>
-</div>
-```
+## Practical Rule For Collapsible Sections
 
-This gives you full control over borders, backgrounds, padding, and text styles using Tailwind classes.
+Do not assume raw markdown inside arbitrary HTML blocks will always be interpreted the way an older guide expected.
 
----
+Current safe rule:
+- keep ordinary table content in normal markdown flow whenever possible
+- let the renderer handle the structural presentation it already knows about
+- only mix HTML and markdown when the entry truly needs it and you have checked the rendered result
 
-## Case Study: The Circle of the Land Druid Problem
+## Checklist
 
-A common pitfall is mixing Markdown table syntax inside of HTML elements. **This will not work with our current setup.**
+- [ ] Put the table content in the JSON entry's markdown body
+- [ ] Use a normal markdown table unless custom layout is truly required
+- [ ] Prefer renderer-friendly markdown structure before falling back to HTML wrappers
+- [ ] Re-check the rendered glossary result after changing complex tables
 
-### The Problem
+## Common Drift To Avoid
 
-In a previous version of the `circle_of_the_land.md` entry, we attempted to place Markdown tables inside a `<details>` HTML element, like this:
-
-```html
-<!-- INCORRECT - WILL NOT RENDER TABLES -->
-<details markdown="1">
-  <summary>Circle of the Land Spells</summary>
-  <div>
-    <h4>Arid Land</h4>
-    | Druid Level | Circle Spells |
-    |---|---|
-    | 3 | Blur, Burning Hands, Fire Bolt |
-
-    <h4>Polar Land</h4>
-    | Druid Level | Circle Spells |
-    |---|---|
-    | 3 | Fog Cloud, Hold Person, Ray of Frost |
-  </div>
-</details>
-```
-
-The `marked.js` library, which we use for parsing, sees the `<details>` tag and treats everything inside it as literal HTML. It **does not parse Markdown syntax within HTML blocks** by default. The `markdown="1"` attribute is a convention for other parsers and has no effect here. The result was that the table syntax (`| --- |`) was rendered as plain text.
-
-### The Solution
-
-The solution was to separate the content (Markdown) from the structure (HTML).
-
-1.  **Simplify the Markdown**: The `.md` file was changed to contain *only* Markdown headings and tables, with no surrounding `<details>` tags.
-
-    **Correct Markdown (`circle_of_the_land.md`):**
-    ```markdown
-    ### Level 3: Circle of the Land Spells
-    ...
-    #### Arid Land
-    | Druid Level | Circle Spells                 |
-    |-------------|-------------------------------|
-    | 3           | Blur, Burning Hands, Fire Bolt|
-    
-    #### Polar Land
-    | Druid Level | Circle Spells                  |
-    |-------------|--------------------------------|
-    | 3           | Fog Cloud, Hold Person, Ray of Frost |
-    ```
-    This allows `marked.js` to correctly parse the Markdown and convert it into proper `<table>` HTML.
-
-2.  **Add Structure in React**: The `GlossaryContentRenderer.tsx` component was enhanced to take the parsed HTML and programmatically wrap the content following an `<h3>` heading into a `<details>` element. This ensures the structure is applied *after* the content has been correctly parsed.
-
-**Key Takeaway**: For tables to render correctly, they must be written in one of the two formats above and **must not** be nested inside HTML block elements within your Markdown file. If you need a collapsible section containing tables, the structure must be applied programmatically in the React component, not in the source `.md` file.
+Do not assume:
+- that index.html is the right current reference for glossary table rendering
+- that older markdown-inside-HTML examples are still the safest default pattern
+- that a custom HTML table is automatically better than a standard markdown table

@@ -1,58 +1,108 @@
-
 # Troubleshooting Guide
 
-This document catalogs common technical issues encountered during the development of Aralia RPG and their solutions. It serves as a reference for maintaining the codebase and understanding architectural decisions.
+**Last Updated**: 2026-03-11  
+**Purpose**: Capture recurring technical failure modes in Aralia while clearly separating current troubleshooting guidance from preserved architectural history.
 
-## 1. State Management
+## How To Read This File
 
-### Circular Dependencies
-*   **Problem**: `appState.ts` imports reducers, reducers import `AppAction` type, `AppAction` type was defined in `appState.ts`.
-*   **Solution**: Extracted `AppAction` into a dedicated `src/state/actionTypes.ts` file. All reducers and the root state now import the action definition from there.
+This file mixes two kinds of information on purpose:
+- current troubleshooting guidance that still matches the repo
+- historical fix notes that explain why certain code patterns exist
 
-### State Immutability
-*   **Problem**: React components not re-rendering after state updates, particularly deeply nested objects like `npcMemory`.
-*   **Solution**: Ensure all reducers use spread syntax (`...state`) or create new object references for every level of nesting changed.
-    ```typescript
-    // Correct
-    return {
-      ...state,
-      nested: { ...state.nested, field: newValue }
-    };
-    ```
+When a section describes a past fix rather than an active debugging workflow, it is labeled as historical context instead of a live operational rule.
 
-## 2. Gemini API Integration
+## State Management
 
-### JSON Parsing Errors
-*   **Problem**: The AI sometimes returns Markdown code blocks (```json ... ```) around the requested JSON, causing `JSON.parse` to fail.
-*   **Solution**: Sanitization logic in `geminiService.ts` strips these markers before parsing.
-    ```typescript
-    const jsonString = responseText.replace(/```json\n|```/g, '').trim();
-    ```
+### Circular dependency history
 
-### Rate Limiting (429 Errors)
-*   **Problem**: Frequent calls to the AI can hit the API rate limit.
-*   **Solution**: Implemented a fallback chain in `geminiService.ts` (via `GEMINI_TEXT_MODEL_FALLBACK_CHAIN` config) to try alternative models if the primary one fails.
+**Historical issue**: `appState.ts` once defined `AppAction` while reducers also needed that type, creating an import cycle.
 
-## 3. Rendering & Assets
+**Current state**: `AppAction` now lives in `src/state/actionTypes.ts`, and state modules import it from there.
 
-### Missing Images
-*   **Problem**: Dynamic image loading (e.g., for equipment slots) fails if the specific file doesn't exist.
-*   **Solution**: `DynamicMannequinSlotIcon.tsx` implements an `onError` handler that switches to a fallback icon if the primary SVG fails to load.
+**Why it matters**: If a new state refactor starts pulling action types back into `appState.ts`, that old cycle risk can reappear.
 
-### Submap Performance
-*   **Problem**: Rendering 600+ individual tile divs caused lag.
-*   **Solution**:
-    1.  **Memoization**: `SubmapTile` is wrapped in `React.memo`.
-    2.  **Callback Stability**: Handlers passed to tiles are memoized with `useCallback` to prevent breaking the `React.memo` optimization.
+### Nested state immutability
 
-## 4. Component Architecture
+**Problem pattern**: React components may not re-render if reducers mutate nested data in place.
 
-### Prop Drilling
-*   **Problem**: Passing data like `gold` or `inventory` through multiple layers (App -> CharacterSheet -> InventoryList).
-*   **Solution**: While Context is an option, we stuck to explicit prop passing for clarity in this scale. For truly global static data (like `Glossary`), we used `GlossaryContext`.
+**Current guidance**: Create fresh references at every changed nesting level, especially for structures like `npcMemory`.
 
-## 5. Content Generation
+```typescript
+return {
+  ...state,
+  nested: {
+    ...state.nested,
+    field: newValue,
+  },
+};
+```
 
-### Table Rendering in Markdown
-*   **Problem**: Putting Markdown tables inside HTML `<details>` tags breaks rendering.
-*   **Solution**: The `GlossaryContentRenderer` programmatically wraps headings in `<details>` tags *after* the Markdown parsing phase, rather than embedding HTML in the source Markdown.
+## Gemini Integration
+
+### JSON parsing cleanup
+
+**Historical issue**: AI responses sometimes arrive wrapped in fenced Markdown code blocks, which can break direct JSON parsing.
+
+**Current note**: JSON-cleaning logic exists in the Gemini-related UI and service flow, but do not assume `src/services/geminiService.ts` is the single place where that cleanup happens today.
+
+**Practical rule**: If parsing fails, inspect the actual response-handling path that owns the feature you are debugging instead of assuming one legacy service file still does all cleanup.
+
+### Rate limiting and model fallback
+
+**Problem pattern**: Repeated Gemini calls can hit rate limits or model failures.
+
+**Current guidance**: Check the Gemini core flow and model configuration rather than only the older facade file.
+
+Relevant current surfaces:
+- `src/services/gemini/core.ts`
+- `src/config/geminiConfig.ts`
+- `src/services/geminiService.ts`
+
+## Rendering And Assets
+
+### Mannequin slot icons
+
+**Problem pattern**: Equipment-slot imagery may be missing or unavailable.
+
+**Current state**: `DynamicMannequinSlotIcon.tsx` still supports fallback behavior, and the current implementation defaults to fallback icons because dynamic mannequin SVG loading is disabled.
+
+**Troubleshooting direction**:
+- verify whether the missing image is expected under the current fallback-first setup
+- only debug SVG loading paths if that feature is being intentionally re-enabled
+
+### Submap rendering performance
+
+**Problem pattern**: Large tile counts can cause sluggish rendering.
+
+**Current guidance**:
+1. `SubmapTile` memoization still matters.
+2. Handler stability still matters; callbacks passed into tiles should remain memoized so `React.memo` is not defeated.
+
+If submap performance regresses, inspect both the tile component and its parent callback creation path before assuming the problem is purely visual.
+
+## Content Rendering
+
+### Markdown tables inside collapsible sections
+
+**Problem pattern**: Markdown tables do not render reliably when authored directly inside HTML `<details>` blocks.
+
+**Current guidance**: `GlossaryContentRenderer` handles this by parsing markdown first and then constructing `<details>` wrappers programmatically.
+
+**Why it matters**: If glossary rendering breaks, the safe fix is usually to preserve that post-parse wrapping approach rather than reintroducing raw HTML-wrapped markdown tables.
+
+## Architectural Context Worth Preserving
+
+### Prop drilling versus global context
+
+**Historical context**: Some surfaces favored explicit prop passing for local state flow, while `GlossaryContext` was used for genuinely global glossary data.
+
+**Current caution**: Treat this as historical architectural reasoning, not as a blanket ban on Context. Verify the local subsystem before copying the older rationale into new work.
+
+## Troubleshooting Habits
+
+When using this file:
+1. verify the relevant code path still exists where the note says it does
+2. distinguish between a historical fix note and a current operational rule
+3. update this file when the real implementation location changes enough to make a note misleading
+
+For broader verification expectations, see [`@VERIFICATION-OF-CHANGES-GUIDE.md`](./@VERIFICATION-OF-CHANGES-GUIDE.md).

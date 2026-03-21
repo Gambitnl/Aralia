@@ -1,4 +1,11 @@
 # Feat System Implementation Gaps
+This file was re-verified on 2026-03-14.
+It remains a useful feat-gap note because its core type-model claims are still grounded in the repo.
+
+Current reality:
+- selectable feat metadata fields are present in the current character type surfaces
+- this file should be read as a preserved gap inventory, not as a guarantee that every cited UI gap is still unchanged in exactly the same form
+
 
 **Last Updated:** 2025-12-11
 

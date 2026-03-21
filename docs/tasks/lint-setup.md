@@ -1,4 +1,11 @@
 # Task: Add a Linting Workflow to Aralia
+This file was re-verified on 2026-03-14.
+It is preserved as a linting-adoption note rather than current repo truth.
+
+What drifted:
+- the repo already has broader typecheck and testing discipline than this older one-task proposal assumed
+- this file should not be treated as proof that lint setup is still absent without checking the current package and config surfaces directly
+
 
 ## Goal
 Introduce an automated lint checker to catch obvious code issues (unused variables, missing imports, shadowing, etc.) and enforce a consistent style. Deliver a repeatable `npm run lint` script and document how to run it locally and in CI.
@@ -22,7 +29,7 @@ Introduce an automated lint checker to catch obvious code issues (unused variabl
    - Env: `browser`, `es2022`, `node`
    - Plugins: `@typescript-eslint`, `react`, `react-hooks`, `jsx-a11y`, `import`
    - Extends: `eslint:recommended`, `plugin:@typescript-eslint/recommended`, `plugin:react/recommended`, `plugin:react-hooks/recommended`, `plugin:jsx-a11y/recommended`, `plugin:import/recommended`, `plugin:import/typescript`
-   - Settings: React version `detect`; Import resolver with TS paths (`@` → `src`)
+   - Settings: React version `detect`; Import resolver with TS paths (`@` â†’ `src`)
    - Rules: keep defaults; optionally warn on `any`, unused vars (allow args starting with `_`), and enforce hooks rules.
 3) Add `.eslintignore` to skip `dist/`, `node_modules/`, `public/`, `coverage/`, `*.config.*` outputs if needed.
 4) Add `lint` script to `package.json`: `"lint": "eslint --ext .ts,.tsx src scripts"`.
@@ -31,7 +38,7 @@ Introduce an automated lint checker to catch obvious code issues (unused variabl
 
 ## Notes
 - Keep formatting separate: if you want auto-formatting later, add Prettier and a `format` script, but keep `lint` as a pure check.
-- Path alias: configure ESLint import resolver to respect `@` → `src` (match `tsconfig`/Vite settings).
+- Path alias: configure ESLint import resolver to respect `@` â†’ `src` (match `tsconfig`/Vite settings).
 - If lint noise is high, start with warnings and ratchet over time.
 
 ## Usage

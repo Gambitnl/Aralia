@@ -15,8 +15,27 @@
 // @dependencies-end
 
 /**
- * @file CharacterCreator.tsx
- * Main character creation component wrapped in a resizable window frame.
+ * ARCHITECTURAL CONTEXT:
+ * This component is the 'Main Orchestrator' for character generation. 
+ * it manages the multi-step wizard state, coordinate between sub-screens 
+ * (Race, Class, Ability Scores, etc.), and ensures that the final 
+ * character object is assembled correctly before being dispatched 
+ * to the global state.
+ *
+ * Recent updates focus on 'UX Stability' and 'Selection Flexibility'.
+ * - Replaced in-render dispatches with `StepLockedPlaceholder`. This 
+ *   fixes a critical React bug where navigating to an invalid step 
+ *   triggered a second render cycle, causing UI flicker in the sidebar.
+ * - Integrated `portraitJobRef` and cancellation handlers to prevent 
+ *   stale Image Generation requests from overwriting the UI if the user 
+ *   navigates away or clears the portrait.
+ * - Added `featStepSkipped` flag to track when the engine automatically 
+ *   bypasses the Feat screen (due to lack of eligibility), providing 
+ *   clearer feedback in the final review step.
+ * - Synchronized `FEATS_DATA` filtering to only show level-1 eligible 
+ *   perks during character creation, reducing noise for new players.
+ * 
+ * @file src/components/CharacterCreator/CharacterCreator.tsx
  */
 import React, { useReducer, useCallback, useContext, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -65,6 +84,7 @@ import {
   CreationStep,
   characterCreatorReducer,
   initialCharacterCreatorState,
+  getFeatStepOrReview,
 } from './state/characterCreatorState';
 import type { CharacterCreationState } from './state/characterCreatorState';
 import type { AppAction } from '../../state/actionTypes';
@@ -178,6 +198,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const { selectedRace, selectedClass, finalAbilityScores } = state;
 
   const handleCancelPortrait = useCallback(() => {
+    // WHAT CHANGED: Explicitly cancel the current portrait job in the ref.
+    // WHY IT CHANGED: To improve the 'Portrait Generation' lifecycle. 
+    // Using a ref-based job token (portraitJobRef) allows the component 
+    // to ignore async responses from cancelled or outdated requests, 
+    // preventing the "ghost portrait" bug where a late image suddenly 
+    // appears after the user has already cleared it.
     portraitJobRef.current.cancelled = true;
     dispatch({ type: 'PORTRAIT_REQUEST_CANCEL' });
   }, [dispatch]);
@@ -252,18 +278,22 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       Strength: 0, Dexterity: 0, Constitution: 0, Intelligence: 0, Wisdom: 0, Charisma: 0,
     };
 
-    return FEATS_DATA.map((feat) => {
-      const eligibility = evaluateFeatPrerequisites(feat, {
-        level: 1,
-        abilityScores,
-        raceId: selectedRace?.id,
-        classId: selectedClass?.id,
-        knownFeats: [],
-        hasFightingStyle: !!(selectedClass?.fightingStyles && selectedClass.fightingStyles.length > 0),
-      });
+    // Exclude feats that require a level higher than 1 — character creation is always level 1
+    // and showing permanently-unavailable feats adds noise without value.
+    return FEATS_DATA
+      .filter(feat => !feat.prerequisites?.minLevel || feat.prerequisites.minLevel <= 1)
+      .map((feat) => {
+        const eligibility = evaluateFeatPrerequisites(feat, {
+          level: 1,
+          abilityScores,
+          raceId: selectedRace?.id,
+          classId: selectedClass?.id,
+          knownFeats: [],
+          hasFightingStyle: !!(selectedClass?.fightingStyles && selectedClass.fightingStyles.length > 0),
+        });
 
-      return { ...feat, isEligible: eligibility.isEligible, unmet: eligibility.unmet };
-    });
+        return { ...feat, isEligible: eligibility.isEligible, unmet: eligibility.unmet };
+      });
   }, [finalAbilityScores, selectedRace, selectedClass, state.baseAbilityScores]);
 
   const hasEligibleFeats = useMemo(() => featOptions.some(option => option.isEligible), [featOptions]);
@@ -330,12 +360,37 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const goBack = useCallback(() => dispatch({ type: 'GO_BACK' }), [dispatch]);
   const handleNavigateToStep = useCallback((step: CreationStep) => dispatch({ type: 'NAVIGATE_TO_STEP', payload: step }), [dispatch]);
 
+  /**
+   * Shown when a step is navigated to via the sidebar but prerequisites aren't yet met.
+   * 
+   * WHAT CHANGED: Added StepLockedPlaceholder.
+   * WHY IT CHANGED: Previously, the component would try to "auto-correct" 
+   * navigation by dispatching a state change during the render phase if 
+   * prerequisites weren't met. This is a React anti-pattern that caused 
+   * unstable render cycles. Moving to a placeholder ensures a stable 
+   * render while clearly communicating to the user WHY they can't access 
+   * a specific step yet.
+   */
+  const StepLockedPlaceholder = ({ message, onContinue }: { message: string; onContinue?: () => void }) => (
+    <div className="flex h-full items-center justify-center p-8">
+      <div className="text-center text-gray-500 max-w-xs">
+        <p className="text-sm leading-relaxed">{message}</p>
+        {onContinue && (
+          <button
+            onClick={onContinue}
+            className="mt-4 px-4 py-1.5 bg-sky-700 hover:bg-sky-600 text-white text-sm rounded transition-colors"
+          >
+            Continue
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   const renderStep = (): React.ReactElement | null => {
     if (!allSpells) {
       return <LoadingSpinner message="Loading spell data..." />;
     }
-    // ... (Keep existing switch statement logic for steps) ...
-    // Note: I'm abbreviating here for clarity, but in the real write I must include the full switch
     switch (state.step) {
       case CreationStep.Race:
         return (
@@ -349,27 +404,26 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           />
         );
       case CreationStep.AgeSelection:
-        if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace) return <StepLockedPlaceholder message="Select a race first to unlock this step." />;
         return <AgeSelection selectedRace={selectedRace} currentAge={state.characterAge} onAgeChange={handleAgeChange} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.BackgroundSelection })} onBack={goBack} />;
       case CreationStep.BackgroundSelection:
-        if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace) return <StepLockedPlaceholder message="Select a race first to unlock this step." />;
         return <BackgroundSelection selectedRace={selectedRace} characterAge={state.characterAge} currentBackground={state.selectedBackground} onBackgroundChange={(backgroundId) => dispatch({ type: 'SELECT_BACKGROUND', payload: backgroundId })} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Visuals })} onBack={goBack} />;
       case CreationStep.Visuals:
-        return <VisualsSelection visuals={state.visuals} onVisualsChange={handleVisualsChange} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Class })} onBack={goBack} />;
+        return <VisualsSelection visuals={state.visuals} onVisualsChange={handleVisualsChange} selectedRace={state.selectedRace} onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Class })} onBack={goBack} />;
       case CreationStep.Class:
         return <ClassSelection classes={Object.values(CLASSES_DATA)} onClassSelect={handleClassSelect} onBack={goBack} />;
       case CreationStep.AbilityScores:
-        if (!selectedRace || !selectedClass) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace || !selectedClass) return <StepLockedPlaceholder message={!selectedRace ? "Select a race first to unlock this step." : "Select a class first to unlock this step."} />;
         return <AbilityScoreAllocation race={selectedRace} selectedClass={selectedClass} onAbilityScoresSet={handleAbilityScoresSet} onBack={goBack} />;
       case CreationStep.HumanSkillChoice:
-        if (!finalAbilityScores) { dispatch({ type: 'SET_STEP', payload: CreationStep.AbilityScores }); return null; }
+        if (!finalAbilityScores) return <StepLockedPlaceholder message="Assign ability scores first to unlock this step." />;
         return <HumanSkillSelection abilityScores={finalAbilityScores} onSkillSelect={handleHumanSkillSelect} onBack={goBack} />;
       case CreationStep.Skills:
-        if (!selectedClass || !finalAbilityScores || !selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.AbilityScores }); return null; }
+        if (!selectedClass || !finalAbilityScores || !selectedRace) return <StepLockedPlaceholder message={!selectedRace ? "Select a race first to unlock this step." : !selectedClass ? "Select a class first to unlock this step." : "Assign ability scores first to unlock this step."} />;
         return <SkillSelection charClass={selectedClass} abilityScores={finalAbilityScores} race={selectedRace} racialSelections={state.racialSelections} onSkillsSelect={handleSkillsSelect} onBack={goBack} />;
       case CreationStep.ClassFeatures:
-        if (!selectedClass || !finalAbilityScores) { dispatch({ type: 'SET_STEP', payload: CreationStep.Skills }); return null; }
-        // ... (Keep existing conditional logic for features) ...
+        if (!selectedClass || !finalAbilityScores) return <StepLockedPlaceholder message={!selectedClass ? "Select a class first to unlock this step." : "Assign ability scores first to unlock this step."} />;
         if (selectedClass.id === 'fighter' && selectedClass.fightingStyles) { return <FighterFeatureSelection styles={selectedClass.fightingStyles} onStyleSelect={handleFighterFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'cleric' && selectedClass.divineOrders && selectedClass.spellcasting) { return <ClericFeatureSelection divineOrders={selectedClass.divineOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onClericFeaturesSelect={handleClericFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'druid' && selectedClass.primalOrders && selectedClass.spellcasting) { return <DruidFeatureSelection primalOrders={selectedClass.primalOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onDruidFeaturesSelect={handleDruidFeaturesSelect} onBack={goBack} />; }
@@ -380,42 +434,59 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         if (selectedClass.id === 'ranger' && selectedClass.spellcasting) { return <RangerFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onRangerFeaturesSelect={handleRangerFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'paladin' && selectedClass.spellcasting) { return <PaladinFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onPaladinFeaturesSelect={handlePaladinFeaturesSelect} onBack={goBack} />; }
         if (selectedClass.id === 'artificer' && selectedClass.spellcasting) { return <ArtificerFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} abilityScores={finalAbilityScores} onArtificerFeaturesSelect={handleArtificerFeaturesSelect} onBack={goBack} />; }
-        if ((selectedClass.weaponMasterySlots ?? 0) > 0) { dispatch({ type: 'SET_STEP', payload: CreationStep.WeaponMastery }); } else { dispatch({ type: 'SET_STEP', payload: CreationStep.NameAndReview }); }
-        return null;
+        // This class has no feature sub-screen — offer a continue button to advance.
+        return (
+          <StepLockedPlaceholder
+            message="This class has no additional features to configure."
+            onContinue={() => {
+              if ((selectedClass.weaponMasterySlots ?? 0) > 0) {
+                dispatch({ type: 'SET_STEP', payload: CreationStep.WeaponMastery });
+              } else {
+                const { step, skipped } = getFeatStepOrReview(state);
+                dispatch({ type: 'SET_STEP', payload: step });
+                if (skipped) dispatch({ type: 'CONFIRM_FEAT_STEP' });
+              }
+            }}
+          />
+        );
       case CreationStep.WeaponMastery:
-        if (!selectedClass) { dispatch({ type: 'SET_STEP', payload: CreationStep.Class }); return null; }
-        return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />
-      case CreationStep.FeatSelection:
+        if (!selectedClass) return <StepLockedPlaceholder message="Select a class first to unlock this step." />;
+        return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />;
+      case CreationStep.FeatSelection: {
         // Calculate known skills so we can disable them in the Skilled feat picker
         const previewForFeat = generatePreviewCharacter(state, state.characterName);
         const knownSkills = previewForFeat?.skills.map(s => s.id) || [];
         return <FeatSelection availableFeats={featOptions} selectedFeatId={state.selectedFeat || undefined} featChoices={state.featChoices} onSelectFeat={handleFeatSelect} onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} onConfirm={handleFeatConfirm} onBack={goBack} hasEligibleFeats={hasEligibleFeats} dispatch={appDispatch} knownSkillIds={knownSkills} />;
-      case CreationStep.NameAndReview:
-        {
-          const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
-          if (!characterToPreview) {
-            console.error("Missing critical data for review step. Reverting to Race Selection.", state);
-            dispatch({ type: 'SET_STEP', payload: CreationStep.Race });
-            return <p className="text-red-400">Error: Missing critical character data. Returning to start.</p>;
-          }
+      }
+      case CreationStep.NameAndReview: {
+        const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
+        if (!characterToPreview) {
+          console.error("Missing critical data for review step.", state);
           return (
-            <NameAndReview
-              characterPreview={characterToPreview}
-              onConfirm={handleNameAndReviewSubmit}
-              initialName={state.characterName}
-              onNameDraftChange={(nextName) => dispatch({ type: 'SET_CHARACTER_NAME', payload: nextName })}
-              visualDescription={state.visualDescription}
-              onVisualDescriptionChange={(nextDescription) => dispatch({ type: 'SET_VISUAL_DESCRIPTION', payload: nextDescription })}
-              portraitsEnabled={ENV.VITE_ENABLE_PORTRAITS}
-              portrait={state.portrait}
-              onGeneratePortrait={handleGeneratePortrait}
-              onCancelPortrait={handleCancelPortrait}
-              onClearPortrait={handleClearPortrait}
-              onBack={goBack}
-              featStepSkipped={state.featStepSkipped}
+            <StepLockedPlaceholder
+              message="Missing required character data. Please complete earlier steps first."
+              onContinue={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Race })}
             />
           );
         }
+        return (
+          <NameAndReview
+            characterPreview={characterToPreview}
+            onConfirm={handleNameAndReviewSubmit}
+            initialName={state.characterName}
+            onNameDraftChange={(nextName) => dispatch({ type: 'SET_CHARACTER_NAME', payload: nextName })}
+            visualDescription={state.visualDescription}
+            onVisualDescriptionChange={(nextDescription) => dispatch({ type: 'SET_VISUAL_DESCRIPTION', payload: nextDescription })}
+            portraitsEnabled={ENV.VITE_ENABLE_PORTRAITS}
+            portrait={state.portrait}
+            onGeneratePortrait={handleGeneratePortrait}
+            onCancelPortrait={handleCancelPortrait}
+            onClearPortrait={handleClearPortrait}
+            onBack={goBack}
+            featStepSkipped={state.featStepSkipped}
+          />
+        );
+      }
       default:
         return <p>Unknown character creation step.</p>;
     }

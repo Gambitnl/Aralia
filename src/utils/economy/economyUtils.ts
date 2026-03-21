@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:32:12
+ * Last Sync: 11/03/2026, 01:19:00
  * Dependents: MerchantModal.tsx, economy/index.ts, handleMerchantInteraction.ts
  * Imports: 5 files
  *
@@ -13,6 +13,25 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
+
+/**
+ * This file handles all calculations for item prices in the game's economy.
+ *
+ * It centralizes how gold (GP), silver (SP), and copper (CP) are valued and how merchant
+ * transaction multipliers apply based on scarcity, regional wealth, and faction standing.
+ * By using this hub, we ensure that buying a torch in a rich capital city feels
+ * appropriately different from selling one in a struggling border village.
+ *
+ * Called by: MerchantModal.tsx (for display), handleMerchantInteraction.ts (for execution)
+ * Depends on: RegionalEconomySystem for local wealth data, FactionEconomyManager for standing bonuses
+ */
+
+// ============================================================================
+// Imports and Definitions
+// ============================================================================
+// We pull in the standard Item and Economy types.
+// PriceContext is a local helper to group faction data for standing-based discounts.
+
 
 /**
  * Copyright (c) 2024 Aralia RPG
@@ -32,6 +51,13 @@ export interface PriceContext {
   factions?: Record<string, Faction>;
   standings?: Record<string, PlayerFactionStanding>;
 }
+
+// ============================================================================
+// Parsing and Conversion
+// ============================================================================
+// These functions convert human-readable strings like "10 GP" into raw numbers
+// that the system can use for math.
+// ============================================================================
 
 /**
  * Parses a cost string like "10 GP" into a gold value.
@@ -68,9 +94,22 @@ export const parseCost = (costStr: string | undefined): number => {
  * - Buying: round UP to the nearest CP so items never become free.
  * - Selling: round DOWN to the nearest CP so we don't overpay due to rounding.
  */
+// ============================================================================
+// Precision Rounding
+// ============================================================================
+// Players see Gold, but we track value down to the Copper piece.
+// Rounding up on buys and down on sells prevents "infinite wealth" exploits
+// from rounding errors.
+// ============================================================================
 const roundGpToCopperCeil = (gp: number): number => Math.ceil(gp * 100) / 100;
 const roundGpToCopperFloor = (gp: number): number => Math.floor(gp * 100) / 100;
 
+// ============================================================================
+// Primary Price Engine
+// ============================================================================
+// This is the heart of the trade system. It takes an item and the current 
+// world state and spits out exactly what a merchant should charge.
+// ============================================================================
 export interface PriceCalculationResult {
   finalPrice: number;
   basePrice: number;
@@ -178,6 +217,19 @@ export const calculatePrice = (
   }
 
   // Regional Modifiers
+  // WHAT CHANGED: We now explicitly default 'globalInflation' and 'regionalWealth'
+  // if they are missing from the economy state.
+  // WHY IT CHANGED: Some older save files or legacy tests pass incomplete economy
+  // objects. Without these defaults, the math would hit 'undefined' values,
+  // resulting in NaN prices that would break the merchant UI (blocking all trades).
+  const safeGlobalInflation = typeof economy.globalInflation === 'number' ? economy.globalInflation : 0;
+  const safeRegionalWealth = economy.regionalWealth ?? {};
+  const safeEconomyForRegionalPricing = {
+    ...economy,
+    globalInflation: safeGlobalInflation,
+    regionalWealth: safeRegionalWealth
+  };
+
   if (regionId) {
     const region = REGIONAL_ECONOMIES[regionId];
     if (region) {
@@ -205,7 +257,7 @@ export const calculatePrice = (
 
   // Regional Wealth & Inflation Modifier
   // Wealthier regions have higher prices; inflation affects all regions.
-  const regionalPriceMod = getRegionalPriceModifier(regionId, economy);
+  const regionalPriceMod = getRegionalPriceModifier(regionId, safeEconomyForRegionalPricing);
   multiplier *= regionalPriceMod;
 
   // Faction Trade Bonus

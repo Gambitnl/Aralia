@@ -40,5 +40,3 @@
 - Planar travel is blocked within the warded area.
 Casting this spell on the same spot every day for 365 days makes the spell last until dispelled.
 - **Higher Levels**: You can increase the size of the Cube by 100 feet for each spell slot level above 4.
-- **Source**: PHB 2024
-- **Status**: Complete

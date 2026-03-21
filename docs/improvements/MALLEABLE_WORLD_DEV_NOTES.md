@@ -1,41 +1,47 @@
-# Malleable World: Development Notes & API
+# Malleable World: Development Notes
 
-## Overview
-The Malleable World system enables real-time terrain deformation and environmental state changes (e.g., Fire, Grease) driven by spells like *Mold Earth* and *Create Bonfire*.
+## Status
 
-## Core Components
+This is now a verified experimental-subsystem note, not just a hypothetical API sketch.
 
-### 1. `DeformationManager`
-The central logic engine that stores terrain height offsets and environmental overlays.
-- **Grid-based:** Uses a sparse grid (2ft resolution) to store height offsets.
-- **Disturbance Tracking:** Tracks how much a vertex has been moved to drive visual blending (e.g., Grass -> Dirt).
-- **API:**
-  - `applyDeformation(x, z, radius, amount, type)`: Modifies height.
-  - `addOverlay(overlay)`: Adds a conforming effect (Fire, Grease).
-  - `getHeightOffset(x, z)`: Returns interpolated height change.
-  - `getDisturbance(x, z)`: Returns accumulated change level.
+## Verified Current State
 
-### 2. `DeformableTerrain`
-The visual representation of the ground.
-- **High Density:** Uses 128x128 segments for smooth deformation.
-- **Vertex Coloring:** Blends between Grass and Dirt based on `disturbance`.
-- **Dynamic Updates:** Recomputes normals on every change to ensure correct lighting.
+The following experimental surfaces already exist under the ThreeD modal stack:
 
-### 3. `OverlayMesh`
-A specialized mesh for environmental effects.
-- **Conforming:** Dynamically samples the `DeformationManager` at every vertex to perfectly hug the deformed terrain.
-- **Visuals:** Uses transparent materials with distinct colors per effect type.
+- src/components/ThreeDModal/Experimental/DeformationManager.ts
+- src/components/ThreeDModal/Experimental/DeformableTerrain.tsx
+- src/components/ThreeDModal/Experimental/OverlayMesh.tsx
+- src/components/ThreeDModal/Experimental/types.ts
+- src/components/ThreeDModal/Experimental/DeformableScene.tsx
 
-## Implementation Guide for Spells
+Verified current capabilities from those files:
 
-To implement a new environmental spell:
-1.  **Identify Effect Type:** Add to `EnvironmentalEffectType` in `types.ts` if new.
-2.  **Define Interaction:**
-    - If it moves earth: Use `manager.applyDeformation`.
-    - If it adds a layer: Use `manager.addOverlay`.
-3.  **Visuals:** Add a color mapping in `OverlayMesh.tsx`.
+- DeformationManager stores height offsets on a sparse grid.
+- DeformationManager also tracks disturbance values separately from raw height change.
+- Environmental overlays already have a typed effect category surface.
+- OverlayMesh already has effect-color handling for overlays such as grease.
+- DeformableTerrain already consumes the deformation manager for visual terrain updates.
 
-## Performance Considerations
-- **Current:** CPU-side vertex updates. 128x128 grid is the limit for 60fps interaction.
-- **Future Optimization:** Move heightmap to a `DataTexture` and use a Vertex Shader for displacement. This will allow much larger terrains with zero CPU cost per frame.
-- **Physics:** Currently uses height sampling. If full rigid-body physics is needed, `cannon-es` or `rapier` heightfields should be updated in the manager's change loop.
+## Verified Limits
+
+- This subsystem currently lives in an experimental ThreeD path rather than a clearly verified production gameplay pipeline.
+- The current pass did not verify that live spell execution in the main game consistently drives this experimental terrain stack.
+- The note should therefore not be read as proof that malleable terrain is fully integrated into normal player-facing combat or exploration.
+
+## Rebased Use Of This Note
+
+This file is still useful for:
+
+- documenting the experimental deformation model
+- preserving the API shape of the prototype
+- pointing future terrain-reactivity work toward an existing subsystem instead of starting from zero
+
+## Most Relevant Future Questions
+
+- should this remain experimental, or graduate into a production system?
+- which live spell and environment systems should become its first real integration points?
+- what persistence, performance, and renderer constraints apply if it moves beyond prototype scope?
+
+## Preserved Intent
+
+The core idea remains valid: terrain-reactive spells and overlays should share one malleable-world implementation rather than fragmenting into one-off visuals.

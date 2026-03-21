@@ -10,7 +10,7 @@
 
 - **Range Type**: touch
 - **Targeting Type**: single
-- **Valid Targets**: willing_creature
+- **Valid Targets**: allies
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -25,11 +25,8 @@
 - **Duration Unit**: minute
 - **Concentration**: true
 
-- **Effect Type**: BUFF
-- **Save Stat**: None
-- **Save Outcome**: none
+- **Effect Type**: DEFENSIVE
 
 - **Description**: Until the spell ends, one willing creature you touch is protected against certain types of creatures: Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be Charmed, Frightened, or possessed by them. If the target is already Charmed, Frightened, or possessed by such a creature, the target has Advantage on any new saving throw against the relevant effect.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.309
-- **Status**: Complete
+

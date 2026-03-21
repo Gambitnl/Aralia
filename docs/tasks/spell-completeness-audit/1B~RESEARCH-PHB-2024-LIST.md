@@ -1,40 +1,22 @@
 # Task 1B: Research PHB 2024 Spell List
 
-Created: 2025-12-04 16:00 UTC  
-Last Updated: 2025-12-04 16:35 UTC  
-**Project:** Spell Completeness Audit & Description Extraction  
-**Type:** Task (Web Research)  
-**Status:** Completed
+**Status:** Preserved completion note
+**Last Reviewed:** 2026-03-11
 
----
+## Purpose
 
-## Objective
-Gather the official list of D&D 2024 Player's Handbook spells for levels 1-9, with source citations suitable for comparison and extraction work.
+Preserve what Task 1B produced without pretending this older research brief is still a live research assignment.
 
-## Inputs
-- External: 2024 PHB or trusted rules references.
-- Internal: `output/LOCAL-INVENTORY.md` (for alignment later).
+## Verified Current State
 
-## Deliverable
-- `docs/tasks/spell-completeness-audit/output/PHB-2024-REFERENCE.md`
-  - Spell name and level
-  - Citation (page number or authoritative link)
-  - Notes on variants or naming differences
+- The expected output file still exists at output/PHB-2024-REFERENCE.md.
+- The brief remains useful as provenance for the PHB comparison dataset used by the later gap analysis.
+- The current pass did not re-run the external PHB research or revalidate every citation against fresh outside sources.
 
-## Steps
-1. Conduct web research for the official PHB 2024 spell list (levels 1-9).
-2. Capture spell names exactly as published; record level and citation.
-3. Normalize a comparison name (e.g., uppercase/trim) to aid gap analysis.
-4. Document any ambiguous or multi-source cases.
-5. Save structured results to `output/PHB-2024-REFERENCE.md`.
+## Preserved Outcome
 
-## Constraints
-- Cantrips are out of scope.
-- Cite authoritative sources; avoid wikis with unclear provenance.
-- Research-only; no changes to codebase data files.
+Task 1B assembled the PHB 2024 levels 1-9 spell reference used by the audit project. That output still matters historically even though it should not be mistaken for a fresh 2026 source-verification pass.
 
-## Acceptance Criteria
-- [x] Includes all PHB 2024 spells for levels 1-9 with citations.
-- [x] Normalized comparison field provided.
-- [x] Ambiguities noted.
-- [x] Report saved to `output/PHB-2024-REFERENCE.md`.
+## Current Use
+
+Use this file as provenance for output/PHB-2024-REFERENCE.md. If publication-critical or roadmap-critical spell coverage decisions depend on the PHB list again, perform a new explicit verification pass instead of treating this preserved brief as current proof.

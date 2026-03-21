@@ -1,137 +1,220 @@
-# Aralia RPG Documentation Guide
+# Aralia Documentation System Guide
 
-This guide outlines the documentation strategy for the Aralia RPG project, ensuring clarity, maintainability, and ease of understanding for all contributors.
+**Last Updated**: 2026-03-10  
+**Purpose**: Define the current documentation structure, scope, and maintenance rules for the Aralia repository.
 
-## Philosophy
+## What This File Governs
 
-Our documentation aims to be:
-- **Accurate:** Reflects the current state of the codebase.
-- **Accessible:** Easy to find and understand.
-- **Hierarchical:** Provides both high-level overviews and in-depth details.
-- **Maintainable:** Structured to be updated alongside code changes.
+This guide is the contract for the maintained documentation system.
 
-## Documentation Structure
+It answers:
+- which markdown files belong to the official doc system
+- which markdown files are excluded
+- what kinds of docs exist
+- where each kind of doc should live
+- which docs are canonical entry points
 
-The project employs a multi-level system of uniquely named README files to provide comprehensive documentation.
+It does not replace the repo-root [`AGENTS.md`](../AGENTS.md). That file remains the authoritative instruction surface for agents working in this repository.
 
-1.  **Main Project README (`@PROJECT-OVERVIEW.README.md`) (in `docs/`):**
-    *   Serves as the primary entry point for understanding the project.
-    *   Contains:
-        *   Project overview and core features.
-        *   Technology stack.
-        *   Setup and running instructions.
-        *   High-level project structure.
-        *   Links to more detailed documentation, including component-specific READMEs, this guide, and the `@README-INDEX.md`.
-        *   Key development practices (dummy character, code formatting).
-        *   Instructions for common tasks like adding a new race.
-    *   The root `README.md` file now serves as a simple pointer to this more detailed overview.
+## Documentation Scope
 
-2.  **README Index (`@README-INDEX.md`) (in `docs/`):**
-    *   Located at `docs/@README-INDEX.md`.
-    *   Serves as a "table of contents" for all README files within the project.
-    *   Lists each README by its unique filename and provides a brief description of its content.
-    *   Aids in discoverability and navigation of the entire documentation suite. This is the primary tool for finding specific documentation files.
+The maintained documentation system has two surfaces.
 
-3.  **Component/Module/Data READMEs (e.g., `src/components/PlayerPane.README.md` or `src/data/spells/SPELLS_DATA.README.md`):**
-    *   **Naming Convention**: Each README file must have a unique and descriptive name, preferably following the `[SUBJECT].README.md` pattern (e.g., `PLAYER_PANE.README.md`, `GEMINI_SERVICE.README.md`, `ELF_DATA.README.md`). This makes the file's purpose clear from its name, independent of its directory.
-    *   **Location**: Placed in the closest logical directory to the code it documents (e.g., a component's README in its component directory, a data module's README alongside its data file).
-    *   Provides in-depth information about a specific part of the application.
-    *   **Content Guidelines for Specific READMEs:**
-        *   **Subject Name:** Clearly state the name of the component, module, service, or data structure.
-        *   **Purpose:** Briefly explain what it does and its role in the application.
-        *   **Props (for components):**
-            *   List each prop.
-            *   Specify its type (ideally linking to `types.ts` definitions if complex).
-            *   Describe its purpose and how it's used.
-            *   Indicate if it's optional or required.
-            *   **Validation Reminder**: _Emphasize that when this component is used, all props passed to it must strictly adhere to this defined interface. Thorough validation of passed props is crucial during development and integration._
-            *   **Parent Interaction Notes (Optional)**: _If the component has complex interactions that necessitate specific state structures or callback behaviors in its parent component, consider briefly noting these expectations. For example: "The `onItemSelect` prop expects a callback that will manage the selected item's state in the parent component." This clarifies the component's role within a larger system._
-        *   **State (for components with significant internal state):**
-            *   Describe key state variables.
-            *   Explain their purpose and how they influence behavior.
-        *   **Core Functionality / Logic:**
-            *   Explain the main logic, user interactions, or algorithms.
-            *   Detail any complex business rules implemented.
-        *   **Data Structure (for data files like `SPELLS_DATA.README.md`):**
-            *   Describe the primary exported data structure (e.g., `SPELLS_DATA: Record<string, Spell>`).
-            *   Detail the properties of the objects within that structure (e.g., properties of the `Spell` object).
-            *   Provide examples of data entries.
-            *   Explain how this data is used in the application.
-            *   Instructions on how to add new data entries.
-        *   **Service Interactions / API Calls (for services or components using them):**
-            *   Describe how it interacts with external services (e.g., `geminiService.ts`, `ttsService.ts`).
-            *   Mention key functions called or data consumed/produced.
-            *   Highlight any important aspects of API interaction (e.g., specific parameters, error handling).
-        *   **Data Dependencies:**
-            *   List any major data structures or constants it relies on (e.g., from `src/constants.ts` or other `src/data/` modules).
-        *   **Styling Notes (Optional):**
-            *   Highlight any significant or complex styling approaches if not obvious from Tailwind CSS classes or component structure.
-            <!-- TODO(QOL): Document styling source-of-truth (Tailwind vs index.css vs public/styles.css) and link it here (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). -->
-        *   **Example Usage (Optional but Recommended for Reusable Components/Services):**
-            *   A brief code snippet showing how the component or service might be typically used.
-        *   **Accessibility Notes (If Applicable):**
-            *   Mention any specific ARIA attributes used or accessibility considerations taken.
-        *   **Future Considerations / TODOs (Optional):**
-            *   Note any planned improvements, known issues, or refactoring opportunities.
+### 1. Primary documentation surface
 
-## Naming Conventions (Code Files)
+This is the main project documentation tree:
+- [`docs/`](./)
 
-To maintain consistency and readability across the project, the following naming conventions are established for code files:
+This surface contains:
+- project entry docs
+- architecture and product references
+- workflows and contributor guides
+- active work docs
+- registries and inventories
+- archives and historical reports
 
-### Directory Names
-*   Generally `lowercase`.
-*   If multiple words, use `kebab-case` (e.g., `character-creator`, `race-specific-components`).
-*   Examples: `src/components`, `src/data/races`, `src/components/CharacterCreator/Race`.
+### 2. Secondary documentation surface
 
-### TypeScript Files (`.ts`, `.tsx`)
-*   **React Component Files (`.tsx`):** `PascalCase.tsx` (e.g., `PlayerPane.tsx`, `RaceSelection.tsx`).
-*   **Non-Component Logic/Service/Type Files (`.ts`):**
-    *   General logic/services: `camelCase.ts` or `PascalCase.ts` (e.g., `geminiService.ts`, `ttsService.ts`, `types.ts`, `constants.ts`, `aiClient.ts`, `mapService.ts`).
-    *   Data definition files (e.g., within `src/data/`):
-        *   For individual race data: `[race_id_lowercase].ts` (e.g., `human.ts`, `aarakocra.ts`).
-        *   For other data modules (like biomes, spells, items, skills, classes) that might be a single file or an `index.ts` in a subdirectory: `[module_name_lowercase].ts` or `index.ts` (e.g., `biomes.ts`, `src/data/spells/index.ts`).
+This is the source-adjacent reference layer:
+- [`src/**/README.md`](../src/)
+- [`src/**/*.README.md`](../src/)
 
-### Variables and Functions
-*   **General Variables & Functions:** `camelCase` (e.g., `playerCharacter`, `calculateFinalScores`).
-*   **Constants:** `UPPER_SNAKE_CASE` (e.g., `POINT_BUY_TOTAL_POINTS`, `STARTING_LOCATION_ID`).
-    *   For larger data structures exported as constants (like race or class data), the primary export from a data file often follows `[ENTITY_NAME_UPPERCASE]_DATA` (e.g., `HUMAN_DATA`, `ELF_DATA`, `CLASSES_DATA`, `ALL_RACES_DATA`). Collections like `BIOMES`, `ITEMS`, `SPELLS_DATA` are also uppercase.
-*   **React Component Names & Functional Components:** `PascalCase` (e.g., `PlayerPane`, `CharacterCreator`).
-*   **Type and Interface Names:** `PascalCase` (e.g., `PlayerCharacter`, `AbilityScores`, `Race`).
-*   **Enum Names:** `PascalCase` (e.g., `GamePhase`, `CreationStep`).
-*   **Enum Members:** `UPPER_SNAKE_CASE` (e.g., `GamePhase.CHARACTER_CREATION`).
+These files are in scope for inventory and navigation, but they are not top-level authority docs. They document local implementation details close to the code.
 
-### Specific Conventions for Race and Class Files
+## Explicit Exclusions
 
-*   **Race Data Files (`src/data/races/`):**
-    *   **Filename:** `[race_id_lowercase].ts` (e.g., `human.ts`, `dragonborn.ts`, `air_genasi.ts`).
-    *   **Primary Exported Constant:** `[RACE_ID_UPPERCASE]_DATA` (e.g., `HUMAN_DATA`, `DRAGONBORN_DATA`).
+A markdown file is not automatically part of the maintained doc system just because it exists in the repo.
 
-*   **Race-Specific UI Selection Component Files (`src/components/CharacterCreator/Race/`):**
-    *   **Filename & Component Name:** `[RaceNamePascalCase][ChoiceTypePascalCase]Selection.tsx`
-    *   **Examples:**
-        *   `DragonbornAncestrySelection.tsx`
-        *   `ElfLineageSelection.tsx`
-        *   `HumanSkillSelection.tsx`
-        *   `AirGenasiSpellcastingAbilitySelection.tsx`
-        *   `AarakocraSpellcastingAbilitySelection.tsx`
-        *   `CentaurNaturalAffinitySkillSelection.tsx`
-        *   `ChangelingInstinctsSelection.tsx`
+The following areas are excluded unless explicitly re-admitted later:
+- local agent and workbench folders such as `.agent*`, `.claude`, `.codex`, `.cursor`, `.gemini`, `.jules`, `.uplink`, and `.playwright-cli`
+- dependency and build output folders such as `node_modules`, `dist`, `dist-ssr`, and the repo-root `generated/` directory
+- local tooling and report areas such as `misc`, `artifacts`, `verification`, `devtools`, `conductor`, and `playwright-report`
+- gitignored roadmap-tooling docs such as `docs/tasks/roadmap/` and `docs/@ROADMAP-SYSTEM-GUIDE.md`
 
-*   **Class-Specific UI Selection Component Files (`src/components/CharacterCreator/Class/`):**
-    *   **Filename & Component Name:** `[ClassNamePascalCase][FeatureNamePascalCase]Selection.tsx`
-    *   **Examples:**
-        *   `FighterFeatureSelection.tsx`
-        *   `ClericFeatureSelection.tsx`
+See [`docs/registry/@DOC-SCOPE.md`](./registry/@DOC-SCOPE.md) for the current scoped inventory snapshot.
 
-## Maintaining Documentation
+## Document Classes
 
--   **Alongside Code Changes:** Whenever a component, module, or core feature is significantly modified, its corresponding uniquely named README **must** be updated to reflect these changes. This is crucial for keeping the documentation useful.
--   **New Components/Modules/Data Files:** When adding a new significant part to the application, create a new, uniquely named README file for it following the guidelines above.
--   **README Index Updates**: When creating, significantly modifying, renaming, or removing any README file, the central `@README-INDEX.md` (now in `docs/@README-INDEX.md`) **must** be updated accordingly to maintain an accurate overview of all project documentation.
--   **Review:** Periodically review documentation for accuracy, completeness, and clarity. As the project evolves, ensure that the documentation evolves with it.
--   **Component READMEs as a "Source of Truth"**: When a component's props interface, core functionality, or expected parent interactions change, its README file should be updated **concurrently or even prior** to integrating these changes elsewhere. This practice helps the README serve as an accurate reference and checklist.
--   **Changelog Strategy**: The project uses a two-tiered changelog system:
-    1.  **Main Changelog (`docs/CHANGELOG.md`)**: A high-level overview of changes. Each entry is brief, noting the date, the component affected, its new version, and a link to the detailed changelog.
-    2.  **Component Changelogs (`src/components/[ComponentName]/CHANGELOG.md`)**: Detailed, component-specific changelogs. These files provide in-depth descriptions of the changes made to that specific component or feature.
+The target state is that every in-scope markdown file maps cleanly to one of these classes.
 
-This structured approach helps keep our documentation relevant and useful as the Aralia RPG project grows, making it easier for current and future developers to contribute effectively.
+During migration, some mixed folders still contain files that are only partially normalized.
+
+### `index`
+
+Entry points that help people orient themselves quickly.
+
+Examples:
+- project overview
+- architecture map
+- project-specific start-here docs
+
+### `reference`
+
+Durable explanation of the current system.
+
+Examples:
+- architecture domain docs
+- product philosophy
+- subsystem references
+- technical specs that still describe current reality
+
+### `workflow`
+
+Repeatable instructions for doing work.
+
+Examples:
+- contributor guides
+- troubleshooting
+- verification checklists
+- dev workflows
+
+### `work-item`
+
+Active plans, investigations, tasks, status boards, and project execution docs.
+
+Examples:
+- implementation plans
+- project task trees
+- current TODOs
+- live status trackers
+
+### `registry`
+
+Navigation and bookkeeping docs that describe the doc system itself.
+
+Examples:
+- README index
+- doc registry
+- retired-doc ledger
+- scoped inventory snapshots
+
+### `archive`
+
+Historical, completed, superseded, or audit-style documentation that should remain accessible but should not read as current authority.
+
+Examples:
+- completion reports
+- old audits
+- historical changelogs
+- retired task docs
+
+### `generated`
+
+Machine-produced outputs retained for reference.
+
+Examples:
+- generated inventories
+- machine reports
+- export snapshots
+
+## Placement Rules
+
+The placement rules are simple on purpose.
+
+These are the steady-state rules. Some transitional exceptions still exist while mixed subtrees are being normalized.
+
+- Canonical project entry docs stay at the root of [`docs/`](./).
+- Durable system references belong in existing reference-style folders such as [`docs/architecture/`](./architecture/), [`docs/guides/`](./guides/), [`docs/features/`](./features/), and similar stable domain areas.
+- Active execution docs belong in work-oriented areas such as [`docs/tasks/`](./tasks/), [`docs/plans/`](./plans/), [`docs/projects/`](./projects/), and active parts of [`docs/improvements/`](./improvements/).
+- Registries belong either at the root when they are canonical entry surfaces or under [`docs/registry/`](./registry/) when they are operational support files.
+- Historical reports and completed cleanup artifacts belong under [`docs/archive/`](./archive/).
+- Source-adjacent READMEs stay near the code they document.
+
+## Canonical Entry Points
+
+The root doc surface should stay small.
+
+These are the main stable docs people should start from:
+- [`@PROJECT-OVERVIEW.README.md`](./@PROJECT-OVERVIEW.README.md)
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md)
+- [`@README-INDEX.md`](./@README-INDEX.md)
+- this guide
+
+For active project execution, [`@ACTIVE-DOCS.md`](./@ACTIVE-DOCS.md) remains the main work-entry surface.
+
+Important rule:
+- audit reports, inventories, and completion summaries are not canonical entry points
+- source-adjacent READMEs are local references, not global hubs
+
+## Naming Guidance
+
+The repo currently has several naming eras. This guide does not try to rewrite every convention at once.
+
+Use these rules going forward:
+- Keep canonical root docs human-readable and stable.
+- Keep numbered active work docs in their existing numbered systems where those systems are already established.
+- Keep source-adjacent implementation docs close to the code, using either `README.md` for directory overviews or `[Name].README.md` for file-specific docs.
+- Do not create new docs with `AGENT` in the filename unless they are intentionally about agent operation. Use names like `DEVELOPMENT_GUIDE`, `TECHNICAL_SPEC`, `WORKFLOW`, or `PROJECT_INDEX` instead.
+
+Detailed numbering rules for existing numbered work-doc systems remain in [`@DOC-NAMING-CONVENTIONS.md`](./@DOC-NAMING-CONVENTIONS.md). That file governs the legacy-active numbered task surface, not every documentation class described here.
+
+## Source-Adjacent README Guidance
+
+The `src` documentation surface exists to explain local implementation details.
+
+Those docs should focus on:
+- purpose of the component/module/directory
+- important inputs and outputs
+- internal state or behavior worth preserving
+- dependencies and integration points
+- known limits or deferred work
+
+Those docs should not try to become parallel project-overview docs.
+
+## Archive Policy
+
+Move a doc to archive when one of these is true:
+- it records completed work rather than guiding current work
+- it was an audit or cleanup report for a finished pass
+- it has been superseded by a newer canonical doc
+- it preserves useful history but should no longer be read as current truth
+
+Archive instead of deleting when the history still helps explain decisions, prior migrations, or unfinished intent.
+
+## Maintenance Rules
+
+When adding or changing docs:
+- choose the document class first
+- place the file in the correct surface
+- update the canonical navigation or registry only if the doc belongs there
+- avoid creating new hub docs unless there is a strong reason
+
+When modifying code:
+- update nearby source-adjacent READMEs when local behavior, props, data shape, or workflows materially change
+
+When creating active project docs:
+- keep project execution docs separate from durable workflow/reference docs
+- retire or archive completed work docs instead of leaving them mixed with current execution docs forever
+
+## Current Migration Note
+
+The documentation system is being normalized in place rather than rewritten from scratch.
+
+The current migration direction is:
+- keep canonical root entry points stable
+- demote old cleanup and audit reports into archive space
+- treat `docs/AGENT.md` as a compatibility pointer, not a living authority doc
+- keep `src` READMEs as a secondary local-reference surface
+
+See [`docs/registry/@DOC-MIGRATION-LEDGER.md`](./registry/@DOC-MIGRATION-LEDGER.md) for the current migration decisions.

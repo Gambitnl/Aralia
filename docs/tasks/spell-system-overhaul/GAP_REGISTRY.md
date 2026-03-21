@@ -1,17 +1,23 @@
 # Spell Engine Gap Registry
 
-This file defines the standard codes for "Bundled Gaps" in the D&D 5e / PHB 2024 spell engine. These codes are used in the `gapAnalysis.gaps` field of spell JSONs to track mechanical implementation progress.
+> **Status Note (2026-03-11):**
+> - this file is a convention-level registry for tracking unresolved spell-engine limitations during migration work
+> - it should not be read as proof that every listed gap is still fully unsolved at runtime
+> - current validator support already exists for some related schema fields such as `savePenalty`, `on_target_move`, `on_enter_area`, and `on_attack_hit`
+> - if a migration task relies on one of these codes, re-verify the specific runtime behavior against current code before treating the gap as still open
+
+This file defines the standard codes for bundled gaps in the D&D 5e / PHB 2024 spell engine. These codes are intended for migration notes, gap logs, and optional structured metadata where a gap-tracking field exists.
 
 ## Engine/Behavior Gaps
 
 ### Core Combat
 - `ENG_REACTION_TRIGGER`: The engine lacks plumbing for these specific reaction triggers (e.g., "when targeted," "when hit").
 - `ENG_CONCENTRATION_RETARGET`: Lacks support for swapping the target of a concentration spell (e.g., *Hex*, *Hunter's Mark*).
-- `ENG_SAVE_PENALTY_MODIFIER`: Lacks a system to apply persistent penalties to saving throws (e.g., *Mind Sliver*).
+- `ENG_SAVE_PENALTY_MODIFIER`: Runtime/application support for persistent save penalties still needs verification even though validator/schema support now exists for `savePenalty` data.
 
 ### Area & Persistence
-- `ENG_AREA_TICK_TURN`: Area damage does not trigger correctly on turn start/end within the zone.
-- `ENG_AREA_TICK_ENTER`: Area damage does not trigger correctly when a creature first enters the zone on a turn.
+- `ENG_AREA_TICK_TURN`: Treat turn-start/turn-end area ticking as a runtime re-verification point even though schema support exists for those trigger concepts.
+- `ENG_AREA_TICK_ENTER`: Treat first-entry area damage as a runtime re-verification point even though schema support exists for `on_enter_area`.
 - `ENG_AREA_PERSIST_MOVE`: Persisting areas (e.g., *Cloud of Daggers*) do not correctly follow move/teleport logic.
 
 ### Behavior & AI
@@ -29,4 +35,4 @@ This file defines the standard codes for "Bundled Gaps" in the D&D 5e / PHB 2024
 
 ## Legacy Gaps
 - `LEGACY_FORMAT`: The spell is in an old JSON format and lacks structural fidelity.
-- `TODO_MECHANICS`: General catch-all for complex riders mentioned in `_todo` strings.
+- `TODO_MECHANICS`: Documentation-only catch-all for complex riders mentioned in `_todo` strings or similar notes; do not assume this code is schema-backed unless the target surface explicitly supports it.

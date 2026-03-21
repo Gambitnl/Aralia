@@ -1,56 +1,66 @@
-# Naval & Underdark
+﻿# Naval & Underdark
 
 ## Purpose
 
-Specialized environment systems for naval combat/travel and Underdark-specific mechanics (Faerzress, specialized factions).
+This domain covers the specialized naval and Underdark system lanes: ship and voyage mechanics, naval combat, faerzress and Underdark environmental rules, and the supporting data, services, types, and UI that expose those systems.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `src/systems/naval/` | Naval systems |
-| `src/systems/underdark/` | Underdark systems |
+- src/systems/naval/
+- src/systems/underdark/
+- src/services/underdarkService.ts
+- src/components/Naval/ShipPane.tsx
+- src/types/naval.ts
+- src/types/navalCombat.ts
+- src/types/underdark.ts
 
-## Subcomponents
+## Current Shape
 
-- **Naval**: Crew management, voyage mechanics, and ship-to-ship combat.
-- **Underdark**: Underdark factions and mechanics.
+### Naval lane
 
-## File Ownership
+This pass verified the live naval subtree under src/systems/naval/, including:
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/systems/naval/**/*.ts` | Directory | Naval systems |
-| `src/systems/underdark/*.ts` | Directory | Underdark systems |
-| `src/data/naval/*.ts` | Data | Naval definitions |
-| `src/data/ship*.ts` | Data | Ship definitions |
-| `src/data/underdark*.ts` | Data | Underdark data |
-| `src/data/navalManeuvers.ts` | Data | Naval maneuvers |
-| `src/services/underdarkService.ts` | Service | Underdark logic |
-| `src/utils/naval*.ts` | Utils | Naval utilities |
-| `src/utils/underdark*.ts` | Utils | Underdark helpers |
-| `src/types/naval*.ts` | Types | Naval types |
-| `src/types/underdark.ts` | Types | Underdark types |
-| `src/types/infernal.ts` | Types | Infernal plane types |
+- CrewManager.ts
+- NavalCombatSystem.ts
+- NavalLogic.ts
+- VoyageManager.ts
+- src/systems/naval/__tests__/NavalCombatSystem.test.ts
+- src/systems/naval/__tests__/VoyageManager.test.ts
 
-## Dependencies
+It also confirmed adjacent naval UI and data surfaces:
 
-### Depends On
+- src/components/Naval/ShipPane.tsx
+- src/components/Naval/__tests__/ShipPane.test.tsx
+- src/data/naval/
+- src/data/ships.ts
+- src/data/shipModifications.ts
+- src/data/navalManeuvers.ts
 
-- **[Combat](./combat.md)**: Naval combat overrides base combat logic
+### Underdark lane
 
-### Used By
+This pass verified the live Underdark subtree under src/systems/underdark/, including:
 
-- **[Submap](./submap.md)**: Underdark regions and sea travel
+- FaerzressSystem.ts
+- UnderdarkFactionSystem.ts
+- UnderdarkMechanics.ts
+- src/systems/underdark/__tests__/FaerzressSystem.test.ts
+- src/systems/underdark/__tests__/UnderdarkBiomeMechanics.test.ts
+- src/systems/underdark/__tests__/UnderdarkFactionSystem.test.ts
+- src/systems/underdark/__tests__/UnderdarkMechanics.test.ts
 
-### Claimed Tests (Auto-generated)
+It also confirmed:
 
-| Test File | Description |
-|-----------|-------------|
-| `src/systems/underdark/__tests__/FaerzressSystem.test.ts` | Faerzress system tests |
-| `src/systems/underdark/__tests__/UnderdarkBiomeMechanics.test.ts` | Underdark biome mechanics tests |
-| `src/systems/underdark/__tests__/UnderdarkFactionSystem.test.ts` | Underdark faction system tests |
-| `src/systems/underdark/__tests__/UnderdarkMechanics.test.ts` | Underdark mechanics tests |
-| `src/services/__tests__/underdarkService.test.ts` | Underdark service tests |
-| `src/utils/__tests__/navalCombatUtils.test.ts` | Naval combat utility tests |
-| `src/utils/__tests__/navalUtils.test.ts` | Naval utility tests |
+- src/services/underdarkService.ts
+- src/data/underdark/
+- src/data/underdarkFactions.ts
+
+## Important Corrections
+
+- The repo now has a real naval UI surface under src/components/Naval/, which the older doc did not call out.
+- The naval lane is not only utilities and data; it has concrete system managers and tests.
+- The older type listing included infernal-plane types as if they belonged directly to this domain. Plane-specific types belong more naturally with the planar and travel lane.
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this domain as the specialized naval plus Underdark mechanics lane: ship and voyage logic, naval combat, faerzress and faction systems, and the supporting data and UI that expose those environments.

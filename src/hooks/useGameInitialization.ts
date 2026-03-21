@@ -15,6 +15,21 @@
 // @dependencies-end
 
 /**
+ * ARCHITECTURAL CONTEXT:
+ * This hook is the 'bootloader' for the Aralia engine. It handles all entrance 
+ * vectors into the game world: New Game, Quick Start (Skip), and Loading Saves.
+ *
+ * It acts as a bridge between high-level UI intents and the low-level procedural 
+ * generation services (map generation, character generation).
+ *
+ * Called by: App.tsx
+ * Use cases: 
+ * - Standard flow (New Game -> Character Creator -> Gameplay)
+ * - Dev flow (Skip Character Creator -> Direct Gameplay)
+ * - Persistence (Load Game)
+ */
+
+/**
  * @file src/hooks/useGameInitialization.ts
  * Central hook for all game-start flows. Provides callbacks for:
  *  - handleNewGame:                Opens the character creator wizard for a fresh game.
@@ -172,12 +187,17 @@ export function useGameInitialization({
   // Triggered when the player clicks "Load Game" from the main menu.
   // Reads saved state from local storage and either restores the full game
   // or falls back to the main menu with an error notification.
-  const handleLoadGameFlow = useCallback(async () => {
+  const handleLoadGameFlow = useCallback(async (slotId?: string) => {
     // Show loading overlay while the save file is read and parsed.
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true } });
 
     // Attempt to load the saved game data from local storage.
-    const result = await SaveLoadService.loadGame();
+    // WHAT CHANGED: Added optional slotId parameter.
+    // WHY IT CHANGED: Previously, the engine always tried to load from the 
+    // 'DEFAULT' slot. To support multiple characters and manual saves, the 
+    // load flow now specifically targets a slot identifier, allowing the 
+    // "Load Game" UI to pass in the selected save index.
+    const result = await SaveLoadService.loadGame(slotId);
 
     if (result.success && result.data) {
       // Restore the entire game state from the save file.

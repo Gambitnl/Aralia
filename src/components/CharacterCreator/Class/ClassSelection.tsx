@@ -15,17 +15,34 @@
 // @dependencies-end
 
 /**
- * @file ClassSelection.tsx
- * Refactored to use the Split Config Style (List on Left, Details on Right).
+ * ARCHITECTURAL CONTEXT:
+ * This component orchestrates the 'Class Selection' screen. It uses a 
+ * SplitPaneLayout to allow players to browse a list of classes while 
+ * viewing deep details (hit dice, proficiencies, etc.) in a side-car 
+ * preview.
+ *
+ * Recent updates focus on 'UX Continuity' and 'Visual Feedback'.
+ * - Added `getClassIcon` integration into the `SelectionListItem`. This 
+ *   ensures that the class list is not just text, but a visual gallery 
+ *   that builds familiarity with class icons before the player reaches 
+ *   the final review screen.
+ * - Refined the `effectiveClassId` logic to allow for an 'Implicit 
+ *   Selection' of the first class in the sorted list, preventing a 
+ *   blank right pane on first mount without requiring an additional 
+ *   `useEffect` sweep.
+ * 
+ * @file src/components/CharacterCreator/Class/ClassSelection.tsx
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Class as CharClass } from '../../../types'; 
+import { Class as CharClass } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../../ui/SplitPaneLayout';
 import { ClassDetailPane } from './ClassDetailPane';
 import { SelectionListItem } from '../../ui/SelectionList';
 import { Button } from '../../ui/Button';
+import { GlossaryIcon } from '../../Glossary/IconRegistry';
+import { getClassIcon } from '../../../utils/classIcons';
 
 interface ClassSelectionProps {
   classes: CharClass[];
@@ -65,14 +82,22 @@ const ClassSelection: React.FC<ClassSelectionProps> = ({
       <SplitPaneLayout
         controls={
           <div className="space-y-2">
-            {sortedClasses.map((charClass) => (
-              <SelectionListItem
-                key={charClass.id}
-                label={charClass.name}
-                selected={effectiveClassId === charClass.id}
-                onClick={() => setSelectedClassId(charClass.id)}
-              />
-            ))}
+            {sortedClasses.map((charClass) => {
+              // WHAT CHANGED: Added icon resolution to the list mapper.
+              // WHY IT CHANGED: To provide immediate visual context in 
+              // the selection list, aligning with the design goal of 
+              // making class identities feel distinct through iconography.
+              const iconName = getClassIcon(charClass.name);
+              return (
+                <SelectionListItem
+                  key={charClass.id}
+                  label={charClass.name}
+                  selected={effectiveClassId === charClass.id}
+                  onClick={() => setSelectedClassId(charClass.id)}
+                  icon={iconName ? <GlossaryIcon name={iconName} className="w-4 h-4" /> : undefined}
+                />
+              );
+            })}
           </div>
         }
         preview={

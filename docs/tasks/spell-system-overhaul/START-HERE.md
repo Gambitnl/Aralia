@@ -1,5 +1,23 @@
 # Spell System Overhaul - START HERE
 
+**Last Updated**: 2026-03-11  
+
+## Status Note
+
+This file preserves an older multi-agent execution plan for the spell-system-overhaul effort.
+
+It is still useful as historical planning context, but it should not be treated as the sole current instruction surface for the subtree.
+
+Use it together with:
+- [`README.md`](./README.md)
+- [`1A-PROJECT-MASTER-SPRINGBOARD.md`](./1A-PROJECT-MASTER-SPRINGBOARD.md)
+- [`00-TASK-INDEX.md`](./00-TASK-INDEX.md)
+
+Important cautions:
+- timeline and staffing assumptions here are historical
+- some workflow expectations assume older agent and coordination models
+- command examples should be verified against the current repo before use
+
 **Welcome!** This document is your entry point to the Component-Based Spell System implementation.
 
 ---
@@ -8,9 +26,9 @@
 
 This is a complete task breakdown for transitioning Aralia's spell system from a brittle regex-based parser to a robust, data-driven component architecture with AI DM arbitration.
 
-**Timeline:** 2 weeks with 5 parallel agents
-**Estimated Effort:** ~80 hours total (16 hours per agent)
-**Current Status:** Ready for implementation
+**Historical timeline assumption:** 2 weeks with 5 parallel agents  
+**Historical estimated effort:** ~80 hours total  
+**Current note:** treat this as preserved plan context, not as a freshly verified schedule.
 
 ---
 
@@ -46,11 +64,7 @@ Read your assigned task file:
 
 ### Background / Architecture
 
-- **[../../architecture/@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)** - Original research document
-  - Effect taxonomy (8 core types)
-  - TypeScript schema design
-  - Grid algorithms
-  - AI arbitration tier system
+- **[../../architecture/SPELL_SYSTEM_ARCHITECTURE.md](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md)** - Current spell-system architecture reference
 
 ---
 
@@ -306,7 +320,7 @@ See [00-AGENT-COORDINATION.md](00-AGENT-COORDINATION.md#daily-standup-format) fo
 npm run spell:new
 
 # Validate all spell JSON files
-npm run validate:spells
+npm run validate
 ```
 
 ### Development
@@ -319,7 +333,7 @@ npm run build
 npm test
 
 # Type check only
-npm run type-check
+npm run typecheck
 ```
 
 ### Git Workflow
@@ -343,7 +357,7 @@ git push origin task/spell-system-[module]
 ## Emergency Contacts
 
 - **Orchestrator:** @orchestrator (Discord)
-- **Architecture Questions:** See [@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
+- **Architecture Questions:** See [SPELL_SYSTEM_ARCHITECTURE.md](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md)
 - **Integration Issues:** #spell-system-coordination (Discord)
 - **File Conflicts:** @orchestrator immediately
 

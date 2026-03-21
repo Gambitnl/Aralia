@@ -3,6 +3,8 @@
 **Date:** 2026-03-19
 **Status:** Approved
 
+> **IMPLEMENTED** — 2026-03-20. All items below were built as specified with one notable deviation: the `virtualNodes` derivation was originally a hardcoded 3-tier loop (depth 1→2→3→4→5). It was refactored to a **recursive `buildChildren(parentId, choices, depth)` inner function** inside a `useMemo`, guarded by `MAX_DEPTH = 14`, enabling unlimited axis drill-down. The `SpellBranchNavigator` was updated to accept `initialChoices?: AxisChoice[]` so the graph overlay can seed it when the user clicks "Open in Spell Branch →".
+
 ---
 
 ## Goal

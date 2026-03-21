@@ -26,11 +26,10 @@
 - **Concentration**: true
 
 - **Effect Type**: UTILITY
+- **Utility Type**: control
 - **Save Stat**: None
 - **Save Outcome**: none
 - **Conditions Applied**: Deafened
 
 - **Description**: For the duration, no sound can be created within or pass through a 20-foot-radius Sphere centered on a point you choose within range. Any creature or object entirely inside the Sphere is immune to Thunder damage, and creatures are Deafened while entirely inside it. Casting a spell that includes a Verbal component is impossible there.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.319
-- **Status**: Complete

@@ -28,8 +28,6 @@
 
 - **Description**: Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has Disadvantage on attack rolls against you. An attacker is immune to this effect if it doesn't rely on sight, as with Blindsight, or can see through illusions, as with Truesight.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.248
-- **Status**: Complete
 
 ---
 

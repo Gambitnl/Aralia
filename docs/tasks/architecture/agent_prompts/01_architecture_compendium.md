@@ -1,4 +1,11 @@
 # Agent Prompt 01 - Architecture Compendium (Domains -> Subdomains -> Files -> Dependencies)
+This file was re-verified on 2026-03-14.
+It is preserved as a historical agent prompt that helped motivate the current architecture-doc lane.
+
+Current reality:
+- `docs/ARCHITECTURE.md` and `docs/architecture/` now exist
+- this file should be read as prompt provenance, not as a live execution task for the first-wave docs pass
+
 
 Repo: `AraliaV4/Aralia`
 

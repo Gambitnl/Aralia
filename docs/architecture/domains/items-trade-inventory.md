@@ -1,81 +1,71 @@
-# Items / Trade / Inventory
+﻿# Items / Trade / Inventory
 
 ## Purpose
 
-This domain manages the item system including inventory management, equipment, merchants, trading, and the economy. It handles item definitions, stacking, equipping, and commercial transactions.
+This domain covers the item, trade, merchant, and economy-adjacent surfaces that support inventory management, pricing, trade routes, loot, and organization-facing economic UI.
+The current repo shape is broader than a single inventory modal, but narrower than the older doc's attempt to make every economy-related file one clean ownership block.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `src/components/MerchantModal.tsx` | Trading interface |
-| `src/components/Organization/OrganizationDashboard.tsx` | Organization management |
-| `src/types/items.ts` | Item type definitions |
-| `src/data/items/` | Item data definitions |
+- src/components/Trade/MerchantModal.tsx
+- src/components/Organization/OrganizationDashboard.tsx
+- src/data/items/
+- src/data/item_templates/
+- src/systems/economy/
+- src/services/lootService.ts
+- src/types/items.ts
+- src/types/economy.ts
+- src/types/crafting.ts
 
-## Subcomponents
+## Current Shape
 
-- **Inventory Display**: `InventoryList.tsx` - Item list and management
-- **Merchant Interface**: `MerchantModal.tsx` - Buy/sell transactions
-- **Organization UI**: `src/components/Organization/` - Guild/Order management
-- **Item Data**: `src/data/items/`, `item_templates/` - Item definitions
-- **Economy**: `src/systems/economy/` - Economic mechanics
-- **Loot Service**: `lootService.ts` - Loot generation
+### Trade UI lane
 
-## File Ownership
+The live merchant and trade UI now sits under src/components/Trade/ rather than at a root-level MerchantModal path.
+This pass verified:
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/MerchantModal.tsx` | Component | Merchant interface |
-| `src/components/Organization/*.tsx` | Component | Organization management UI |
-| `src/data/items/**/*.ts` | Directory | Item definitions |
-| `src/data/item_templates/**/*.ts` | Directory | Item templates |
-| `src/data/tradeRoutes.ts` | Data | Trade route definitions |
-| `src/systems/economy/*.ts` | Directory | Economy systems |
-| `src/services/lootService.ts` | Service | Loot generation |
-| `src/services/organizationService.ts` | Service | Faction and trade organizations |
-| `src/utils/economy/*.ts` | Utils | Economy calculations |
-| `src/types/items.ts` | Types | Item types |
-| `src/types/magicItems.ts` | Types | Magic item types |
-| `src/types/economy.ts` | Types | Economy types |
-| `src/types/crafting.ts` | Types | Crafting types |
+- src/components/Trade/MerchantModal.tsx
+- src/components/Trade/TradeRouteDashboard.tsx
+- src/components/Trade/MarketEventCard.tsx
+- src/components/Trade/RouteCard.tsx
+- src/components/Trade/__tests__/MerchantModal.test.tsx
 
+### Organization and economy-adjacent UI
 
-## Dependencies
+This pass verified the organization dashboard lane under src/components/Organization/, including OrganizationDashboard.tsx and its test coverage.
+That surface is related to economy and trade systems, but it should be treated as adjacent integration rather than as proof that all organization features belong to one unified inventory domain.
 
-### Depends On
+### Data and systems lane
 
-- **[Character Sheet](./character-sheet.md)**: Equipment display
-- **[Combat](./combat.md)**: Weapon/armor stats in combat
+This pass verified:
 
-### Used By
+- src/data/items/
+- src/data/item_templates/
+- src/data/tradeRoutes.ts
+- src/systems/economy/
+- src/utils/economy/economyUtils.ts
+- src/hooks/actions/handleMerchantInteraction.ts
+- src/services/lootService.ts
+- src/services/organizationService.ts
 
-- **[Character Sheet](./character-sheet.md)**: Equipment management
-- **[Town Map](./town-map.md)**: Merchant access
-- **[Combat](./combat.md)**: Item usage in combat
+## Important Corrections
 
-## Boundaries / Constraints
+- The live merchant UI path is src/components/Trade/MerchantModal.tsx, not src/components/MerchantModal.tsx.
+- The repo now has a real Trade component subtree and a real systems/economy subtree, so the older flat ownership summary had drifted.
+- Crafting is related, but this file should describe it as an adjacent shared type and integration lane, not as proof that a single finished crafting architecture already exists here.
 
-- Item data should be centralized in `src/data/items/`
-- Inventory changes should go through proper state management
-- Magic item identification rules should be enforced
-- Economy calculations should use `economyUtils.ts`
+## Tests Verified In This Pass
 
-## Open Questions / TODOs
+- src/components/Trade/__tests__/MerchantModal.test.tsx
+- src/components/Organization/__tests__/OrganizationDashboard.test.tsx
+- src/systems/economy/__tests__/TradeRouteManager.test.ts
+- src/systems/economy/__tests__/TradeRouteSystem.test.ts
+- src/utils/economy/__tests__/economyUtils.test.ts
+- src/hooks/actions/__tests__/handleMerchantInteraction.test.ts
+- src/services/__tests__/lootService.test.ts
+- src/services/__tests__/organizationService.test.ts
 
-- [ ] Document item stacking rules
-- [ ] Clarify magic item attunement system
-- [ ] Map crafting integration (if any)
-- [x] Validate merchant action payloads (item/cost/value) before dispatch. [DONE]
+## Current Interpretation
 
-### Claimed Tests (Auto-generated)
-
-| Test File | Description |
-|-----------|-------------|
-| `src/components/Organization/__tests__/OrganizationDashboard.test.tsx` | Organization dashboard tests |
-| `src/systems/economy/__tests__/TradeRouteManager.test.ts` | Trade route manager tests |
-| `src/systems/economy/__tests__/TradeRouteSystem.test.ts` | Trade route system tests |
-| `src/utils/__tests__/coinPurseUtils.test.ts` | Coin purse utility tests |
-| `src/utils/__tests__/economyUtils.test.ts` | Economy utility tests |
-| `src/utils/__tests__/entityIntegrationUtils.test.ts` | Entity integration utility tests |
-| `src/hooks/actions/__tests__/handleMerchantInteraction.test.ts` | Merchant transaction validation tests |
+Re-verified on 2026-03-11.
+Treat this domain as the item plus trade plus economy integration lane: data, merchant UI, trade-route systems, pricing helpers, and loot generation that multiple gameplay surfaces consume.

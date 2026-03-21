@@ -10,7 +10,7 @@
 
 - **Range Type**: touch
 - **Targeting Type**: single
-- **Valid Targets**: creature
+- **Valid Targets**: creatures
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -25,11 +25,9 @@
 - **Duration Unit**: hour
 - **Concentration**: false
 
-- **Effect Type**: BUFF
-- **Save Stat**: None
-- **Save Outcome**: none
+- **Effect Type**: UTILITY
+- **Utility Type**: other
 
 - **Description**: You touch a creature. The target's speed increases by 10 feet until the spell ends.
 - **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.
-- **Source**: PHB 2024 p.293
-- **Status**: Complete
+

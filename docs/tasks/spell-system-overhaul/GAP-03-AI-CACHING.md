@@ -1,34 +1,27 @@
 # Gap: Missing AI Caching Layer
 
-**Priority:** Medium (Optimization)
-**Status:** Open
-**Detected:** Dec 2025 (Agent Epsilon Review)
+**Priority:** Medium  
+**Status:** Still open  
+**Last Reverified:** 2026-03-11
 
-## Findings
-The original plan for Agent Epsilon (`docs/tasks/spell-system-overhaul/AGENT-EPSILON-AI.md`) explicitly called for an `ArbitrationCache` class.
-- **Current State:** `src/systems/spells/ai/AISpellArbitrator.ts` makes a fresh API call to Google Gemini *every time* `arbitrate()` is called.
-- **Code Audit:** No `ArbitrationCache` class exists in the codebase.
+## Verified Current State
 
-## The Problem
-AI calls are:
-1. **Slow:** 1-3 seconds latency disrupts combat flow.
-2. **Expensive:** Repeated calls cost tokens/money.
-3. **Redundant:** Casting "Meld into Stone" on the *exact same tile* 5 seconds later should not require a new AI judgment-the stone didn't move.
+The live arbitrator exists:
+- [`src/systems/spells/ai/AISpellArbitrator.ts`](../../../src/systems/spells/ai/AISpellArbitrator.ts)
 
-## Proposed Solution
-Implement an in-memory LRU (Least Recently Used) cache for arbitration results.
+What was not found during this pass:
+- [`src/systems/spells/ai/ArbitrationCache.ts`](../../../src/systems/spells/ai/ArbitrationCache.ts)
 
-### 1. `ArbitrationCache.ts`
-- **Key:** Hash of `(spellId + casterPosition + targetIds + playerInput)`.
-- **Value:** `ArbitrationResult`.
-- **TTL:** 5 minutes (or cleared on Scene Change).
+This pass also did not find a verified cache layer in the current AI arbitration flow.
 
-### 2. Integration
-- Modify `AISpellArbitrator.ts`:
-    1. Before calling `geminiService`, check `ArbitrationCache.get(key)`.
-    2. If hit, return cached result immediately.
-    3. If miss, call AI, then `ArbitrationCache.set(key, result)`.
+## Why The Gap Is Still Real
 
-## Impact
-- **Performance:** Instant response for repeated validation checks.
-- **Cost:** Significantly reduced API usage for spam-casting.
+Without caching:
+- repeated validation/adjudication can keep paying the same latency and API-cost penalty
+- repeated context checks can stay noisier than they need to be
+
+## Current Follow-Through
+
+1. Decide whether the cache should be in-memory only or tied to scene/combat resets.
+2. Add a narrow cache keyed by spell/context/input shape if this path becomes performance-sensitive in live use.
+3. Keep this as a real optimization gap, not as a claim that the whole AI service is still missing.

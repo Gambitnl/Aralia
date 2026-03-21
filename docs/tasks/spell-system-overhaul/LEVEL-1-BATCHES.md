@@ -1,6 +1,12 @@
 # Level 1 Spell Migration - Combined Batches
 
-**Scope:** All Level 1 spells migrated to structured schema, glossary, and manifest. Flat roots removed. Validator/integrity checks green.
+> **Status Note (2026-03-11):**
+> - this file is a preserved rollup summary of the late-2025 Level 1 migration batches
+> - the listed nested Level 1 JSON spell files were spot-verified during the current docs pass
+> - this file does not by itself prove current glossary coverage, flat-root cleanup completeness, or fresh green validation results
+> - use it as a batch grouping and milestone record, not as the sole source of truth for current verification status
+
+**Scope:** Level 1 migration rollup summary for the listed nested spell JSON batches.
 
 ## Batch 1
 - Spells: alarm; animal-friendship; armor-of-agathys; arms-of-hadar; bane

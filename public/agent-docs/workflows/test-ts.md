@@ -28,7 +28,10 @@ Execute this workflow to run tests and resolve TypeScript errors while adhering 
    - **Minimalism**: Fix only the reported error; do not refactor surrounding code.
    - **Stability**: Prioritize `@ts-expect-error` or `as any` if a formal fix threatens runtime stability (especially in legacy/procedural modules).
    - **Structural Integrity**: Never flatten or alter object shapes to satisfy the compiler; restore the interface to match the data if appropriate.
-   - **Workflow Ritual**: Annotate risky fixes with `// TODO(next-agent): Preserve behavior; refine type...`.
+   - **Refactor Escalation via Tags**: If the formal fix requires broader refactor, do not silently expand scope.
+     - Use `// TODO(next-agent):` to queue explicit refactor work.
+     - Use `// REVIEW_INTENT:` when unsure if existing logic is intentional.
+     - Use `// DEBT:` for temporary low-risk stabilization workarounds.
 
 5. **Final Hygiene**
    - Clear temporary logs (`tsc_output.log`).

@@ -1,0 +1,238 @@
+{
+    "id": "premade_lyris_songweaver",
+    "name": "Lyris Songweaver",
+    "age": 34,
+    "background": "entertainer",
+    "level": 1,
+    "xp": 0,
+    "proficiencyBonus": 2,
+    "race": {
+        "id": "lightfoot_halfling",
+        "name": "Lightfoot Halfling",
+        "baseRace": "halfling",
+        "description": "As a lightfoot halfling, you can easily hide from notice, even using other people as cover. You're inclined to be affable and get along well with others.",
+        "abilityBonuses": [],
+        "traits": [
+            "Creature Type: Humanoid",
+            "Size: Small (about 3 feet tall)",
+            "Speed: 25 feet",
+            "Lucky: When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
+            "Brave: You have Advantage on saving throws against being frightened.",
+            "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
+            "Naturally Stealthy: You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you."
+        ],
+        "visual": {
+            "id": "lightfoot_halfling",
+            "color": "#DEB887",
+            "maleIllustrationPath": "assets/images/races/Halfling_Lightfoot_Male.png",
+            "femaleIllustrationPath": "assets/images/races/Halfling_Lightfoot_Female.png"
+        }
+    },
+    "class": {
+        "id": "bard",
+        "name": "Bard",
+        "description": "A master of song, speech, and the magic they contain, Bards use their artistic talents to work magic and inspire allies.",
+        "hitDie": 8,
+        "primaryAbility": [
+            "Charisma"
+        ],
+        "savingThrowProficiencies": [
+            "Dexterity",
+            "Charisma"
+        ],
+        "skillProficienciesAvailable": [
+            "acrobatics",
+            "animal_handling",
+            "arcana",
+            "athletics",
+            "deception",
+            "history",
+            "insight",
+            "intimidation",
+            "investigation",
+            "medicine",
+            "nature",
+            "perception",
+            "performance",
+            "persuasion",
+            "religion",
+            "sleight_of_hand",
+            "stealth",
+            "survival"
+        ],
+        "numberOfSkillProficiencies": 3,
+        "armorProficiencies": [
+            "Light armor"
+        ],
+        "weaponProficiencies": [
+            "Simple weapons"
+        ],
+        "features": [
+            {
+                "id": "bardic_inspiration",
+                "name": "Bardic Inspiration",
+                "description": "Inspire others through stirring words or music.",
+                "levelAvailable": 1
+            }
+        ],
+        "spellcasting": {
+            "ability": "Charisma",
+            "knownCantrips": 2,
+            "knownSpellsL1": 4,
+            "spellList": [
+                "vicious-mockery",
+                "minor-illusion",
+                "healing-word",
+                "faerie-fire",
+                "charm-person",
+                "dissonant-whispers"
+            ]
+        },
+        "statRecommendationFocus": [
+            "Charisma",
+            "Dexterity",
+            "Constitution"
+        ],
+        "statRecommendationDetails": "Charisma is the heart of your spellcasting and class features.",
+        "recommendedPointBuyPriorities": [
+            "Charisma",
+            "Dexterity",
+            "Constitution",
+            "Wisdom",
+            "Intelligence",
+            "Strength"
+        ]
+    },
+    "classLevels": {
+        "bard": 1
+    },
+    "abilityScores": {
+        "Strength": 8,
+        "Dexterity": 14,
+        "Constitution": 13,
+        "Intelligence": 10,
+        "Wisdom": 12,
+        "Charisma": 16
+    },
+    "finalAbilityScores": {
+        "Strength": 8,
+        "Dexterity": 14,
+        "Constitution": 13,
+        "Intelligence": 10,
+        "Wisdom": 12,
+        "Charisma": 16
+    },
+    "skills": [
+        {
+            "id": "performance",
+            "name": "Performance",
+            "ability": "Charisma",
+            "description": "Your Charisma (Performance) check determines how well you can delight an audience."
+        },
+        {
+            "id": "persuasion",
+            "name": "Persuasion",
+            "ability": "Charisma",
+            "description": "When you attempt to influence someone or a group of people with tact, social graces, or good nature."
+        },
+        {
+            "id": "deception",
+            "name": "Deception",
+            "ability": "Charisma",
+            "description": "Your Charisma (Deception) check determines whether you can convincingly hide the truth."
+        }
+    ],
+    "savingThrowProficiencies": [
+        "Dexterity",
+        "Charisma"
+    ],
+    "feats": [],
+    "hp": 9,
+    "maxHp": 9,
+    "hitPointDice": [
+        {
+            "die": 8,
+            "current": 1,
+            "max": 1
+        }
+    ],
+    "armorClass": 13,
+    "speed": 25,
+    "darkvisionRange": 0,
+    "selectedWeaponMasteries": [],
+    "transportMode": "foot",
+    "spellcastingAbility": "charisma",
+    "spellbook": {
+        "cantrips": [
+            "vicious-mockery",
+            "minor-illusion"
+        ],
+        "knownSpells": [
+            "healing-word",
+            "faerie-fire",
+            "charm-person",
+            "dissonant-whispers"
+        ],
+        "preparedSpells": [
+            "healing-word",
+            "faerie-fire",
+            "charm-person",
+            "dissonant-whispers"
+        ]
+    },
+    "spellSlots": {
+        "level_1": {
+            "current": 2,
+            "max": 2
+        },
+        "level_2": {
+            "current": 0,
+            "max": 0
+        },
+        "level_3": {
+            "current": 0,
+            "max": 0
+        },
+        "level_4": {
+            "current": 0,
+            "max": 0
+        },
+        "level_5": {
+            "current": 0,
+            "max": 0
+        },
+        "level_6": {
+            "current": 0,
+            "max": 0
+        },
+        "level_7": {
+            "current": 0,
+            "max": 0
+        },
+        "level_8": {
+            "current": 0,
+            "max": 0
+        },
+        "level_9": {
+            "current": 0,
+            "max": 0
+        }
+    },
+    "equippedItems": {},
+    "activeEffects": [],
+    "statusEffects": [],
+    "limitedUses": {
+        "bardic_inspiration": {
+            "name": "Bardic Inspiration",
+            "current": 3,
+            "max": "charisma_mod",
+            "resetOn": "long_rest"
+        }
+    },
+    "racialSelections": {},
+    "visuals": {
+        "gender": "Female",
+        "skinColor": 1
+    },
+    "visualDescription": "A diminutive Lightfoot Halfling bard with curly auburn hair and sparkling green eyes. She carries a well-worn lute across her back and wears a patchwork cloak of many colours — each patch a memento from a different inn or festival."
+}

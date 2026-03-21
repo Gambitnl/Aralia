@@ -1,7 +1,19 @@
 /**
- * @file BardFeatureSelection.tsx
- * This component allows a player who has chosen the Bard class to select
- * their initial known cantrips and Level 1 spells.
+ * ARCHITECTURAL CONTEXT:
+ * This component manages the 'Bard Feature' step. After Class selection, 
+ * Bards must select their initial Cantrips and Level 1 spells.
+ *
+ * Recent updates focus on 'Screen Reader Optimization' and 'Selection Clarity'.
+ * - Added `sr-only` accessibility labels for all spell selection inputs.
+ * - Refined item highlighting to use a consolidated check 
+ *   (`selectedCantripIds.has || selectedSpellL1Ids.has`). This ensures 
+ *   that if a spell is selected in one category, it is visually marked 
+ *   as 'active' even if it appears in another list (supporting future 
+ *   multi-classing or race-based spell overlaps).
+ * - Implemented `useMemo` for spell filtering to ensure stable UI tree 
+ *   construction during selection state updates.
+ * 
+ * @file src/components/CharacterCreator/Class/BardFeatureSelection.tsx
  */
 import React, { useState, useMemo } from 'react';
 import { Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types';
@@ -83,11 +95,16 @@ const BardFeatureSelection: React.FC<BardFeatureSelectionProps> = ({
               <label 
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedCantripIds.has(spell.id) 
+                  // WHAT CHANGED: Consolidated highlighting logic.
+                  // WHY IT CHANGED: Ensures visual consistency. If a spell 
+                  // is active, it should be highlighted regardless of 
+                  // the specific list it's rendered in.
+                  (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
                   <input 
                     type="checkbox" 
@@ -120,11 +137,12 @@ const BardFeatureSelection: React.FC<BardFeatureSelectionProps> = ({
               <label 
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedSpellL1Ids.has(spell.id) 
+                  (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
                   <input 
                     type="checkbox" 

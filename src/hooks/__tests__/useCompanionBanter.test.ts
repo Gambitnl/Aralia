@@ -4,11 +4,51 @@ import { useCompanionBanter } from '../useCompanionBanter';
 import { GamePhase } from '../../types/core';
 import { OllamaService } from '../../services/ollama';
 
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This test suite validates the 'Banter Engine' (useCompanionBanter). 
+ * It heavily mocks the 'Math.random' function and 'OllamaService' 
+ * to ensure deterministic test runs for a system that is fundamentally 
+ * probabilistic and AI-driven.
+ *
+ * Recent updates were made to support 'Player-Directed' banter. Because 
+ * the hook now has a branching path (automatic trigger -> NPC_TO_NPC vs 
+ * PLAYER_DIRECTED), the tests use explicit helpers (forceNpcToNpcTrigger) 
+ * to control the internal RNG rolls and maintain coverage for the 
+ * legacy banter paths.
+ * 
+ * @file src/hooks/__tests__/useCompanionBanter.test.ts
+ */
+
+// ============================================================================
+// Test helpers
+// ============================================================================
+// These helpers keep the tests explicit about which banter mode they want.
+// WHAT CHANGED: Added forceNpcToNpcTrigger and forceNpcToNpcManualStart.
+// WHY IT CHANGED: The hook now uses multiple RNG rolls (one for trigger, 
+// one for mode). Without these helpers, existing tests would have a 10% 
+// chance of accidentally triggering 'Player-Directed' mode, causing 
+// assertion failures on prompt structure and service calls.
+// ============================================================================
+
+const forceNpcToNpcTrigger = () => {
+    vi.mocked(Math.random)
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0.9);
+};
+
+const forceNpcToNpcManualStart = () => {
+    vi.mocked(Math.random)
+        .mockReturnValueOnce(0.9);
+};
+
 // Mock OllamaService
 vi.mock('../../services/ollama', () => ({
     OllamaService: {
         isAvailable: vi.fn(),
         generateBanterLine: vi.fn(),
+        generatePlayerDirectedLine: vi.fn(),
+        generateEscalationLine: vi.fn(),
         summarizeConversation: vi.fn()
     },
     // TODO(lint-intent): Add a non-empty fact payload when banter fact extraction is exercised in tests.
@@ -20,6 +60,26 @@ const originalRandom = Math.random;
 beforeEach(() => {
     Math.random = vi.fn().mockReturnValue(0);
     vi.mocked(OllamaService.isAvailable).mockResolvedValue(true);
+    vi.mocked(OllamaService.generatePlayerDirectedLine).mockResolvedValue({
+        success: true,
+        data: {
+            speakerId: 'kaelen_thorne',
+            text: 'Hello',
+            emotion: 'neutral',
+            isConcluding: false
+        },
+        metadata: { id: 'player-directed', prompt: 'p', response: 'r', model: 'm' }
+    } as any);
+    vi.mocked(OllamaService.generateEscalationLine).mockResolvedValue({
+        success: true,
+        data: {
+            speakerId: 'kaelen_thorne',
+            text: 'Still there?',
+            emotion: 'neutral',
+            isConcluding: false
+        },
+        metadata: { id: 'escalation', prompt: 'p', response: 'r', model: 'm' }
+    } as any);
 });
 
 afterEach(() => {
@@ -96,6 +156,10 @@ describe('useCompanionBanter', () => {
     });
 
     it('should call OllamaService.generateBanterLine if conditions are met', async () => {
+        // Force the automatic trigger down the classic NPC-to-NPC path so this
+        // test keeps validating the original banter-line behavior.
+        forceNpcToNpcTrigger();
+
         vi.mocked(OllamaService.generateBanterLine).mockImplementation(async (participants, history, context, turn, onLog) => {
             if (onLog) {
                 onLog('test-id', 'test prompt', 'test-model');
@@ -133,6 +197,21 @@ describe('useCompanionBanter', () => {
     });
 
     it('should include deep persona data in OllamaService.generateBanterLine call', async () => {
+        // Keep this test on the NPC-to-NPC branch because it inspects the
+        // participant payload sent into the standard multi-companion generator.
+        forceNpcToNpcTrigger();
+
+        vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
+            success: true,
+            data: {
+                speakerId: 'kaelen_thorne',
+                text: 'Hello',
+                emotion: 'neutral',
+                isConcluding: false
+            },
+            metadata: { id: 'test-id', prompt: 'p', response: 'r', model: 'm' }
+        } as any);
+
         renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
 
         await act(async () => {
@@ -168,6 +247,10 @@ describe('useCompanionBanter', () => {
         const stateWithoutLog = { ...baseGameState };
         delete (stateWithoutLog as any).ollamaInteractionLog;
 
+        // Force the old NPC-to-NPC path so the assertion below still checks the
+        // log-entry dispatch that happens when a standard banter line is generated.
+        forceNpcToNpcTrigger();
+
         vi.mocked(OllamaService.generateBanterLine).mockImplementation(async (participants, history, context, turn, onLog) => {
             if (onLog) {
                 onLog('test-id', 'test prompt', 'test-model');
@@ -199,6 +282,10 @@ describe('useCompanionBanter', () => {
     });
 
     it('should summarize conversation and add memories when banter ends with sufficient history', async () => {
+        // forceBanter skips the trigger-roll check and only rolls for mode,
+        // so one NPC-to-NPC roll is enough here.
+        forceNpcToNpcManualStart();
+
         vi.mocked(OllamaService.summarizeConversation).mockResolvedValue({
             success: true,
             data: { text: 'A great conversation about cheese.', tags: ['food', 'fun'], approvalChange: 0 },

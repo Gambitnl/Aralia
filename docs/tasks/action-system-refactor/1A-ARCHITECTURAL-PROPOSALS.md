@@ -1,8 +1,15 @@
 # 1A-ARCHITECTURAL-PROPOSALS
+This file was re-verified on 2026-03-14.
+It is preserved as an architectural proposal note rather than a current implementation ledger.
+
+Current reality:
+- the repo already has `ActionMetadata` in the action type surfaces
+- the remaining proposal items should be read as design directions, not as claims that the surrounding action system is still missing a metadata layer entirely
+
 
 This document outlines four key architectural improvements to the Aralia action and state system, derived from the Phase 1 Merchant Overhaul implementation.
 
-## 📝 Proposal 2: Loading State Logic Centralization
+## ðŸ“ Proposal 2: Loading State Logic Centralization
 
 **Goal**: Eliminate redundant `dispatch({ type: 'SET_LOADING', ... })` calls in every async handler.
 
@@ -15,7 +22,7 @@ This document outlines four key architectural improvements to the Aralia action 
 
 ---
 
-## 📝 Proposal 3: Action Validation Layer
+## ðŸ“ Proposal 3: Action Validation Layer
 
 **Goal**: Prevent "garbage in, garbage out" by validating action payloads before they trigger side effects.
 
@@ -27,7 +34,7 @@ This document outlines four key architectural improvements to the Aralia action 
 
 ---
 
-## 📝 Proposal 4: JSDoc for Schema Extensions
+## ðŸ“ Proposal 4: JSDoc for Schema Extensions
 
 **Goal**: Maintain clarity as the `GameState` and `Item` interfaces grow beyond standard D&D schemas.
 
@@ -39,7 +46,7 @@ Establish specific JSDoc tags for the codebase:
 
 ---
 
-## 🌟 Proposal 5: Action Outcome Logging (Creative Idea)
+## ðŸŒŸ Proposal 5: Action Outcome Logging (Creative Idea)
 
 **Goal**: Provide a "Narrative Journal" that records not just what the player did, but the *consequences* of those actions.
 

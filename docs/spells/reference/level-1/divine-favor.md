@@ -22,7 +22,7 @@
 - **Duration Unit**: minute
 - **Concentration**: false
 
-- **Effect Type**: BUFF
+- **Effect Type**: DAMAGE
 - **Save Stat**: None
 - **Save Outcome**: none
 - **Damage Dice**: 1d4
@@ -30,5 +30,3 @@
 
 - **Description**: Your prayer empowers you with divine radiance. Until the spell ends, your weapon attacks deal an extra 1d4 Radiant damage on a hit.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.265
-- **Status**: Complete

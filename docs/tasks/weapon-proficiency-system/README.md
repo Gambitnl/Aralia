@@ -1,90 +1,42 @@
 # Weapon Proficiency System
 
-Complete implementation project for 2024 D&D weapon proficiency rules in Aralia.
+Current-state task packet for Aralia's weapon proficiency behavior.
 
----
+This subtree is no longer a greenfield plan. Manual repo verification on 2026-03-12 confirmed that the core helper, permissive equip rule, inventory wiring, mannequin warning, and weapon-mastery proficiency gate already exist in code. The remaining work is narrower: combat-roll penalty enforcement, combat-facing warning surfaces, and any follow-through tests or visual verification that have not been rerun recently.
 
-## 📋 Project Files
+## Start surfaces
 
-- **[START-HERE.md](START-HERE.md)** - Read this first! Complete project overview, goals, and roadmap
-- **[@PROJECT-INDEX.md](@PROJECT-INDEX.md)** - Task tracking, dependencies, and status
-- **[@WORKFLOW.md](@WORKFLOW.md)** - Daily workflow guide and best practices
-- **[TASK-TEMPLATE.md](TASK-TEMPLATE.md)** - Template for creating new tasks
+- [START-HERE.md](START-HERE.md): verified current-state overview and remaining gaps
+- [@PROJECT-INDEX.md](@PROJECT-INDEX.md): file-by-file status and disposition for this subtree
+- [@WORKFLOW.md](@WORKFLOW.md): how to work this subtree now that core implementation already landed
+- [TASK-TEMPLATE.md](TASK-TEMPLATE.md): generic template retained for future bounded follow-up tasks
 
----
+## Verified code anchors
 
-## 🎯 Quick Start
+- src/utils/character/weaponUtils.ts: shared Weapon Proficiency Check helper and Weapon Category helper
+- src/utils/character/characterUtils.ts: permissive canEquipItem warning path for non-proficient weapons
+- src/components/CharacterSheet/Overview/EquipmentMannequin.tsx: Equipped Weapon Warning surface
+- src/components/CharacterSheet/Overview/InventoryList.tsx: inventory filtering and tooltip plumbing
+- src/utils/combat/combatUtils.ts: combat ability generation carries isProficient and Weapon Mastery Proficiency Gate
+- src/components/CharacterCreator/WeaponMasterySelection.tsx: older class-creation proficiency filtering reference
 
-1. Read [START-HERE.md](START-HERE.md)
-2. Review [@PROJECT-INDEX.md](@PROJECT-INDEX.md)
-3. Start with [Task 01](01-add-weapon-proficiency-helper.md)
+## Subtree shape
 
----
+- Tasks 01 through 08 now function mostly as preserved implementation and audit notes for work that already landed.
+- Tasks 09 through 11 remain the active gap notes for combat-roll penalties and combat-facing warning UX.
+- weapon-audit-report.md remains the preserved audit evidence packet, but its older recommendation to remove isMartial should not be treated as already-landed truth.
 
-## 📝 All Tasks
+## Current capability summary
 
-### Phase 1: Core Logic (2-3 hours)
-- [01-add-weapon-proficiency-helper.md](01-add-weapon-proficiency-helper.md) - Create proficiency checking function
-- [02-integrate-proficiency-check.md](02-integrate-proficiency-check.md) - Add to canEquipItem()
-- [03-update-inventory-filtering.md](03-update-inventory-filtering.md) - Verify filtering works
+- Weapon Proficiency Check: implemented
+- Permissive Weapon Equip Rule: implemented
+- Inventory Weapon Proficiency Filtering: implemented
+- Equipped Weapon Warning: implemented
+- Inventory Weapon Proficiency Tooltip: implemented through shared warning text
+- Weapon Mastery Proficiency Gate: partially implemented in combat ability generation
+- Attack Roll Proficiency Penalty: not yet verified as enforced in final attack resolution
+- Combat Weapon Proficiency Warning: not yet verified in the combat UI
 
-### Phase 2: Visual Feedback (2-3 hours)
-- [04-equipped-weapon-warnings.md](04-equipped-weapon-warnings.md) - Red borders in mannequin
-- [05-update-tooltips.md](05-update-tooltips.md) - Enhanced tooltip messages
-- [06-inventory-indicators.md](06-inventory-indicators.md) - Visual indicators in inventory
+## Historical note
 
-### Phase 3: Data Audit (1-2 hours)
-- [07-audit-weapon-data.md](07-audit-weapon-data.md) - Audit all weapon definitions
-- [08-fix-proficiency-flags.md](08-fix-proficiency-flags.md) - Standardize data
-
-### Phase 4: Combat Integration (4-6 hours) - FUTURE
-- [09-attack-roll-penalties.md](09-attack-roll-penalties.md) - Exclude proficiency bonus
-- [10-weapon-mastery-integration.md](10-weapon-mastery-integration.md) - Disable mastery for non-proficient
-- [11-combat-ui-warnings.md](11-combat-ui-warnings.md) - Combat UI warnings
-
----
-
-## ✅ Status Overview
-
-| Phase | Status | Tasks | Estimated |
-|-------|--------|-------|-----------|
-| Phase 1 | 🔴 Not Started | 01-03 | 2-3 hours |
-| Phase 2 | 🔴 Not Started | 04-06 | 2-3 hours |
-| Phase 3 | 🔴 Not Started | 07-08 | 1-2 hours |
-| Phase 4 | 🔴 Future Work | 09-11 | 4-6 hours |
-
----
-
-## 🎮 Key Concepts
-
-**Permissive System**: Characters can equip ANY weapon, but non-proficient weapons incur penalties:
-- ❌ No proficiency bonus on attack rolls
-- ❌ Cannot use weapon mastery properties
-- ✅ Can still attack and deal damage
-
-**Visual Warnings**: Red border/ring on non-proficient equipped weapons, matching armor warning style.
-
-**2024 D&D Compliance**: Follows official rules from Player's Handbook 2024.
-
----
-
-## 🚀 Implementation Strategy
-
-1. **Phase 1**: Build backend logic - no UI changes
-2. **Phase 2**: Add visual feedback to UI
-3. **Phase 3**: Clean up weapon data (can run in parallel)
-4. **Phase 4**: Integrate with combat system (much later)
-
----
-
-## 📚 Related Documentation
-
-- [Spell System Overhaul](../spell-system-overhaul/START-HERE.md) - Similar project structure
-- [Character Utils](../../../src/utils/characterUtils.ts) - Equipment validation
-- [Equipment Mannequin](../../../src/components/EquipmentMannequin.tsx) - Visual warnings
-
----
-
-**Created**: 2025-12-08
-**Last Updated**: 2025-12-08
-**Status**: Planning Phase Complete
+Most files in this subtree were written in December 2025 as forward-looking task briefs. They are being preserved because they explain intent and landing order, but they should now be read through the verified-current-state framing in this subtree rather than as untouched implementation instructions.

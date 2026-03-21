@@ -1,41 +1,33 @@
-# Spell Integration Status: Level 6
+﻿# Spell Integration Status: Level 6
 
-**Legend:**
-*   🟢 **Gold (Structured)**: JSON has `effects` array. Engine uses precise data.
-*   🟡 **Silver (Inferred)**: `spellAbilityFactory` regex-parses description for damage/saves.
-*   ⚪ **Bronze (Metadata)**: Basic metadata only. No mechanical execution.
+Last Updated: 2026-03-12
 
-| Spell | Mechanics | Narrative Support | Notes |
-| :--- | :--- | :--- | :--- |
-| **Arcane Gate** | ⚪ Bronze | 🟡 Basic | Teleportation portals |
-| **Blade Barrier** | 🟡 Silver | ❌ None | Hazardous Wall |
-| **Chain Lightning** | 🟡 Silver | ❌ None | Multi-target damage |
-| **Circle of Death** | 🟡 Silver | ❌ None | Massive AoE Necrotic |
-| **Contingency** | ⚪ Bronze | ❌ None | Conditional spell trigger |
-| **Create Undead** | ⚪ Bronze | ❌ None | Summoning (Ghouls+) |
-| **Disintegrate** | 🟡 Silver | 🟡 Basic | High damage / Object destroy |
-| **Eyebite** | ⚪ Bronze | ❌ None | Status effects (Sleep/Panic) |
-| **Find the Path** | ⚪ Bronze | 🟡 Basic | Navigation aid |
-| **Flesh to Stone** | ⚪ Bronze | ❌ None | Petrify condition |
-| **Forbiddance** | ⚪ Bronze | ❌ None | Area warding |
-| **Globe of Invulnerability** | ⚪ Bronze | ❌ None | Spell immunity zone |
-| **Guards and Wards** | ⚪ Bronze | ❌ None | Fortress preparation |
-| **Harm** | 🟡 Silver | ❌ None | High damage / HP reduce |
-| **Heal** | 🟡 Silver | ❌ None | High flat heal + cure |
-| **Heroes' Feast** | ⚪ Bronze | ❌ None | Buff / Immunity poison/fear |
-| **Magic Jar** | ⚪ Bronze | ❌ None | Possession mechanics |
-| **Mass Suggestion** | ⚪ Bronze | 🟡 Basic | Mass mind control |
-| **Move Earth** | ⚪ Bronze | 🟡 Basic | Major terrain mod |
-| **Otiluke's Freezing Sphere** | 🟡 Silver | ❌ None | AoE Cold |
-| **Otto's Irresistible Dance** | ⚪ Bronze | ❌ None | CC (Dance) |
-| **Planar Ally** | ⚪ Bronze | 🟡 Basic | Summoning / Bargain |
-| **Programmed Illusion** | ⚪ Bronze | 🟡 Basic | Permanent illusion |
-| **Summon Fiend** | ⚪ Bronze | ❌ None | Summoning |
-| **Sunbeam** | 🟡 Silver | ❌ None | Line AoE / Blind |
-| **Tasha's Bubbling Cauldron**| ⚪ Bronze | ❌ None | Crafting? (Newer spell) |
-| **Transport via Plants** | ⚪ Bronze | 🟡 Basic | Teleportation |
-| **True Seeing** | ⚪ Bronze | 🟡 Basic | Vision (Truesight) |
-| **Wall of Ice** | 🟡 Silver | ❌ None | Barrier + Damage |
-| **Wall of Thorns** | 🟡 Silver | ❌ None | Barrier + Damage |
-| **Wind Walk** | ⚪ Bronze | 🟡 Basic | Travel speed / Form |
-| **Word of Recall** | ⚪ Bronze | 🟡 Basic | Teleport to sanctuary |
+## Verified Current Inventory Fact
+
+A manual repo check during the 2026-03-12 doc pass confirmed:
+- ../../public/data/spells/level-6 currently contains 45 spell JSON files
+- the level-6 folder remains part of the active manifest-backed spell-data lane
+
+## Current Interpretation
+
+This file no longer presents the older Gold, Silver, and Bronze labels as current truth.
+That older scoring depended on a narrower reading of spell execution than the current repo supports.
+
+What this file can honestly say now:
+- level-6 has a real migrated inventory
+- level-6 spell data still participates in the validator, manifest, loader, and glossary paths
+- direct execution truth for any given level-6 spell still needs file-specific verification
+
+## Where To Verify A Specific Level-6 Spell
+
+Use:
+- ./SPELL_INTEGRATION_CHECKLIST.md
+- ../../src/systems/spells/validation/spellValidator.ts
+- ../../scripts/check-spell-integrity.ts
+- ../../src/context/SpellContext.tsx
+- ../../src/utils/character/spellAbilityFactory.ts
+- any refreshed spell-overhaul note that covers the mechanic in question
+
+## Historical Note
+
+The older level-6 table remains migration history, not a trustworthy current maturity dashboard.

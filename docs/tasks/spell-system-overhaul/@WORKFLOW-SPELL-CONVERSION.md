@@ -1,105 +1,62 @@
-# @WORKFLOW-SPELL-CONVERSION
+# Spell Conversion Workflow
 
-Single-source workflow for converting legacy spell data into the current JSON format.
+**Last Updated**: 2026-03-11  
+**Purpose**: Describe the current spell-conversion workflow in a narrower, safer way than the older migration docs, while avoiding stale assumptions about glossary locations or folder completeness.
 
-**Scope**: Applies to all spell migrations (cantrips and leveled).  
-**Sources**: `docs/spells/SPELL_JSON_EXAMPLES.md`, `docs/tasks/spell-system-overhaul/SALVAGED_SPELL_CONTEXT.md`, `src/types/spells.ts`.
+## Scope
 
----
+Use this workflow when converting or normalizing spell JSON data in the current repo.
 
-## Required Inputs
-- Spell source text (card/SRD) with casting time, range, components, duration, effects, upcast rules.
-- Class access list (base class + subclasses).
-- Legacy data (if converting existing file).
+This workflow is for:
+- spell JSON migration
+- schema-field normalization
+- validation and manifest checks
 
-### Cantrip/Level-0 Guardrails (must satisfy before editing)
-- Path: `public/data/spells/level-0/{id}.json` only; remove/replace any flat `public/data/spells/{id}.json` after field comparison.
-- Required fields: `ritual: false`, `castingTime.combatCost.type` present, `trigger` + `condition` on every effect, plural `validTargets`, Title Case damage types/schools/classes.
-- Use current schema primitives where appropriate: `trigger.type` supports `on_attack_hit`; effects may use `controlOptions`, `taunt`, `forcedMovement`, AoE `Square/height`, `saveModifiers`, `requiresStatus`, `escapeCheck`, `familiarContract`, `dispersedByStrongWind`.
-- Run the Field Comparison Check against any legacy file first (ritual, combatCost, tags, arbitrationType, strict enums/casing).
+It is not a guarantee that every older spell-doc assumption in this subtree is still current.
 
----
+## Current Sources Of Truth
 
-## Canonical Targets (New Format)
-- File location: `public/data/spells/level-{0-9}/{spell-id}.json` (cantrips → `level-0`).
-- ID/file name: kebab-case (e.g., `fire-bolt.json`, `absorb-elements.json`).
-- Enums/casing: lower_snake for time units (`action`, `bonus_action`, `reaction`), Title case for schools/damage types/classes (`Evocation`, `Fire`, `Wizard`), ALLCAPS for effect types (`DAMAGE`, `DEFENSIVE`, etc.).
+Use these sources first:
+- [`../../spells/SPELL_JSON_EXAMPLES.md`](../../spells/SPELL_JSON_EXAMPLES.md)
+- [`../../../src/types/spells.ts`](../../../src/types/spells.ts)
+- [`../../../package.json`](../../../package.json) for current commands
+- current spell files under `public/data/spells/`
 
----
+Use older subtree docs as supporting context only when they still match the repo.
 
-## Field Mapping (Legacy → New)
-- `damage` → `effects[].damage.dice`
-- `damageType` → `effects[].damage.type`
-- `areaOfEffect` → `targeting.areaOfEffect` (primary AoE). Use `effects[].areaOfEffect` only for secondary explosions (e.g., Ice Knife).
-- `saveType` → `effects[].condition.saveType`
-- `description` → `description`
-- Add required fields that legacy lacked: `classes`, `school`, `components`, `duration`, `targeting.validTargets`, `effects[].subtype`, and BaseEffect fields (`trigger`, `condition`, optional `scaling`).
+## Core Workflow
 
----
+1. Read the closest spell example in `docs/spells/SPELL_JSON_EXAMPLES.md`.
+2. Inspect the existing target file, if one exists.
+3. Normalize the spell data into the current folder structure and schema shape.
+4. Verify enums, casing, effect fields, targeting fields, and scaling fields.
+5. Run `npm run validate`.
+6. Update any related status or tracking surface that still depends on the spell being migrated.
 
-## Class Normalization
-- Use base classes and allowed subclasses only (see SALVAGED_SPELL_CONTEXT). Format: `BASE CLASS - SUBCLASS` for subclass entries.
-- Filter out legacy tags like `"BARD (LEGACY)"`.
+## Important Current Rules
 
----
+- cantrips belong under `public/data/spells/level-0/`
+- leveled spells should use the level-based structure already present under `public/data/spells/`
+- every effect must satisfy the current schema requirements
+- use the current command names from `package.json`, not older variants copied from stale docs
 
-## Conversion Steps
-1) **Read Examples**: Open `docs/spells/SPELL_JSON_EXAMPLES.md`; pick the closest pattern (damage, save AoE, defensive reaction, healing, control, utility).
-2) **Create Target File**: Place in `public/data/spells/level-{N}/{spell-id}.json` (level 0 → `level-0`).
-3) **Populate Core Fields**: `id`, `name`, `level`, `school`, `classes`, `tags`, `ritual?`.
-4) **Casting/Range/Components/Duration**: Ensure units and casing match enums; include `reactionCondition` for reactions; mark `concentration`.
-5) **Targeting**:
-   - Single: `type: "single"`, `range`, `validTargets`, optional `lineOfSight`.
-   - Area: `type: "area"`, `range`, `areaOfEffect { shape, size }`, `validTargets`.
-   - Multi: `type: "multi"`, `range`, `maxTargets`, `validTargets`.
-   - Self: `type: "self"`.
-6) **Effects (BaseEffect REQUIRED)**:
-   - `trigger`: `immediate | after_primary | turn_start | turn_end | on_enter_area | on_exit_area | on_end_turn_in_area | on_target_move | on_target_attack | on_target_cast | on_caster_action | on_attack_hit`
-     - Use `on_enter_area` for spells that trigger when creatures enter (e.g., Create Bonfire on move-in)
-     - Use `on_end_turn_in_area` for end-of-turn zone effects (e.g., Create Bonfire lingering damage)
-     - Use `on_exit_area` when leaving the zone triggers an effect (e.g., Grease/slow zones that punish leaving)
-     - Use `on_target_move` for spells that trigger on target movement (e.g., Booming Blade)
-   - `trigger.frequency` (optional): `every_time | first_per_turn | once | once_per_creature`
-   - `trigger.consumption` (optional): `unlimited | first_hit | per_turn` (for riders)
-   - `trigger.attackFilter` (optional): filter by `weaponType` ("melee"/"ranged")
-   - `condition`: `hit | save | always` (+ `saveType`, `saveEffect` when save)
-   - `condition.targetFilter` (optional): Filter effects by creature properties
-     - `{ "creatureType": ["Undead"] }` for effects that only apply to certain types
-   - `scaling`: optional (`slot_level` or `character_level`; include `bonusPerLevel` or custom formula)
-   - Then add effect-specific fields (damage/healing/defensive/status_condition/etc.).
-7) **Upcasting/Scaling**:
-   - Cantrips: `character_level` scaling, include customFormula (e.g., 1/5/11/17 progression).
-   - Leveled: `slot_level` scaling and `higherLevels` text where applicable.
-8) **Glossary Entry**: Create/update `public/data/glossary/entries/spells/{spell-id}.md`; include frontmatter with `seeAlso` auto-links if your workflow supports it.
-9) **Status File**: Mark progress in `docs/spells/STATUS_LEVEL_0.md` or `STATUS_LEVEL_1.md` (`[D] Data Only`).
-10) **Integration Verification**: After migration, run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` for the spell and mark completion in the status file (e.g., add an "Integration" checkbox/column when updating status).
+## Cautions
 
----
+- Do not assume every legacy spell has a matching glossary markdown file in a dedicated `public/data/glossary/entries/spells/` folder; verify the current glossary structure first.
+- Do not assume all older migration status percentages in this subtree are current.
+- Do not assume older "single source of truth" workflow docs still exist just because nearby docs reference them.
 
-## Validation & Checks
-- Run `npm run validate` to ensure schema compliance.
-- Verify:
-  - All effects include `trigger` and `condition`.
-  - Enum casing matches (`action`, `Evocation`, `Fire`, `DAMAGE`).
-  - AoE resides under `targeting.areaOfEffect` (primary), not a top-level field.
-  - `classes` normalized; no legacy tags.
-  - Touch spells: `range.type: "touch"` and `targeting.range: 5`.
-  - Reactions: include `reactionCondition`; `castingTime.unit: "reaction"`.
-  - Material components with cost: `materialCost` and `isConsumed` set appropriately.
+## Validation Checklist
 
----
+Before calling a converted spell done:
+- file is in the correct location
+- schema-required fields are present
+- enum casing matches current conventions
+- `npm run validate` passes
+- any dependent status or tracking surface has been updated if it still matters
 
-## Common Patterns (Use from Examples)
-- Direct attack: `type: "single"`, `condition: { type: "hit" }`, `DAMAGE`.
-- Save-based AoE: `type: "area"`, `condition: { type: "save", saveType, saveEffect }`, `DAMAGE`.
-- Defensive reaction (Shield/Absorb Elements): `castingTime.unit: "reaction"`, `DEFENSIVE` (+ secondary `DAMAGE` for Absorb Elements).
-- Healing touch: `range.type: "touch"`, `targeting.range: 5`, `HEALING`.
-- Control: `STATUS_CONDITION` with duration and save.
+## Related Docs
 
----
-
-## Deliverable Definition
-- Validated spell JSON in correct `level-{N}` folder.
-- Glossary entry created/updated.
-- Status file updated.
-- Validation script passes.
+- [`SPELL-WORKFLOW-QUICK-REF.md`](./SPELL-WORKFLOW-QUICK-REF.md)
+- [`../../spells/SPELL_INTEGRATION_CHECKLIST.md`](../../spells/SPELL_INTEGRATION_CHECKLIST.md)
+- [`../../SPELL_INTEGRATION_STATUS.md`](../../SPELL_INTEGRATION_STATUS.md)

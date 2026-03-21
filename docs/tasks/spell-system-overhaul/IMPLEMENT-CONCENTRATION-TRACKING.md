@@ -1,434 +1,121 @@
 # Task: Implement Concentration Tracking System
 
-**Status:** Not Started
-**Priority:** High
-**Phase:** Phase 2 - Core Mechanics
-**Estimated Effort:** 2-3 days
-*
+**Status:** Preserved task spec with current-status note  
+**Last Reverified:** 2026-03-11  
+**Primary live implementation:** [`src/commands/effects/ConcentrationCommands.ts`](../../../src/commands/effects/ConcentrationCommands.ts)
 
 ---
 
-## Problem Statement
+## Why This File Still Exists
 
-D&D 5e concentration mechanics are **defined in types but not enforced** in combat:
+This task spec is preserved because the concentration system it proposed now exists across the combat type layer, command layer, and damage flow.
 
-- Spells have `duration.concentration: boolean` field ([src/types/spells.ts:151](../../../src/types/spells.ts#L151))
-- No system prevents casting multiple concentration spells simultaneously
-- No damage → concentration check mechanism exists
-- Active concentration spells not tracked in character state
-
-**Impact:** Players can maintain unlimited concentration spells, breaking D&D 5e rules.
+It is no longer accurate as a "not started" task.
 
 ---
 
-## D&D 5e Concentration Rules
+## Verified Current State
 
-From [@SPELL-SYSTEM-RESEARCH.md Section 2.3.3](../../architecture/@SPELL-SYSTEM-RESEARCH.md#233-concentration-tracking):
+The repo already contains concentration tracking surfaces in several places:
 
-### Rule 1: Only One Concentration Spell
-- Casting a new concentration spell **ends** the previous one
-- No exceptions
+### Types and mechanics
 
-### Rule 2: Damage Breaks Concentration
-- Taking damage triggers **Constitution saving throw**
-- DC = **10 or half damage taken, whichever is higher**
-- Failure → spell ends immediately
+- [`src/types/combat.ts`](../../../src/types/combat.ts) includes `ConcentrationState`
+- [`src/types/combat.ts`](../../../src/types/combat.ts) includes `CombatCharacter.concentratingOn`
+- [`src/systems/spells/mechanics/ConcentrationTracker.ts`](../../../src/systems/spells/mechanics/ConcentrationTracker.ts) exists
+- [`src/systems/spells/mechanics/__tests__/ConcentrationTracker.test.ts`](../../../src/systems/spells/mechanics/__tests__/ConcentrationTracker.test.ts) exists
 
-### Rule 3: Voluntary End
-- Can drop concentration as a **free action** on your turn
-- Some spells require action to maintain (rare)
+### Command flow
 
----
+- [`src/commands/effects/ConcentrationCommands.ts`](../../../src/commands/effects/ConcentrationCommands.ts) includes `StartConcentrationCommand` and `BreakConcentrationCommand`
+- [`src/commands/factory/SpellCommandFactory.ts`](../../../src/commands/factory/SpellCommandFactory.ts) inserts concentration start/break commands
+- [`src/commands/effects/DamageCommand.ts`](../../../src/commands/effects/DamageCommand.ts) checks concentration after damage and logs success/failure
+- [`src/utils/character/concentrationUtils.ts`](../../../src/utils/character/concentrationUtils.ts) is the live concentration utility surface
+- [`src/utils/concentrationUtils.ts`](../../../src/utils/concentrationUtils.ts) is now a deprecated bridge
 
-## Current State Analysis
+### UI-adjacent surfaces
 
-### Types Already Defined ✅
+- [`src/hooks/useAbilitySystem.ts`](../../../src/hooks/useAbilitySystem.ts) exports `dropConcentration`
+- [`src/components/BattleMap/CharacterToken.tsx`](../../../src/components/BattleMap/CharacterToken.tsx) shows a concentration indicator
+- [`src/components/BattleMap/ActionEconomyBar.tsx`](../../../src/components/BattleMap/ActionEconomyBar.tsx) already handles concentration sustain UI when `sustainCost` exists
 
-[src/types/combat.ts](../../../src/types/combat.ts):
-```typescript
-export interface CombatCharacter {
-  // ... existing fields
-  // NEED TO ADD:
-  concentratingOn?: ConcentrationState
-}
-```
-
-[src/types/spells.ts:147-152](../../../src/types/spells.ts#L147-L152):
-```typescript
-export interface Duration {
-  type: "instantaneous" | "timed" | "special" | "until_dispelled" | "until_dispelled_or_triggered";
-  value?: number;
-  unit?: "round" | "minute" | "hour" | "day";
-  concentration: boolean; // Already exists!
-}
-```
-
-### What's Missing ❌
-
-1. `ConcentrationState` interface
-2. Concentration tracking in `CombatCharacter`
-3. Logic to break concentration when casting new spell
-4. Damage → concentration save logic
-5. UI to show active concentration
-6. Command to drop concentration
+This means the older "no system prevents multiple concentration spells / no concentration save mechanism exists / no command to drop concentration" framing is no longer true as written.
 
 ---
 
-## Acceptance Criteria
+## Important Divergences From The Original Task Brief
 
-### 1. Define Concentration Types
+### Utility path changed
 
-Add to [src/types/combat.ts](../../../src/types/combat.ts):
+The older version of this file proposed:
+- `src/utils/concentrationUtils.ts`
 
-```typescript
-export interface ConcentrationState {
-  spellId: string
-  spellName: string
-  spellLevel: number // slot level used to cast
-  startedTurn: number // which combat turn it started
-  effectIds: string[] // IDs of active effects tied to this concentration
-  canDropAsFreeAction: boolean // usually true
-}
+What is true now:
+- the live implementation sits under [`src/utils/character/concentrationUtils.ts`](../../../src/utils/character/concentrationUtils.ts)
+- [`src/utils/concentrationUtils.ts`](../../../src/utils/concentrationUtils.ts) now exists as a deprecated bridge
 
-export interface CombatCharacter {
-  // ... existing fields
-  concentratingOn?: ConcentrationState
-}
-```
+### More cleanup logic exists than the older task assumed
 
-### 2. Update SpellCommandFactory
+`BreakConcentrationCommand` now does more than just clear a flag.
+It already attempts to remove:
+- linked riders
+- linked status effects
+- linked light sources
+- linked summons
 
-Modify [src/commands/factory/SpellCommandFactory.ts](../../../src/commands/factory/SpellCommandFactory.ts):
+That is more advanced than the original minimal proposal.
 
-```typescript
-static createCommands(
-  spell: Spell,
-  caster: CombatCharacter,
-  targets: CombatCharacter[],
-  castAtLevel: number,
-  gameState: GameState
-): SpellCommand[] {
-  const commands: SpellCommand[] = []
+### End-to-end UI proof is still narrower than the older task implies
 
-  // NEW: Check if spell requires concentration
-  if (spell.duration.concentration) {
-    // If caster already concentrating, add BreakConcentrationCommand first
-    if (caster.concentratingOn) {
-      commands.push(new BreakConcentrationCommand(caster, context))
-    }
+What is verified:
+- concentration indicators exist
+- sustain UI exists
+- `dropConcentration` exists in the hook
 
-    // Add StartConcentrationCommand after spell effects
-    // This will be added at the end
-  }
+What was not reverified during this pass:
+- a live BattleMap button or menu action that definitely calls `dropConcentration`
 
-  // ... existing effect command creation
-
-  // NEW: Add concentration tracking
-  if (spell.duration.concentration) {
-    commands.push(new StartConcentrationCommand(spell, caster, context))
-  }
-
-  return commands
-}
-```
-
-### 3. Create Concentration Commands
-
-Create `src/commands/effects/ConcentrationCommands.ts`:
-
-```typescript
-import { BaseEffectCommand } from '../base/BaseEffectCommand'
-import { CombatState, ConcentrationState } from '@/types/combat'
-import { Spell } from '@/types/spells'
-
-export class StartConcentrationCommand extends BaseEffectCommand {
-  constructor(
-    private spell: Spell,
-    protected context: CommandContext
-  ) {
-    super({ type: 'UTILITY' } as any, context) // Utility effect type
-  }
-
-  execute(state: CombatState): CombatState {
-    const caster = this.getCaster(state)
-
-    const concentrationState: ConcentrationState = {
-      spellId: this.spell.id,
-      spellName: this.spell.name,
-      spellLevel: this.context.castAtLevel,
-      startedTurn: state.turnState.currentTurn,
-      effectIds: [], // TODO: Track which effects are tied to concentration
-      canDropAsFreeAction: true
-    }
-
-    const updatedState = this.updateCharacter(state, caster.id, {
-      concentratingOn: concentrationState
-    })
-
-    return this.addLogEntry(updatedState, {
-      type: 'status',
-      message: `${caster.name} begins concentrating on ${this.spell.name}`,
-      characterId: caster.id
-    })
-  }
-
-  get description(): string {
-    return `${this.context.caster.name} starts concentrating on ${this.spell.name}`
-  }
-}
-
-export class BreakConcentrationCommand extends BaseEffectCommand {
-  constructor(
-    protected context: CommandContext
-  ) {
-    super({ type: 'UTILITY' } as any, context)
-  }
-
-  execute(state: CombatState): CombatState {
-    const caster = this.getCaster(state)
-
-    if (!caster.concentratingOn) {
-      return state // Nothing to break
-    }
-
-    const previousSpell = caster.concentratingOn.spellName
-
-    // TODO: Remove all active effects tied to this concentration
-    // This requires tracking effectIds in ConcentrationState
-
-    const updatedState = this.updateCharacter(state, caster.id, {
-      concentratingOn: undefined
-    })
-
-    return this.addLogEntry(updatedState, {
-      type: 'status',
-      message: `${caster.name} stops concentrating on ${previousSpell}`,
-      characterId: caster.id
-    })
-  }
-
-  get description(): string {
-    return `${this.context.caster.name} breaks concentration`
-  }
-}
-```
-
-### 4. Add Concentration Save Logic
-
-Create `src/utils/concentrationUtils.ts`:
-
-```typescript
-import { CombatCharacter } from '@/types/combat'
-
-export function calculateConcentrationDC(damageDealt: number): number {
-  return Math.max(10, Math.floor(damageDealt / 2))
-}
-
-export function rollConcentrationSave(character: CombatCharacter): number {
-  // Constitution saving throw
-  const constitutionMod = Math.floor((character.stats.constitution - 10) / 2)
-  const roll = Math.floor(Math.random() * 20) + 1
-  return roll + constitutionMod
-}
-
-export function checkConcentration(
-  character: CombatCharacter,
-  damageDealt: number
-): { success: boolean; dc: number; roll: number } {
-  const dc = calculateConcentrationDC(damageDealt)
-  const roll = rollConcentrationSave(character)
-
-  return {
-    success: roll >= dc,
-    dc,
-    roll
-  }
-}
-```
-
-### 5. Update DamageCommand
-
-Modify [src/commands/effects/DamageCommand.ts](../../../src/commands/effects/DamageCommand.ts):
-
-```typescript
-import { checkConcentration } from '../../utils/concentrationUtils'
-import { BreakConcentrationCommand } from './ConcentrationCommands'
-
-export class DamageCommand extends BaseEffectCommand {
-  execute(state: CombatState): CombatState {
-    // ... existing damage logic
-
-    for (const target of targets) {
-      const damage = calculateDamage(/* ... */)
-
-      // Apply damage
-      let newState = this.updateCharacter(state, target.id, {
-        currentHP: Math.max(0, target.currentHP - damage)
-      })
-
-      // NEW: Check concentration if target is concentrating
-      if (target.concentratingOn) {
-        const concentrationCheck = checkConcentration(target, damage)
-
-        if (!concentrationCheck.success) {
-          // Break concentration
-          const breakCommand = new BreakConcentrationCommand({
-            ...this.context,
-            caster: target
-          })
-          newState = breakCommand.execute(newState)
-
-          newState = this.addLogEntry(newState, {
-            type: 'status',
-            message: `${target.name} fails concentration save (${concentrationCheck.roll} vs DC ${concentrationCheck.dc})`,
-            characterId: target.id
-          })
-        } else {
-          newState = this.addLogEntry(newState, {
-            type: 'status',
-            message: `${target.name} maintains concentration (${concentrationCheck.roll} vs DC ${concentrationCheck.dc})`,
-            characterId: target.id
-          })
-        }
-      }
-
-      state = newState
-    }
-
-    return state
-  }
-}
-```
-
-### 6. Add Voluntary Drop Action
-
-Add to [src/hooks/useAbilitySystem.ts](../../../src/hooks/useAbilitySystem.ts):
-
-```typescript
-const dropConcentration = useCallback((character: CombatCharacter) => {
-  if (!character.concentratingOn) return
-
-  const breakCommand = new BreakConcentrationCommand({
-    spellId: character.concentratingOn.spellId,
-    spellName: character.concentratingOn.spellName,
-    castAtLevel: character.concentratingOn.spellLevel,
-    caster: character,
-    targets: [],
-    gameState: {} as any
-  })
-
-  const newState = breakCommand.execute(combatState)
-  dispatch({ type: 'UPDATE_COMBAT_STATE', payload: newState })
-}, [combatState, dispatch])
-
-return {
-  // ... existing exports
-  dropConcentration
-}
-```
-
-### 7. UI Indicator
-
-Add concentration indicator to character status in BattleMap:
-
-```typescript
-// In BattleMap.tsx or CharacterToken component
-{character.concentratingOn && (
-  <div className="concentration-indicator" title={`Concentrating on ${character.concentratingOn.spellName}`}>
-    🔮 {/* or custom icon */}
-  </div>
-)}
-```
+So the UI layer is not "missing entirely," but some end-to-end proof-of-life questions remain.
 
 ---
 
-## Implementation Steps
+## What To Treat As Current Authority
 
-1. **Add `ConcentrationState` interface** to [src/types/combat.ts](../../../src/types/combat.ts)
+For current concentration behavior, use:
+- [`src/types/combat.ts`](../../../src/types/combat.ts)
+- [`src/commands/effects/ConcentrationCommands.ts`](../../../src/commands/effects/ConcentrationCommands.ts)
+- [`src/commands/effects/DamageCommand.ts`](../../../src/commands/effects/DamageCommand.ts)
+- [`src/utils/character/concentrationUtils.ts`](../../../src/utils/character/concentrationUtils.ts)
+- [`src/hooks/useAbilitySystem.ts`](../../../src/hooks/useAbilitySystem.ts)
 
-2. **Create `ConcentrationCommands.ts`**
-   - `StartConcentrationCommand`
-   - `BreakConcentrationCommand`
-
-3. **Create `concentrationUtils.ts`**
-   - `calculateConcentrationDC()`
-   - `rollConcentrationSave()`
-   - `checkConcentration()`
-
-4. **Update `SpellCommandFactory.ts`**
-   - Check `spell.duration.concentration`
-   - Add concentration commands
-
-5. **Update `DamageCommand.ts`**
-   - Check if target is concentrating
-   - Roll concentration save
-   - Break concentration on failure
-
-6. **Add `dropConcentration()` to `useAbilitySystem.ts`**
-   - Expose to UI
-   - Allow voluntary drop
-
-7. **Write Unit Tests**
-   - Test concentration save calculation
-   - Test break on new spell
-   - Test break on damage
-   - Test voluntary drop
-
-8. **Add UI Indicator**
-   - Visual feedback for active concentration
-   - Button to drop concentration
-
-9. **Integration Testing**
-   - Cast Bless (concentration), then cast Shield (not concentration) → Bless continues
-   - Cast Bless, then cast Haste (concentration) → Bless ends, Haste starts
-   - Cast Bless, take 10 damage → roll Con save vs DC 10
-   - Cast Bless, take 30 damage → roll Con save vs DC 15
+This file should be read as preserved task context, not as fresher truth than the live combat and command layers.
 
 ---
 
-## Testing Checklist
+## What Still Needs Follow-Through
 
-- [ ] Unit: Concentration DC calculation (10 vs half damage)
-- [ ] Unit: Constitution save roll includes modifier
-- [ ] Unit: New concentration spell breaks old one
-- [ ] Unit: Non-concentration spell doesn't break concentration
-- [ ] Integration: Bless + Shield scenario
-- [ ] Integration: Bless + Haste scenario
-- [ ] Integration: Damage breaks concentration (fail save)
-- [ ] Integration: Damage doesn't break concentration (pass save)
-- [ ] Integration: Voluntary drop
-- [ ] UI: Concentration indicator visible
-- [ ] UI: Drop concentration button works
+### Live questions still worth checking
 
----
+- whether every concentration-tied effect family is cleaned up consistently when concentration breaks
+- whether the voluntary drop flow is fully exposed in the live BattleMap UI
+- whether sustain-cost behavior is exercised and verified across actual concentration spells
+- whether all duration and cleanup interactions match the intended combat turn lifecycle
 
-## Success Metrics
+### What is already no longer true
 
-1. Only one concentration spell active per character
-2. Concentration saves work correctly (DC = max(10, damage/2))
-3. UI clearly shows concentration status
-4. Combat log records concentration events
-5. All D&D 5e concentration rules enforced
+- "ConcentrationState is missing"
+- "casting a new concentration spell does not break the old one"
+- "damage does not trigger concentration checks"
+- "there is no concentration UI signal at all"
 
 ---
 
-## Related Tasks
+## Reference Update
 
-- **After Completion:** Update spell effect tracking to tie to concentration
-- **Blocked By:** None (can start immediately)
-- **Blocks:** Proper spell duration enforcement
+The older research path in this file was broken:
+- `docs/architecture/@SPELL-SYSTEM-RESEARCH.md`
 
----
+Use the current architecture surface instead:
+- [`docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md`](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md)
 
-## References
-
-- **Research:** [@SPELL-SYSTEM-RESEARCH.md Section 2.3.3](../../architecture/@SPELL-SYSTEM-RESEARCH.md#233-concentration-tracking)
-- **D&D 5e Rules:** [How Concentration Works](https://www.dndbeyond.com/posts/1224-how-concentration-works-in-dungeons-dragons)
-- **Current Types:** [src/types/spells.ts:147-152](../../../src/types/spells.ts#L147-L152)
-- **Command Pattern:** [src/commands/](../../../src/commands/)
-
----
-
-**Created:** 2025-12-05
-**Last Updated:** 2025-12-05
-**Assignee:** TBD
+Use this file as preserved implementation context plus a pointer to the live concentration stack.

@@ -32,5 +32,3 @@
 
 - **Description**: You touch a willing creature and put it into a cataleptic state that is indistinguishable from death. For the duration, the target has the Blinded and Incapacitated conditions, and its Speed is 0. The target has Resistance to all damage except Psychic damage. If the target is diseased or poisoned when you cast the spell or becomes diseased or poisoned while under the spell's effect, the disease and poison have no effect until the spell ends.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.271
-- **Status**: Complete

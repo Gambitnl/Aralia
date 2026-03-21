@@ -1,79 +1,58 @@
-# Spells
+﻿# Spells
 
 ## Purpose
 
-The Spells domain manages all spell data, casting mechanics, targeting systems, and spell effects. It handles the D&D 5e spell system including spell slots, concentration, components, and scaling.
+The Spells domain covers spell data, validation, loading, translation into executable abilities, targeting support, effect execution, and spell-facing UI surfaces.
 
-## Key Entry Points
+## Verified Current Entry Points
 
-| File | Role |
-|------|------|
-| `src/systems/spells/` | Spell mechanics systems |
-| `src/types/spells.ts` | Spell type definitions (25KB) |
-| `public/data/spells/` | Spell JSON data (~470 files) |
-| `src/hooks/useSpellGateChecks.ts` | Spell validation hook |
+High-signal current entry points verified in this pass:
+- src/systems/spells/
+- src/types/spells.ts
+- public/data/spells/
+- public/data/spells_manifest.json
+- src/hooks/useSpellGateChecks.ts
+- src/services/SpellService.ts
+- src/context/SpellContext.tsx
+- src/utils/character/spellAbilityFactory.ts
 
-## Subcomponents
+## Current Domain Shape
 
-- **Targeting**: `targeting/` - Spell target selection and validation
-- **Effects**: `effects/` - Spell effect application
-- **Mechanics**: `mechanics/` - Core spell mechanics (concentration, components)
-- **Validation**: `validation/` - Spell data validation
-- **Schema**: `schema/` - Spell JSON schema
-- **AI Integration**: `ai/` - AI-assisted spell handling
+The domain currently includes these active lanes:
+- targeting systems under src/systems/spells/targeting/
+- validation and schema under src/systems/spells/validation/ and src/systems/spells/schema/
+- mechanics such as concentration and related spell execution support under src/systems/spells/mechanics/
+- AI-assisted spell support under src/systems/spells/ai/
+- spell JSON data and manifest files under public/data/
+- React consumers through spellbook, glossary, character, and combat-facing surfaces
 
-## File Ownership
+## Boundaries And Constraints
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/systems/spells/**/*.ts` | Directory | Spell system implementation |
-| `src/systems/spells/targeting/*.ts` | Directory | Targeting subsystem |
-| `src/systems/spells/effects/*.ts` | Directory | Effect subsystem |
-| `src/systems/spells/mechanics/*.ts` | Directory | Core mechanics |
-| `src/systems/spells/validation/*.ts` | Directory | Validation |
-| `src/systems/spells/schema/*.json` | Directory | JSON schema |
-| `src/systems/spells/ai/*.ts` | Directory | AI integration |
-| `src/types/spells.ts` | Types | Spell type definitions |
-| `src/utils/spell*.ts` | Utils | Spell utility functions |
-| `src/utils/visuals/spellVisuals.ts` | Utils | Spell visual effect logic |
-| `src/utils/concentrationUtils.ts` | Utils | Concentration management |
-| `src/hooks/useSpellGateChecks.ts` | Hook | Spell validation |
-| `src/services/SpellService.ts` | Service | Spell data service |
-| `public/data/spells/**/*.json` | Data | Spell JSON files |
-| `public/data/spells_manifest.json` | Data | Spell index/manifest |
-| `public/data/spells_fidelity.json` | Data | Spell fidelity tracking |
+- Spell JSON remains the primary runtime data lane for spell definitions.
+- Validation and schema checks matter because downstream systems assume structured spell fields exist.
+- The spell domain is data-driven, but not fully free of hybrid legacy behavior; some translation still falls back to description parsing.
+- Gate-check and fidelity tooling still bridge between code/data truth and older migration-gap documentation.
 
-## Dependencies
+## Historical Drift Corrected
 
-### Depends On
+The older version of this file drifted in several ways:
+- it pointed at src/utils/spellAbilityFactory.ts instead of the current src/utils/character/spellAbilityFactory.ts path
+- it presented the spell JSON lane as a cleaner single-source-of-truth story than the broader migration workflow currently supports
+- it implied migration percentages and progress states that are no longer trustworthy without a fresh count
 
-- **[Character Sheet](./character-sheet.md)**: Spellcasting ability scores
-- **[Data Pipelines](./data-pipelines.md)**: Spell JSON validation and generation
+## What Is Materially Implemented
 
-### Used By
+This pass verified that the following are materially present:
+- manifest-driven spell loading
+- schema and runtime validation
+- spell gate checking
+- spellbook UI integration
+- spell-to-ability translation
+- multi-effect command creation support
+- large-scale per-level spell JSON coverage across the manifest and level folders
 
-- **[Combat](./combat.md)**: Spell casting during combat
-- **[Glossary](./glossary.md)**: Spell reference display
-- **[Character Creator](./character-creator.md)**: Spell selection during creation
+## Open Follow-Through Questions
 
-## Boundaries / Constraints
-
-- Spell JSON files are the single source of truth (SSOT) for spell data
-- All spell data must conform to the schema in `src/systems/spells/schema/`
-- Spell effects should not directly modify character state - use proper dispatches
-- Concentration is managed separately from individual spell effects
-
-## Open Questions / TODOs
-
-- [ ] Complete migration of remaining spells to JSON format
-- [ ] Document targeting system architecture
-- [ ] Clarify higher-level casting mechanics
-- [ ] Map spell school effects and interactions
-
-## Claimed Tests
-
-| Test File | Description |
-|-----------|-------------|
-| `src/hooks/__tests__/useSpellGateChecks.test.ts` | Spell gate checking tests |
-| `src/types/__tests__/spells.test.ts` | Spell type definition tests |
-| `src/types/__tests__/spells.test-d.ts` | Spell type declaration tests |
+- Which spell execution paths still rely on silver-standard description parsing instead of fully structured effect handling?
+- Which spell gap documents remain live inputs versus purely historical migration records?
+- Which spell-facing docs should remain active reference surfaces versus preserved migration history?

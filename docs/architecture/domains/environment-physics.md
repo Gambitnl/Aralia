@@ -1,63 +1,74 @@
-# Environment & Physics
+﻿# Environment & Physics
 
 ## Purpose
 
-Handles environmental effects (weather, day/night cycles, hazards), terrain mechanics, and physical/elemental interactions within the game world.
+This domain covers the environmental, terrain, hazard, weather, and elemental-interaction systems that shape world-state behavior.
+The current repo also makes it clear that visibility is an adjacent integration lane, and that broader physics utilities now live under combat-oriented utility paths rather than under a large standalone physics subsystem.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `src/systems/environment/` | Environmental systems |
-| `src/systems/physics/` | Physics and elemental systems |
+- src/systems/environment/
+- src/systems/physics/
+- src/systems/visibility/
+- src/types/environment.ts
+- src/data/biomes.ts
+- src/data/underdark/biomes.ts
 
-## Subcomponents
+## Current Shape
 
-- **Environment**: Weather, hazards, and terrain-specific mechanics.
-- **Physics**: Elemental interactions and physical object logic.
+### Environment lane
 
-## File Ownership
+This pass verified the live environment subtree under src/systems/environment/, including:
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/systems/environment/*.ts` | Directory | Environment systems |
-| `src/systems/physics/*.ts` | Directory | Physics systems |
-| `src/components/Submap/submapVisuals.ts` | Config | Visual settings |
-| `src/data/biomes.ts` | Data | Biome definitions |
-| `src/data/underdark/*.ts` | Data | Underdark environment data |
-| `src/types/realmsmith.ts` | Types | RealmSmith generation types |
-| `src/types/village.ts` | Types | Village generation types |
-| `src/types/environment.ts` | Types | Environmental types |
-| `src/utils/physicsUtils*.ts` | Utils | Physics utilities |
-| `src/utils/walkabilityUtils.ts` | Utils | Movement validation |
-| `src/utils/locationUtils.ts` | Utils | Position helpers |
+- EnvironmentSystem.ts
+- TerrainSystem.ts
+- WeatherSystem.ts
+- hazards.ts
+- the current environment test suite under src/systems/environment/__tests__/
 
-## Systems Owned by Other Domains
+### Physics and elemental lane
 
-The following files have environmental aspects but are primarily owned elsewhere:
-- POIs (pois.ts) - managed by npcs-companions for NPC locations
-- Landmark service - managed by time-world-events for historical landmarks
-- Underdark service - managed by naval-underdark for underdark exploration
+This pass verified:
 
-## Dependencies
+- src/systems/physics/ElementalInteractionSystem.ts
+- src/systems/physics/__tests__/ElementalInteractionSystem.test.ts
+- src/utils/combat/physicsUtils.ts
+- src/utils/combat/__tests__/physicsUtils.test.ts
+- src/utils/combat/__tests__/physicsUtils_light.test.ts
+- src/utils/combat/__tests__/physicsUtils_movement.test.ts
 
-### Depends On
+The repo still contains older bridge paths for some physics and walkability utilities, but the stronger active utility surface now sits under the namespaced combat and spatial utility folders.
 
-- **[Combat](./combat.md)**: Hazards and weather affect combat stats
+### Visibility integration lane
 
-### Used By
+This pass also confirmed:
 
-- **[Submap](./submap.md)**: Overworld environmental effects
-- **[Battle Map](./battle-map.md)**: Tactical environment effects
+- src/systems/visibility/VisibilitySystem.ts
+- src/systems/visibility/index.ts
+- src/systems/visibility/__tests__/VisibilitySystem.test.ts
 
-### Claimed Tests (Auto-generated)
+Visibility should not replace this domain, but it is clearly part of the same environmental-behavior neighborhood and should be treated as a close integration surface.
 
-| Test File | Description |
-|-----------|-------------|
-| `src/systems/environment/__tests__/EnvironmentSystem.test.ts` | Environment system tests |
-| `src/systems/environment/__tests__/TerrainSystem.test.ts` | Terrain system tests |
-| `src/systems/environment/__tests__/hazards.test.ts` | Hazard system tests |
-| `src/systems/physics/__tests__/ElementalInteractionSystem.test.ts` | Elemental interaction tests |
-| `src/utils/__tests__/physicsUtils.test.ts` | Physics utility tests |
-| `src/utils/__tests__/physicsUtils_light.test.ts` | Physics light utility tests |
-| `src/utils/__tests__/physicsUtils_movement.test.ts` | Physics movement utility tests |
+## Important Corrections
+
+- The older doc's ownership list mixed verified environment systems with several stale or weakly-supported utility and type claims.
+- The strongest verified anchors are EnvironmentSystem, TerrainSystem, WeatherSystem, hazards, ElementalInteractionSystem, VisibilitySystem, and the biome-data surfaces in src/data/biomes.ts plus src/data/underdark/biomes.ts.
+- This file should not pretend to own Submap rendering helpers, POI data, or generic location helpers just because those systems interact with environmental logic.
+- Combat, Submap, and Battle Map relationships are plausible, but this pass did not verify enough direct imports to state them as hard dependency claims.
+
+## Tests Verified In This Pass
+
+- src/systems/environment/__tests__/EnvironmentSystem.test.ts
+- src/systems/environment/__tests__/hazards.test.ts
+- src/systems/environment/__tests__/TerrainSystem.test.ts
+- src/systems/environment/__tests__/WeatherSystem.test.ts
+- src/systems/physics/__tests__/ElementalInteractionSystem.test.ts
+- src/utils/combat/__tests__/physicsUtils.test.ts
+- src/utils/combat/__tests__/physicsUtils_light.test.ts
+- src/utils/combat/__tests__/physicsUtils_movement.test.ts
+- src/systems/visibility/__tests__/VisibilitySystem.test.ts
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this domain as the environment plus terrain plus weather plus elemental-interaction lane, with visibility called out as an adjacent integration surface and with the heavier physics utility helpers now anchored under the combat utility subtree.

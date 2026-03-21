@@ -46,5 +46,3 @@ Additional Spell Effect. You can place your choice of one of the following magic
 
 To a creature immune to this effect, the winds are a fragrant, gentle breeze, and the area of spike growth is harmless.
 - **Higher Levels**: none
-- **Source**: XGE
-- **Status**: Complete

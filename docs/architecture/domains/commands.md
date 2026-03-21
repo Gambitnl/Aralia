@@ -1,79 +1,90 @@
-# Commands Domain
-
-The Command Pattern implementation for spell effects and actions.
+﻿# Commands Domain
 
 ## Purpose
 
-Encapsulates spell effects and game actions as discrete command objects that can be validated, executed, and composed. Enables the spell system to handle complex multi-effect spells with consistent execution.
+This domain covers the command-pattern execution lane that turns spell effects and combat ability effects into validated runtime actions.
+It is no longer just a spell-effect subsystem: the current command stack now serves both spell JSON execution and weapon or ability resolution.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Description |
-|------|-------------|
-| `src/commands/factory/SpellCommandFactory.ts` | Creates spell commands from JSON spell definitions |
-| `src/commands/base/CommandExecutor.ts` | Executes command sequences with validation |
-| `src/commands/index.ts` | Public exports |
+- src/commands/factory/SpellCommandFactory.ts builds command sequences from spell definitions and effect payloads.
+- src/commands/factory/AbilityCommandFactory.ts builds command sequences for combat abilities and weapon attacks.
+- src/commands/base/CommandExecutor.ts coordinates validation and execution order.
+- src/commands/effects/UtilityCommand.ts remains one of the important integration points for cross-cutting mechanics such as light sources, save riders, and terrain manipulation.
+- src/commands/index.ts is the public export surface.
 
-## Subcomponents
+## Current Shape
 
-### Base Classes
-| File | Purpose |
-|------|---------|
-| `src/commands/base/BaseEffectCommand.ts` | Abstract base for all effect commands |
-| `src/commands/base/CommandExecutor.ts` | Executes and coordinates command sequences |
-| `src/commands/base/SpellCommand.ts` | Spell-specific command base |
+### Base lane
 
-### Effect Commands
-| File | Purpose |
-|------|---------|
-| `src/commands/effects/DamageCommand.ts` | Deals damage to targets |
-| `src/commands/effects/HealingCommand.ts` | Heals targets |
-| `src/commands/effects/DefensiveCommand.ts` | Applies defensive buffs (AC, resistances) |
-| `src/commands/effects/MovementCommand.ts` | Forces movement (push, pull, teleport) |
-| `src/commands/effects/StatusConditionCommand.ts` | Applies conditions (blinded, prone, etc.) |
-| `src/commands/effects/SummoningCommand.ts` | Summons creatures or objects |
-| `src/commands/effects/TerrainCommand.ts` | Creates or modifies terrain |
-| `src/commands/effects/UtilityCommand.ts` | Miscellaneous utility effects |
-| `src/commands/effects/ConcentrationCommands.ts` | Concentration-specific handling |
-| `src/commands/effects/NarrativeCommand.ts` | Narrative/flavor effects |
-| `src/commands/effects/ReactiveEffectCommand.ts` | Triggered/reactive effects |
-| `src/commands/effects/RegisterRiderCommand.ts` | Attack rider registration |
+- src/commands/base/BaseEffectCommand.ts
+- src/commands/base/SpellCommand.ts
+- src/commands/base/CommandExecutor.ts
 
-### Factory
-| File | Purpose |
-|------|---------|
-| `src/commands/factory/SpellCommandFactory.ts` | Builds commands from spell JSON |
+These files define the shared command contract, execution context, and orchestration flow.
 
-## Tests
+### Factory lane
 
-| Test File | Covers |
-|-----------|--------|
-| `src/commands/__tests__/CommandExecutor.test.ts` | Command execution |
-| `src/commands/__tests__/Concentration.test.ts` | Concentration mechanics |
-| `src/commands/__tests__/DefensiveCommand.test.ts` | Defensive effects |
-| `src/commands/__tests__/HealingCommand.test.ts` | Healing effects |
-| `src/commands/__tests__/LightMechanics.test.ts` | Light/darkness effects |
-| `src/commands/__tests__/MovementCommand.test.ts` | Forced movement |
-| `src/commands/__tests__/SpellCommandFactory.test.ts` | Factory building |
-| `src/commands/__tests__/StatusConditionCommand.test.ts` | Conditions |
-| `src/commands/__tests__/SummoningCommand.test.ts` | Summoning |
-| `src/commands/__tests__/UtilityCommand.test.ts` | Utility effects |
-| `src/commands/effects/__tests__/DamageCommand.test.ts` | Damage calculations |
-| `src/commands/effects/__tests__/ReactiveEffectCommand.test.ts` | Reactive effects |
-| `src/commands/factory/__tests__/SpellCommandFactoryAI.test.ts` | AI integration |
+- src/commands/factory/SpellCommandFactory.ts
+- src/commands/factory/AbilityCommandFactory.ts
+- src/commands/factory/AbilityEffectMapper.ts
 
-## Dependencies
+The factory layer is now the clearest sign that this domain spans more than spells. Spell effects and combat ability effects are both normalized into command objects here, even when the downstream execution still depends on combat-specific helpers and systems.
 
-- **Imports from:** src/types/spells.ts, src/utils/combatUtils.ts
-- **Imported by:** src/hooks/combat/, spell resolution systems
+### Effect lane
 
-## Boundaries
+The effect lane still lives under src/commands/effects/ and includes the current command families for:
+
+- damage
+- healing
+- status conditions
+- movement and teleport handling
+- defensive buffs
+- summoning
+- terrain manipulation
+- utility effects
+- concentration handling
+- reactive effects
+- rider registration
+- narrative side effects
+
+## Tests Verified In This Pass
+
+The current command test suite includes:
+
+- src/commands/__tests__/CommandExecutor.test.ts
+- src/commands/__tests__/Concentration.test.ts
+- src/commands/__tests__/DefensiveCommand.test.ts
+- src/commands/__tests__/HealingCommand.test.ts
+- src/commands/__tests__/LightMechanics.test.ts
+- src/commands/__tests__/MovementCommand.test.ts
+- src/commands/__tests__/SlasherFeat.test.ts
+- src/commands/__tests__/SpellCommandFactory.test.ts
+- src/commands/__tests__/StatusConditionCommand.test.ts
+- src/commands/__tests__/SummoningCommand.test.ts
+- src/commands/__tests__/UtilityCommand.test.ts
+- src/commands/effects/__tests__/DamageCommand.test.ts
+- src/commands/effects/__tests__/ReactiveEffectCommand.test.ts
+- src/commands/factory/__tests__/SpellCommandFactoryAI.test.ts
+
+## Dependencies And Boundaries
 
 ### Owned by this domain
-- All files in src/commands/
 
-### Shared (modify with care)
-- src/types/spells.ts - shared with Spells domain
+- src/commands/
 
-### DO NOT MODIFY
-- src/utils/combatUtils.ts - owned by Combat domain
+### Shared dependencies that matter during edits
+
+- src/types/spells.ts
+- src/types/combat.ts
+- src/utils/combatUtils.ts
+- src/systems/combat/AttackRiderSystem.ts
+
+### Boundary note
+
+This domain is reusable infrastructure, but it is not isolated from combat. AbilityCommandFactory.ts already reaches into combat-specific helpers and rider systems, so changes here should be treated as command-plus-combat work rather than as a purely standalone execution layer.
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+The previous version of this doc had drifted by describing the command lane mainly as spell-effect plumbing. The current repo shape shows a broader command system that now sits between spell data, combat abilities, shared effect mapping, and downstream combat systems.

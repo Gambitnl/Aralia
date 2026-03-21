@@ -29,6 +29,7 @@
 - **Concentration**: true
 
 - **Effect Type**: BUFF
+- **Utility Type**: other
 
 - **Description**: You endow yourself with endurance and martial prowess fueled by magic. Until the spell ends, you can't cast spells, and you gain the following benefits:
     * You gain 50 temporary hit points. If any of these remain when the spell ends, they are lost.
@@ -40,5 +41,3 @@
 
 Immediately after the spell ends, you must succeed on a DC 15 Constitution saving throw or suffer one level of exhaustion.
 - **Higher Levels**: none
-- **Source**: XGE
-- **Status**: Complete

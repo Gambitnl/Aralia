@@ -1,4 +1,11 @@
 # Phase 1: Core UI Components
+This file was re-verified on 2026-03-14.
+It now serves as a preserved gap list for core UI coverage, not a claim that this phase is still largely untouched.
+
+Current reality:
+- `MainMenu`, `CharacterSheetModal`, `ConfirmationModal`, `ActionPane`, and several related UI surfaces already have tests in the repo.
+- Remaining work is narrower than this original phase framing suggests and should be re-scoped from the live test tree when resumed.
+
 
 ## Objective
 Add tests for components that are fundamental to the user experience and navigation.

@@ -1,26 +1,15 @@
-# Path 2.C: Audit Spell Scope - PHB 2024 (Task 0.3)
+# 1F - Historical Task Pointer
 
-## MISSION
-Compare the existing JSON spell files against the D&D 2024 Player's Handbook (PHB) Cantrip list to create a migration priority list.
+> **Status (2026-03-11):**
+> - the older cantrip-scope audit task brief that previously lived at this path has been moved into archive because it belonged to an earlier migration phase and pointed at deliverables that are now historical
+> - this file remains only as a compatibility pointer so numbered-task references do not break
 
-## REQUIRED READING
-*   `public/data/spells/` (The existing spell files)
-*   `docs/spells/SPELL_JSON_EXAMPLES.md` (To identify Old vs New format)
+## Use These Current Surfaces Instead
 
-## EXECUTION STEPS
-1.  **Fetch External Data**: Search/Retrieve the list of **Cantrips** from the 2024 PHB.
-2.  **Scan Local Data**: List all JSON files in `public/data/spells/`.
-3.  **Audit**: For each PHB Cantrip, check:
-    *   Does it exist locally?
-    *   Is it in "Old" format or "New" format? (Check schema against `SPELL_JSON_EXAMPLES.md`).
-4.  **Report**: Create `docs/tasks/spell-system-overhaul/@SPELL-AUDIT-CANTRIPS.md`.
-    *   **Table 1: Completed (New Format)**
-    *   **Table 2: Needs Migration (Old Format)** - Mark as HIGH Priority.
-    *   **Table 3: Missing (In PHB, not local)** - Mark as MEDIUM Priority.
-    *   **Table 4: Extra (Local, not in PHB)** - Mark as LOW Priority.
+- [`../../spells/STATUS_LEVEL_0.md`](../../spells/STATUS_LEVEL_0.md) for maintained cantrip status
+- [`README.md`](./README.md) for the current subtree entry surface
 
-## CONSTRAINTS
-*   **Focus**: CANTRIPS ONLY for this task.
+## Archived Historical Version
 
-## DELIVERABLE
-A Pull Request containing `docs/tasks/spell-system-overhaul/@SPELL-AUDIT-CANTRIPS.md`.
+- [`../../archive/spell-system/1F-AUDIT-SPELL-SCOPE.md`](../../archive/spell-system/1F-AUDIT-SPELL-SCOPE.md)
+

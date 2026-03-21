@@ -1,49 +1,33 @@
-# Spell Integration Status: Level 4
+﻿# Spell Integration Status: Level 4
 
-**Legend:**
-*   🟢 **Gold (Structured)**: JSON has `effects` array. Engine uses precise data.
-*   🟡 **Silver (Inferred)**: `spellAbilityFactory` regex-parses description for damage/saves.
-*   ⚪ **Bronze (Metadata)**: Basic metadata only. No mechanical execution.
+Last Updated: 2026-03-12
 
-| Spell | Mechanics | Narrative Support | Notes |
-| :--- | :--- | :--- | :--- |
-| **Arcane Eye** | ⚪ Bronze | 🟡 Basic | Remote scouting |
-| **Aura of Life** | ⚪ Bronze | ❌ None | Aura Buff (Necrotic resist) |
-| **Aura of Purity** | ⚪ Bronze | ❌ None | Aura Buff (Condition immune) |
-| **Banishment** | ⚪ Bronze | ❌ None | CC (Remove from combat) |
-| **Blight** | 🟡 Silver | ❌ None | High single target damage |
-| **Charm Monster** | ⚪ Bronze | 🟡 Basic | Social (Non-humanoid) |
-| **Compulsion** | ⚪ Bronze | ❌ None | Forced movement |
-| **Confusion** | ⚪ Bronze | ❌ None | AoE Random actions |
-| **Conjure Minor Elementals** | ⚪ Bronze | ❌ None | Summoning |
-| **Conjure Woodland Beings** | ⚪ Bronze | ❌ None | Summoning |
-| **Control Water** | ⚪ Bronze | 🟡 Basic | Terrain manipulation |
-| **Death Ward** | ⚪ Bronze | ❌ None | Buff (Prevent death once) |
-| **Dimension Door** | ⚪ Bronze | 🟡 Basic | Teleport (Long range) |
-| **Divination** | ⚪ Bronze | 🟡 Basic | Oracle-like hint system |
-| **Dominate Beast** | ⚪ Bronze | ❌ None | Control entity |
-| **Elemental Bane** | ⚪ Bronze | ❌ None | Debuff (Remove resist) |
-| **Fabricate** | ⚪ Bronze | 🟡 Basic | Crafting / Utility |
-| **Fire Shield** | 🟡 Silver | ❌ None | Buff (Resistance + Retaliation) |
-| **Freedom of Movement** | ⚪ Bronze | ❌ None | Buff (Ignore terrain/paralyze) |
-| **Giant Insect** | ⚪ Bronze | ❌ None | Transmute environment? |
-| **Grasping Vine** | ⚪ Bronze | ❌ None | Summon / Pull |
-| **Greater Invisibility** | ⚪ Bronze | ❌ None | Buff (Attacks don't break invis) |
-| **Guardian of Faith** | 🟡 Silver | ❌ None | Stationary damage area |
-| **Hallucinatory Terrain** | ⚪ Bronze | 🟡 Basic | Illusion / World interaction |
-| **Ice Storm** | 🟡 Silver | ❌ None | AoE Damage + Difficult Terrain |
-| **Leomund's Secret Chest** | ⚪ Bronze | ❌ None | Inventory utility |
-| **Locate Creature** | ⚪ Bronze | 🟡 Basic | Radar / Tracking |
-| **Mordenkainen's Faithful Hound**| 🟡 Silver | ❌ None | Alarm / Damage |
-| **Mordenkainen's Private Sanctum**| ⚪ Bronze | ❌ None | Warding / Privacy |
-| **Otiluke's Resilient Sphere** | ⚪ Bronze | ❌ None | CC / Protection |
-| **Phantasmal Killer** | 🟡 Silver | ❌ None | DoT + Frightened |
-| **Polymorph** | ⚪ Bronze | 🟡 Basic | Transformation (Beast) |
-| **Sickening Radiance** | 🟡 Silver | ❌ None | AoE DoT + Exhaustion |
-| **Stone Shape** | ⚪ Bronze | 🟡 Basic | Terrain modification |
-| **Stoneskin** | ⚪ Bronze | ❌ None | Buff (Phys Resistance) |
-| **Summon Aberration** | ⚪ Bronze | ❌ None | Summoning |
-| **Summon Construct** | ⚪ Bronze | ❌ None | Summoning |
-| **Summon Elemental** | ⚪ Bronze | ❌ None | Summoning |
-| **Vitriolic Sphere** | 🟡 Silver | ❌ None | AoE Acid Damage |
-| **Wall of Fire** | 🟡 Silver | ❌ None | Hazard zone creation |
+## Verified Current Inventory Fact
+
+A manual repo check during the 2026-03-12 doc pass confirmed:
+- ../../public/data/spells/level-4 currently contains 47 spell JSON files
+- the level-4 folder remains part of the active manifest-backed spell-data lane
+
+## Current Interpretation
+
+This file no longer uses the old Gold, Silver, and Bronze scoring as if it were a current per-spell truth table.
+The older scoring was built around a narrower execution model and is now too stale to trust as a live status dashboard.
+
+What this file can honestly say now:
+- level-4 has a real migrated inventory
+- level-4 participates in the same validator, manifest, loader, and glossary lane as the lower levels
+- per-spell execution depth still varies and should be checked directly when it matters
+
+## Where To Verify A Specific Level-4 Spell
+
+Use:
+- ./SPELL_INTEGRATION_CHECKLIST.md
+- ../../src/systems/spells/validation/spellValidator.ts
+- ../../scripts/check-spell-integrity.ts
+- ../../src/context/SpellContext.tsx
+- ../../src/utils/character/spellAbilityFactory.ts
+- the relevant refreshed spell-overhaul note if one exists
+
+## Historical Note
+
+The older level-4 table is preserved as migration-era context. It is no longer presented here as a reliable current map of level-4 behavior.

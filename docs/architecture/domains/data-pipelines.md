@@ -1,101 +1,81 @@
-# Data Pipelines
+﻿# Data Pipelines
 
 ## Purpose
 
-This domain covers all build-time scripts, validators, and generators that process game data. These tools ensure data integrity, generate derived artifacts, and maintain consistency across the codebase.
+This domain covers the tooling lane that validates, generates, migrates, and audits game data and supporting documentation.
+The important correction in the current repo is that this lane primarily lives under the top-level scripts directory, not under a broad src/scripts surface.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `scripts/validate-data.ts` | Main data validation script |
-| `scripts/check-non-ascii.ts` | ASCII character validation |
-| `scripts/generateGlossaryIndex.js` | Glossary index generation |
-| `scripts/generate-architecture-compendium.ts` | Architecture doc generation |
+- scripts/validate-data.ts
+- scripts/check-non-ascii.ts
+- scripts/generateGlossaryIndex.js
+- scripts/generate-architecture-compendium.ts
+- scripts/validateSpellJsons.ts
 
-## Subcomponents
+These are still real entry points in the current repo, and package.json still exposes the shared validation commands through:
 
-- **Validation Scripts**:
-  - `validate-data.ts` - Comprehensive data validation
-  - `validateSpellJsons.ts/js` - Spell JSON validation
-  - `check-non-ascii.ts` - Character encoding checks
-  - `check-spell-integrity.ts` - Spell data integrity
-- **Generation Scripts**:
-  - `generateGlossaryIndex.js` - Glossary index
-  - `generate-spell-manifest.mjs` - Spell manifest
-  - `regenerate-manifest.ts` - Manifest regeneration
-  - `generate-architecture-compendium.ts` - Architecture docs
-- **Migration Scripts**:
-  - `migrate-glossary-entries-to-json.ts` - Glossary migration
-  - `migrate-legacy-spells-to-v2.ts` - Spell format migration
-  - `expand-spell-jsons.ts` - Spell JSON expansion
-  - `update-spell-json-from-references.ts` - Spell data updates
-- **Utility Scripts**:
-  - `formatSpellJsons.js` - JSON formatting
-  - `compressGlossaryLinks.js` - Link compression
-  - `fix-spell-frontmatter.js` - Frontmatter fixes
-  - `add_spell.js` - Single spell addition
+- npm run validate:charset
+- npm run fix:charset
+- npm run validate
 
-| Path | Type | Description |
-|------|------|-------------|
-| `scripts/*.{ts,js,mjs,cjs}` | Directory | All pipeline scripts |
-| `src/scripts/*.ts` | Directory | System audit and validation scripts |
-| `src/utils/validation/*.ts` | Utils | Data validation utilities |
-| `docs/architecture/_generated/*.json` | Generated | Architecture artifacts |
+## Current Script Families
 
+### Validation and consistency checks
 
-## Dependencies
+Examples verified in this pass:
 
-### Depends On
+- scripts/validate-data.ts
+- scripts/validateSpellJsons.ts
+- scripts/check-spell-integrity.ts
+- scripts/check-non-ascii.ts
 
-- **[Spells](./spells.md)**: Spell JSON data for validation
-- **[Glossary](./glossary.md)**: Glossary entries for indexing
+### Generation and indexing
 
-### Used By
+Examples verified in this pass:
 
-- **Build Process**: `npm run validate`
-- **[Spells](./spells.md)**: Generated manifests
-- **[Glossary](./glossary.md)**: Generated indexes
+- scripts/generateGlossaryIndex.js
+- scripts/generate-spell-manifest.mjs
+- scripts/regenerate-manifest.ts
+- scripts/generate-architecture-compendium.ts
 
-## Script Commands
+### Migration and normalization
 
-```bash
-# Run all data validation
-npm run validate
+Examples verified in this pass:
 
-# Validate spell JSONs
-npx --no-install tsx scripts/validateSpellJsons.ts
+- scripts/migrate-glossary-entries-to-json.ts
+- scripts/migrate-legacy-spells-to-v2.ts
+- scripts/expand-spell-jsons.ts
+- scripts/update-spell-json-from-references.ts
+- scripts/formatSpellJsons.js
+- scripts/fix-spell-frontmatter.js
 
-# Check non-ASCII characters
-npx --no-install tsx scripts/check-non-ascii.ts
+### Audit and workflow helpers
 
-# Generate glossary index
-node scripts/generateGlossaryIndex.js
+The current scripts tree is broader than a pure build-pipeline lane. It also contains audits, Gemini workflow helpers, roadmap support commands, and other operational scripts. That means this domain should be read as a tooling-and-data pipeline map, not as a narrow compile-time pipeline description.
 
-# Generate architecture compendium
-npx --no-install tsx scripts/generate-architecture-compendium.ts
-```
+## Boundaries
 
-## Boundaries / Constraints
+### Owned by this domain
 
-- Scripts must be idempotent - running twice produces same result
-- Generated files should have clear markers indicating they are generated
-- Validation failures should produce clear, actionable error messages
-- Scripts should not modify source data unless explicitly designed to
+- the top-level scripts tooling lane
+- generated architecture support under docs/architecture/_generated/
+- package-script validation entry points that dispatch into these scripts
 
-## Open Questions / TODOs
+### Shared dependencies that matter during edits
 
-- [ ] Document script dependencies and execution order
-- [ ] Clarify which scripts are safe to run automatically
-- [ ] Map generated file locations and purposes
+- spell data under public/data/spells/
+- glossary data under public/data/glossary/
+- architecture docs under docs/architecture/
+- validation utilities and runtime schemas used by individual scripts
 
-### Claimed Tests (Auto-generated)
+## Important Corrections
 
-| Test File | Description |
-|-----------|-------------|
-| `src/utils/validation/__tests__/spellAuditor.test.ts` | Spell auditor tests |
-| `src/utils/validation/__tests__/spellConsistency.test.ts` | Spell consistency tests |
-| `src/services/__tests__/aiClient.test.ts` | AI client service tests |
-| `src/services/__tests__/geminiService.test.ts` | Gemini service tests |
-| `src/services/__tests__/geminiServiceFallback.test.ts` | Gemini fallback service tests |
-| `src/services/__tests__/prompt_inspector.test.ts` | Prompt inspector service tests |
+- The main script lane is scripts/, not src/scripts/.
+- The current repo exposes only a small validated npm-script surface for this domain; many specialized scripts are still run ad hoc with tsx or node.
+- This doc should not pretend to maintain an exhaustive generated inventory of every script file. The tree now includes validation, migration, audit, workflow, and roadmap-support commands that are better understood as families.
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+This domain is best treated as the repo's data and tooling pipeline layer: validators, generators, migrators, audits, and documentation helpers that keep the content and supporting artifacts aligned.

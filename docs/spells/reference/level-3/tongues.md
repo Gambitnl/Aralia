@@ -26,10 +26,9 @@
 - **Concentration**: false
 
 - **Effect Type**: BUFF
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: This spell grants the creature you touch the ability to understand any spoken language it hears. Moreover, when the target speaks, any creature that knows at least one language and can hear the target understands what it says.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.329
-- **Status**: Complete

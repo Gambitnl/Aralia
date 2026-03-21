@@ -1,66 +1,20 @@
 # Task 09: Apply Non-Proficiency Penalties to Attack Rolls
 
-**Status**: 🔴 Not Started - FUTURE WORK
-**Phase**: 4 (Combat Integration)
-**Estimated Effort**: 2 hours
-**Priority**: Low (Future)
-**Assigned To**: Unassigned
+Status: active gap note
+Last reviewed: 2026-03-12
 
----
+## Current reading
 
-## Objective
+This remains an active gap note.
 
-Modify attack roll calculations to exclude proficiency bonus when using non-proficient weapons, implementing the core 2024 D&D proficiency penalty mechanic.
+## Verified current state
 
----
+Manual repo verification on 2026-03-12 confirmed that src/utils/combat/combatUtils.ts already tags generated weapon abilities with isProficient, but this pass did not prove that the final attack-bonus pipeline strips proficiency bonus before calling resolveAttack().
 
-## Context
+## Concrete remaining question
 
-This is Phase 4 work, to be tackled AFTER Phase 1-3 are complete and the combat system is more mature. Currently, combat mechanics are still evolving.
+Wherever the final attack modifier is assembled, it should explicitly zero out proficiency bonus for non-proficient weapon attacks. Until that path is proven, this capability should remain open as Attack Roll Proficiency Penalty.
 
----
+## Scope
 
-## Prerequisites
-
-- Phase 1-3 complete
-- Combat system attack roll logic finalized
-- `isWeaponProficient()` function available from Task 01
-
----
-
-## High-Level Approach
-
-### Step 1: Locate Attack Roll Calculation
-Find where attack rolls are calculated in the combat system.
-
-### Step 2: Add Proficiency Check
-```typescript
-const weaponProficient = isWeaponProficient(character, weapon);
-const profBonus = weaponProficient ? character.proficiencyBonus : 0;
-const attackRoll = d20 + abilityMod + profBonus + magicBonus;
-```
-
-### Step 3: Update Combat Log
-Show message when non-proficient weapon is used:
-```
-Attack roll: 1d20 (15) + STR (3) = 18 (Not proficient - no proficiency bonus)
-```
-
----
-
-## Acceptance Criteria
-
-- [ ] Non-proficient weapons don't add proficiency bonus to attack rolls
-- [ ] Proficient weapons work normally
-- [ ] Combat log explains non-proficiency penalty
-- [ ] All attack roll tests pass
-
----
-
-## Notes
-
-**DO NOT START THIS TASK** until Phase 1-3 are complete and combat system architecture is finalized.
-
----
-
-**Created**: 2025-12-08
+This file should no longer be read as combat integration has not started at all. It is specifically about the unresolved final attack-roll modifier enforcement and any combat-log explanation that should accompany it.

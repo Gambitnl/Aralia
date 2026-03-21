@@ -1,74 +1,77 @@
-# Character Sheet
+﻿# Character Sheet
 
 ## Purpose
 
-The Character Sheet Modal displays comprehensive character information including stats, abilities, equipment, spells, and party management. It serves as the primary interface for viewing and managing the player's character during gameplay.
+The Character Sheet domain covers the modal character-inspection and character-management surfaces used during gameplay, including overview, equipment, inventory, skills, details, family, spellbook, crafting, journal, and level-up flows.
 
-## Key Entry Points
+## Verified Current Entry Points
 
-| File | Role |
-|------|------|
-| `src/components/CharacterSheetModal.tsx` | Main modal component (20KB) |
-| `src/utils/characterUtils.ts` | Character utility functions (28KB) |
-| `src/hooks/useAbilitySystem.ts` | Ability management hook (28KB) |
-| `src/types/character.ts` | Character type definitions |
+High-signal current entry points verified in this pass:
+- src/components/CharacterSheet/CharacterSheetModal.tsx
+- src/components/CharacterSheet/Overview/
+- src/components/CharacterSheet/Skills/
+- src/components/CharacterSheet/Spellbook/
+- src/components/CharacterSheet/Crafting/
+- src/components/CharacterSheet/Journal/
+- src/hooks/useCharacterProficiencies.ts
+- src/utils/characterUtils.ts
 
-## Subcomponents
+## Current Domain Shape
 
-- **Equipment Display**: `EquipmentMannequin.tsx` - Visual equipment slots
-- **Inventory**: Integration with `InventoryList.tsx`
-- **Party Management**: `CharacterSheet/` directory - Party views
-- **Spellbook**: `SpellbookOverlay.tsx` - Spell management
-- **Ability System**: `useAbilitySystem.ts` - Ability usage and cooldowns
+The live character-sheet surface is more structured than the older top-level file list implied.
+CharacterSheetModal.tsx now lives under src/components/CharacterSheet/ and composes sub-tabs for:
+- Overview
+- Skills
+- Details
+- Family
+- Spellbook
+- Crafting
+- Journal
 
-## File Ownership
+It also owns a nested LevelUpModal flow.
+The surrounding component tree already includes dedicated overview, equipment mannequin, inventory, skill, spellbook, crafting, journal, and family surfaces under the CharacterSheet subtree.
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/CharacterSheetModal.tsx` | Component | Main modal |
-| `src/components/CharacterSheet/**/*.tsx` | Directory | Sheet sub-components and tests |
-| `src/components/Party*.tsx` | Component | Party management UI |
-| `src/components/SpellbookOverlay.tsx` | Component | Spell management |
-| `src/utils/character*.ts` | Utils | Character logic |
-| `src/data/skills/*.ts` | Data | Skill definitions |
-| `src/data/backgrounds.ts` | Data | Background definitions |
-| `src/utils/statUtils.ts` | Utils | Stat calculations |
-| `src/hooks/useAbilitySystem.ts` | Hook | Ability management |
-| `src/hooks/useCharacterProficiencies.ts` | Hook | Proficiency logic |
-| `src/types/character.ts` | Types | Character types |
-| `src/state/reducers/characterReducer.ts` | Reducer | Character state |
+Utility ownership also drifted:
+- src/utils/characterUtils.ts still exists, but it is a deprecated bridge that re-exports from src/utils/character/characterUtils.
+- useAbilitySystem exists, but it is more combat-facing orchestration than a clean primary character-sheet entry point.
 
-## Tests
+## Historical Drift Corrected
 
-Tests for character sheet functionality are owned by other domains:
-- CharacterSheetModal component tests → core-systems
-- PartyPane component tests → core-systems
-- Character utility tests → character-creator
-- Ability system tests → combat
+The older version of this file drifted in several concrete ways:
+- it pointed to src/components/CharacterSheetModal.tsx, but the live file now lives at src/components/CharacterSheet/CharacterSheetModal.tsx
+- it treated SpellbookOverlay.tsx and Party*.tsx as top-level companion paths, but the verified spellbook surfaces now live under src/components/CharacterSheet/Spellbook/ and no top-level PartyPane path was found in this pass
+- it listed src/utils/character*.ts as if those were the clean primary utility homes, but the current characterUtils file is a deprecated bridge
 
-## Dependencies
+That older explanation should not be treated as the current implementation guide.
 
-### Depends On
+## Boundaries And Constraints
 
-- **[Spells](./spells.md)**: Spell display and casting
-- **[Items / Trade / Inventory](./items-trade-inventory.md)**: Equipment management
-- **[Combat](./combat.md)**: Ability usage during combat
+- The character sheet is a player-facing state view and management surface, not the sole owner of combat, spell, inventory, or journal rules.
+- Changes should still flow through actions and established state-update paths rather than ad hoc component mutation.
+- The tabbed CharacterSheet subtree is now the main architecture unit; docs should not flatten it back into one modal-plus-utils summary.
+- Combat-facing ability orchestration can intersect with the sheet, but the sheet docs should not overclaim ownership of combat systems.
 
-### Used By
+## What Is Materially Implemented
 
-- **[Character Creator](./character-creator.md)**: Validates created characters
-- **[Combat](./combat.md)**: Character stats for combat calculations
-- **App.tsx**: Modal rendering
+This pass verified that the character-sheet domain already has:
+- a live CharacterSheetModal under the CharacterSheet subtree
+- overview, equipment, inventory, skills, details, family, spellbook, crafting, and journal tabs
+- an embedded level-up flow
+- a useCharacterProficiencies hook
+- glossary-aware skill-tab behavior
+- character utility bridges that still support the current surface
 
-## Boundaries / Constraints
+## Verified Test Surface
 
-- Character Sheet displays state - modifications go through proper actions
-- Equipment changes should trigger stat recalculation
-- Validation should match creator validation rules
-- Modal should be dismissible at any time
+Verified tests in this pass:
+- src/components/CharacterSheet/__tests__/CharacterSheetModal.test.tsx
+- src/components/CharacterSheet/__tests__/CharacterOverview.test.tsx
+- src/components/CharacterSheet/__tests__/EquipmentMannequin.test.tsx
 
-## Open Questions / TODOs
+The older path assumptions about top-level Party and SpellbookOverlay files were not accurate in the current repo.
 
-- [ ] Document party switching UI implementation
-- [ ] Clarify stat calculation pipeline
-- [ ] Map equipment slot system
+## Open Follow-Through Questions
+
+- Which docs should explain the current CharacterSheet subtree layout in more detail so the modal is not treated as the whole domain?
+- How much of the level-up flow should be documented here versus in character-progression references?
+- Which deprecated bridge files should remain visible in domain docs versus being called out as historical compatibility layers?

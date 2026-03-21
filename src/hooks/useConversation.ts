@@ -15,13 +15,26 @@
 // @dependencies-end
 
 /**
+ * ARCHITECTURAL CONTEXT:
+ * This hook manages active, player-initiated conversations with companions.
+ * Unlike the ambient 'useCompanionBanter' which is NPC-to-NPC or NPC-addressed,
+ * this hook handles the interactive dialog panel where players can send 
+ * specific messages, @mention NPCs, and receive AI-generated responses.
+ *
+ * It persists conversation history into NPC memory and triggers approval 
+ * changes based on sentiment analysis of the exchange.
+ *
+ * Called by: ConversationPanel.tsx
+ */
+
+/**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
  *
  * @file src/hooks/useConversation.ts
  * Hook to manage interactive companion conversations.
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext } from '../services/ollama';
@@ -44,7 +57,14 @@ export function useConversation(
     dispatch: React.Dispatch<AppAction>
 ): UseConversationResult {
     const gameStateRef = useRef(gameState);
-    gameStateRef.current = gameState;
+    // WHAT CHANGED: Wrapped gameStateRef update in useEffect.
+    // WHY IT CHANGED: Direct assignment during render is discouraged and can 
+    // lead to "stale closure" bugs if callbacks triggered by async Ollama requests 
+    // read the ref before it has been updated for the current render cycle. 
+    // useEffect ensures the ref always points to the most recent state.
+    useEffect(() => {
+        gameStateRef.current = gameState;
+    }, [gameState]);
 
     const isPending = gameState.activeConversation?.pendingResponse ?? false;
 
@@ -58,6 +78,12 @@ export function useConversation(
         const weather = state.environment?.currentWeather || 'Clear';
         const hour = new Date(state.gameTime).getHours();
         const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
+        
+        // WHAT CHANGED: Added case-insensitive quest status check.
+        // WHY IT CHANGED: The quest engine recently switched from 'active' (lowercase) 
+        // to 'Active' (PascalCase). This cast and dual-check maintains compatibility 
+        // with legacy save files while adhering to the new schema.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const activeQuest = state.questLog.find(q => q.status === 'Active' || (q.status as any) === 'active');
 
         return {

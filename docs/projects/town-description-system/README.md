@@ -1,53 +1,49 @@
 # Town Description System
 
-## Overview
+Status: preserved project brief, rewritten on 2026-03-11 after repo verification.
 
-Implement a dynamic town description system that generates rich, contextual town details on-demand rather than pre-generating all town data for the entire world. This creates a more scalable and interesting world where towns feel alive and unique when discovered.
+This folder now serves as the planning bundle for an unfinished town-description and town-persistence feature set. It is not proof that the full system described here already exists in code.
 
-## Core Concept
+## Verified Current Baseline
 
-- **Map Generation**: Towns get basic names and key traits during world generation
-- **Lazy Loading**: Rich descriptions generate when players approach towns
-- **Contextual Details**: Town descriptions adapt based on race, culture, biome, and player background
-- **Performance**: Only nearby towns have detailed descriptions loaded
+- Town exploration already has a live canvas surface through `src/components/Town/TownCanvas.tsx`.
+- Town layouts are already generated deterministically through `src/services/villageGenerator.ts`.
+- Settlement traits such as dominant race, architectural style, governing body, industry, culture, and wealth are already inferred through `src/utils/world/settlementGeneration.ts`.
+- The main game already carries `worldSeed`, `mapData`, and session-level `townState` in `src/types/state.ts`.
+- Save/load infrastructure already exists for the overall `GameState` in `src/services/saveLoadService.ts`.
 
-## Key Features
+## Not Yet Verified In The Current Repo
 
-1. **Save State Integration** (CRITICAL - Prevents World Changes)
-   - **Immediate Persistence**: All generated content saved to game save data instantly
-   - **World Consistency**: Same towns, layouts, and descriptions across save/load cycles
-   - **Integrity Validation**: Corrupted save data detected and handled gracefully
-   - **Autosave Integration**: Content generation triggers automatic saves
+- A dedicated `TownMetadata` object stored in world-map data or save data.
+- A `TownDescriptionGenerator` or equivalent rich text town-description service.
+- Town-specific persistence objects such as `townStates`, `PersistentTownData`, or town-only integrity validation.
+- Proximity-triggered lazy loading for rich town details.
+- LRU or background preloading for nearby towns.
+- A complete integrated package that persists town layout, NPCs, events, and player interactions as one town-state bundle.
 
-2. **Basic Town Metadata** (always generated)
-   - Town name (seeded generation, persists across sessions)
-   - Population size and demographics
-   - Primary industry/economy type
-   - Governing style and leadership
-   - Cultural alignment and traditions
+## Working Interpretation
 
-3. **Coordinated Town Generation** (generated on approach, saved permanently)
-   - **Town Layout**: Actual buildings, streets, and structures (layout-first generation)
-   - **Rich Descriptions**: History, atmosphere informed by actual town composition
-   - **NPC Population**: Inhabitants based on town characteristics
-   - **Current Events**: Dynamic rumors and happenings
-   - **Visual Details**: Architecture, landmarks, and sensory elements
+The town-description effort still makes sense, but it must start from the verified existing foundations instead of assuming a clean-sheet implementation:
 
-4. **Session Persistence System**
-   - **Complete State**: Layout, NPCs, events, and player interactions saved
-   - **Deterministic Seeds**: Same master seed produces identical towns
-   - **Cache Management**: LRU cache with configurable limits
-   - **Background Loading**: Anticipated towns loaded asynchronously
+1. deterministic town layout generation already exists
+2. town rendering already exists
+3. settlement personality and cultural traits already exist
+4. whole-game save/load already exists
 
-5. **Dynamic Generation Triggers**
-   - World tile entry (coarse proximity)
-   - Proximity to town tiles (configurable tile range)
-   - Town interaction attempts
-   - Save state validation on game load
+The unfinished work is the metadata, persistence, description, and UI-integration layer that would sit on top of those foundations.
 
-## Architecture Goals
+## Folder Guide
 
-- Memory efficient (don't load all towns)
-- Contextually rich (adapt to player/region)
-- Reproducible (same seed = same town details)
-- Extensible (easy to add new town types)
+- `QUICK_START.md`: a rebased restart guide for resuming this feature area from the current codebase.
+- `IMPLEMENTATION_PLAN.md`: phased plan grounded in what already exists.
+- `TASKS.md`: live task backlog for the unfinished parts of the feature.
+- `TECHNICAL_SPEC.md`: preserved design target with an explicit boundary between current baseline and proposed additions.
+
+## Architecture Goal That Still Holds
+
+If this feature is resumed, the target remains:
+
+- deterministic towns from stable seeds
+- richer town-specific identity than the current canvas/layout view provides
+- persistence strong enough to avoid world drift across save/load
+- one shared town metadata and description path rather than multiple ad hoc implementations

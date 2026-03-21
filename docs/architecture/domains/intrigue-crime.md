@@ -1,55 +1,77 @@
-# Intrigue & Crimes
+﻿# Intrigue & Crime
 
 ## Purpose
 
-Handles systems related to noble houses, secrets, identity management, and criminal activities (theft, smuggling, heists).
+This domain covers the implemented intrigue and crime systems: noble-house and secret generation, identity management, thieves-guild play, smuggling, heists, black-market flows, and the reducer or UI surfaces that support them.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `src/systems/intrigue/` | Intrigue and social systems |
-| `src/systems/crime/` | Criminal systems |
+- src/systems/intrigue/
+- src/systems/crime/
+- src/state/reducers/crimeReducer.ts
+- src/state/reducers/identityReducer.ts
+- src/components/Crime/
+- src/components/debug/NobleHouseList.tsx
+- src/types/identity.ts
+- src/types/noble.ts
 
-## Subcomponents
+## Current Shape
 
-- **Intrigue**: Noble house generation and secret management.
-- **Crime**: Thieves' guild, smuggling, and heist mechanics.
+### Intrigue lane
 
-## File Ownership
+This pass verified the live intrigue subtree under src/systems/intrigue/, including:
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/systems/intrigue/*.ts` | Directory | Intrigue systems |
-| `src/systems/crime/**/*.ts` | Directory | Criminal systems |
-| `src/components/Crime/**/*.tsx` | Directory | Criminal interfaces |
-| `src/components/debug/NobleHouseList.tsx` | Component | Noble debug UI |
-| `src/state/reducers/crimeReducer.ts` | Reducer | Crime state |
-| `src/state/reducers/identityReducer.ts` | Reducer | Identity state |
-| `src/utils/nobleHouseGenerator.ts` | Utils | Noble house generation |
-| `src/utils/secretGenerator.ts` | Utils | Secret generation |
-| `src/utils/identityUtils.ts` | Utils | Identity/disguise helpers |
-| `src/utils/securityUtils.ts` | Utils | Crime-related security |
-| `src/types/crime/*.ts` | Types | Crime-related types |
-| `src/types/noble.ts` | Types | Noble house types |
-| `src/types/identity.ts` | Types | Identity types |
+- IdentityManager.ts
+- LeverageSystem.ts
+- NobleHouseGenerator.ts
+- SecretGenerator.ts
+- TavernGossipSystem.ts
 
-## Dependencies
+### Crime lane
 
-### Depends On
+This pass verified the live crime subtree under src/systems/crime/, including:
 
-- **[NPCs / Companions](./npcs-companions.md)**: Interactions with nobles and criminals
+- CrimeSystem.ts
+- ThievesGuildSystem.ts
+- SmugglingSystem.ts
+- HeistManager.ts
+- BlackMarketSystem.ts
+- BountyHunterSystem.ts
+- fencing/FenceSystem.ts
 
-### Used By
+### UI and reducer lane
 
-- **[Town Map](./town-map.md)**: Crimes and intrigue in urban settings
-- **[Submap](./submap.md)**: Secrets found in the wild
+This pass verified:
 
-### Claimed Tests (Auto-generated)
+- src/components/Crime/ThievesGuild/
+- src/components/Crime/ThievesGuild/HeistPlanningModal.tsx
+- src/components/Crime/ThievesGuild/FenceInterface.tsx
+- src/components/Crime/ThievesGuild/ThievesGuildInterface.tsx
+- src/state/reducers/crimeReducer.ts
+- src/state/reducers/identityReducer.ts
 
-| Test File | Description |
-|-----------|-------------|
-| `src/systems/intrigue/__tests__/NobleHouseGenerator.test.ts` | Noble house generator tests |
-| `src/systems/intrigue/__tests__/SecretSystem.test.ts` | Secret system tests |
-| `src/state/reducers/__tests__/crimeReducer.test.ts` | Crime reducer tests |
-| `src/state/reducers/__tests__/crimeReducer.heist.test.ts` | Crime heist reducer tests |
+## Important Corrections
+
+- The repo now has concrete intrigue and crime subsystems rather than only a conceptual lane.
+- TempleModal is not at src/components/TempleModal.tsx; the current path is src/components/Religion/TempleModal.tsx, so it should not be listed as a direct root-level ownership marker here.
+- Some older helper paths still exist in legacy locations, but the current utility drift points toward namespaced world and core utility folders rather than one flat utils ownership block.
+
+## Tests Verified In This Pass
+
+- src/systems/intrigue/__tests__/LeverageSystem.test.ts
+- src/systems/intrigue/__tests__/NobleHouseGenerator.test.ts
+- src/systems/intrigue/__tests__/SecretSystem.test.ts
+- src/systems/intrigue/__tests__/TavernGossipSystem.test.ts
+- src/systems/crime/__tests__/BlackMarketSystem.test.ts
+- src/systems/crime/__tests__/BountyHunterSystem.test.ts
+- src/systems/crime/__tests__/CrimeSystem.test.ts
+- src/systems/crime/__tests__/HeistManager.test.ts
+- src/systems/crime/__tests__/SmugglingSystem.test.ts
+- src/systems/crime/__tests__/ThievesGuildSystem.test.ts
+- src/systems/crime/fencing/__tests__/FenceSystem.test.ts
+- src/components/Crime/ThievesGuild/__tests__/ThievesGuildInterface.test.tsx
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this domain as the implemented social-intrigue plus criminal-activity lane: intrigue systems, crime systems, related reducers, and the thieves-guild UI surfaces that expose those mechanics.

@@ -26,10 +26,9 @@
 - **Concentration**: true
 
 - **Effect Type**: UTILITY
+- **Utility Type**: sensory
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: For the duration, you can sense the presence and location of poisons, poisonous creatures, and diseases within 30 feet of you. You also identify the kind of poison, poisonous creature, or disease in each case. The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.262
-- **Status**: Complete

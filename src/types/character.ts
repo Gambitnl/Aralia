@@ -5,6 +5,20 @@ import type { EquipmentSlotType, Item } from './items.js';
 import type { RaceVisualSpec } from './visuals.js';
 import type { FamilyMember } from './world.js';
 
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This file contains the 'Core Domain Types' for characters. It defines 
+ * the structure of Players, Classes, Races, and Feats.
+ *
+ * Recent updates align the system with '2024 Rulebook' mechanics. Many 
+ * feats now scale with 'Proficiency Bonus' rather than using fixed numbers. 
+ * The `benefits` structure within the `Feat` interface has been expanded 
+ * with flags like `initiativeBonusProficiency` and `luckyPoints` to 
+ * support these dynamic scaling rules in the combat and check modules.
+ * 
+ * @file src/types/character.ts
+ */
+
 export type { AbilityScores, AbilityScoreName } from './core.js';
 
 // -----------------------------------------------------------------------------
@@ -293,8 +307,21 @@ export interface Feat {
 
     speedIncrease?: number;
     initiativeBonus?: number;
+    // WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).
+    // WHY IT CHANGED: The 2024 D&D rules shift many bonuses to scale with 
+    // Proficiency Bonus. By adding these flags here, the skill-check and 
+    // combat calculators can dynamically adjust bonuses as characters 
+    // level up, rather than requiring manual stat updates on every level.
+    /** Alert (2024): Initiative bonus scales with Proficiency Bonus instead of a fixed value. */
+    initiativeBonusProficiency?: boolean;
     hpMaxIncreasePerLevel?: number;
     resistance?: string[];
+    /** Heavy Armor Master (2024): Nonmagical physical damage reduction equals Proficiency Bonus. */
+    damageReductionProficiency?: boolean;
+    /** Great Weapon Master (2024): Add Proficiency Bonus to damage on every Heavy weapon hit. */
+    heavyWeaponProficiencyBonus?: boolean;
+    /** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */
+    luckyPoints?: boolean;
     // Spell-granting benefits for feats like Magic Initiate, Fey-Touched, etc.
     spellBenefits?: FeatSpellBenefits;
   };

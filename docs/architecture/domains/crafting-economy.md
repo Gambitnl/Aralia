@@ -1,47 +1,90 @@
-# Crafting & Economy
+﻿# Crafting & Economy
 
 ## Purpose
 
-Manages crafting systems (alchemy, enchanting, salvaging), trade routes, market events, and the overall game economy.
+This file should describe the crafting lane and its adjacent relationship to trade and economy systems.
+The current repo has a real, broad crafting subtree, but it does not support the older claim that this one domain owns the overall game economy.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `src/systems/crafting/` | Crafting implementation |
-| `src/systems/economy/` | Economic systems |
+- src/systems/crafting/
+- src/components/Crafting/
+- src/components/CharacterSheet/Crafting/CraftingTab.tsx
 
-## Subcomponents
+## Current Shape
 
-- **Crafting**: Alchemy, Enchanting, and Salvaging systems.
-- **Economy**: Trade routes and market dynamics.
+### Crafting systems verified in this pass
 
-## File Ownership
+The current crafting subtree includes more than alchemy, enchanting, and salvaging.
+This pass verified live crafting surfaces for:
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/systems/crafting/**/*.ts` | Directory | Crafting systems |
-| `src/data/economy/*.ts` | Data | Economic definitions |
-| `src/utils/coinPurseUtils.ts` | Utils | Currency handling |
+- alchemy
+- enchanting
+- salvaging
+- cooking
+- gathering
+- refining
+- creature harvest
+- batch crafting
+- crafting service and engine support
+- recipe and ingredient data under src/systems/crafting/data/
 
-## Economy Systems (Shared with Items/Trade Domain)
+### Crafting UI verified in this pass
 
-Trade route and market economy systems are managed by the [Items / Trade / Inventory](./items-trade-inventory.md) domain. These files are not owned by crafting-economy.
+- src/components/Crafting/
+- src/components/CharacterSheet/Crafting/CraftingTab.tsx
 
-This crafting-economy domain owns only pure crafting mechanics.
+The Character Sheet still acts as the clearest verified consumer of the crafting lane.
+
+## Important Boundary Correction
+
+The previous version of this doc contradicted itself by saying both:
+
+- this domain manages the overall game economy
+- this domain owns only pure crafting mechanics
+
+The current repo supports the narrower interpretation.
+
+This domain should describe:
+
+- src/systems/crafting/
+- src/components/Crafting/
+- src/components/CharacterSheet/Crafting/
+- crafting-specific recipes, progression, harvesting, refining, and service logic
+
+Economy and trade systems are real and important, but they belong primarily to the adjacent trade and economy lane that is now documented in items-trade-inventory.md and reinforced by:
+
+- src/components/Trade/
+- src/components/Economy/
+- src/systems/economy/
+- src/state/reducers/economyReducer.ts
 
 ## Dependencies
 
-### Depends On
+### Depends on
 
-- **[Items / Trade / Inventory](./items-trade-inventory.md)**: Crafting recipes use items
+- Items / Trade / Inventory: crafting recipes and outputs still depend on the shared item lane.
 
-### Used By
+### Used by
 
-- **[Character Sheet](./character-sheet.md)**: Crafting interfaces
-- **[Town Map](./town-map.md)**: Economic state in towns
+- Character Sheet: the verified crafting interface lives under the CharacterSheet crafting tab.
 
-### Tests
+## Tests Verified In This Pass
 
-Trade route tests are owned by the [Items / Trade / Inventory](./items-trade-inventory.md) domain.
-See items-trade-inventory.md for test ownership details.
+The current crafting test surface includes:
+
+- src/systems/crafting/__tests__/alchemySystem.test.ts
+- src/systems/crafting/__tests__/CookingSystem.test.ts
+- src/systems/crafting/__tests__/craftingService.test.ts
+- src/systems/crafting/__tests__/craftingSystem.test.ts
+- src/systems/crafting/__tests__/EnchantingSystem.test.ts
+- src/systems/crafting/__tests__/gatheringSystem.test.ts
+- src/systems/crafting/__tests__/RefiningSystem.test.ts
+- src/systems/crafting/__tests__/salvageSystem.test.ts
+
+Trade-route tests remain part of the adjacent trade and economy lane, not this one.
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this file as the crafting-domain note with economy as adjacent integration context, not as an ownership claim over the whole economy stack.

@@ -4,6 +4,11 @@
 
 A sandbox D&D 5e experience where player agency is paramount. Not a linear story - a living world that reacts to player choices.
 
+**Status Note (2026-03-11):**
+- this file is a living product-direction document, not a claim that every system described here is already implemented
+- some sections describe verified current surfaces, while others describe long-horizon aspiration
+- treat the "Systems Needed" lists and future-expansion sections as directional planning rather than current roadmap commitments
+
 ---
 
 ## 🎭 Core Philosophy
@@ -22,7 +27,7 @@ A sandbox D&D 5e experience where player agency is paramount. Not a linear story
 - Be a noble by day, assassin by night
 - Be loved in one city, hunted in another
 - Change your mind. Betray your allies. Redeem yourself. Fall again.
-- **There is no character sheet checkbox for "alignment"**
+- **There is no intended long-term design reliance on a simple "alignment" checkbox**
 
 ### The World Doesn't Label You
 - NPCs form opinions based on what they *witness* or *hear*
@@ -71,7 +76,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Advisors with their own goals
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Kingdom/nation generator
 - [ ] Noble house generator with relationships
 - [ ] Faction reputation (per kingdom, per house)
@@ -110,7 +115,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Atheism is a choice (but gods still exist)
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Deity/pantheon data with domains and relationships
 - [ ] Devotion/piety mechanics
 - [ ] Divine favor/disfavor
@@ -144,7 +149,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Famine, disease following war
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Army composition and strength
 - [ ] Battle resolution mechanics
 - [ ] Siege mechanics
@@ -182,7 +187,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Slave raids
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Underdark map layer (below surface)
 - [ ] Darkvision/light source mechanics
 - [ ] Underdark faction relations
@@ -238,7 +243,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Color pools to other planes
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Planar portal system
 - [ ] Plane-specific mechanics (time, physics)
 - [ ] Extraplanar faction relations
@@ -277,7 +282,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Crash markets for rivals
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Dynamic economy simulation
 - [ ] Trade route mechanics
 - [ ] Resource availability per region
@@ -317,7 +322,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Monster fights
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Crime faction system
 - [ ] Heist planning mechanics
 - [ ] Bounty/contract system
@@ -359,7 +364,7 @@ These pillars are a living working set, not a locked final taxonomy. As features
 - Emerald Enclave
 
 
-**Systems Needed:**
+**Future Direction / Systems Needed:**
 - [ ] Research/discovery mechanics
 - [ ] Secret society membership
 - [ ] Prophecy/fate system

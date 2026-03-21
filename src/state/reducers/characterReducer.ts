@@ -15,6 +15,21 @@
 // @dependencies-end
 
 /**
+ * This reducer manages everything related to characters in the world.
+ *
+ * It handles party composition (joining/leaving), equipment changes, XP gains,
+ * health modifications, and spell preparation. It is the central authority for
+ * the character lifecycle.
+ *
+ * Called by: appState.ts (as part of the root reducer)
+ * Depends on: characterUtils for stat calculations, actionTypes for signal definitions
+ */
+
+// ============================================================================
+// Imports and Helpers
+// ============================================================================
+
+/**
  * @file src/state/reducers/characterReducer.ts
  * A slice reducer that handles character-related state changes (party, inventory, actions).
  */
@@ -40,6 +55,9 @@ const resolveMaxValue = (char: GameState['party'][0], ability: LimitedUseAbility
     return 1; // Fallback
 };
 
+// ============================================================================
+// Main Reducer Logic
+// ============================================================================
 export function characterReducer(state: GameState, action: AppAction): Partial<GameState> {
     switch (action.type) {
         case 'SET_PARTY_COMPOSITION':
@@ -47,6 +65,23 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 party: action.payload.map(tempMember => createPlayerCharacterFromTemp(tempMember)),
                 tempParty: action.payload,
             };
+
+        // Premade party action: Sets the party using full PlayerCharacter objects
+        // WHAT CHANGED: Added SET_FULL_PARTY to support pre-generated characters.
+        // WHY IT CHANGED: Standard SET_PARTY_COMPOSITION generates stats from a 
+        // template. For premade characters (like those loaded from JSON), we 
+        // want to preserve their hand-crafted stats, spells, and equipment exactly.
+        case 'SET_FULL_PARTY':
+            return {
+                party: action.payload,
+                tempParty: action.payload.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    level: p.level || 1,
+                    classId: p.class?.id || 'fighter',
+                })),
+            };
+
 
         case 'ADD_GENERATED_CHARACTER':
             // TODO(FEATURES): Add explicit party recruitment/leave actions wired to gameplay (NPC join/leave flow), not just dev generation (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).

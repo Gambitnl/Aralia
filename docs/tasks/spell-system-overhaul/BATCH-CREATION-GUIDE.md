@@ -2,6 +2,11 @@
 
 **Purpose**: Guide for creating migration batch task files that Jules can execute.
 
+> **Status Note (2026-03-11):**
+> - this file is still useful as a local batch-authoring guide for the spell-overhaul subtree
+> - it has been updated to remove a missing support document and to stop assuming a spell-glossary markdown lane that does not exist in the current repo
+> - treat it as subtree workflow guidance, not as a repo-wide task-template standard
+
 ---
 
 ## File Structure Pattern
@@ -20,7 +25,7 @@ An ordered list of files Jules must read **before starting**:
 2. `docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md` - Conversion procedure
 3. `docs/spells/SPELL_JSON_EXAMPLES.md` - Validated reference examples
 4. `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json` - Complete spell JSON template (all possible fields)
-5. `docs/tasks/spell-system-overhaul/SALVAGED_SPELL_CONTEXT.md` - Context for complex spells
+5. `docs/tasks/spell-system-overhaul/GAP_REGISTRY.md` - Current gap-code vocabulary and caution points
 6. `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` - Integration verification steps
 7. The appropriate audit file for selection (e.g., `@SPELL-AUDIT-CANTRIPS.md`)
 
@@ -96,7 +101,7 @@ Convert batch {N} of {count} {level} spells from Old Format to New Format.
 * `docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md`
 * `docs/spells/SPELL_JSON_EXAMPLES.md`
 * `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json`
-* `docs/tasks/spell-system-overhaul/SALVAGED_SPELL_CONTEXT.md`
+* `docs/tasks/spell-system-overhaul/GAP_REGISTRY.md`
 * `docs/spells/SPELL_INTEGRATION_CHECKLIST.md`
 * `docs/tasks/spell-system-overhaul/@SPELL-AUDIT-{LEVEL}.md` (for selection)
 
@@ -107,15 +112,15 @@ Convert batch {N} of {count} {level} spells from Old Format to New Format.
    b) Create new JSON at `public/data/spells/level-{N}/{id}.json`
    c) **Field Comparison Check**: Ensure ALL fields from old file are in new file (especially `ritual`, `combatCost`, `tags`)
    d) Delete old file at `public/data/spells/{id}.json`
-   e) Create glossary entry at `public/data/glossary/entries/spells/{id}.md`
+   e) Verify whether the spell needs any companion documentation updates in the current repo; do not assume a spell glossary markdown file exists
    f) Run integration checklist and log results below
 3) Manifest: `npx tsx scripts/regenerate-manifest.ts`
 4) Validation: `npm run validate` - fix any errors
 5) Do NOT edit shared status files; track completion in this file only.
 
 ## PER-SPELL CHECKLIST (record here)
-- [spell-id-1]: OldFile✓ / NewFile✓ / FieldCheck✓ / OldDeleted✓ / Glossary✓ / Validation✓ (notes: )
-- [spell-id-2]: OldFile✓ / NewFile✓ / FieldCheck✓ / OldDeleted✓ / Glossary✓ / Validation✓ (notes: )
+- [spell-id-1]: OldFile✓ / NewFile✓ / FieldCheck✓ / OldDeleted✓ / CompanionDocsChecked✓ / Validation✓ (notes: )
+- [spell-id-2]: OldFile✓ / NewFile✓ / FieldCheck✓ / OldDeleted✓ / CompanionDocsChecked✓ / Validation✓ (notes: )
 ...
 ```
 

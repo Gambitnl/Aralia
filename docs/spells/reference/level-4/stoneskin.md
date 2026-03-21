@@ -31,5 +31,3 @@
 
 - **Description**: Until the spell ends, one willing creature you touch has Resistance to Bludgeoning, Piercing, and Slashing damage.
 - **Higher Levels**: None
-- **Source**: PHB 2024
-- **Status**: Complete

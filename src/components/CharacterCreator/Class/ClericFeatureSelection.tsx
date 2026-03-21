@@ -1,7 +1,19 @@
 /**
- * @file ClericFeatureSelection.tsx
- * This component allows a player who has chosen the Cleric class to select
- * their Divine Order and their initial known cantrips and Level 1 spells.
+ * ARCHITECTURAL CONTEXT:
+ * This component manages the 'Cleric Feature' selection (Divine Order, 
+ * Cantrips, and Level 1 Spells).
+ *
+ * Recent updates focus on '2024 Rulebook Alignment' and 'Dynamic Selection Pools'.
+ * - Added `sr-only` accessibility labels for all spell selection inputs.
+ * - Refined item highlighting to use a consolidated check 
+ *   (`selectedCantripIds.has || selectedSpellL1Ids.has`). This ensures 
+ *   visual consistency across sub-lists.
+ * - Implemented `numCantripsToSelect` logic to account for the 
+ *   'Thaumaturge' Divine Order, which grants an extra cantrip. This 
+ *   dynamic limit ensures that validation correctly scales based on the 
+ *   player's specific build choices.
+ * 
+ * @file src/components/CharacterCreator/Class/ClericFeatureSelection.tsx
  */
 import React, { useState } from 'react';
 import { DivineOrderOption, Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types'; 
@@ -30,6 +42,10 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
     setSelectedOrder(orderId);
   };
 
+  // WHAT CHANGED: Dynamic cantrip limit calculation.
+  // WHY IT CHANGED: To align with the 2024 Player's Handbook. Selecting 
+  // the 'Thaumaturge' order grants an additional cantrip, so the 
+  // validation limit must adjust in real-time.
   const numCantripsToSelect = spellcastingInfo.knownCantrips + (selectedOrder === 'Thaumaturge' ? 1 : 0);
   const numSpellsL1ToSelect = spellcastingInfo.knownSpellsL1;
 
@@ -113,11 +129,12 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
                   <label 
                     key={spell.id} 
                     className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                      selectedCantripIds.has(spell.id) 
+                      (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                         ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                         : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                     }`}
                   >
+                    <span className="sr-only">Select {spell.name}</span>
                     <div className="flex items-center gap-3">
                       <input 
                         type="checkbox" 
@@ -150,11 +167,12 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
                   <label 
                     key={spell.id} 
                     className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                      selectedSpellL1Ids.has(spell.id) 
+                      (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                         ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                         : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                     }`}
                   >
+                    <span className="sr-only">Select {spell.name}</span>
                     <div className="flex items-center gap-3">
                       <input 
                         type="checkbox" 

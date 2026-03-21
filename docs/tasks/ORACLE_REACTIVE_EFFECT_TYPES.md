@@ -1,6 +1,13 @@
 # Oracle: ReactiveEffectCommand Type Safety Improvements
+This file was re-verified on 2026-03-14.
+It is preserved as a targeted type-safety improvement note rather than a live blocker brief.
 
-## 🔮 Overview
+Current reality:
+- `ReactiveEffectCommand.ts` still exists
+- `src/utils/factories.ts` now exists, so the old blocker language must be read as time-bound session history rather than current guaranteed blockage
+
+
+## ðŸ”® Overview
 
 I have replaced `any` usage in `src/commands/effects/ReactiveEffectCommand.ts` with specific event types:
 - `MovementEvent`
@@ -9,7 +16,7 @@ I have replaced `any` usage in `src/commands/effects/ReactiveEffectCommand.ts` w
 
 This ensures that event listeners for `on_target_move`, `on_target_attack`, and `on_target_cast` are strictly typed, preventing potential runtime errors from unchecked property access.
 
-## 🚧 Blockers & Future Work
+## ðŸš§ Blockers & Future Work
 
 I attempted to add a unit test to strictly verify these changes, but encountered issues extending the shared factory utilities.
 
@@ -115,7 +122,7 @@ describe('ReactiveEffectCommand', () => {
 });
 ```
 
-## ✅ Action Items
+## âœ… Action Items
 
 1.  **Vanguard:** Implement `createMockCommandContext` in `src/utils/factories.ts`.
 2.  **Vanguard:** Add the test suite above.

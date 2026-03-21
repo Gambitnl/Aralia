@@ -1,32 +1,24 @@
-# Path 2.F: Migrate Cantrips Batch 1 (5 spells)
+﻿# 1I - Migrate Cantrips (Batch 1)
 
-## MISSION
-Convert the first batch of 5 high-priority cantrips from Old Format to New Format, adhering to the "Iron Rules" acceptance criteria.
+**Status:** Compatibility pointer
+**Last Reviewed:** 2026-03-12
 
-**Spells in this batch:**
-- `acid-splash`
-- `blade-ward`
-- `booming-blade`
-- `chill-touch`
-- `create-bonfire`
+## What This File Is
 
-## DELIVERABLE
-A Pull Request with 5 new JSON files, 5 new glossary files, an updated manifest, and this file marked with completion for each spell.
+This task-path file now exists only to keep older links alive.
+The full preserved Batch 1 record already lives in docs/archive/spell-system/cantrips/1I-MIGRATE-CANTRIPS-BATCH-1.md.
 
-## RESULTS
-- [x] `acid-splash`
-- [x] `blade-ward`
-- [x] `booming-blade`
-- [x] `chill-touch`
-- [x] `create-bonfire`
+## Current Reading Rule
 
-## System Gaps & Follow-up
-- [ ] **`booming-blade`**: The trigger for the secondary damage is "if the target willingly moves".
-    - *Context*: The current schema's `trigger.type` does not support conditional triggers based on character actions like movement.
-    - *Recommendation*: Add a `custom` trigger type or a more robust conditional trigger system to the schema. For now, the mechanic is noted in the effect's `description`.
-- [ ] **`create-bonfire`**: Damage should trigger "when a creature moves into the bonfire's space for the first time on a turn".
-    - *Context*: The current schema's `trigger.type` does not support triggers based on entering an area.
-    - *Recommendation*: Add an `on_enter_area` trigger type to the schema. For now, the mechanic is noted in the effect's `description`.
-- [ ] **`chill-touch`**: The disadvantage effect on Undead is conditional.
-    - *Context*: The current schema does not support targeting conditions based on creature type (e.g., Undead).
-    - *Recommendation*: Add a `targetType` condition to the `condition` object in the effect schema. For now, the condition is noted in the effect's `description`.
+Do not use this path as a live cantrip migration task.
+Use it only as a pointer to the archived historical batch record.
+
+## Current Sources To Use Instead
+
+- docs/archive/spell-system/cantrips/1I-MIGRATE-CANTRIPS-BATCH-1.md for the preserved Batch 1 record
+- docs/spells/STATUS_LEVEL_0.md for the current cantrip status surface
+- docs/tasks/spell-system-overhaul/TODO.md for live cross-level follow-through gaps
+
+## Verified Drift
+
+A 2026-03-12 repo check confirmed that the Batch 1 cantrips already exist under public/data/spells/level-0, so this path no longer represents an active execution checklist.

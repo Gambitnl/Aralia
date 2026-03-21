@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aralia Spell Data Validation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="spell_data_validation.css">
+</head>
+
+<body class="spellval-page">
+    <!--
+        This page gives the spell inventory/validation work its own home so the user
+        can browse spell fields without the rest of the Dev Hub competing for space.
+        It intentionally reuses the same API endpoints and visual language as the Dev Hub
+        rather than inventing a second spell tooling surface.
+    -->
+    <main class="spellval-shell">
+        <header class="spellval-hero">
+            <div class="spellval-hero-copy">
+                <p class="spellval-kicker">Standalone Validation Surface</p>
+                <h1>Spell Data Validation</h1>
+                <p class="spellval-subtitle">
+                    Browse live spell JSON fields, reverse-search concrete values, and inspect
+                    which spells do or do not use each structural lane.
+                </p>
+            </div>
+            <div class="spellval-hero-actions">
+                <a class="spellval-link-btn" href="./dev_hub.html">Back To Dev Hub</a>
+                <button class="action-btn" id="spellInventoryRefreshBtn" onclick="refreshSpellInventory(true)">Refresh</button>
+            </div>
+        </header>
+
+        <section class="panel spellval-panel" id="spellFieldInventoryPanel">
+            <div class="panel-header spellval-panel-header">
+                <div>
+                    <h2>Spell Field Explorer</h2>
+                    <p class="spellval-panel-copy">
+                        This surface is field-first on purpose: the goal is to expose repeated
+                        schema patterns before diving into one spell at a time.
+                    </p>
+                </div>
+                <div class="imggen-actions">
+                    <button class="action-btn" id="spellInventorySearchBtn" onclick="runSpellInventoryQuery()">Search</button>
+                </div>
+            </div>
+
+            <div class="imggen-status" id="spellInventoryStatus">Loading spell field inventory...</div>
+
+            <div class="spellinv-controls">
+                <label class="spellinv-control">
+                    <span>Field Filter</span>
+                    <input id="spellFieldFilterInput" type="text" placeholder="effects[].damage.dice" oninput="filterSpellFieldList()" onfocus="openSpellFieldDropdown()">
+                    <div class="spellval-dropdown" id="spellFieldDropdown"></div>
+                </label>
+                <label class="spellinv-control">
+                    <span>Value Search</span>
+                    <input id="spellValueSearchInput" type="text" list="spellValueSearchOptions" placeholder="1d4" onkeydown="if (event.key === 'Enter') runSpellInventoryQuery()">
+                    <datalist id="spellValueSearchOptions"></datalist>
+                </label>
+                <label class="spellinv-control">
+                    <span>Level</span>
+                    <select id="spellLevelFilterSelect" onchange="runSpellInventoryQuery()">
+                        <option value="">All levels</option>
+                        <option value="0">Level 0</option>
+                        <option value="1">Level 1</option>
+                        <option value="2">Level 2</option>
+                        <option value="3">Level 3</option>
+                        <option value="4">Level 4</option>
+                        <option value="5">Level 5</option>
+                        <option value="6">Level 6</option>
+                        <option value="7">Level 7</option>
+                        <option value="8">Level 8</option>
+                        <option value="9">Level 9</option>
+                    </select>
+                </label>
+                <label class="spellinv-toggle">
+                    <input id="spellIncludeFreeTextToggle" type="checkbox" onchange="runSpellInventoryQuery()">
+                    <span>Include prose-heavy fields</span>
+                </label>
+            </div>
+
+            <div class="spellval-summary-grid">
+                <article class="spellval-summary-card">
+                    <h3>How To Read This</h3>
+                    <p>
+                        Select a field path to see the distinct values currently used there.
+                        Search a value such as <code>1d4</code> to see which spells and field paths
+                        use it. This makes one-off values and repeated structural patterns visible.
+                    </p>
+                </article>
+                <article class="spellval-summary-card">
+                    <h3>What This Is For</h3>
+                    <p>
+                        This page is the structural inventory surface for the spell validation plan.
+                        It is not trying to judge PHB semantics on its own. It is showing what the
+                        live spell JSON dataset currently contains.
+                    </p>
+                </article>
+            </div>
+
+            <div class="spellinv-grid">
+                <div class="spellinv-card">
+                    <h3>Field Paths</h3>
+                    <p class="spellval-note">Grouped by top-level field family to keep large spell datasets navigable.</p>
+                    <div class="spellinv-list" id="spellFieldList"></div>
+                </div>
+
+                <div class="spellinv-card">
+                    <h3>Distinct Values</h3>
+                    <p class="spellval-note">Shows values for the active field filter and level filter.</p>
+                    <div class="spellinv-list" id="spellValueList"></div>
+                </div>
+            </div>
+
+            <div class="spellinv-card spellval-results-card">
+                <h3>Matching Spell Records</h3>
+                <p class="spellval-note">Reverse lookup results for the current field/value query.</p>
+                <div class="spellinv-list spellval-results-list" id="spellQueryResults"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="spell_data_validation_app.js"></script>
+</body>
+
+</html>

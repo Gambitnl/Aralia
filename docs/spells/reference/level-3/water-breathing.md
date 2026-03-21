@@ -28,10 +28,9 @@
 - **Concentration**: false
 
 - **Effect Type**: BUFF
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: This spell grants the ability to breathe underwater to up to ten willing creatures you can see within range. Affected creatures also retain their normal mode of respiration.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.336
-- **Status**: Complete

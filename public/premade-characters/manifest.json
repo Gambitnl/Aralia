@@ -1,0 +1,28 @@
+{
+    "characters": [
+        {
+            "filename": "thalren_deeproot.json",
+            "name": "Thalren Deeproot",
+            "race": "Earth Genasi",
+            "className": "Monk",
+            "level": 1,
+            "description": "A reclusive Earth Genasi hermit who channels the patience of stone through martial discipline."
+        },
+        {
+            "filename": "kael_ironvow.json",
+            "name": "Kael Ironvow",
+            "race": "Half-Orc",
+            "className": "Fighter",
+            "level": 1,
+            "description": "A disciplined Half-Orc soldier who fights with precision over brute force, wielding a longsword and shield."
+        },
+        {
+            "filename": "lyris_songweaver.json",
+            "name": "Lyris Songweaver",
+            "race": "Lightfoot Halfling",
+            "className": "Bard",
+            "level": 1,
+            "description": "A cheerful Halfling entertainer whose songs bolster allies and beguile foes."
+        }
+    ]
+}

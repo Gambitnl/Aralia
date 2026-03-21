@@ -24,8 +24,7 @@
 - **Concentration**: false
 
 - **Effect Type**: DAMAGE
+- **Utility Type**: other
 
 - **Description**: You compel one creature you can see within range to die. If the target has 100 Hit Points or fewer, it dies. Otherwise, it takes 12d12 Psychic damage.
 - **Higher Levels**: N/A
-- **Source**: PHB 2024
-- **Status**: Complete

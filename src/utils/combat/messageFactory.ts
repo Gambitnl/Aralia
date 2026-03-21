@@ -1,7 +1,15 @@
 /**
- * Combat Message Factory
+ * ARCHITECTURAL CONTEXT:
+ * This factory creates 'Rich Combat Messages'. It translates mechanical 
+ * events (like damage, kills, or spells) into human-readable notifications 
+ * and log entries.
+ *
+ * Recent updates focus on 'Dead Code Pruning'. The `formatTemplate` helper 
+ * was removed as the factory moved towards direct template literals for 
+ * string construction, which is more performant and type-safe in the 
+ * current TypeScript environment. 
  * 
- * Utility functions for creating consistent, rich combat messages.
+ * @file src/utils/combat/messageFactory.ts
  */
 
 import {
@@ -16,14 +24,15 @@ import type {
   AbilityMessageData,
   AchievementMessageData,
 } from '../../types/combatMessages';
-import type { CombatCharacter } from '../../types/combat';
+import type { CombatCharacter } from '../../types/combat.js';
 
-// Helper functions
-function formatTemplate(template: string, variables: Record<string, string | number>): string {
-  return template.replace(/\{(\w+)\}/g, (match, key) => {
-    return variables[key]?.toString() || match;
-  });
-}
+// --- Message Factory ---
+// WHAT CHANGED: Removed formatTemplate helper.
+// WHY IT CHANGED: The factory was updated to use standard ES6 Template 
+// Literals instead of a custom regex-based template formatter. This 
+// reduces runtime overhead and simplifies the codebase by removing 
+// unused utility functions that were originally for a more dynamic 
+// (but less type-safe) message system.
 
 function generateId(): string {
   return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

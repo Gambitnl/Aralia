@@ -1,149 +1,71 @@
-# Architecture Documentation Maintenance Guide
+﻿# Architecture Documentation Maintenance Guide
 
-This guide explains how to maintain the architecture compendium as the codebase evolves.
+This guide explains how to maintain the docs/architecture compendium as the codebase evolves.
 
----
+## Current Architecture Doc Surface
 
-## Directory Structure
+The docs/architecture folder currently contains:
+- README.md
+- domains/
+- features/
+- _generated/
+- focused reference notes such as BIOME_DNA_API.md, SPELL_SYSTEM_ARCHITECTURE.md, and VISIBILITY_SYSTEM.md
 
-```
-docs/architecture/
-  README.md              # This file
-  domains/               # Per-domain documentation
-    glossary.md
-    world-map.md
-    submap.md
-    ...
-  _generated/            # Machine-generated artifacts (do not edit)
-    deps.json            # Full dependency graph
-    file-inventory.json  # All tracked files
-```
+The generator-managed artifacts currently verified in _generated are:
+- deps.json
+- file-inventory.json
+- coverage-report.json
 
----
+Treat generator outputs as generated artifacts. Do not hand-edit them unless you are explicitly repairing generator output as part of tooling work.
 
-## Regenerating Dependency Graph
+## Regenerating Generated Artifacts
 
-Run the following command to update generated artifacts:
+Run:
 
-```bash
-npx --no-install tsx scripts/generate-architecture-compendium.ts
-```
-
-This will:
-1. Walk `src/`, `scripts/`, and `public/data/`
-2. Parse import statements from TypeScript/JavaScript files
-3. Generate `deps.json` with bidirectional import relationships
-4. Generate `file-inventory.json` with all tracked files
-
-> [!IMPORTANT]
-> Never manually edit files in `_generated/`. They are overwritten on each run.
-
----
-
-## Adding a New Domain
-
-1. Create a new file in `docs/architecture/domains/` using the template below
-2. Add an entry to the table in `docs/ARCHITECTURE.md`
-3. Update the mermaid diagram if the domain has significant dependencies
-4. Run the generator to verify file ownership
-
----
-
-## Domain Document Template
-
-```markdown
-# [Domain Name]
-
-## Purpose
-What the user experiences in this domain.
-
-## Key Entry Points
-| File | Role |
-|------|------|
-| `src/components/X.tsx` | Primary UI component |
-| `src/hooks/useX.ts` | State management hook |
-
-## Subcomponents
-- **SubA**: Brief description
-- **SubB**: Brief description
-
-## File Ownership
-<!-- All files that belong to this domain -->
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/Domain/` | Directory | UI components |
-| `src/hooks/useDomain.ts` | Hook | Business logic |
-
-## Dependencies
-
-### Depends On
-- [Other Domain](./other-domain.md) - Why this dependency exists
-
-### Used By
-- [Another Domain](./another-domain.md) - How it uses this domain
-
-## Boundaries / Constraints
-- Should NOT import from [Domain X] directly
-- All Y access must go through Z service
-
-## Open Questions / TODOs
-- [ ] Clarify boundary with Domain Q
-- [ ] Document subsystem X
-```
-
----
-
-## Updating File Ownership
-
-File ownership is manually curated in domain documents. When files move:
-
-1. Run the generator to see current import relationships
-2. Update the "File Ownership" table in the relevant domain document
-3. If a file belongs to multiple domains, document it in the primary domain and note the shared usage
-
----
-
-## Verifying Consistency
-
-After making changes:
-
-```bash
-# Regenerate dependency data
 npx --no-install tsx scripts/generate-architecture-compendium.ts
 
-# Run project validation
-npm run validate
+This generator currently scans:
+- src/
+- scripts/
+- public/data/
 
-# Check for non-ASCII characters
-npx --no-install tsx scripts/check-non-ascii.ts
-```
+It produces dependency and inventory data for the architecture compendium. It helps verify relationships, but it does not assign domain ownership for you.
 
----
+## Adding Or Updating A Domain Doc
 
-## Cross-Domain Dependencies
+When adding a new domain:
+1. Create the domain file under docs/architecture/domains/.
+2. Add or update the corresponding entry in docs/ARCHITECTURE.md.
+3. If a maintained mermaid diagram or other visual dependency map references that domain, update that surface too.
+4. Regenerate the architecture compendium artifacts to refresh dependency evidence.
 
-When documenting dependencies:
+Suggested domain structure:
+- Purpose
+- Key entry points
+- Main files or surfaces
+- Dependencies
+- Boundaries or constraints
+- Open questions or follow-through
 
-1. **Depends On**: List domains this domain imports from
-2. **Used By**: List domains that import from this domain (derived from `deps.json`)
+## File Ownership Guidance
 
-Use the generated `deps.json` to verify relationships:
+File ownership in the domain docs is manually curated.
+Use the generated dependency and inventory artifacts to inform ownership decisions, but do not treat the generator as the authority for domain boundaries.
 
-```json
-{
-  "files": {
-    "src/components/Combat/CombatView.tsx": {
-      "imports": ["src/systems/spells/...", "src/utils/combatUtils.ts"],
-      "importedBy": ["src/App.tsx"]
-    }
-  }
-}
-```
+When files move:
+1. Regenerate the architecture compendium artifacts.
+2. Update the relevant domain document manually.
+3. Note shared ownership or cross-domain usage explicitly instead of inventing a fake single-owner answer.
 
----
+## Consistency Checks
+
+After changing the architecture docs or generator inputs:
+1. Regenerate the architecture compendium artifacts.
+2. Run npm run validate.
+3. Run npx --no-install tsx scripts/check-non-ascii.ts if you touched generator outputs or broad doc surfaces.
 
 ## Naming Conventions
 
-- Domain document filenames: `kebab-case.md` (e.g., `character-creator.md`)
-- Generated files: `kebab-case.json`
-- All paths in documentation should be repo-relative (e.g., `src/components/...`)
+- Domain documents should use kebab-case filenames.
+- Generated JSON artifacts should stay consistently named and repo-relative in references.
+- Paths in architecture documentation should be repo-relative.

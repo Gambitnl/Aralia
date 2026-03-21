@@ -28,5 +28,3 @@
 
 - **Description**: A creature you touch has the Invisible condition until the spell ends.
 - **Higher Levels**: None
-- **Source**: PHB 2024
-- **Status**: Complete

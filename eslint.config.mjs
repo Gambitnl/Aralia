@@ -80,6 +80,42 @@ export default tseslint.config(
       'no-case-declarations': 'warn',
       'no-constant-condition': 'warn',
       'no-mixed-spaces-and-tabs': 'warn',
+
+      // ---------------------------------------------------------------------------
+      // Button design-system guard
+      // ---------------------------------------------------------------------------
+      // Warn whenever a raw <button> or <motion.button> is written directly in JSX.
+      // Prefer the shared <Button> component (ui/Button) which encapsulates the
+      // BTN_* style constants and adds spring-tap animation:
+      //   <Button variant="primary" size="md" onClick={...}>Label</Button>
+      //
+      // If you genuinely need lower-level control, apply the BTN_* constants:
+      //   import { BTN_BASE, BTN_SIZE_MD, BTN_PRIMARY } from '../../styles/buttonStyles';
+      //   <button className={`${BTN_BASE} ${BTN_SIZE_MD} ${BTN_PRIMARY}`}>...</button>
+      //
+      // For intentionally custom interactive controls (resize handles, portrait
+      // buttons, etc.) add the file to EXEMPT_FILES in buttonAudit.test.ts and
+      // suppress this rule with eslint-disable-next-line for that one element.
+      //
+      // Set to 'warn' (not 'error') while migrating the 108 existing violations.
+      // Once violations reach 0, upgrade to 'error' to prevent regressions.
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: 'JSXOpeningElement[name.name="button"]',
+          message:
+            "Raw <button> detected. Prefer <Button variant='...' size='...'> from 'ui/Button', " +
+            "or apply BTN_BASE + BTN_* constants from 'styles/buttonStyles'. " +
+            "If intentionally custom, add the file to EXEMPT_FILES in buttonAudit.test.ts.",
+        },
+        {
+          selector: 'JSXOpeningElement[name.object.name="motion"][name.property.name="button"]',
+          message:
+            "Raw <motion.button> detected. Prefer <Button variant='...' size='...'> from 'ui/Button' — " +
+            "it already wraps motion.button with a spring-tap animation. " +
+            "If intentionally custom, add the file to EXEMPT_FILES in buttonAudit.test.ts.",
+        },
+      ],
     },
   },
   {

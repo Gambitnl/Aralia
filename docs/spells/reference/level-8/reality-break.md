@@ -27,6 +27,7 @@
 - **Concentration**: true
 
 - **Effect Type**: DAMAGE
+- **Utility Type**: other
 - **Save Stat**: Wisdom
 - **Save Outcome**: negates
 
@@ -42,5 +43,3 @@
 
   At the end of each of its turns, the affected target can repeat the Wisdom saving throw, ending the spell on itself on a success.
 - **Higher Levels**:
-- **Source**: EGW
-- **Status**: Complete

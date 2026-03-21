@@ -11,7 +11,7 @@
 - **Range Type**: ranged
 - **Range Distance**: 60
 - **Targeting Type**: single
-- **Valid Targets**: creature
+- **Valid Targets**: creatures
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -21,17 +21,13 @@
 - **Duration Type**: instantaneous
 - **Concentration**: false
 
-- **Effect Type**: DAMAGE
+- **Effect Types**: DAMAGE, MOVEMENT
 - **Save Stat**: Wisdom
-- **Save Outcome**: half
+- **Save Outcome**: half damage; negates movement
 - **Damage Dice**: 3d6
 - **Damage Type**: Psychic
+- **Movement Type**: push
+- **Forced Movement**: usesReaction true, direction away_from_caster, maxDistance target_speed
 
 - **Description**: You whisper a discordant melody that only one creature of your choice within range can hear, wracking it with terrible pain. The target must make a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far as its speed allows away from you. The creature doesn't move into obvious danger, such as a fire or a pit. On a successful save, the target takes half as much damage and doesn't have to move away. A Deafened creature automatically succeeds on the save.
 - **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.
-- **Source**: PHB 2024 p.264
-- **Status**: Complete
-
----
-
-## Batch 3 - Spells 21-30

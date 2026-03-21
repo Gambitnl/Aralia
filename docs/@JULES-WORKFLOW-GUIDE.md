@@ -1,61 +1,73 @@
 # Jules Workflow Guide
 
-This document outlines the workflow for using a coordinator CLI in tandem with Jules (asynchronous coding agent) to efficiently manage software engineering tasks in the Aralia project.
+**Last Updated**: 2026-03-11  
+**Purpose**: Preserve the repo's Jules-specific coordination pattern as a situational workflow note, not as the universal authority for how all Aralia work must be executed.
 
-## 1. Architecture Overview
+## Status Of This Guide
 
-*   **Coordinator CLI:** The "Orchestrator." Analyzes requirements, defines precise prompt instructions, launches Jules sessions, and performs final conflict resolution on high-level documentation.
-*   **Jules:** The "Worker." Executes coding and documentation tasks asynchronously in parallel sessions. Responsible for implementation and testing.
-*   **GitHub:** The source of truth and collaboration platform.
+This is a workflow-specific reference.
 
-## 2. The "Strict Instruction" Protocol
+It captures a coordination style that was useful for parallel agent work, especially when shared docs and registry files were prone to merge conflicts.
 
-Jules requires precise, unambiguous instructions. "High-level concepts" lead to drift.
+It is not the top-level authority for the repo. Current authoritative operating rules still live in:
+- [`AGENTS.md`](../AGENTS.md)
+- [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md)
+- [`@DOCUMENTATION-GUIDE.md`](./@DOCUMENTATION-GUIDE.md)
 
-**Every `jules new` command issued by the coordinator MUST contain the following structured payload:**
+## The Stable Principles Worth Preserving
 
-1.  **MISSION**: A single sentence defining the goal.
-2.  **REQUIRED READING**: A strict list of file paths Jules MUST read before starting.
-3.  **EXECUTION STEPS**: A numbered, step-by-step procedure.
-    *   *Example:* "1. Create file X. 2. Add function Y. 3. Run test Z."
-4.  **CONSTRAINTS**: What Jules is NOT allowed to do (e.g., "Do not modify `constants.ts`").
-5.  **DELIVERABLE**: The exact expected output (e.g., "A PR containing the new component and passing tests").
+Even if Jules is not the only active workflow surface, these ideas remain useful:
+- give worker agents precise, bounded instructions
+- partition work to reduce file conflicts
+- keep central registry or index files under tighter orchestration
+- verify work before calling it complete
 
-## 3. The Workflow (GitHub Native)
+## The Historical Jules Pattern
 
-We use a single, unified workflow for all tasks.
+The older Jules workflow assumed:
+- a coordinator or orchestrator prepared the work
+- Jules handled bounded implementation or documentation tasks
+- shared registry files were often updated centrally to avoid merge churn
+- GitHub PR publication was one common integration path
 
-### Phase 1: Initiation (Coordinator)
-1.  **Analysis:** The coordinator analyzes the high-level goal (e.g., "Documentation Cleanup").
-2.  **Partitioning:** The coordinator breaks the goal into parallelizable units to avoid file conflicts.
-    *   *Example:* "Jules A handles `docs/guides/`, Jules B handles `docs/spells/`."
-3.  **Launch:** The coordinator constructs the **Strict Instruction** prompt and launches the session:
-    ```bash
-    jules new --repo user/repo "MISSION: ... REQUIRED READING: ... STEPS: ..."
-    ```
+Treat that as one supported collaboration pattern, not as the one mandatory workflow for all tasks in this repo.
 
-### Phase 2: Execution & Review (Jules)
-1.  **Implementation:** Jules reads the context and executes the steps.
-2.  **Self-Correction:** Jules runs relevant tests/linters to verify its own work.
-3.  **Publish:** Jules marks the task "Complete" and prompts the user to "Publish" a Pull Request.
+## Strict Instruction Pattern
 
-### Phase 3: Integration (Coordinator & User)
-1.  **PR Creation:** The user publishes the PR via the Jules UI.
-2.  **High-Level Conflict Resolution:**
-    *   Jules agents running in parallel may conflict on shared "Registry" or "Index" files (e.g., `@DOC-REGISTRY.md`).
-    *   **Coordinator's Role:** The coordinator reviews these specific conflicts during the PR merge process. We do NOT ask Jules to resolve complex merge conflicts on high-traffic files; the coordinator handles the final stitch.
-3.  **Final Merge:** The PR is merged into the main branch.
+When delegating bounded work to an asynchronous worker, the following structure is still a good pattern:
 
-## 4. Documentation Specifics
+1. `MISSION`
+2. `REQUIRED READING`
+3. `EXECUTION STEPS`
+4. `CONSTRAINTS`
+5. `DELIVERABLE`
 
-When using Jules for documentation refactoring:
+This is preserved because the underlying idea is still valid: ambiguous prompts create drift.
 
-*   **Parallelism:** Assign Jules agents to disjoint sets of files (e.g., by folder).
-*   **Feedback Loop:** For subjective tasks (e.g., "Consolidate these docs"), instruct Jules to:
-    1.  Read the source files.
-    2.  Draft the new content in a **temporary file** (e.g., `docs/temp_consolidation_draft.md`).
-    3.  Wait for PR review before deleting the originals.
-*   **The Registry Rule:** Instruct Jules **NOT** to update `@DOC-REGISTRY.md` or `@ACTIVE-DOCS.md` if multiple agents are running. The coordinator will update these central files after merging the individual PRs to prevent constant merge conflicts.
+## Current Guidance For Shared Documentation Work
 
----
-*Note: This workflow maximizes Jules's parallel throughput while minimizing the "too many cooks" problem on central project files.*
+If multiple workers are operating in parallel on docs:
+- keep ownership boundaries clear
+- avoid overlapping write sets
+- be cautious with shared surfaces like registry, index, or migration-ledger docs
+- let the orchestrator handle final reconciliation when several branches of work touch the same central doc surfaces
+
+That rule still fits the current documentation overhaul.
+
+## What This Guide Does Not Claim
+
+This file no longer claims:
+- that there is one single GitHub-native workflow for every task
+- that Jules is the universal execution model for the repo
+- that PR publication and main-branch merge are the only valid integration path
+
+Those stronger claims were too workflow-specific to remain canonical repo guidance.
+
+## When To Use This Guide
+
+Use this file when:
+- coordinating parallel async worker sessions
+- drafting strict worker prompts
+- deciding how to keep shared documentation files from becoming conflict magnets
+
+Do not use it as a replacement for the repo's general operating instructions.

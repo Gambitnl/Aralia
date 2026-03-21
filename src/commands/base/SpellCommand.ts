@@ -1,11 +1,16 @@
 /**
- * @file src/commands/base/SpellCommand.ts
- * Defines the contract for the Command Pattern used in the spell/combat system.
+ * ARCHITECTURAL CONTEXT:
+ * This file defines the 'Game Command Pattern'. It is the foundation 
+ * for the combat execution layer, allowing effects (damage, status, etc.) 
+ * to be treated as discrete objects that can be queued, logged, or undone.
  *
- * The Command Pattern allows us to:
- * 1. Encapsulate all info needed to perform an action (context, effect, targets).
- * 2. Execute effects against an immutable state, returning a new state.
- * 3. Potentially support undo/redo or queued execution in the future.
+ * Recent updates focus on 'Martial/Magical Distinction'. The addition 
+ * of `weaponProperties` to the `CommandContext` allows commands to 
+ * respect feat mechanics like 'Great Weapon Master' (GWM) or 'Heavy 
+ * Armor Master' (HAM), which trigger specifically based on keywords like 
+ * 'heavy' or 'non-magical weapon damage'.
+ * 
+ * @file src/commands/base/SpellCommand.ts
  */
 
 import { CombatState, CombatCharacter } from '@/types/combat'
@@ -100,4 +105,14 @@ export interface CommandContext {
   isCritical?: boolean
   /** The plane where the spell is being cast. */
   currentPlane?: Plane
+  /**
+   * Properties of the source weapon (e.g., ['heavy', 'two-handed']).
+   * Present only for weapon attacks — undefined for spells.
+   * WHAT CHANGED: Added weaponProperties to CommandContext.
+   * WHY IT CHANGED: To support 5e 'keyword-aware' feats. By passing weapon 
+   * tags like 'heavy' down to the command level, damage calculators can 
+   * check for the 'Great Weapon Master' perk and apply the correctly 
+   * scaled bonus damage during command execution.
+   */
+  weaponProperties?: string[]
 }

@@ -26,5 +26,3 @@
 
 - **Description**: Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.299
-- **Status**: Complete

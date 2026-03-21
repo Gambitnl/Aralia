@@ -10,7 +10,7 @@
 
 - **Range Type**: touch
 - **Targeting Type**: single
-- **Valid Targets**: creature
+- **Valid Targets**: creatures
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -22,12 +22,8 @@
 - **Duration Unit**: minute
 - **Concentration**: true
 
-- **Effect Type**: BUFF
-- **Save Stat**: None
-- **Save Outcome**: none
-- **Damage Type**: TempHP
+- **Effect Type**: UTILITY
+- **Utility Type**: other
 
 - **Description**: A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being Frightened and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns. When the spell ends, the target loses any remaining Temporary Hit Points from this spell.
 - **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.
-- **Source**: PHB 2024 p.285
-- **Status**: Complete

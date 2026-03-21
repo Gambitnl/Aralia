@@ -42,5 +42,3 @@
         * Place a constant Gust of Wind in one corridor or room.
         * Place a Suggestion in one location. You select an area of up to 5 feet square, and any creature that enters or passes through the area receives the Suggestion mentally.
 - **Higher Levels**: none
-- **Source**: PHB
-- **Status**: Complete

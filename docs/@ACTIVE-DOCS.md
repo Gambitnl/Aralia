@@ -1,266 +1,109 @@
-# 🔥 Active Documentation
+# Active Documentation
 
-**Last Updated**: Jan 13, 2026
+**Last Updated**: 2026-03-11  
+**Purpose**: Point returning contributors toward the work surfaces that are currently relevant, without pretending to be a complete or perfectly normalized census of every markdown file under `docs/`.
 
-**Purpose**: Quick reference to documents currently being worked on.
+## How To Use This File
 
----
+Start here when you need to re-enter active documentation work quickly.
 
-## Overview
+- Use the canonical root docs for stable orientation:
+  - [@PROJECT-OVERVIEW.README.md](./@PROJECT-OVERVIEW.README.md)
+  - [ARCHITECTURE.md](./ARCHITECTURE.md)
+  - [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)
+  - [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md)
+  - [@README-INDEX.md](./@README-INDEX.md)
+- Use the registry layer for the active doc-system migration:
+  - [docs/registry/@DOC-REVIEW-LEDGER.md](./registry/@DOC-REVIEW-LEDGER.md)
+  - [docs/registry/@DOC-MIGRATION-LEDGER.md](./registry/@DOC-MIGRATION-LEDGER.md)
+- Treat the project/task sections below as current entry surfaces into mixed work areas, not as a guarantee that every status value in those subtrees has already been normalized.
 
-**Active Projects**: 4
-**Total Active Docs**: 18
-**Current Focus**: Spell System Migration (Phase 0), Spell Completeness Audit (Phase 2 prep), 3D Exploration planning
+## Current Work Surfaces
 
----
+### Documentation System Normalization
 
-## Project 1: Spell System Overhaul
+This is the current documentation-wide migration pass.
 
-**Status**: 🟢 Active - Phase 0 (Foundation & Cleanup)
-**Location**: `docs/tasks/spell-system-overhaul/`
-**Priority**: High
+- Primary queue: [docs/registry/@DOC-REVIEW-LEDGER.md](./registry/@DOC-REVIEW-LEDGER.md)
+- Structural decisions: [docs/registry/@DOC-MIGRATION-LEDGER.md](./registry/@DOC-MIGRATION-LEDGER.md)
+- Governing guide: [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md)
 
-### Master Documents
+### Spell System Overhaul
 
-| Doc | Description | Status |
-|-----|-------------|--------|
-| [1A-PROJECT-MASTER-SPRINGBOARD](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md) | Current state overview, infrastructure status, known issues | 🟢 Active |
-| [1B-SPELL-MIGRATION-ROADMAP](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md) | High-level task breakdown (Phases 0-4) | 🟢 Active |
+This remains the densest mixed task tree under `docs/tasks/` and is still an active entry surface.
 
-### Current Work (Phase 0: Foundation)
+- Location: `docs/tasks/spell-system-overhaul/`
+- Start surfaces:
+  - [README.md](./tasks/spell-system-overhaul/README.md)
+  - [START-HERE.md](./tasks/spell-system-overhaul/START-HERE.md)
+  - [00-TASK-INDEX.md](./tasks/spell-system-overhaul/00-TASK-INDEX.md)
+  - [1A-PROJECT-MASTER-SPRINGBOARD.md](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md)
+  - [1B-SPELL-MIGRATION-ROADMAP.md](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md)
+- Verified file-shape note:
+  - the primary numbered strand currently runs through `1Q`
+  - `1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md` is the retired task in that strand
+  - duplicate `1F` identifiers and several side-numbering schemes still exist and are part of the subtree normalization backlog
 
-**Next Up**: 1D - Archive Old Spell Docs
+### Spell Completeness Audit
 
-| Phase | Doc | Task | Progress | Dependencies |
-|-------|-----|------|----------|--------------|
-| 0.1 | [1D-ARCHIVE-OLD-SPELL-DOCS](./tasks/spell-system-overhaul/1D-ARCHIVE-OLD-SPELL-DOCS.md) | Archive obsolete spell documentation | 🔴 0% | 1B |
-| 0.2 | [1E-CONSOLIDATE-JULES-WORKFLOW](./tasks/spell-system-overhaul/1E-CONSOLIDATE-JULES-WORKFLOW.md) | Create authoritative spell conversion guide | ⏸️ Pending | 1D |
-| 0.3 | [1F-AUDIT-SPELL-SCOPE](./tasks/spell-system-overhaul/1F-AUDIT-SPELL-SCOPE.md) | Compare existing spells to PHB 2024 | ⏸️ Pending | 1E |
+This subtree has a cleaner split between retired audit work and pending follow-on extraction work.
 
-### Upcoming Work (Phase 1: Infrastructure)
+- Location: `docs/tasks/spell-completeness-audit/`
+- Start surfaces:
+  - [@PROJECT-INDEX.md](./tasks/spell-completeness-audit/@PROJECT-INDEX.md)
+  - [@WORKFLOW.md](./tasks/spell-completeness-audit/@WORKFLOW.md)
+- Verified file-shape note:
+  - `1A~`, `1B~`, and `1C~` are retired audit-stage docs
+  - [2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md](./tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md) and [2B-EXTRACT-REMAINING-LEVELS.md](./tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md) remain the pending numbered follow-on docs
 
-| Phase | Doc | Task | Progress | Dependencies |
-|-------|-----|------|----------|--------------|
-| 1.1 | [1G-REORGANIZE-SPELL-FILES](./tasks/spell-system-overhaul/1G-REORGANIZE-SPELL-FILES.md) | Organize spell files by level | ⏸️ Pending | 1F |
-| 1.3-1.4 | [1H-CREATE-GLOSSARY-TEMPLATE](./tasks/spell-system-overhaul/1H-CREATE-GLOSSARY-TEMPLATE-SYSTEM.md) | Build glossary linking system | ⏸️ Pending | 1G |
+### Documentation Cleanup Legacy Task Tree
 
-### Migration Work (Phase 2)
+The old cleanup task series still exists on disk, but the current doc-system overhaul is no longer coordinated from those original task docs alone.
 
-| Phase | Doc | Task | Progress | Dependencies |
-|-------|-----|------|----------|--------------|
-| 2.F | [1I-MIGRATE-CANTRIPS-BATCH-1](./tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md) | Convert first 5 cantrips to new format | ⏸️ Pending | 1E, 1F, 1H |
+- Location: `docs/tasks/documentation-cleanup/`
+- Historical task strand still present:
+  - [1A-SURVEY-AND-CLASSIFICATION.md](./tasks/documentation-cleanup/1A-SURVEY-AND-CLASSIFICATION.md)
+  - [1B-APPLY-PREFIX-TO-ROOT-DOCS.md](./tasks/documentation-cleanup/1B-APPLY-PREFIX-TO-ROOT-DOCS.md)
+  - [1C-ARCHIVE-OBSOLETE-DOCS.md](./tasks/documentation-cleanup/1C-ARCHIVE-OBSOLETE-DOCS.md)
+  - [1D-CONSOLIDATE-DUPLICATE-CONTENT.md](./tasks/documentation-cleanup/1D-CONSOLIDATE-DUPLICATE-CONTENT.md)
+  - [1E-VERIFY-DOC-LINKS.md](./tasks/documentation-cleanup/1E-VERIFY-DOC-LINKS.md)
+  - [1F-CREATE-SYSTEM-STATUS-REPORT.md](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md)
+  - [1G-MIGRATE-IMPROVEMENT-DOCS.md](./tasks/documentation-cleanup/1G-MIGRATE-IMPROVEMENT-DOCS.md)
+  - `1G.1` through `1G.10` sub-items
+- Current coordination surface:
+  - [docs/registry/@DOC-REVIEW-LEDGER.md](./registry/@DOC-REVIEW-LEDGER.md)
 
-### Concepts & Future Ideas
+### 3D Exploration
 
-| Doc | Description | Priority |
-|-----|-------------|----------|
-| [1F-VERSION-REVIEW-AGENT-CONCEPT](./tasks/spell-system-overhaul/1F-VERSION-REVIEW-AGENT-CONCEPT.md) | Automated version review system | Low |
+This subtree is still active planning/reference material rather than a normalized project registry.
 
----
+- Location: `docs/tasks/3d-exploration/`
+- Current files:
+  - [1A-3D-EXPLORATION-ROADMAP.md](./tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md)
+  - [2B-3D-INTEGRATION-DESIGN-PLAN.md](./tasks/3d-exploration/2B-3D-INTEGRATION-DESIGN-PLAN.md)
+  - [implementation_plan.md](./tasks/3d-exploration/implementation_plan.md)
+  - [world-map-rewire-mapping.md](./tasks/3d-exploration/world-map-rewire-mapping.md)
 
-## Project 2: Spell Completeness Audit & Description Extraction
+## Additional Mixed Areas Pending Review
 
-**Status**: 🟢 Active - Setup / Phase 1 (Completeness Audit)  
-**Location**: `docs/tasks/spell-completeness-audit/`  
-**Priority**: High
+These surfaces are in scope for the broader `docs/` overhaul but are not yet normalized enough to serve as canonical entry points.
 
-### Master Documents
+- `docs/projects/town-description-system/`
+- `docs/improvements/`
+- other `docs/tasks/` subtrees outside the currently prioritized registry families
 
-| Doc | Description | Status |
-|-----|-------------|--------|
-| [@PROJECT-INDEX](./tasks/spell-completeness-audit/@PROJECT-INDEX.md) | START HERE - project index, scope, task links | 🟢 Active |
-| [@WORKFLOW](./tasks/spell-completeness-audit/@WORKFLOW.md) | Reusable workflows for audit/extraction | 🟢 Active |
+## Out Of Scope For This Maintained Pass
 
-### Phase 1: Completeness Audit
+These docs may still be useful locally, but they are currently excluded from the maintained documentation system:
 
-| Doc | Task | Progress | Dependencies |
-|-----|------|----------|--------------|
-| [1A~INVENTORY-LOCAL-SPELLS](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | Inventory local spells (levels 1-9, exclude cantrips) | ✅ Completed | - |
-| [1B~RESEARCH-PHB-2024-LIST](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | Gather official PHB 2024 spell list | ✅ Completed | 1A~ |
-| [1C~GAP-ANALYSIS](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | Compare local vs PHB and classify gaps | ✅ Completed | 1A~, 1B~ |
+- roadmap-tooling docs such as `docs/tasks/roadmap/`
+- [@ROADMAP-SYSTEM-GUIDE.md](./@ROADMAP-SYSTEM-GUIDE.md)
+- gitignored or local tooling markdown outside the maintained `docs/` surface
 
-### Phase 2: Description Extraction
+## Status Notes
 
-| Doc | Task | Progress | Dependencies |
-|-----|------|----------|--------------|
-| [2A-EXTRACT-LEVEL-1-DESCRIPTIONS](./tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md) | Pilot extraction for level 1 spells | ⏸️ Pending | 1C~ |
-| [2B-EXTRACT-REMAINING-LEVELS](./tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md) | Scale extraction to levels 2-9 | ⏸️ Pending | 2A |
+- This file is intentionally narrower than the older version.
+- It is a work-entry surface, not a master count of every active markdown file.
+- Use [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) for the numbered-task families that still rely on registry tracking.
+- Use [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) only as a retirement ledger, not as proof that every historical file has already been reconciled.
 
----
-
-## Project 3: Documentation Cleanup
-
-**Status**: 🟡 In Progress - Survey Phase
-**Location**: `docs/tasks/documentation-cleanup/`
-**Priority**: High
-
-### Current Work
-
-| Doc | Task | Progress | Dependencies |
-|-----|------|----------|--------------|
-| [1A-SURVEY-AND-CLASSIFICATION](./tasks/documentation-cleanup/1A-SURVEY-AND-CLASSIFICATION.md) | Survey all docs for cleanup classification | 🟡 In Progress | - |
-
-### Pending Work
-
-| Doc | Task | Progress | Dependencies |
-|-----|------|----------|--------------|
-| [1B-APPLY-PREFIX-TO-ROOT-DOCS](./tasks/documentation-cleanup/1B-APPLY-PREFIX-TO-ROOT-DOCS.md) | Apply @ prefix to static docs | ⏸️ Pending | 1A |
-| [1C-ARCHIVE-OBSOLETE-DOCS](./tasks/documentation-cleanup/1C-ARCHIVE-OBSOLETE-DOCS.md) | Archive outdated documentation | ⏸️ Pending | 1A |
-| [1D-CONSOLIDATE-DUPLICATE-CONTENT](./tasks/documentation-cleanup/1D-CONSOLIDATE-DUPLICATE-CONTENT.md) | Merge duplicate content | ⏸️ Pending | 1A |
-| [1E-VERIFY-DOC-LINKS](./tasks/documentation-cleanup/1E-VERIFY-DOC-LINKS.md) | Check all documentation links | ⏸️ Pending | 1B, 1C, 1D |
-| [1F-CREATE-SYSTEM-STATUS-REPORT](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md) | Generate final status report | ⏸️ Pending | 1E |
-
----
-
-## Project 4: 3D Exploration & Combat
-
-**Status**: 🟢 Active - Phase 0 (Foundations)
-**Location**: `docs/tasks/3d-exploration/`
-**Priority**: High
-
-### Master Document
-
-| Doc | Description | Status |
-|-----|-------------|--------|
-| [1A-3D-EXPLORATION-ROADMAP](./tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md) | Multi-phase plan for 3D exploration/combat via R3F | 🟢 Active |
-
----
-
-## Project 5: Project Infrastructure & Tooling
-
-**Status**: 🟢 Active - Roadmap & Dev Hub
-**Location**: `docs/` (System Guides)
-**Priority**: High
-
-### Master Document
-
-| Doc | Description | Status |
-|-----|-------------|--------|
-| [@ROADMAP-SYSTEM-GUIDE](./@ROADMAP-SYSTEM-GUIDE.md) | Documentation for the interactive Roadmap Visualizer | 🟢 Active |
-| [1B-ROADMAP-VISUALIZER-HANDOVER](./tasks/roadmap/1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md) | Vision and handover for roadmap evolution | 🟢 Active |
-
----
-
-## Recently Completed
-
-| Doc | Project | Completed | Description |
-|-----|---------|-----------|-------------|
-| [1A~INVENTORY-LOCAL-SPELLS](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | Spell Completeness Audit | Dec 4, 2025 | Local spell inventory captured (levels 1-9) |
-| [1B~RESEARCH-PHB-2024-LIST](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | Spell Completeness Audit | Dec 4, 2025 | PHB 2024 spell list compiled with citations |
-| [1C~GAP-ANALYSIS](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | Spell Completeness Audit | Dec 4, 2025 | Coverage report published (local vs PHB 2024) |
-| [1C~VERSION-DISPLAY-AND-PACKAGE-FIX](./tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md) | Spell System | Nov 30, 2025 | Fixed version display and package issues |
-
----
-
-## Quick Start Guide
-
-### Returning to the Project?
-
-1. **Check this file** to see what's currently active
-2. **Open the roadmap** ([1B-SPELL-MIGRATION-ROADMAP](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md)) for spell system items; for the audit, start with [@PROJECT-INDEX](./tasks/spell-completeness-audit/@PROJECT-INDEX.md).
-3. **Pick the next task** marked with 🔴 or 🟡
-4. **Read the task doc** for detailed execution steps
-5. **Update progress** in [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) when you start/complete work
-
-### Status Icons
-
-- 🟢 **Active**: Main reference docs (always relevant)
-- 🔴 **0%**: Not started, ready to begin
-- 🟡 **In Progress**: Currently being worked on
-- ⏸️ **Pending**: Waiting on dependencies
-- ✅ **Completed**: Done, moved to retired
-
----
-
-## Next Actions
-
-### Immediate (This Week)
-
-1. **Start 2A** (Level 1 extraction pilot)
-   - Use coverage report to scope level 1 spells
-   - Establish reference formatting
-
-2. **Complete 1D** (Archive Old Spell Docs)
-   - Salvage unique business logic from old docs
-   - Move obsolete files to archive
-   - Create salvage context file
-
-3. **Start 1E** (Consolidate Jules Workflow)
-   - Create authoritative conversion guide
-   - Incorporate salvaged context
-   - Make it LLM-friendly
-
-### Short Term (Next 2 Weeks)
-
-4. **Prep 2B** (Levels 2-9 extraction)
-   - Mirror 2A formatting and sourcing plan
-   - Identify blockers from gap report
-
-5. **Complete 1F** (Audit Spell Scope)
-   - Compare cantrips against PHB 2024
-   - Prioritize migration list
-   - Identify gaps
-
-6. **Begin 1G** (Reorganize Spell Files)
-   - Create level-based folder structure
-   - Update manifest scripts
-   - Test spell loading
-
-### Medium Term (Next Month)
-
-7. **Complete Phase 1**: Infrastructure improvements
-8. **Start Phase 2**: Begin spell migration batches
-9. **Run 2A/2B** (Spell Completeness follow-on)
-   - Pilot level 1 extraction, then levels 2-9
-
----
-
-## How to Use This File
-
-**This file is your entry point** when returning to the project.
-
-- **Bookmark it** for quick access
-- **Check it daily** if actively working
-- **Update it** when priorities shift
-- **Link from it** to detailed task docs
-
----
-
-## Supporting Documentation
-
-### Registry Files
-- [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) - Master list of all numbered docs
-- [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) - Archive of completed work
-
-### Convention Guides
-- [@DOC-NAMING-CONVENTIONS.md](./@DOC-NAMING-CONVENTIONS.md) - How the numbering system works
-
-### Project Documentation
-- [@AI-PROMPT-GUIDE.md](./@AI-PROMPT-GUIDE.md) - Guide for AI interaction
-- [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md) - Documentation standards
-
----
-
-## Notes
-
-### Project Dependencies
-
-**Spell System Overhaul** phases are sequential:
-- Phase 0 (Foundation) must complete before Phase 1 (Infrastructure)
-- Phase 1 must complete before Phase 2 (Migration)
-
-**Documentation Cleanup** can run in parallel with Spell System work, but 1A must complete before other cleanup tasks.
-
-### Workflow Reminder
-
-1. ✅ Read the task doc thoroughly
-2. ✅ Check dependencies are complete
-3. ✅ Execute the task
-4. ✅ Update @DOC-REGISTRY.md with progress
-5. ✅ Update this file when status changes
-6. ✅ Retire task doc when fully complete
-
----
-
-**Last Review**: December 4, 2025
-**Next Review**: December 11, 2025

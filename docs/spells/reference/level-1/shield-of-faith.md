@@ -11,7 +11,7 @@
 - **Range Type**: ranged
 - **Range Distance**: 60
 - **Targeting Type**: single
-- **Valid Targets**: creature
+- **Valid Targets**: creatures
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -26,11 +26,9 @@
 - **Duration Unit**: minute
 - **Concentration**: true
 
-- **Effect Type**: BUFF
+- **Effect Type**: DEFENSIVE
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.316
-- **Status**: Complete

@@ -1,4 +1,11 @@
 # Feat System Implementation Plan
+This file was re-verified on 2026-03-14.
+It remains a useful feat backlog plan, but it should be read against a partially landed feat/type surface rather than as a blank-slate implementation plan.
+
+Current reality:
+- the feat-related type fields it discusses already exist in the current character type surfaces
+- the remaining questions are more about UI breadth and downstream mechanics than whether the data model was ever added
+
 
 **Last Updated:** 2025-12-14
 

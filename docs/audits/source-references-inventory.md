@@ -1,8 +1,22 @@
 # Source Reference Inventory
 
-**Generated**: 2026-02-13T16:06:45.190Z
+Last reviewed: 2026-03-12
+Generated snapshot timestamp in file: 2026-02-13T16:06:45.190Z
 
-**Stats**: Processed 1847 files, found 664 matches.
+This file is a preserved generated audit snapshot, not a maintained narrative reference.
+
+What this file still does well:
+- it shows that source strings are widespread across glossary entries, spell JSON, scripts, docs, and generated outputs
+- it is useful as a broad grep-style inventory when a future cleanup or normalization pass needs raw examples
+
+What this file does not guarantee anymore:
+- the counts are not current-state truth for the repo in March 2026
+- every match is equally meaningful; some rows come from generated files, prompt templates, logs, or historical docs
+- decisions should not be made from this file alone without spot-checking the current repo paths it lists
+
+Current interpretation:
+- treat this as a preserved generated input to future source-normalization work
+- do not treat it as a live status dashboard
 
 ## 1. By Reference Type
 

@@ -29,5 +29,3 @@
 - **Healing Dice**: 4d8 + 15
 - **Description**: A creature you touch regains 4d8 + 15 Hit Points. For the duration, the target regains 1 Hit Point at the start of each of its turns, and any severed body parts regrow after 2 minutes.
 - **Higher Levels**:
-- **Source**: PHB 2024
-- **Status**: Complete

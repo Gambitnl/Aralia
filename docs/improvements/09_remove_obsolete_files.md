@@ -1,79 +1,39 @@
-- [ ] Plan Completed
+# Improvement Note: Remove Obsolete Files
 
-# Plan: Remove Obsolete Files
+## Status
 
-## 1. Purpose
+This improvement is already materially complete.
+The file is preserved as a historical completion note, not as an active cleanup instruction set.
 
-The goal of this improvement is to perform a thorough cleanup of the codebase by identifying and deleting obsolete files. Over the course of development and refactoring, several components and documentation files have become deprecated or unused. Removing them will:
--   Reduce the overall size of the project.
--   Eliminate confusion for developers by removing dead code.
--   Improve maintainability by ensuring the codebase only contains relevant, active files.
+## Verified Outcome
 
-## 2. Key Rules
+The files this note targeted were checked on 2026-03-11 and were not found at their old paths:
 
--   All plans will be written in a checklist format.
--   All phases of the plan will be detailed, including the specific files and folders to be deleted.
--   A verification step is included to ensure no active code is accidentally removed.
+- `src/components/PlayerPane.tsx`
+- `src/components/StartScreen.tsx`
+- `src/components/Spellbook.tsx`
+- `src/battleMapDemo.tsx`
+- `src/components/CharacterCreator/Race/FlexibleAsiSelection.tsx`
+- `src/hooks/OLD_useGameActions.ts`
 
----
+The paired README targets named in the old plan are also no longer present at the paths this note called obsolete.
 
-## 3. Implementation Plan
+## What This Means
 
-### Phase 1: Identification of Obsolete Files
+- this file should not be used as a live deletion checklist
+- the targeted cleanup already happened earlier in the repo's evolution
+- any future cleanup work should be based on fresh repo verification, not by replaying this file blindly
 
--   [ ] **Review and Confirm**: Based on the project's evolution, the following files have been identified as obsolete and are targeted for deletion.
+## Preserved Historical Value
 
-    *   **Components**:
-        -   `src/components/PlayerPane.tsx` (Superseded by `PartyPane.tsx` and `CharacterSheetModal.tsx`)
-        -   `src/components/StartScreen.tsx` (Functionality replaced by `MainMenu.tsx`)
-        -   `src/components/Spellbook.tsx` (Superseded by `SpellbookOverlay.tsx`)
-        -   `src/battleMapDemo.tsx` (Superseded by `src/components/BattleMapDemo.tsx`)
-        -   `src/components/CharacterCreator/Race/FlexibleAsiSelection.tsx` (Logic merged into `AbilityScoreAllocation.tsx`)
+This note is still useful as provenance for why those older surfaces disappeared:
 
-    *   **Hooks**:
-        -   `src/hooks/OLD_useGameActions.ts` (A backup from a major refactor, no longer needed)
+- `PlayerPane` gave way to the party / character-sheet surfaces
+- `StartScreen` gave way to the main menu flow
+- the old `Spellbook` surface gave way to the newer spellbook overlay direction
+- the legacy backup hook and older race-selection component are no longer part of the active creation flow
 
-    *   **Documentation**:
-        -   `src/components/PlayerPane.README.md`
-        -   `src/components/Spellbook.README.md`
-        -   `src/components/CharacterCreator/Race/FlexibleAsiSelection.README.md`
+## Follow-Through
 
-### Phase 2: Verification (Pre-Deletion Check)
-
--   [ ] **Perform Global Search**: Before deleting any file, perform a project-wide search for its filename to ensure there are no remaining import statements or references to it in active code.
-    -   For example, search for `import PlayerPane from` across all files.
-    -   Search for `FlexibleAsiSelection` in `CharacterCreator.tsx` and `characterCreatorState.ts` to confirm it has been fully removed from the creation steps.
-    -   This step is a crucial safeguard against breaking the application.
-
-### Phase 3: Deletion of Files
-
--   [ ] **Delete Component Files**:
-    -   Delete `src/components/PlayerPane.tsx`
-    -   Delete `src/components/StartScreen.tsx`
-    -   Delete `src/components/Spellbook.tsx`
-    -   Delete `src/battleMapDemo.tsx`
-    -   Delete `src/components/CharacterCreator/Race/FlexibleAsiSelection.tsx`
--   [ ] **Delete Hook Files**:
-    -   Delete `src/hooks/OLD_useGameActions.ts`
--   [ ] **Delete Documentation Files**:
-    -   Delete `src/components/PlayerPane.README.md`
-    -   Delete `src/components/Spellbook.README.md`
-    -   Delete `src/components/CharacterCreator/Race/FlexibleAsiSelection.README.md`
-
-### Phase 4: Update Documentation Index
-
--   [ ] **Modify Index**: `docs/@README-INDEX.md`
--   **Code Direction**:
-    1.  Open the documentation index file.
-    2.  Carefully review the list and remove the lines corresponding to the deleted README files (`PLAYER_PANE.README.md`, `SPELLBOOK.README.md`, `FLEXIBLE_ASI_SELECTION.README.md`).
-    3.  Ensure the remaining list is correctly formatted.
-
-### Phase 5: Final Verification
-
--   [ ] **Test the Application**:
-    -   Reload the application and perform a quick run-through of its core features:
-        -   Start a new game and proceed through character creation.
-        -   Load a saved game.
-        -   Navigate the game world.
-        -   Open and interact with the Party Overlay, Character Sheet, and Spellbook Overlay.
-    -   This final check ensures that the file deletions did not have any unforeseen side effects on the application's runtime behavior.
+No deletion work remains from this note itself.
+If this area is normalized later, this file can be moved into a completed or archive lane without losing its provenance value.

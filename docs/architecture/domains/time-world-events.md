@@ -1,65 +1,69 @@
-# Time & World Events
+﻿# Time & World Events
 
 ## Purpose
 
-Tracks game time (calendar, seasons) and manages global world events and faction dynamics.
+This domain covers the systems that model game time, seasonal changes, world events, faction-level world activity, and the reducers or services that expose those changes to the rest of the game.
 
-## Key Entry Points
+## Verified Entry Points
 
-| File | Role |
-|------|------|
-| `src/systems/time/` | Time systems |
-| `src/systems/world/` | World and faction systems |
+- src/systems/time/
+- src/systems/world/
+- src/state/reducers/worldReducer.ts
+- src/state/reducers/religionReducer.ts
+- src/services/landmarkService.ts
+- src/services/strongholdService.ts
 
-## Subcomponents
+## Current Shape
 
-- **Time**: Calendar and seasonal logic.
-- **World**: Global events and faction AI.
+### Time lane
 
-## File Ownership
+This pass verified the current time subtree under src/systems/time/, including:
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/systems/time/*.ts` | Directory | Time systems |
-| `src/systems/world/*.ts` | Directory | World systems |
-| `src/components/TempleModal.tsx` | Component | Temple interaction UI |
-| `src/services/landmarkService.ts` | Service | Landmark management |
-| `src/services/strongholdService.ts` | Service | Stronghold and faction base logic |
-| `src/data/factions.ts` | Data | Faction data |
-| `src/data/landmarks.ts` | Data | Landmark data |
-| `src/data/deities/**/*.ts` | Data | Deity definitions |
-| `src/data/temples/*.ts` | Data | Temple data |
-| `src/data/deities/index.ts` | Data | Deity index |
-| `src/types/deity.ts` | Types | Deity types |
-| `src/types/religion.ts` | Types | Religion types |
-| `src/types/stronghold.ts` | Types | Stronghold types |
-| `src/types/factions.ts` | Types | Faction types |
-| `src/types/organizations.ts` | Types | Organization types |
-| `src/state/reducers/worldReducer.ts` | Reducer | World state |
-| `src/state/reducers/questReducer.ts` | Reducer | Quest state |
-| `src/state/reducers/religionReducer.ts` | Reducer | Religion state |
-| `src/utils/timeUtils.ts` | Utils | Time calculations |
-| `src/utils/factionUtils.ts` | Utils | Faction helpers |
+- CalendarSystem.ts
+- SeasonalSystem.ts
+- src/systems/time/__tests__/CalendarSystem.test.ts
+- src/systems/time/__tests__/SeasonalSystem.test.ts
 
-## Dependencies
+### World-events and faction lane
 
-### Used By
+This pass verified the current world subtree under src/systems/world/, including:
 
-- **[Submap](./submap.md)**: Time affects lighting and events
-- **[NPCs / Companions](./npcs-companions.md)**: Faction influence on dialogue
+- FactionEconomyManager.ts
+- FactionManager.ts
+- NobleIntrigueManager.ts
+- WorldEventManager.ts
+- the current world-manager test suite under src/systems/world/__tests__/
 
-### Claimed Tests (Auto-generated)
+### Supporting reducers, data, and utilities
 
-| Test File | Description |
-|-----------|-------------|
-| `src/systems/time/__tests__/CalendarSystem.test.ts` | Calendar system tests |
-| `src/systems/time/__tests__/SeasonalSystem.test.ts` | Seasonal system tests |
-| `src/systems/world/__tests__/FactionManager.test.ts` | Faction manager tests |
-| `src/systems/world/__tests__/NobleIntrigueManager.test.ts` | Noble intrigue manager tests |
-| `src/systems/world/__tests__/WorldEventManager.test.ts` | World event manager tests |
-| `src/state/reducers/__tests__/explorationActions.test.ts` | Exploration action reducer tests |
-| `src/state/reducers/__tests__/religionReducer.test.ts` | Religion reducer tests |
-| `src/state/reducers/__tests__/worldReducer.test.ts` | World reducer tests |
-| `src/utils/__tests__/historyUtils.test.ts` | History utility tests |
-| `src/utils/__tests__/timeUtils.test.ts` | Time utility tests |
-| `src/services/__tests__/landmarkService.test.ts` | Landmark service tests |
+This pass verified:
+
+- src/state/reducers/worldReducer.ts
+- src/state/reducers/religionReducer.ts
+- src/data/factions.ts
+- src/data/landmarks.ts
+- src/data/deities/
+- src/data/temples/
+- src/utils/core/timeUtils.ts
+- src/utils/factionUtils.ts
+- src/utils/world/factionUtils.ts
+
+## Important Corrections
+
+- The older doc used several flat utility paths as if they were the only current source of truth. The repo now clearly has namespaced utility lanes such as src/utils/core/timeUtils.ts and src/utils/world/factionUtils.ts alongside some older bridge paths.
+- TempleModal is not at src/components/TempleModal.tsx; the current path is src/components/Religion/TempleModal.tsx.
+- The current world lane includes an explicit FactionEconomyManager.ts, which means world-events and faction systems now overlap more directly with economy than the older doc made clear.
+
+## Tests Verified In This Pass
+
+- src/systems/time/__tests__/CalendarSystem.test.ts
+- src/systems/time/__tests__/SeasonalSystem.test.ts
+- src/systems/world/__tests__/FactionEconomyManager.test.ts
+- src/systems/world/__tests__/FactionManager.test.ts
+- src/systems/world/__tests__/NobleIntrigueManager.test.ts
+- src/systems/world/__tests__/WorldEventManager.test.ts
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this domain as the time plus world-state lane: calendar and season systems, world-event managers, faction-world logic, and the reducers or services that persist and expose those changes.

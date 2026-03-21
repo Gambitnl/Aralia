@@ -1,44 +1,41 @@
-# Gap: Modal Choice Spells (Choice Architecture)
+﻿# Gap: Modal Spell Choice Handling
 
-## Issue
-The current Spell JSON Schema assumes a linear execution of effects (`effects[]` array is processed sequentially). It lacks a structure for **Modal Choices** where the caster selects one of several mutually exclusive options at cast time.
+**Status:** Active capability gap note
+**Last Reviewed:** 2026-03-12
 
-This affects spells like:
-- *Blindness/Deafness* (Choose Blinded OR Deafened)
-- *Enlarge/Reduce* (Choose Enlarge OR Reduce)
-- *Enhance Ability* (Choose 1 of 6 buffs)
-- *Alter Self* (Choose 1 of 3 forms)
-- *Eyebite* (Choose effect each turn)
-- *Contagion* (Choose disease)
-- *Hex* (Choose ability for disadvantage)
+## Problem
 
-## Current Workaround (Data Loss)
-- Auditors are forced to pick a "default" effect (e.g., Blindness) to satisfy validation.
-- Or use `UTILITY` with description text, losing mechanical automation.
-- Or create invalid enums (e.g., "Blinded/Deafened") which crash the engine.
+The current spell lane still lacks one generic structured capability for spells that ask the caster to choose between mutually exclusive effect packages.
 
-## Proposed Solution: `ChoiceEffect`
+## Verified Current State
 
-Add a new Effect Type or structure:
+A 2026-03-12 repo check confirmed:
+- src/types/spells.ts contains choice-related structures, but they do not provide a general ChoiceEffect for nested spell-effect branches.
+- src/types/spells.ts already includes selectionMode: choice for some targeting or summon-adjacent structures.
+- blindness-deafness.json still encodes Blinded as the concrete structured status while pushing the Blindness versus Deafness choice into description text and an ai_assisted prompt.
+- enhance-ability.json still stores all six enhancement modes in prose instead of structured selectable branches.
+- hex.json already uses controlOptions for one narrow choice surface, so the repo does have partial choice-style support.
 
-```typescript
-interface ChoiceEffect {
-  type: "CHOICE";
-  selectionTiming: "cast_time" | "trigger_time";
-  options: {
-    id: string; // "blindness"
-    label: string; // "Blindness"
-    description: string;
-    effects: SpellEffect[]; // Nested standard effects
-  }[];
-}
-```
+## Concrete Capability Name
 
-## Impact
-- Affects ~15-20 spells across all levels.
-- Critical for correct implementation of "Versatile" spells.
+- Modal Spell Choice Handling
 
-## Next Steps (Assignee: Architect)
-1.  Update `SpellEffect` union type.
-2.  Update `SpellValidator`.
-3.  Update `EffectExecutor` to prompt UI for choice.
+## What This Means
+
+The current repo is not at zero choice support, but it still does not have one reusable structured spell-effect model for modal spells.
+That gap keeps several spells in a partial state where one choice is hard-coded, the options live in prose, or AI prompting is used as a stopgap.
+
+## Priority Examples
+
+- Blindness/Deafness
+- Enhance Ability
+- Alter Self
+- Eyebite
+- Contagion
+- Hex for broader reusable choice semantics beyond the current controlOptions lane
+
+## Current Follow-Through
+
+1. Decide whether the shared solution should be a new ChoiceEffect, a nested effect-options block, or a narrower extension of existing controlOptions.
+2. Keep the solution generic enough to handle cast-time and recurring-turn choices.
+3. Revisit the current partially modeled spells once the shared structure exists.

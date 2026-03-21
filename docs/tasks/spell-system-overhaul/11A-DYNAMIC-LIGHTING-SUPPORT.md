@@ -1,33 +1,42 @@
 # 11A - Dynamic Lighting Support (Cantrip Gap: Light)
 
-## Context
-- Gap surfaced in `1K-MIGRATE-CANTRIPS-BATCH-3.md` (Light): The spell is modeled as `UTILITY` text; no engine mechanic exists for dynamic light sources.
-- Current schema allows `utilityType: "light"` and descriptive text, but runtime systems (battle map/world) do not consume it to render light or affect vision.
+## Current Repo Status
 
-## Problem
-- There is no structured lighting model to attach to spells/items. Light radius, dim/bright falloff, and attachment to a token/object are not machine-readable, so the effect remains narrative only.
+This file is preserved as task context, but its original "missing feature" framing is now stale.
 
-## Goals
-1. Add schema fields to describe light sources (radius, brightness tiers, duration, attachment).
-2. Integrate with rendering/vision systems so light sources created by spells are applied automatically.
-3. Keep backward compatibility: non-light spells unaffected; existing validations pass.
+Repo verification on 2026-03-11 confirmed that the structured lighting model and the first runtime path already exist:
+- `public/data/spells/level-0/light.json` already uses `utilityType: "light"` plus a populated `light` block.
+- `src/types/combat.ts` already defines `LightSource` and `activeLightSources`.
+- `src/commands/effects/UtilityCommand.ts` already creates a `LightSource` entry when a utility effect uses the `light` block.
+- `src/commands/__tests__/LightMechanics.test.ts` already exists, so this is no longer only a schema-design task.
 
-## Proposed Approach
-- Schema:
-  - Extend `UtilityEffect` with an optional `light` block: `{ brightRadius: number; dimRadius?: number; attachedTo?: "caster" | "target" | "point"; duration?: EffectDuration; color?: string }`.
-- Validator:
-  - Add corresponding Zod schema; ensure optional and scoped to utility effects.
-- Engine/UI:
-  - When a spell with `light` is active, emit a light source into the map/vision system; remove on duration end/concentration drop.
-  - Allow attaching to caster/target or a point; update position each tick/turn if attached.
-- Migration:
-  - Update `light.json` to populate `utilityType: "light"` + `light` block with bright/dim radii (e.g., 20/20).
+## What Became Historical
 
-## Acceptance Criteria
-- New schema fields validated; `npm run validate` passes.
-- Light effects render in map/vision when applied; removed when expired.
-- `public/data/spells/level-0/light.json` updated to use the `light` block; validation and tests remain green.
+The original version assumed:
+- the schema still needed a `light` block
+- the engine had no runtime path for structured light sources
+- `light.json` still needed to be migrated into the newer data shape
 
-## Notes
-- Keep enums consistent with existing casing.
-- Avoid breaking other utility spells; default behavior unchanged when `light` is absent.
+Those claims no longer describe the repo.
+
+## What Still Looks Incomplete
+
+The feature does still have follow-through gaps:
+- `src/commands/effects/UtilityCommand.ts` still carries a TODO about expiring/removing active light sources when duration ends or concentration breaks.
+- The same TODO also calls out renderer and vision updates, so the data path exists but the full visual/map-consumption story is not yet proven complete by this doc.
+- This file should therefore be read as a follow-through brief, not as proof that dynamic lighting is entirely absent.
+
+## Maintained Interpretation
+
+Use this file as a narrow reminder of the remaining work:
+1. verify expiration/cleanup of active light sources
+2. verify that battle-map or vision rendering actually consumes `activeLightSources`
+3. avoid re-opening schema or data-migration work that the repo already completed
+
+## Verification Basis
+
+Checked against:
+- `public/data/spells/level-0/light.json`
+- `src/types/combat.ts`
+- `src/commands/effects/UtilityCommand.ts`
+- `src/commands/__tests__/LightMechanics.test.ts`

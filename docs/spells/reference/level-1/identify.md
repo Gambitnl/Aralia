@@ -10,7 +10,7 @@
 
 - **Range Type**: touch
 - **Targeting Type**: single
-- **Valid Targets**: object
+- **Valid Targets**: objects
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -24,10 +24,9 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Type**: information
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires Attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it. If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.287
-- **Status**: Complete

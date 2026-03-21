@@ -12,6 +12,11 @@
       "chainOrder": 2
     },
     {
+      "name": "user-profile-calibration",
+      "path": "public/agent-docs/workflows/user-profile-calibration.md",
+      "chainVia": "session-ritual"
+    },
+    {
       "name": "codexception",
       "path": ".codex/steer.md",
       "chainOrder": 4

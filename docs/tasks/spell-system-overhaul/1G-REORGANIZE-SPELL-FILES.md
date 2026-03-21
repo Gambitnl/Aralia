@@ -1,26 +1,15 @@
-# Path 2.D: Reorganize Spell Files by Level (Task 1.1)
+# 1G - Historical Task Pointer
 
-## MISSION
-Reorganize the flat list of spell JSON files into subdirectories by spell level (`level-0`, `level-1`, etc.).
+> **Status (2026-03-11):**
+> - the old spell-file reorganization task brief that previously lived at this path has been moved into archive because the flat-to-level-folder migration is already reflected in the live spell data layout
+> - this file remains only as a compatibility pointer so numbered-task references do not break
 
-## REQUIRED READING
-*   `public/data/spells/`
-*   `src/services/spellService.ts` (Or the file responsible for loading spells)
-*   `scripts/generate-spell-manifest.mjs` (Script that builds the spell list)
+## Use These Current Surfaces Instead
 
-## EXECUTION STEPS
-1.  **Create Folders**: Create directories `public/data/spells/level-0/` through `public/data/spells/level-9/`.
-2.  **Move Files**: For every `.json` file in `public/data/spells/`:
-    *   Read the file content.
-    *   Extract the `level` field.
-    *   Move the file to the corresponding `level-X` folder using `git mv`.
-3.  **Update Manifest Script**: Modify `scripts/generate-spell-manifest.mjs` to look recursively in these new subfolders when building the manifest.
-4.  **Update Loader**: Check `src/services/spellService.ts` to ensure it can handle the new path structure (or rely on the manifest if that's how it works).
-5.  **Verify**: Run the manifest generation script and ensure the game still loads spells.
+- [`1B-SPELL-MIGRATION-ROADMAP.md`](./1B-SPELL-MIGRATION-ROADMAP.md) for the rebased migration roadmap
+- [`../../SPELL_INTEGRATION_STATUS.md`](../../SPELL_INTEGRATION_STATUS.md) for current spell integration orientation
 
-## CONSTRAINTS
-*   **MUST** use `git mv`.
-*   **MUST** ensure the application doesn't break (fix the loaders).
+## Archived Historical Version
 
-## DELIVERABLE
-A Pull Request with the reorganized file structure and updated scripts/loaders.
+- [`../../archive/spell-system/1G-REORGANIZE-SPELL-FILES.md`](../../archive/spell-system/1G-REORGANIZE-SPELL-FILES.md)
+

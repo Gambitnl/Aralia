@@ -48,5 +48,3 @@
   - **Web Bolt (Spider Only)**: Ranged Attack Roll: Bonus equals your spell attack modifier, range 60 ft. Hit: 1d10 + 3 plus the spell's level Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn.
 - **Bonus Actions**
   - **Venomous Spew (Centipede Only)**: Constitution Saving Throw: Your spell save DC, one creature the insect can see within 10 feet. Failure: The target has the Poisoned condition until the start of the insect's next turn.
-- **Source**: PHB 2024
-- **Status**: Complete

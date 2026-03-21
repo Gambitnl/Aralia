@@ -15,8 +15,19 @@
 // @dependencies-end
 
 /**
+ * ARCHITECTURAL CONTEXT:
+ * This file is the 'Action Registry'—the central definition of every 
+ * state change that can occur in Aralia. It powers the Redux-like 
+ * dispatch system.
+ *
+ * Recent updates introduce 'Full Party Initialization' support. While 
+ * `SET_PARTY_COMPOSITION` uses templates (ID + class ID) to build 
+ * characters, the new `SET_FULL_PARTY` action accepts pre-calculated 
+ * `PlayerCharacter` objects. This is critical for the 'Premade Party' 
+ * system where characters have deep history, specific gear, and 
+ * non-standard stats that shouldn't be overridden by a template generator.
+ * 
  * @file src/state/actionTypes.ts
- * Defines the main AppAction type for the application's state management.
  */
 import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types/index.js';
 import { RitualState } from '../types/rituals.js';
@@ -98,6 +109,12 @@ export type AppAction =
   // Party Editor
   | { type: 'TOGGLE_PARTY_EDITOR_MODAL' }
   | { type: 'SET_PARTY_COMPOSITION'; payload: TempPartyMember[] }
+  // WHAT CHANGED: Added SET_FULL_PARTY action type.
+  // WHY IT CHANGED: To support 'True Deep Cloning' of premade characters.
+  // Unlike templates, these characters arrive as fully realized objects.
+  // This action allows the state to bypass the 'Character Generator' 
+  // and inject a complete party snapshot directly into the store.
+  | { type: 'SET_FULL_PARTY'; payload: PlayerCharacter[] }
   | { type: 'ADD_GENERATED_CHARACTER'; payload: PlayerCharacter }
   // Resource Management Actions
   | { type: 'ADD_ITEM'; payload: { itemId: string; count?: number } }

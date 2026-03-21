@@ -1,88 +1,102 @@
-# 🔬 Analyst: Object Targeting System Gap Analysis
+# Analyst: Object Targeting System Gap Analysis
 
-## Status: Ready for Implementation
-**Priority:** High (Required for Necromancy/Transmutation spells)
-**Related Spells:** *Animate Dead*, *Catapult*, *Creation*, *Fabricate*, *Mending*
+**Status:** Active rebased gap note  
+**Last Reverified:** 2026-03-11  
+**Primary current references:** [`src/systems/spells/targeting/TargetResolver.ts`](../../../src/systems/spells/targeting/TargetResolver.ts), [`src/types/spells.ts`](../../../src/types/spells.ts), [`src/types/items.ts`](../../../src/types/items.ts)
 
-## 1. The Gap
-The current spell targeting system (`TargetResolver.ts`) assumes all targets are `CombatCharacter` entities. It performs validation using character properties like `creatureTypes`, `team`, and `stats`.
+---
 
-However, many D&D spells target **Objects** (Items) rather than creatures.
-- **Example:** *Animate Dead* targets a "pile of bones or a corpse of a Medium or Small humanoid".
-- **Example:** *Catapult* targets "one object weighing 1 to 5 pounds".
+## What This File Is
 
-**Current Limitation:** `TargetResolver.isValidTarget` takes `(caster, target: CombatCharacter, state)`. Passing an `Item` to this function causes type errors and logic failures.
+This is still a live gap note.
 
-## 2. Proposed Architecture
+Unlike several older spell-overhaul task specs, this one describes a limitation that remains materially real in the current repo:
+- the spell targeting surface knows about `"objects"` at the type level
+- the live resolver still operates only on `CombatCharacter` targets
 
-### A. New Type Definition
-We need to extend `TargetConditionFilter` in `src/types/spells.ts` to support object-specific constraints.
+So this file remains useful as an active design note rather than only a historical implementation record.
 
-```typescript
-// Add to src/types/spells.ts
-export interface TargetConditionFilter {
-  // ... existing fields ...
+---
 
-  // New Object Fields
-  objectTypes?: string[]; // e.g., ["corpse", "weapon", "container"]
-  maxWeight?: number;     // e.g., 5 (for Catapult)
-  minWeight?: number;
-  materials?: string[];   // e.g., ["wood", "stone"] (for Stone Shape)
-  isMagical?: boolean;    // (for Nystul's Magic Aura)
-}
-```
+## Verified Current State
 
-### B. New Service: `ObjectTargeting`
-Create `src/systems/spells/targeting/ObjectTargeting.ts` to handle item validation. This separates object logic from creature logic.
+### The gap is real
 
-**Key Methods:**
-1.  `isValidObjectTarget(item: Item, filters: TargetFilter[], condition?: TargetConditionFilter): boolean`
-    -   Checks if `filters` contains `"objects"`.
-    -   Checks `objectTypes` against `item.type` (and special handling for "corpse").
-    -   Checks `weight`, `material`, etc.
+- [`src/types/spells.ts`](../../../src/types/spells.ts) includes `"objects"` in `TargetFilter`
+- [`src/systems/spells/targeting/TargetResolver.ts`](../../../src/systems/spells/targeting/TargetResolver.ts) still accepts `target: CombatCharacter`
+- the resolver's current `matchesTargetFilters` path explicitly returns `false` for `"objects"` when it is evaluating a `CombatCharacter`
+- [`src/systems/spells/targeting/TargetValidationUtils.ts`](../../../src/systems/spells/targeting/TargetValidationUtils.ts) currently validates creature-oriented fields only
 
-2.  `getItemsAtPosition(position: Position, gameState: GameState): Item[]`
-    -   Retrieves items at a specific grid coordinate (needs integration with `GameState.droppedItems` or `MapData`).
+That means the current targeting stack does not yet provide a first-class path for object/item spell targets.
 
-### C. Integration Point: `TargetResolver`
-Update `TargetResolver` to handle union types or separate flows.
+### Relevant adjacent surfaces do exist
 
-**Option 1: Union Target Type (Refactor Heavy)**
-Change `target: CombatCharacter` to `target: CombatCharacter | Item`.
-*Pros:* Clean API.
-*Cons:* Touching every file that uses `TargetResolver` might be huge.
+- [`src/types/items.ts`](../../../src/types/items.ts) already defines `Item` and includes `weight`
+- broader app surfaces already track location-scoped items outside the spell-targeting stack
 
-**Option 2: Specialized Method (Recommended)**
-Keep `isValidTarget` for creatures. Add `isValidObject` for items.
-The `SpellCommand` or `SelectionState` in the UI must know whether it's selecting a Character or an Item.
+### Important limit on current evidence
 
-## 3. Implementation Plan
+This pass did not verify a battle-map item-targeting flow that could already be reused for spell selection.
+So the absence claim should stay narrow:
+- object targeting is not currently supported by the verified spell resolver path
 
-### Step 1: Types
-- [ ] Modify `src/types/spells.ts`: Add object fields to `TargetConditionFilter`.
-- [ ] Ensure `Item` type in `src/types/items.ts` has necessary properties (weight, material tags if needed).
+---
 
-### Step 2: Service Framework
-- [ ] Create `src/systems/spells/targeting/ObjectTargeting.ts`.
-- [ ] Implement validation logic.
-- [ ] **Critical:** Determine how "Corpse" is represented. Is it an Item with `type: "corpse"`? Or a `CombatCharacter` with `dead: true`?
-    -   *Decision:* If it's in the inventory or ground loot, it's an `Item`. If it's a dead body on the map that retains stats, it might be a `CombatCharacter` with a `dead` status. *Animate Dead* usually implies turning a corpse object into a creature.
-    -   *Recommendation:* Treat corpses as Items (remains of a defeated enemy become a lootable container/item).
+## Rebased Design Direction
 
-### Step 3: Command Update
-- [ ] Update `SpellCommand` (or specific `SummoningCommand` / `TransmutationCommand`) to accept `targetItemId`.
-- [ ] In `execute()`, resolve the item ID to the actual Item object from `GameState`.
+### Recommendation: specialized object-targeting flow
 
-### Step 4: UI Updates
-- [ ] Update `BattleMap` to allow clicking on dropped items when in "Select Target" mode.
-- [ ] Pass selected Item ID to the spell engine.
+The lower-risk direction still looks like:
+- keep creature targeting in [`TargetResolver.ts`](../../../src/systems/spells/targeting/TargetResolver.ts)
+- add a separate object-targeting validator/service for item targets
+- let spell/UI selection decide whether a spell is choosing a creature target, an object target, or a point
 
-## 4. Example: Animate Dead Logic
-1.  **Cast:** Player selects *Animate Dead*.
-2.  **Targeting:** UI highlights tiles with Items. Player clicks a "Pile of Bones" item.
-3.  **Validation:** `ObjectTargeting` checks:
-    -   Is it an object? Yes.
-    -   Is type "corpse" or "bones"? Yes.
-4.  **Execution:**
-    -   Remove "Pile of Bones" item from world.
-    -   Spawn "Skeleton" `CombatCharacter` at that location (using `SummoningCommand`).
+This remains preferable to a wide `CombatCharacter | Item` union refactor unless a broader combat-target abstraction is intentionally planned.
+
+### Type expansion still appears necessary
+
+The current `TargetConditionFilter` surface does not yet include object-specific constraints like:
+- object category/type
+- min/max weight
+- material constraints
+- magical/non-magical constraints
+
+If object-targeting spells become active work, those constraints likely need an explicit contract.
+
+---
+
+## Open Questions That Still Need Real Decisions
+
+### 1. Corpse representation
+
+Still unresolved:
+- should a corpse be modeled as an item-like world object
+- should it remain a creature-state artifact with a special dead/remains form
+
+This matters for spells such as *Animate Dead*.
+
+### 2. World-state integration
+
+Still unresolved:
+- where battle-relevant object targets live during combat
+- how item positions are surfaced to spell-targeting UI
+- whether the same path should handle dropped loot, map props, and remains
+
+### 3. Command interface shape
+
+Still unresolved:
+- whether commands should receive `targetItemId`
+- whether spell selection should resolve items before command creation
+- whether summoning/transmutation flows need a richer target envelope than the current character-only shape
+
+---
+
+## What To Treat As Current Authority
+
+For current object-targeting limitations, use:
+- [`src/systems/spells/targeting/TargetResolver.ts`](../../../src/systems/spells/targeting/TargetResolver.ts)
+- [`src/systems/spells/targeting/TargetValidationUtils.ts`](../../../src/systems/spells/targeting/TargetValidationUtils.ts)
+- [`src/types/spells.ts`](../../../src/types/spells.ts)
+- [`src/types/items.ts`](../../../src/types/items.ts)
+
+This file should be read as a rebased active gap note, not as a claim that the full proposed object-targeting architecture has already been chosen.

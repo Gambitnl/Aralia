@@ -1,10 +1,13 @@
 # Task XX: [Task Name]
 
-**Epic:** Spell System Overhaul
-**Phase:** [1-5] - [Phase Name]
-**Complexity:** [Low/Medium/High]
-**Estimated Effort:** [X] days
-**Priority:** [P0/P1/P2]
+**Last Updated**: 2026-03-11  
+**Purpose**: Template for creating historical or active spell-overhaul task docs without depending on the missing older spell-research reference.
+
+**Epic:** Spell System Overhaul  
+**Phase:** [1-5] - [Phase Name]  
+**Complexity:** [Low/Medium/High]  
+**Estimated Effort:** [X] days  
+**Priority:** [P0/P1/P2]  
 **Dependencies:** [Task ##, Task ##]
 
 ---
@@ -19,7 +22,7 @@
 
 [Why this task is needed, current state, pain points]
 
-**Reference:** [@SPELL-SYSTEM-RESEARCH.md § X.X](../../architecture/@SPELL-SYSTEM-RESEARCH.md#section)
+**Reference:** [SPELL_SYSTEM_ARCHITECTURE.md](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md)
 
 ---
 
@@ -40,12 +43,12 @@
 
 ### File Structure
 
-```
+```text
 src/
-├── [directory]/
-│   ├── [file].ts
-│   └── __tests__/
-│       └── [file].test.ts
+  [directory]/
+    [file].ts
+    __tests__/
+      [file].test.ts
 ```
 
 ### Core Implementation
@@ -86,10 +89,9 @@ describe('[Component] Integration', () => {
 
 - [ ] Criterion 1
 - [ ] Criterion 2
-- [ ] All unit tests pass
-- [ ] Integration tests pass (if applicable)
-- [ ] TypeScript types fully correct
-- [ ] Documentation complete
+- [ ] All relevant tests pass
+- [ ] TypeScript types are correct
+- [ ] Documentation is updated where needed
 
 ---
 
@@ -108,7 +110,7 @@ describe('[Component] Integration', () => {
 
 ## References
 
-- [@SPELL-SYSTEM-RESEARCH.md § X](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
+- [SPELL_SYSTEM_ARCHITECTURE.md](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md)
 - [External Reference](https://example.com)
 
 ---

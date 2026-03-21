@@ -1,5 +1,27 @@
 # PHB 2024 Spell Reference (Levels 1-9)
 
+**Status:** Historical external reference snapshot
+**Last Reviewed:** 2026-03-12
+
+## Current Reading Rule
+
+This file preserves the exact PHB-reference packet used during the late-2025 completeness audit.
+Do not treat it as proof that the local-vs-PHB comparison has been freshly rerun.
+
+## Verified Current Use
+
+A 2026-03-12 docs pass confirmed:
+- this file still serves as the preserved external reference side of the completeness-audit packet
+- the maintained interpretation of local-versus-reference drift now belongs in docs/tasks/spell-completeness-audit/@SPELL-COMPLETENESS-REPORT.md and the refreshed docs/spells status surfaces
+- publication-critical PHB source questions should still be rechecked against the real handbook or a freshly validated external source before claiming current completeness
+
+## Preserved Historical Value
+
+The per-level spell tables below still show the exact reference corpus the 2025 completeness audit compared against.
+
+---
+# PHB 2024 Spell Reference (Levels 1-9)
+
 Created: 2025-12-04 16:34 UTC
 Last Updated: 2025-12-04 16:34 UTC
 ## Summary

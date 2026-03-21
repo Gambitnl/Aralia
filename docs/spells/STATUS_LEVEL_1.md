@@ -1,77 +1,46 @@
-# Spell Integration Status: Level 1
+﻿# Spell Integration Status: Level 1
 
-All Level 1 spells are migrated to the structured schema, manifest, and glossary. See batch docs for per-spell notes.
+Last Updated: 2026-03-12
 
-**Legend:**  
-`Complete` = migrated and validated (schema + glossary + manifest)
+This file now serves as a verified level-1 inventory note instead of a pseudo-granular completion dashboard.
 
-| Spell Name | ID | Status | Batch Doc |
-| :--- | :--- | :--- | :--- |
-| Absorb Elements | absorb-elements | Complete | LEVEL-1-BATCH-3 |
-| Alarm | alarm | Complete | LEVEL-1-BATCH-1 |
-| Animal Friendship | animal-friendship | Complete | LEVEL-1-BATCH-1 |
-| Armor of Agathys | armor-of-agathys | Complete | LEVEL-1-BATCH-1 |
-| Arms of Hadar | arms-of-hadar | Complete | LEVEL-1-BATCH-1 |
-| Bane | bane | Complete | LEVEL-1-BATCH-1 |
-| Bless | bless | Complete | LEVEL-1-BATCH-2 |
-| Burning Hands | burning-hands | Complete | LEVEL-1-BATCH-2 |
-| Catapult | catapult | Complete | LEVEL-1-BATCH-3 |
-| Charm Person | charm-person | Complete | LEVEL-1-BATCH-2 |
-| Chromatic Orb | chromatic-orb | Complete | LEVEL-1-BATCH-2 |
-| Color Spray | color-spray | Complete | LEVEL-1-BATCH-2 |
-| Command | command | Complete | LEVEL-1-BATCH-4 |
-| Compelled Duel | compelled-duel | Complete | LEVEL-1-BATCH-4 |
-| Comprehend Languages | comprehend-languages | Complete | LEVEL-1-BATCH-4 |
-| Create or Destroy Water | create-or-destroy-water | Complete | LEVEL-1-BATCH-4 |
-| Cure Wounds | cure-wounds | Complete | LEVEL-1-BATCH-4 |
-| Detect Evil and Good | detect-evil-and-good | Complete | LEVEL-1-BATCH-5 |
-| Detect Magic | detect-magic | Complete | LEVEL-1-BATCH-5 |
-| Detect Poison and Disease | detect-poison-and-disease | Complete | LEVEL-1-BATCH-5 |
-| Disguise Self | disguise-self | Complete | LEVEL-1-BATCH-5 |
-| Dissonant Whispers | dissonant-whispers | Complete | LEVEL-1-BATCH-5 |
-| Divine Favor | divine-favor | Complete | LEVEL-1-BATCH-6 |
-| Divine Smite | divine-smite | Complete | LEVEL-1-BATCH-6 |
-| Ensnaring Strike | ensnaring-strike | Complete | LEVEL-1-BATCH-6 |
-| Entangle | entangle | Complete | LEVEL-1-BATCH-6 |
-| Expeditious Retreat | expeditious-retreat | Complete | LEVEL-1-BATCH-6 |
-| Faerie Fire | faerie-fire | Complete | LEVEL-1-BATCH-7 |
-| False Life | false-life | Complete | LEVEL-1-BATCH-7 |
-| Feather Fall | feather-fall | Complete | LEVEL-1-BATCH-7 |
-| Find Familiar | find-familiar | Complete | LEVEL-1-BATCH-7 |
-| Fog Cloud | fog-cloud | Complete | LEVEL-1-BATCH-7 |
-| Goodberry | goodberry | Complete | LEVEL-1-BATCH-8 |
-| Grease | grease | Complete | LEVEL-1-BATCH-8 |
-| Guiding Bolt | guiding-bolt | Complete | LEVEL-1-BATCH-8 |
-| Hail of Thorns | hail-of-thorns | Complete | LEVEL-1-BATCH-8 |
-| Healing Word | healing-word | Complete | LEVEL-1-BATCH-8 |
-| Hellish Rebuke | hellish-rebuke | Complete | LEVEL-1-BATCH-9 |
-| Heroism | heroism | Complete | LEVEL-1-BATCH-9 |
-| Hex | hex | Complete | LEVEL-1-BATCH-9 |
-| Hunters Mark | hunters-mark | Complete | LEVEL-1-BATCH-9 |
-| Ice Knife | ice-knife | Complete | LEVEL-1-BATCH-9 |
-| Identify | identify | Complete | LEVEL-1-BATCH-10 |
-| Illusory Script | illusory-script | Complete | LEVEL-1-BATCH-10 |
-| Inflict Wounds | inflict-wounds | Complete | LEVEL-1-BATCH-10 |
-| Jump | jump | Complete | LEVEL-1-BATCH-10 |
-| Longstrider | longstrider | Complete | LEVEL-1-BATCH-10 |
-| Mage Armor | mage-armor | Complete | LEVEL-1-BATCH-11 |
-| Magic Missile | magic-missile | Complete | LEVEL-1-BATCH-11 |
-| Protection from Evil and Good | protection-from-evil-and-good | Complete | LEVEL-1-BATCH-11 |
-| Purify Food and Drink | purify-food-and-drink | Complete | LEVEL-1-BATCH-11 |
-| Ray of Sickness | ray-of-sickness | Complete | LEVEL-1-BATCH-11 |
-| Sanctuary | sanctuary | Complete | LEVEL-1-BATCH-12 |
-| Searing Smite | searing-smite | Complete | LEVEL-1-BATCH-12 |
-| Shield | shield | Complete | LEVEL-1-BATCH-12 |
-| Shield of Faith | shield-of-faith | Complete | LEVEL-1-BATCH-12 |
-| Silent Image | silent-image | Complete | LEVEL-1-BATCH-12 |
-| Sleep | sleep | Complete | LEVEL-1-BATCH-13 |
-| Snare | snare | Complete | LEVEL-1-BATCH-3 |
-| Speak with Animals | speak-with-animals | Complete | LEVEL-1-BATCH-13 |
-| Tashas Caustic Brew | tashas-caustic-brew | Complete | LEVEL-1-BATCH-13 |
-| Tashas Hideous Laughter | tashas-hideous-laughter | Complete | LEVEL-1-BATCH-13 |
-| Tashas Floating Disk | tensers-floating-disk | Complete | LEVEL-1-BATCH-13 |
-| Thunderous Smite | thunderous-smite | Complete | LEVEL-1-BATCH-14 |
-| Thunderwave | thunderwave | Complete | LEVEL-1-BATCH-14 |
-| Unseen Servant | unseen-servant | Complete | LEVEL-1-BATCH-14 |
-| Witch Bolt | witch-bolt | Complete | LEVEL-1-BATCH-14 |
-| Wrathful Smite | wrathful-smite | Complete | LEVEL-1-BATCH-14 |
+## Verified Current Inventory Fact
+
+A manual repo check during the 2026-03-12 doc pass confirmed:
+- ../../public/data/spells/level-1 currently contains 68 spell JSON files
+- the level-1 folder remains part of the active manifest-backed spell lane
+- the older batch-doc references still exist as historical implementation context, but they are not the only authority on current execution maturity
+
+## What Is Safe To Keep From The Older Version
+
+The older version was directionally right about one thing: level-1 spells have a broad migrated inventory in the structured spell-data lane.
+
+What remains credible:
+- level-1 spell JSONs exist and are manifest-backed
+- the batch-doc era created a real migrated corpus
+- the glossary and spell-loader surfaces have a level-1 inventory to work from
+
+## What This File No Longer Claims
+
+This file does not claim that every level-1 spell has been freshly re-tested through:
+- character creation
+- spellbook and resource flow
+- combat execution
+- glossary display
+
+It also does not claim that a single word such as Complete can capture the current behavior of every level-1 spell. The repo now uses a mix of structured spell data, command-based execution, and older bridge logic, so that older shorthand is too coarse.
+
+## How To Read Level-1 Status Now
+
+Use this file for the level-1 inventory fact and for orientation.
+For current behavioral truth, continue into:
+- ./SPELL_INTEGRATION_CHECKLIST.md
+- ./SPELL_JSON_EXAMPLES.md
+- ../../src/systems/spells/validation/spellValidator.ts
+- ../../scripts/check-spell-integrity.ts
+- spell-specific overhaul notes when a given mechanic was re-audited more recently than this level summary
+
+## Historical Note
+
+The older table that listed every level-1 spell as Complete is preserved in the migration history, but the wording was stronger than this doc pass can honestly support without a full spell-by-spell rerun.
+This rewrite keeps the verified inventory fact while dropping the false precision.

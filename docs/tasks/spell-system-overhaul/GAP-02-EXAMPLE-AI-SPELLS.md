@@ -1,46 +1,36 @@
-# Gap: Missing Example AI Spells
+# Gap: Curated Example AI Spells
 
-**Priority:** High
-**Status:** Open
-**Detected:** Dec 2025 (Agent Epsilon Review)
+**Priority:** Medium  
+**Status:** Open, but the original claim is outdated  
+**Last Reverified:** 2026-03-11
 
-## Findings
-The AI Arbitration engine is now functional, but there is no content to verify it.
-- **Location:** `public/data/spells/` contains only legacy or mechanical spells.
-- **Search:** No JSON files currently use `"arbitrationType": "ai_assisted"` or `"ai_dm"`.
+## Verified Current State
 
-## The Problem
-"Proof of Life" is missing. Without example spells:
-1. We cannot verify the end-to-end flow.
-2. Future developers won't have a template to copy for creating complex spells.
-3. The feature remains "theoretical" despite having working code.
+The repo already contains AI-tagged spell JSON:
+- [`public/data/spells/level-0/prestidigitation.json`](../../../public/data/spells/level-0/prestidigitation.json)
+- [`public/data/spells/level-2/blindness-deafness.json`](../../../public/data/spells/level-2/blindness-deafness.json)
+- [`public/data/spells/level-2/suggestion.json`](../../../public/data/spells/level-2/suggestion.json)
 
-## Proposed Solution
-Create 2-3 "Golden Standard" JSON files to serve as test cases and examples.
+So the old claim that there are no example AI spells is no longer true.
 
-### 1. `meld-into-stone.json` (Tier 2 - Context Validation)
-- **Mechanic:** Requires a stone surface nearby.
-- **Test Target:** `MaterialTagService` (Context Awareness).
-- **JSON Snippet:**
-```json
-"arbitrationType": "ai_assisted",
-"aiContext": {
-  "prompt": "Analyze the context. Is the caster standing on or adjacent to natural stone or a stone wall? If yes, allow. If no, deny.",
-  "playerInputRequired": false
-}
-```
+## What The Real Gap Is Now
 
-### 2. `suggestion.json` (Tier 3 - DM Adjudication)
-- **Mechanic:** User inputs a command; AI decides if it's reasonable.
-- **Test Target:** `NarrativeCommand` + Input UI.
-- **JSON Snippet:**
-```json
-"arbitrationType": "ai_dm",
-"aiContext": {
-  "prompt": "The player casts Suggestion with the command: '{playerInput}'. Is this a reasonable suggestion that doesn't cause self-harm? If valid, describe the target following the order.",
-  "playerInputRequired": true
-}
-```
+The current problem is quality and proof-of-life, not total absence.
 
-## Dependencies
-- `GAP-01-AI-INPUT-UI.md` (Required for Suggestion to work).
+Examples from the current files:
+- `suggestion.json` is marked `ai_dm`, but its prompt is empty and `playerInputRequired` is `false`
+- `prestidigitation.json` is also marked `ai_dm` with an empty prompt
+- `blindness-deafness.json` uses `ai_assisted` for a player-choice flow, which is useful as a test case but not a clean example of environmental validation
+
+## Why It Still Matters
+
+Without a small set of strong, intentional examples:
+- the AI arbitration path is harder to regression-test
+- later spell authors do not have trustworthy templates
+- the existing AI-tagged spells can give a false sense that the feature is production-ready
+
+## Current Follow-Through
+
+1. Keep the existing AI-tagged spells as evidence that the feature is not purely theoretical.
+2. Promote 2-3 curated examples with meaningful prompts and correct input requirements.
+3. Use those curated files as proof-of-life test cases for UI wiring and arbitrator behavior.

@@ -24,10 +24,9 @@
 - **Concentration**: false
 
 - **Effect Type**: HEALING
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: You touch a creature that has died within the last minute. That creature returns to life with 1 Hit Point. This spell can't return to life a creature that has died of old age, nor can it restore any missing body parts.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.314
-- **Status**: Complete

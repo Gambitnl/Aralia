@@ -1,61 +1,27 @@
-# Astral Elf Profile
+# Astral Elf Profile Stub
 
-- Race ID: `astral_elf`
-- Base Race: `elf`
-- Updated: 2026-02-13T01:08:05.017Z
-- Source Batch: `2026-02-13T00-27-18-078Z-r001`
+Last reviewed: 2026-03-12
+Race ID: astral_elf
+Base race: elf
+Source batch: 2026-02-13T00-27-18-078Z-r001
 
-## Generalized Summary
+This file is an incomplete generated stub. It is not a finished generalized race profile and should not be used as a canonical lore reference.
 
-TEMPLATE: fill generalized profile summary.
+What is currently real in this file:
+- the batch metadata above
+- a partial QA snapshot from the portrait batch
 
-## Research Sources
+What is still missing:
+- generalized summary prose
+- completed profile answers
+- final QA notes
+- a clean persisted profile format that matches the later output policy
 
-- [reference] TEMPLATE: source title
-  url: https://example.com/template-source
-  note: TEMPLATE: replace with real web source.
+Batch QA snapshot:
+- male: visual pending, uniqueness non_keeper, observed activity polishing glassware behind a tavern counter
+- female: visual pending, uniqueness keeper, observed activity painting simple signs for a shopfront
 
-
-## Profile Questions
-
-q1. What is this race's broad origin pattern (ancestral, planar, created, transformed, or unknown)?
-Answer: TEMPLATE: fill answer.
-
-q2. What core survival pressures historically shaped this race's behavior and values?
-Answer: TEMPLATE: fill answer.
-
-q3. Which social structures are most common (clans, houses, councils, bands, guilds, loose networks)?
-Answer: TEMPLATE: fill answer.
-
-q4. What roles or labors are most culturally typical in day-to-day life (non-combat)?
-Answer: TEMPLATE: fill answer.
-
-q5. What tensions commonly exist between this race's natural traits and broader society?
-Answer: TEMPLATE: fill answer.
-
-q6. What rites of passage or adulthood markers are culturally important?
-Answer: TEMPLATE: fill answer.
-
-q7. How does this race usually approach conflict resolution before violence?
-Answer: TEMPLATE: fill answer.
-
-q8. What family and kinship norms are typical (child-rearing, elders, obligation, inheritance)?
-Answer: TEMPLATE: fill answer.
-
-q9. What are common misunderstandings outsiders have about this race, and what is usually true instead?
-Answer: TEMPLATE: fill answer.
-
-q10. What generalized character hooks fit this race for play (duty, ambition, exile, craft, faith, curiosity, survival)?
-Answer: TEMPLATE: fill answer.
-
-## Batch QA Snapshot
-
-- male: visual=`pending`, uniqueness=`non_keeper`
-  observedActivity: polishing glassware behind a tavern counter (rag and glass clearly visible)
-  targetActivity: n/a
-  notes: TEMPLATE: fill after visual review.
-
-- female: visual=`pending`, uniqueness=`keeper`
-  observedActivity: painting simple signs for a shopfront (brush and painted lettering board visible, no text in final image)
-  targetActivity: n/a
-  notes: TEMPLATE: fill after visual review.
+Use these files for current state instead:
+- scripts/audits/slice-of-life-settings.json
+- docs/portraits/race_profiles/research-status.json
+- docs/portraits/race_portrait_regen_handoff.md

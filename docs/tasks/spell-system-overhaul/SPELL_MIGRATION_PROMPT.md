@@ -1,9 +1,13 @@
-<!-- TODO: Expand scope/title to levels 0-9 so this prompt is reusable for all batches, not just "Level 3+"; ensure batching/acceptance text matches the roll-up docs. -->
-# SPELL MIGRATION TASK (Level 3+)
+# SPELL MIGRATION TASK TEMPLATE
+
+> **Status Note (2026-03-11):**
+> - this file is a reusable subtree prompt template, not a record of one completed batch
+> - it has been updated to match the current nested spell-data layout and the current acceptance criteria
+> - do not assume a dedicated spell-glossary markdown path exists; verify companion-document targets before creating or deleting them
 
 ## CORE PRINCIPLE: JSON = SOURCE OF TRUTH
 
-The JSON file is the **canonical source** for all spell data. The glossary MD is derived from it.
+The JSON file is the **canonical source** for spell data in this workflow.
 - JSON must be accurate to **2024 PHB** (or original source if legacy)
 - JSON must follow **uniform schema** (field order, formatting)
 - Add `"source": "PHB 2024"` or `"source": ""` etc.
@@ -14,8 +18,8 @@ The JSON file is the **canonical source** for all spell data. The glossary MD is
 ## MANDATORY READING (in order)
 1. `docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md`
 2. `docs/spells/SPELL_JSON_EXAMPLES.md`
-3. `docs/tasks/spell-system-overhaul/LEVEL-{N}-BATCHES.md`
-4. `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-GAPS.md` (check solved/known gaps before flagging new ones)
+3. The applicable rollup or batch doc for the level if it already exists (for example `docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md`)
+4. The applicable level gaps file if it already exists (for example `docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md`)
 
 ## ASSIGNMENT
 Migrate these spells (Level {N}):
@@ -33,17 +37,19 @@ Migrate these spells (Level {N}):
 | Type | Path |
 |------|------|
 | JSON (primary) | `public/data/spells/level-{N}/{id}.json` |
-| Glossary (derived) | `public/data/glossary/entries/spells/level-{N}/{id}.md` (frontmatter `filePath` must match this level path) |
-| Old copies | Remove any flat `public/data/spells/{id}.json` / `public/data/glossary/entries/spells/{id}.md` after field comparison |
+| Companion docs (conditional) | Only update if the current repo has a real target surface or the active workflow explicitly requires it |
+| Old copies | Remove flat `public/data/spells/{id}.json` only after field comparison. Do not assume a flat spell-glossary markdown copy exists. |
 
 ## REFERENCE EXAMPLES (review before coding)
-- Level 2: `public/data/spells/level-2/web.json` + `public/data/glossary/entries/spells/level-2/web.md`
-- Level 2: `public/data/spells/level-2/moonbeam.json` + `public/data/glossary/entries/spells/level-2/moonbeam.md`
-- Level 1: `public/data/spells/level-1/thunderwave.json` + `public/data/glossary/entries/spells/level-1/thunderwave.md`
+- Level 2: `public/data/spells/level-2/web.json`
+- Level 2: `public/data/spells/level-2/moonbeam.json`
+- Level 1: `public/data/spells/level-1/thunderwave.json`
 
 ---
 
 ## JSON SCHEMA (canonical field order)
+
+Use this as the local template order for migration work in this subtree.
 
 ```json
 {
@@ -140,9 +146,10 @@ If `public/data/spells/{id}.json` exists:
 ```
 Log gaps in `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-GAPS.md`.
 
+If the level-specific gaps file does not exist yet, create it deliberately instead of assuming it is already present.
+
 ---
 
-<!-- TODO: Swap validation steps to the current npm pipeline and mirror the manifest/validation sequence used in cantrip batches. -->
 ## VALIDATION
 
 ```bash
@@ -163,4 +170,4 @@ Log progress in `docs/tasks/spell-system-overhaul/LEVEL-{N}-BATCHES.md` (do NOT 
 - [ ] Casing correct (ALL CAPS effects, Title Case schools)?
 - [ ] `ritual` and `castingTime.combatCost.type` present?
 - [ ] Files in level subfolder? Manifest paths nested?
-- [ ] Glossary `filePath` matches level-aware location?
+- [ ] Companion-doc assumptions verified before creating, updating, or deleting any non-JSON artifact?

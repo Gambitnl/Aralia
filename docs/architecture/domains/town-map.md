@@ -1,77 +1,79 @@
-# Town Map
+﻿# Town Map
 
 ## Purpose
 
-The Town Map renders interior layouts of villages and towns, allowing players to navigate within settlements, interact with NPCs, and access town services like shops and temples.
+The Town Map domain covers deterministic town and village exploration surfaces, including generated layouts, local movement, building interaction entry points, merchant access, and town-scoped rendering helpers.
 
-## Key Entry Points
+## Verified Current Entry Points
 
-| File | Role |
-|------|------|
-| `src/components/Town/TownCanvas.tsx` | Main town renderer (30KB) |
-| `src/components/Town/VillageScene.tsx` | Village scene composition |
-| `src/services/RealmSmithTownGenerator.ts` | Town generation (53KB) |
-| `src/hooks/useTownController.ts` | Town navigation hook |
+High-signal current entry points verified in this pass:
+- src/components/Town/TownCanvas.tsx
+- src/components/Town/VillageScene.tsx
+- src/hooks/useTownController.ts
+- src/services/RealmSmithTownGenerator.ts
+- src/state/reducers/townReducer.ts
+- src/types/town.ts
 
-## Subcomponents
+## Current Domain Shape
 
-- **Canvas Rendering**: `TownCanvas.tsx` - Main isometric/2D rendering
-- **Village Scene**: `VillageScene.tsx` - Scene composition
-- **Dev Controls**: `TownDevControls.tsx` - Development/debug tools
-- **Navigation**: `TownNavigationControls.tsx` - Player movement controls
-- **Generation**: `RealmSmithTownGenerator.ts` - Procedural town layout
+The live town-map domain currently has two related render surfaces:
+- TownCanvas.tsx is the main live town-exploration surface used from App.tsx.
+- VillageScene.tsx is a deterministic village-layout surface with building-click actions and village-context payloads.
 
-## File Ownership
+The generation and movement stack is spread across:
+- RealmSmithTownGenerator.ts
+- BuildingGenerator.ts
+- RoadGenerator.ts
+- TerrainGenerator.ts
+- DoodadGenerator.ts
+- useTownController.ts
+- townReducer.ts
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/Town/*.ts*` | Directory | Town UI components and index |
-| `src/services/realmsmith/**/*.ts` | Directory | RealmSmith subsystems |
-| `src/services/RealmSmith*.ts` | Service | Town generation and assets |
-| `src/services/BuildingGenerator.ts` | Service | Modular building placement |
-| `src/services/DoodadGenerator.ts` | Service | Modular doodad placement |
-| `src/services/RoadGenerator.ts` | Service | Modular road placement |
-| `src/services/TerrainGenerator.ts` | Service | Modular terrain placement |
-| `src/services/villageGenerator.ts` | Service | Village generation |
-| `src/constants/realmsmith.ts` | Constants | RealmSmith configuration |
-| `src/data/realmsmithBiomes.ts` | Data | Biome definitions for RealmSmith |
-| `src/hooks/useTownController.ts` | Hook | Town navigation |
-| `src/state/reducers/townReducer.ts` | Reducer | Town state |
-| `src/types/town.ts` | Types | Town type definitions |
+TownCanvas.tsx also makes the current rendering model more specific than the older doc:
+- it is a canvas-based renderer driven through AssetPainter
+- it supports movement, zoom, pan, ambient-life rendering, and building/NPC interaction hooks
+- it is not well described anymore by the older shorthand of main isometric/2D rendering
 
+## Historical Drift Corrected
 
-## Dependencies
+The older version of this file drifted in a few concrete ways:
+- it claimed a lowercase src/services/realmsmith/**/*.ts ownership lane that does not match the verified current paths
+- it implied a simpler renderer description than the current TownCanvas plus AssetPainter flow warrants
+- it listed src/components/__tests__/MerchantModal.test.tsx, which is not present in the current repo
 
-### Depends On
+That older explanation should not be treated as the current implementation guide.
 
-- **[Submap](./submap.md)**: Entry from village tiles on submap
-- **[NPCs / Companions](./npcs-companions.md)**: NPC placement and interaction
-- **[Items / Trade / Inventory](./items-trade-inventory.md)**: Shop/merchant access
+## Boundaries And Constraints
 
-### Used By
+- Town generation remains deterministic from seed and world-position inputs.
+- Town navigation should continue to respect walkability and building collision.
+- Town rendering, merchant entry, and NPC-click handling can live here without making the town domain the owner of all inventory, dialogue, or combat systems.
+- Broader claims like town never triggers combat directly or exit points always return to the correct submap tile should be documented carefully unless they are explicitly verified in code.
 
-- **App.tsx**: Town view rendering
+## What Is Materially Implemented
 
-## Boundaries / Constraints
+This pass verified that the town-map domain already has:
+- a live TownCanvas surface wired through App.tsx
+- a deterministic VillageScene surface
+- a town-controller hook for generation, spawn placement, pan, zoom, and view state
+- a town reducer and town type lane
+- the RealmSmith town-generation stack and its supporting generator files
+- merchant-entry actions from town and village buildings
+- NPC/ambient-life interaction hooks in the canvas surface
 
-- Town generation should be deterministic given same seed
-- Town should not trigger combat encounters directly
-- Navigation should respect building collision
-- Exit points should return to submap at correct position
+## Verified Test Surface
 
-## Open Questions / TODOs
+Verified tests in this pass:
+- src/components/Town/__tests__/TownCanvasPan.test.tsx
+- src/components/Town/__tests__/TownDevControls.test.tsx
+- src/components/Town/__tests__/TownNavigationControls.test.tsx
+- src/hooks/__tests__/useTownController.test.tsx
+- src/services/__tests__/strongholdService.test.ts
 
-- [ ] Document RealmSmith architecture
-- [ ] Clarify asset painter system
-- [ ] Map building interaction system
+The older claim about src/components/__tests__/MerchantModal.test.tsx was not accurate in the current repo.
 
-### Claimed Tests (Auto-generated)
+## Open Follow-Through Questions
 
-| Test File | Description |
-|-----------|-------------|
-| `src/components/Town/__tests__/TownCanvasPan.test.tsx` | Town canvas panning tests |
-| `src/components/Town/__tests__/TownDevControls.test.tsx` | Town dev controls tests |
-| `src/components/Town/__tests__/TownNavigationControls.test.tsx` | Town navigation control tests |
-| `src/hooks/__tests__/useTownController.test.tsx` | Town controller hook tests |
-| `src/components/__tests__/MerchantModal.test.tsx` | Merchant modal component tests |
-| `src/services/__tests__/strongholdService.test.ts` | Stronghold service tests |
+- Which docs should explain the TownCanvas plus AssetPainter rendering model more directly?
+- How should the repo distinguish the main town-exploration surface from the narrower deterministic VillageScene lane?
+- Which building-interaction and merchant-entry rules should be documented here versus in dialogue, trade, or inventory docs?

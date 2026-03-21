@@ -1,7 +1,18 @@
 /**
- * @file SorcererFeatureSelection.tsx
- * This component allows a player who has chosen the Sorcerer class to select
- * their initial known cantrips and Level 1 spells.
+ * ARCHITECTURAL CONTEXT:
+ * This component manages the 'Sorcerer Feature' sub-step. After selecting 
+ * the Class, Sorcerers must immediately pick their Cantrips and Level 1 
+ * spells.
+ *
+ * Recent updates focus on 'UX Feedback' and 'Validation Robustness'.
+ * - Added `sr-only` accessibility labels for screen readers.
+ * - Refined the item highlight logic (`selectedCantripIds.has || selectedSpellL1Ids.has`). 
+ *   This ensures that if a spell is somehow selected in both categories (an 
+ *   edge case), it remains visually highlighted as "taken".
+ * - Improved rendering performance by memoizing `availableCantrips` 
+ *   and `availableSpellsL1` based on the `spellList` ID array.
+ * 
+ * @file src/components/CharacterCreator/Class/SorcererFeatureSelection.tsx
  */
 import React, { useState, useMemo } from 'react';
 import { Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types';
@@ -83,13 +94,18 @@ const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps> = ({
               <label 
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedCantripIds.has(spell.id) 
+                  // WHAT CHANGED: Consolidated highlighting logic.
+                  // WHY IT CHANGED: Ensures visual consistency. If a spell 
+                  // appears in multiple available lists (rare but possible 
+                  // with some multi-class or race overrides), selecting it 
+                  // anywhere will show it as 'active' everywhere.
+                  (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <input 
+                <span className="sr-only">Select {spell.name}</span>
+                <div className="flex items-center gap-3">                  <input 
                     type="checkbox" 
                     className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
                     checked={selectedCantripIds.has(spell.id)} 
@@ -120,13 +136,17 @@ const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps> = ({
               <label 
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedSpellL1Ids.has(spell.id) 
+                  // WHAT CHANGED: Consolidated highlighting logic.
+                  // WHY IT CHANGED: (Same as above) Ensures that spell 
+                  // selection status is globally reflected within this 
+                  // component's view.
+                  (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <input 
+                <span className="sr-only">Select {spell.name}</span>
+                <div className="flex items-center gap-3">                  <input 
                     type="checkbox" 
                     className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
                     checked={selectedSpellL1Ids.has(spell.id)} 

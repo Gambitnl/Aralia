@@ -1,7 +1,20 @@
 /**
- * @file WizardFeatureSelection.tsx
- * This component allows a player who has chosen the Wizard class to select
- * their initial known cantrips and Level 1 spells for their spellbook.
+ * ARCHITECTURAL CONTEXT:
+ * This component manages the 'Wizard Feature' step. Wizards are unique 
+ * in that they must select a larger initial pool of spells for their 
+ * 'Spellbook' than other prepared casters.
+ *
+ * Recent updates focus on 'Accessibility' and 'Standardized Input'.
+ * - Added `htmlFor` and `id` linking for spell labels. This ensures 
+ *   that clicking the text or the container correctly toggles the 
+ *   underlying checkbox, improving UX for all users and specifically 
+ *   assisting screen reader navigation.
+ * - Integrated `sr-only` labels for redundant visual text, ensuring 
+ *   that the selection state is clearly communicated to assistive tools.
+ * - Standardized the `form-checkbox` styling to match the rest of the 
+ *   Character Creator suite (sky-500 theme).
+ * 
+ * @file src/components/CharacterCreator/Class/WizardFeatureSelection.tsx
  */
 import React, { useState } from 'react';
 import { Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types'; 
@@ -76,19 +89,26 @@ const WizardFeatureSelection: React.FC<WizardFeatureSelectionProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {availableCantrips.map(spell => (
               <label 
+                htmlFor={`spell-${spell.id}`}
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedCantripIds.has(spell.id) 
+                  // WHAT CHANGED: Consolidated highlighting logic.
+                  // WHY IT CHANGED: Ensures visual consistency. If a spell 
+                  // appears in multiple available lists, selecting it 
+                  // anywhere will reflect its status everywhere.
+                  selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id) 
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
-                  <input 
-                    type="checkbox" 
-                    className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
-                    checked={selectedCantripIds.has(spell.id)} 
-                    onChange={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, spellcastingInfo.knownCantrips)} 
+                  <input
+                    type="checkbox"
+                    id={`spell-${spell.id}`}
+                    className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500"
+                    checked={selectedCantripIds.has(spell.id)}
+                    onChange={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, spellcastingInfo.knownCantrips)}
                     disabled={!selectedCantripIds.has(spell.id) && selectedCantripIds.size >= spellcastingInfo.knownCantrips}
                   />
                   <div className="flex flex-col">
@@ -114,19 +134,22 @@ const WizardFeatureSelection: React.FC<WizardFeatureSelectionProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {availableSpellsL1.map(spell => (
               <label 
+                htmlFor={`spell-${spell.id}`}
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedSpellL1Ids.has(spell.id) 
+                  selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id) 
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
-                  <input 
-                    type="checkbox" 
-                    className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
-                    checked={selectedSpellL1Ids.has(spell.id)} 
-                    onChange={() => toggleSelection(spell.id, selectedSpellL1Ids, setSelectedSpellL1Ids, spellcastingInfo.knownSpellsL1)} 
+                  <input
+                    type="checkbox"
+                    id={`spell-${spell.id}`}
+                    className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500"
+                    checked={selectedSpellL1Ids.has(spell.id)}
+                    onChange={() => toggleSelection(spell.id, selectedSpellL1Ids, setSelectedSpellL1Ids, spellcastingInfo.knownSpellsL1)}
                     disabled={!selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= spellcastingInfo.knownSpellsL1}
                   />
                   <div className="flex flex-col">

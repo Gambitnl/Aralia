@@ -20,6 +20,11 @@ It runs against the exact coding work that just happened in the active conversat
 1. Conversation-grounded change list from the active session.
 2. Git-grounded change list from `git status --porcelain` (cross-check only).
 3. Current roadmap structure and docs under `devtools/roadmap/`.
+4. Roadmap ingestion surfaces:
+   - `docs/tasks/...` for capability docs the roadmap may ingest
+   - `.agent/roadmap-local/processing_manifest.json` for processed doc registration
+   - `devtools/roadmap/scripts/roadmap-engine/generate.ts` for curated allowlists/details
+   - `devtools/roadmap/scripts/roadmap-engine/text.ts` for name normalization rules
 
 ## Execution
 
@@ -32,6 +37,46 @@ It runs against the exact coding work that just happened in the active conversat
 5. Run atomization audit on touched implementation files (`atomized`, `acceptable-orchestrator`, `needs-split`).
 6. Verify module/end-node test definition routing for touched module leaves.
 7. Run `npm run roadmap:audit-all` and capture summary metrics.
+
+## Roadmap Addition Guardrails
+
+When adding or updating gameplay/app capability nodes, do not treat that as `Roadmap Tool` work unless the feature is literally part of the roadmap tool itself.
+
+Use this sequence:
+
+**For Roadmap Tool capability nodes** (the tool itself, not game features):
+1. Add the full label hierarchy to `CURATED_SUBFEATURES['roadmap tool']` in `devtools/roadmap/scripts/roadmap-engine/generate.ts`. This is the direct gate — the node will not appear without an explicit entry here.
+2. Optionally back it with a capability doc under `docs/tasks/roadmap/` (good practice, not required for the node to render).
+3. Check `text.ts` normalization for acronym/casing drift that can cause duplicate IDs or silent label changes.
+4. Verify emitted nodes in `/api/roadmap/data` or direct generator output before trusting the browser.
+5. Verify final pillar placement, not just node existence.
+
+**For game/app capability nodes** (gameplay features, not tooling):
+1. Add or update a capability-focused doc under `docs/tasks/...`.
+2. Register or update the processed-doc entry in `.agent/roadmap-local/processing_manifest.json`.
+3. If the node still does not appear, check `generate.ts` allowlists/details — manifest registration alone is not sufficient if the allowlist does not include the label.
+4. Check `text.ts` normalization for acronym/casing drift that can cause duplicate IDs or silent label changes.
+5. Verify emitted nodes in `/api/roadmap/data` or direct generator output before trusting the browser.
+6. Verify final pillar placement, not just node existence.
+
+## Common Failure Modes
+
+1. **Missing allowlist entry (most common for Roadmap Tool nodes):** the `CURATED_SUBFEATURES` entry in `generate.ts` was not added — neither a capability doc nor a manifest entry will make the node appear without it.
+2. Manifest-only registration: doc and manifest exist, but generator still drops the node because the allowlist in `generate.ts` is the real gate.
+3. Wrong branch family: gameplay/runtime work was added under `Roadmap Tool`.
+4. Normalization collisions: acronym/casing rewrite creates duplicate node IDs.
+5. Correct API, stale UI: server/browser is still showing pre-patch code or stale visibility state.
+6. Wrong pillar placement: `featureGroup` / `feature` text was too weak for pillar inference.
+
+## Verification Minimum
+
+Do not mark roadmap addition complete until:
+
+1. the capability doc exists or was deliberately updated,
+2. the processing manifest contains the intended labels,
+3. the generator emits those labels,
+4. the node is parented under the intended pillar, and
+5. the live roadmap UI can render or navigate to the branch.
 
 ## Required Output Block
 

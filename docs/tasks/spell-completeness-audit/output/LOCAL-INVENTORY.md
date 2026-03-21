@@ -1,5 +1,33 @@
 # Local Spell Inventory (Levels 1-9)
 
+**Status:** Historical inventory snapshot
+**Last Reviewed:** 2026-03-12
+
+## Current Reading Rule
+
+This file preserves a late-2025 inventory snapshot.
+Do not treat its counts as current live spell totals.
+
+## Verified Drift
+
+A 2026-03-12 repo check confirmed:
+- the live levelized spell tree now contains 469 JSON spell files in total
+- the live levels 1-9 tree now contains 425 JSON spell files
+- this preserved snapshot still reports 337 level-1-through-9 files from its 2025 run
+
+## Use These Current Surfaces Instead
+
+- docs/spells/STATUS_LEVEL_1.md through STATUS_LEVEL_9.md
+- docs/tasks/spell-completeness-audit/@SPELL-COMPLETENESS-REPORT.md
+- public/data/spells/level-0 through level-9
+
+## Preserved Historical Value
+
+The per-level ID lists below still help explain what the local spell tree looked like at the time of the original completeness-audit pass.
+
+---
+# Local Spell Inventory (Levels 1-9)
+
 Created: 2025-12-04 15:48 UTC
 Last Updated: 2025-12-04 16:36 UTC
 Scanned 375 files in `public/data/spells`.

@@ -1,96 +1,76 @@
-# Spell System - Feature Roadmap (Rebased)
+﻿# Spell System - Feature Roadmap (Rebased)
 
-**Last Updated**: Feb 16, 2026  
+**Last Updated**: 2026-03-12  
 **Status**: Active / Rebased  
-**Purpose**: Maintain a feature-first roadmap for spell data, runtime behavior, and validation.
+**Purpose**: Maintain a feature-first roadmap for spell data, runtime behavior, glossary integration, and migration completion criteria.
 
----
+## Verified Current State
 
-## Verified Current State (Fact-Checked)
+A 2026-03-12 repo check confirmed:
+- Spell JSON files under public/data/spells/: 469
+- Level-2 spell JSON files under public/data/spells/level-2/: 65
+- The spell folder is levelized from level-0 through level-9
+- No root-level spell JSON files remain directly under public/data/spells/
+- npm run validate remains the active validation command
+- public/data/glossary/index/spells.json exists
 
-- Spell JSON files in `public/data/spells/`: **469**
-- Spell manifest entries in `public/data/spells_manifest.json`: **469**
-- Folder structure is already levelized: `level-0` through `level-9`
-- No root-level spell JSON files remain under `public/data/spells/`
-- Validation command exists and is active: `npm run validate`
+## Concrete Feature Tree
 
-### Level Distribution
+### Feature: Spell Data File Topology
 
-- `level-0`: 44
-- `level-1`: 68
-- `level-2`: 65
-- `level-3`: 68
-- `level-4`: 47
-- `level-5`: 59
-- `level-6`: 45
-- `level-7`: 27
-- `level-8`: 24
-- `level-9`: 22
+**Goal:** Keep spell files in deterministic level-aware locations.
 
----
+**Concrete capabilities**
+- Level-Based Spell File Layout
+- No Root-Level Spell JSON Drift
+- Spell ID And Path Consistency
 
-## Feature Tree for Roadmap Visualizer
+### Feature: Spell Manifest Integrity
 
-### Feature: Spell Data Architecture
+**Goal:** Keep runtime spell discovery aligned with the spell file tree.
 
-**Goal**: Keep spell data consistent, discoverable, and migration-safe.
+**Concrete capabilities**
+- Spell Manifest Regeneration
+- Spell Manifest Path Integrity
+- Spell Manifest Entry Count Tracking
 
-**Sub-features**
-- Level-based file topology (`public/data/spells/level-{N}/`) - **Active**
-- Manifest integrity (`public/data/spells_manifest.json`) - **Active**
-- Duplicate detection and ID hygiene - **Active**
-- Legacy migration cleanup tooling - **Active**
+### Feature: Spell Description Glossary Linking
 
-### Feature: Spell Retrieval and Runtime Wiring
+**Goal:** Link spell-detail prose to live glossary terms without inventing a dead template lane.
 
-**Goal**: Ensure runtime systems can load and resolve spells reliably.
+**Concrete capabilities**
+- Glossary Index Spell Terms
+- Spell Detail Term Linking
+- Glossary Tooltip Deep Linking
 
-**Sub-features**
-- Manifest-driven spell lookup (`src/services/SpellService.ts`) - **Active**
-- Glossary/runtime integration (`src/context/SpellContext.tsx`, glossary components) - **Active**
-- Path and level gate checks (`src/hooks/useSpellGateChecks.ts`) - **Active**
+**Current state:** Partial. Glossary loading and tooltip infrastructure exist, but SpellDetailPane.tsx still renders description text directly.
 
-### Feature: Spell Rules Execution
+### Feature: Spell Migration Phase Gates
 
-**Goal**: Convert spell data into correct in-game behavior.
+**Goal:** Distinguish dataset completeness from runtime verification completeness.
 
-**Sub-features**
-- Command/effect execution pipeline - **Active**
-- Targeting and save/concentration mechanics - **Active**
-- Mechanical consistency validation - **Active**
+**Concrete capabilities**
+- Dataset Coverage Gate
+- Runtime Verification Gate
+- Migration Completion Thresholds
 
-### Feature: Spell QA and Audit Loop
+### Feature: Level Rollup Coverage Metrics
 
-**Goal**: Continuously verify data correctness and implementation quality.
+**Goal:** Keep level rollup docs honest about inventory versus verified integration.
 
-**Sub-features**
-- Data validation pipeline (`scripts/validate-data.ts`) - **Active**
-- Spell integrity and consistency audits (`scripts/check-spell-integrity.ts`, validators) - **Active**
-- Batch audit/reporting workflows - **Active**
+**Concrete capabilities**
+- Level Rollup Inventory Counts
+- Level Rollup Coverage Drift Detection
+- Level Rollup Historical Batch Preservation
 
----
+## Open Concrete Tasks
 
-## Open Tasks (From This Pass)
-
-- [ ] Normalize progress tracking in registry rows to explicit percentages where possible.
-- [ ] Resolve known identifier collisions in related roadmap docs that can break deterministic node IDs.
-- [ ] Define phase gates for when spell migration is considered "complete enough" versus "fully complete."
-- [ ] Split future spell docs by feature area when one document mixes data migration, runtime logic, and QA.
-
----
+- [ ] Define concrete thresholds for Dataset Coverage Gate versus Runtime Verification Gate.
+- [ ] Add deterministic node-ID conventions so roadmap capability rows stop colliding across related spell docs.
+- [ ] Wire Spell Detail Term Linking into the live spell-detail rendering path.
+- [ ] Rebase historical level rollup docs when their listed spell IDs drift from actual folder counts.
 
 ## Historical Note
 
-The prior November 2025 version of this document was migration-batch oriented (for example: "10 spells migrated", "33 cantrips remaining").  
-Current codebase evidence indicates the spell dataset has already moved far beyond that baseline. This roadmap now tracks feature health instead of early migration batch choreography.
-
----
-
-## Working Rule
-
-This is a living feature roadmap.  
-When processing related docs, update this file to reflect:
-- what is verifiably implemented,
-- what remains open,
-- and which sub-features changed state.
-
+This roadmap no longer uses early migration-batch wording such as  33 cantrips remaining as its main organizing model.
+The current repo has already moved beyond that stage, so the roadmap now tracks concrete capabilities and remaining integration gaps instead.

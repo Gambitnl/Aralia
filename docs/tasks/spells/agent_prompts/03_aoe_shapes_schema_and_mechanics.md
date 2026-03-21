@@ -1,3 +1,20 @@
+**Status:** preserved spell-task prompt  
+**Last Reviewed:** 2026-03-14
+
+## Current Reading Rule
+
+This file is a preserved prompt packet from the spell migration effort.
+Use it only after rechecking its assumptions against the current spell validator, current spell JSON layout, and the current docs/spells/reference lane.
+
+## Verified Current Context
+
+A 2026-03-14 repo check confirmed:
+- src/systems/spells/validation/spellValidator.ts still exists as the main spell-schema authority
+- the repo still contains the spell tooling scripts referenced throughout this prompt packet family
+- the prompt body below is historically useful, but some task assumptions may already be partially or fully resolved by later spell-pass work
+
+---
+
 # Agent Prompt 03 - AoE Shapes (emanation/wall/hemisphere/circle/line+ring): Confirm Mechanics + Implement SSOT Representation
 
 Repo: `AraliaV4/Aralia`
@@ -133,13 +150,13 @@ See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.
    - Updated `formatRange()` with emojis for new shapes and semantic notes
 
 8. **Migrated 2 fixture spells**
-   - `spirit-guardians.json`: `Sphere` → `Emanation` with `followsCaster: true`
-   - `wall-of-fire.json`: `Sphere` → `Wall` with dimensions, `shapeVariant`, and `triggerZone`
+   - `spirit-guardians.json`: `Sphere` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `Emanation` with `followsCaster: true`
+   - `wall-of-fire.json`: `Sphere` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `Wall` with dimensions, `shapeVariant`, and `triggerZone`
 
 9. **Verification**
-   - `npm run validate`: ✅ PASSED (469 spells validated)
-   - `npx --no-install tsx scripts/regenerate-manifest.ts`: ✅ PASSED
-   - `node scripts/generateGlossaryIndex.js`: ❌ BLOCKED by pre-existing `travel.json` JSON syntax error (unrelated)
+   - `npm run validate`: ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ PASSED (469 spells validated)
+   - `npx --no-install tsx scripts/regenerate-manifest.ts`: ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ PASSED
+   - `node scripts/generateGlossaryIndex.js`: ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€¦Ã¢â‚¬â„¢ BLOCKED by pre-existing `travel.json` JSON syntax error (unrelated)
 
 ### What changed (high-level):
 - AoE schema now supports advanced shapes (Emanation, Wall, Hemisphere, Ring)
@@ -156,9 +173,9 @@ See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.
 - **Modified:** `public/data/spells/level-4/wall-of-fire.json`
 
 ### Commands run and outcomes:
-- `npm run validate` → Success (469 spells validated)
-- `npx --no-install tsx scripts/regenerate-manifest.ts` → Success (469 spells in manifest)
-- `node scripts/generateGlossaryIndex.js` → Failed due to pre-existing `travel.json` error
+- `npm run validate` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Success (469 spells validated)
+- `npx --no-install tsx scripts/regenerate-manifest.ts` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Success (469 spells in manifest)
+- `node scripts/generateGlossaryIndex.js` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Failed due to pre-existing `travel.json` error
 
 ### Decisions that might affect other tasks:
 - **Option A chosen**: All AoE logic should read from `targeting.areaOfEffect`, not a separate `advancedAreaOfEffect`

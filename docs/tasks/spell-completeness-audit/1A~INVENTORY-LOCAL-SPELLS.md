@@ -1,41 +1,22 @@
 # Task 1A: Inventory Local Spells (Levels 1-9)
 
-Created: 2025-12-04 15:48 UTC  
-Last Updated: 2025-12-04 16:35 UTC  
-**Project:** Spell Completeness Audit & Description Extraction  
-**Type:** Task (Research/Analysis)  
-**Status:** Completed
+**Status:** Preserved completion note
+**Last Reviewed:** 2026-03-11
 
----
+## Purpose
 
-## Objective
-Scan the existing spell JSON files to document how many spells exist per level (1-9), including their ids, for comparison against the 2024 PHB. Cantrips (level 0) are explicitly excluded.
+Preserve what Task 1A produced without presenting it as an unexecuted task.
 
-## Inputs
-- Codebase `public/data/spells/`
-- Existing status files (for awareness only): `docs/spells/STATUS_LEVEL_*.md`
+## Verified Current State
 
-## Deliverable
-- `docs/tasks/spell-completeness-audit/output/LOCAL-INVENTORY.md`
-  - Totals per level (1-9)
-  - Spell ids per level
-  - Notes on any anomalies (missing fields, nonstandard structure)
+- The expected output file still exists at output/LOCAL-INVENTORY.md.
+- The task remains useful as provenance for how the local spell counts were originally assembled.
+- The brief is historical; the current pass did not rerun the inventory from scratch here.
 
-## Steps
-1. Enumerate all JSON files under `public/data/spells/`.
-2. Extract `level` and `id` from each file; skip entries with `level: 0`.
-3. Group ids by level; compute totals per level and overall total.
-4. Note any files with missing/invalid `level` or `id` values.
-5. Save the report to `output/LOCAL-INVENTORY.md`.
-6. When complete, rename this file with tilde: `1A~INVENTORY-LOCAL-SPELLS.md`.
+## Preserved Outcome
 
-## Constraints
-- Read-only analysis: **do not modify** spell JSON files.
-- Ignore cantrips and any non-spell data.
-- Preserve original ids; no normalization.
+Task 1A established the local levels 1-9 inventory used by the later gap analysis. Its deliverable was a read-only snapshot of spell ids and totals, excluding cantrips.
 
-## Acceptance Criteria
-- [x] Inventory includes counts and ids for levels 1-9 only.
-- [x] Cantrips excluded.
-- [x] Anomalies (if any) are documented.
-- [x] Report saved to `output/LOCAL-INVENTORY.md`.
+## Current Use
+
+Use this file as provenance for output/LOCAL-INVENTORY.md, not as an active instruction to start a fresh inventory run. If the inventory needs to be regenerated, do that as a new explicit review step rather than silently relying on this old completion brief.

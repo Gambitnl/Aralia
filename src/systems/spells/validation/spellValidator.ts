@@ -554,6 +554,9 @@ const SpellEffect = z.discriminatedUnion("type", [
  * - aiContext: Instructions for the AI DM for non-mechanical outcomes.
  * - effects: Array of structured mechanical results.
  * - description: Flavor text for the Glossary.
+ * - source: intentionally not part of the live schema anymore. The spell JSON files
+ *   no longer carry a top-level source field, so validation should not keep enforcing
+ *   a dead requirement that the dataset has already moved away from.
  */
 export const SpellValidator = z.object({
   id: z.string(),
@@ -561,7 +564,6 @@ export const SpellValidator = z.object({
   aliases: z.array(z.string()),
   level: z.number(),
   school: SpellSchool,
-  source: z.string(),
   legacy: z.boolean(),
   classes: z.array(ClassNameEnum),
   ritual: z.boolean(), // Validation Rule: Must be false for Level 0 (enforce via .refine or subclass)

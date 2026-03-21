@@ -1,79 +1,85 @@
-# Character Creator
+﻿# Character Creator
 
 ## Purpose
 
-The Character Creator provides a step-by-step wizard for generating new player characters. It guides players through race selection, class selection, ability score allocation, skill selection, feat selection, and final naming/review.
+The Character Creator domain covers Aralia's step-by-step player-character creation flow, including race and class selection, age and background choices, visuals, ability scores, skills, class features, weapon masteries, feats, and final review.
 
-## Key Entry Points
+## Verified Current Entry Points
 
-| File | Role |
-|------|------|
-| `src/components/CharacterCreator/CharacterCreator.tsx` | Main wizard component (25KB) |
-| `src/hooks/useCharacterAssembly.ts` | Character assembly logic |
-| `src/components/CharacterCreator/state/` | Creator state management |
+High-signal current entry points verified in this pass:
+- src/components/CharacterCreator/CharacterCreator.tsx
+- src/components/CharacterCreator/state/characterCreatorState.ts
+- src/components/CharacterCreator/hooks/useCharacterAssembly.ts
+- src/components/CharacterCreator/config/sidebarSteps.ts
+- src/components/CharacterCreator/CreationSidebar.tsx
+- src/components/CharacterCreator/Race/
+- src/components/CharacterCreator/Class/
 
-## Subcomponents
+## Current Domain Shape
 
-- **Race Selection**: `Race/` directory - Race and subrace selection (~18 files)
-- **Class Selection**: `Class/` directory - Class and subclass selection (~11 files)
-- **Ability Scores**: `AbilityScoreAllocation.tsx` - Point buy / standard array
-- **Skills**: `SkillSelection.tsx` - Skill proficiency selection
-- **Background**: `BackgroundSelection.tsx` - Background selection
-- **Feats**: `FeatSelection.tsx`, `FeatSpellPicker.tsx` - Feat and feat-granted spells
-- **Visuals**: `VisualsSelection.tsx` - Character appearance
-- **Age**: `AgeSelection.tsx` - Character age selection
-- **Weapons**: `WeaponMasterySelection.tsx` - Weapon mastery selection
-- **Review**: `NameAndReview.tsx` - Final review and naming
-- **Sidebar**: `CreationSidebar.tsx` - Progress tracking sidebar
+The live character-creator flow is broader than the older race-class-review summary implied.
+The verified step surface in CharacterCreator.tsx now includes:
+- Race
+- AgeSelection
+- BackgroundSelection
+- Visuals
+- Class
+- AbilityScores
+- HumanSkillChoice when needed
+- Skills
+- ClassFeatures
+- WeaponMastery when needed
+- FeatSelection when needed
+- NameAndReview
 
-## File Ownership
+The state and assembly split is also more specific now:
+- CharacterCreator.tsx owns the step orchestration and reducer-driven UI flow.
+- characterCreatorState.ts owns creator state and step transitions.
+- src/components/CharacterCreator/hooks/useCharacterAssembly.ts owns the main assembly logic.
+- src/hooks/useCharacterAssembly.ts still exists, but it is no longer the best primary architecture entry point.
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/CharacterCreator/*.tsx` | Directory | All creator components |
-| `src/components/CharacterCreator/Race/*.tsx` | Directory | Race selection |
-| `src/components/CharacterCreator/Class/*.tsx` | Directory | Class selection |
-| `src/components/CharacterCreator/state/*.ts` | Directory | State management |
-| `src/components/CharacterCreator/hooks/*.ts` | Directory | Creator-specific hooks |
-| `src/components/CharacterCreator/config/*.ts` | Directory | Configuration |
-| `src/hooks/useCharacterAssembly.ts` | Hook | Character assembly |
-| `src/data/races/*.ts` | Data | Race definitions |
-| `src/data/classes/*.ts` | Data | Class definitions |
-| `src/data/dev/*.ts` | Data | Development and dummy data |
-| `src/data/feats/*.ts` | Data | Feat definitions |
+## Historical Drift Corrected
 
+The older version of this file drifted in a few concrete ways:
+- it pointed to src/hooks/useCharacterAssembly.ts as the main assembly hook, but the live creator imports ./hooks/useCharacterAssembly from inside the CharacterCreator subtree
+- it treated the creator as a simpler wizard than the current gated step flow actually is
+- it listed generic utility-test surfaces under src/utils/__tests__, but those files are not present at the claimed paths in the current repo
 
-## Dependencies
+That older explanation should not be treated as the current implementation guide.
 
-### Depends On
+## Boundaries And Constraints
 
-- **[Spells](./spells.md)**: Spell selection for spellcasting classes
-- **[Glossary](./glossary.md)**: Links to race/class/feat information
-- **[Character Sheet](./character-sheet.md)**: Validation of created character
+- The creator should stay isolated from live game state until character submission.
+- The flow depends on race, class, feat, and spell data, but it should remain the orchestration layer rather than the owner of those upstream datasets.
+- The reducer-driven step flow and step gating are part of the current architecture and should be documented as such rather than collapsed into a simple linear wizard.
+- The creator now persists in-progress state locally, so docs should not imply a purely ephemeral modal flow anymore.
 
-### Used By
+## What Is Materially Implemented
 
-- **App.tsx**: Renders character creator modal
-- **Main Menu**: Entry point for new game
+This pass verified that the character-creator domain already has:
+- a live WindowFrame-based creator surface loaded from App.tsx
+- reducer-driven state and step orchestration
+- dedicated race and class subtree components
+- age, background, visuals, skills, class-feature, weapon-mastery, feat, and review steps
+- creator-local config, utility, and hook lanes
+- persisted in-progress creator state
+- portrait-generation handling inside the creator flow
 
-## Boundaries / Constraints
+## Verified Test Surface
 
-- Creator should produce valid characters that pass `characterValidation.ts`
-- All race/class data should come from `src/data/` - not hardcoded
-- Creator state is isolated - does not affect game state until completion
-- Step transitions should validate current step before proceeding
+Verified tests in this pass:
+- src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx
+- src/components/CharacterCreator/__tests__/CreationSidebar.test.tsx
+- src/components/CharacterCreator/AbilityScoreAllocation.test.tsx
+- src/components/CharacterCreator/SkillSelection.test.tsx
+- src/components/CharacterCreator/state/__tests__/characterCreatorReducer.test.ts
+- src/components/CharacterCreator/utils/__tests__/skillSelectionUtils.test.ts
+- src/components/CharacterCreator/Class/__tests__/FeatureSelectionCheckboxes.test.tsx
 
-## Open Questions / TODOs
+The older claims about src/utils/__tests__/characterUtils.test.ts, characterValidation.test.ts, and statUtils.test.ts were not accurate in the current repo.
 
-- [ ] Document step flow and validation requirements
-- [ ] Clarify relationship between Race/ and src/data/races/
-- [ ] Map feat prerequisite validation
+## Open Follow-Through Questions
 
-### Claimed Tests (Auto-generated)
-
-| Test File | Description |
-|-----------|-------------|
-| `src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx` | Character creator component tests |
-| `src/utils/__tests__/characterUtils.test.ts` | Character utility tests |
-| `src/utils/__tests__/characterValidation.test.ts` | Character validation tests |
-| `src/utils/__tests__/statUtils.test.ts` | Stat utility tests |
+- Which creator docs should explain the current step-gating rules more explicitly?
+- How should the repo document the relationship between the live creator subtree and the older bridge-style helper files that still exist outside it?
+- Which portrait-generation and preview-character details belong in creator docs versus broader character-system references?

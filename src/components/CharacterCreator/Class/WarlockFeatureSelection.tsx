@@ -1,7 +1,18 @@
 /**
- * @file WarlockFeatureSelection.tsx
- * This component allows a player who has chosen the Warlock class to select
- * their initial known cantrips and Level 1 spells. Patron selection happens at level 3.
+ * ARCHITECTURAL CONTEXT:
+ * This component manages the 'Warlock Feature' selection (Cantrips and 
+ * Level 1 Spells). Patron selection is deferred to Level 3 in the current 
+ * implementation, focusing on core Pact Magic initialization at Level 1.
+ *
+ * Recent updates focus on 'Accessibility' and 'State Visualization'.
+ * - Added `sr-only` labels to improve screen reader support for spell picks.
+ * - Refined selection highlighting to use a consolidated check 
+ *   (`selectedCantripIds.has || selectedSpellL1Ids.has`), ensuring that 
+ *   any active selection is reflected in the UI across both lists.
+ * - Centralized spell data filtering using `useMemo` to ensure stable 
+ *   renders when the parent state update triggers a re-render.
+ * 
+ * @file src/components/CharacterCreator/Class/WarlockFeatureSelection.tsx
  */
 import React, { useState, useMemo } from 'react';
 import { Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types';
@@ -83,11 +94,16 @@ const WarlockFeatureSelection: React.FC<WarlockFeatureSelectionProps> = ({
               <label 
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedCantripIds.has(spell.id) 
+                  // WHAT CHANGED: Consolidated highlighting logic.
+                  // WHY IT CHANGED: Ensures visual consistency. If a spell 
+                  // is selected, its 'active' border/background should be 
+                  // shown regardless of which sub-list it appears in.
+                  (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
                   <input 
                     type="checkbox" 
@@ -120,11 +136,12 @@ const WarlockFeatureSelection: React.FC<WarlockFeatureSelectionProps> = ({
               <label 
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedSpellL1Ids.has(spell.id) 
+                  (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
                   <input 
                     type="checkbox" 

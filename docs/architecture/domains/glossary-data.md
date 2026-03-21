@@ -1,77 +1,68 @@
-# Glossary Data Domain
-
-Static data content for the glossary system - classes, races, rules, spells.
+﻿# Glossary Data Domain
 
 ## Purpose
 
-Contains all the JSON data files that populate the glossary. These are the "source of truth" for D&D 5e content including class features, racial traits, rules, conditions, and more.
+This domain covers the static glossary content that feeds the live glossary loader and glossary UI.
+The important boundary in the current repo is that glossary data and spell data are adjacent but not the same domain. The glossary loader reads from public/data/glossary, while public/data/spells remains its own content lane.
 
-## Key Entry Points
+## Verified Entry Points
 
-| Path | Description |
-|------|-------------|
-| `public/data/glossary/entries/**/*.json` | All glossary JSON entries |
-| `public/data/glossary/index/*.json` | Glossary index files |
-| `src/test/glossaryData.test.ts` | Data integrity tests |
+- public/data/glossary/entries/
+- public/data/glossary/index/
+- src/test/glossaryData.test.ts
 
-## Subcomponents
+This pass confirmed that the glossary content is organized under entries plus index files, and that the live glossary UI tests still exist under src/components/Glossary/__tests__/.
 
-### Class Data
-| Path | Content |
-|------|---------|
-| `public/data/glossary/entries/classes/*.json` | Base class definitions |
-| `public/data/glossary/entries/classes/*_spell_list.json` | Class spell lists |
-| `public/data/glossary/entries/classes/*_subclasses/*.json` | Subclass options |
+## Current Shape
 
-### Race Data
-| Path | Content |
-|------|---------|
-| `public/data/glossary/entries/races/*.json` | Base race definitions |
-| `public/data/glossary/entries/races/elf_lineages/*.json` | Elf lineage options |
-| `public/data/glossary/entries/races/gnome_subraces/*.json` | Gnome subrace options |
-| `public/data/glossary/entries/races/goliath_ancestries/*.json` | Goliath ancestry options |
+### Glossary entry families verified in this pass
 
-### Rules Data
-| Path | Content |
-|------|---------|
-| `public/data/glossary/entries/rules/*.json` | Core rules (ability checks, actions, etc.) |
-| `public/data/glossary/entries/rules/**/*.json` | Detailed rules and equipment rules |
-| `public/data/glossary/entries/rules/conditions/*.json` | Condition definitions |
+- classes
+- races
+- rules
+- lore
+- magic_items
+- dev
 
-### Item Data
-| Path | Content |
-|------|---------|
-| `public/data/glossary/entries/magic_items/*.json` | Magic item definitions |
+### Glossary index files verified in this pass
 
-### Other Data Files
-| Path | Content |
-|------|---------|
-| `public/data/cantrip_consistency_report.md` | Cantrip audit report |
-| `public/data/cantrip_table.md` | Cantrip reference table |
+The current index lane includes:
 
-## Adding New Content
+- main.json
+- character_classes.json
+- character_races.json
+- crafting.json
+- crafting_glossary.json
+- developer.json
+- lore.json
+- magic_items.json
+- rules_glossary.json
+- spellcasting_mechanics.json
+- spells.json
 
-1. Create JSON file following the schema in src/types/spells.ts (for spells) or existing examples
-2. Validate with `npx tsx scripts/validate-data.ts`
-3. Update manifest if applicable
-4. Run `npm run build` to verify
+## Important Boundary Correction
 
-## Dependencies
+The previous version of this doc overclaimed ownership by folding public/data/spells and miscellaneous markdown artifacts into the glossary-data domain.
+That is too broad for the current repo.
 
-- **Imported by:** `src/components/Glossary/`
+This domain should own:
 
-## Boundaries
+- public/data/glossary/
+- glossary-specific indexes and entry JSON
+- glossary-data integrity checks such as src/test/glossaryData.test.ts
 
-### Owned by this domain
-- All files in `public/data/glossary/`
-- All files in `public/data/spells/`
-- Data markdown files in `public/data/`
+It should not present itself as the owner of all spell JSON or of the separate cantrip audit markdown artifacts that currently live in public/data/.
 
-### DO NOT MODIFY without validation
-- Spell JSONs must pass schema validation
-- Adding new classes/races requires corresponding validator updates
+## Supporting Artifacts
 
-### Tests
+This pass also confirmed that the following public/data artifacts still exist:
 
-Tests for glossary functionality are owned by the [Glossary](./glossary.md) domain.
-See glossary.md for test ownership details.
+- public/data/cantrip_consistency_report.md
+- public/data/cantrip_table.md
+
+They are still relevant historical or audit-side artifacts, but they are not the primary glossary source of truth.
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this domain as the static glossary-content lane that feeds the glossary loader and UI, not as a catch-all owner of every rules or spell data file in public/data.

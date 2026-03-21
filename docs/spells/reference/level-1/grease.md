@@ -11,7 +11,7 @@
 - **Range Type**: ranged
 - **Range Distance**: 60
 - **Targeting Type**: area
-- **Area Shape**: square
+- **Area Shape**: Square
 - **Area Size**: 10
 - **Valid Targets**: point
 - **Line of Sight**: true
@@ -28,12 +28,12 @@
 - **Duration Unit**: minute
 - **Concentration**: false
 
-- **Effect Type**: STATUS
+- **Effect Types**: TERRAIN, STATUS_CONDITION
+- **Terrain Type**: difficult
 - **Save Stat**: Dexterity
-- **Save Outcome**: negates
+- **Save Outcome**: negates_condition
 - **Conditions Applied**: Prone
+- **Triggered Applications**: immediate, on_enter_area first_per_turn, on_end_turn_in_area
 
 - **Description**: Slick grease covers the ground in a 10-foot square freely centered on a point within range and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall Prone. A creature that enters the area or ends its turn there must also succeed on a Dexterity saving throw or fall Prone.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.280
-- **Status**: Complete

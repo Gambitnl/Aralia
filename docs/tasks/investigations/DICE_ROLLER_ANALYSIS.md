@@ -1,4 +1,11 @@
 # Dice Roller Component Analysis
+This file was re-verified on 2026-03-14.
+It remains a useful technical analysis note because the dice modal, overlay, context, service, and hook surfaces still exist.
+
+Current reality:
+- the analysis should be read as a preserved architectural investigation, not as a fresh current-state sign-off on every recommendation
+- any rendering or UX claims still require current visual verification before being treated as active truth
+
 
 ## 1. Overview
 The application utilizes a hybrid dice rolling system consisting of:

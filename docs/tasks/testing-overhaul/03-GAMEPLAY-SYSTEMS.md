@@ -1,4 +1,11 @@
 # Phase 3: Gameplay Systems
+This file was re-verified on 2026-03-14.
+It is preserved as a gameplay-systems testing backlog note rather than a statement that these areas are all still untested.
+
+Current reality:
+- the repo already has broad combat, inventory-adjacent, spell, and action-system tests
+- some named UI targets still represent useful gaps, but this phase should be re-derived from the live test tree before active execution
+
 
 ## Objective
 Add tests for core gameplay systems including Combat, Inventory, and Spellbook.

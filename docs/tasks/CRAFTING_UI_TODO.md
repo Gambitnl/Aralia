@@ -1,4 +1,11 @@
 # Crafting System UI Integration
+This file was re-verified on 2026-03-14.
+It is preserved as a crafting-UI backlog note, not as proof that the crafting backend is still entirely isolated from newer UI structure decisions.
+
+Current reality:
+- the crafting and salvage backends still exist in `src/systems/crafting/`
+- the old integration point naming is partially stale because the doc still points at a flat `src/components/Inventory/InventoryList.tsx` path that no longer exists in that form
+
 
 ## Context
 The Alchemist persona has established the backend logic for a crafting system, including recipe validation, skill checks with quality outcomes, and material consumption. However, there is currently no user interface for players to interact with this system.

@@ -26,10 +26,9 @@
 - **Concentration**: false
 
 - **Effect Type**: BUFF
+- **Utility Type**: sensory
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: You touch a willing creature to grant it the ability to see in the dark. For the duration, that creature has Darkvision out to a range of 150 feet.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.260
-- **Status**: Complete

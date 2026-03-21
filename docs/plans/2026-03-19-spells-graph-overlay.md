@@ -1,5 +1,7 @@
 # Spells Dynamic Graph Overlay — Implementation Plan
 
+> **IMPLEMENTED** — 2026-03-20. All tasks below were completed. Key deviation from the original plan: the `virtualNodes` derivation was originally structured as a hardcoded 5-tier loop. It was refactored to a **recursive `buildChildren(parentId, choices, depth)` inner function** (guarded by `MAX_DEPTH = 14`), enabling arbitrary drill depth rather than a fixed cap. The `SpellBranchNavigator` additionally gained an `initialChoices?: AxisChoice[]` prop so the graph overlay can seed its filter state when "Open in Spell Branch →" is clicked.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a live axis-engine-powered Spells navigation tree to the roadmap graph canvas that lets users drill through spell axes, pick values, and expand to see matching spell entries — all as native graph nodes.

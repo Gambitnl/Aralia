@@ -2,15 +2,24 @@ import { Feat } from '../../types';
 import { SpellSchool } from '../../types/spells';
 
 /**
- * Central feat catalogue. These entries intentionally focus on the
- * mechanical pieces the character builder and level-up systems need
- * (prerequisites + numerical benefits) rather than full rule text.
+ * ARCHITECTURAL CONTEXT:
+ * This file serves as the 'Feats Repository' for Aralia. It is a static 
+ * data structure used by the Character Creator and Level-Up systems to 
+ * populate selection menus.
+ *
+ * Recent updates focus on 'Selectable Benefits'. Many feats (like Resilient 
+ * or Skilled) now support multiple ability score or skill options rather 
+ * than hardcoded values. This shift requires the consumer (UI) to handle 
+ * nested selection logic which is flagged via 'selectableAbilityScores' 
+ * or 'selectableSkillCount' properties.
+ * 
+ * @file src/data/feats/featsData.ts
  */
 export const FEATS_DATA: Feat[] = [
   {
     id: 'ability_score_improvement',
     name: 'Ability Score Improvement',
-    description: 'Increase one ability score by 2, or two ability scores by 1 (to a max of 20).',
+    description: 'Pour focused training into a core attribute. Increase one ability score by 2, or two ability scores by 1, to a maximum of 20.',
     benefits: {
       abilityScoreIncrease: {},
     },
@@ -18,7 +27,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'actor',
     name: 'Actor',
-    description: 'Gain advantage on Performance and Deception checks made to adopt a persona and learn mimicry.',
+    description: 'A master of disguise and vocal mimicry — you slip into another persona so completely that even those who know you hesitate. Gain Charisma +1, and Advantage on Deception and Performance checks made while impersonating someone.',
     prerequisites: { abilityScores: { Charisma: 13 } },
     benefits: {
       abilityScoreIncrease: { Charisma: 1 },
@@ -28,15 +37,15 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'alert',
     name: 'Alert',
-    description: 'You stay wary at all times, improving your initiative and awareness.',
+    description: 'Hair-trigger instincts keep you one heartbeat ahead of every ambush. Add your Proficiency Bonus to Initiative rolls, and swap your Initiative result with a willing ally after rolling.',
     benefits: {
-      initiativeBonus: 5,
+      initiativeBonusProficiency: true,
     },
   },
   {
     id: 'athlete',
     name: 'Athlete',
-    description: 'Conditioning improves your balance, agility, and stamina.',
+    description: 'Your body is a finely tuned instrument. Gain Strength or Dexterity +1; your Climb Speed equals your walk speed, standing from Prone costs only 5 feet of movement, and any running jump requires just 5 feet of run-up.',
     benefits: {
       abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
     },
@@ -44,7 +53,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'charger',
     name: 'Charger',
-    description: 'Harness your momentum to hit harder when dashing into melee.',
+    description: 'You turn a full sprint into a devastating opening strike. Gain Strength or Dexterity +1; taking the Dash action grants +10 Speed that turn, and after moving 10 feet straight toward a target you deal 1d8 bonus damage on the next hit or shove them 10 feet.',
     prerequisites: { minLevel: 4 },
     benefits: {
       abilityScoreIncrease: { Strength: 1 },
@@ -53,7 +62,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'chef',
     name: 'Chef',
-    description: 'Culinary training grants you hearty meals and better stamina.',
+    description: 'From the campfire to the castle kitchen, your cooking sustains body and spirit. Gain Constitution or Wisdom +1, proficiency with Cook\'s Utensils, and the ability to prepare nourishing meals that grant temporary hit points after a short rest.',
     prerequisites: { minLevel: 4 },
     benefits: {
       abilityScoreIncrease: { Constitution: 1, Wisdom: 1 },
@@ -63,7 +72,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'dungeon_delver',
     name: 'Dungeon Delver',
-    description: 'Heightened senses help you avoid traps and hidden dangers underground.',
+    description: 'Years beneath the earth have sharpened your senses and steadied your nerves. You gain Advantage on Perception and Investigation checks to spot hidden doors and traps, and Resistance to damage dealt by traps.',
     prerequisites: { minLevel: 4 },
     benefits: {
       resistance: ['traps'],
@@ -73,41 +82,33 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'durable',
     name: 'Durable',
-    description: 'Hardy and resilient, you recover more health when resting.',
+    description: 'Hardship has forged you into something that simply refuses to die. Gain Constitution +1; you have Advantage on Death Saving Throws, and can expend a Hit Die as a Bonus Action to recover hit points during a Short Rest.',
     benefits: {
       abilityScoreIncrease: { Constitution: 1 },
-      hpMaxIncreasePerLevel: 1,
     },
   },
   {
     id: 'healer',
     name: 'Healer',
-    description: 'Battlefield medicine keeps your allies in the fight.',
-    benefits: {
-      abilityScoreIncrease: { Wisdom: 1 },
-      skillProficiencies: ['medicine'],
-    },
+    description: 'Battlefield medicine is an art, and you have mastered it under the worst possible conditions. When you use a Healer\'s Kit to stabilise or tend a creature, they may immediately roll one of their Hit Dice — and may reroll any die showing a 1.',
+    // 2024 PHB: Healer is an ORIGIN feat — no ASI, no skill proficiency. Healer's Kit mechanics
+    // TODO(FEATURES): Implement Healer's Kit stabilise-and-roll-hit-die mechanic (see docs/FEATURES_TODO.md).
   },
   {
     id: 'lucky',
     name: 'Lucky',
-    description: 'Fortune favors you when the stakes are high.',
-  },
-  {
-    id: 'mobile',
-    name: 'Mobile',
-    description: 'Exceptional speed and footwork let you dart around the battlefield.',
+    description: 'Fortune bends to your will at the moments that matter most. Gain Luck Points equal to your Proficiency Bonus after each Long Rest; spend one to gain Advantage on any d20 test, or force a re-roll when you are attacked.',
     benefits: {
-      speedIncrease: 10,
-      abilityScoreIncrease: { Dexterity: 1 },
+      luckyPoints: true,
     },
   },
   {
     id: 'observant',
     name: 'Observant',
-    description: 'Attentive eyes and ears sharpen your awareness of your surroundings.',
+    description: 'Nothing escapes your notice — a glance across a crowded tavern tells you everything. Gain Intelligence or Wisdom +1; your passive Perception and passive Investigation each increase by 5, and you can read lips.',
     benefits: {
-      abilityScoreIncrease: { Intelligence: 1, Wisdom: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom'],
       skillProficiencies: ['investigation', 'insight'],
     },
   },
@@ -117,7 +118,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'resilient',
     name: 'Resilient',
-    description: 'Bolster a saving throw of your choice. Increase the chosen ability by 1 and gain proficiency in saving throws using that ability.',
+    description: 'Where you once faltered, you now hold firm. Choose one ability score to increase by 1 and gain proficiency in saving throws using that ability — fortifying your greatest vulnerability.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'],
@@ -129,7 +130,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'skilled',
     name: 'Skilled',
-    description: 'You gain proficiency in three skills of your choice.',
+    description: 'You have thrown yourself into learning with relentless focus. Gain proficiency in any three skills of your choice — a rare versatility most adventurers envy.',
     benefits: {
       skillProficiencies: [],
       selectableSkillCount: 3,
@@ -138,7 +139,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'tough',
     name: 'Tough',
-    description: 'Each time you gain this feat, your hit point maximum increases by twice your level.',
+    description: 'You have survived things that would kill lesser warriors, and each scar only makes you harder to put down. Your Hit Point maximum increases by twice your current level, and by 2 for every level you gain afterward.',
     benefits: {
       hpMaxIncreasePerLevel: 2,
     },
@@ -146,8 +147,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'crafter',
     name: 'Crafter',
-    description:
-      'Gain artisan tool proficiency, craft faster, and buy nonmagical equipment and tools at a discount.',
+    description: 'Seasons spent at the forge, loom, or workbench have made you entirely self-sufficient. Gain Intelligence +1, proficiency with three Artisan\'s Tools, craft items in half the time, and purchase nonmagical equipment at a 20% discount.',
     benefits: {
       abilityScoreIncrease: { Intelligence: 1 },
     },
@@ -155,13 +155,12 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'magic_initiate',
     name: 'Magic Initiate',
-    description:
-      'Learn two cantrips and one 1st-level spell from a class list; cast the 1st-level spell once per long rest without a slot.',
+    description: 'A brush with the arcane has opened a door you can never fully close. Choose a class list and learn two cantrips and one 1st-level spell from it — the leveled spell can be cast once per Long Rest without expending a slot.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
       spellBenefits: {
-        selectableSpellSource: ['bard', 'cleric', 'druid', 'sorcerer', 'warlock', 'wizard'],
+        selectableSpellSource: ['cleric', 'druid', 'wizard'],
         spellChoices: [
           { count: 2, level: 0, description: 'Choose 2 cantrips from your selected class' },
           { count: 1, level: 1, description: 'Choose 1 first-level spell from your selected class' },
@@ -172,8 +171,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'musician',
     name: 'Musician',
-    description:
-      'Gain proficiency with three instruments; after a long rest grant allies inspiration via performance.',
+    description: 'Music is your language for inspiring courage. Gain Charisma +1 and proficiency with three Musical Instruments; after a Long Rest, a performance of your choosing grants Bardic Inspiration to nearby allies.',
     benefits: {
       abilityScoreIncrease: { Charisma: 1 },
     },
@@ -181,8 +179,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'savage_attacker',
     name: 'Savage Attacker',
-    description:
-      'Once per turn when you hit with a melee weapon, reroll the weapon’s damage dice and use the higher result.',
+    description: 'You commit to every swing with reckless ferocity, refusing to accept a weak result. Once per turn when you hit with a weapon, roll the damage dice twice and use either result.',
     benefits: {
       abilityScoreIncrease: { Strength: 1 },
     },
@@ -192,8 +189,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'tavern_brawler',
     name: 'Tavern Brawler',
-    description:
-      'Increase Strength or Constitution by 1, become proficient with improvised weapons, improve unarmed strikes, and can grapple as a bonus action after hitting.',
+    description: 'A broken bottle, a bar stool, a headbutt — anything becomes a weapon in your hands. Gain Strength or Constitution +1, proficiency with Improvised Weapons, improved Unarmed Strikes (1d4 + Strength), and after landing a hit you can shove the target 5 feet.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Constitution'],
@@ -202,8 +198,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'crossbow_expert',
     name: 'Crossbow Expert',
-    description:
-      'Ignore the loading property of crossbows, no disadvantage in 5-foot range with ranged attacks, and make a bonus-action hand crossbow attack after attacking with a one-handed weapon.',
+    description: 'You load, aim, and fire in a single fluid motion. Gain Dexterity +1; ignore the Loading property of crossbows, fire without Disadvantage while adjacent to enemies, and make a Bonus Action hand-crossbow attack after attacking with a one-handed weapon.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
     },
@@ -211,8 +206,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'defensive_duelist',
     name: 'Defensive Duelist',
-    description:
-      'While wielding a finesse weapon you are proficient with, use your reaction to add your proficiency bonus to AC against one melee attack.',
+    description: 'The blade is your shield. Gain Dexterity +1; when an enemy strikes at you while you hold a finesse weapon you\'re proficient with, spend your Reaction to add your Proficiency Bonus to your AC against that hit.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
     },
@@ -220,8 +214,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'dual_wielder',
     name: 'Dual Wielder',
-    description:
-      'Improve two-weapon fighting: +1 AC while dual wielding, draw/stow two weapons, and two-weapon fight with non-light one-handed melee weapons.',
+    description: 'Two blades move as one under your hands. Gain Dexterity +1; gain +1 AC while dual-wielding, draw or stow two weapons simultaneously, and wield any one-handed melee weapons — not just Light ones — in each hand.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
     },
@@ -231,8 +224,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'elemental_adept',
     name: 'Elemental Adept',
-    description:
-      'Choose acid, cold, fire, lightning, or thunder; your spells ignore resistance to that damage and treat 1s on damage dice as 2s.',
+    description: 'You have bent a primal force entirely to your will. Gain a spellcasting ability +1; choose Acid, Cold, Fire, Lightning, or Thunder — your spells ignore Resistance to that type, and damage dice showing 1 count as 2.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -242,8 +234,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'fey_touched',
     name: 'Fey-Touched',
-    description:
-      'Increase mental ability, learn Misty Step and one 1st-level divination or enchantment spell; cast each once per long rest for free.',
+    description: 'Something from the border of worlds has left its mark on you — a flicker of glamour in the blood. Gain a mental ability +1; learn Misty Step and one 1st-level Divination or Enchantment spell, each usable once per Long Rest without a slot.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -260,26 +251,25 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'grappler',
     name: 'Grappler',
-    description:
-      'Gain advantage on attack rolls against creatures you grapple and can restrain both yourself and the target by succeeding on another grapple check.',
+    description: 'Your grip is a cage your enemies cannot escape. Gain Strength or Dexterity +1; your Unarmed Strikes can simultaneously initiate a Grapple on a hit, and you have Advantage on attacks against any creature you are currently grappling.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
     id: 'great_weapon_master',
     name: 'Great Weapon Master',
-    description:
-      'On crit or dropping a creature to 0 HP, make one melee weapon attack as a bonus action; also take -5 to hit for +10 damage with heavy melee weapons.',
+    description: 'Every critical strike and every fallen foe feeds your momentum. Gain Strength +1; deal bonus damage equal to your Proficiency Bonus on every hit with a Heavy weapon, and when you roll a critical hit or reduce a creature to 0 HP, make one extra melee attack as a Bonus Action.',
     benefits: {
       abilityScoreIncrease: { Strength: 1 },
+      heavyWeaponProficiencyBonus: true,
     },
   },
   {
     id: 'heavily_armored',
     name: 'Heavily Armored',
-    description:
-      'Gain proficiency with heavy armor and increase Strength or Constitution.',
+    description: 'You have trained to bear the full weight of war — plate, mail, and all. Gain proficiency with Heavy Armor and increase Strength or Constitution by 1.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Constitution'],
@@ -288,18 +278,17 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'heavy_armor_master',
     name: 'Heavy Armor Master',
-    description:
-      'Increase Strength; while in heavy armor reduce nonmagical bludgeoning, piercing, and slashing damage you take by 3.',
+    description: 'Iron plates become a second skin, turning aside blows that would fell a lesser warrior. Gain Strength +1; while wearing Heavy Armor, reduce nonmagical Bludgeoning, Piercing, and Slashing damage you take by an amount equal to your Proficiency Bonus.',
+    prerequisites: { minLevel: 4 },
     benefits: {
       abilityScoreIncrease: { Strength: 1 },
-      resistance: ['physical_reduction'],
+      damageReductionProficiency: true,
     },
   },
   {
     id: 'inspiring_leader',
     name: 'Inspiring Leader',
-    description:
-      'Spend 10 minutes to give temporary hit points to up to six creatures (including you) equal to your level + Charisma modifier.',
+    description: 'Your words kindle something fierce in the hearts of those who follow you. Gain Charisma +1; spend 10 minutes to grant up to 6 creatures temporary hit points equal to your Charisma modifier + your Proficiency Bonus.',
     benefits: {
       abilityScoreIncrease: { Charisma: 1 },
     },
@@ -307,8 +296,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'keen_mind',
     name: 'Keen Mind',
-    description:
-      'Increase Intelligence; always know which way is north, the number of hours left before sunrise/sunset, and accurately recall anything seen or heard within the past month.',
+    description: 'Your mind is a trap that never forgets. Gain Intelligence +1; you always know which way is north and how many hours remain until dawn or dusk, and can perfectly recall anything you have seen or heard within the past month.',
     benefits: {
       abilityScoreIncrease: { Intelligence: 1 },
     },
@@ -316,7 +304,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'lightly_armored',
     name: 'Lightly Armored',
-    description: 'Gain proficiency with light armor and improve Dexterity.',
+    description: 'Even the lightest armor demands practice to wear well, and you have done the work. Gain Dexterity +1 and proficiency with Light Armor.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
     },
@@ -324,16 +312,16 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'mage_slayer',
     name: 'Mage Slayer',
-    description:
-      'You excel against spellcasters: react to impose disadvantage on a creature’s concentration saves when you damage it, and you gain advantage on saves against spells cast by adjacent foes.',
+    description: 'You have learned to read the telltale cadence of a spell being cast — and to close the gap before the incantation completes. Gain Strength or Dexterity +1; when you damage a concentrating creature it has Disadvantage on its save, and once per Short Rest you can auto-succeed on one Intelligence, Wisdom, or Charisma saving throw.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
     id: 'martial_weapon_training',
     name: 'Martial Weapon Training',
-    description: 'Gain proficiency with martial weapons and a modest accuracy boost from training.',
+    description: 'Weeks at the training yard have broadened your weapon repertoire far beyond what most combatants ever master. Gain Strength +1 and Dexterity +1, and proficiency with all Martial Weapons.',
     benefits: {
       abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
     },
@@ -341,8 +329,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'medium_armor_master',
     name: 'Medium Armor Master',
-    description:
-      'Increase Dexterity; while wearing medium armor you can add 3 Dex to AC instead of 2 and you no longer suffer disadvantage on Stealth from medium armor.',
+    description: 'You wear medium armor like a second skin, squeezing every point of protection out of every strap and buckle. Gain Dexterity +1; add up to 3 (instead of 2) of your Dexterity modifier to AC while in medium armor, and suffer no Stealth Disadvantage from it.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
     },
@@ -350,8 +337,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'moderately_armored',
     name: 'Moderately Armored',
-    description:
-      'Gain proficiency with medium armor and shields; increase Strength or Dexterity.',
+    description: 'The transition from light to medium armor is a milestone of martial training — you have crossed it. Gain Strength or Dexterity +1 and proficiency with Medium Armor and Shields.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
@@ -360,8 +346,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'mounted_combatant',
     name: 'Mounted Combatant',
-    description:
-      'Gain advantage on melee attacks against unmounted smaller creatures, force attacks to target you instead of your mount, and give your mount evasion on Dexterity saves.',
+    description: 'From horseback you are a force of nature — elevated, fast, and terrifying. Gain Strength or Dexterity +1; Advantage on melee attacks against unmounted smaller creatures, redirect attacks targeting your mount to yourself, and your mount gains Evasion on Dexterity saving throws.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
@@ -370,8 +355,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'piercer',
     name: 'Piercer',
-    description:
-      'Increase Strength or Dexterity; reroll one damage die on piercing attacks once per turn and crits with piercing weapons roll one additional damage die.',
+    description: 'You drive the point home with uncanny precision, finding the gap between scales and armour alike. Gain Strength or Dexterity +1; once per turn reroll one piercing damage die and use the higher result, and on a critical hit roll one additional damage die.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
@@ -380,8 +364,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'poisoner',
     name: 'Poisoner',
-    description:
-      'Craft potent poisons, ignore resistance to poison damage with your poisons, and apply poison as a bonus action.',
+    description: 'You handle deadly substances with a practitioner\'s calm. Gain Dexterity +1 and Intelligence +1; your crafted poisons bypass Poison Resistance, and coating a blade or piece of ammunition takes only a Bonus Action.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1, Intelligence: 1 },
     },
@@ -389,35 +372,34 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'polearm_master',
     name: 'Polearm Master',
-    description:
-      'While wielding a glaive, halberd, quarterstaff, or spear you can make a bonus-action butt-end attack and make opportunity attacks when creatures enter your reach.',
+    description: 'Every inch of your weapon is a threat. Gain Strength or Dexterity +1; make a Bonus Action butt-end strike after attacking with a Glaive, Halberd, Quarterstaff, or Spear, and trigger opportunity attacks the moment an enemy enters your reach.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
     id: 'ritual_caster',
     name: 'Ritual Caster',
-    description:
-      'Learn ritual spells from a chosen class list, can copy new ritual spells you find, and cast them as rituals.',
+    description: 'Forbidden formulae fill your journals — power without the price of a slot. Gain Intelligence or Wisdom +1; learn ritual spells from a chosen class list, scribe new ritual spells you discover, and cast them as extended rituals.',
     benefits: {
-      abilityScoreIncrease: { Intelligence: 1, Wisdom: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom'],
     },
   },
   {
     id: 'sentinel',
     name: 'Sentinel',
-    description:
-      'Halt foes with opportunity attacks that reduce speed to 0, react even on Disengage, and impose disadvantage on attacks against targets other than you.',
+    description: 'You are the wall nothing passes through. Gain Strength or Dexterity +1; opportunity attacks you make reduce the target\'s Speed to 0, enemies cannot Disengage past you, and foes who attack your allies draw an immediate opportunity attack from you.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
     id: 'shadow_touched',
     name: 'Shadow-Touched',
-    description:
-      'Increase a mental stat; learn Invisibility and one 1st-level illusion or necromancy spell; each can be cast once per long rest for free.',
+    description: 'The dark between worlds has seeped into your blood, and shadows answer your call. Gain a mental ability +1; learn Invisibility and one 1st-level Illusion or Necromancy spell, each castable once per Long Rest without a slot.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -434,8 +416,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'sharpshooter',
     name: 'Sharpshooter',
-    description:
-      'Attacking at long range doesn’t impose disadvantage, ranged attacks ignore half and three-quarters cover, and you can take -5 to hit for +10 damage with ranged weapon attacks.',
+    description: 'Distance and cover mean nothing to a trained eye. Gain Dexterity +1; your ranged attacks ignore half and three-quarters cover.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
     },
@@ -443,8 +424,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'shield_master',
     name: 'Shield Master',
-    description:
-      'Add shield bonus to Dex saves against effects targeting only you, use reaction to take no damage on successful Dex save vs half-damage effects, and shove as a bonus action after attacking.',
+    description: 'Your shield is as much a weapon as the blade in your other hand. Gain Strength or Dexterity +1; add your shield\'s bonus to Dex saves that target only you, use your Reaction to take no damage on a successful Dex save versus a half-damage effect, and shove a foe as a Bonus Action after attacking.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
@@ -453,8 +433,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'skill_expert',
     name: 'Skill Expert',
-    description:
-      'Increase one ability, gain proficiency in one skill, and expertise in one skill you’re proficient in.',
+    description: 'A lifetime of obsessive practice has sharpened one talent to a razored edge. Gain +1 to any ability score, proficiency in one skill of your choice, and Expertise — double proficiency — in one skill you are already proficient with.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'],
@@ -464,8 +443,8 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'skulker',
     name: 'Skulker',
-    description:
-      'You excel at hiding: lightly obscured doesn’t reveal you, missed ranged attacks don’t reveal you, and you can see dim light as bright for Perception to find creatures.',
+    description: 'You are a shadow given purpose — patient, invisible, lethal. Gain Dexterity +1 and Blindsight 10 feet; lightly obscured terrain does not reveal you when hidden, and missing with a ranged attack does not give away your position.',
+    prerequisites: { abilityScores: { Dexterity: 13 } },
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
     },
@@ -476,8 +455,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'slasher',
     name: 'Slasher',
-    description:
-      'Increase Strength or Dexterity by 1; once per turn reduce a creature\'s speed by 10 when you deal slashing damage; on a crit, the target has disadvantage on attacks until your next turn.',
+    description: 'A clean slash leaves them stumbling, bleeding, and afraid. Gain Strength or Dexterity +1; once per turn reduce a struck creature\'s Speed by 10 feet, and on a critical hit they have Disadvantage on attacks until your next turn.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
@@ -486,8 +464,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'speedy',
     name: 'Speedy',
-    description:
-      'Increase Dexterity; your speed increases and difficult terrain from nonmagical ground doesn’t slow you when you Dash.',
+    description: 'Your legs carry you faster than most people think possible, and nothing on the ground slows you when you\'re running. Gain Dexterity +1, +10 feet Speed, and nonmagical difficult terrain doesn\'t slow you when you take the Dash action.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
       speedIncrease: 10,
@@ -496,8 +473,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'spell_sniper',
     name: 'Spell Sniper',
-    description:
-      'Double the range of spell attacks, ignore half and three-quarters cover with spell attacks, learn one attack cantrip, and your spell attacks crit on 19–20.',
+    description: 'You thread spells through arrow-slits and around pillars that lesser casters never attempt. Gain a spellcasting ability +1; double the range of spell attacks, ignore half and three-quarters cover, learn one attack cantrip, and your spell attacks score a critical hit on a 19 or 20.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -511,8 +487,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'telekinetic',
     name: 'Telekinetic',
-    description:
-      'Increase mental stat; gain Mage Hand with boosted range and bonus-action shove 5 feet on a failed Strength save.',
+    description: 'Your will extends outward, nudging the world with invisible fingers no one can trace. Gain a mental ability +1; cast Mage Hand at will (60 ft range, invisible), and as a Bonus Action push or pull a creature 5 feet on a failed Strength save.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -526,8 +501,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'telepathic',
     name: 'Telepathic',
-    description:
-      'Increase mental stat; gain Detect Thoughts once per long rest and can communicate telepathically with nearby creatures.',
+    description: 'Your thoughts bleed outward, touching minds without a spoken word. Gain a mental ability +1; cast Detect Thoughts once per Long Rest without a slot, and communicate telepathically with any creature you can see within 60 feet.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
@@ -541,27 +515,27 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'war_caster',
     name: 'War Caster',
-    description:
-      'Advantage on concentration saves, can perform somatic components with weapons/shields in hand, and can cast a spell in place of an opportunity attack.',
+    description: 'Battle is your crucible — the incantation holds even when the blade falls. Gain Intelligence, Wisdom, or Charisma +1; Advantage on Concentration saving throws, perform somatic components with weapons or a shield in hand, and cast a spell instead of making an opportunity attack.',
     benefits: {
-      abilityScoreIncrease: { Constitution: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
     id: 'weapon_master',
     name: 'Weapon Master',
-    description:
-      'Gain proficiency with four weapons of your choice and increase Strength or Dexterity.',
+    description: 'You have drilled obsessively with weapons most soldiers never touch, expanding your martial repertoire far beyond your training. Gain Strength or Dexterity +1 and proficiency with four weapons of your choice.',
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
+
+  // === FIGHTING STYLE FEATS ===
   {
     id: 'archery_style',
     name: 'Archery Fighting Style',
-    description:
-      'You gain a +2 bonus to attack rolls you make with ranged weapons.',
+    description: 'Countless hours at the range have perfected your draw, sight picture, and release. You gain a +2 bonus to attack rolls made with ranged weapons.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -569,7 +543,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'defense_style',
     name: 'Defense Fighting Style',
-    description: 'While you are wearing armor, you gain a +1 bonus to AC.',
+    description: 'You know how to angle each piece of armor to deflect the blow and redirect the force. While wearing armor, you gain a +1 bonus to AC.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -577,8 +551,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'dueling_style',
     name: 'Dueling Fighting Style',
-    description:
-      'When wielding a melee weapon in one hand and no other weapons, gain +2 damage on attacks with that weapon.',
+    description: 'A single blade, perfectly controlled, is all you need. When you wield a one-handed melee weapon and no other weapons, gain +2 to damage rolls with that weapon.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -586,8 +559,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'great_weapon_fighting_style',
     name: 'Great Weapon Fighting Style',
-    description:
-      'When wielding a two-handed or versatile melee weapon, you can reroll 1s on damage dice (once per die).',
+    description: 'You let the weight and momentum flow through you, never accepting a weak swing. When you attack with a two-handed or versatile melee weapon, reroll any damage dice showing 1 — once per die.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -595,8 +567,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'two_weapon_fighting_style',
     name: 'Two-Weapon Fighting Style',
-    description:
-      'When you engage in two-weapon fighting, add your ability modifier to the damage of the off-hand attack.',
+    description: 'You have trained your off hand to be every bit as lethal as your primary — no wasted motion, no wasted hit. Add your ability modifier to the damage of your off-hand attack.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -604,8 +575,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'protection_style',
     name: 'Protection Fighting Style',
-    description:
-      'While wielding a shield, you can use your reaction to impose disadvantage on an attack against an adjacent ally.',
+    description: 'Your shield is a promise to those who stand beside you. While wielding a shield, use your Reaction to impose Disadvantage on an attack roll against a nearby ally you can see.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -613,8 +583,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'interception_style',
     name: 'Interception Fighting Style',
-    description:
-      'While wielding a shield or simple/martial weapon, use your reaction to reduce damage to a nearby ally by 1d10 + proficiency bonus.',
+    description: 'You throw yourself between friend and blade without hesitation. While wielding a weapon or shield, use your Reaction to reduce a nearby ally\'s incoming damage by 1d10 + your Proficiency Bonus.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -622,8 +591,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'unarmed_fighting_style',
     name: 'Unarmed Fighting Style',
-    description:
-      'Your unarmed strikes deal 1d8 damage when not wielding weapons or a shield; 1d6 otherwise; and grapples deal extra damage.',
+    description: 'Your body is a weapon, refined through brutal conditioning until fists hit harder than some swords. Unarmed strikes deal 1d8 damage (1d6 if holding anything); grappled foes take 1d4 bludgeoning at the start of your turn.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -631,8 +599,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'blind_fighting_style',
     name: 'Blind Fighting Style',
-    description:
-      'You have blindsight with a range of 10 feet, allowing you to see anything not behind total cover in that radius.',
+    description: 'You have trained in total darkness until darkness itself surrenders its secrets to you. Gain Blindsight 10 feet — perceiving everything within range regardless of light or invisibility.',
     prerequisites: {
       requiresFightingStyle: true,
     },
@@ -640,8 +607,7 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'thrown_weapon_fighting_style',
     name: 'Thrown Weapon Fighting Style',
-    description:
-      'You can draw thrown weapons as part of the attack and gain +2 damage on ranged attacks with thrown weapons.',
+    description: 'Every hurled blade or axe is an extension of your arm — drawn and thrown in one seamless motion. Draw thrown weapons as part of the throw, and deal +2 damage on ranged attacks with thrown weapons.',
     prerequisites: {
       requiresFightingStyle: true,
     },

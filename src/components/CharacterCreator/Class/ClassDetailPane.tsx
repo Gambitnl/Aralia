@@ -1,10 +1,25 @@
 /**
- * @file ClassDetailPane.tsx
- * Detailed view of a selected class, designed for the right pane of the Split Config layout.
+ * ARCHITECTURAL CONTEXT:
+ * This component handles the 'Detailed Class View' in the split-pane 
+ * character creation UI. It acts as the primary informational surface 
+ * when a player is deciding between different character classes.
+ *
+ * Recent updates focus on 'Visual Identity' and 'Systematic Icons'.
+ * - Integrated `getClassIcon` and `GlossaryIcon`. The component now 
+ *   automatically pulls the standardized class icon (e.g., a shield for 
+ *   Fighter, a flame for Sorcerer) to enhance brand consistency and 
+ *   provide immediate visual recognition.
+ * - Refined the layout to include specialized containers for 'Armor & 
+ *   Weapons' proficiencies, providing a cleaner breakdown of combat 
+ *   capabilities.
+ * 
+ * @file src/components/CharacterCreator/Class/ClassDetailPane.tsx
  */
 import React from 'react';
 import { Class as CharClass } from '../../../types';
 import { BTN_PRIMARY } from '../../../styles/buttonStyles';
+import { GlossaryIcon } from '../../Glossary/IconRegistry';
+import { getClassIcon } from '../../../utils/classIcons';
 
 interface ClassDetailPaneProps {
   charClass: CharClass;
@@ -16,9 +31,23 @@ export const ClassDetailPane: React.FC<ClassDetailPaneProps> = ({ charClass, onS
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex justify-between items-start mb-4 border-b border-gray-700 pb-2">
-        <h2 className="text-3xl font-bold text-amber-400 font-cinzel">
-          {charClass.name}
-        </h2>
+        <div className="flex items-center gap-3">
+          {(() => {
+            // WHAT CHANGED: Added automated class icon resolution.
+            // WHY IT CHANGED: To improve visual scanability. Using the 
+            // centralized `getClassIcon` utility ensures that icons match 
+            // across the entire application (sidebar, review, and detail).
+            const iconName = getClassIcon(charClass.name);
+            return iconName ? (
+              <span className="text-amber-400/60">
+                <GlossaryIcon name={iconName} className="w-8 h-8" />
+              </span>
+            ) : null;
+          })()}
+          <h2 className="text-3xl font-bold text-amber-400 font-cinzel">
+            {charClass.name}
+          </h2>
+        </div>
         <div className="text-right">
           <div className="text-sm text-gray-400 uppercase font-bold tracking-wider">Hit Die</div>
           <div className="text-2xl font-mono text-sky-300">d{charClass.hitDie}</div>

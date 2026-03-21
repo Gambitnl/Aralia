@@ -39,5 +39,3 @@
 
   This spell dispels Darkness in its area that was created by any spell.
 - **Higher Levels**:
-- **Source**: PHB 2024
-- **Status**: Complete

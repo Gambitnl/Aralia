@@ -1,278 +1,157 @@
 # Documentation Registry
 
-**Purpose**: Master index of all numbered documentation files in the project.
+**Last Updated**: 2026-03-11  
+**Purpose**: Track the numbered work-doc families that still depend on an explicit registry, while documenting the numbering exceptions that the broader documentation migration still needs to normalize.
 
-**Last Updated**: Feb 16, 2026
+## What This Registry Covers
 
----
+This file is no longer presented as a complete master index of every markdown file in the repository.
 
-## Quick Stats
+It currently tracks:
+- the main numbered work-doc families that still use explicit registry guidance
+- retired-number conventions where those families are already using `~`
+- known numbering anomalies that must be preserved and reviewed, not silently flattened
 
-- **Total Active**: 22 documents (9 spell-system, 7 doc-cleanup, 2 spell-completeness, 1 3d-exploration, 3 infrastructure/tooling)
-- **Total Retired**: 4 documents
-- **Active Projects**: 5
+It does not try to be:
+- a full inventory of every doc under `docs/`
+- a source of truth for excluded roadmap-tooling docs
+- a guarantee that every numbered file outside the tracked families has already been normalized
 
----
+For the broader doc-system structure, see [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md). For the active migration queue, see [docs/registry/@DOC-REVIEW-LEDGER.md](./registry/@DOC-REVIEW-LEDGER.md).
 
-## How This Works
+## Tracked Numbered Families
 
-All active work documents use sequential numbering: `1A`, `1B`, `1C`... `1Z`, then `2A`, `2B`, etc.
-
-- **Active docs**: `1A-DOCUMENT-NAME.md`
-- **Retired docs**: `1A~DOCUMENT-NAME.md` (tilde marker)
-- **Numbering scope**: Each project restarts numbering at `1A`
-
-When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md](./@RETIRED-DOCS.md).
-
----
-
-## Active Documents by Project
-
-### Project: Spell System Overhaul
+### Spell System Overhaul
 
 **Location**: `docs/tasks/spell-system-overhaul/`
 
-| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
-|--------|----------|--------|----------|----------|--------------|--------------|
-| [1A](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md) | Project Master Springboard | Active | Ongoing | High | - | Nov 30, 2025 |
-| [1B](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md) | Spell Migration Roadmap | Active | Ongoing | High | 1A | Feb 16, 2026 |
-| [1D](./tasks/spell-system-overhaul/1D-ARCHIVE-OLD-SPELL-DOCS.md) | Archive Old Spell Docs | Active | 0% (Phase 0.1) | High | 1B | Nov 28, 2025 |
-| [1E](./tasks/spell-system-overhaul/1E-CONSOLIDATE-JULES-WORKFLOW.md) | Consolidate Jules Workflow | Pending | 0% (Phase 0.2) | High | 1D | Nov 28, 2025 |
-| [1F](./tasks/spell-system-overhaul/1F-AUDIT-SPELL-SCOPE.md) | Audit Spell Scope (PHB 2024) | Pending | 0% (Phase 0.3) | High | 1E | Nov 28, 2025 |
-| [1G](./tasks/spell-system-overhaul/1G-REORGANIZE-SPELL-FILES.md) | Reorganize Spell Files by Level | Pending | 0% (Phase 1.1) | Medium | 1F | Nov 28, 2025 |
-| [1H](./tasks/spell-system-overhaul/1H-CREATE-GLOSSARY-TEMPLATE-SYSTEM.md) | Create Glossary Template System | Pending | 0% (Phase 1.3-1.4) | Medium | 1G | Nov 28, 2025 |
-| [1I](./tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md) | Migrate Cantrips Batch 1 (5 spells) | Pending | 0% (Phase 2.F) | Medium | 1E, 1F, 1H | Nov 28, 2025 |
-| [1F](./tasks/spell-system-overhaul/1F-VERSION-REVIEW-AGENT-CONCEPT.md) | Version Review Agent (Concept) | Concept | - | Low | - | Nov 28, 2025 |
+This subtree currently contains both a primary numbered strand and several side-numbered documents.
 
-**Tags**: `spell-system`, `migration`, `data-cleanup`, `glossary`
+#### Primary numbered strand on disk
 
-**Next available number**: `1J`
+| Identifier | File | Current file-state note |
+|------------|------|-------------------------|
+| 1A | [1A-PROJECT-MASTER-SPRINGBOARD.md](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md) | present |
+| 1B | [1B-SPELL-MIGRATION-ROADMAP.md](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md) | present |
+| 1C | [1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md](./tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md) | retired marker present |
+| 1D | [1D-ARCHIVE-OLD-SPELL-DOCS.md](./tasks/spell-system-overhaul/1D-ARCHIVE-OLD-SPELL-DOCS.md) | present |
+| 1E | [1E-CONSOLIDATE-JULES-WORKFLOW.md](./tasks/spell-system-overhaul/1E-CONSOLIDATE-JULES-WORKFLOW.md) | present |
+| 1F | [1F-AUDIT-SPELL-SCOPE.md](./tasks/spell-system-overhaul/1F-AUDIT-SPELL-SCOPE.md) | present |
+| 1F | [1F-VERSION-REVIEW-AGENT-CONCEPT.md](./tasks/spell-system-overhaul/1F-VERSION-REVIEW-AGENT-CONCEPT.md) | duplicate identifier present |
+| 1G | [1G-REORGANIZE-SPELL-FILES.md](./tasks/spell-system-overhaul/1G-REORGANIZE-SPELL-FILES.md) | present |
+| 1H | [1H-CREATE-GLOSSARY-TEMPLATE-SYSTEM.md](./tasks/spell-system-overhaul/1H-CREATE-GLOSSARY-TEMPLATE-SYSTEM.md) | present |
+| 1I | [1I-MIGRATE-CANTRIPS-BATCH-1.md](./tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md) | present |
+| 1J | [1J-MIGRATE-CANTRIPS-BATCH-2.md](./tasks/spell-system-overhaul/1J-MIGRATE-CANTRIPS-BATCH-2.md) | present |
+| 1K | [1K-MIGRATE-CANTRIPS-BATCH-3.md](./tasks/spell-system-overhaul/1K-MIGRATE-CANTRIPS-BATCH-3.md) | present |
+| 1L | [1L-MIGRATE-CANTRIPS-BATCH-4.md](./tasks/spell-system-overhaul/1L-MIGRATE-CANTRIPS-BATCH-4.md) | present |
+| 1M | [1M-MIGRATE-CANTRIPS-BATCH-5.md](./tasks/spell-system-overhaul/1M-MIGRATE-CANTRIPS-BATCH-5.md) | present |
+| 1N | [1N-MIGRATE-CANTRIPS-BATCH-6.md](./tasks/spell-system-overhaul/1N-MIGRATE-CANTRIPS-BATCH-6.md) | present |
+| 1O | [1O-MIGRATE-CANTRIPS-BATCH-7.md](./tasks/spell-system-overhaul/1O-MIGRATE-CANTRIPS-BATCH-7.md) | present |
+| 1P | [1P-MIGRATE-CANTRIPS-BATCH-8.md](./tasks/spell-system-overhaul/1P-MIGRATE-CANTRIPS-BATCH-8.md) | present |
+| 1Q | [1Q-MIGRATE-CANTRIPS-BATCH-9.md](./tasks/spell-system-overhaul/1Q-MIGRATE-CANTRIPS-BATCH-9.md) | present |
 
----
+#### Additional numbering exceptions already on disk
 
-### Project: Documentation Cleanup
+These files are real and should be preserved during migration, but they are not part of the simple `1A` to `1Q` strand:
+
+- `00-AGENT-COORDINATION.md`
+- `00-DATA-VALIDATION-STRATEGY.md`
+- `00-GAP-ANALYSIS.md`
+- `00-PARALLEL-ARCHITECTURE.md`
+- `00-TASK-INDEX.md`
+- `01-typescript-interfaces.md`
+- `03-command-pattern-base.md`
+- `0-PRIORITY-SCHEMA-EVOLUTION.md`
+- `11A-DYNAMIC-LIGHTING-SUPPORT.md`
+- `11B-SAVE-PENALTY-RIDER.md`
+- `11C-TERRAIN-UTILITY-STRUCTURES.md`
+- `19-ai-spell-arbitrator.md`
+
+**Practical note**: if this subtree needs a new primary-strand doc before its numbering is normalized, the next unused simple identifier is `1R`. That does not resolve the duplicate `1F`; it only avoids introducing another collision.
+
+### Documentation Cleanup
 
 **Location**: `docs/tasks/documentation-cleanup/`
 
-| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
-|--------|----------|--------|----------|----------|--------------|--------------|
-| [1A](./tasks/documentation-cleanup/1A-SURVEY-AND-CLASSIFICATION.md) | Survey and Classification | Completed | 100% | High | - | Dec 2, 2025 |
-| [1B](./tasks/documentation-cleanup/1B-APPLY-PREFIX-TO-ROOT-DOCS.md) | Apply Prefix to Static Documentation | Completed | 100% | High | 1A | Dec 2, 2025 |
-| [1C](./tasks/documentation-cleanup/1C-ARCHIVE-OBSOLETE-DOCS.md) | Archive Obsolete Docs | Completed | 100% | High | 1A | Dec 2, 2025 |
-| [1D](./tasks/documentation-cleanup/1D-CONSOLIDATE-DUPLICATE-CONTENT.md) | Consolidate Duplicate Content | Completed | 100% | Medium | 1A | Dec 2, 2025 |
-| [1E](./tasks/documentation-cleanup/1E-VERIFY-DOC-LINKS.md) | Verify Doc Links | Completed | 100% | Medium | 1B, 1C, 1D | Dec 2, 2025 |
-| [1F](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md) | Create System Status Report | Completed | 100% | Low | 1E | Dec 2, 2025 |
-| [1G](./tasks/documentation-cleanup/1G-MIGRATE-IMPROVEMENT-DOCS.md) | Migrate Improvement Docs | Pending | 0% | Medium | - | Dec 2, 2025 |
+This subtree contains a main `1A` to `1G` strand plus a `1G.x` subseries.
 
-**Tags**: `documentation`, `cleanup`, `organization`, `maintenance`
+#### Main strand on disk
 
-**Next available number**: `1H`
+| Identifier | File | Current file-state note |
+|------------|------|-------------------------|
+| 1A | [1A-SURVEY-AND-CLASSIFICATION.md](./tasks/documentation-cleanup/1A-SURVEY-AND-CLASSIFICATION.md) | present |
+| 1B | [1B-APPLY-PREFIX-TO-ROOT-DOCS.md](./tasks/documentation-cleanup/1B-APPLY-PREFIX-TO-ROOT-DOCS.md) | present |
+| 1C | [1C-ARCHIVE-OBSOLETE-DOCS.md](./tasks/documentation-cleanup/1C-ARCHIVE-OBSOLETE-DOCS.md) | present |
+| 1D | [1D-CONSOLIDATE-DUPLICATE-CONTENT.md](./tasks/documentation-cleanup/1D-CONSOLIDATE-DUPLICATE-CONTENT.md) | present |
+| 1E | [1E-VERIFY-DOC-LINKS.md](./tasks/documentation-cleanup/1E-VERIFY-DOC-LINKS.md) | present |
+| 1F | [1F-CREATE-SYSTEM-STATUS-REPORT.md](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md) | present |
+| 1G | [1G-MIGRATE-IMPROVEMENT-DOCS.md](./tasks/documentation-cleanup/1G-MIGRATE-IMPROVEMENT-DOCS.md) | present |
 
----
+#### `1G.x` subseries on disk
 
-### Project: Spell Completeness Audit & Description Extraction
+- [1G.1-COMMON-COMPONENTS.md](./tasks/documentation-cleanup/1G.1-COMMON-COMPONENTS.md)
+- [1G.2-CONFIG-DECOUPLING.md](./tasks/documentation-cleanup/1G.2-CONFIG-DECOUPLING.md)
+- [1G.3-PLAYER-TYPES.md](./tasks/documentation-cleanup/1G.3-PLAYER-TYPES.md)
+- [1G.4-EXTERNALIZE-CSS.md](./tasks/documentation-cleanup/1G.4-EXTERNALIZE-CSS.md)
+- [1G.5-API-ERROR-HANDLING.md](./tasks/documentation-cleanup/1G.5-API-ERROR-HANDLING.md)
+- [1G.6-SUBMAP-RENDERING.md](./tasks/documentation-cleanup/1G.6-SUBMAP-RENDERING.md)
+- [1G.7-REDUCER-LOGIC.md](./tasks/documentation-cleanup/1G.7-REDUCER-LOGIC.md)
+- [1G.8-POINT-BUY-UI.md](./tasks/documentation-cleanup/1G.8-POINT-BUY-UI.md)
+- [1G.9-LOADING-TRANSITION.md](./tasks/documentation-cleanup/1G.9-LOADING-TRANSITION.md)
+- [1G.10-SUBMAP-GENERATION.md](./tasks/documentation-cleanup/1G.10-SUBMAP-GENERATION.md)
+
+**Practical note**: this family is historically meaningful but not yet fully normalized. Presence on disk does not, by itself, settle whether each file is still active, completed, or historical. That review is handled in the doc-review ledger.
+
+### Spell Completeness Audit
 
 **Location**: `docs/tasks/spell-completeness-audit/`
 
-| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
-|--------|----------|--------|----------|----------|--------------|--------------|
-| [2A](./tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md) | Extract Level 1 Spell Descriptions | Pending | 0% | Medium | 1C~ | Dec 4, 2025 |
-| [2B](./tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md) | Extract Spell Descriptions (Levels 2-9) | Pending | 0% | Medium | 2A | Dec 4, 2025 |
+| Identifier | File | Current file-state note |
+|------------|------|-------------------------|
+| 1A | [1A~INVENTORY-LOCAL-SPELLS.md](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | retired marker present |
+| 1B | [1B~RESEARCH-PHB-2024-LIST.md](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | retired marker present |
+| 1C | [1C~GAP-ANALYSIS.md](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | retired marker present |
+| 2A | [2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md](./tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md) | present |
+| 2B | [2B-EXTRACT-REMAINING-LEVELS.md](./tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md) | present |
 
-**Tags**: `spell-completeness`, `audit`, `reference-extraction`
-
-**Next available number**: `2C`
-
----
-
-### Project: 3D Exploration & Combat
+### 3D Exploration
 
 **Location**: `docs/tasks/3d-exploration/`
 
-| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
-|--------|----------|--------|----------|----------|--------------|--------------|
-| [1A](./tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md) | 3D Exploration Roadmap | Active | 0% (Phase 0) | High | - | Jan 13, 2026 |
+| Identifier | File | Current file-state note |
+|------------|------|-------------------------|
+| 1A | [1A-3D-EXPLORATION-ROADMAP.md](./tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md) | present |
+| 2B | [2B-3D-INTEGRATION-DESIGN-PLAN.md](./tasks/3d-exploration/2B-3D-INTEGRATION-DESIGN-PLAN.md) | present |
 
-**Tags**: `3d`, `exploration`, `combat`, `r3f`, `procedural`
+Additional unnumbered work docs also exist in this subtree:
+- [implementation_plan.md](./tasks/3d-exploration/implementation_plan.md)
+- [world-map-rewire-mapping.md](./tasks/3d-exploration/world-map-rewire-mapping.md)
 
-**Next available number**: `1B`
+## Known Exceptions And Boundaries
 
----
+- `docs/tasks/roadmap/` exists on disk but is currently excluded from the maintained documentation system by [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md).
+- [@ROADMAP-SYSTEM-GUIDE.md](./@ROADMAP-SYSTEM-GUIDE.md) also exists on disk but is part of that excluded roadmap-tooling surface.
+- [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) is a manually curated retirement ledger that is currently synced to the retired numbered docs explicitly tracked by this registry.
 
-### Project: Project Infrastructure & Tooling
+## Maintenance Rules
 
-**Location**: `docs/` (System Guides)
+When adding a new numbered work doc:
 
-| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
-|--------|----------|--------|----------|----------|--------------|--------------|
-| [1A](./@ROADMAP-SYSTEM-GUIDE.md) | Roadmap System Guide | Active | 100% | High | - | Feb 17, 2026 |
-| [1B](./tasks/roadmap/1B-ROADMAP-VISUALIZER-EVOLUTION-HANDOVER.md) | Roadmap Visualizer Evolution Handover | Active | 100% | High | 1A | Feb 15, 2026 |
-| [1C](./tasks/roadmap/1C-ROADMAP-IMPLEMENTATION-PLAN.md) | Roadmap Visualizer Implementation Plan | Active | 0% | High | 1B | Feb 15, 2026 |
+1. Check the local subtree first.
+2. Continue the numbering pattern already used in that subtree.
+3. Avoid creating a new duplicate identifier.
+4. Update this registry only if the subtree is one of the tracked families above.
+5. Update [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md) only if the new doc is meant to be part of the current work-entry surface.
 
-**Tags**: `tooling`, `roadmap`, `visualization`, `agent-context`
+When retiring a numbered work doc:
 
-**Next available number**: `1D`
+1. Use the `~` marker if that family already uses tilde retirement.
+2. Preserve the identifier.
+3. Update this registry or the relevant local registry surface.
+4. Add or reconcile the retirement entry in [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) when that ledger is being maintained for the family.
 
----
+## Related Files
 
-## Retired Documents
-
-**See**: [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) for full archive with retirement reasons.
-
-### Recently Retired
-
-| Number | Document | Project | Retired Date | Reason | Location |
-|--------|----------|---------|--------------|--------|----------|
-| 1C | [Gap Analysis (Local vs PHB)](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | Spell Completeness Audit | Dec 4, 2025 | Gap analysis report published | `docs/tasks/spell-completeness-audit/` |
-| 1B | [Research PHB 2024 Spell List](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | Spell Completeness Audit | Dec 4, 2025 | PHB reference list captured with citations | `docs/tasks/spell-completeness-audit/` |
-| 1A | [Inventory Local Spells](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | Spell Completeness Audit | Dec 4, 2025 | Inventory report delivered | `docs/tasks/spell-completeness-audit/` |
-| 1C | [Version Display & Package Fix](./tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md) | Spell System Overhaul | Nov 30, 2025 | Task completed | `docs/tasks/spell-system-overhaul/` |
-
----
-
-## Registry Maintenance
-
-### When Creating a New Document
-
-1. **Check this registry** for the latest number in your project
-2. **Use the next sequential number** (e.g., if latest is `1H`, use `1I`)
-3. **Add entry to this registry** under "Active Documents" for your project
-4. **Update "Next available number"** for your project
-5. **Add to [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)** if this is current work
-
-**Example**:
-```bash
-# Latest doc in spell-system-overhaul is 1I, so next is 1J
-touch docs/tasks/spell-system-overhaul/1J-NEW-TASK-NAME.md
-
-# Update this registry with new entry
-# Add to @ACTIVE-DOCS.md if currently working on it
-```
-
-### When Retiring a Document
-
-1. **Rename file**: `1C-DOC.md` -> `1C~DOC.md`
-2. **Move entry** from "Active Documents" to "Retired Documents" in this file
-3. **Add to [@RETIRED-DOCS.md](./@RETIRED-DOCS.md)** with reason and category
-4. **Remove from [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)** if listed there
-5. **"Next available number" stays the same** (no gaps!)
-
-**Example**:
-```bash
-# Rename with tilde marker
-git mv 1D-TASK-NAME.md 1D~TASK-NAME.md
-
-# Update registries
-# Next available stays 1J (don't skip to 1K!)
-```
-
-### Starting a New Project
-
-1. **Create project folder**: `docs/tasks/your-project-name/`
-2. **Add project section** to this registry
-3. **Start numbering at 1A** for the new project
-4. **Add to [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)** with project overview
-
----
-
-## Validation Checks
-
-### Current Issues
-
-- Duplicate number in Spell System Overhaul: 1F appears twice (active + concept entry).
-- All active documents have valid paths.
-- Some documents still use coarse progress tracking labels (for example, Ongoing) rather than explicit percentages.
-- Consider expanding tags for feature-level searchability.
-
-### Registry Health
-
-- Numbering continuity: Spell-completeness 2A continuation after retired 1C~ is intentional; Spell System has an unresolved duplicate 1F identifier that should be normalized.
-- File existence: All referenced files exist.
-- Project scoping: Properly separated across 5 active projects.
-- Tilde markers: Consistent with retired status.
-
----
-
-## Document Type Legend
-
-- **Active**: Currently being worked on
-- **Pending**: Planned but not yet started
-- **Concept**: Design proposal or future consideration
-- **Retired**: Completed or no longer active (marked with `~`)
-
----
-
-## Conventions
-
-**See**: [@DOC-NAMING-CONVENTIONS.md](./@DOC-NAMING-CONVENTIONS.md) for full details on the numbering system.
-
-### Quick Reference
-
-**Active document format**:
-```
-[NUMBER]-[DESCRIPTIVE-NAME].md
-Example: 1A-PROJECT-MASTER-SPRINGBOARD.md
-```
-
-**Retired document format**:
-```
-[NUMBER]~[DESCRIPTIVE-NAME].md
-Example: 1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md
-```
-
-**Static document format** (not numbered):
-```
-@[DESCRIPTIVE-NAME].md
-Example: @WORKFLOW-GUIDE.md
-```
-
----
-
-## Registry Change Log
-
-| Date | Change | Project | Details |
-|------|--------|---------|---------|
-| Feb 16, 2026 | Registry refresh | All | Updated stats, flagged duplicate Spell System identifier (1F), aligned validation section |
-| Jan 13, 2026 | Created 1A | 3D Exploration | Added 3D exploration/combat roadmap |
-| Dec 4, 2025 | Documentation merge | Spell System | Merged COMPONENT_DEPENDENCIES.md into SPELL_INTEGRATION_CHECKLIST.md; archived to docs/archive/spell-docs-2025-12/ |
-| Dec 4, 2025 | Documentation review | Spell System | Reviewed SPELL_INTEGRATION_CHECKLIST.md and SPELL_SYSTEM_ARCHITECTURE.md; verified all component paths |
-| Dec 2, 2025 | Completed 1D | Documentation Cleanup | No consolidation required - documentation system healthy |
-| Dec 2, 2025 | Completed 1C | Documentation Cleanup | Archived 8 obsolete docs and created archive index |
-| Dec 2, 2025 | Completed 1B | Documentation Cleanup | Applied @ prefix to 22 permanent reference files |
-| Dec 2, 2025 | Completed 1A | Documentation Cleanup | Survey and classification report generated |
-| Dec 2, 2025 | Registry restructure | All | Added project scoping, progress tracking, dependencies |
-| Nov 30, 2025 | Retired 1C | Spell System | Version Display task completed |
-| Nov 30, 2025 | Created 1A, 1B | Spell System | Initial project docs |
-| Nov 28, 2025 | Created 1D-1I | Spell System | Phase 0-2 task docs |
-| Nov 28, 2025 | Created 1A-1F | Documentation Cleanup | Initial cleanup tasks |
-
----
-
-## Additional Resources
-
-- **[@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)**: Quick reference to current work
-- **[@RETIRED-DOCS.md](./@RETIRED-DOCS.md)**: Archive of completed/abandoned docs
-- **[@DOC-NAMING-CONVENTIONS.md](./@DOC-NAMING-CONVENTIONS.md)**: Full naming system guide
-
----
-
-## Notes
-
-### Project Relationships
-
-- Projects can reference across project boundaries while keeping local numbering scopes.
-- Number identifiers should remain unique within each project scope to avoid roadmap node collisions.
-- Registry includes infrastructure and tooling roadmap documents that coordinate multi-project workflows.
-
-### Progress Tracking
-
-- **Percentage**: Estimated completion (0%, 25%, 50%, 75%, 100%)
-- **Phase notation**: References roadmap phases (e.g., "Phase 0.1")
-- **In Progress**: Actively being worked on
-- **Pending**: Not yet started
-
-### Priority Levels
-
-- **High**: Critical path, blocks other work
-- **Medium**: Important but not blocking
-- **Low**: Nice to have, future consideration
+- [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md) is the current work-entry surface.
+- [@DOC-NAMING-CONVENTIONS.md](./@DOC-NAMING-CONVENTIONS.md) explains the naming systems and the limits of the legacy numbering rules.
+- [docs/registry/@DOC-REVIEW-LEDGER.md](./registry/@DOC-REVIEW-LEDGER.md) is the authoritative review queue for the current documentation overhaul.

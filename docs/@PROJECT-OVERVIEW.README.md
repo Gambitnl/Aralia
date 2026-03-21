@@ -1,85 +1,133 @@
 # Aralia RPG - Project Overview
 
-Welcome to the main documentation hub for the Aralia RPG project. This document provides a high-level overview of the project, its core features, technology stack, and development practices.
+**Last Updated**: 2026-03-10  
+**Purpose**: Provide a repo-grounded overview of the current Aralia project without carrying forward outdated architecture assumptions.
 
-## 1. Core Features
+## What Aralia Is
 
-*   **Dynamic Storytelling**: Utilizes the Google Gemini API to generate dynamic location descriptions, NPC dialogue, and action outcomes, creating a unique adventure every time.
-*   **Text-Based RPG Core**: Classic text adventure gameplay loop focusing on exploration, interaction, and choice.
-*   **AI Game Guide**: An intelligent, in-game chatbot (powered by Gemini 1.5 Pro/Flash) that can answer rule questions, explain lore, and even procedurally generate character sheets for the player.
-*   **Living World & Villages**: Features a fully procedural village generation system with dynamic shops, infrastructure, and NPCs. The "Living NPC" system allows rumors and reputation to spread between characters.
-*   **Character Creation**: A comprehensive, multi-step process for players to create their unique D&D-style character, choosing from over 15 races and 12 classes with specific sub-options (Lineages, Legacies, etc.).
-*   **Inventory & Economy**: Players can find, collect, and manage items. A dynamic economy system adjusts prices based on local scarcity and surplus (e.g., ore is cheaper in mining towns).
-*   **Exploration-Focused Gameplay**: The game encourages exploration through a grid-based world map and detailed sub-maps for local areas, featuring procedural biome transitions.
-*   **Tactical Battle Map**: A procedural, grid-based combat system featuring a D&D 5e-style action economy for tactical encounters.
-*   **Developer Mode**: Includes a "dummy character" to bypass character creation for rapid testing and a developer menu for quick actions like save/load.
-*   **Save/Load System**: Persists game state to the browser's Local Storage.
-*   **Scene Visuals (Paused)**: An `ImagePane.tsx` component exists for scene imagery, but image generation is currently disabled to manage external API quotas. Village and exploration scenes rely on canvas/grid renderings instead of fetched art.
+Aralia is a React + TypeScript RPG project with a broad gameplay surface that spans:
+- character creation
+- world and submap exploration
+- town and village interaction
+- tactical battle map combat
+- inventory, economy, and merchant flows
+- glossary/reference content
+- AI-assisted narrative and helper systems
 
-## 2. Technology Stack & Architecture
+This overview is intentionally conservative. It describes features and structure that are directly supported by the current repository layout and verified code surfaces.
 
-### Core Stack
-*   **Framework**: **React** (v19) using modern features like hooks.
-*   **Language**: **TypeScript** for type safety.
-*   **Styling**: **Tailwind CSS** for utility-first styling. All custom styles are in `<style>` blocks in `index.html`.
-*   **Modules**: The app uses native **ES6 Modules**. The `index.html` file contains an `<script type="importmap">` which defines how modules like `react`, `@google/genai`, etc., are loaded directly from `esm.sh`. **There is no local `node_modules` folder or complex build tool like Webpack or Vite.**
-*   **AI Integration**: The app uses the **`@google/genai`** SDK for all interactions with the Gemini models. This is a core, unchangeable requirement.
+## Verified Core Systems
 
-### Architectural Constraints (What I Can't Do)
+The current repo contains verified implementations or active code surfaces for:
+- **Character creation** via [`../src/components/CharacterCreator/CharacterCreator.tsx`](../src/components/CharacterCreator/CharacterCreator.tsx)
+- **World map exploration** via [`../src/components/MapPane.tsx`](../src/components/MapPane.tsx)
+- **Submap exploration** via [`../src/components/Submap/SubmapPane.tsx`](../src/components/Submap/SubmapPane.tsx)
+- **Town and village rendering** via [`../src/components/Town/TownCanvas.tsx`](../src/components/Town/TownCanvas.tsx) and [`../src/components/Town/VillageScene.tsx`](../src/components/Town/VillageScene.tsx)
+- **Battle map combat** via [`../src/components/BattleMap/BattleMap.tsx`](../src/components/BattleMap/BattleMap.tsx)
+- **Character sheet and spellbook UI** via [`../src/components/CharacterSheet/CharacterSheetModal.tsx`](../src/components/CharacterSheet/CharacterSheetModal.tsx) and [`../src/components/CharacterSheet/Spellbook/SpellbookOverlay.tsx`](../src/components/CharacterSheet/Spellbook/SpellbookOverlay.tsx)
+- **Glossary and in-game reference UI** via [`../src/components/Glossary/Glossary.tsx`](../src/components/Glossary/Glossary.tsx)
+- **Merchant/economy UI** via [`../src/components/Trade/MerchantModal.tsx`](../src/components/Trade/MerchantModal.tsx)
+- **Discovery log UI** via [`../src/components/Logbook/DiscoveryLogPane.tsx`](../src/components/Logbook/DiscoveryLogPane.tsx)
+- **Developer/debug UI** via [`../src/components/debug/DevMenu.tsx`](../src/components/debug/DevMenu.tsx)
+- **Optional 3D-related UI surface** via [`../src/components/ThreeDModal/ThreeDModal.tsx`](../src/components/ThreeDModal/ThreeDModal.tsx)
 
-Because this is a client-side, static application without a traditional build pipeline, there are some hard limitations:
-*   **No Backend**: I cannot add a server, a database (like MySQL, MongoDB), or server-side languages (like Node.js, Python, PHP). All state must be managed on the client or saved to Local Storage.
-*   **No Build Tools**: I cannot introduce complex build systems (Webpack, Vite, Babel) or modify a `package.json` file. All dependencies must be available via the existing import-map structure from a CDN like `esm.sh`.
-*   **No New Top-Level Files**: I cannot add new files to the absolute root directory. New files should be placed in appropriate subdirectories (e.g., `src/components/`, `src/hooks/`).
+## Verified AI And Generation Surfaces
 
-### Architectural Possibilities (Thinking Outside the Box)
+The repo currently includes AI-assisted systems built around Gemini services, with some Ollama-related surfaces also present.
 
-While we can't use a build system, we **can** introduce new client-side libraries via the import-map. This is where you can guide me to build more advanced features. For inspiration, refer to the `docs/@POTENTIAL-TOOL-INTEGRATIONS.README.md` file.
+Verified examples include:
+- location and wilderness description generation in [`../src/services/geminiService.ts`](../src/services/geminiService.ts)
+- NPC response generation in [`../src/services/geminiService.ts`](../src/services/geminiService.ts)
+- oracle-style response generation in [`../src/services/geminiService.ts`](../src/services/geminiService.ts)
+- guide-response support and related helper flows wired through Gemini service modules
+- merchant inventory, harvest, and other generated content helpers in the Gemini service layer
+- a game-guide UI surface in [`../src/components/ui/GameGuideModal.tsx`](../src/components/ui/GameGuideModal.tsx)
 
-**You could ask me to:**
-*   "Integrate **Zustand** to manage our game state more effectively instead of passing props everywhere."
-*   "Use **Headless UI** to build a new, fully accessible modal component."
-*   "Refactor the Oracle query form to use **React Hook Form** for better state management and validation."
-*   "Animate the appearance of the new quest log using **Framer Motion**."
+Because these systems evolve quickly, this document avoids over-specifying exact model behavior beyond what is directly visible in the current code.
 
-Mentioning these possibilities helps me understand that you're open to evolving the tech stack within our constraints.
+## Verified Tech Stack
 
-## 3. Project Structure
+The current project is built around:
+- **React 19** and **React DOM 19**, confirmed in [`../package.json`](../package.json)
+- **TypeScript**, confirmed in [`../package.json`](../package.json)
+- **Vite** as the build/dev tool, confirmed in [`../package.json`](../package.json)
+- **Vitest** for testing, confirmed in [`../package.json`](../package.json)
+- **ESLint** for linting, confirmed in [`../package.json`](../package.json)
+- **Tailwind CSS** and **PostCSS** in the toolchain, confirmed in [`../package.json`](../package.json)
+- **@google/genai** and **@google/generative-ai** dependencies for AI integration, confirmed in [`../package.json`](../package.json)
 
-The project follows a component-based architecture with a clear separation of concerns.
+Important correction:
+- this project is **not** a static import-map-only app
+- it **does** use a local `package.json`, local dependencies, and a Vite-based workflow
 
-*   **`index.html`**: The main entry point. Loads Tailwind CSS, fonts, and the root React script. Contains the `importmap`.
-*   **`index.tsx`**: Renders the `App` component into the DOM.
-*   **`src/`**: The main source code directory.
-    *   **`App.tsx`**: The root React component, managing overall game state and logic. See [`src/App.README.md`](./src/App.README.md).
-    *   **`components/`**: Reusable React components that make up the UI.
-        *   Each significant component has its own subdirectory and `[ComponentName].README.md`.
-        *   **`CharacterCreator/`**: Contains all components related to the multi-step character creation process. See [`src/components/CharacterCreator/CharacterCreator.README.md`](./src/components/CharacterCreator/CharacterCreator.README.md).
-    *   **`services/`**: Modules responsible for external interactions (e.g., Gemini API, Local Storage).
-    *   **`hooks/`**: Custom React hooks for encapsulating complex, reusable logic (e.g., `useGameActions`, `useAudio`).
-    *   **`data/`**: Static game data definitions (races, classes, items, etc.), decoupled from `constants.ts`.
-    *   **`state/`**: Centralized state management logic (`appReducer`, `initialGameState`).
-    *   **`utils/`**: General-purpose utility functions (e.g., character stat calculations).
-    *   **`types.ts`**: Contains all core TypeScript type definitions and interfaces.
-    *   **`constants.ts`**: Centralizes global constants and re-exports aggregated data from the `src/data/` modules.
-*   **`docs/`**: All project documentation, including this overview, guides, and READMEs for different modules.
-*   **`public/`**: Static assets like images or data files that need to be publicly accessible.
-    *   **`public/data/glossary/`**: Contains the Markdown source files and generated JSON indexes for the in-game glossary.
-*   **`scripts/`**: Build scripts, such as the one for generating the glossary index.
+## Verified Entry And Styling Surface
 
-## 4. Key Development Practices
+The current frontend entry flow is:
+- [`../index.html`](../index.html) -> [`../index.tsx`](../index.tsx) -> [`../src/App.tsx`](../src/App.tsx)
 
-### Dummy Character for Development
-*   The `USE_DUMMY_CHARACTER_FOR_DEV` flag in `src/constants.ts` can be set to `true`.
-*   This bypasses the character creation screen and starts the game immediately with a predefined character, speeding up development and testing of game mechanics.
+Verified styling facts:
+- [`../index.tsx`](../index.tsx) imports [`../src/index.css`](../src/index.css)
+- [`../index.html`](../index.html) links a stylesheet via `styles.css`
+- the repo also contains styling-related surfaces under [`../src/styles/`](../src/styles/) and [`../public/css/`](../public/css/)
 
-### Code Formatting
-*   Code is formatted using Prettier with default settings to ensure consistency.
+This means older documentation that claimed all custom styles lived in inline `<style>` blocks is no longer accurate.
 
-## 5. How to Add New Game Content
+## Verified Project Structure
 
-### Adding a New Race
-Please follow the detailed guide: **[`docs/guides/RACE_ADDITION_GUIDE.md`](./guides/RACE_ADDITION_GUIDE.md)**
+Important current top-level source areas under [`../src/`](../src/) include:
+- `components`
+- `commands`
+- `config`
+- `constants`
+- `context` and `contexts`
+- `data`
+- `features`
+- `hooks`
+- `services`
+- `state`
+- `styles`
+- `systems`
+- `types`
+- `utils`
+- `workers`
 
-### Adding a New Class
-Please follow the detailed guide: **[`docs/guides/CLASS_ADDITION_GUIDE.md`](./guides/CLASS_ADDITION_GUIDE.md)**
+This is broader than older summaries that only described a smaller React component/hooks/state layout.
+
+## Data And Content Surfaces
+
+Verified data/content surfaces include:
+- a large race-data catalog under [`../src/data/races/`](../src/data/races/)
+- **19 class definitions** in [`../src/data/classes/index.ts`](../src/data/classes/index.ts)
+- glossary content under [`../public/data/glossary/`](../public/data/glossary/)
+- glossary entry and index subtrees under:
+  - [`../public/data/glossary/entries/`](../public/data/glossary/entries/)
+  - [`../public/data/glossary/index/`](../public/data/glossary/index/)
+- public data roots under [`../public/data/`](../public/data/) for `dev`, `glossary`, and `spells`
+
+The constants layer in [`../src/constants.ts`](../src/constants.ts) still aggregates and re-exports a large amount of data from specialized modules.
+
+## Save/Load And Development Surfaces
+
+Verified persistence and dev-support facts:
+- save/load is implemented through [`../src/services/saveLoadService.ts`](../src/services/saveLoadService.ts)
+- that service explicitly uses browser local storage
+- developer tools are feature-flagged through [`../src/config/features.ts`](../src/config/features.ts) and [`../src/config/env.ts`](../src/config/env.ts)
+- current feature comments explicitly describe developer tools, dummy characters, and debug panels as part of the dev-support surface
+
+To keep this overview accurate, it avoids naming old constants or exact bypass flags unless they are still present under the same name.
+
+## Documentation Orientation
+
+Use these docs as the main starting set:
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) for domain-level architecture
+- [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md) for practical development orientation
+- [`@DOCUMENTATION-GUIDE.md`](./@DOCUMENTATION-GUIDE.md) for documentation-system rules
+- [`@README-INDEX.md`](./@README-INDEX.md) for navigation
+
+For source-local implementation detail, use the source-adjacent READMEs under [`../src/`](../src/).
+
+## Notes On Historical Drift
+
+Earlier versions of this file described Aralia as a static, import-map-driven app with no local dependency or Vite build surface.
+
+That is no longer an accurate description of the repository. This file was rewritten against the current repo structure on 2026-03-10 to remove those stale assumptions.

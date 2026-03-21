@@ -1,9 +1,20 @@
 /**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
+ * ARCHITECTURAL CONTEXT:
+ * This service handles 'Banter Logic' via the local Ollama LLM. It focuses 
+ * on generating character-driven dialogue that responds to the environment, 
+ * recent events, and participants' specific personas.
  *
+ * Recent updates introduce 'Player-Directed' and 'Escalation' modes. 
+ * Instead of just NPCs talking to each other, companions can now address 
+ * the player directly. The prompts have been refined to include the 
+ * player's equipment and class, allowing NPCs to comment on the player's 
+ * actual gear (e.g., 'Nice sword, where'd you find it?'). 
+ *
+ * It also includes 'Escalation' logic: if a player ignores a companion 
+ * for too long, the companion's next line is shaped by their 
+ * extraversion/neuroticism (e.g., pushing back vs. being resigned).
+ * 
  * @file src/services/ollama/banter.ts
- * Banter generation functionality for companion dialogue.
  */
 
 import type { BanterDefinition } from '../../types/companions';
@@ -133,6 +144,157 @@ ${conversationHistory.length === 0 ? `Start a new conversation about ${suggested
 [Output Format]
 Return strict JSON only. No markdown code blocks. No intro/outro text.
 {"speakerId": "${nextSpeaker.id}", "text": "Your unique response here", "emotion": "neutral", "isConcluding": false}`
+        }
+    ];
+}
+
+// ============================================================================
+// Player-Directed Prompt Builders
+// ============================================================================
+
+function buildPlayerDirectedLinePrompt(
+    npc: BanterParticipant,
+    playerName: string,
+    conversationHistory: { speakerId: string; speakerName: string; text: string }[],
+    contextData: BanterContext,
+    turnNumber: number
+): { role: string; content: string }[] {
+    const historyText = conversationHistory.length > 0
+        ? `\nConversation so far:\n${conversationHistory.map(h => `${h.speakerName}: "${h.text}"`).join('\n')}\n`
+        : '';
+
+    let memorySection = '';
+    if (npc.memories && npc.memories.length > 0) {
+        memorySection = `\n[Relevant Memories]\n${npc.memories.map(m => `- ${m}`).join('\n')}\n`;
+    }
+
+    const extraversionLabel = (contextData.npcExtraversion ?? 50) >= 70
+        ? 'outgoing and bold'
+        : (contextData.npcExtraversion ?? 50) <= 30
+            ? 'reserved and tentative'
+            : 'moderately sociable';
+
+    // Build a player equipment section so the NPC can reference real gear
+    let playerGearSection = '';
+    if (contextData.playerEquippedItems && contextData.playerEquippedItems.length > 0) {
+        const gearList = contextData.playerEquippedItems
+            .map(item => item.category ? `${item.name} (${item.slot}, ${item.category})` : `${item.name} (${item.slot})`)
+            .join(', ');
+        playerGearSection = `\n[Player's Equipped Gear]\n${gearList}\n`;
+    } else {
+        playerGearSection = `\n[Player's Equipped Gear]\nNothing notable visible.\n`;
+    }
+
+    const playerDescLine = [
+        contextData.playerClass ? `${playerName} is a ${contextData.playerClass}` : null,
+        contextData.playerLevel ? `level ${contextData.playerLevel}` : null,
+    ].filter(Boolean).join(' ');
+
+    // WHAT CHANGED: Added playerGearSection and extraversionLabel to the prompt.
+    // WHY IT CHANGED: To make the companion feel 'present'. By injecting 
+    // the player's visible gear into the prompt, the LLM can generate 
+    // contextual observations that ground the banter in the current state 
+    // of the game world. Extraversion ensures the 'social bold' vs 
+    // 'tentative' approach matches their personality stats.
+
+    return [
+        {
+            role: 'system',
+            content: `You are a creative writer for a fantasy RPG.
+[Character Data]
+Name: ${npc.name}
+ID: ${npc.id}
+Role: ${npc.sex} ${npc.race} ${npc.class}
+Personality: ${npc.personality} (Social style: ${extraversionLabel})${memorySection}
+
+[Context]
+Location: ${contextData.locationName}
+Weather: ${contextData.weather || 'Clear'}
+Time: ${contextData.timeOfDay}
+${playerDescLine ? `${playerDescLine}.\n` : ''}${playerGearSection}${historyText}
+
+[Task]
+${conversationHistory.length === 0
+    ? `Address the player character ${playerName} directly. Start a conversation — ask them a question, share a personal observation, or invite them into a topic. Your social style is ${extraversionLabel}; let that shape how boldly or tentatively you approach them. You may optionally reference something from their visible gear listed above, but only if it fits naturally — do NOT force a mention of every item.`
+    : `Continue the conversation with ${playerName}. Respond to what they or others just said.`
+}
+
+[CRITICAL REQUIREMENTS]
+- You MUST use speakerId exactly: "${npc.id}"
+- Address ${playerName} directly — by name or "you"
+- Do NOT repeat or paraphrase previous lines
+- Stay in character. Use your personality traits.
+- 1-2 sentences max.
+- Only reference gear the player is actually wearing (listed above). Never invent items they don't have.
+- isConcluding: ${turnNumber >= 4 ? 'true' : 'false'}
+
+[Output Format]
+Return strict JSON only. No markdown. No intro/outro text.
+{"speakerId": "${npc.id}", "text": "Your directed line here", "emotion": "neutral", "isConcluding": false}`
+        }
+    ];
+}
+
+function buildEscalationLinePrompt(
+    npc: BanterParticipant,
+    playerName: string,
+    conversationHistory: { speakerId: string; speakerName: string; text: string }[],
+    contextData: BanterContext,
+    ignoreCount: number
+): { role: string; content: string }[] {
+    const extraversion = contextData.npcExtraversion ?? 50;
+    const neuroticism = contextData.npcNeuroticism ?? 50;
+    const historyText = conversationHistory.length > 0
+        ? `\nConversation so far:\n${conversationHistory.map(h => `${h.speakerName}: "${h.text}"`).join('\n')}\n`
+        : '';
+
+    // Determine escalation tone from personality
+    let escalationGuidance: string;
+    // WHAT CHANGED: Added personality-driven escalation guidance.
+    // WHY IT CHANGED: If a player is busy and ignores an NPC, we want the 
+    // NPC's reaction to feel authentic. High-neuroticism NPCs might get 
+    // annoyed/insistent, while reserved ones might just trail off. 
+    // This connects 'Big Five' personality traits directly to dialogue tone.
+    if (extraversion >= 70 && neuroticism >= 70) {
+        escalationGuidance = `You're an outgoing and emotionally sensitive person. ${playerName} hasn't responded to you. You notice the silence and push back — with frustration, hurt, or insistence. Don't let it slide.`;
+    } else if (extraversion >= 70 && neuroticism < 50) {
+        escalationGuidance = `You're an outgoing but emotionally resilient person. ${playerName} hasn't responded. Try again with a light-touch follow-up — casual, not wounded, maybe a little wry.`;
+    } else if (extraversion < 40) {
+        escalationGuidance = `You're a reserved person. ${playerName} hasn't responded. Offer one quiet, low-stakes follow-up — then be ready to let it go. "...never mind." is a valid ending.`;
+    } else {
+        escalationGuidance = `${playerName} hasn't responded to you. Follow up once more with a prompt that fits your personality — whether that's persistent, curious, wry, or resigned.`;
+    }
+
+    const isConcluding = ignoreCount >= 2;
+
+    return [
+        {
+            role: 'system',
+            content: `You are a creative writer for a fantasy RPG.
+[Character Data]
+Name: ${npc.name}
+ID: ${npc.id}
+Role: ${npc.sex} ${npc.race} ${npc.class}
+Personality: ${npc.personality}
+
+[Context]
+Location: ${contextData.locationName}
+Time: ${contextData.timeOfDay}
+${historyText}
+
+[Situation]
+${escalationGuidance}
+${isConcluding ? `This is your final attempt. End the conversation naturally after this line.` : ''}
+
+[CRITICAL REQUIREMENTS]
+- You MUST use speakerId exactly: "${npc.id}"
+- 1-2 sentences max
+- Stay in character
+- isConcluding: ${isConcluding ? 'true' : 'false'}
+
+[Output Format]
+Return strict JSON only. No markdown. No intro/outro text.
+{"speakerId": "${npc.id}", "text": "Your follow-up line here", "emotion": "neutral", "isConcluding": ${isConcluding}}`
         }
     ];
 }
@@ -292,6 +454,136 @@ export async function generateBanterLine(
             text: extracted.text,
             emotion: extracted.emotion || 'neutral',
             isConcluding: extracted.isConcluding || turnNumber >= 5
+        },
+        metadata
+    };
+}
+
+/**
+ * Generates a single banter line where the NPC speaks directly to the player.
+ * Used for PLAYER_DIRECTED banter mode (1 NPC or 2+ NPCs addressing the player).
+ */
+export async function generatePlayerDirectedLine(
+    npc: BanterParticipant,
+    context: BanterContext,
+    conversationHistory: { speakerId: string; speakerName: string; text: string }[],
+    turnNumber: number,
+    onPending?: (id: string, prompt: string, model: string) => void,
+    client: OllamaClient = getDefaultClient()
+): Promise<OllamaResult<BanterLineData>> {
+    const model = 'leeplenty/ellaria';
+    const isAvailable = await client.isAvailable();
+    if (!isAvailable) {
+        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
+    }
+
+    const interactionId = Math.random().toString(36).substring(2, 15);
+    const playerName = context.playerName || 'the player';
+    const messages = buildPlayerDirectedLinePrompt(npc, playerName, conversationHistory, context, turnNumber);
+
+    if (onPending) {
+        onPending(interactionId, messages[0].content, model);
+    }
+
+    const result = await client.chat({ model, messages, format: 'json', temperature: 0.75, numPredict: 2048 });
+
+    if (!result.ok) {
+        return client.createNetworkError(result.error, messages[0].content, model, interactionId);
+    }
+
+    const responseContent = result.data.message?.content || '';
+    const metadata: OllamaMetadata = { prompt: messages[0].content, response: responseContent, model, id: interactionId };
+
+    const parsed = parseJsonRobustly(responseContent);
+    if (!parsed) {
+        return {
+            success: false,
+            error: { type: 'PARSE_ERROR', message: 'JSON parsing failed', rawResponse: responseContent },
+            metadata: { ...metadata, response: `[PARSE ERROR] Raw: "${responseContent}"` }
+        };
+    }
+
+    const extracted = extractTextField(parsed, npc.id);
+    if (!extracted?.text) {
+        return {
+            success: false,
+            error: { type: 'PARSE_ERROR', message: "Missing 'text' field", rawResponse: JSON.stringify(parsed) },
+            metadata: { ...metadata, response: `[VALIDATION ERROR] Missing 'text': ${JSON.stringify(parsed)}` }
+        };
+    }
+
+    return {
+        success: true,
+        data: {
+            speakerId: extracted.speakerId || npc.id,
+            text: extracted.text,
+            emotion: extracted.emotion || 'neutral',
+            isConcluding: extracted.isConcluding || turnNumber >= 5
+        },
+        metadata
+    };
+}
+
+/**
+ * Generates an escalation/follow-up line from an NPC when the player hasn't responded.
+ * Tone is driven by the NPC's extraversion and neuroticism personality values.
+ */
+export async function generateEscalationLine(
+    npc: BanterParticipant,
+    context: BanterContext,
+    conversationHistory: { speakerId: string; speakerName: string; text: string }[],
+    ignoreCount: number,
+    onPending?: (id: string, prompt: string, model: string) => void,
+    client: OllamaClient = getDefaultClient()
+): Promise<OllamaResult<BanterLineData>> {
+    const model = 'leeplenty/ellaria';
+    const isAvailable = await client.isAvailable();
+    if (!isAvailable) {
+        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
+    }
+
+    const interactionId = Math.random().toString(36).substring(2, 15);
+    const playerName = context.playerName || 'the player';
+    const messages = buildEscalationLinePrompt(npc, playerName, conversationHistory, context, ignoreCount);
+
+    if (onPending) {
+        onPending(interactionId, messages[0].content, model);
+    }
+
+    const result = await client.chat({ model, messages, format: 'json', temperature: 0.8, numPredict: 2048 });
+
+    if (!result.ok) {
+        return client.createNetworkError(result.error, messages[0].content, model, interactionId);
+    }
+
+    const responseContent = result.data.message?.content || '';
+    const metadata: OllamaMetadata = { prompt: messages[0].content, response: responseContent, model, id: interactionId };
+
+    const parsed = parseJsonRobustly(responseContent);
+    if (!parsed) {
+        return {
+            success: false,
+            error: { type: 'PARSE_ERROR', message: 'JSON parsing failed', rawResponse: responseContent },
+            metadata: { ...metadata, response: `[PARSE ERROR] Raw: "${responseContent}"` }
+        };
+    }
+
+    const extracted = extractTextField(parsed, npc.id);
+    if (!extracted?.text) {
+        return {
+            success: false,
+            error: { type: 'PARSE_ERROR', message: "Missing 'text' field", rawResponse: JSON.stringify(parsed) },
+            metadata: { ...metadata, response: `[VALIDATION ERROR] Missing 'text': ${JSON.stringify(parsed)}` }
+        };
+    }
+
+    return {
+        success: true,
+        data: {
+            speakerId: extracted.speakerId || npc.id,
+            text: extracted.text,
+            emotion: extracted.emotion || 'neutral',
+            isConcluding: extracted.isConcluding || ignoreCount >= 2
         },
         metadata
     };

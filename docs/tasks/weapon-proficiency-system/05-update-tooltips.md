@@ -1,60 +1,18 @@
 # Task 05: Update Tooltips with Proficiency Status
 
-**Status**: 🟢 Completed
-**Phase**: 2 (Visual Feedback)
-**Estimated Effort**: 45 minutes
-**Priority**: Medium
-**Assigned To**: -
-**Completed**: 2025-12-08
+Status: historical UI implementation note
+Last reviewed: 2026-03-12
 
----
+## Current reading
 
-## Objective
+This is now a preserved tooltip implementation note.
 
-Enhance tooltips throughout the UI to show weapon proficiency status and explain the non-proficiency penalty clearly.
+## Verified landing
 
----
+Manual repo verification on 2026-03-12 confirmed:
 
-## Context
+- EquipmentMannequin.tsx already pushes the proficiency mismatch reason into its tooltip surface
+- InventoryList.tsx builds tooltip content from the shared warning reason returned by canEquipItem()
+- src/components/ui/Tooltip.tsx remains the shared tooltip shell; this subtree did not need a dedicated tooltip component rewrite
 
-Tooltips currently show basic item information. After Task 02 adds proficiency checking, we need to update tooltips to inform users about proficiency status and penalties.
-
----
-
-## Files to Modify
-
-### 1. EquipmentMannequin.tsx (line 162-164)
-Already includes mismatch reason in tooltip from Task 04. Verify it displays correctly.
-
-### 2. InventoryList.tsx (line 294)
-Update tooltip for Equip button:
-```typescript
-<Tooltip content={
-  canBeEquipped 
-    ? `Equip ${child.name}` 
-    : (cantEquipReason || "Cannot equip")
-}>
-```
-
-This already uses `cantEquipReason` from `canEquipItem()`, which Task 02 populates with proficiency message.
-
----
-
-## Acceptance Criteria
-
-- [ ] Equipped weapon tooltips show proficiency warnings
-- [ ] Inventory item tooltips show "Not proficient" message
-- [ ] Equip button tooltip explains penalty when disabled
-- [ ] Tooltip text is clear and helpful
-- [ ] No layout breaks with longer tooltip text
-
----
-
-## Testing
-
-**Test Case**: Hover over non-proficient weapon in inventory
-- Expected: Tooltip says "Not proficient with Martial weapons. Cannot add proficiency bonus to attack rolls or use weapon mastery."
-
----
-
-**Created**: 2025-12-08
+What remains unverified here is rendered behavior, not the source-code wiring. This file should therefore be read as a landed wiring note plus a reminder that visual verification still matters.

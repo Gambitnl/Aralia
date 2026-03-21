@@ -21,10 +21,9 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: At your touch, all curses affecting one creature or object end. If the object is a Cursed Magic Item, its curse remains, but the spell breaks its owner's Attunement to the object so it can be removed or discarded.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.314
-- **Status**: Complete

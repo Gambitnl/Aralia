@@ -23,10 +23,9 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Type**: communication
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: You gain the ability to comprehend and verbally communicate with Beasts for the duration. The knowledge and awareness of many Beasts is limited by their intelligence, but at minimum, Beasts can give you information about nearby locations and monsters, including whatever they can perceive or have perceived within the past day. You might be able to persuade a Beast to perform a small favor for you, at the GM's discretion.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.318
-- **Status**: Complete

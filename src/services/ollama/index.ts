@@ -1,9 +1,15 @@
 /**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
+ * ARCHITECTURAL CONTEXT:
+ * This file serves as the 'Unified Facade' for all Ollama-based AI services. 
+ * It provides a stable, backward-compatible class-based API (OllamaService) 
+ * while internally delegating to modular functional implementations 
+ * (banter, conversation, reaction, etc.).
  *
+ * Recent updates expose the 'Player-Directed' and 'Escalation' endpoints, 
+ * bridging the new character-to-player engagement logic into the 
+ * global service layer.
+ * 
  * @file src/services/ollama/index.ts
- * Unified facade for the Ollama service, providing backward-compatible API.
  */
 
 // Re-export all types
@@ -49,7 +55,7 @@ import type {
     OllamaResult
 } from '../../types/ollama';
 import { getDefaultClient } from './client';
-import { generateBanter, generateBanterLine } from './banter';
+import { generateBanter, generateBanterLine, generatePlayerDirectedLine, generateEscalationLine } from './banter';
 import { continueConversation, summarizeConversation } from './conversation';
 import { generateReaction } from './reaction';
 import { extractDiscoveredFacts } from './facts';
@@ -97,6 +103,40 @@ export class OllamaService {
         onPending?: (id: string, prompt: string, model: string) => void
     ): Promise<OllamaResult<BanterLineData>> {
         return generateBanterLine(participants, conversationHistory, contextData, turnNumber, onPending);
+    }
+
+    /**
+     * Generates a single banter line where the NPC addresses the player directly.
+     * WHAT CHANGED: Added new static method generatePlayerDirectedLine.
+     * WHY IT CHANGED: Part of the 'Player-Directed Banter' expansion. This 
+     * allows the UI/hooks to trigger specialized prompts where NPCs 
+     * acknowledge the player's presence, gear, and class.
+     */
+    static async generatePlayerDirectedLine(
+        npc: BanterParticipant,
+        context: BanterContext,
+        conversationHistory: { speakerId: string; speakerName: string; text: string }[],
+        turnNumber: number,
+        onPending?: (id: string, prompt: string, model: string) => void
+    ): Promise<OllamaResult<BanterLineData>> {
+        return generatePlayerDirectedLine(npc, context, conversationHistory, turnNumber, onPending);
+    }
+
+    /**
+     * Generates an escalation/follow-up line when the player has not responded.
+     * WHAT CHANGED: Added new static method generateEscalationLine.
+     * WHY IT CHANGED: To support the 'Nudge/Timeout' mechanic in the banter 
+     * panel. If a player is idle, NPCs can now 'react to the silence' 
+     * based on their personality profile.
+     */
+    static async generateEscalationLine(
+        npc: BanterParticipant,
+        context: BanterContext,
+        conversationHistory: { speakerId: string; speakerName: string; text: string }[],
+        ignoreCount: number,
+        onPending?: (id: string, prompt: string, model: string) => void
+    ): Promise<OllamaResult<BanterLineData>> {
+        return generateEscalationLine(npc, context, conversationHistory, ignoreCount, onPending);
     }
 
     /**

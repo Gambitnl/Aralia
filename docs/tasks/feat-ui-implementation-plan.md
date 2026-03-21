@@ -1,4 +1,11 @@
 # Feat UI Implementation Plan
+This file was re-verified on 2026-03-14.
+It is preserved as a feat-UI backlog plan, but it should be read against the current partial feat implementation rather than as a fresh untouched proposal.
+
+Current reality:
+- the referenced feat UI and assembly surfaces still exist
+- the data-model groundwork it cites has already landed, so the remaining work is narrower than the old framing suggests
+
 
 **Last Updated:** 2025-12-14
 

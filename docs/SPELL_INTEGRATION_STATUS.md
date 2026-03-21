@@ -1,78 +1,78 @@
-# Spell Integration Status & Roadmap
+﻿# Spell Integration Status
 
-**Last Updated:** 2025-12-04 (Document Review)
+Last Updated: 2026-03-12
 
-**Goal:** A "Single Source of Truth" where one JSON file per spell drives the UI, Combat Engine, Narrative AI, and Economy.
+Purpose: Give a high-level status view of the spell-system integration surface while pointing detailed implementation work to the spell-specific docs that now carry most of the operational detail.
 
-## The Integration Matrix
+## What This File Is
 
-A spell is not "Done" until it functions in all relevant contexts. This is a **high-level overview** - for detailed component integration, see [SPELL_INTEGRATION_CHECKLIST.md](./spells/SPELL_INTEGRATION_CHECKLIST.md).
+This is the top-level orientation note for spell integration work.
 
-We track status across four simplified pillars (derived from the 8-pillar architecture in [SPELL_SYSTEM_ARCHITECTURE.md](./architecture/SPELL_SYSTEM_ARCHITECTURE.md)):
+It is not:
+- the detailed spell implementation checklist
+- the authoritative spell migration task tree
+- a per-spell execution dashboard
 
-| Pillar | Contexts Included | "Complete" Criteria |
-| :--- | :--- | :--- |
-| **DATA** | Character Creator, Level Up, Glossary | JSON exists in `public/data/spells/`, `classes` array is normalized, Markdown glossary entry exists and is linked. |
-| **COMBAT** | BattleMap, Action Economy | `effects` array is defined (Gold) or regex-parsable (Silver) in `spellAbilityFactory.ts`. Targeting and resource consumption work correctly. |
-| **NARRATIVE** | Gemini Prompts, Exploration, Social | Spell is recognized in `handleGeminiCustom.ts` or movement handlers. AI context understands the spell's outcome (e.g., "Knock" opens doors). |
-| **ECONOMY** | Loot, Shops, Scribing | Spell scroll exists in item data. Scribing costs/time defined. Material components tracked. |
+Use it as the top-level spell map, then continue into the linked spell-system docs for actual file-level or mechanic-level verification.
 
-## Status Trackers by Level
+## Current Goal
 
-To manage the large number of spells, detailed status tracking has been split into separate files:
+The long-term integration goal is still a stronger single-source-of-truth spell system where structured spell data can support:
+- UI and character surfaces
+- combat execution
+- narrative or AI interpretation
+- economy and item integration
 
-*   [**Cantrips (Level 0)**](./spells/STATUS_LEVEL_0.md)
-*   [**Level 1 Spells**](./spells/STATUS_LEVEL_1.md)
-*   [**Level 2 Spells**](./spells/STATUS_LEVEL_2.md)
-*   [**Level 3 Spells**](./spells/STATUS_LEVEL_3.md)
-*   [**Level 4 Spells**](./spells/STATUS_LEVEL_4.md)
-*   [**Level 5 Spells**](./spells/STATUS_LEVEL_5.md)
-*   [**Level 6 Spells**](./spells/STATUS_LEVEL_6.md)
-*   [**Level 7 Spells**](./spells/STATUS_LEVEL_7.md)
-*   [**Level 8 Spells**](./spells/STATUS_LEVEL_8.md)
-*   [**Level 9 Spells**](./spells/STATUS_LEVEL_9.md)
+The repo is still transitional in places, but the data, validation, loading, and status surfaces are now documented against current paths rather than older migration-era assumptions.
 
-## Legend
+## Verified Current Surfaces
 
-*   🟢 **Gold (Structured)**: JSON has `effects` array. Engine uses precise data.
-*   🟡 **Silver (Inferred)**: `spellAbilityFactory.ts` regex-parses description for damage/saves.
-*   ⚪ **Bronze (Metadata)**: Basic metadata only. No mechanical execution.
+The following spell-support surfaces were rechecked during the 2026-03-12 spell-doc refresh:
+- status files under ./spells/ for levels 0 through 9 plus STATUS_LEVEL_3_PLUS.md
+- ./spells/SPELL_INTEGRATION_CHECKLIST.md
+- ./spells/SPELL_PROPERTIES_REFERENCE.md
+- ./spells/SPELL_JSON_EXAMPLES.md
+- ./architecture/SPELL_SYSTEM_ARCHITECTURE.md
+- ./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md
 
----
+## Verified Current Manifest Fact
 
-## Related Documentation
+A manual repo check during the 2026-03-12 pass confirmed:
+- ../../public/data/spells_manifest.json currently contains 469 spell keys
 
-This document is part of a documentation suite for the spell system:
+That count is a present repo fact, not a claim that every spell has full end-to-end gameplay verification.
 
-1. **[SPELL_INTEGRATION_STATUS.md](./SPELL_INTEGRATION_STATUS.md)** (this file) - High-level roadmap and status overview
-2. **[SPELL_SYSTEM_ARCHITECTURE.md](./architecture/SPELL_SYSTEM_ARCHITECTURE.md)** - Complete 8-pillar architecture definition
-3. **[SPELL_INTEGRATION_CHECKLIST.md](./spells/SPELL_INTEGRATION_CHECKLIST.md)** - Detailed component integration map with test procedures
-4. **[@SPELL-SYSTEM-OVERHAUL-TODO.md](./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md)** - Implementation phases and current work
+## How To Read The Status Surface Now
 
-**Recommended Reading Order:**
-1. Start here (SPELL_INTEGRATION_STATUS.md) for the big picture
-2. Read SPELL_SYSTEM_ARCHITECTURE.md for architectural details
-3. Use SPELL_INTEGRATION_CHECKLIST.md when implementing individual spells
+The entire docs/spells status band has now been re-audited.
+That means the level files no longer present stale Gold, Silver, Bronze, Complete, or Data Only shorthand as if it were a live dashboard.
 
----
+Current practical reading:
+- the spell system has a large structured spell inventory
+- the repo contains both structured execution lanes and transitional behavior
+- the level status docs are now inventory-and-caveat notes, not pseudo-precise maturity matrices
+- spell-specific behavioral truth still belongs in the checklist, current code anchors, and narrower refreshed task notes
 
-## Current Implementation Status
+## High-Level Integration Pillars
 
-**Verified Statistics (as of 2025-12-04):**
+This file keeps the broad four-pillar view as orientation only.
 
-- **Total Spells:** 375 spells in `public/data/spells_manifest.json`
-- **Status Tracking Coverage:**
-  - Levels 0-1: 102 spells tracked (different status system: Pending/Data Only/Complete)
-  - Levels 2-9: 350 spells tracked (Gold/Silver/Bronze system)
+- Data: spell JSON, manifest wiring, and player-facing spell metadata
+- Combat: execution, targeting, resource use, and mechanical effects
+- Narrative: AI or exploration-context understanding of spell outcomes
+- Economy: scrolls, item linkage, and related acquisition or crafting surfaces
 
-**Status Distribution (Levels 2-9 only):**
-- 🟢 **Gold (Structured):** 1 spell (0.3%)
-- 🟡 **Silver (Inferred):** 80 spells (22.9%)
-- ⚪ **Bronze (Metadata):** 269 spells (76.9%)
+## Where To Go Next
 
-**Technical Implementation:**
-- **Item System:** Scrolls use `Item` interface ([src/types/index.ts:298](src/types/index.ts#L298)) with `type: 'scroll'`
-- **Item Templates:** Scroll generation uses `BaseItemTemplate` ([src/data/item_templates/index.ts:9](src/data/item_templates/index.ts#L9))
-- **Spell Ability Factory:** [src/utils/spellAbilityFactory.ts](src/utils/spellAbilityFactory.ts) converts spell JSON to combat abilities
+For actual spell implementation or verification work, continue into:
+1. ./spells/SPELL_INTEGRATION_CHECKLIST.md
+2. ./spells/SPELL_JSON_EXAMPLES.md
+3. ./spells/STATUS_LEVEL_0.md through ./spells/STATUS_LEVEL_9.md and STATUS_LEVEL_3_PLUS.md
+4. ./architecture/SPELL_SYSTEM_ARCHITECTURE.md
+5. ./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md
 
-The spell system is functional for combat and character creation, but the overhaul described in [@SPELL-SYSTEM-OVERHAUL-TODO.md](./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md) aims to migrate all spells from Bronze/Silver to Gold (fully structured) status.
+## Caution
+
+This file is intentionally conservative.
+It summarizes verified inventory facts and current supporting surfaces, but it does not collapse those facts into a claim that every spell is fully integrated across every system.
+When a specific spell matters, verify that spell directly against the current repo.

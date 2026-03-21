@@ -1,3 +1,20 @@
+**Status:** preserved spell-task prompt  
+**Last Reviewed:** 2026-03-14
+
+## Current Reading Rule
+
+This file is a preserved prompt packet from the spell migration effort.
+Use it only after rechecking its assumptions against the current spell validator, current spell JSON layout, and the current docs/spells/reference lane.
+
+## Verified Current Context
+
+A 2026-03-14 repo check confirmed:
+- src/systems/spells/validation/spellValidator.ts still exists as the main spell-schema authority
+- the repo still contains the spell tooling scripts referenced throughout this prompt packet family
+- the prompt body below is historically useful, but some task assumptions may already be partially or fully resolved by later spell-pass work
+
+---
+
 # Agent Prompt 05 - Material Components: Implement Required vs Consumed (with costs) as Structured SSOT + Migrate Dataset
 
 Repo: `AraliaV4/Aralia`

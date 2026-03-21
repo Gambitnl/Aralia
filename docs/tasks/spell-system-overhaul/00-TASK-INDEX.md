@@ -1,13 +1,20 @@
 # Spell System Overhaul - Task Index
 
+**Status Note (2026-03-11):**
+- this file preserves the older 27-task phased implementation plan
+- it is still useful for understanding the original architecture breakdown
+- it is not a guarantee that the subtree still executes exactly against this schedule, timeline, or dependency model
+- read it together with [`README.md`](./README.md) and [`1A-PROJECT-MASTER-SPRINGBOARD.md`](./1A-PROJECT-MASTER-SPRINGBOARD.md)
+
 **Epic:** Component-Based Spell System Implementation
-**Architecture Reference:** [@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
+**Architecture Reference:** [SPELL_SYSTEM_ARCHITECTURE.md](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md)
 **Status:** In Progress (Phase 1 Partial, Pattern Established)
 **Estimated Timeline:** 11 weeks (55 working days)
 **Last Updated:** 2025-12-11
 
 > **Note:** PR #38 (Level 1 spells) and PR #39 (Cantrips) merged. Core pattern established.
-> See [FINAL_SUMMARY.md](./FINAL_SUMMARY.md) for current workflow.
+> For the current subtree orientation, read [README.md](./README.md) and [1A-PROJECT-MASTER-SPRINGBOARD.md](./1A-PROJECT-MASTER-SPRINGBOARD.md).
+> The older milestone recap now lives in [../../archive/spell-docs-2025-12/FINAL_SUMMARY.md](../../archive/spell-docs-2025-12/FINAL_SUMMARY.md).
 
 ---
 

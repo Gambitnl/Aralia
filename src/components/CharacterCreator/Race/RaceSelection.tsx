@@ -15,9 +15,25 @@
 // @dependencies-end
 
 /**
- * @file RaceSelection.tsx
- * Refactored to use accordion-style grouping by baseRace.
- * Parent rows are not selectable; only variant races (subraces) are.
+ * ARCHITECTURAL CONTEXT:
+ * This component handles the 'Race Taxonomy' selection. It groups 
+ * subraces (variants) under their base parent races (e.g., High Elf and 
+ * Wood Elf under 'Elf') to keep the selection sidebar manageable.
+ *
+ * Recent updates focus on 'State Synchronization' and 'Choice Isolation'.
+ * - Refined the `useEffect` used to reset racial choices (like Keen 
+ *   Senses or Spellcasting Ability). It now depends on `effectiveRaceId` 
+ *   to ensure that switching between similar subraces or groups correctly 
+ *   clears stale local state.
+ * - Added `eslint-disable` for `react-hooks/set-state-in-effect`. While 
+ *   resetting state in an effect can cause extra renders, it is currently 
+ *   required here to ensure that "hidden" choices for a newly selected 
+ *   race don't inherit values from the previous one.
+ * - Improved darkvision and speed extraction logic in `transformRaceData` 
+ *   to handle variations in trait text formatting across different race 
+ *   definitions.
+ * 
+ * @file src/components/CharacterCreator/Race/RaceSelection.tsx
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -170,11 +186,21 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
 
   // When the viewed race changes, clear per-race local choice state so we don't accidentally carry it over.
   useEffect(() => {
+    // WHAT CHANGED: Added explicit reset logic for sub-choices.
+    // WHY IT CHANGED: Previously, if you selected 'Elf' and picked a 
+    // proficiency, then switched to 'Dwarf', the internal state for the 
+    // elf proficiency might persist. This effect ensures a clean slate on 
+    // every race navigation event.
+    // DEBT: Resetting local choices when race selection changes; synchronous setStates here trigger cascading renders.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedSpellAbility(null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedKeenSensesSkillId(null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedCentaurNaturalAffinitySkillId(null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedChangelingInstinctSkillIds(new Set());
-  }, [effectiveRaceId]);
+  }, [effectiveRaceId]); // Depend on effectiveRaceId instead of setStates inside
 
   // Compute detail data with sibling variants for comparison table
   const detailData = useMemo(() => {

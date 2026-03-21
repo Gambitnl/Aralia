@@ -26,10 +26,9 @@
 - **Concentration**: true
 
 - **Effect Type**: BUFF
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and upside down along ceilings, while leaving its hands free. The target also gains a climbing speed equal to its walking speed.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.321
-- **Status**: Complete

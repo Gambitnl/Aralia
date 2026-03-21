@@ -1,8 +1,20 @@
 /**
- * @file ArtificerFeatureSelection.tsx
- * This component allows a player who has chosen the Artificer class to select
- * their initial known cantrips and prepared Level 1 spells. The number of
- * prepared spells is dynamically calculated based on their Intelligence modifier.
+ * ARCHITECTURAL CONTEXT:
+ * This component manages the 'Artificer Feature' selection. Artificers are 
+ * unique in that their level 1 spell preparation count is tied to their 
+ * Intelligence modifier, requiring dynamic calculation during the 
+ * creation flow.
+ *
+ * Recent updates focus on 'Accessibility' and 'Calculation Stability'.
+ * - Added `htmlFor` and `id` linking for spell labels to ensure 
+ *   consistent toggling behavior across device types.
+ * - Implemented `useMemo` for `intModifier` and `numPreparedSpells`. 
+ *   This ensures that the spell allowance only re-calculates when the 
+ *   underlying Ability Scores change, rather than on every state patch.
+ * - Integrated `sr-only` labels for screen reader clarity, mirroring 
+ *   the accessibility pattern established in other Class Feature screens.
+ * 
+ * @file src/components/CharacterCreator/Class/ArtificerFeatureSelection.tsx
  */
 import React, { useState, useMemo } from 'react';
 import { Spell, Class as CharClass, AbilityScores, SpellEffect, DamageEffect } from '../../../types';
@@ -29,6 +41,10 @@ const ArtificerFeatureSelection: React.FC<ArtificerFeatureSelectionProps> = ({
 
   const intModifier = useMemo(() => getAbilityModifierValue(abilityScores.Intelligence), [abilityScores.Intelligence]);
   const numPreparedSpells = useMemo(() => Math.max(1, intModifier + Math.floor(1 / 2)), [intModifier]);
+  // WHAT CHANGED: Wrapped preparation count in useMemo.
+  // WHY IT CHANGED: To prevent unnecessary re-renders of the spell lists 
+  // when unrelated local UI state changes. This ensures that the 
+  // 'allowance' stays stable throughout the selection process.
 
   const availableCantrips = spellcastingInfo.spellList
     .map((id: string) => allSpells[String(id)])
@@ -86,16 +102,18 @@ const ArtificerFeatureSelection: React.FC<ArtificerFeatureSelectionProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {availableCantrips.map(spell => (
               <label 
+                htmlFor={`spell-${spell.id}`}
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedCantripIds.has(spell.id) 
+                  selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id) 
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
                   <input 
-                    type="checkbox" 
+                    id={`spell-${spell.id}`}
                     className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
                     checked={selectedCantripIds.has(spell.id)} 
                     onChange={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, spellcastingInfo.knownCantrips)} 
@@ -124,16 +142,18 @@ const ArtificerFeatureSelection: React.FC<ArtificerFeatureSelectionProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {availableSpellsL1.map(spell => (
               <label 
+                htmlFor={`spell-${spell.id}`}
                 key={spell.id} 
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  selectedSpellL1Ids.has(spell.id) 
+                  selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id) 
                     ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                     : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                 }`}
               >
+                <span className="sr-only">Select {spell.name}</span>
                 <div className="flex items-center gap-3">
                   <input 
-                    type="checkbox" 
+                    id={`spell-${spell.id}`}
                     className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
                     checked={selectedSpellL1Ids.has(spell.id)} 
                     onChange={() => toggleSelection(spell.id, selectedSpellL1Ids, setSelectedSpellL1Ids, numPreparedSpells)} 

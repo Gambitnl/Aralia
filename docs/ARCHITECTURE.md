@@ -1,8 +1,10 @@
 # Architecture Compendium
 
+**Last Updated**: 2026-03-10
+
 > **See also**: [VISION.md](./VISION.md) for the product philosophy and design principles underlying this architecture.
 
-This document provides a high-level map of the Aralia codebase, organized by product domains. Each domain links to detailed documentation covering subcomponents, file ownership, and dependencies.
+This document provides a high-level map of the Aralia codebase, organized by product domains. Each domain links to deeper documentation covering current subsystem shape, major files, and related dependencies.
 
 ---
 
@@ -31,14 +33,18 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 ```
 src/
   components/     # React UI components (organized by feature)
+  commands/       # Command-pattern execution and effect orchestration
+  features/       # Feature-scoped modules that do not fit a single UI bucket
   hooks/          # React hooks (state, effects, logic)
   systems/        # Game mechanics (combat, spells, planar, etc.)
-  services/       # Backend services (AI, generation, persistence)
+  services/       # Frontend service-layer modules (AI, persistence, generation, orchestration)
   state/          # Redux-like state management
   data/           # Static game data (races, classes, items)
   types/          # TypeScript type definitions
   utils/          # Utility functions
   config/         # Configuration constants
+  styles/         # Shared styling assets and UI identifiers
+  workers/        # Worker-side execution surfaces where present
 
 scripts/          # Build-time tools and validators
 public/data/      # Runtime JSON data (spells, glossary entries)
@@ -65,7 +71,7 @@ npx --no-install tsx scripts/generate-architecture-compendium.ts
 
 See [architecture/README.md](./architecture/README.md) for:
 - How to add new domains
-- How to update file ownership
+- How to update the domain map and related references
 - Domain document template
 - Regenerating dependency graphs
 

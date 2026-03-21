@@ -1,6 +1,17 @@
 /**
+ * ARCHITECTURAL CONTEXT:
+ * This service is the 'Asset Resolver' for character visual components. 
+ * It maps high-level visual configurations (gender, skin color, clothing 
+ * style) to physical file paths in the public assets directory.
+ *
+ * Recent updates focus on 'Path Robustness'. By using `import.meta.env.BASE_URL`, 
+ * the service now correctly resolves asset paths regardless of whether 
+ * the app is running in a local dev server or a deployed sub-path (GitHub Pages).
+ *
+ * It also includes hardcoded overrides for missing assets (e.g. skin-matched 
+ * hands) by falling back to generic placeholder layers like 'Sword.png'.
+ * 
  * @file src/services/CharacterAssetService.ts
- * Manages character sprite assets, including path resolution and texture loading for both PixiJS and Canvas.
  */
 
 import * as PIXI from 'pixi.js';
@@ -33,9 +44,12 @@ export class CharacterAssetService {
      * Get the relative path to an asset from the src/assets/images/Character Asset Pack directory.
      */
     public getAssetPath(category: string, filename: string): string {
-        // Correcting the path to be relative to the public URL or importable in Vite
-        // Since these are in src/assets, we might need to import them or use absolute paths from root
-        return `/src/assets/images/Character Asset Pack/${category}/${filename}`;
+        // WHAT CHANGED: Switched to template literal with BASE_URL.
+        // WHY IT CHANGED: To support relative-path deployments. Without 
+        // this, asset links break when the site is hosted at 
+        // username.github.io/repo-name/.
+        const base = import.meta.env.BASE_URL || '/';
+        return `${base}assets/images/Character Asset Pack/${category}/${filename}`;
     }
 
     /**
@@ -64,8 +78,12 @@ export class CharacterAssetService {
     /**
      * Resolves the hand asset path (usually matches skin).
      */
-    public getHandPath(gender: CharacterGender, color: number): string {
-        return this.getAssetPath(`${gender} Hand`, `${gender} Skin${color}.png`);
+    public getHandPath(gender: CharacterGender, _color: number): string {
+        // WHAT CHANGED: Temporarily hardcoded to generic 'Sword.png'.
+        // WHY IT CHANGED: The current asset pack lacks skin-tone-specific 
+        // hand files. To avoid 404s in the Character Creator preview, 
+        // we're overlaying a static item (sword) that covers the empty hand slot.
+        return this.getAssetPath(`${gender} Hand`, `${gender} Sword.png`);
     }
 
     /**

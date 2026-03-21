@@ -73,4 +73,5 @@ This guide tracks common issues encountered when running terminal commands and p
   - **TSC Exit Codes:** `npx tsc --noEmit` on this project often returns exit code 1 due to pre-existing `node_modules` (Zod/fa) interop issues. Focus on specific file errors in the output rather than the final exit code.
   - **Vitest Watch Mode:** Vitest runs in watch mode by default. Always use `npx vitest run` or `npm run test -- --run` to ensure the command exits after a single pass.
   - **Ignored Directories:** Tests in `.agent_tools/` are often environment-specific or bundle-dependent and may fail in CI/CLI contexts. Focus testing on `src/` and `tests/` directories unless debugging tool internals.
+  - **`/tmp/` Path on Windows:** The Antigravity `write_to_file` tool maps `/tmp/` to `C:\tmp\`, but Node.js running from `F:\Repos\...` resolves `/tmp/remove-script.mjs` to `F:\tmp\remove-script.mjs` — causing `MODULE_NOT_FOUND`. **Workaround:** Copy the script to the project directory or use an absolute Windows path (`C:\tmp\...`) when invoking with `node`.
   

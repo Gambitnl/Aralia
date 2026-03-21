@@ -1,0 +1,528 @@
+/*
+    This file gives the standalone spell validation page everything it needs to
+    render on its own. The page deliberately borrows the Dev Hub visual language,
+    but it does not depend on the ignored local Dev Hub CSS bundle. That keeps
+    the standalone page trackable and self-sufficient.
+*/
+
+:root {
+    --bg-dark: #0f172a;
+    --bg-deeper: #0b1220;
+    --card-bg: #1e293b;
+    --amber-400: #fbbf24;
+    --sky-400: #38bdf8;
+    --emerald-400: #34d399;
+    --red-400: #f87171;
+    --text-gray: #94a3b8;
+    --text-light: #e2e8f0;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1.5rem;
+}
+
+h1 {
+    font-family: 'Cinzel Decorative', cursive;
+    color: var(--amber-400);
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    margin: 0;
+    text-shadow: 0 4px 6px rgba(0, 0, 0, 0.45);
+}
+
+.panel {
+    width: 100%;
+    background: var(--bg-deeper);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-family: 'Cinzel Decorative', cursive;
+    color: var(--sky-400);
+    font-size: 1.3rem;
+}
+
+.action-btn {
+    background: #111827;
+    color: var(--text-light);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+    font: inherit;
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--amber-400);
+}
+
+.action-btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    transform: none;
+}
+
+.imggen-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.imggen-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-gray);
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    white-space: pre-wrap;
+    line-height: 1.55;
+}
+
+.spellinv-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.spellinv-control,
+.spellinv-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: var(--text-gray);
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.spellinv-control input,
+.spellinv-control select {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    color: var(--text-light);
+    padding: 0.5rem 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+}
+
+.spellinv-control input:focus,
+.spellinv-control select:focus {
+    outline: none;
+    border-color: var(--sky-400);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+}
+
+.spellinv-control {
+    position: relative;
+}
+
+.spellinv-toggle {
+    justify-content: flex-end;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 1.55rem;
+}
+
+.spellinv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.spellinv-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 0.9rem;
+}
+
+.spellinv-card h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    color: var(--amber-400);
+    font-family: 'Cinzel Decorative', cursive;
+}
+
+.spellinv-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: 340px;
+    overflow: auto;
+    margin-top: 0.65rem;
+}
+
+.spellinv-group {
+    background: rgba(2, 6, 23, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 0.65rem;
+}
+
+.spellinv-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.spellinv-group-title {
+    color: var(--amber-400);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.spellinv-group-meta {
+    color: #7f8ea8;
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.spellinv-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.spellinv-row {
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 0.6rem 0.7rem;
+    color: var(--text-light);
+    font-size: 0.76rem;
+    line-height: 1.45;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.spellinv-row button {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: inherit;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+.spellinv-row.is-selected {
+    border-color: var(--sky-400);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+}
+
+.spellinv-row .path {
+    color: var(--sky-400);
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.spellinv-row .meta {
+    margin-top: 0.2rem;
+    color: #7f8ea8;
+}
+
+.spellinv-row .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.4rem;
+}
+
+.spellinv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.12);
+    color: #bae6fd;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    font-size: 0.7rem;
+}
+
+.spellinv-empty {
+    color: var(--text-gray);
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.spellval-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    left: 0;
+    right: 0;
+    max-height: 420px;
+    overflow: auto;
+    padding: 0.6rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(4, 12, 25, 0.96);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
+    z-index: 20;
+}
+
+.spellval-dropdown.is-open {
+    display: block;
+}
+
+.spellval-dropdown-empty,
+.spellval-dropdown-muted {
+    color: var(--text-gray);
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.spellval-dropdown-group {
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 0.55rem;
+    overflow: hidden;
+}
+
+.spellval-dropdown-group summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.8rem;
+    color: var(--amber-400);
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.spellval-dropdown-group summary::-webkit-details-marker {
+    display: none;
+}
+
+.spellval-dropdown-group-meta {
+    color: #7f8ea8;
+    font-size: 0.68rem;
+    white-space: nowrap;
+}
+
+.spellval-dropdown-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0 0.55rem 0.6rem;
+}
+
+.spellval-dropdown-field {
+    width: 100%;
+    text-align: left;
+    background: rgba(2, 6, 23, 0.6);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    color: var(--text-light);
+    padding: 0.6rem 0.7rem;
+    cursor: pointer;
+    font: inherit;
+}
+
+.spellval-dropdown-field.is-selected {
+    border-color: var(--sky-400);
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+}
+
+.spellval-dropdown-field-label {
+    color: var(--sky-400);
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+}
+
+.spellval-dropdown-field-meta {
+    margin-top: 0.25rem;
+    color: #7f8ea8;
+    font-size: 0.68rem;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.45;
+}
+
+.spellval-dropdown-field-values {
+    margin-top: 0.45rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+code {
+    font-family: 'JetBrains Mono', monospace;
+    color: #bae6fd;
+}
+
+.spellval-page {
+    background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 28%),
+        radial-gradient(circle at top left, rgba(167, 139, 250, 0.14), transparent 25%),
+        linear-gradient(180deg, #08101d 0%, #0f172a 100%);
+}
+
+.spellval-shell {
+    width: 100%;
+    max-width: min(1900px, calc(100vw - 3rem));
+}
+
+.spellval-hero {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    gap: 1.5rem;
+    align-items: end;
+    margin-bottom: 1.5rem;
+}
+
+.spellval-kicker {
+    margin: 0 0 0.5rem 0;
+    color: var(--sky-400);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.78rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.spellval-hero h1 {
+    margin: 0;
+}
+
+.spellval-subtitle {
+    max-width: 70ch;
+    color: var(--text-gray);
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-top: 0.85rem;
+}
+
+.spellval-hero-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.spellval-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 0.95rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-light);
+    background: rgba(15, 23, 42, 0.72);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.spellval-link-btn:hover {
+    border-color: var(--amber-400);
+    transform: translateY(-1px);
+}
+
+.spellval-panel {
+    padding: 1.4rem 1.5rem 1.5rem;
+}
+
+.spellval-panel-header {
+    align-items: start;
+    gap: 1rem;
+}
+
+.spellval-panel-copy {
+    margin: 0.4rem 0 0 0;
+    color: var(--text-gray);
+    max-width: 70ch;
+    line-height: 1.6;
+}
+
+.spellval-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.spellval-summary-card {
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 0.95rem 1rem;
+}
+
+.spellval-summary-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--amber-400);
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 0.95rem;
+}
+
+.spellval-summary-card p,
+.spellval-note {
+    margin: 0;
+    color: var(--text-gray);
+    line-height: 1.55;
+    font-size: 0.8rem;
+}
+
+.spellval-results-card {
+    margin-top: 1rem;
+}
+
+.spellval-results-list {
+    max-height: 460px;
+}
+
+@media (max-width: 960px) {
+    .spellval-hero,
+    .spellval-summary-grid,
+    .spellinv-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .spellval-hero-actions {
+        justify-content: flex-start;
+    }
+}

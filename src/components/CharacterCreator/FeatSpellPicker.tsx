@@ -1,7 +1,21 @@
 /**
- * @file FeatSpellPicker.tsx
- * An artisanal spell picker component for feat spell selection.
- * Features school-colored icons, expandable descriptions, and smooth animations.
+ * ARCHITECTURAL CONTEXT:
+ * This component is an artisanal spell selection tool used exclusively 
+ * within the 'Feat Selection' workflow. It handles multi-spell requirements 
+ * with granular filtering (school, name) and rich visual feedback.
+ *
+ * Recent updates focus on 'UI Polish' and 'Selection Ergonomics'.
+ * - Refined selection behavior to use a 'FIFO' (First-In, First-Out) 
+ *   replacement model when the maximum spell count is reached. This 
+ *   allows for quick selection adjustments without requiring manual 
+ *   de-selection of previous choices.
+ * - Standardized control styling (search input, school filter) to use 
+ *   subtle transparency (`bg-gray-900/60`) and consistent sky-themed 
+ *   focus states, aligning with the premium 'Aralia' design language.
+ * - Integrated `AnimatePresence` with `popLayout` to ensure that 
+ *   filtering and expansion transitions feel smooth and non-jarring.
+ * 
+ * @file src/components/CharacterCreator/FeatSpellPicker.tsx
  */
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -76,7 +90,10 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
         // Add to selection
         newSelection = [...selectedSpellIds, spellId];
       } else {
-        // Replace the oldest selection (FIFO)
+        // WHAT CHANGED: Implemented FIFO replacement.
+        // WHY IT CHANGED: Provides a better UX for multi-pick requirements. 
+        // If the user has picked 2 out of 2 spells and clicks a 3rd one, 
+        // we replace the first choice instead of just ignoring the click.
         newSelection = [...selectedSpellIds.slice(1), spellId];
       }
 
@@ -116,18 +133,19 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
       {/* Header with requirement description */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h4 className="text-amber-300 font-cinzel text-lg">
+          <h4 className="text-sky-300 font-cinzel text-sm font-semibold tracking-wide">
             {getSpellLevelLabel(requirement.level)} Selection
           </h4>
-          <p className="text-sm text-gray-400">{requirement.description}</p>
+          <div className="mt-0.5 mb-1.5 h-px bg-gradient-to-r from-transparent via-sky-500/40 to-transparent" />
+          <p className="text-xs text-gray-400">{requirement.description}</p>
         </div>
         <div
           className={`
-            px-3 py-1 rounded-full text-sm font-medium transition-colors
+            px-3 py-1 rounded-full text-xs font-medium transition-colors flex-shrink-0
             ${
               isComplete
-                ? 'bg-green-900/50 text-green-300 border border-green-700'
-                : 'bg-gray-800 text-gray-400 border border-gray-700'
+                ? 'bg-green-900/50 text-green-300 border border-green-700/60'
+                : 'bg-gray-800/80 text-gray-400 border border-gray-700/60'
             }
           `}
         >
@@ -136,23 +154,23 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-2 flex-wrap">
         <input
           type="text"
-          placeholder="Search spells..."
+          placeholder="Search spells…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 min-w-[180px] px-3 py-2 bg-gray-800 border border-gray-700
-                     rounded-lg text-gray-200 placeholder-gray-500
-                     focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 outline-none
+          className="flex-1 min-w-[160px] px-3 py-1.5 bg-gray-900/60 border border-gray-700/60
+                     rounded-lg text-sm text-gray-200 placeholder-gray-600
+                     focus:border-sky-500/60 focus:ring-1 focus:ring-sky-500/30 outline-none
                      transition-colors"
         />
         {uniqueSchools.length > 1 && (
           <select
             value={schoolFilter}
             onChange={(e) => setSchoolFilter(e.target.value as SpellSchool | 'all')}
-            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg
-                       text-gray-200 focus:border-amber-500 outline-none cursor-pointer
+            className="px-3 py-1.5 bg-gray-900/60 border border-gray-700/60 rounded-lg
+                       text-sm text-gray-200 focus:border-sky-500/60 outline-none cursor-pointer
                        transition-colors"
           >
             <option value="all">All Schools</option>

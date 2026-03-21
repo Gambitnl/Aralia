@@ -35,5 +35,3 @@
 
 - **Description**: Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's Hit Point maximum and current Hit Points increase by 5 for the duration.
 - **Higher Levels**: When you cast this spell using a spell slot of 3rd level or higher, a target's Hit Points increase by an additional 5 for each slot level above 2nd.
-- **Source**: PHB 2024 p.239
-- **Status**: Complete

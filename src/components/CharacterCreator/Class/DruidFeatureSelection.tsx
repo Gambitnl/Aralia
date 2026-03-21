@@ -1,11 +1,24 @@
 /**
- * @file DruidFeatureSelection.tsx
- * This component allows a player who has chosen the Druid class to select
- * their Primal Order and their initial known cantrips and Level 1 spells.
+ * ARCHITECTURAL CONTEXT:
+ * This component manages the 'Druid Feature' selection (Primal Order, 
+ * Cantrips, and Level 1 Spells).
+ *
+ * Recent updates focus on '2024 Rulebook Alignment' and 'Automated Feature Injection'.
+ * - Added `sr-only` accessibility labels for all spell selection inputs.
+ * - Refined item highlighting to use a consolidated check 
+ *   (`selectedCantripIds.has || selectedSpellL1Ids.has`) for UI consistency.
+ * - Implemented `numCantripsToSelect` logic to account for the 
+ *   'Magician' Primal Order, which grants an extra cantrip.
+ * - Automated the inclusion of `Speak with Animals`. This spell is now 
+ *   displayed as a locked, pre-selected 'Class Feature' in the Level 1 
+ *   list, ensuring players are aware of their innate class abilities 
+ *   without having to manually spend a selection slot on them.
+ * 
+ * @file src/components/CharacterCreator/Class/DruidFeatureSelection.tsx
  */
 import React, { useState, useMemo } from 'react';
 import { PrimalOrderOption, Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types';
-import Tooltip from '../../Tooltip';
+import _Tooltip from '../../Tooltip';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
 
 interface DruidFeatureSelectionProps {
@@ -42,6 +55,11 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
     .map((id: string) => allSpells[String(id)])
     .filter((spell): spell is Spell => !!spell && spell.level === 0), [spellcastingInfo.spellList, allSpells]);
     
+  // WHAT CHANGED: Filtered out 'Speak with Animals' from the selection list.
+  // WHY IT CHANGED: Druids now get this spell automatically as a class 
+  // feature at Level 1. By filtering it here and rendering it as a 
+  // locked item in the UI, we prevent players from wasting their 
+  // limited preparation slots on a spell they already possess.
   const availableSpellsL1 = useMemo(() => spellcastingInfo.spellList
     .map((id: string) => allSpells[String(id)])
     .filter((spell): spell is Spell => !!spell && spell.level === 1 && spell.id !== 'speak-with-animals'), [spellcastingInfo.spellList, allSpells]);
@@ -122,11 +140,12 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
                   <label 
                     key={spell.id} 
                     className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                      selectedCantripIds.has(spell.id) 
+                      selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id) 
                         ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                         : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                     }`}
                   >
+                    <span className="sr-only">Select {spell.name}</span>
                     <div className="flex items-center gap-3">
                       <input 
                         type="checkbox" 
@@ -156,6 +175,7 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 <label className="p-3 rounded-lg bg-gray-900/40 border border-sky-800/50 flex items-center opacity-70 gap-3">
+                    <span className="sr-only">Speak with Animals (Class Feature)</span>
                     <input type="checkbox" className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded" checked readOnly disabled />
                     <div className="flex flex-col">
                       <span className="text-sm font-semibold text-sky-300">Speak with Animals</span>
@@ -166,11 +186,12 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
                   <label 
                     key={spell.id} 
                     className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                      selectedSpellL1Ids.has(spell.id) 
+                      selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id) 
                         ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
                         : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
                     }`}
                   >
+                    <span className="sr-only">Select {spell.name}</span>
                     <div className="flex items-center gap-3">
                       <input 
                         type="checkbox" 

@@ -1,41 +1,69 @@
-# Creature Taxonomy System
-
-## Overview
-The Creature Taxonomy system (`src/systems/creatures/CreatureTaxonomy.ts`) provides a unified framework for categorizing and validating entities based on their creature type (e.g., Humanoid, Undead, Beast).
+﻿# Creature Taxonomy System
 
 ## Purpose
-D&D 5e relies heavily on creature types for spell targeting, condition immunities, and feature interactions (e.g., Ranger Favored Enemy, Paladin Divine Smite). Previously, this logic was scattered and relied on raw string comparisons, leading to fragility.
 
-## Core Components
+This file documents the CreatureTaxonomy service and its intended role as a safer typed lane for creature-type validation, normalization, and trait lookup.
+The important current-state correction is that the service exists and is tested, but it is not yet the shared runtime path for all spell-targeting logic.
 
-### 1. CreatureTaxonomy Service
-Located at `src/systems/creatures/CreatureTaxonomy.ts`.
-- **Validation**: `isValidTarget(targetTypes, filter)` checks both whitelist (`creatureTypes`) and blacklist (`excludeCreatureTypes`) criteria.
-- **Normalization**: `normalize(type)` converts input strings to the strict `CreatureType` enum.
-- **Traits**: `getTraits(type)` returns associated metadata like standard immunities.
+## Verified Entry Points
 
-### 2. Integration Points
-- **Spell Targeting**: Used to validate if a spell can affect a specific target (e.g., *Hold Person* vs Humanoids).
-- **Condition Immunities**: Can be used to check if a creature is immune to effects based on type (e.g., Constructs vs *Charm*).
+- src/systems/creatures/CreatureTaxonomy.ts
+- src/systems/creatures/__tests__/CreatureTaxonomy.test.ts
+- src/types/creatures.ts
 
-## Usage Example
+## Current Service Surface
 
-```typescript
-import { CreatureTaxonomy } from '@/systems/creatures/CreatureTaxonomy';
+This pass confirmed that CreatureTaxonomy currently exposes:
 
-// Check if a target is valid for Hold Person (Humanoids only)
-const isHumanoid = CreatureTaxonomy.isValidTarget(
-  target.creatureTypes, // e.g. ['Humanoid']
-  { creatureTypes: ['Humanoid'] }
-);
+- isValidTarget(targetTypes, filter)
+- normalize(type)
+- getTraits(type)
 
-// Check if a target is valid for Cure Wounds (No Undead/Constructs)
-const canHeal = CreatureTaxonomy.isValidTarget(
-  target.creatureTypes,
-  { excludeCreatureTypes: ['Undead', 'Construct'] }
-);
-```
+These APIs are real and tested, and they support both whitelist and blacklist style creature-type filtering.
 
-## Future Expansion
-- Integration with `TargetResolver` to replace legacy logic.
-- Support for subtypes (tags) like "Shapechanger" or "Titan".
+## Important Current-State Correction
+
+The older version of this doc implied that creature-type targeting had already been consolidated into one unified runtime path.
+That is not yet true in the current repo.
+
+This pass confirmed that live targeting and filtering still also run through:
+
+- src/systems/spells/targeting/TargetResolver.ts
+- src/systems/spells/targeting/TargetValidationUtils.ts
+- src/commands/factory/SpellCommandFactory.ts
+
+So the right interpretation is:
+
+- CreatureTaxonomy is a real typed service
+- CreatureTaxonomy is a strong candidate for consolidation
+- legacy string-based and duplicated checks still exist alongside it
+
+## What Is Verified Today
+
+### Verified service behavior
+
+- isValidTarget supports include and exclude creature-type checks
+- normalize converts strings into the CreatureType enum shape
+- getTraits returns CreatureTypeTraits metadata from src/types/creatures.ts
+
+### Verified trait support
+
+The current type metadata still supports creature-type-driven rules such as standard immunities and condition immunities.
+That means this service can support checks like construct charm immunity, even though this pass did not verify a single universal runtime consumer for that pattern.
+
+## Boundary Note
+
+Usage examples such as Humanoid-only targeting or excluding Undead and Constructs are valid examples of direct CreatureTaxonomy API usage.
+They should not be read as proof that the entire spell engine already routes through this service.
+
+## Future Work Still Supported By The Repo
+
+This pass still supports the following as forward-looking integration work:
+
+- replacing or consolidating legacy targeting checks in TargetResolver and TargetValidationUtils
+- handling subtype or tag pressure more explicitly, with repo-backed examples such as Shapechanger and Goblinoid
+
+## Current Interpretation
+
+Re-verified on 2026-03-11.
+Treat this file as the typed creature-targeting service note: accurate about the API that exists today, but explicit that the full runtime migration away from scattered string checks is not complete yet.

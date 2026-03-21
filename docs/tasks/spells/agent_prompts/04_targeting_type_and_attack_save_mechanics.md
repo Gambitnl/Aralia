@@ -1,3 +1,20 @@
+**Status:** preserved spell-task prompt  
+**Last Reviewed:** 2026-03-14
+
+## Current Reading Rule
+
+This file is a preserved prompt packet from the spell migration effort.
+Use it only after rechecking its assumptions against the current spell validator, current spell JSON layout, and the current docs/spells/reference lane.
+
+## Verified Current Context
+
+A 2026-03-14 repo check confirmed:
+- src/systems/spells/validation/spellValidator.ts still exists as the main spell-schema authority
+- the repo still contains the spell tooling scripts referenced throughout this prompt packet family
+- the prompt body below is historically useful, but some task assumptions may already be partially or fully resolved by later spell-pass work
+
+---
+
 # Agent Prompt 04 - Targeting Type Standards vs Non-Standard Reference Values + Attack/Save Mechanics Compatibility
 
 Repo: `AraliaV4/Aralia`

@@ -1,0 +1,174 @@
+{
+    "id": "premade_kael_ironvow",
+    "name": "Kael Ironvow",
+    "age": 27,
+    "background": "soldier",
+    "level": 1,
+    "xp": 0,
+    "proficiencyBonus": 2,
+    "race": {
+        "id": "half_orc",
+        "name": "Half-Orc",
+        "baseRace": "greenskins",
+        "description": "Half-orcs walk between civilized and wild worlds, channeling human adaptability and orcish ferocity.",
+        "abilityBonuses": [
+            {
+                "ability": "Strength",
+                "bonus": 2
+            },
+            {
+                "ability": "Constitution",
+                "bonus": 1
+            }
+        ],
+        "traits": [
+            "Creature Type: Humanoid",
+            "Size: Medium (about 5-6.5 feet tall)",
+            "Speed: 30 feet",
+            "Vision: Darkvision 60 feet.",
+            "Relentless Endurance: When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. Once you use this trait, you cannot do so again until you finish a long rest.",
+            "Savage Attacks: When you score a critical hit with a melee weapon attack, you can roll one of the weapon's damage dice one additional time and add it to the extra damage of the critical hit."
+        ],
+        "visual": {
+            "id": "half_orc",
+            "color": "#4A4A4A",
+            "maleIllustrationPath": "assets/images/races/Half_Orc_Male.png",
+            "femaleIllustrationPath": "assets/images/races/Half_Orc_Female.png"
+        }
+    },
+    "class": {
+        "id": "fighter",
+        "name": "Fighter",
+        "description": "Masters of combat, skilled with a variety of weapons and armor.",
+        "hitDie": 10,
+        "primaryAbility": [
+            "Strength",
+            "Dexterity"
+        ],
+        "savingThrowProficiencies": [
+            "Strength",
+            "Constitution"
+        ],
+        "skillProficienciesAvailable": [
+            "acrobatics",
+            "animal_handling",
+            "athletics",
+            "history",
+            "insight",
+            "intimidation",
+            "perception",
+            "survival"
+        ],
+        "numberOfSkillProficiencies": 2,
+        "armorProficiencies": [
+            "All armor",
+            "Shields"
+        ],
+        "weaponProficiencies": [
+            "Simple weapons",
+            "Martial weapons"
+        ],
+        "features": [
+            {
+                "id": "second_wind",
+                "name": "Second Wind",
+                "description": "Regain hit points as a bonus action.",
+                "levelAvailable": 1
+            }
+        ],
+        "weaponMasterySlots": 3,
+        "statRecommendationFocus": [
+            "Strength",
+            "Dexterity",
+            "Constitution"
+        ],
+        "statRecommendationDetails": "Prioritize Strength for heavy weapons/armor. Constitution is vital for hit points.",
+        "recommendedPointBuyPriorities": [
+            "Strength",
+            "Constitution",
+            "Dexterity",
+            "Wisdom",
+            "Charisma",
+            "Intelligence"
+        ]
+    },
+    "classLevels": {
+        "fighter": 1
+    },
+    "abilityScores": {
+        "Strength": 15,
+        "Dexterity": 12,
+        "Constitution": 14,
+        "Intelligence": 8,
+        "Wisdom": 13,
+        "Charisma": 10
+    },
+    "finalAbilityScores": {
+        "Strength": 17,
+        "Dexterity": 12,
+        "Constitution": 15,
+        "Intelligence": 8,
+        "Wisdom": 13,
+        "Charisma": 10
+    },
+    "skills": [
+        {
+            "id": "athletics",
+            "name": "Athletics",
+            "ability": "Strength",
+            "description": "Your Strength (Athletics) check covers difficult situations you encounter while climbing, jumping, or swimming."
+        },
+        {
+            "id": "intimidation",
+            "name": "Intimidation",
+            "ability": "Charisma",
+            "description": "When you attempt to influence someone through overt threats, hostile actions, or physical violence, make a Charisma (Intimidation) check."
+        }
+    ],
+    "savingThrowProficiencies": [
+        "Strength",
+        "Constitution"
+    ],
+    "feats": [],
+    "hp": 12,
+    "maxHp": 12,
+    "hitPointDice": [
+        {
+            "die": 10,
+            "current": 1,
+            "max": 1
+        }
+    ],
+    "armorClass": 11,
+    "speed": 30,
+    "darkvisionRange": 60,
+    "selectedWeaponMasteries": [
+        "longsword",
+        "handaxe",
+        "greataxe"
+    ],
+    "transportMode": "foot",
+    "selectedFightingStyle": {
+        "id": "dueling",
+        "name": "Dueling",
+        "description": "+2 damage with a melee weapon in one hand and no other weapon.",
+        "levelAvailable": 1
+    },
+    "equippedItems": {},
+    "activeEffects": [],
+    "statusEffects": [],
+    "limitedUses": {
+        "second_wind": {
+            "name": "Second Wind",
+            "current": 1,
+            "max": 1,
+            "resetOn": "short_rest"
+        }
+    },
+    "racialSelections": {},
+    "visuals": {
+        "gender": "Male",
+        "skinColor": 4
+    },
+    "visualDescription": "A stocky Half-Orc fighter with greenish-grey skin and a prominent jaw. His posture is ramrod straight — a soldier's bearing etched into muscle memory. A diagonal scar crosses his left cheek, and his dark eyes carry a quiet intensity."
+}

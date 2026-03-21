@@ -1,7 +1,13 @@
 # Agent Task: Zod Validation vs Jules Acceptance Criteria Alignment
 
 **Created:** 2025-12-05
-**Status:** Pending Analysis
+**Status:** Preserved analysis brief
+
+> **Status Note (2026-03-11):**
+> - this file is a bounded task brief for a validation-vs-acceptance audit
+> - no `VALIDATION-VS-CRITERIA-REPORT.md` deliverable was found in this subtree during the current review pass
+> - keep this file as the preserved brief if the analysis is revived, but do not treat it as evidence that the audit was completed
+> - if resumed, re-verify all paths and assumptions against the current validator, acceptance criteria, and spell data layout before producing a report
 
 ---
 

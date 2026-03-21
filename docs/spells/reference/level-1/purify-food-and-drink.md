@@ -24,10 +24,9 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
+- **Utility Type**: creation
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: All nonmagical food and drink within a 5-foot-radius Sphere centered on a point of your choice within range is purified and rendered free of poison and disease.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.310
-- **Status**: Complete

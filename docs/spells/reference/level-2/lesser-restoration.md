@@ -21,10 +21,9 @@
 - **Concentration**: false
 
 - **Effect Type**: HEALING
+- **Utility Type**: other
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: You touch a creature and end either one disease or one condition adhering to it. The condition can be Blinded, Deafened, Paralyzed, or Poisoned.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.291
-- **Status**: Complete

@@ -15,8 +15,27 @@
 // @dependencies-end
 
 /**
- * @file NameAndReview.tsx
- * Refactored to use Split Config Style (Name Entry vs Character Summary).
+ * ARCHITECTURAL CONTEXT:
+ * This component is the 'Final Gate' of character creation. it provides 
+ * a comprehensive summary of all choices made (Race, Class, Ability 
+ * Scores, Spells, Feats) and allows the player to name their character 
+ * and generate a unique AI portrait via Stitch.
+ *
+ * Recent updates focus on 'Visual Fidelity' and 'Process Completion'.
+ * - Added `GlossaryIcon` and `getClassIcon` integration. The summary now 
+ *   displays standard class iconography, improving the "premium" feel 
+ *   of the final review.
+ * - Refined the `suggestedVisualDescription` logic to automatically 
+ *   seed the AI prompt with the character's Name, Race, Class, and Gender 
+ *   selection, streamlining the portrait generation flow.
+ * - Integrated `featStepSkipped` feedback. If the character didn't 
+ *   qualify for any level 1 feats, a subtle informational badge is 
+ *   shown, explaining WHY that step was bypassed to the user.
+ * - Implemented `hasSeededDescriptionRef` to prevent the AI prompt 
+ *   from resetting if the user manually edits it and then re-renders 
+ *   the component.
+ * 
+ * @file src/components/CharacterCreator/NameAndReview.tsx
  */
 import React, { useState, useContext, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -33,6 +52,8 @@ import { CreationStepLayout } from './ui/CreationStepLayout';
 import { SplitPaneLayout } from '../ui/SplitPaneLayout';
 import { Shield, Zap, BookOpen } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { GlossaryIcon } from '../Glossary/IconRegistry';
+import { getClassIcon } from '../../utils/classIcons';
 import type { PortraitGenerationStatus } from './state/characterCreatorState';
 
 interface NameAndReviewProps {
@@ -92,6 +113,13 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
     feats
   } = characterPreview;
 
+  const classIconName = getClassIcon(charClass.name);
+  // WHAT CHANGED: Integrated class icons into the review header.
+  // WHY IT CHANGED: To provide visual consistency across the UI. 
+  // Displaying the class icon next to the Level/Race/Class string 
+  // helps ground the character identity and aligns with the design 
+  // language used in the rest of the app.
+
   const allSpells = useContext(SpellContext);
   const isGeneratingPortrait = portrait.status === 'requesting' || portrait.status === 'polling';
   const hasSeededDescriptionRef = useRef(false);
@@ -116,6 +144,12 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
   }, [charClass.id]);
 
   const suggestedVisualDescription = useMemo(() => {
+    // WHAT CHANGED: Added automated prompt seeding for AI portraits.
+    // WHY IT CHANGED: Most players prefer a starting point for their 
+    // character description. By combining the selected race, class, 
+    // and gender into a descriptive string, we ensure that Stitch 
+    // generates relevant art even if the player doesn't provide 
+    // custom input.
     const raceText = getCharacterRaceDisplayString(characterPreview);
     const classText = charClass.name;
     const gender = characterPreview.visuals?.gender ? `${characterPreview.visuals.gender} ` : '';
@@ -332,8 +366,10 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({
               <div className="flex justify-between items-end mb-6 border-b border-gray-700 pb-4">
                 <div>
                   <h2 className="text-3xl font-bold text-amber-400 font-cinzel">{name || 'Unnamed Hero'}</h2>
-                  <p className="text-gray-400 font-medium">
-                    Level 1 {getCharacterRaceDisplayString(characterPreview)} {charClass.name}
+                  <p className="text-gray-400 font-medium flex items-center gap-1.5">
+                    Level 1 {getCharacterRaceDisplayString(characterPreview)}
+                    {classIconName && <GlossaryIcon name={classIconName} className="w-3.5 h-3.5 flex-shrink-0" />}
+                    {charClass.name}
                   </p>
                 </div>
                 <div className="flex gap-4 mb-1">

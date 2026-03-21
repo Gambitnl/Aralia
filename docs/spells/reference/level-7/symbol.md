@@ -47,5 +47,3 @@
 
   **Stunning.** Each target must succeed on a Wisdom saving throw or have the Stunned condition for 1 minute.
 - **Higher Levels**:
-- **Source**: PHB 2024
-- **Status**: Complete

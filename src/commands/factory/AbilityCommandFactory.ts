@@ -1,3 +1,21 @@
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This factory is responsible for bridging the gap between 'Abilities' 
+ * (weapon attacks, class features) and 'Commands'. It translates raw 
+ * weapon data into executable combat logic.
+ *
+ * Recent updates focus on 'Keyword Propagation'.
+ * - In `WeaponAttackCommand`, we now extract `weapon.properties` (e.g., 
+ *   'heavy', 'finesse') from the ability and pass them into the 
+ *   `CommandContext`.
+ * - This ensures that downstream `DamageCommands` are aware of the source 
+ *   weapon's traits, enabling feat logic like GWM or HAM to function 
+ *   correctly without the command needing a direct reference to the weapon.
+ * - Added `hasDisadvantage` check to the attack roll, allowing status 
+ *   effects (like the Slasher feat's Grievous Wound) to influence accuracy.
+ * 
+ * @file src/commands/factory/AbilityCommandFactory.ts
+ */
 import { CombatCharacter, Ability, CombatState } from '@/types/combat';
 import { GameState } from '@/types';
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
@@ -120,7 +138,13 @@ export class WeaponAttackCommand implements SpellCommand {
         const subContext: CommandContext = {
           ...this.context,
           targets: [currentTarget],
-          isCritical
+          isCritical,
+          // WHAT CHANGED: Propagated weapon properties to subContext.
+          // WHY IT CHANGED: To decoupling weapon data from damage logic. By 
+          // "flattening" the weapon traits into the command context, we allow 
+          // DamageCommand to remain weapon-agnostic while still supporting 
+          // trait-specific mechanics (e.g., Heavy weapon bonuses).
+          weaponProperties: this.ability.weapon?.properties,
         };
 
         let command: SpellCommand | null = null;

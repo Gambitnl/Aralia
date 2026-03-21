@@ -1,24 +1,35 @@
-# Path 2.E: Create Glossary Template System (Task 1.3-1.4)
+﻿# Path 2.E: Spell Description Glossary Linking
 
-## MISSION
-Implement a template-based glossary system to dynamically link spell terms (like "Acid Damage") to glossary definitions.
+**Status:** Active capability gap note
+**Last Reviewed:** 2026-03-12
 
-## REQUIRED READING
-*   `src/context/GlossaryContext.tsx`
-*   `src/types/spells.ts`
+## Purpose
 
-## EXECUTION STEPS
-1.  **Data**: Create `public/data/glossary/spell-terms-template.json`.
-    *   Add common terms: "Acid Damage", "Saving Throw", "Concentration", "Ritual".
-2.  **Type Definition**: Update the Spell interface in `src/types/spells.ts` to include an optional `glossaryTerms: string[]` array.
-3.  **Component**: Update `GlossaryDisplay.tsx` (or relevant component) to support a "Lazy Link" mechanism:
-    *   When a user clicks a highlighted term in a spell description.
-    *   Look up the term in `spell-terms-template.json`.
-    *   Display the definition in a tooltip or modal.
-4.  **Integration**: Ensure the Glossary Context can load/merge these new spell terms.
+Track the still-open capability of linking spell-description terms to the live glossary surfaces without pretending the older template-system brief still matches the current repo.
 
-## CONSTRAINTS
-*   **Performance**: Ensure loading the template doesn't block the main thread.
+## Verified Current State
 
-## DELIVERABLE
-A Pull Request with the new JSON template, updated Types, and updated React components.
+- src/context/GlossaryContext.tsx exists and loads the generated glossary index tree.
+- src/components/Glossary/GlossaryTooltip.tsx exists and can resolve a glossary entry by termId.
+- src/components/CharacterSheet/Spellbook/SpellDetailPane.tsx still renders spell.description and spell.higherLevels as plain text.
+- public/data/glossary/index/spells.json exists.
+- public/data/glossary/spell-terms-template.json does not exist.
+- public/data/glossary/entries/spells/ does not exist.
+- The current repo does not show a structured glossaryTerms field on the spell data lane.
+
+## Concrete Capability Name
+
+- Spell Description Glossary Linking
+
+## Current Follow-Through
+
+1. Decide whether term links should be driven by explicit spell metadata, a curated shared term map, or text parsing at render time.
+2. If explicit metadata wins, define one concrete spell-data field instead of reviving the old loose template wording.
+3. Route linked rendering through SpellDetailPane.tsx or its successor using the existing glossary context and tooltip path.
+4. Add new glossary source files only if the needed terms are actually missing from the current indexed glossary surfaces.
+
+## What This File No Longer Assumes
+
+- that a spell-term template JSON already exists
+- that spell glossary entries live in a dedicated public/data/glossary/entries/spells/ markdown lane
+- that a template-generation step is the only viable path to spell glossary linking

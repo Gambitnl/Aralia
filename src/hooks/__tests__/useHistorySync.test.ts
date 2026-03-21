@@ -4,6 +4,21 @@ import { useHistorySync } from '../useHistorySync';
 import { GamePhase, GameState } from '../../types';
 import * as locationUtils from '@/utils/spatial';
 
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This test suite validates the browser history synchronization logic 
+ * (useHistorySync). It ensures that the application state (Redux-like phase) 
+ * stays in sync with the browser URL and 'Forward/Back' buttons.
+ *
+ * Recent updates focus on 'Silent Guards' for deep-linking. When a user 
+ * cold-loads the app via a shared URL (e.g. /?phase=playing), we block 
+ * navigation if the state isn't ready (e.g. no party loaded yet). 
+ * Crucially, we now suppress the warning notification during this initial 
+ * mount to prevent 'Error Flash' before the store can rehydrate.
+ * 
+ * @file src/hooks/__tests__/useHistorySync.test.ts
+ */
+
 // Mock dependencies
 vi.mock('../../constants', () => ({
     LOCATIONS: {
@@ -143,22 +158,15 @@ describe('useHistorySync', () => {
 
         renderHook(() => useHistorySync(gameState, dispatch));
 
-        // Simulate popstate for the navigation
-        // Actually, if we use renderHook, it runs the effect.
-        // The effect checks URL.
-
-        // Wait, the effect runs on mount. If URL is playing, it checks party.
-        // It sees no party.
-
+        // WHAT CHANGED: Notification expectation changed from .toHaveBeenCalled to .not.toHaveBeenCalled.
+        // WHY IT CHANGED: Initial deep links use a 'silent guard'. The navigation 
+        // is still blocked (security/state integrity), but the UI doesn't 
+        // scream at the user with an alert during the millisecond where 
+        // the app is still loading its initial session data.
         expect(dispatch).not.toHaveBeenCalledWith({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
-        expect(dispatch).toHaveBeenCalledWith({
-            type: 'ADD_NOTIFICATION',
-            payload: {
-                message: "You cannot travel there without an active party.",
-                type: 'warning',
-                duration: 4000
-            }
-        });
+        expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({
+            type: 'ADD_NOTIFICATION'
+        }));
         expect(replaceStateMock).toHaveBeenCalledWith(
             { phase: GamePhase.MAIN_MENU },
             '',

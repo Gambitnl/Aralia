@@ -170,115 +170,69 @@ export function SpellGraphOverlay({
   }, []);
 
   // ---- Build the flat visible virtual node list ----
-  // Technical: each expanded virtual node contributes its children to the list.
-  // Layman: walk open nodes and compute what children to show at each level.
+  // Technical: recursive walk — each open value node expands to Show Spells + remaining axes ad infinitum.
+  // Layman: drill as deep as you like; every value pick reveals another layer of axes.
   const virtualNodes = useMemo((): VirtualLayoutInputNode[] => {
     if (spells.length === 0) return [];
     const result: VirtualLayoutInputNode[] = [];
+    const MAX_DEPTH = 14; // safety cap — 11 axes × 2 levels each + Show Spells headroom
 
-    // Depth 1: top-level axis nodes (always visible — caller only renders when Spells is expanded)
+    // Called whenever a value node is open. Emits Show Spells + remaining axes + their values,
+    // then recurses for any open deeper value.
+    function buildChildren(parentId: string, choices: AxisChoice[], depth: number): void {
+      if (depth > MAX_DEPTH) return;
+      const { filteredSpells, availableAxes, spellCount } = computeAxisEngine(spells, choices);
+
+      // Show Spells node
+      const showId = showSpellsNodeId(choices);
+      const isShowOpen = expandedIds.has(showId);
+      result.push({ id: showId, depth, parentId, label: `Show Spells (${spellCount})`, hasChildren: spellCount > 0 });
+      if (isShowOpen) {
+        for (const spell of filteredSpells) {
+          result.push({ id: entryNodeId(choices, spell.id), depth: depth + 1, parentId: showId, label: spell.name, hasChildren: false });
+        }
+      }
+
+      // Remaining discriminating axes
+      for (const axis of availableAxes) {
+        const axId = axisNodeId(axis.axisId, choices);
+        const isAxOpen = expandedIds.has(axId);
+        result.push({ id: axId, depth, parentId, label: axis.label, hasChildren: true });
+        if (!isAxOpen) continue;
+
+        for (const val of axis.values) {
+          const deepChoices: AxisChoice[] = [...choices, { axisId: axis.axisId, value: val.value }];
+          const deepValueId = valueNodeId(deepChoices);
+          const isDeepOpen = expandedIds.has(deepValueId);
+          result.push({
+            id: deepValueId, depth: depth + 1, parentId: axId,
+            label: `${axisValueLabel(axis.axisId, val.value)} [${val.count}]`,
+            hasChildren: true,
+          });
+          if (isDeepOpen) buildChildren(deepValueId, deepChoices, depth + 2);
+        }
+      }
+    }
+
+    // Depth 1: top-level axis nodes (always visible when Spells is expanded)
     const topResult = computeAxisEngine(spells, []);
     for (const axis of topResult.availableAxes) {
       const id = axisNodeId(axis.axisId);
       const isOpen = expandedIds.has(id);
       result.push({ id, depth: 1, parentId: 'pillar_spells', label: axis.label, hasChildren: true });
-
       if (!isOpen) continue;
 
-      // Depth 2: value nodes under the open axis
+      // Depth 2: value nodes for this axis
       for (const val of axis.values) {
         const choices: AxisChoice[] = [{ axisId: axis.axisId, value: val.value }];
         const valueId = valueNodeId(choices);
         const isValueOpen = expandedIds.has(valueId);
         result.push({
-          id: valueId,
-          depth: 2,
-          parentId: id,
+          id: valueId, depth: 2, parentId: id,
           label: `${axisValueLabel(axis.axisId, val.value)} [${val.count}]`,
           hasChildren: true,
         });
-
-        if (!isValueOpen) continue;
-
-        const afterResult = computeAxisEngine(spells, choices);
-
-        // Depth 3a: Show Spells node
-        const showId = showSpellsNodeId(choices);
-        const isShowOpen = expandedIds.has(showId);
-        result.push({
-          id: showId,
-          depth: 3,
-          parentId: valueId,
-          label: `Show Spells (${afterResult.spellCount})`,
-          hasChildren: afterResult.spellCount > 0,
-        });
-
-        if (isShowOpen) {
-          // Depth 4: spell entry nodes
-          for (const spell of afterResult.filteredSpells) {
-            result.push({
-              id: entryNodeId(choices, spell.id),
-              depth: 4,
-              parentId: showId,
-              label: spell.name,
-              hasChildren: false,
-            });
-          }
-        }
-
-        // Depth 3b: remaining discriminating axes
-        for (const remainAxis of afterResult.availableAxes) {
-          const axId = axisNodeId(remainAxis.axisId, choices);
-          const isAxOpen = expandedIds.has(axId);
-          result.push({
-            id: axId,
-            depth: 3,
-            parentId: valueId,
-            label: remainAxis.label,
-            hasChildren: true,
-          });
-
-          if (!isAxOpen) continue;
-
-          // Depth 4: values for the remaining axis
-          for (const rv of remainAxis.values) {
-            const deepChoices: AxisChoice[] = [...choices, { axisId: remainAxis.axisId, value: rv.value }];
-            const deepValueId = valueNodeId(deepChoices);
-            const isDeepOpen = expandedIds.has(deepValueId);
-            result.push({
-              id: deepValueId,
-              depth: 4,
-              parentId: axId,
-              label: `${axisValueLabel(remainAxis.axisId, rv.value)} [${rv.count}]`,
-              hasChildren: true,
-            });
-
-            if (!isDeepOpen) continue;
-
-            const deepResult = computeAxisEngine(spells, deepChoices);
-            const deepShowId = showSpellsNodeId(deepChoices);
-            const isDeepShowOpen = expandedIds.has(deepShowId);
-            result.push({
-              id: deepShowId,
-              depth: 5,
-              parentId: deepValueId,
-              label: `Show Spells (${deepResult.spellCount})`,
-              hasChildren: deepResult.spellCount > 0,
-            });
-
-            if (isDeepShowOpen) {
-              for (const spell of deepResult.filteredSpells) {
-                result.push({
-                  id: entryNodeId(deepChoices, spell.id),
-                  depth: 6,
-                  parentId: deepShowId,
-                  label: spell.name,
-                  hasChildren: false,
-                });
-              }
-            }
-          }
-        }
+        if (isValueOpen) buildChildren(valueId, choices, 3);
       }
     }
 

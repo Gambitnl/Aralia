@@ -10,6 +10,22 @@
  * the rendering of all other components.
  */
 
+/**
+ * This is the master coordinator for the entire game UI.
+ * 
+ * It holds the primary game state (via useReducer) and chooses which "view"
+ * the player sees — whether it's the main menu, the character creator, or 
+ * the world map. It also manages global overlays like the dice roller and 
+ * notification systems.
+ *
+ * Called by: index.tsx (entry point)
+ * Depends on: appReducer.ts for logic, useGameInitialization for boot sequence,
+ * and dozens of specialized UI components.
+ */
+
+// ============================================================================
+// Imports
+// ============================================================================
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
 import React, { useReducer, useCallback, useEffect, lazy, Suspense, useState } from 'react';
@@ -67,6 +83,7 @@ import { ConversationPanel } from './components/ConversationPanel';
 import { SafeStorage } from './utils/core/storageUtils';
 
 import { CollapsibleBanterPanel } from './components/ui/CollapsibleBanterPanel';
+import { BanterAttentionBanner } from './components/ui/BanterAttentionBanner';
 import { generateMap } from './services/mapService';
 import { generateWorldSeed } from './utils/random/generateWorldSeed';
 
@@ -92,6 +109,10 @@ const NotFound = lazy(() => import('./components/ui/NotFound'));
 // PROGRESS: Most AI functions (location descriptions, NPC interactions, etc.) now use local Ollama instead of Gemini,
 // significantly reducing internet dependency. Merchant inventories still require Gemini. Need service worker for caching
 // static assets and handling offline fallbacks when Ollama server is unavailable.
+
+// ============================================================================
+// Main Component
+// ============================================================================
 const App: React.FC = () => {
   const AUTO_SAVE_PREF_KEY = 'aralia_rpg_pref_auto_save_enabled';
   // Validate environment variables on startup
@@ -145,7 +166,12 @@ const App: React.FC = () => {
     secondsUntilNextLine,
     playerInterrupt,
     endBanter,
-    banterHistory
+    banterHistory,
+    isPlayerDirected,
+    isWaitingForPlayerResponse,
+    playerResponseDeadlineSeconds,
+    extendPlayerResponseDeadline,
+    extendNpcLineDelay,
   } = useCompanionBanter(gameState, dispatch, isBanterPaused);
   // Ollama Dependency Check
   // Keep the check side-effect active; UI wiring can consume this state later.
@@ -1047,8 +1073,36 @@ const App: React.FC = () => {
               companions={gameState.companions}
               onInterrupt={playerInterrupt}
               onEndBanter={endBanter}
+              isPlayerDirected={isPlayerDirected}
+              isWaitingForPlayerResponse={isWaitingForPlayerResponse}
+              playerResponseDeadlineSeconds={playerResponseDeadlineSeconds}
+              forceExpand={isPlayerDirected && isWaitingForPlayerResponse}
+              onExtendDeadline={extendPlayerResponseDeadline}
+              onExtendNpcDelay={extendNpcLineDelay}
             />
           )}
+
+          {/* Attention banner — floats at bottom-centre when an NPC addresses the player */}
+          {/* WHAT CHANGED: Added the BanterAttentionBanner component. */}
+          {/* WHY IT CHANGED: When an NPC speaks directly to the player, it's easy to miss 
+              if the chat panel is collapsed. This banner provides a high-visibility 
+              "call to action" that alerts the player they need to respond before 
+               the deadline expires. */}
+          {gameState.phase === GamePhase.PLAYING &&
+            isBanterActive &&
+            isPlayerDirected &&
+            isWaitingForPlayerResponse && (
+              <BanterAttentionBanner
+                speakerName={banterHistory[banterHistory.length - 1]?.speakerName}
+                lastLine={banterHistory[banterHistory.length - 1]?.text}
+                deadlineSeconds={playerResponseDeadlineSeconds}
+                onExtendDeadline={extendPlayerResponseDeadline}
+                onOpenChat={() => {
+                  /* forceExpand already auto-opens the panel via its useEffect;
+                     nothing extra needed here. */
+                }}
+              />
+            )}
 
           {/* Global Dice Roller Overlay */}
           <DiceOverlay />

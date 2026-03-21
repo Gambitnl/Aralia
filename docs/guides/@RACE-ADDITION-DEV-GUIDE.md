@@ -1,91 +1,77 @@
-# Race Addition Guide (Developer)
+﻿# Race Addition Guide (Developer)
 
-Adding a new race (or subrace) to Aralia involves updating several data layers to ensure it is selectable in the character creator, usable by the NPC generator, and searchable in the glossary.
+Last Updated: 2026-03-11
+Purpose: Describe the current race-addition workflow based on the repo as it exists now.
 
----
+## Current Shape Of The Race Lane
 
-## 🏗️ Step 1: Define Mechanical Data
+Adding a race still touches several surfaces, but one major part of the workflow changed:
+- src/data/races/index.ts now auto-discovers race files with import.meta.glob
+- that means new race data files no longer need a manual import added to the main race index
 
-Create a new file in `src/data/races/[race_id].ts`. This defines the stats and traits shown during character creation.
+Verified supporting surfaces in this pass:
+- src/data/races/index.ts
+- src/data/races/raceGroups.ts
+- src/data/names/raceNames.ts
+- src/data/names/physicalTraits.ts
+- public/data/glossary/entries/races/
+- scripts/generateGlossaryIndex.js
 
-### Key Fields (Race Interface)
-- **`id`**: Unique kebab-case ID (e.g., `hill_dwarf`).
-- **`baseRace`**: (Optional) The parent group ID. If omitted, the race is its own group.
-- **`traits`**: An array of strings. Follow the pattern `Name: Description`.
-  - **CRITICAL**: Use the exact prefixes `Creature Type:`, `Size:`, `Speed:`, and `Darkvision:` for core stats. The UI parser relies on these.
-- **`visual`**: Define the icon, color, and illustration paths for both male and female characters.
+## Step 1: Add The Race Data File
 
-```typescript
-export const MY_RACE_DATA: Race = {
-  id: 'my_race',
-  name: 'My Race',
-  baseRace: 'human', // Groups it under Human in the UI
-  traits: [
-    'Creature Type: Humanoid',
-    'Size: Medium',
-    'Speed: 30 feet',
-    'My Special Trait: You can do cool things.',
-  ],
-  visual: {
-    id: 'my_race',
-    icon: '👤',
-    color: '#ACBCAF',
-    maleIllustrationPath: 'assets/images/races/my_race_male.png',
-    femaleIllustrationPath: 'assets/images/races/my_race_female.png',
-  }
-};
-```
+Create a new race file under src/data/races/.
 
-### Race Images
-Place character illustrations in `public/assets/images/races/` with the naming convention:
-- `[race_id]_male.png` - Male character illustration
-- `[race_id]_female.png` - Female character illustration
+The practical rule is:
+- export a real Race object
+- make sure it carries the fields the current race lane expects
+- keep the file in the same pattern as nearby race files so auto-discovery can pick it up cleanly
 
-Images should depict middle-aged characters in everyday clothes appropriate to the race, engaged in a daily activity within their typical living environment (village, forge, forest, etc.).
+Because index.ts now auto-discovers race files, this is the core registration step.
 
----
+## Step 2: Decide Whether A Race Group Update Is Needed
 
-## 🔗 Step 2: Register the Race
+Not every new race needs a new race-group entry.
 
-### Central Registry
-Add your export to [src/data/races/index.ts](file:///c:/Users/gambi/Documents/Git/AraliaV4/Aralia/src/data/races/index.ts).
-- Import the data object.
-- Add it to `ALL_RACES_DATA`.
+Only update src/data/races/raceGroups.ts when you are adding:
+- a new parent grouping used by the character-creator accordion surface
+- a new umbrella group description or comparison-trait surface
 
-### Groups (Character Creator UI)
-If this is a new "parent" race, add an entry to [src/data/races/raceGroups.ts](file:///c:/Users/gambi/Documents/Git/AraliaV4/Aralia/src/data/races/raceGroups.ts). This controls the accordion headers in the character creator.
+If the race belongs inside an existing family, the group metadata may not need any change.
 
----
+## Step 3: Update NPC Generation Support
 
-## 🤖 Step 3: NPC Generation Data
+If the new race should participate in NPC generation, update both of these:
+- src/data/names/raceNames.ts
+- src/data/names/physicalTraits.ts
 
-To allow the game to generate NPCs of this race, you MUST update two files:
+Those files still act as current anchors for generated names and physical-trait constraints.
 
-1.  **Names**: Add an entry to [src/data/names/raceNames.ts](file:///c:/Users/gambi/Documents/Git/AraliaV4/Aralia/src/data/names/raceNames.ts) with `male`, `female`, and `surnames`.
-2.  **Traits**: Add constraints to [src/data/names/physicalTraits.ts](file:///c:/Users/gambi/Documents/Git/AraliaV4/Aralia/src/data/names/physicalTraits.ts). This defines valid hair colors, age ranges, and height/weight modifiers.
+## Step 4: Add Glossary Coverage
 
----
+If the race should be discoverable in the glossary, add a glossary entry JSON under public/data/glossary/entries/races/.
 
-## 📘 Step 4: Glossary Integration
+Use the current glossary JSON-entry pattern from docs/guides/@GLOSSARY-CONTRIBUTOR-GUIDE.md.
 
-Adding a race to the code makes it "playable," but it also needs to be "readable" in the encyclopedia.
+Important current-state correction:
+- this repo does not currently expose a package script called glossary:index in package.json
+- the glossary index generation logic exists in scripts/generateGlossaryIndex.js
+- if glossary indexes need regeneration, use the actual script surface rather than an assumed package wrapper
 
-1.  **Create Entry**: Add a JSON file to `public/data/glossary/entries/races/[race_id].json`.
-    - Follow the format in [@GLOSSARY-CONTRIBUTOR-GUIDE.md](file:///c:/Users/gambi/Documents/Git/AraliaV4/Aralia/docs/guides/@GLOSSARY-CONTRIBUTOR-GUIDE.md).
-    - Use the `markdown` field to create a sleek trait table.
-2.  **Regenerate Index**:
-    ```bash
-    npm run glossary:index
-    ```
+## Practical Checklist
 
----
+- [ ] Add the race data file under src/data/races/
+- [ ] Confirm the export shape matches nearby race files
+- [ ] Update src/data/races/raceGroups.ts only if a new parent group or accordion grouping is required
+- [ ] Update src/data/names/raceNames.ts if NPC generation should support the race
+- [ ] Update src/data/names/physicalTraits.ts if NPC generation should support the race
+- [ ] Add a glossary entry under public/data/glossary/entries/races/ if the race should be glossary-visible
+- [ ] Regenerate glossary indexes through the real script surface if needed
+- [ ] Verify the race appears cleanly in the character-creator flow you actually touched
 
-## ✅ Checklist
-- [ ] `src/data/races/my_race.ts` created with `visual` spec.
-- [ ] `src/data/races/index.ts` updated.
-- [ ] Race images added to `public/assets/images/races/` (male + female).
-- [ ] `src/data/names/raceNames.ts` updated.
-- [ ] `src/data/names/physicalTraits.ts` updated.
-- [ ] `public/data/glossary/entries/races/my_race.json` created.
-- [ ] (If Subrace) Entry manually nested in `character_races.json`.
-- [ ] Index regenerated.
+## Common Drift To Avoid
+
+Do not assume:
+- that index.ts still needs a manual import registration step
+- that every new race requires a new race-group entry
+- that a package command named glossary:index exists
+- that older file-URL links in earlier versions of this guide are still the right reference form

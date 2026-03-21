@@ -29,5 +29,3 @@
 
 - **Description**: An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from Magic Missile.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.316
-- **Status**: Complete

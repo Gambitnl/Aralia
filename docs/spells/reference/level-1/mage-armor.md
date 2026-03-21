@@ -10,7 +10,7 @@
 
 - **Range Type**: touch
 - **Targeting Type**: single
-- **Valid Targets**: willing_creature
+- **Valid Targets**: allies
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -25,11 +25,8 @@
 - **Duration Unit**: hour
 - **Concentration**: false
 
-- **Effect Type**: BUFF
-- **Save Stat**: None
-- **Save Outcome**: none
+- **Effect Type**: DEFENSIVE
 
 - **Description**: You touch a willing creature who isn't wearing armor, and a protective magical force surrounds it until the spell ends. The target's base AC becomes 13 + its Dexterity modifier. The spell ends if the target dons armor or if you dismiss the spell as an action.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.293
-- **Status**: Complete
+

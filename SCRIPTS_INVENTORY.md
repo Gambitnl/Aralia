@@ -10,29 +10,29 @@ Total Executable Scripts: 138
 
 ### ? Workflow Automation & AI Drivers (23)
 
-- [ ] **scripts\workflows\chat-debug\deep-inspect.ts**
+- [ ] **scripts\workflows\chat-debug\deep-inspect.ts**: *Capture console logs Capture network requests*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, scripts/deep_inspect.ts
-- [ ] **scripts\workflows\chat-debug\gemini-monitor.ts**
+- [ ] **scripts\workflows\chat-debug\gemini-monitor.ts**: *--- Helper to load .env manually ---*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, scripts/gemini_monitor.ts
-- [ ] **scripts\workflows\chat-debug\inspect-site.ts**
+- [ ] **scripts\workflows\chat-debug\inspect-site.ts**: *Check for specific elements like "New Game"*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, scripts/inspect_site.ts
-- [ ] **scripts\workflows\chat-debug\interact-chat.ts**
+- [ ] **scripts\workflows\chat-debug\interact-chat.ts**: *Set name Type message Click send Wait for the message to appear in the list*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, scripts/interact_chat.ts
-- [ ] **scripts\workflows\gemini\core\image-gen-mcp.ts**
+- [ ] **scripts\workflows\gemini\core\image-gen-mcp.ts**: *Unified Image Generation MCP Server Consolidates Gemini and Whisk browser automation.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md, skills/whisk-image-generation/SKILL.md, src/config/env.ts, tsconfig.node.json, vite.config.ts
-- [ ] **scripts\workflows\gemini\image-gen\generate-race-images.ts**
+- [ ] **scripts\workflows\gemini\image-gen\generate-race-images.ts**: *Generate race images (Male/Female versions) using Stitch (primary) with image-gen fallback. Usage: npm run generate:race-images npm run generate:ra...*
   - *Referenced by*: .agent/tools_inventory.json, docs/MCP_INTEGRATION.md, docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/decision_logs/race_glossary_sync_questions.md, docs/portraits/race_portrait_regen_handoff.md, package.json, scripts/run-portrait-regen.cmd
-- [ ] **scripts\workflows\gemini\image-gen\image-gen-driver.ts**
+- [ ] **scripts\workflows\gemini\image-gen\image-gen-driver.ts**: *Image generation driver with Stitch primary + image-gen fallback. CHANGE LOG: 2026-02-27 09:24:00: Added 'as any' casts to 'shell: true' options in...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\workflows\gemini\image-gen\launch-debug-chrome.js**
+- [ ] **scripts\workflows\gemini\image-gen\launch-debug-chrome.js**: *Resolve absolute path to profile Ensure it exists Determine Chrome executable path based on OS*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md, package.json, scripts/run-chrome-mcp.js
-- [ ] **scripts\workflows\gemini\image-gen\open-gemini-profile.ts**
+- [ ] **scripts\workflows\gemini\image-gen\open-gemini-profile.ts**: *Opens a persistent Playwright Chromium profile for Gemini login/consent setup. This is a one-time setup step for browser-automation-based image gen...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, package.json, scripts/open-gemini-profile.ts
-- [ ] **scripts\workflows\gemini\image-gen\regenerate-aasimar-variants.ts**
+- [ ] **scripts\workflows\gemini\image-gen\regenerate-aasimar-variants.ts**: *Regenerate Aasimar variant (Fallen/Protector/Scourge) race images (male/female) using the Gemini browser automation. Outputs overwrite the paths re...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\workflows\gemini\image-gen\regenerate-character-creator-race-images.ts**
+- [ ] **scripts\workflows\gemini\image-gen\regenerate-character-creator-race-images.ts**: *Regenerate Character Creator race illustration assets that are: - missing from disk, or - byte-identical duplicates of other referenced race images...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, scripts/run-image-regen.cmd
-- [ ] **scripts\workflows\gemini\image-gen\regenerate-race-images-from-backlog.ts**
+- [ ] **scripts\workflows\gemini\image-gen\regenerate-race-images-from-backlog.ts**: *Regenerate race portrait images from a curated backlog file. This is intended for manual quality passes, not only "missing/duplicate" repair. Usage...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/decision_logs/race_glossary_sync_questions.md, docs/portraits/race_portrait_regen_handoff.md, scripts/run-portrait-regen.cmd
 - [ ] **scripts\workflows\gemini\research\debug\click-gemini-start-research-locator.ts**
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, scripts/audits/click-gemini-start-research-locator.ts
@@ -40,27 +40,27 @@ Total Executable Scripts: 138
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, scripts/audits/click-gemini-start-research-locator.ts, scripts/audits/click-gemini-start-research.ts
 - [ ] **scripts\workflows\gemini\research\debug\inspect-gemini-deep-research-ui.ts**
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, scripts/audits/inspect-gemini-deep-research-ui.ts
-- [ ] **scripts\workflows\gemini\research\research-races-with-gemini.ts**
+- [ ] **scripts\workflows\gemini\research\research-races-with-gemini.ts**: *Research race profiles using Gemini Web (CDP) and write one markdown file per race. This script is intentionally separate from image generation to ...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md, package.json
 - [ ] **scripts\debug_validation.ts**
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\deep_inspect.ts**
+- [ ] **scripts\deep_inspect.ts**: *Tombstone for the old deep_inspect.ts location. We keep this wrapper so stale calls provide an actionable migration message.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\gemini_monitor.ts**
+- [ ] **scripts\gemini_monitor.ts**: *Tombstone for the old gemini_monitor.ts location. This keeps old flow calls fail-fast with a migration message.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\inspect_site.ts**
+- [ ] **scripts\inspect_site.ts**: *Tombstone for the old inspect_site.ts location. This file exists on purpose so outdated flows fail with a clear relocation message instead of faili...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\inspect_stitch.ts**
+- [ ] **scripts\inspect_stitch.ts**: *Valid model IDs from Stitch API Generate a unique prompt for each model so we can identify the output*
   - *Referenced by*: .agent/skills/stitch_ui_generation/SKILL.md, .agent/skills/stitch_ui_generation/resources/windows_patch.md, docs/architecture/_generated/file-inventory.json, public/agent-docs/skills/stitch_ui_generation/SKILL.md, public/agent-docs/skills/stitch_ui_generation/resources/windows_patch.md, public/agent-docs/workflows/stitch-generate.md
-- [ ] **scripts\interact_chat.ts**
+- [ ] **scripts\interact_chat.ts**: *Tombstone for the old interact_chat.ts location. The real script now lives under scripts/workflows/chat-debug.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\open-gemini-profile.ts**
+- [ ] **scripts\open-gemini-profile.ts**: *Tombstone for the old open-gemini-profile.ts location. This script was moved into the Gemini image-gen workflow folder.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, package.json
 
 
 ### ?? Environment & CLI Tooling (5)
 
-- [ ] **scripts\tooling\script-tracker.ts**
+- [ ] **scripts\tooling\script-tracker.ts**: *Technical: Utility that records execution metadata into the calling script's own source file header and into a central run-log. Safe to call from a...*
   - *Status*: Orphaned / Manual entry only
 - [ ] **scripts\codex-with-codexception.ps1**
   - *Status*: Orphaned / Manual entry only
@@ -68,7 +68,7 @@ Total Executable Scripts: 138
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
 - [ ] **scripts\prepend_date_script.cjs**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **.claude\hooks\session-cleanup-hook.js**
+- [ ] **.claude\hooks\session-cleanup-hook.js**: *Delete backup directory for this session*
   - *Status*: Orphaned / Manual entry only
 
 
@@ -158,115 +158,115 @@ Total Executable Scripts: 138
 
 ### ?? MCP & System Tooling (3)
 
-- [ ] **scripts\mcp-util.ts**
+- [ ] **scripts\mcp-util.ts**: *MCP Utility Wrapper Provides convenient access to MCP CLI operations CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added 'as any' casts to 'sh...*
   - *Referenced by*: docs/MCP_INTEGRATION.md, docs/architecture/_generated/file-inventory.json, package.json
-- [ ] **scripts\run-chrome-mcp.js**
+- [ ] **scripts\run-chrome-mcp.js**: *Wrapper to run the Chrome DevTools MCP server. 🛠️ SETUP INSTRUCTIONS: 1. This server requires a running Chrome instance with remote debugging ...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\test-mcp-servers.ts**
+- [ ] **scripts\test-mcp-servers.ts**: *Test suite for MCP servers Validates that all configured MCP servers are working correctly CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added...*
   - *Referenced by*: docs/MCP_INTEGRATION.md, docs/architecture/_generated/file-inventory.json, package.json
 
 
 ### ??? Content Creation Helpers (7)
 
-- [ ] **scripts\add_spell.js**
+- [ ] **scripts\add_spell.js**: *scripts/add_spell.js Interactive helper to add a new spell V2 JSON file and update the manifest + glossary index.*
   - *Referenced by*: docs/@README-INDEX.md, docs/DOCS_OVERVIEW.md, docs/DOCS_OVERVIEW_COMPLETE_AUDIT.md, docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md, src/components/Glossary/SpellCardTemplate.tsx
-- [ ] **scripts\generate-architecture-compendium.ts**
+- [ ] **scripts\generate-architecture-compendium.ts**: *Architecture Compendium Generator Generates dependency graphs and file inventories for architecture documentation. Usage: npx --no-install tsx scri...*
   - *Referenced by*: docs/ARCHITECTURE.md, docs/architecture/README.md, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/architecture/agent_prompts/01_architecture_compendium.md, scripts/verify-architecture-coverage.ts
 - [ ] **scripts\generate-master-roadmap.ts**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\generate-npc.ts**
+- [ ] **scripts\generate-npc.ts**: *CLI Tool to generate functional NPC objects for the Aralia RPG. Usage: npx tsx scripts/generate-npc.ts --role [role] --race [race] --level [n] --co...*
   - *Referenced by*: .agent/tools_inventory.json, docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
 - [ ] **scripts\generate-spell-manifest.mjs**
   - *Referenced by*: docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/spell-system-overhaul/1G-REORGANIZE-SPELL-FILES.md
-- [ ] **scripts\generateGlossaryIndex.js**
+- [ ] **scripts\generateGlossaryIndex.js**: *scripts/generateGlossaryIndex.js*
   - *Referenced by*: docs/CHANGELOG.md, docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/features/GLOSSARY-SPELL-TEMPLATE-PROPOSAL.md, docs/guides/@GLOSSARY-CONTRIBUTOR-GUIDE.md, docs/guides/CLASS_ADDITION_GUIDE.md, docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md, docs/guides/RACE_ADDITION_GUIDE.md, docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md, docs/tasks/spells/agent_prompts/01_missing_references_and_json.md, docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md, docs/tasks/spells/agent_prompts/05_material_components_split_model.md, docs/tasks/spells/agent_prompts/06_subclass_spell_access_glossary_feature.md, docs/tasks/spells/agent_prompts/07_feat_spell_access_glossary_feature.md, scripts/add_spell.js, skills/glossary-modal-editor/SKILL.md, skills/glossary-modal-editor/references/data-editing.md, src/components/Glossary/Glossary.README.md
-- [ ] **scripts\regenerate-manifest.ts**
+- [ ] **scripts\regenerate-manifest.ts**: *glob.sync returns relative paths from cwd*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md, docs/tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md, docs/tasks/spell-completeness-audit/@WORKFLOW.md, docs/tasks/spell-system-overhaul/1J-MIGRATE-CANTRIPS-BATCH-2.md, docs/tasks/spell-system-overhaul/1K-MIGRATE-CANTRIPS-BATCH-3.md, docs/tasks/spell-system-overhaul/1L-MIGRATE-CANTRIPS-BATCH-4.md, docs/tasks/spell-system-overhaul/1M-MIGRATE-CANTRIPS-BATCH-5.md, docs/tasks/spell-system-overhaul/1N-MIGRATE-CANTRIPS-BATCH-6.md, docs/tasks/spell-system-overhaul/1O-MIGRATE-CANTRIPS-BATCH-7.md, docs/tasks/spell-system-overhaul/1P-MIGRATE-CANTRIPS-BATCH-8.md, docs/tasks/spell-system-overhaul/1Q-MIGRATE-CANTRIPS-BATCH-9.md, docs/tasks/spell-system-overhaul/@DISPATCH-SPELLS-TO-JULES.md, docs/tasks/spell-system-overhaul/BATCH-CREATION-GUIDE.md, docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md, docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md, docs/tasks/spell-system-overhaul/LEVEL-2-BATCHES.md, docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md, docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PROMPT.md, docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md, docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md, docs/tasks/spells/agent_prompts/01_missing_references_and_json.md, docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md, docs/tasks/spells/agent_prompts/05_material_components_split_model.md, docs/tasks/spells/agent_prompts/06_subclass_spell_access_glossary_feature.md, docs/tasks/spells/agent_prompts/07_feat_spell_access_glossary_feature.md, scripts/check-spell-integrity.ts, scripts/migrate-legacy-spells-to-v2.ts
 
 
 ### ??? Extension & Hook Scripts (8)
 
-- [ ] **.claude\hooks\file-backup-hook.js**
+- [ ] **.claude\hooks\file-backup-hook.js**: *Read input from stdin Only backup for file modification tools*
   - *Status*: Orphaned / Manual entry only
-- [ ] **.claude\hooks\ralph-stop-hook.js**
+- [ ] **.claude\hooks\ralph-stop-hook.js**: *Ralph Stop Hook for Claude Code This hook intercepts Claude's exit attempts and checks if the task is truly complete by looking for completion sign...*
   - *Status*: Orphaned / Manual entry only
-- [ ] **.uplink\scripts\atomic_write.py**
+- [ ] **.uplink\scripts\atomic_write.py**: *Safely writes JSON data to a file using a temporary file and atomic rename.*
   - *Status*: Orphaned / Manual entry only
-- [ ] **.uplink\scripts\cleanup_server.py**
+- [ ] **.uplink\scripts\cleanup_server.py**: *Server Cleanup Utility for Autonomous Agents  Safely stops all chat server instances before starting a new one. Prevents zombie processes from fail...*
   - *Status*: Orphaned / Manual entry only
-- [ ] **.uplink\scripts\port_check.py**
+- [ ] **.uplink\scripts\port_check.py**: *Port Check Utility for Autonomous Agents (Hardened)  Returns clean, unambiguous port status for use in Herald steps. Recognizes OS transition state...*
   - *Status*: Orphaned / Manual entry only
-- [ ] **.uplink\scripts\post_message.py**
+- [ ] **.uplink\scripts\post_message.py**: *Post Message Utility for Autonomous Agents  Posts messages to chat channels without blocking. Uses direct file I/O (no HTTP required). Uses atomic ...*
   - *Status*: Orphaned / Manual entry only
-- [ ] **.uplink\scripts\safe_run.py**
+- [ ] **.uplink\scripts\safe_run.py**: *Injects non-interactive flags into common commands.*
   - *Status*: Orphaned / Manual entry only
-- [ ] **.uplink\scripts\wait_for_server.py**
+- [ ] **.uplink\scripts\wait_for_server.py**: *Polls a URL until it returns HTTP 200.*
   - *Status*: Orphaned / Manual entry only
 
 
 ### ??? Data Integrity & Consistency Audits (42)
 
-- [ ] **scripts\audits\audit-race-ids-vs-glossary.ts**
+- [ ] **scripts\audits\audit-race-ids-vs-glossary.ts**: *Compares Character Creator races (src/data/races/*.ts) with glossary race entry files under public/data/glossary/entries/races/ (recursive). This i...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audits\audit-race-image-bytes.ts**
+- [ ] **scripts\audits\audit-race-image-bytes.ts**: *Audits race illustration assets used by the Character Creator. Source of truth for Character Creator images: src/data/races/*.ts -> visual.maleIllu...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md
-- [ ] **scripts\audits\cantrip_save_audit.ts**
+- [ ] **scripts\audits\cantrip_save_audit.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added explicit types to 'forEach' parameters and the 'catch' block error to resolve implicit any...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audits\check-base-trait-coverage.ts**
+- [ ] **scripts\audits\check-base-trait-coverage.ts**: *Checks whether "parent/base" races contain traits that are missing from their child races. This is important before hiding/removing parent races fr...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audits\check-base-trait-key-coverage.ts**
+- [ ] **scripts\audits\check-base-trait-key-coverage.ts**: *More semantic version of base-trait coverage: - compares by "trait key" (text before the first ':') - treats a parent trait as covered if the child...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audits\check-image-square.py**
+- [ ] **scripts\audits\check-image-square.py**: *Exit codes: 0: ok (square) 2: not square 1: error*
   - *Referenced by*: docs/portraits/race_portrait_regen_handoff.md
-- [ ] **scripts\audits\click-gemini-start-research-locator.ts**
+- [ ] **scripts\audits\click-gemini-start-research-locator.ts**: *Tombstone for the old click-gemini-start-research-locator.ts location. This wrapper prevents silent path drift in scripts that still call the old p...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audits\click-gemini-start-research.ts**
+- [ ] **scripts\audits\click-gemini-start-research.ts**: *Tombstone for the old click-gemini-start-research.ts location. This old path is retained only to make stale references fail loudly with guidance.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, scripts/audits/click-gemini-start-research-locator.ts
-- [ ] **scripts\audits\detect-blank-margins.py**
+- [ ] **scripts\audits\detect-blank-margins.py**: *Detect "letterboxing" / blank margins in generated PNGs.  Gemini sometimes returns an image pasted onto a white canvas. We want full-bleed square i...*
   - *Referenced by*: docs/portraits/race_portrait_regen_handoff.md
-- [ ] **scripts\audits\inspect-gemini-deep-research-ui.ts**
+- [ ] **scripts\audits\inspect-gemini-deep-research-ui.ts**: *Tombstone for the old Gemini deep-research UI inspector location. The executable script moved into a workflow-specific debug folder.*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audits\level1_save_audit.ts**
+- [ ] **scripts\audits\level1_save_audit.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added explicit types to 'forEach' parameters and 'catch' block error to resolve implicit any/unk...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audits\list-backlog-progress.py**
+- [ ] **scripts\audits\list-backlog-progress.py**: *List progress for docs/portraits/race_portrait_regen_backlog.json.  We treat a (raceId, gender) pair as "done" if it appears at least once in: publ...*
   - *Referenced by*: docs/portraits/race_portrait_regen_handoff.md
-- [ ] **scripts\audits\list-base-race-chooser-candidates.ts**
+- [ ] **scripts\audits\list-base-race-chooser-candidates.ts**: *Lists races that look like "base/parent" entries: - They have at least one other race whose baseRace equals their id. - Optionally they also contai...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
 - [ ] **scripts\audits\list-non-square-race-images.py**
   - *Referenced by*: docs/portraits/race_portrait_regen_handoff.md
-- [ ] **scripts\audits\list-slice-of-life-settings.ts**
+- [ ] **scripts\audits\list-slice-of-life-settings.ts**: *Build a clean slice-of-life ledger for race portraits. Sources: - CC race data: src/data/races/*.ts - Image status log: public/assets/images/races/...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/decision_logs/race_glossary_sync_questions.md, docs/portraits/race_portrait_regen_handoff.md, scripts/audits/orchestrate-race-qa.ts, scripts/run-portrait-regen.cmd
 - [ ] **scripts\audits\mark-slice-of-life-qa.ts**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md, scripts/audits/orchestrate-race-qa.ts, scripts/audits/qa-batches/README.md
-- [ ] **scripts\audits\orchestrate-race-qa.ts**
+- [ ] **scripts\audits\orchestrate-race-qa.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Pruning] Refactored 'shouldQueue' to remove redundant 'Boolean()' casts on 'manualReviewRequired' to comply with ...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md, scripts/audits/qa-batches/README.md
-- [ ] **scripts\audits\race-status-tail.py**
+- [ ] **scripts\audits\race-status-tail.py**: *Print recent race-image-status entries (ignoring entries missing race/gender).  This is mainly to help resume long image-regeneration batches.*
   - *Referenced by*: docs/portraits/race_portrait_regen_handoff.md
 - [ ] **scripts\audits\run-qa-batch-agent.ts**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md, scripts/audits/qa-batches/README.md
-- [ ] **scripts\audits\verify-cc-glossary-race-sync.ts**
+- [ ] **scripts\audits\verify-cc-glossary-race-sync.ts**: *Verify Character Creator race data and Glossary race data are in sync. Checks: - Each selectable CC race has a glossary entry. - Glossary male/fema...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/guides/RACE_ENRICHMENT_WORKFLOW.md, docs/portraits/race_portrait_regen_handoff.md
 - [ ] **scripts\roadmap-engine\opportunities\scanner.test.ts**
   - *Status*: Orphaned / Manual entry only
 - [ ] **scripts\roadmap-engine\opportunities\scanner.ts**
   - *Referenced by*: docs/@LINK-VERIFICATION-REPORT.md, docs/plans/2026-02-27-roadmap-branch-completion-design.md, docs/tasks/spells/agent_prompts/02_non_ascii_guardrails.md, scripts/roadmap-server-logic.ts, vite.config.ts
-- [ ] **scripts\analyze_cantrip_consistency.cjs**
+- [ ] **scripts\analyze_cantrip_consistency.cjs**: *1. Check which fields are missing on some spells but present on others*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\analyze_range_targeting.cjs**
+- [ ] **scripts\analyze_range_targeting.cjs**: *Self range but targets enemies/creatures at distance*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\audit-race-sync.ts**
+- [ ] **scripts\audit-race-sync.ts**: *CLI script to audit synchronization between character creator races and glossary entries. This script compares races defined in src/data/races/ aga...*
   - *Referenced by*: .agent/tools_inventory.json, docs/architecture/_generated/file-inventory.json, docs/guides/RACE_ENRICHMENT_WORKFLOW.md, package.json
-- [ ] **scripts\audit_and_wire_images.ts**
+- [ ] **scripts\audit_and_wire_images.ts**: *Scans for race images and ensures they are wired up in both: 1. src/data/races/*.ts (Character Creator) 2. public/data/glossary/entries/races/*.jso...*
   - *Referenced by*: .agent/skills/stitch_ui_generation/SKILL.md, docs/architecture/_generated/file-inventory.json, public/agent-docs/skills/stitch_ui_generation/SKILL.md, skills/whisk-image-generation/SKILL.md
-- [ ] **scripts\audit_spells.ts**
+- [ ] **scripts\audit_spells.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to 'spellAuditor' import to suppress resolution warnings in the script enviro...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json
 - [ ] **scripts\check-non-ascii.ts**
   - *Referenced by*: .agent/tools_inventory.json, docs/architecture/README.md, docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/architecture/agent_prompts/01_architecture_compendium.md, docs/tasks/spells/agent_prompts/02_non_ascii_guardrails.md, package.json, scripts/validate-data.ts
-- [ ] **scripts\check-spell-integrity.ts**
+- [ ] **scripts\check-spell-integrity.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to 'CLASSES_DATA' and 'SpellValidator' imports to suppress resolution warning...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/spells/SPELL_INTEGRATION_CHECKLIST.md, docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md, docs/tasks/spell-system-overhaul/@DISPATCH-SPELLS-TO-JULES.md, docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md, docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md, docs/tasks/spell-system-overhaul/LEVEL-2-BATCHES.md, docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PROMPT.md, docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md
-- [ ] **scripts\checkSpellGates.js**
+- [ ] **scripts\checkSpellGates.js**: *scripts/checkSpellGates.js Run with: node scripts/checkSpellGates.js Purpose: Lightweight report to spot spell migration issues now that spells are...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
-- [ ] **scripts\extract_cantrip_values.cjs**
+- [ ] **scripts\extract_cantrip_values.cjs**: *Flatten object to dot notation*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
 - [ ] **scripts\roadmap-audit-done-node-tests.ts**
   - *Referenced by*: package.json
@@ -274,49 +274,49 @@ Total Executable Scripts: 138
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, package.json
 - [ ] **scripts\scan-quality.ts**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, package.json, vite.config.ts
-- [ ] **scripts\sync-glossary-races-with-character-creator.ts**
+- [ ] **scripts\sync-glossary-races-with-character-creator.ts**: *Sync Glossary race grouping + images to match Character Creator. What it does: - Normalizes glossary race IDs to match Character Creator IDs (under...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/guides/RACE_ENRICHMENT_WORKFLOW.md
 - [ ] **scripts\sync-track-workflows.sh**
   - *Status*: Orphaned / Manual entry only
 - [ ] **scripts\typecheck-top-errors.ps1**
   - *Referenced by*: skills/typecheck-preservationist/SKILL.md
-- [ ] **scripts\validate-data.ts**
+- [ ] **scripts\validate-data.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to 'SpellValidator', 'ACTIVE_RACES', and 'Race' imports to suppress resolutio...*
   - *Referenced by*: docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md, docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/architecture/domains/glossary-data.md, docs/spells/SPELL_INTEGRATION_CHECKLIST.md, docs/tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md, docs/tasks/spell-system-overhaul/SPELL-WORKFLOW-QUICK-REF.md, docs/tasks/spell-system-overhaul/TODO.md, docs/tasks/spell-system-overhaul/VALIDATION-ALIGNMENT-ANALYSIS.md, docs/tasks/spells/agent_prompts/02_non_ascii_guardrails.md, package.json, src/systems/spells/validation/LegacySpellValidator.ts, src/systems/spells/validation/spellValidator.ts
 - [ ] **scripts\validateRaceImages.ts**
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/portraits/race_portrait_regen_handoff.md
-- [ ] **scripts\validateSpellJsons.js**
+- [ ] **scripts\validateSpellJsons.js**: *Spell JSON Validation Script (ESM) Validates all spell JSON files for basic schema compliance. Run with: node scripts/validateSpellJsons.js*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, scripts/validateSpellJsons.ts
-- [ ] **scripts\validateSpellJsons.ts**
+- [ ] **scripts\validateSpellJsons.ts**: *Spell JSON Validation Script Validates all spell JSON files against the SpellValidator Zod schema. Run with: npx tsx scripts/validateSpellJsons.ts ...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, scripts/validateSpellJsons.js
-- [ ] **scripts\verify-architecture-coverage.ts**
+- [ ] **scripts\verify-architecture-coverage.ts**: *Architecture Coverage Verification Script Validates that code files are accounted for in architecture documentation. Usage: npx --no-install tsx sc...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
 
 
 ### ?? Cleanup & Maintenance (12)
 
-- [ ] **scripts\compressGlossaryLinks.js**
+- [ ] **scripts\compressGlossaryLinks.js**: *Compresses verbose glossary link spans to shorthand syntax. This script transforms: <span data-term-id="rage" class="glossary-term-link-from-markdo...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md
-- [ ] **scripts\expand-spell-jsons.ts**
+- [ ] **scripts\expand-spell-jsons.ts**: *PURPOSE: This script is responsible for the "Backfill" phase of the Spell Data Standardization. It ensures that all 469+ spell JSON files in the co...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md
-- [ ] **scripts\fix-spell-frontmatter.js**
+- [ ] **scripts\fix-spell-frontmatter.js**: *scripts/fix-spell-frontmatter.js One-time script to fix broken spell frontmatter*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md
-- [ ] **scripts\fix_cantrip_inconsistencies.cjs**
+- [ ] **scripts\fix_cantrip_inconsistencies.cjs**: *Fix 1: Add missing targeting.lineOfSight Default to true for most spells*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json
 - [ ] **scripts\fix_stitch_auth.ps1**
   - *Referenced by*: .agent/skills/stitch_ui_generation/SKILL.md, public/agent-docs/skills/stitch_ui_generation/SKILL.md
-- [ ] **scripts\formatSpellJsons.js**
+- [ ] **scripts\formatSpellJsons.js**: *Spell JSON Formatter Script (ESM) Normalizes all spell JSON files to consistent formatting: - 2-space indentation - Canonical field ordering - Adds...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md
-- [ ] **scripts\migrate-glossary-entries-to-json.ts**
+- [ ] **scripts\migrate-glossary-entries-to-json.ts**: *Migration script: Convert glossary entry files from Markdown (+ YAML frontmatter) to JSON. - Input:  public/data/glossary/entries/**\/*.md - Output...*
   - *Referenced by*: docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md
-- [ ] **scripts\migrate-legacy-spells-to-v2.ts**
+- [ ] **scripts\migrate-legacy-spells-to-v2.ts**: *Migration script: Convert legacy spell JSONs (old flat schema) into V2 spell schema, and move them into `public/data/spells/level-{N}/{id}.json`. L...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/spell-system-overhaul/SPELL_MIGRATION_PATH.md
-- [ ] **scripts\moved-script-tombstone.ts**
+- [ ] **scripts\moved-script-tombstone.ts**: *This helper is the "tombstone" runner for moved scripts. Why this exists: Agents and shell aliases often call scripts by hardcoded paths. When scri...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, scripts/audits/click-gemini-start-research-locator.ts, scripts/audits/click-gemini-start-research.ts, scripts/audits/inspect-gemini-deep-research-ui.ts, scripts/deep_inspect.ts, scripts/gemini_monitor.ts, scripts/inspect_site.ts, scripts/interact_chat.ts, scripts/open-gemini-profile.ts
 - [ ] **scripts\tidy-up.ps1**
   - *Referenced by*: .agent/tidy-up-chain.json, .agent/tools_inventory.json, docs/plans/2026-02-27-roadmap-branch-completion-design.md, public/agent-docs/workflows/session-ritual.md, scripts/tidy-up.sh, vite.config.ts
 - [ ] **scripts\tidy-up.sh**
   - *Referenced by*: .agent/tidy-up-chain.json, .agent/tools_inventory.json, docs/plans/2026-02-27-roadmap-branch-completion-design.md, public/agent-docs/workflows/session-ritual.md, scripts/tidy-up.ps1, vite.config.ts
-- [ ] **scripts\update-spell-json-from-references.ts**
+- [ ] **scripts\update-spell-json-from-references.ts**: *CHANGE LOG: 2026-02-27 09:24:00: [Preservationist] Added '@ts-ignore' to imports to suppress script-specific resolution warnings. Replaced 'unknown...*
   - *Referenced by*: docs/architecture/_generated/deps.json, docs/architecture/_generated/file-inventory.json, docs/architecture/domains/data-pipelines.md, docs/tasks/spells/agent_prompts/01_missing_references_and_json.md, docs/tasks/spells/agent_prompts/03_aoe_shapes_schema_and_mechanics.md, docs/tasks/spells/agent_prompts/04_targeting_type_and_attack_save_mechanics.md, docs/tasks/spells/agent_prompts/05_material_components_split_model.md
 
 

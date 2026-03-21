@@ -25,16 +25,11 @@
 - **Duration Type**: instantaneous
 - **Concentration**: false
 
-- **Effect Type**: STATUS
+- **Effect Types**: UTILITY, STATUS_CONDITION
+- **Utility Type**: control
 - **Save Stat**: Constitution
 - **Save Outcome**: negates
 - **Conditions Applied**: Blinded
 
 - **Description**: A dazzling array of flashing, colorful light springs from your hand. Each creature in a 15-foot Cone must succeed on a Constitution saving throw or be Blinded until the end of your next turn.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.251
-- **Status**: Complete
-
----
-
-## Batch 2 - Spells 11-20

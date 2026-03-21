@@ -23,10 +23,9 @@
 - **Concentration**: true
 
 - **Effect Type**: UTILITY
+- **Utility Type**: sensory
 - **Save Stat**: None
 - **Save Outcome**: none
 
 - **Description**: You touch a willing Beast. For the duration of the spell, you can use your action to see through the Beast's eyes and hear what it hears, and continue to do so until you use your action to return to your normal senses. While perceiving through the Beast's senses, you gain the benefits of any special senses possessed by that creature, though you are Blinded and Deafened to your own surroundings.
 - **Higher Levels**: None
-- **Source**: PHB 2024 p.245
-- **Status**: Complete

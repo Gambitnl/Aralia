@@ -41,5 +41,3 @@
   9-10 The target chooses its behavior.
   At the end of each of its turns, an affected target repeats the save, ending the spell on itself on a success.
 - **Higher Levels**: The Sphere's radius increases by 5 feet for each spell slot level above 4.
-- **Source**: PHB 2024
-- **Status**: Complete

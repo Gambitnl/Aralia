@@ -1,9 +1,15 @@
 /**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
+ * ARCHITECTURAL CONTEXT:
+ * This test suite validates the 'Noble House' procedural generation 
+ * system. It ensures that houses are created with consistent hierarchies 
+ * (Head/Spouse), valid stats, and internal 'Secrets' for the Intrigue system.
  *
+ * Recent updates focus on 'Seed Predictability'. By passing an explicit 
+ * incrementing seed in loops rather than relying on the system clock, 
+ * the tests can reliably exercise a wide range of house configurations 
+ * in a short time window.
+ * 
  * @file src/systems/intrigue/__tests__/NobleHouseGenerator.test.ts
- * Tests for the NobleHouseGenerator.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -32,10 +38,15 @@ describe('NobleHouseGenerator', () => {
   });
 
   it('should assign secrets to the house or members', () => {
-    // Generate multiple times to ensure we hit the probability
+    // WHAT CHANGED: Switched to incrementing seeds (1000 + i).
+    // WHY IT CHANGED: The generator is deterministic. If multiple 
+    // calls happen in the same millisecond, they might share the 
+    // same seed, leading to the same result and making the 
+    // 'Probability Check' useless. Forced seed variance ensures 
+    // we actually hit the 15% secret-spawn chance.
     let foundSecrets = false;
     for (let i = 0; i < 20; i++) {
-      const house = generateNobleHouse();
+      const house = generateNobleHouse('default', 1000 + i);
       if (house.houseSecrets.length > 0) {
         foundSecrets = true;
         break;

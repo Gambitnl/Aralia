@@ -1,4 +1,12 @@
 # Phase 4: Map & Canvas Systems
+This file was re-verified on 2026-03-14.
+It remains a preserved backlog note for map-system coverage, not a fresh status report.
+
+What drifted:
+- the repo already contains `SubmapPane`, `TownCanvas`, and related map/town tests
+- some older renderer references, especially flat-path assumptions and Pixi-specific expectations, need live verification before reuse
+- this file is still useful for test ideas, but not as a current implementation-status ledger
+
 
 ## Objective
 Add tests for the complex map rendering and interaction systems.

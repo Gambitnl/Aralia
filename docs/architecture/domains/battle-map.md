@@ -1,70 +1,68 @@
-# Battle Map
+﻿# Battle Map
 
 ## Purpose
 
-The Battle Map provides a tactical grid for combat encounters, displaying character tokens, terrain, and enabling tactical movement and targeting. It visualizes the combat state managed by the Combat domain.
+The Battle Map domain covers the tactical grid-rendering layer used during combat, including tiles, tokens, overlays, initiative-adjacent UI, targeting presentation, and battle-map generation helpers.
 
-## Key Entry Points
+## Verified Current Entry Points
 
-| File | Role |
-|------|------|
-| `src/components/BattleMap/BattleMap.tsx` | Main battle map component |
-| `src/components/BattleMap/BattleMapDemo.tsx` | Standalone demo/testing |
-| `src/hooks/useBattleMap.ts` | Battle map state hook |
-| `src/hooks/useBattleMapGeneration.ts` | Map generation hook |
+High-signal current entry points verified in this pass:
+- src/components/BattleMap/BattleMap.tsx
+- src/components/BattleMap/BattleMapDemo.tsx
+- src/hooks/useBattleMap.ts
+- src/hooks/useBattleMapGeneration.ts
+- src/services/battleMapGenerator.ts
+- src/components/Combat/CombatView.tsx
 
-## Subcomponents
+## Current Domain Shape
 
-- **Map Rendering**: `BattleMap.tsx`, `BattleMapTile.tsx` - Grid and tiles
-- **Overlays**: `BattleMapOverlay.tsx` - Targeting, range, effects
-- **Tokens**: `CharacterToken.tsx` - Character/creature tokens
-- **UI Elements**: `InitiativeTracker.tsx`, `CombatLog.tsx`, `ActionEconomyBar.tsx`
-- **Party Display**: `PartyDisplay.tsx` - Party status during combat
-- **Damage Numbers**: `DamageNumberOverlay.tsx` - Floating damage
-- **Abilities**: `AbilityButton.tsx`, `AbilityPalette.tsx` - Ability selection
-- **AI Spells**: `AISpellInputModal.tsx` - AI-assisted spell input
+The live battle-map domain is not just a standalone map widget.
+The current split is:
+- BattleMap.tsx renders tiles, character tokens, overlays, and turn-action controls.
+- useBattleMap.ts owns selection, path, move, and click orchestration.
+- useBattleMapGeneration.ts now exports stateless battle-setup generation logic even though its name still looks hook-like.
+- CombatView.tsx is the main live combat surface that imports BattleMap and related battle-map UI pieces.
+- BattleMapDemo.tsx still exists as a narrower demo/testing lane.
 
-## File Ownership
+The verified BattleMap subtree already includes more surrounding UI than the older doc called out, including ActionEconomyBar, InitiativeTracker, CombatLog, PartyDisplay, DamageNumberOverlay, AbilityPalette, and AISpellInputModal.
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/BattleMap/*.ts*` | Directory | Battle map components and index |
-| `src/components/EncounterGenerator/*.tsx` | Component | Encounter and party management |
-| `src/hooks/useBattleMap.ts` | Hook | Map state hook |
-| `src/hooks/useBattleMapGeneration.ts` | Hook | Map generation hook |
-| `src/services/battleMapGenerator.ts` | Service | Procedural map generation |
+## Historical Drift Corrected
 
+The older version of this file drifted in a few concrete ways:
+- it treated useBattleMapGeneration.ts as a hook, but the file now explicitly describes itself as a stateless utility function
+- it implied App.tsx was the direct live battle-map entry, but the current live combat flow runs through CombatView.tsx while App.tsx separately lazy-loads BattleMapDemo
+- it described the domain accurately at a high level, but it under-described how much battle-map UI now lives alongside the core tile grid
 
-## Dependencies
+That older explanation should not be treated as the current implementation guide.
 
-### Depends On
+## Boundaries And Constraints
 
-- **[Combat](./combat.md)**: Combat state and mechanics
-- **[Spells](./spells.md)**: Spell targeting visualization
-- **[Character Sheet](./character-sheet.md)**: Character token data
+- Battle Map remains the tactical presentation and interaction layer, not the owner of all combat rules.
+- CombatView and the combat hooks still own a large part of the live orchestration, so battle-map docs should not overclaim execution ownership.
+- The generation utility, map renderer, token layer, and targeting overlays now form a broader cluster than one component-plus-hook summary can capture.
+- Demo surfaces should stay clearly distinguished from the live combat path.
 
-### Used By
+## What Is Materially Implemented
 
-- **App.tsx**: Combat mode rendering
+This pass verified that the battle-map domain already has:
+- a live BattleMap renderer used by CombatView
+- a separate BattleMapDemo surface
+- a useBattleMap orchestration hook
+- a battle-setup generation utility and generator service
+- token, overlay, initiative, action-economy, party, combat-log, and AI-spell-input UI pieces
+- verified test coverage for several BattleMap subtree components and the generation utility
 
-## Boundaries / Constraints
+## Verified Test Surface
 
-- Battle Map is visualization layer - combat logic is in Combat domain
-- Token positions should sync with combat state
-- Terrain should be generated before combat starts
-- Movement highlighting should respect movement rules
+Verified tests in this pass:
+- src/components/BattleMap/__tests__/AbilityButton.test.tsx
+- src/components/BattleMap/__tests__/ActionEconomyBar.test.tsx
+- src/components/BattleMap/__tests__/BattleMapTile.test.tsx
+- src/hooks/__tests__/useBattleMapGeneration.test.ts
+- src/components/__tests__/EncounterModal.test.tsx
 
-## Open Questions / TODOs
+## Open Follow-Through Questions
 
-- [ ] Document terrain generation system
-- [ ] Clarify token positioning and grid system
-- [ ] Map targeting overlay mechanics
-
-### Claimed Tests (Auto-generated)
-
-| Test File | Description |
-|-----------|-------------|
-| `src/components/BattleMap/__tests__/AbilityButton.test.tsx` | Ability button component tests |
-| `src/components/BattleMap/__tests__/BattleMapTile.test.tsx` | Battle map tile component tests |
-| `src/hooks/__tests__/useBattleMapGeneration.test.ts` | Battle map generation hook tests |
-| `src/components/__tests__/EncounterModal.test.tsx` | Encounter modal component tests |
+- Which docs should describe the handoff between CombatView and the BattleMap subtree more explicitly?
+- Should useBattleMapGeneration.ts be renamed later to match its current utility role, or should the docs simply keep calling out the drift?
+- Which targeting, overlay, and token-positioning details need tighter current-state reference docs as combat continues to evolve?

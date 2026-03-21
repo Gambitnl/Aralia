@@ -10,7 +10,7 @@
 
 - **Range Type**: touch
 - **Targeting Type**: single
-- **Valid Targets**: creature
+- **Valid Targets**: creatures
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -27,5 +27,3 @@
 
 - **Description**: Make a melee spell attack against a creature you can reach. On a hit, the target takes 2d10 Necrotic damage.
 - **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.
-- **Source**: PHB 2024 p.288
-- **Status**: Complete

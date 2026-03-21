@@ -42,5 +42,3 @@
   | 7 | Violet. Failed Save: The target has the Blinded condition and makes a Wisdom saving throw at the start of your next turn. On a Successful Save, the condition ends. On a Failed Save, the condition ends, and the creature teleports to another plane of existence (DM's choice). |
   | 8 | Special. The target is struck by two rays. Roll twice, rerolling any 8. |
 - **Higher Levels**:
-- **Source**: PHB 2024
-- **Status**: Complete

@@ -1,66 +1,68 @@
-# Glossary
+﻿# Glossary
 
 ## Purpose
 
-The Glossary provides an in-game reference system for D&D 5e rules, spells, items, conditions, and other game concepts. It allows players to look up information during gameplay without leaving the application.
+The Glossary domain is the app's read-only reference surface for rules, spells, classes, races, and related terms that can be opened without leaving the current gameplay flow.
 
-## Key Entry Points
+## Verified Current Entry Points
 
-| File | Role |
-|------|------|
-| `src/components/Glossary/Glossary.tsx` | Main glossary modal component |
-| `src/components/Glossary/GlossaryContentRenderer.tsx` | Renders glossary entry content |
-| `src/components/Glossary/SpellCardTemplate.tsx` | Specialized spell display template |
-| `src/data/glossaryData.ts` | Glossary data loading utilities |
+High-signal current entry points verified in this pass:
+- src/context/GlossaryContext.tsx
+- src/components/Glossary/Glossary.tsx
+- src/components/Glossary/FullEntryDisplay.tsx
+- src/components/Glossary/SingleGlossaryEntryModal.tsx
+- src/components/Glossary/SpellCardTemplate.tsx
+- src/utils/glossaryUtils.ts
 
-## Subcomponents
+## Current Domain Shape
 
-- **Entry Display**: `FullEntryDisplay.tsx`, `GlossaryDisplay.tsx` - Renders individual entries
-- **Search/Filter**: Within `Glossary.tsx` - Category filtering and text search
-- **Tooltips**: `GlossaryTooltip.tsx` - Hover tooltips for inline references
-- **Spell Cards**: `SpellCardTemplate.tsx` - Formatted spell information display
-- **Single Entry Modal**: `SingleGlossaryEntryModal.tsx` - Standalone entry viewer
+The live glossary flow is split across two layers:
+- GlossaryContext.tsx loads and flattens glossary entries from public/data/glossary/index/main.json and nested index files.
+- The UI lives under src/components/Glossary/, with the main modal, single-entry modal, spell-card presentation, tooltip helpers, search hooks, and navigation helpers.
 
-## File Ownership
+Spell entries are a special case:
+- Glossary.tsx uses useSpellGateChecks.
+- When a spell entry is selected, the UI fetches its spell JSON from public/data/spells/level-*/<spell>.json.
+- SpellCardTemplate.tsx renders that spell-specific data.
 
-| Path | Type | Description |
-|------|------|-------------|
-| `src/components/Glossary/*.ts*` | Directory | All glossary UI components and index |
-| `src/data/glossaryData.ts` | Data | Glossary data utilities |
-| `src/utils/glossaryUtils.ts` | Utils | General glossary utilities |
+## Historical Drift Corrected
 
+The older version of this file drifted in a few concrete ways:
+- it treated src/data/glossaryData.ts as the glossary data-loading utility, but that file currently contains submap icon meanings rather than the live glossary loader
+- it treated src/utils/glossaryUtils.ts as the primary utility surface without noting that the file is now a deprecated bridge that re-exports from src/utils/visuals/glossaryUtils
+- it implied a cleaner ownership map than the current repo shape, where glossary state loading, entry rendering, spell data fetches, and icon-legend display now sit in related but distinct lanes
 
-## Dependencies
+That older explanation should not be treated as the current implementation guide.
 
-### Depends On
+## Boundaries And Constraints
 
-- **[Spells](./spells.md)**: Displays spell data from spell JSON files
-- **[Data Pipelines](./data-pipelines.md)**: Uses generated glossary index
+- The glossary is a read-only reference surface. It should help interpret game state, not become a second authority for mutating it.
+- The live glossary entry index comes from public/data/glossary/, loaded through GlossaryContext.tsx.
+- Spell entries remain coupled to the spell-data domain because the glossary fetches spell JSON from public/data/spells/.
+- GlossaryDisplay.tsx still exists, but it is a narrower icon-legend surface rather than the main glossary architecture entry point.
 
-### Used By
+## What Is Materially Implemented
 
-- **[Character Creator](./character-creator.md)**: Links to glossary for class/race info
-- **[Character Sheet](./character-sheet.md)**: Links to glossary for ability/spell info
-- **[Combat](./combat.md)**: References conditions and rules during combat
+This pass verified that the glossary domain already has:
+- a context-driven glossary loader
+- a main glossary modal
+- a single-entry modal
+- entry rendering and internal term-navigation helpers
+- spell-specific glossary rendering
+- tooltip and search/navigation helper surfaces under src/components/Glossary/
 
-## Boundaries / Constraints
+## Verified Test Surface
 
-- Glossary is read-only - it displays information but does not modify game state
-- All glossary data should come from `public/data/glossary/` JSON files
-- Spell data comes from `public/data/spells/` JSON files (shared with Spells domain)
+Verified tests in this pass:
+- src/components/Glossary/__tests__/Glossary.test.tsx
+- src/components/Glossary/__tests__/GlossaryDisplay.test.tsx
+- src/components/__tests__/GlossaryContentRenderer.test.tsx
+- src/components/__tests__/GlossaryFullEntryDisplay.test.tsx
 
-## Open Questions / TODOs
+The older claim about src/utils/__tests__/glossaryUtils.test.ts was not accurate in the current repo.
 
-- [ ] Consider caching strategy for large glossary datasets
-- [ ] Evaluate search performance with growing entry count
-- [ ] Document relationship between glossary entries and spell JSON schema
+## Open Follow-Through Questions
 
-### Claimed Tests (Auto-generated)
-
-| Test File | Description |
-|-----------|-------------|
-| `src/components/Glossary/__tests__/Glossary.test.tsx` | Glossary main component tests |
-| `src/components/Glossary/__tests__/GlossaryDisplay.test.tsx` | Glossary display component tests |
-| `src/components/__tests__/GlossaryContentRenderer.test.tsx` | Glossary content renderer tests |
-| `src/components/__tests__/GlossaryFullEntryDisplay.test.tsx` | Glossary full entry display tests |
-| `src/utils/__tests__/glossaryUtils.test.ts` | Glossary utility tests |
+- Should the deprecated src/utils/glossaryUtils.ts bridge be documented more explicitly alongside its newer src/utils/visuals/ home?
+- Which docs should explain the split between the full glossary domain and the narrower icon-legend surfaces used by submap and related UI?
+- How much spell-schema detail belongs in glossary docs versus the spell-domain reference docs?
