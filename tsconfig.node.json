@@ -15,6 +15,7 @@
     "scripts/raceImageStatus.ts",
     "scripts/spellFieldInventory.ts",
     "scripts/validateSpellMarkdownParity.ts",
+    "devtools/roadmap/src/components/debug/roadmap/modules/roadmap-history-traceability.ts",
     "devtools/roadmap/scripts/roadmap-server-logic.ts",
     "devtools/roadmap/scripts/roadmap-engine/**/*.ts",
     "devtools/roadmap/scripts/roadmap/**/*.ts"
