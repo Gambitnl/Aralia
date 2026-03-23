@@ -1818,6 +1818,57 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
   {
     from: 'Roadmap Tool > Layout Persistence > Auto-save Debounce Cycle',
     to: 'Roadmap Tool > Layout Persistence > Delayed Auto-Save'
+  },
+  // ── Layman renames: Run Tests From the Roadmap children ───────────────────
+  {
+    from: 'Roadmap Tool > Node Test Execution Capability > Run Node Test (Self Plus Descendants)',
+    to: 'Roadmap Tool > Run Tests From the Roadmap > Run This Node and Its Children\'s Tests'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Execution Capability > Run Child Node Tests (Descendants Only)',
+    to: 'Roadmap Tool > Run Tests From the Roadmap > Run Only Child Tests'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Execution Capability > Node Test Result Status Feedback',
+    to: 'Roadmap Tool > Run Tests From the Roadmap > Show Test Pass/Fail Results'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Execution Capability > Node Test Status Persistence',
+    to: 'Roadmap Tool > Run Tests From the Roadmap > Remember Test Results Between Sessions'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Execution Capability > Node Test Data Refresh After Run',
+    to: 'Roadmap Tool > Run Tests From the Roadmap > Refresh Results After Running'
+  },
+  // ── Layman renames: Node Quality Warnings children ────────────────────────
+  {
+    from: 'Roadmap Tool > Node Health Signals > Health Signal Computation',
+    to: 'Roadmap Tool > Node Quality Warnings > How Warnings Are Calculated'
+  },
+  {
+    from: 'Roadmap Tool > Node Health Signals > Health Badge Component',
+    to: 'Roadmap Tool > Node Quality Warnings > Warning Badge Display'
+  },
+  {
+    from: 'Roadmap Tool > Node Health Signals > Visualizer Integration',
+    to: 'Roadmap Tool > Node Quality Warnings > Warnings Shown On Canvas'
+  },
+  {
+    from: 'Roadmap Tool > Node Health Signals > Density Warning Detection',
+    to: 'Roadmap Tool > Node Quality Warnings > Too Many Children Warning'
+  },
+  // ── Layman renames: Which Nodes Have Tests children ───────────────────────
+  {
+    from: 'Roadmap Tool > Node Test Presence > Test File Declaration Schema',
+    to: 'Roadmap Tool > Which Nodes Have Tests > How Tests Are Declared'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Presence > Disk Presence Checker',
+    to: 'Roadmap Tool > Which Nodes Have Tests > Verify Test Files Exist'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Presence > Pipeline Annotation',
+    to: 'Roadmap Tool > Which Nodes Have Tests > Stamp Nodes With Test Info'
   }
 ];
 
