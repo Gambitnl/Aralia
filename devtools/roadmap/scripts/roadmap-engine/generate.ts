@@ -183,7 +183,7 @@ const CURATED_SUBFEATURES: Record<string, Set<string>> = {
     'Merchant Pricing And Economy Integration',
     'Merchant Pricing And Economy Integration > Transaction Price Calculation',
     'Merchant Pricing And Economy Integration > Regional Price Modifiers',
-    'Merchant Pricing And Economy Integration > Merchant Modal Price Wiring'
+    'Merchant Pricing And Economy Integration > Wire Merchant Screen to Economy'
   ]),
   'companion banter': new Set([
     'Companion Banter',
@@ -205,7 +205,7 @@ const CURATED_SUBFEATURES: Record<string, Set<string>> = {
   ]),
   'url and history state synchronization': new Set([
     'URL And History State Synchronization',
-    'URL And History State Synchronization > Initial Mount Guard',
+    'URL And History State Synchronization > Prevent Bad History Write on First Load',
     'URL And History State Synchronization > Deep Link Restoration',
     'URL And History State Synchronization > Browser Navigation Consistency'
   ])
@@ -1448,7 +1448,7 @@ const CURATED_REQUIRED_SUBFEATURES: Record<string, string[]> = {
     'Merchant Pricing And Economy Integration',
     'Merchant Pricing And Economy Integration > Transaction Price Calculation',
     'Merchant Pricing And Economy Integration > Regional Price Modifiers',
-    'Merchant Pricing And Economy Integration > Merchant Modal Price Wiring'
+    'Merchant Pricing And Economy Integration > Wire Merchant Screen to Economy'
   ],
   'companion banter': [
     'Companion Banter',
@@ -1470,7 +1470,7 @@ const CURATED_REQUIRED_SUBFEATURES: Record<string, string[]> = {
   ],
   'url and history state synchronization': [
     'URL And History State Synchronization',
-    'URL And History State Synchronization > Initial Mount Guard',
+    'URL And History State Synchronization > Prevent Bad History Write on First Load',
     'URL And History State Synchronization > Deep Link Restoration',
     'URL And History State Synchronization > Browser Navigation Consistency'
   ]
