@@ -201,7 +201,52 @@ async function captureSpellBranchHandoff() {
   console.log('✓ Spell Branch Tab Handoff GIF saved');
 }
 
+async function captureSpellBranchNavigatorOverview() {
+  cleanFrames();
+  const browser = await chromium.launch({ headless: false });
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.setViewportSize({ width: 900, height: 700 });
+  await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1500);
+
+  // Switch to Spell Branch tab
+  await page.locator('button').filter({ hasText: /^spell branch$/i }).first().click();
+  await page.waitForTimeout(1500);
+
+  // Frame set A: full navigator, all axes visible (3 frames)
+  let idx = 0;
+  for (let i = 0; i < 3; i++) {
+    const buf = await page.screenshot();
+    writeFileSync(join(FRAMES_DIR, `sbn_${String(idx++).padStart(4, '0')}.png`), buf);
+    await page.waitForTimeout(300);
+  }
+
+  // Click Wizard under Class to show filtering in action
+  const wizardBtn = page.locator('button').filter({ hasText: /^Wizard$/i }).first();
+  if (await wizardBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await wizardBtn.click();
+    await page.waitForTimeout(1000);
+  }
+
+  // Frame set B: navigator filtered by Wizard (4 frames)
+  for (let i = 0; i < 4; i++) {
+    const buf = await page.screenshot();
+    writeFileSync(join(FRAMES_DIR, `sbn_${String(idx++).padStart(4, '0')}.png`), buf);
+    await page.waitForTimeout(300);
+  }
+
+  await browser.close();
+
+  const outputPath = join(MEDIA_DIR, 'sub_pillar_dev_tools_roadmap_tool_spell_branch_navigator.gif');
+  framesToGif(FRAMES_DIR, 'sbn', outputPath, null);
+  console.log('✓ Spell Branch Navigator overview GIF saved');
+}
+
 async function main() {
+  console.log('Capturing GIF: Spell Branch Navigator Overview...');
+  await captureSpellBranchNavigatorOverview();
+
   console.log('Capturing GIF: Live Axis Filtering Engine...');
   await captureLiveAxisFiltering();
 
