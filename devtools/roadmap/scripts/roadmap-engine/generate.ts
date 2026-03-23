@@ -2021,6 +2021,193 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
   {
     from: 'Roadmap Tool > Node Media Previews > Media File Endpoint',
     to: 'Roadmap Tool > Node Media Previews > Serve Capture Files'
+  },
+  // Task 9: Race Portrait Image Generation — Gemini Session Control
+  {
+    from: 'Race Portrait Image Generation > Gemini Session Control',
+    to: 'Race Portrait Image Generation > AI Session Manager'
+  },
+  {
+    from: 'Race Portrait Image Generation > Gemini Session Control > CDP Endpoint Health Check',
+    to: 'Race Portrait Image Generation > AI Session Manager > Check AI Connection Is Alive'
+  },
+  {
+    from: 'Race Portrait Image Generation > Gemini Session Control > Gemini Tab Targeting',
+    to: 'Race Portrait Image Generation > AI Session Manager > Find the Right AI Browser Tab'
+  },
+  {
+    from: 'Race Portrait Image Generation > Gemini Session Control > Consent Interstitial Handling',
+    to: 'Race Portrait Image Generation > AI Session Manager > Dismiss AI Consent Popups'
+  },
+  {
+    from: 'Race Portrait Image Generation > Gemini Session Control > Per Generation Chat Reset',
+    to: 'Race Portrait Image Generation > AI Session Manager > Start Fresh Chat Per Image'
+  },
+  {
+    from: 'Race Portrait Image Generation > Gemini Session Control > New Chat Confirmation Check',
+    to: 'Race Portrait Image Generation > AI Session Manager > Confirm New Chat Started'
+  },
+  {
+    from: 'Race Portrait Image Generation > Gemini Session Control > Single Active Run Lock',
+    to: 'Race Portrait Image Generation > AI Session Manager > Prevent Two Runs at Once'
+  },
+  // Task 9: Race Portrait Image Generation — Prompt Construction Engine
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine',
+    to: 'Race Portrait Image Generation > Image Prompt Builder'
+  },
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine > Base Prompt Template Management',
+    to: 'Race Portrait Image Generation > Image Prompt Builder > Base Prompt Templates'
+  },
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine > Race Override Registry',
+    to: 'Race Portrait Image Generation > Image Prompt Builder > Per-Race Prompt Overrides'
+  },
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine > Gender Variant Prompting',
+    to: 'Race Portrait Image Generation > Image Prompt Builder > Gender-Specific Prompts'
+  },
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine > Positive Constraint Rules',
+    to: 'Race Portrait Image Generation > Image Prompt Builder > What to Include in Prompts'
+  },
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine > Slice of Life Activity Allocator',
+    to: 'Race Portrait Image Generation > Image Prompt Builder > Assign Activities to Characters'
+  },
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine > Activity Uniqueness Normalization',
+    to: 'Race Portrait Image Generation > Image Prompt Builder > Prevent Duplicate Activities'
+  },
+  {
+    from: 'Race Portrait Image Generation > Prompt Construction Engine > Prompt Hash Tracking',
+    to: 'Race Portrait Image Generation > Image Prompt Builder > Track Which Prompts Were Used'
+  },
+  // Task 9: Race Portrait Image Generation — Execution Reliability
+  {
+    from: 'Race Portrait Image Generation > Execution Reliability > Single Session Concurrency Guard',
+    to: 'Race Portrait Image Generation > Execution Reliability > One Run at a Time'
+  },
+  {
+    from: 'Race Portrait Image Generation > Execution Reliability > Download Fallback Pipeline',
+    to: 'Race Portrait Image Generation > Execution Reliability > Retry Download on Failure'
+  },
+  {
+    from: 'Race Portrait Image Generation > Execution Reliability > Retryable Failure Classification',
+    to: 'Race Portrait Image Generation > Execution Reliability > Know When to Retry'
+  },
+  {
+    from: 'Race Portrait Image Generation > Execution Reliability > Timeout and Cooldown Policy',
+    to: 'Race Portrait Image Generation > Execution Reliability > Wait Times Between Attempts'
+  },
+  {
+    from: 'Race Portrait Image Generation > Execution Reliability > Bad Request Recovery Path',
+    to: 'Race Portrait Image Generation > Execution Reliability > Handle Bad Requests Gracefully'
+  },
+  {
+    from: 'Race Portrait Image Generation > Execution Reliability > Download Artifact Recovery',
+    to: 'Race Portrait Image Generation > Execution Reliability > Recover Failed Downloads'
+  },
+  // Task 9: Race Portrait Image Generation — Quality Gates
+  {
+    from: 'Race Portrait Image Generation > Quality Gates > Square Output Enforcement',
+    to: 'Race Portrait Image Generation > Quality Gates > Require Square Images'
+  },
+  {
+    from: 'Race Portrait Image Generation > Quality Gates > Blank Margin Rejection',
+    to: 'Race Portrait Image Generation > Quality Gates > Reject Images With Blank Borders'
+  },
+  {
+    from: 'Race Portrait Image Generation > Quality Gates > Image Decode Validation',
+    to: 'Race Portrait Image Generation > Quality Gates > Verify Image Is Readable'
+  },
+  {
+    from: 'Race Portrait Image Generation > Quality Gates > Full Body Framing Check',
+    to: 'Race Portrait Image Generation > Quality Gates > Require Full Body in Frame'
+  },
+  {
+    from: 'Race Portrait Image Generation > Quality Gates > Duplicate Byte Hash Rejection',
+    to: 'Race Portrait Image Generation > Quality Gates > Reject Duplicate Images'
+  },
+  {
+    from: 'Race Portrait Image Generation > Quality Gates > Arrow Artifact Rejection',
+    to: 'Race Portrait Image Generation > Quality Gates > Reject Images With UI Arrows'
+  },
+  {
+    from: 'Race Portrait Image Generation > Quality Gates > Borderless Full Bleed Validation',
+    to: 'Race Portrait Image Generation > Quality Gates > Require Edge-to-Edge Image'
+  },
+  // Task 9: Race Portrait Image Generation — Post Generation Verification
+  {
+    from: 'Race Portrait Image Generation > Post Generation Verification > Slice of Life Ledger Tracking',
+    to: 'Race Portrait Image Generation > Post Generation Verification > Track Activities Per Character'
+  },
+  {
+    from: 'Race Portrait Image Generation > Post Generation Verification > In App Race Image Sync Validation',
+    to: 'Race Portrait Image Generation > Post Generation Verification > Verify Images Match In-Game Data'
+  },
+  {
+    from: 'Race Portrait Image Generation > Post Generation Verification > CC Glossary Path Parity Audit',
+    to: 'Race Portrait Image Generation > Post Generation Verification > Check Glossary Image Paths Match'
+  },
+  {
+    from: 'Race Portrait Image Generation > Post Generation Verification > Slice of Life Completeness Audit',
+    to: 'Race Portrait Image Generation > Post Generation Verification > Check All Activities Are Covered'
+  },
+  {
+    from: 'Race Portrait Image Generation > Post Generation Verification > Duplicate Activity Keeper Decisioning',
+    to: 'Race Portrait Image Generation > Post Generation Verification > Decide Which Duplicate to Keep'
+  },
+  {
+    from: 'Race Portrait Image Generation > Post Generation Verification > Verification Evidence Logging',
+    to: 'Race Portrait Image Generation > Post Generation Verification > Log Verification Results'
+  },
+  // Task 9: Race Portrait Image Generation — Backlog Regeneration Orchestration
+  {
+    from: 'Race Portrait Image Generation > Backlog Regeneration Orchestration',
+    to: 'Race Portrait Image Generation > Backlog Regeneration Runner'
+  },
+  {
+    from: 'Race Portrait Image Generation > Backlog Regeneration Orchestration > Category Agnostic Backlog Processing',
+    to: 'Race Portrait Image Generation > Backlog Regeneration Runner > Process Any Backlog Category'
+  },
+  {
+    from: 'Race Portrait Image Generation > Backlog Regeneration Orchestration > Targeted Race Gender Runs',
+    to: 'Race Portrait Image Generation > Backlog Regeneration Runner > Run Specific Race and Gender Combos'
+  },
+  {
+    from: 'Race Portrait Image Generation > Backlog Regeneration Orchestration > Status Append Per Generation',
+    to: 'Race Portrait Image Generation > Backlog Regeneration Runner > Record Status After Each Image'
+  },
+  {
+    from: 'Race Portrait Image Generation > Backlog Regeneration Orchestration > Runbook Auto Update Hooks',
+    to: 'Race Portrait Image Generation > Backlog Regeneration Runner > Auto-Update the Run Guide'
+  },
+  {
+    from: 'Race Portrait Image Generation > Backlog Regeneration Orchestration > Post Run Audit Pipeline',
+    to: 'Race Portrait Image Generation > Backlog Regeneration Runner > Audit After Each Run'
+  },
+  // Task 9: Race Portrait Image Generation — Future Capability Expansion
+  {
+    from: 'Race Portrait Image Generation > Future Capability Expansion > Fail Fast Branch Test Orchestration',
+    to: 'Race Portrait Image Generation > Future Capability Expansion > Quick-Fail Branch Test Runner'
+  },
+  {
+    from: 'Race Portrait Image Generation > Future Capability Expansion > Node Test Definition Registry',
+    to: 'Race Portrait Image Generation > Future Capability Expansion > Where Node Tests Are Defined'
+  },
+  {
+    from: 'Race Portrait Image Generation > Future Capability Expansion > Fail Fast Branch Test Executor',
+    to: 'Race Portrait Image Generation > Future Capability Expansion > Quick-Fail Test Executor'
+  },
+  {
+    from: 'Race Portrait Image Generation > Future Capability Expansion > Test Log Retention Policy',
+    to: 'Race Portrait Image Generation > Future Capability Expansion > How Long Test Logs Are Kept'
+  },
+  {
+    from: 'Race Portrait Image Generation > Future Capability Expansion > Roadmap Node Test Badges',
+    to: 'Race Portrait Image Generation > Future Capability Expansion > Test Status Badges on Nodes'
   }
 ];
 
