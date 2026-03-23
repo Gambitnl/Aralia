@@ -90,7 +90,6 @@ const CURATED_SUBFEATURES: Record<string, Set<string>> = {
     'Roadmap Tool > Strategic Opportunity Mapping > Historical Development Traceability',
     'Roadmap Tool > Strategic Opportunity Mapping > Multi-Product Portfolio Branching (Future)',
     'Roadmap Tool > Spell Branch Navigator',
-    'Roadmap Tool > Spell Branch Navigator > Spell Profile Data Feed',
     'Roadmap Tool > Spell Branch Navigator > Axis Engine',
     'Roadmap Tool > Spell Branch Navigator > VSM Drill-Down Navigator',
     'Roadmap Tool > Spell Branch Navigator > Requirements Component Mapping',
@@ -873,13 +872,6 @@ const CURATED_SUBFEATURE_DETAILS: Record<string, { layman: string; canonicalDocs
       'devtools/roadmap/src/spell-branch/axis-engine.ts'
     ]
   },
-  'Roadmap Tool > Spell Branch Navigator > Spell Profile Data Feed': {
-    layman: 'API endpoint and client fetch that supplies canonical spell profiles to the navigator so it can filter and display spells without hardcoded data.',
-    canonicalDocs: [
-      'devtools/roadmap/scripts/roadmap-server-logic.ts',
-      'devtools/roadmap/src/spell-branch/SpellBranchNavigator.tsx'
-    ]
-  },
   'Roadmap Tool > Spell Branch Navigator > Axis Engine': {
     layman: 'Pure function that takes the full spell set plus all choices made so far, filters down to matching spells, and returns the remaining discriminating axes with value counts.',
     canonicalDocs: [
@@ -1576,7 +1568,6 @@ const ROADMAP_CAPABILITY_SOURCE_DOCS: ProcessingDocument[] = [
       // Technical: Spell Branch Navigator — tab-based axis drill UI for browsing spell profiles.
       // Layman: the standalone spell filtering navigator accessible from the Spell Branch tab.
       { name: 'Roadmap Tool > Spell Branch Navigator', state: 'active', canonicalPath: 'devtools/roadmap/src/spell-branch/SpellBranchNavigator.tsx' },
-      { name: 'Roadmap Tool > Spell Branch Navigator > Spell Profile Data Feed', state: 'done', canonicalPath: 'devtools/roadmap/scripts/roadmap-server-logic.ts' },
       { name: 'Roadmap Tool > Spell Branch Navigator > Axis Engine', state: 'done', canonicalPath: 'devtools/roadmap/src/spell-branch/axis-engine.ts' },
       { name: 'Roadmap Tool > Spell Branch Navigator > VSM Drill-Down Navigator', state: 'done', canonicalPath: 'devtools/roadmap/src/spell-branch/SpellBranchNavigator.tsx' },
       { name: 'Roadmap Tool > Spell Branch Navigator > Requirements Component Mapping', state: 'done', canonicalPath: 'devtools/roadmap/src/spell-branch/vsm-tree.ts' },
