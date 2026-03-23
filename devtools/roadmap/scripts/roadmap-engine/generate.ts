@@ -1668,10 +1668,6 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
     to: 'Roadmap Tool > Interaction And Navigation > Cursor-centered Wheel Zoom > Cursor-centered Wheel Zoom Module'
   },
   {
-    from: 'Roadmap Tool > Node Test Presence > Pipeline Annotation',
-    to: 'Roadmap Tool > Node Test Presence > Test Metadata Annotation > Test Metadata Annotation Module'
-  },
-  {
     from: 'Roadmap Tool > Strategic Opportunity Mapping > Scan Pipeline',
     to: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Detection'
   },
