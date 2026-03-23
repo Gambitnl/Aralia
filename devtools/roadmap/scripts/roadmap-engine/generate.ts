@@ -1788,6 +1788,36 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
   {
     from: 'Roadmap Tool > Roadmap API Surface Capability > VS Code Open Endpoint',
     to: 'Roadmap Tool > Roadmap API Surface > VS Code Open Endpoint'
+  },
+  // ── Layman renames: Roadmap Tool sub-branch parents ──────────────────────
+  {
+    from: 'Roadmap Tool > Visualization Stability',
+    to: 'Roadmap Tool > Graph Display Stability'
+  },
+  {
+    from: 'Roadmap Tool > Visualization Stability > Connector Rendering Reliability',
+    to: 'Roadmap Tool > Graph Display Stability > Connector Rendering Reliability'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Execution Capability',
+    to: 'Roadmap Tool > Run Tests From the Roadmap'
+  },
+  {
+    from: 'Roadmap Tool > Node Health Signals',
+    to: 'Roadmap Tool > Node Quality Warnings'
+  },
+  {
+    from: 'Roadmap Tool > Node Test Presence',
+    to: 'Roadmap Tool > Which Nodes Have Tests'
+  },
+  {
+    from: 'Roadmap Tool > Documentation Intelligence',
+    to: 'Roadmap Tool > Doc Processing Pipeline'
+  },
+  // ── Layman renames: Layout Persistence children ───────────────────────────
+  {
+    from: 'Roadmap Tool > Layout Persistence > Auto-save Debounce Cycle',
+    to: 'Roadmap Tool > Layout Persistence > Delayed Auto-Save'
   }
 ];
 
