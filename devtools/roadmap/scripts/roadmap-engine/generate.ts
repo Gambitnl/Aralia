@@ -1865,6 +1865,58 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
   {
     from: 'Roadmap Tool > Node Test Presence > Pipeline Annotation',
     to: 'Roadmap Tool > Which Nodes Have Tests > Stamp Nodes With Test Info'
+  },
+  // ── Layman renames: Roadmap Server Endpoints + children ───────────────────
+  // These override the earlier partial renames that only removed "Capability".
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability',
+    to: 'Roadmap Tool > Roadmap Server Endpoints'
+  },
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability > Roadmap Data Endpoint',
+    to: 'Roadmap Tool > Roadmap Server Endpoints > Serve Roadmap Data'
+  },
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability > Layout Endpoint (Read Write)',
+    to: 'Roadmap Tool > Roadmap Server Endpoints > Save and Load Layout'
+  },
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability > Node Test Run Endpoint',
+    to: 'Roadmap Tool > Roadmap Server Endpoints > Run Tests From Browser'
+  },
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability > Opportunities Latest Endpoint',
+    to: 'Roadmap Tool > Roadmap Server Endpoints > Fetch Current Opportunities'
+  },
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability > Opportunities Scan Endpoint',
+    to: 'Roadmap Tool > Roadmap Server Endpoints > Trigger an Opportunity Scan'
+  },
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability > Opportunities Settings Endpoint',
+    to: 'Roadmap Tool > Roadmap Server Endpoints > Opportunity Scan Settings'
+  },
+  {
+    from: 'Roadmap Tool > Roadmap API Surface Capability > VS Code Open Endpoint',
+    to: 'Roadmap Tool > Roadmap Server Endpoints > Open File in VS Code'
+  },
+  // ── Layman renames: Doc Processing Pipeline + children ────────────────────
+  // These override the earlier renames that used "Single-document Processing Capability".
+  {
+    from: 'Roadmap Tool > Documentation Intelligence > One-Doc Orchestrated Processing Pipeline',
+    to: 'Roadmap Tool > Doc Processing Pipeline > Process One Doc at a Time'
+  },
+  {
+    from: 'Roadmap Tool > Documentation Intelligence > One-Doc Orchestrated Processing Pipeline > Worker Packet Validation Gate',
+    to: 'Roadmap Tool > Doc Processing Pipeline > Process One Doc at a Time > Validate Doc Before Processing'
+  },
+  {
+    from: 'Roadmap Tool > Documentation Intelligence > One-Doc Orchestrated Processing Pipeline > Feature-Oriented Naming Guard',
+    to: 'Roadmap Tool > Doc Processing Pipeline > Process One Doc at a Time > Enforce Capability-First Names'
+  },
+  {
+    from: 'Roadmap Tool > Documentation Intelligence > Feature Taxonomy Integrity',
+    to: 'Roadmap Tool > Doc Processing Pipeline > Node Names Follow Naming Rules'
   }
 ];
 
