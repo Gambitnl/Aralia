@@ -2208,6 +2208,15 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
   {
     from: 'Race Portrait Image Generation > Future Capability Expansion > Roadmap Node Test Badges',
     to: 'Race Portrait Image Generation > Future Capability Expansion > Test Status Badges on Nodes'
+  },
+  // Task 10: Miscellaneous nodes
+  {
+    from: 'Merchant Pricing And Economy Integration > Merchant Modal Price Wiring',
+    to: 'Merchant Pricing And Economy Integration > Wire Merchant Screen to Economy'
+  },
+  {
+    from: 'URL And History State Synchronization > Initial Mount Guard',
+    to: 'URL And History State Synchronization > Prevent Bad History Write on First Load'
   }
 ];
 
