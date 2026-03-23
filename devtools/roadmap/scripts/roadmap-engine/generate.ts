@@ -1917,6 +1917,79 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
   {
     from: 'Roadmap Tool > Documentation Intelligence > Feature Taxonomy Integrity',
     to: 'Roadmap Tool > Doc Processing Pipeline > Node Names Follow Naming Rules'
+  },
+  // Task 7: Strategic Opportunity Mapping children
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Collection',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Gather Improvement Opportunities'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Scan Orchestration',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Run the Opportunity Scan'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Flag Classification',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Label Each Opportunity Type'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Propagation and Rollup',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Roll Opportunities Up to Parent Nodes'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Snapshot Persistence',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Save Opportunity Results to Disk'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Scan Trigger',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Button to Start a Scan'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Triage Panel',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Review and Dismiss Opportunities'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity-to-Node Navigation',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Jump to Node From Opportunity'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Crosslink Detection',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > Find Shared Opportunities Across Branches'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Public Facade Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Opportunity System Entry Point'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Type Contracts Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Opportunity Data Shapes'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Graph Context Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Graph Data for Opportunity Scanning'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Scanner Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > The Opportunity Scanner'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Flag Classifier Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Opportunity Type Labeler'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Propagation Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Opportunity Rollup Logic'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Crosslink Resolver Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Crosslink Finder Logic'
+  },
+  {
+    from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Storage And Sanitization Module',
+    to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Save and Clean Up Opportunities'
   }
 ];
 
