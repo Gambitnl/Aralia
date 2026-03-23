@@ -1990,6 +1990,37 @@ const ROADMAP_CAPABILITY_RENAME_RULES: Array<{ from: string; to: string }> = [
   {
     from: 'Roadmap Tool > Strategic Opportunity Mapping > Opportunity Module Architecture > Opportunity Storage And Sanitization Module',
     to: 'Roadmap Tool > Strategic Opportunity Mapping > How the Opportunity System Is Built > Save and Clean Up Opportunities'
+  },
+  // Task 8: Spell Branch Navigator children
+  {
+    from: 'Roadmap Tool > Spell Branch Navigator > Axis Engine',
+    to: 'Roadmap Tool > Spell Branch Navigator > Spell Filter Logic'
+  },
+  {
+    from: 'Roadmap Tool > Spell Branch Navigator > VSM Drill-Down Navigator',
+    to: 'Roadmap Tool > Spell Branch Navigator > Step-by-Step Spell Filter'
+  },
+  {
+    from: 'Roadmap Tool > Spell Branch Navigator > Requirements Component Mapping',
+    to: 'Roadmap Tool > Spell Branch Navigator > V/S/M Component Labels'
+  },
+  // Task 8: Spell Graph Navigation children
+  {
+    from: 'Roadmap Tool > Spell Graph Navigation > Live Axis Filtering Engine',
+    to: 'Roadmap Tool > Spell Graph Navigation > Spell Filter Overlay on Canvas'
+  },
+  {
+    from: 'Roadmap Tool > Spell Graph Navigation > Canvas-Coordinated Node Layout',
+    to: 'Roadmap Tool > Spell Graph Navigation > Spell Nodes Positioned on the Graph'
+  },
+  // Task 8: Node Media Previews children
+  {
+    from: 'Roadmap Tool > Node Media Previews > Convention-Based Media Scanner',
+    to: 'Roadmap Tool > Node Media Previews > Find Captures by File Name'
+  },
+  {
+    from: 'Roadmap Tool > Node Media Previews > Media File Endpoint',
+    to: 'Roadmap Tool > Node Media Previews > Serve Capture Files'
   }
 ];
 
