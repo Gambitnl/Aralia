@@ -3555,6 +3555,7 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
           </div>
           {/* Shrink the reset button copy on compact screens so the dock stays narrow
               while still exposing one obvious escape hatch back to the default view. */}
+          <div className={`h-5 w-px ${isDark ? 'bg-slate-700/80' : 'bg-slate-300/90'}`} />
           <button
             type="button"
             onClick={resetView}
@@ -3565,6 +3566,17 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
             } ${isCompactViewport ? 'min-w-[84px]' : 'min-w-[112px]'}`}
           >
             {isCompactViewport ? 'Reset' : 'Reset View'}
+          </button>
+          <button
+            type="button"
+            onClick={resetNodePositions}
+            className={`min-h-10 rounded-full border px-4 text-sm font-semibold transition-colors ${
+              isDark
+                ? 'border-slate-700/70 bg-slate-900/45 text-slate-100 hover:bg-slate-800/75'
+                : 'border-slate-300/90 bg-white/55 text-slate-700 hover:bg-slate-100/90'
+            } ${isCompactViewport ? 'min-w-[84px]' : 'min-w-[140px]'}`}
+          >
+            {isCompactViewport ? 'Node Pos' : 'Reset Node Positions'}
           </button>
         </div>
       </div>
