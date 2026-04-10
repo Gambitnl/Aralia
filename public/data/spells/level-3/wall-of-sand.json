@@ -8,6 +8,8 @@
   "classes": [
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -25,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 90
+    "distance": 90,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -49,9 +52,14 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Line",
+      "shape": "Wall",
       "size": 30,
-      "height": 0
+      "height": 10,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thickness": 10,
+      "thicknessUnit": "feet"
     },
     "maxTargets": 1,
     "filter": {
@@ -61,6 +69,22 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Wall of Sand",
+          "shape": "Wall",
+          "size": 30,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 10,
+          "heightUnit": "feet",
+          "thickness": 10,
+          "thicknessUnit": "feet"
+        }
+      ]
     }
   },
   "effects": [
@@ -126,7 +150,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create a wall of swirling sand on the ground at a point you can see within range. You can make the wall up to 30 feet long, 10 feet high, and 10 feet thick, and it vanishes when the spell ends. It blocks line of sight but not movement. A creature is Blinded while in the wall's space and must spend 3 feet of movement for every 1 foot it moves there.",
+  "description": "You conjure up a wall of swirling sand on the ground at a point you can see within range. You can make the wall up to 30 feet long, 10 feet high, and 10 feet thick, and it vanishes when the spell ends. It blocks line of sight but not movement. A creature is blinded while in the wall's space and must spend 3 feet of movement for every 1 foot it moves there.",
   "higherLevels": "",
   "tags": []
 }

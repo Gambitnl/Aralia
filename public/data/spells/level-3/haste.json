@@ -10,6 +10,12 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Paladin - Oath of Glory",
+    "Paladin - Oath of Vengeance",
+    "Cleric - Blood Domain (TCSR)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +33,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +53,7 @@
   "targeting": {
     "type": "single",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "allies"
     ],
@@ -128,7 +136,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Choose a willing creature that you can see within range. Until the spell ends, the target's Speed is doubled, it gains a +2 bonus to AC, it has Advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used only to take the Attack (one weapon attack only), Dash, Disengage, Hide, or Use an Object action. When the spell ends, the target can't move or take actions until after its next turn, as a wave of lethargy sweeps over it.",
+  "description": "Choose a willing creature that you can see within range. Until the spell ends, the target's Speed is doubled, it gains a +2 bonus to Armor Class, it has Advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used to take only the Attack (one attack only), Dash , Disengage , Hide , or Utilize action. When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn, as a wave of lethargy washes over it.",
   "higherLevels": "",
   "tags": []
 }

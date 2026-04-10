@@ -27,5 +27,34 @@
 - **Save Stat**: None
 - **Save Outcome**: none
 
-- **Description**: You touch a willing Beast. For the duration of the spell, you can use your action to see through the Beast's eyes and hear what it hears, and continue to do so until you use your action to return to your normal senses. While perceiving through the Beast's senses, you gain the benefits of any special senses possessed by that creature, though you are Blinded and Deafened to your own surroundings.
+- **Description**: You touch a willing Beast. For the duration, you can perceive through the Beast's senses as well as your own. When perceiving through the Beast's senses, you benefit from any special senses it has.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Beast Sense
+Level: 2nd
+Casting Time: 1 Action Ritual
+Range/Area: Touch
+Components: S
+Duration: Concentration 1 Hour
+School: Divination
+Attack/Save: None
+Damage/Effect: Detection
+
+Rules Text:
+You touch a willing Beast. For the duration, you can perceive through the Beast’s senses as well as your own. When perceiving through the Beast’s senses, you benefit from any special senses it has.
+
+Spell Tags:
+Detection
+
+Available For:
+Druid
+Ranger
+
+Capture Method: http
+Legacy Page: false
+-->

@@ -10,6 +10,13 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Night Domain (HCS)",
+    "Ranger - Gloom Stalker",
+    "Warlock - Archfey Patron",
+    "Warlock - The Genie (TCoE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +34,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +54,7 @@
   "targeting": {
     "type": "multi",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],

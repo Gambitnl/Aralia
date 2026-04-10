@@ -8,6 +8,8 @@
   "classes": [
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -31,12 +33,12 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a sapphire worth 1,000 gp",
+    "materialDescription": "a sapphire worth 1,000+ GP",
     "materialCost": 1000,
     "isConsumed": false
   },
   "duration": {
-    "type": "special",
+    "type": "until_dispelled",
     "concentration": false,
     "value": 0,
     "unit": "round"
@@ -132,7 +134,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You touch an object weighing 10 pounds or less whose longest dimension is 6 feet or less. The spell leaves an invisible mark on its surface and invisibly inscribes the name of the item on the sapphire you use as the material component. Each time you cast this spell, you must use a different sapphire. At any time thereafter, you can use your action to speak the item's name and crush the sapphire. The item instantly appears in your hand regardless of physical or planar distances, and the spell ends. If another creature is holding or carrying the item, crushing the sapphire doesn't transport the item to you, but instead you learn who the creature possessing the object is and roughly where that creature is located at that moment. Dispel Magic or a similar effect successfully applied to the sapphire ends this spell's effect.",
+  "description": "You touch the sapphire used in the casting and an object weighing 10 pounds or less whose longest dimension is 6 feet or less. The spell leaves an Invisible mark on that object and invisibly inscribes the object's name on the sapphire. Each time you cast this spell, you must use a different sapphire. Thereafter, you can take a Magic action to speak the object's name and crush the sapphire. The object instantly appears in your hand regardless of physical or planar distances, and the spell ends. If another creature is holding or carrying the object, crushing the sapphire doesn't transport it, but instead you learn who that creature is and where that creature is currently located.",
   "higherLevels": "",
   "tags": []
 }

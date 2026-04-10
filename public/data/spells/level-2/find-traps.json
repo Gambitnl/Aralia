@@ -10,6 +10,8 @@
     "Druid",
     "Ranger"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "self",
     "range": 120,
+    "rangeUnit": "feet",
     "validTargets": [
       "self"
     ],

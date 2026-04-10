@@ -3,8 +3,8 @@
  * Defines types and interfaces for the environmental system, including
  * weather, terrain mechanics, and hazards.
  */
-import { BattleMapTerrain } from './combat';
-import { DamageType } from './spells';
+import { BattleMapTerrain } from './combat.js';
+import { DamageType } from './spells.js';
 export type Precipitation = 'none' | 'light_rain' | 'heavy_rain' | 'storm' | 'snow' | 'blizzard';
 export type WindSpeed = 'calm' | 'light' | 'moderate' | 'strong' | 'gale';
 export type VisibilityLevel = 'clear' | 'lightly_obscured' | 'heavily_obscured';

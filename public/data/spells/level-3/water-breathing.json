@@ -12,6 +12,10 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Paladin - Oath of the River (OTTG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -29,13 +33,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a short reed or piece of straw",
+    "materialDescription": "a short reed",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -48,6 +53,7 @@
   "targeting": {
     "type": "multi",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -100,7 +106,7 @@
         "saveModifiers": []
       },
       "utilityType": "other",
-      "description": "This spell grants the ability to breathe underwater to up to ten willing creatures you can see within range. Affected creatures also retain their normal mode of respiration.",
+      "description": "This spell grants up to ten willing creatures of your choice within range the ability to breathe underwater until the spell ends. Affected creatures also retain their normal mode of respiration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -136,7 +142,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "This spell grants the ability to breathe underwater to up to ten willing creatures you can see within range. Affected creatures also retain their normal mode of respiration.",
+  "description": "This spell grants up to ten willing creatures of your choice within range the ability to breathe underwater until the spell ends. Affected creatures also retain their normal mode of respiration.",
   "higherLevels": "",
   "tags": []
 }

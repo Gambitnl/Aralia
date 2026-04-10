@@ -59,6 +59,41 @@ const parseNumber = (raw: string | undefined) => {
   return Number.isFinite(n) ? n : undefined;
 };
 
+const normalizeDistanceUnit = (raw: string | undefined) => {
+  if (raw == null || isNilish(raw)) return undefined;
+  const v = normalizeWhitespace(raw).toLowerCase();
+  if (v === 'foot' || v === 'feet' || v === 'ft' || v === 'ft.') return 'feet';
+  if (v === 'mile' || v === 'miles') return 'miles';
+  if (v === 'inch' || v === 'inches') return 'inches';
+  return undefined;
+};
+
+// Spatial measured details now carry a few non-distance units too, such as
+// gallons for Create or Destroy Water and minutes for rubble-clear time. This
+// helper keeps those explicit without widening the main range/area geometry
+// units everywhere else.
+const normalizeSpatialMeasuredUnit = (raw: string | undefined) => {
+  const distanceUnit = normalizeDistanceUnit(raw);
+  if (distanceUnit) return distanceUnit;
+  if (raw == null || isNilish(raw)) return undefined;
+
+  const v = normalizeWhitespace(raw).toLowerCase();
+  if (v === 'gallon' || v === 'gallons') return 'gallons';
+  if (v === 'minute' || v === 'minutes') return 'minutes';
+  return undefined;
+};
+
+const normalizeGeometrySizeType = (raw: string | undefined) => {
+  if (raw == null || isNilish(raw)) return undefined;
+  const v = normalizeWhitespace(raw).toLowerCase();
+  if (v === 'radius') return 'radius';
+  if (v === 'diameter') return 'diameter';
+  if (v === 'length') return 'length';
+  if (v === 'edge') return 'edge';
+  if (v === 'side') return 'side';
+  return undefined;
+};
+
 const normalizeCastingUnit = (raw: string | undefined) => {
   if (raw == null) return undefined;
   const v = normalizeWhitespace(raw).toLowerCase();
@@ -86,7 +121,9 @@ const normalizeRangeType = (raw: string | undefined) => {
   if (v === 'self') return 'self';
   if (v === 'touch') return 'touch';
   if (v === 'ranged') return 'ranged';
-  if (v === 'special' || v === 'sight' || v === 'unlimited') return 'special';
+  if (v === 'sight') return 'sight';
+  if (v === 'unlimited') return 'unlimited';
+  if (v === 'special') return 'special';
   return undefined;
 };
 
@@ -117,14 +154,17 @@ const normalizeAoEShape = (raw: string | undefined) => {
   const v = normalizeWhitespace(raw).toLowerCase();
   if (v === 'none' || v === 'n/a') return undefined;
   if (v === 'sphere') return 'Sphere';
-  if (v === 'circle' || v === 'emanation' || v === 'hemisphere') return 'Sphere';
+  if (v === 'circle') return 'Sphere';
+  if (v === 'emanation') return 'Emanation';
+  if (v === 'hemisphere') return 'Hemisphere';
   if (v === 'cube') return 'Cube';
   if (v === 'cone') return 'Cone';
   if (v === 'cylinder') return 'Cylinder';
   if (v === 'line') return 'Line';
   if (v === 'square') return 'Square';
-  if (v === 'wall') return 'Line';
-  if (v === 'line, ring') return 'Sphere';
+  if (v === 'wall') return 'Wall';
+  if (v === 'ring') return 'Ring';
+  if (v === 'line, ring') return 'Wall';
   return undefined;
 };
 
@@ -461,6 +501,113 @@ const parseReferenceTitle = (markdown: string) => {
   }
   return undefined;
 };
+
+const parseSpatialForms = (vars: ReferenceVars) => {
+  const forms: Array<Record<string, unknown>> = [];
+
+  // These numbered structured fields are the new spell-truth surface for risky
+  // geometry spells. Parsing them here prevents a future markdown -> JSON sync
+  // from silently flattening all that explicit work back into vague prose.
+  for (let index = 1; index <= 20; index += 1) {
+    const label = vars[`Spatial Form ${index} Label`];
+    const shape = vars[`Spatial Form ${index} Shape`];
+    if (isNilish(label) && isNilish(shape)) continue;
+
+    const form: Record<string, unknown> = {};
+    if (!isNilish(label)) form.label = label;
+    if (!isNilish(shape)) form.shape = shape;
+
+    const size = parseNumber(vars[`Spatial Form ${index} Size Value`]);
+    if (size != null) form.size = size;
+
+    const sizeType = normalizeGeometrySizeType(vars[`Spatial Form ${index} Size Type`]);
+    if (sizeType) form.sizeType = sizeType;
+
+    const sizeUnit = normalizeDistanceUnit(vars[`Spatial Form ${index} Size Unit`]);
+    if (sizeUnit) form.sizeUnit = sizeUnit;
+
+    const height = parseNumber(vars[`Spatial Form ${index} Height Value`]);
+    if (height != null) form.height = height;
+
+    const heightUnit = normalizeDistanceUnit(vars[`Spatial Form ${index} Height Unit`]);
+    if (heightUnit) form.heightUnit = heightUnit;
+
+    const width = parseNumber(vars[`Spatial Form ${index} Width Value`]);
+    if (width != null) form.width = width;
+
+    const widthUnit = normalizeDistanceUnit(vars[`Spatial Form ${index} Width Unit`]);
+    if (widthUnit) form.widthUnit = widthUnit;
+
+    const thickness = parseNumber(vars[`Spatial Form ${index} Thickness Value`]);
+    if (thickness != null) form.thickness = thickness;
+
+    const thicknessUnit = normalizeDistanceUnit(vars[`Spatial Form ${index} Thickness Unit`]);
+    if (thicknessUnit) form.thicknessUnit = thicknessUnit;
+
+    const segmentCount = parseNumber(vars[`Spatial Form ${index} Segment Count`]);
+    if (segmentCount != null) form.segmentCount = segmentCount;
+
+    const segmentWidth = parseNumber(vars[`Spatial Form ${index} Segment Width Value`]);
+    if (segmentWidth != null) form.segmentWidth = segmentWidth;
+
+    const segmentWidthUnit = normalizeDistanceUnit(vars[`Spatial Form ${index} Segment Width Unit`]);
+    if (segmentWidthUnit) form.segmentWidthUnit = segmentWidthUnit;
+
+    const segmentHeight = parseNumber(vars[`Spatial Form ${index} Segment Height Value`]);
+    if (segmentHeight != null) form.segmentHeight = segmentHeight;
+
+    const segmentHeightUnit = normalizeDistanceUnit(vars[`Spatial Form ${index} Segment Height Unit`]);
+    if (segmentHeightUnit) form.segmentHeightUnit = segmentHeightUnit;
+
+    if (!isNilish(vars[`Spatial Form ${index} Notes`])) {
+      form.notes = vars[`Spatial Form ${index} Notes`];
+    }
+
+    forms.push(form);
+  }
+
+  return forms;
+};
+
+const parseSpatialMeasuredDetails = (vars: ReferenceVars) => {
+  const details: Array<Record<string, unknown>> = [];
+
+  for (let index = 1; index <= 30; index += 1) {
+    const label = vars[`Spatial Detail ${index} Label`];
+    if (isNilish(label)) continue;
+
+    const detail: Record<string, unknown> = {
+      label,
+    };
+
+    if (!isNilish(vars[`Spatial Detail ${index} Kind`])) {
+      detail.kind = vars[`Spatial Detail ${index} Kind`];
+    }
+
+    if (!isNilish(vars[`Spatial Detail ${index} Subject`])) {
+      detail.subject = vars[`Spatial Detail ${index} Subject`];
+    }
+
+    const value = parseNumber(vars[`Spatial Detail ${index} Value`]);
+    if (value != null) detail.value = value;
+
+    const unit = normalizeSpatialMeasuredUnit(vars[`Spatial Detail ${index} Unit`]);
+    if (unit) detail.unit = unit;
+
+    if (!isNilish(vars[`Spatial Detail ${index} Qualifier`])) {
+      detail.qualifier = vars[`Spatial Detail ${index} Qualifier`];
+    }
+
+    if (!isNilish(vars[`Spatial Detail ${index} Notes`])) {
+      detail.notes = vars[`Spatial Detail ${index} Notes`];
+    }
+
+    details.push(detail);
+  }
+
+  return details;
+};
+
 // DEBT: Cast spell to any to allow dynamic property access during reference update process.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
@@ -511,18 +658,22 @@ const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
   // Range
   const rangeType = normalizeRangeType(vars['Range Type']);
   const rangeDistance = parseNumber(vars['Range Distance']);
-  const rangeUnit = isNilish(vars['Range Unit']) ? undefined : normalizeWhitespace(vars['Range Unit']).toLowerCase();
+  const rangeUnit = normalizeDistanceUnit(vars['Range Distance Unit'] ?? vars['Range Unit']);
 
   if (rangeType) {
     spell.range = spell.range ?? {};
     spell.range.type = rangeType;
 
-    if (rangeType === 'ranged' && rangeDistance != null) {
-      let distanceFeet = rangeDistance;
-      if (rangeUnit === 'mile' || rangeUnit === 'miles') distanceFeet = rangeDistance * 5280;
-      spell.range.distance = distanceFeet;
+    if ((rangeType === 'ranged' || rangeType === 'self') && rangeDistance != null) {
+      spell.range.distance = rangeDistance;
+      if (rangeUnit) {
+        spell.range.distanceUnit = rangeUnit;
+      } else {
+        delete spell.range.distanceUnit;
+      }
     } else {
       delete spell.range.distance;
+      delete spell.range.distanceUnit;
     }
   }
 
@@ -576,19 +727,47 @@ const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
   const maxTargets = parseNumber(vars['Targeting Max']);
   const areaShape = normalizeAoEShape(vars['Area Shape']);
   const areaSize = parseNumber(vars['Area Size']);
+  const areaSizeType = normalizeGeometrySizeType(vars['Area Size Type']);
+  const areaSizeUnit = normalizeDistanceUnit(vars['Area Size Unit']);
   const areaHeight = parseNumber(vars['Area Height']);
+  const areaHeightUnit = normalizeDistanceUnit(vars['Area Height Unit']);
+  const areaWidth = parseNumber(vars['Area Width']);
+  const areaWidthUnit = normalizeDistanceUnit(vars['Area Width Unit']);
+  const areaThickness = parseNumber(vars['Area Thickness']);
+  const areaThicknessUnit = normalizeDistanceUnit(vars['Area Thickness Unit']);
+  const targetingRange = parseNumber(vars['Targeting Range']);
+  const targetingRangeUnit = normalizeDistanceUnit(vars['Targeting Range Unit']);
+  const spatialForms = parseSpatialForms(vars);
+  const spatialMeasuredDetails = parseSpatialMeasuredDetails(vars);
 
   spell.targeting = spell.targeting ?? {};
   if (targetingType) spell.targeting.type = targetingType;
   if (lineOfSight != null) spell.targeting.lineOfSight = lineOfSight;
 
-  // Range is specified in feet for targeting
-  if (spell.range?.type === 'ranged' && typeof spell.range?.distance === 'number') {
+  // Prefer explicit structured targeting fields when they exist so risky spells
+  // can keep cast range, point placement, and alternate geometry separate.
+  if (targetingRange != null) {
+    spell.targeting.range = targetingRange;
+    if (targetingRangeUnit) {
+      spell.targeting.rangeUnit = targetingRangeUnit;
+    } else {
+      delete spell.targeting.rangeUnit;
+    }
+  } else if (spell.range?.type === 'ranged' && typeof spell.range?.distance === 'number') {
     spell.targeting.range = spell.range.distance;
+    if (spell.range?.distanceUnit) {
+      spell.targeting.rangeUnit = spell.range.distanceUnit;
+    } else {
+      delete spell.targeting.rangeUnit;
+    }
   } else if (spell.range?.type === 'touch') {
     spell.targeting.range = 0;
+    spell.targeting.rangeUnit = 'feet';
   } else if (spell.range?.type === 'self') {
-    delete spell.targeting.range;
+    if (typeof spell.targeting.range !== 'number') {
+      delete spell.targeting.range;
+      delete spell.targeting.rangeUnit;
+    }
   }
 
   if (maxTargets != null) spell.targeting.maxTargets = maxTargets;
@@ -613,9 +792,24 @@ const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
 
   if (areaShape && areaSize != null && areaSize > 0) {
     spell.targeting.areaOfEffect = { shape: areaShape, size: areaSize };
+    if (areaSizeType) spell.targeting.areaOfEffect.sizeType = areaSizeType;
+    if (areaSizeUnit) spell.targeting.areaOfEffect.sizeUnit = areaSizeUnit;
     if (areaHeight != null && areaHeight > 0) spell.targeting.areaOfEffect.height = areaHeight;
+    if (areaHeightUnit) spell.targeting.areaOfEffect.heightUnit = areaHeightUnit;
+    if (areaWidth != null && areaWidth > 0) spell.targeting.areaOfEffect.width = areaWidth;
+    if (areaWidthUnit) spell.targeting.areaOfEffect.widthUnit = areaWidthUnit;
+    if (areaThickness != null && areaThickness > 0) spell.targeting.areaOfEffect.thickness = areaThickness;
+    if (areaThicknessUnit) spell.targeting.areaOfEffect.thicknessUnit = areaThicknessUnit;
   } else {
     delete spell.targeting.areaOfEffect;
+  }
+
+  if (spatialForms.length || spatialMeasuredDetails.length) {
+    spell.targeting.spatialDetails = {};
+    if (spatialForms.length) spell.targeting.spatialDetails.forms = spatialForms;
+    if (spatialMeasuredDetails.length) spell.targeting.spatialDetails.measuredDetails = spatialMeasuredDetails;
+  } else {
+    delete spell.targeting.spatialDetails;
   }
 
   // Description / Higher Levels

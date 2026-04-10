@@ -9,6 +9,8 @@
     "Druid",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

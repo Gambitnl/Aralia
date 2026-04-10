@@ -11,6 +11,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -47,6 +49,7 @@
   "targeting": {
     "type": "ranged",
     "range": 15,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "enemies"

@@ -1,9 +1,24 @@
+/**
+ * @file MainMenu.test.tsx
+ * This test file covers the player-facing main menu surface.
+ *
+ * The important session-specific change recorded here is that the old standalone
+ * "Quick Start (Dev)" button is no longer expected on the main menu itself.
+ * That action was folded into the shared Dev Menu, so this test now protects the
+ * visible rule that the main menu only exposes one developer entry point.
+ */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MainMenu from '../layout/MainMenu';
 
-// Mock child components
+// ============================================================================
+// Mocked Child Surfaces
+// ============================================================================
+// The main menu delegates save/load dialogs and the version badge to other UI
+// components. These tests replace them with small stand-ins so the assertions
+// can stay focused on the menu's own button surface and wiring.
+// ============================================================================
 vi.mock('../SaveLoad', () => ({
     LoadGameModal: ({ onClose }: { onClose: () => void }) => (
         <div role="dialog" aria-label="Resume Journey Modal">
@@ -21,6 +36,8 @@ vi.mock('../VersionDisplay', () => ({
     VersionDisplay: () => <div>Version 1.0</div>,
 }));
 
+// The save service is mocked because these tests only care about what the menu
+// renders when save metadata exists, not about exercising persistence itself.
 vi.mock('../services/saveLoadService', () => ({
     getSaveSlots: vi.fn(() => []),
     deleteSaveGame: vi.fn(),
@@ -28,7 +45,12 @@ vi.mock('../services/saveLoadService', () => ({
 // TODO: Add test case where getSaveSlots returns actual save data to verify
 // Continue button text formatting and latestSlot sorting logic.
 
-// Mock i18n to ensure consistent text
+// ============================================================================
+// Text Fixture Layer
+// ============================================================================
+// The menu uses translated labels, but the tests need stable English text so the
+// assertions do not depend on the full i18n pipeline.
+// ============================================================================
 vi.mock('../utils/i18n', () => ({
     t: (key: string) => {
         const translations: Record<string, string> = {
@@ -49,6 +71,14 @@ vi.mock('../utils/i18n', () => ({
     }
 }));
 
+// ============================================================================
+// Main Menu Behavior Coverage
+// ============================================================================
+// These tests lock the visible button surface and action wiring. This is where
+// we protect session decisions like "Quick Start moves into Dev Menu" so that a
+// future refactor does not silently drift the main menu back into two separate
+// developer entry points.
+// ============================================================================
 describe('MainMenu', () => {
     const defaultProps = {
         onNewGame: vi.fn(),
@@ -66,6 +96,8 @@ describe('MainMenu', () => {
     });
 
     it('renders the title and basic buttons', () => {
+        // The regular player-facing buttons should still appear regardless of the
+        // dev-only restructuring that happened in this session.
         render(<MainMenu {...defaultProps} />);
         expect(screen.getByText('Aralia RPG')).toBeInTheDocument();
         expect(screen.getByText('Begin Legend')).toBeInTheDocument();
@@ -97,9 +129,11 @@ describe('MainMenu', () => {
         expect(defaultProps.onLoadGame).toHaveBeenCalledTimes(1);
     });
 
-    it('shows Skip Character Creator button when in dev mode', () => {
+    it('does not render Quick Start directly on the main menu anymore', () => {
+        // Quick Start now belongs to the shared Dev Menu, so the main menu should
+        // no longer show it as a peer button next to the normal player actions.
         render(<MainMenu {...defaultProps} isDevDummyActive={true} />);
-        expect(screen.getByText('Quick Start (Dev)')).toBeInTheDocument();
+        expect(screen.queryByText('Quick Start (Dev)')).not.toBeInTheDocument();
     });
 
     it('opens LoadGameModal when Resume Journey button is clicked', () => {

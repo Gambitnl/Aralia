@@ -5,7 +5,7 @@
  * This module defines all types related to town navigation, NPCs,
  * events, and the living world simulation.
  */
-import { TownMap, TileType } from './realmsmith';
+import { TownMap, TileType } from './realmsmith.js';
 /**
  * Position within the town grid (tile coordinates)
  */

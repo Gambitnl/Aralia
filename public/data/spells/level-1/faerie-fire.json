@@ -10,6 +10,14 @@
     "Bard",
     "Druid"
   ],
+  "subClasses": [
+    "Cleric - Light Domain",
+    "Cleric - Moon Domain (TCSR)",
+    "Cleric - Twilight Domain (TCoE)",
+    "Warlock - Archfey Patron",
+    "Warlock - Lantern Patron (OTTG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +35,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +55,7 @@
   "targeting": {
     "type": "area",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "objects"
@@ -54,6 +64,7 @@
     "areaOfEffect": {
       "shape": "Cube",
       "size": 20,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -135,7 +146,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Each object in a 20-foot Cube within range remains outlined in blue, green, or violet light (your choice). Any creature in the area when the spell is cast is also outlined in light if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dim Light in a 10-foot radius. Any attack roll against an affected creature or object has Advantage if the attacker can see it, and the affected creature or object can't benefit from being Invisible.",
+  "description": "Objects in a 20-foot Cube within range are outlined in blue, green, or violet light (your choice). Each creature in the Cube is also outlined if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dim Light in a 10-foot radius and can't benefit from the Invisible condition. Attack rolls against an affected creature or object have Advantage if the attacker can see it.",
   "higherLevels": "",
   "tags": [
     "utility",

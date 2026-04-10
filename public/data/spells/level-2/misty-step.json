@@ -10,6 +10,13 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [
+    "Paladin - Oath of the Ancients",
+    "Paladin - Oath of the Open Sea (TCSR)",
+    "Paladin - Oath of Vengeance",
+    "Ranger - Fey Wanderer"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -126,7 +133,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.",
+  "description": "Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space you can see.",
   "higherLevels": "",
   "tags": [
     "movement",

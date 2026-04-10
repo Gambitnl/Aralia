@@ -3,6 +3,7 @@
 - **School**: Abjuration
 - **Ritual**: false
 - **Classes**: Sorcerer, Warlock, Wizard
+- **Sub-Classes**: Paladin - Oath of Redemption (XGtE), Paladin - Oath of the Watchers (TCoE), Paladin - Oath of Castigation
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: reaction
@@ -26,5 +27,38 @@
 - **Save Stat**: Constitution
 - **Save Outcome**: negates_effect
 
-- **Description**: You attempt to interrupt a creature in the process of casting a spell. If the creature is casting a spell of 3rd level or lower, its spell fails and has no effect. If it is casting a spell of 4th level or higher, make an ability check using your spellcasting ability. The DC equals 10 + the spell's level. On a success, the creature's spell fails and has no effect.
-- **Higher Levels**: When you cast this spell using a spell slot of 4th level or higher, the interrupted spell has no effect if its level is less than or equal to the level of the spell slot you used.
+- **Description**: You attempt to interrupt a creature in the process of casting a spell. The creature makes a Constitution saving throw. On a failed save, the spell dissipates with no effect, and the action, Bonus Action, or Reaction used to cast it is wasted. If that spell was cast with a spell slot, the slot isn't expended.
+- **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Counterspell
+Level: 3rd
+Casting Time: 1 Reaction *
+Range/Area: 60 ft.
+Components: S
+Duration: Instantaneous
+School: Abjuration
+Attack/Save: CON Save
+Damage/Effect: Negation
+
+Rules Text:
+You attempt to interrupt a creature in the process of casting a spell. The creature makes a Constitution saving throw. On a failed save, the spell dissipates with no effect, and the action, Bonus Action, or Reaction used to cast it is wasted. If that spell was cast with a spell slot, the slot isn’t expended.
+
+Spell Tags:
+Negation
+
+Available For:
+Sorcerer
+Warlock
+Wizard
+Paladin - Oath of Redemption (XGtE)
+Paladin - Oath of the Watchers (TCoE)
+Paladin - Oath of Castigation
+
+Capture Method: http
+Legacy Page: false
+-->

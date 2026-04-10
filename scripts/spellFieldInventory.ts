@@ -25,6 +25,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, '..');
 const SPELLS_ROOT = path.resolve(__dirname, '..', 'public', 'data', 'spells');
 
 const FREE_TEXT_FIELD_HINTS = [
@@ -48,6 +49,7 @@ export interface SpellRecord {
   level: number;
   filePath: string;
   relativePath: string;
+  browserPath: string;
 }
 
 export interface InventoryOccurrence {
@@ -55,10 +57,13 @@ export interface InventoryOccurrence {
   spellName: string;
   level: number;
   filePath: string;
+  browserPath: string;
   fieldPath: string;
+  semanticFieldPath: string;
   value: string;
   valueKind: ValueKind;
   isFreeText: boolean;
+  lineNumber: number | null;
 }
 
 export interface InventoryValueSummary {
@@ -136,12 +141,18 @@ function listSpellFiles(): Array<{ level: number; filePath: string; relativePath
 
     for (const fileName of files) {
       const filePath = path.join(levelDir, fileName);
-      const relativePath = path.relative(path.resolve(__dirname, '..'), filePath).replace(/\\/g, '/');
+      const relativePath = path.relative(REPO_ROOT, filePath).replace(/\\/g, '/');
       entries.push({ level, filePath, relativePath });
     }
   }
 
   return entries;
+}
+
+function createSpellBrowserPath(relativePath: string): string {
+  const normalized = String(relativePath || '').replace(/\\/g, '/');
+  const withoutPublicPrefix = normalized.replace(/^public\//, '');
+  return `/Aralia/${withoutPublicPrefix}`;
 }
 
 function deriveSpellRecord(level: number, filePath: string, relativePath: string, rawSpell: Record<string, unknown>): SpellRecord {
@@ -155,6 +166,7 @@ function deriveSpellRecord(level: number, filePath: string, relativePath: string
     level,
     filePath,
     relativePath,
+    browserPath: createSpellBrowserPath(relativePath),
   };
 }
 
@@ -189,12 +201,105 @@ function mergeContainerKinds(kinds: Set<ContainerKind>): ContainerKind {
   return 'mixed';
 }
 
+function denormalizePrimitive(value: string, kind: ValueKind): PrimitiveValue {
+  if (kind === 'null') return null;
+  if (kind === 'boolean') return value === 'true';
+  if (kind === 'number') return Number(value);
+  return value;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildOccurrenceLinePattern(occurrence: InventoryOccurrence): RegExp {
+  const serializedValue = JSON.stringify(denormalizePrimitive(occurrence.value, occurrence.valueKind));
+  const escapedValue = escapeRegExp(serializedValue);
+
+  // The inventory only records primitive leaves, so each occurrence should map to
+  // one line in the pretty-printed spell JSON. Object properties look like
+  // `"key": value,` while primitive array items look like `"Wizard",`.
+  if (occurrence.fieldPath.endsWith('[]')) {
+    return new RegExp(`^\\s*${escapedValue}\\s*,?$`);
+  }
+
+  const leafSegment = occurrence.fieldPath.split('.').pop() || '';
+  const leafKey = leafSegment.replace(/\[\]/g, '');
+  const escapedKey = escapeRegExp(JSON.stringify(leafKey));
+  return new RegExp(`^\\s*${escapedKey}\\s*:\\s*${escapedValue}\\s*,?$`);
+}
+
+function deriveArrayItemIdentity(value: unknown): string | null {
+  if (!isPlainObject(value)) return null;
+
+  // Validation review needs a stable way to distinguish "same path, different
+  // semantic slot" cases inside arrays of objects. Labels are the best signal,
+  // but we fall back to other naming fields so the inventory can still separate
+  // entries like measured details, spatial forms, or typed effect fragments.
+  const candidateKeys = ['label', 'name', 'id'];
+  for (const key of candidateKeys) {
+    const candidate = value[key];
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+  }
+
+  const kind = typeof value.kind === 'string' && value.kind.trim() ? value.kind.trim() : '';
+  const type = typeof value.type === 'string' && value.type.trim() ? value.type.trim() : '';
+  const qualifier = typeof value.qualifier === 'string' && value.qualifier.trim() ? value.qualifier.trim() : '';
+  const fallbackParts = [kind || type, qualifier].filter(Boolean);
+
+  return fallbackParts.length ? fallbackParts.join(' - ') : null;
+}
+
+function applySemanticArrayIdentities(fieldPath: string, identities: Array<string | null>): string {
+  let identityIndex = 0;
+
+  return fieldPath.replace(/\[\]/g, () => {
+    const identity = identities[identityIndex] ?? null;
+    identityIndex += 1;
+    return identity ? `[${identity}]` : '[]';
+  });
+}
+
+function attachOccurrenceLineNumbers(filePath: string, spellOccurrences: InventoryOccurrence[]): void {
+  const fileLines = fs.readFileSync(filePath, 'utf8').split(/\r?\n/);
+  let nextSearchIndex = 0;
+
+  // We resolve hits in traversal order so repeated values in the same file stay
+  // attached to the correct line instead of collapsing onto the first matching
+  // occurrence. That gives the validation page a stable "hit line" without
+  // pulling in a heavier JSON-with-source-locations parser.
+  for (const occurrence of spellOccurrences) {
+    const pattern = buildOccurrenceLinePattern(occurrence);
+    let matchedIndex = -1;
+
+    for (let lineIndex = nextSearchIndex; lineIndex < fileLines.length; lineIndex += 1) {
+      if (pattern.test(fileLines[lineIndex])) {
+        matchedIndex = lineIndex;
+        break;
+      }
+    }
+
+    if (matchedIndex === -1 && nextSearchIndex > 0) {
+      for (let lineIndex = 0; lineIndex < nextSearchIndex; lineIndex += 1) {
+        if (pattern.test(fileLines[lineIndex])) {
+          matchedIndex = lineIndex;
+          break;
+        }
+      }
+    }
+
+    occurrence.lineNumber = matchedIndex >= 0 ? matchedIndex + 1 : null;
+    if (matchedIndex >= 0) nextSearchIndex = matchedIndex + 1;
+  }
+}
+
 function collectNode(
   value: unknown,
   fieldPath: string,
   spell: SpellRecord,
   fields: Map<string, MutableFieldSummary>,
   occurrences: InventoryOccurrence[],
+  semanticArrayIdentities: Array<string | null> = [],
 ): void {
   const ensureField = (pathKey: string, kind: ContainerKind): MutableFieldSummary => {
     const existing = fields.get(pathKey);
@@ -221,7 +326,7 @@ function collectNode(
 
     const nextPath = fieldPath ? `${fieldPath}[]` : '[]';
     for (const item of value) {
-      collectNode(item, nextPath, spell, fields, occurrences);
+      collectNode(item, nextPath, spell, fields, occurrences, [...semanticArrayIdentities, deriveArrayItemIdentity(item)]);
     }
     return;
   }
@@ -231,7 +336,7 @@ function collectNode(
 
     for (const [key, child] of Object.entries(value)) {
       const nextPath = fieldPath ? `${fieldPath}.${key}` : key;
-      collectNode(child, nextPath, spell, fields, occurrences);
+      collectNode(child, nextPath, spell, fields, occurrences, semanticArrayIdentities);
     }
     return;
   }
@@ -239,6 +344,7 @@ function collectNode(
   const primitive = normalizePrimitive((value as PrimitiveValue) ?? null);
   const field = ensureField(fieldPath, primitive.kind);
   const isFreeText = detectFreeText(fieldPath, (value as PrimitiveValue) ?? null);
+  const semanticFieldPath = applySemanticArrayIdentities(fieldPath, semanticArrayIdentities);
 
   field.occurrenceCount += 1;
   field.containsFreeTextValues = field.containsFreeTextValues || isFreeText;
@@ -261,10 +367,13 @@ function collectNode(
     spellName: spell.spellName,
     level: spell.level,
     filePath: spell.filePath,
+    browserPath: spell.browserPath,
     fieldPath,
+    semanticFieldPath,
     value: primitive.display,
     valueKind: primitive.kind,
     isFreeText,
+    lineNumber: null,
   });
 }
 
@@ -276,8 +385,11 @@ export function buildSpellFieldInventory(): SpellFieldInventory {
   for (const entry of listSpellFiles()) {
     const raw = JSON.parse(fs.readFileSync(entry.filePath, 'utf8')) as Record<string, unknown>;
     const spell = deriveSpellRecord(entry.level, entry.filePath, entry.relativePath, raw);
+    const spellOccurrences: InventoryOccurrence[] = [];
     spells.push(spell);
-    collectNode(raw, '', spell, fields, occurrences);
+    collectNode(raw, '', spell, fields, spellOccurrences);
+    attachOccurrenceLineNumbers(entry.filePath, spellOccurrences);
+    occurrences.push(...spellOccurrences);
   }
 
   const fieldSummaries = Array.from(fields.values())
@@ -307,6 +419,7 @@ export function buildSpellFieldInventory(): SpellFieldInventory {
 
   const sortedOccurrences = occurrences.sort((a, b) => {
     if (a.fieldPath !== b.fieldPath) return a.fieldPath.localeCompare(b.fieldPath);
+    if (a.semanticFieldPath !== b.semanticFieldPath) return a.semanticFieldPath.localeCompare(b.semanticFieldPath);
     if (a.level !== b.level) return a.level - b.level;
     if (a.spellName !== b.spellName) return a.spellName.localeCompare(b.spellName);
     return a.value.localeCompare(b.value);
@@ -352,21 +465,53 @@ export function querySpellFieldInventory(inventory: SpellFieldInventory, options
   const includeFreeText = Boolean(options.includeFreeText);
   const level = typeof options.level === 'number' ? options.level : null;
   const limit = Math.max(1, Math.min(Number(options.limit ?? 200), 1000));
+  const hasFieldFilter = fieldNeedle.length > 0;
+  const hasValueFilter = valueNeedle.length > 0;
+  const requireExactCombinedMatch = hasFieldFilter && hasValueFilter;
 
   const fieldSummaries = inventory.fields.filter((field) => {
-    if (!includeFreeText && field.containsFreeTextValues && !fieldNeedle && !valueNeedle) {
+    if (!includeFreeText && field.containsFreeTextValues && !hasFieldFilter && !hasValueFilter) {
       // Keep the default field browser focused on structural lanes unless the user
       // explicitly filters into a field or asks for free-text lanes.
       return false;
     }
-    if (fieldNeedle && !field.fieldPath.toLowerCase().includes(fieldNeedle)) return false;
+    // Combined searches are now treated as a strict paired query. When the user
+    // supplies both a field path and a value, the field side must match that one
+    // exact path instead of doing a broad substring browse. This prevents a query
+    // like `targeting.spatialDetails.measuredDetails[].value = 10` from drifting
+    // into sibling field paths while the user is trying to verify one concrete
+    // structural lane.
+    if (requireExactCombinedMatch) {
+      if (field.fieldPath.toLowerCase() !== fieldNeedle) return false;
+      return true;
+    }
+
+    if (hasFieldFilter && !field.fieldPath.toLowerCase().includes(fieldNeedle)) return false;
     return true;
   });
 
   const occurrences = inventory.occurrences.filter((occurrence) => {
     if (!includeFreeText && occurrence.isFreeText) return false;
-    if (fieldNeedle && !occurrence.fieldPath.toLowerCase().includes(fieldNeedle)) return false;
-    if (valueNeedle && !occurrence.value.toLowerCase().includes(valueNeedle)) return false;
+
+    // The field/value search now has two modes:
+    // 1. browse mode: one filter filled in, so partial matching stays useful
+    // 2. strict combined mode: both filters filled in, so only exact field+value
+    //    pairs should survive. This is the behavior the spell validation page
+    //    needs when the user is trying to confirm a very specific structural fact.
+    if (requireExactCombinedMatch) {
+      const fieldMatchesExactly =
+        occurrence.fieldPath.toLowerCase() === fieldNeedle
+        || occurrence.semanticFieldPath.toLowerCase() === fieldNeedle;
+      if (!fieldMatchesExactly) return false;
+      if (occurrence.value.toLowerCase() !== valueNeedle) return false;
+    } else {
+      const fieldMatchesBroadly =
+        occurrence.fieldPath.toLowerCase().includes(fieldNeedle)
+        || occurrence.semanticFieldPath.toLowerCase().includes(fieldNeedle);
+      if (hasFieldFilter && !fieldMatchesBroadly) return false;
+      if (hasValueFilter && !occurrence.value.toLowerCase().includes(valueNeedle)) return false;
+    }
+
     if (level !== null && occurrence.level !== level) return false;
     return true;
   });

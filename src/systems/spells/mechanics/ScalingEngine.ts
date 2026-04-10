@@ -1,4 +1,20 @@
-import type { ScalingFormula } from '@/types/spells'
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 03/04/2026, 10:32:06
+ * Dependents: systems/spells/mechanics/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { HigherLevelScaling, HigherLevelScalingRule, ScalingFormula } from '@/types/spells'
 
 /**
  * [SCRIBE] Handles spell upscaling calculations for D&D 5e
@@ -83,6 +99,101 @@ export class ScalingEngine {
     }
 
     return baseValue
+  }
+
+  /**
+   * Resolve the newer spell-level higher-level scaling structure into readable
+   * runtime facts for a specific cast.
+   *
+   * Why this exists:
+   * the repo now has a dedicated `higherLevelScaling` field on spells so the
+   * engine does not have to reverse-engineer scaling behavior from prose later.
+   * This helper is intentionally descriptive first; it gives the runtime one
+   * place to interpret those rules while preserving room for future mechanical
+   * consumers that may want richer typed outputs instead of strings.
+   */
+  static describeHigherLevelScaling(
+    scaling: HigherLevelScaling | undefined,
+    castAtLevel: number,
+    casterLevel: number,
+  ): string[] {
+    if (!scaling) return []
+
+    if (scaling.type === 'multiple') {
+      return scaling.rules.flatMap((rule) => this.describeHigherLevelScalingRule(rule, castAtLevel, casterLevel))
+    }
+
+    if (scaling.type === 'special_text_only') {
+      return [scaling.referenceText]
+    }
+
+    return this.describeHigherLevelScalingRule(scaling, castAtLevel, casterLevel)
+  }
+
+  /**
+   * Resolve one concrete higher-level scaling rule into a readable runtime note.
+   *
+   * This is deliberately conservative. If the engine cannot derive a stronger
+   * numeric result safely, it still returns the structured rule as readable text
+   * instead of guessing.
+   */
+  private static describeHigherLevelScalingRule(
+    scaling: HigherLevelScalingRule,
+    castAtLevel: number,
+    casterLevel: number,
+  ): string[] {
+    if (scaling.type === 'character_level_tiers') {
+      const resolved = this.resolveTierEntry(scaling.tiers, casterLevel)
+      return resolved ? [`Character level ${casterLevel}: ${resolved}`] : []
+    }
+
+    if (scaling.type === 'slot_level_bonus') {
+      const levelsAboveBase = Math.max(0, castAtLevel - scaling.baseSpellLevel)
+      if (levelsAboveBase === 0) return []
+      return [`Slot level ${castAtLevel}: ${scaling.bonusPerLevel} applied ${levelsAboveBase} time(s)`]
+    }
+
+    if (scaling.type === 'slot_level_table') {
+      const resolved = this.resolveTierEntry(scaling.entries, castAtLevel)
+      return resolved ? [`Slot level ${castAtLevel}: ${resolved}`] : []
+    }
+
+    if (scaling.type === 'target_count_bonus') {
+      const levelsAboveBase = Math.max(0, castAtLevel - scaling.baseSpellLevel)
+      if (levelsAboveBase === 0) return []
+      const extraTargets = levelsAboveBase * scaling.additionalTargetsPerLevel
+      const targetLabel = scaling.targetLabel ?? 'target'
+      return [`Slot level ${castAtLevel}: +${extraTargets} ${targetLabel}${extraTargets === 1 ? '' : 's'}`]
+    }
+
+    const levelsAboveBase = Math.max(0, castAtLevel - scaling.baseSpellLevel)
+    if (levelsAboveBase === 0) return []
+    const totalIncrease = levelsAboveBase * scaling.increasePerLevel
+    return [`Slot level ${castAtLevel}: +${totalIncrease} ${scaling.unit} ${scaling.dimension.replace(/_/g, ' ')}`]
+  }
+
+  /**
+   * Pick the highest threshold entry that applies at the given level.
+   *
+   * This is used by both cantrip tiers and explicit slot-level breakpoint
+   * tables so the two storage shapes behave consistently.
+   */
+  private static resolveTierEntry(
+    entries: Record<string, string>,
+    level: number,
+  ): string | undefined {
+    const thresholds = Object.keys(entries)
+      .map(Number)
+      .filter((threshold) => !Number.isNaN(threshold))
+      .sort((a, b) => b - a)
+
+    for (const threshold of thresholds) {
+      if (level >= threshold) {
+        return entries[String(threshold)]
+      }
+    }
+
+    return undefined
   }
 
   /**

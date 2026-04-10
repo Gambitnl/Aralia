@@ -8,6 +8,8 @@
   "classes": [
     "Cleric"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -25,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -44,6 +47,7 @@
   "targeting": {
     "type": "point",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "point"
     ],

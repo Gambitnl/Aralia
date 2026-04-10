@@ -1,0 +1,18 @@
+{
+  "id": "cone_area",
+  "title": "Cone",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Cone.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/cone_area.json",
+  "markdown": "# Cone\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[burning-hands|Burning Hands]]\n- [[color-spray|Color Spray]]\n- [[cone-of-cold|Cone of Cold]]\n- [[conjure-barrage|Conjure Barrage]]\n- [[dragons-breath|Dragon's Breath]]\n- [[fear|Fear]]\n- [[prismatic-spray|Prismatic Spray]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

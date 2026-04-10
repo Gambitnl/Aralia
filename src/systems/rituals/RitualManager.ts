@@ -15,10 +15,36 @@ import {
   RequirementValidationResult
 } from '../../types/rituals';
 import { Spell } from '../../types/spells';
+import {
+  ROUND_DURATION_SECONDS,
+  convertSecondsToDisplayValue,
+  getDisplayUnitForSeconds,
+  getSpellCastingDurationSeconds
+} from '../../utils/core/spellTimeUtils';
 // TODO(lint-intent): 'TimeOfDay' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { TimeOfDay as _TimeOfDay, getTimeOfDay } from '../../utils/core';
+
+// ============================================================================
+// Ritual Runtime Display Translation
+// ============================================================================
+// The ritual runtime now stores canonical duration/progress in seconds. These
+// helpers preserve the older display fields so unfinished UI and logs can keep
+// showing rounds/minutes/hours without owning conversion rules themselves.
+// ============================================================================
+
+function buildDisplayTiming(totalSeconds: number, progressSeconds: number, preferredUnit?: Spell['castingTime']['unit']) {
+  // Keep action-based spells readable in rounds and longer narrative spells readable
+  // in minutes or hours while the canonical runtime math stays in seconds.
+  const durationUnit = getDisplayUnitForSeconds(totalSeconds, preferredUnit);
+
+  return {
+    durationUnit,
+    durationTotal: convertSecondsToDisplayValue(totalSeconds, durationUnit),
+    progress: convertSecondsToDisplayValue(progressSeconds, durationUnit)
+  };
+}
 
 /**
  * Creates a new RitualState for a caster and spell.
@@ -29,32 +55,18 @@ export function startRitual(
   currentRound: number,
   asRitual: boolean = false
 ): RitualState {
-  const canBeRitual = spell.ritual || spell.tags?.includes('RITUAL');
-  const castingTime = spell.castingTime;
+  // Translate the spell header into one canonical scalar. This lets world-time
+  // systems think in seconds while combat-facing UI can still derive rounds.
+  let durationTotalSeconds = getSpellCastingDurationSeconds(spell, asRitual);
 
-  // 1. Calculate base casting time in rounds
-  let baseRounds = 1; // Default to 1 action = negligible duration (but we track it if needed)
-
-  if (castingTime.unit === 'action' || castingTime.unit === 'bonus_action' || castingTime.unit === 'reaction') {
-    baseRounds = 0; // Instant in terms of multi-round tracking, usually
-  } else if (castingTime.unit === 'minute') {
-    baseRounds = castingTime.value * 10;
-  } else if (castingTime.unit === 'hour') {
-    baseRounds = castingTime.value * 600;
+  // HACK: "Special" casting times are not fully modeled yet. If a special-case spell
+  // is routed into the ritual system before its bespoke timing exists, keep the game
+  // moving with a single-round placeholder instead of producing a zero-duration ritual.
+  if (durationTotalSeconds === null || durationTotalSeconds <= 0) {
+    durationTotalSeconds = ROUND_DURATION_SECONDS;
   }
 
-  // 2. Add Ritual time if applicable (10 minutes = 100 rounds)
-  // Rule: A ritual takes 10 minutes longer than the normal casting time.
-  let durationRounds = baseRounds;
-
-  if (asRitual && canBeRitual) {
-    durationRounds += 100;
-  }
-
-  // Fallback: If it's 0 (instant action), but we are here, something is wrong or it's just a placeholder start.
-  // If baseRounds is 0 and not ritual, maybe it's a "special" long cast.
-  // Ideally, startRitual is only called for >1 round things.
-  if (durationRounds === 0) durationRounds = 1;
+  const displayTiming = buildDisplayTiming(durationTotalSeconds, 0, spell.castingTime.unit);
 
   const config: RitualConfig = {
     breaksOnDamage: true, // Most long casts require concentration-like focus
@@ -77,9 +89,11 @@ export function startRitual(
     spellName: spell.name,
     casterId: caster.id,
     startTime: currentRound,
-    durationTotal: durationRounds,
-    durationUnit: 'rounds',
-    progress: 0,
+    durationTotalSeconds,
+    progressSeconds: 0,
+    durationTotal: displayTiming.durationTotal,
+    durationUnit: displayTiming.durationUnit,
+    progress: displayTiming.progress,
     isPaused: false,
     participantIds: [],
     interruptConditions,
@@ -113,15 +127,23 @@ export function canStartRitual(
  */
 export function advanceRitual(
   ritual: RitualState,
-  amount: number = 1
+  amountSeconds: number = ROUND_DURATION_SECONDS
 ): RitualState {
   if (ritual.isPaused) return ritual;
 
-  const newProgress = Math.min(ritual.progress + amount, ritual.durationTotal);
+  // Clamp against the canonical seconds-based duration, then rebuild the legacy
+  // display fields so older ritual UI keeps showing the same style of values.
+  const newProgressSeconds = Math.min(ritual.progressSeconds + amountSeconds, ritual.durationTotalSeconds);
+  const displayTiming = {
+    durationUnit: ritual.durationUnit,
+    durationTotal: ritual.durationTotal,
+    progress: convertSecondsToDisplayValue(newProgressSeconds, ritual.durationUnit)
+  };
 
   return {
     ...ritual,
-    progress: newProgress
+    progressSeconds: newProgressSeconds,
+    progress: displayTiming.progress
   };
 }
 
@@ -129,7 +151,7 @@ export function advanceRitual(
  * Checks if a ritual is complete.
  */
 export function isRitualComplete(ritual: RitualState): boolean {
-  return ritual.progress >= ritual.durationTotal;
+  return ritual.progressSeconds >= ritual.durationTotalSeconds;
 }
 
 /**

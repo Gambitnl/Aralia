@@ -3,11 +3,13 @@
   "name": "Telepathy",
   "aliases": [],
   "level": 8,
-  "school": "Evocation",
+  "school": "Divination",
   "legacy": false,
   "classes": [
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

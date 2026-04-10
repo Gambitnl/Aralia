@@ -1,0 +1,18 @@
+{
+  "id": "lightly_obscured",
+  "title": "Lightly Obscured",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Lightly Obscured.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/lightly_obscured.json",
+  "markdown": "# Lightly Obscured\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[insect-plague|Insect Plague]]\n- [[web|Web]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

@@ -1,10 +1,23 @@
-import type { SpellSchool } from './spells';
-import type { ActiveEffect, StatusEffect } from './effects';
-import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core';
-import type { EquipmentSlotType, Item } from './items';
-import type { RaceVisualSpec } from './visuals';
-import type { FamilyMember } from './world';
-export type { AbilityScores, AbilityScoreName } from './core';
+import type { SpellSchool } from './spells.js';
+import type { ActiveEffect, StatusEffect } from './effects.js';
+import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core.js';
+import type { EquipmentSlotType, Item } from './items.js';
+import type { RaceVisualSpec } from './visuals.js';
+import type { FamilyMember } from './world.js';
+/**
+ * ARCHITECTURAL CONTEXT:
+ * This file contains the 'Core Domain Types' for characters. It defines
+ * the structure of Players, Classes, Races, and Feats.
+ *
+ * Recent updates align the system with '2024 Rulebook' mechanics. Many
+ * feats now scale with 'Proficiency Bonus' rather than using fixed numbers.
+ * The `benefits` structure within the `Feat` interface has been expanded
+ * with flags like `initiativeBonusProficiency` and `luckyPoints` to
+ * support these dynamic scaling rules in the combat and check modules.
+ *
+ * @file src/types/character.ts
+ */
+export type { AbilityScores, AbilityScoreName } from './core.js';
 export interface RacialAbilityBonus {
     ability: AbilityScoreName | 'Any';
     bonus: number;
@@ -231,8 +244,16 @@ export interface Feat {
         selectableDamageTypes?: string[];
         speedIncrease?: number;
         initiativeBonus?: number;
+        /** Alert (2024): Initiative bonus scales with Proficiency Bonus instead of a fixed value. */
+        initiativeBonusProficiency?: boolean;
         hpMaxIncreasePerLevel?: number;
         resistance?: string[];
+        /** Heavy Armor Master (2024): Nonmagical physical damage reduction equals Proficiency Bonus. */
+        damageReductionProficiency?: boolean;
+        /** Great Weapon Master (2024): Add Proficiency Bonus to damage on every Heavy weapon hit. */
+        heavyWeaponProficiencyBonus?: boolean;
+        /** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */
+        luckyPoints?: boolean;
         spellBenefits?: FeatSpellBenefits;
     };
 }

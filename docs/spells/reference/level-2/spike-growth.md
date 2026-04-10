@@ -3,6 +3,7 @@
 - **School**: Transmutation
 - **Ritual**: false
 - **Classes**: Druid, Ranger
+- **Sub-Classes**: Cleric - Nature Domain (PHB), Warlock - Horned King Patron, Warlock - The Genie (TCoE)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -19,7 +20,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: seven sharp thorns or seven small twigs, each sharpened to a point
+- **Material Description**: seven thorns
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -34,5 +35,46 @@
 - **Damage Dice**: 2d4
 - **Damage Type**: Piercing
 
-- **Description**: The ground in a 20-foot radius centered on a point within range twists and sprouts hard spikes and thorns. The area becomes Difficult Terrain for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels. The transformation of the ground is camouflaged to look natural. Any creature that can't see the area at the time the spell is cast must make a Wisdom (Perception) check against your spell save DC to recognize the terrain as hazardous before entering it.
+- **Description**: The ground in a 20-foot-radius Sphere centered on a point within range sprouts hard spikes and thorns. The area becomes Difficult Terrain for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels. The transformation of the ground is camouflaged to look natural. Any creature that can't see the area when the spell is cast must take a Search action and succeed on a Wisdom (Perception or Survival) check against your spell save DC to recognize the terrain as hazardous before entering it.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Spike Growth
+Level: 2nd
+Casting Time: 1 Action
+Range/Area: 150 ft. (20 ft.)
+Components: V, S, M *
+Duration: Concentration 10 Minutes
+School: Transmutation
+Attack/Save: None
+Damage/Effect: Control (...)
+
+Rules Text:
+The ground in a 20-foot-radius Sphere centered on a point within range sprouts hard spikes and thorns. The area becomes Difficult Terrain for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels.
+The transformation of the ground is camouflaged to look natural. Any creature that can’t see the area when the spell is cast must take a Search action and succeed on a Wisdom (Perception or Survival) check against your spell save DC to recognize the terrain as hazardous before entering it.
+
+Material Component:
+* - (seven thorns)
+
+Spell Tags:
+Damage
+Control
+
+Available For:
+Druid
+Ranger
+Cleric - Nature Domain (PHB)
+Warlock - The Genie (TCoE)
+Warlock - Horned King Patron
+
+Referenced Rules:
+Sphere -> /rules-glossary/109-tooltip
+Difficult Terrain -> /rules-glossary/50-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

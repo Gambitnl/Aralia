@@ -1,11 +1,62 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/04/2026, 00:55:31
+ * Dependents: state/reducers/worldReducer.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/state/reducers/ritualReducer.ts
- * Reducer logic for managing ritual state.
+ * Reducer logic for managing ritual progress inside the shared game state.
+ *
+ * The ritual manager now stores canonical progress in seconds so world-time and
+ * combat-time can share the same scalar. This reducer translates incoming time
+ * actions into seconds, feeds them into the ritual manager, and keeps the older
+ * display-facing ritual fields flowing through state for unfinished UI surfaces.
  */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import * as RitualManager from '../../systems/rituals/RitualManager';
+import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
 import { generateId } from '../../utils/combatUtils';
+
+// ============================================================================
+// Ritual Advancement Payload Translation
+// ============================================================================
+// Different systems think in different units. World time already advances in
+// seconds, while some dev/test ritual actions still talk in minutes or rounds.
+// This helper normalizes all of those entry points into one runtime scalar.
+// ============================================================================
+
+function getAdvanceRitualSeconds(payload: { seconds?: number; minutes?: number; rounds?: number }): number {
+  // Prefer an explicit seconds payload when it is provided, because seconds are
+  // now the canonical ritual runtime unit.
+  if (typeof payload.seconds === 'number') {
+    return payload.seconds;
+  }
+
+  // Minutes are still useful for narrative/dev actions where the caller is
+  // intentionally working at a broader time scale.
+  if (typeof payload.minutes === 'number') {
+    return payload.minutes * 60;
+  }
+
+  // Rounds remain useful for combat-driven ritual advancement.
+  if (typeof payload.rounds === 'number') {
+    return payload.rounds * ROUND_DURATION_SECONDS;
+  }
+
+  return 0;
+}
 
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -33,9 +84,9 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
         return {};
       }
 
-      const minutesPassed = action.payload.seconds / 60;
-      // Advance ritual returns a new state object
-      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, minutesPassed);
+      // ADVANCE_TIME is already expressed in seconds, so feed that directly into
+      // the ritual runtime instead of converting through minutes first.
+      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, action.payload.seconds);
 
       let messages = state.messages;
       const wasComplete = RitualManager.isRitualComplete(state.activeRitual);
@@ -61,7 +112,11 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'ADVANCE_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, action.payload.minutes);
+      // Manual ritual advancement can arrive in seconds, minutes, or rounds.
+      const updatedRitual = RitualManager.advanceRitual(
+        state.activeRitual,
+        getAdvanceRitualSeconds(action.payload)
+      );
 
       let messages = state.messages;
       const wasComplete = RitualManager.isRitualComplete(state.activeRitual);

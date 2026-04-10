@@ -12,6 +12,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -29,7 +31,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -48,6 +51,7 @@
   "targeting": {
     "type": "single",
     "range": 120,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],

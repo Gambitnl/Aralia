@@ -9,6 +9,8 @@
     "Cleric",
     "Paladin"
   ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,13 +28,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a tiny parchment with a bit of holy text written on it",
+    "materialDescription": "a prayer scroll",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -45,6 +48,7 @@
   "targeting": {
     "type": "single",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -137,7 +141,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
+  "description": "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
   "higherLevels": "",
   "tags": [
     "buff",

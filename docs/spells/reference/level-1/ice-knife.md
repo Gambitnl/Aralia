@@ -19,7 +19,7 @@
 - **Verbal**: false
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: a drop of water or piece of ice
+- **Material Description**: a drop of water or a piece of ice
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -36,4 +36,38 @@
 - **Secondary Damage Type**: Cold
 
 - **Description**: You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the Cold damage increases by 1d6 for each slot level above 1st.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The Cold damage increases by 1d6 for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Ice Knife
+Level: 1st
+Casting Time: 1 Action
+Range/Area: 60 ft. (5 ft. *)
+Components: S, M *
+Duration: Instantaneous
+School: Conjuration
+Attack/Save: DEX Save
+Damage/Effect: Piercing (...)
+
+Rules Text:
+You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.
+Using a Higher-Level Spell Slot. The Cold damage increases by 1d6 for each spell slot level above 1.
+
+Material Component:
+* - (a drop of water or a piece of ice)
+
+Spell Tags:
+Damage
+
+Available For:
+Druid
+Sorcerer
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->

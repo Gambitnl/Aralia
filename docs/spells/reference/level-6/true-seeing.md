@@ -19,7 +19,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: an ointment for the eyes that costs 25 gp; is made from mushroom powder, saffron, and fat; and is consumed by the spell
+- **Material Description**: mushroom powder worth 25+ GP, which the spell consumes
 - **Material Cost GP**: 25
 - **Consumed**: true
 
@@ -31,5 +31,40 @@
 - **Effect Type**: UTILITY
 - **Utility Type**: other
 
-- **Description**: This spell gives the willing creature you touch the ability to see things as they actually are. For the duration, the creature has truesight, notices secret doors hidden by magic, and can see into the Ethereal Plane, all out to a range of 120 feet.
+- **Description**: For the duration, the willing creature you touch has Truesight with a range of 120 feet.
 - **Higher Levels**: none
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: True Seeing
+Level: 6th
+Casting Time: 1 Action
+Range/Area: Touch
+Components: V, S, M *
+Duration: 1 Hour
+School: Divination
+Attack/Save: None
+Damage/Effect: Detection
+
+Rules Text:
+For the duration, the willing creature you touch has Truesight with a range of 120 feet.
+
+Material Component:
+* - (mushroom powder worth 25+ GP, which the spell consumes)
+
+Spell Tags:
+Detection
+
+Available For:
+Bard
+Cleric
+Sorcerer
+Warlock
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->

@@ -5,7 +5,11 @@
   "level": 5,
   "school": "Conjuration",
   "legacy": true,
-  "classes": [],
+  "classes": [
+    "Ranger"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -23,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 150
+    "distance": 150,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -42,6 +47,7 @@
   "targeting": {
     "type": "single",
     "range": 150,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "objects",

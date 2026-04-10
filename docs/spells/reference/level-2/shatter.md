@@ -2,7 +2,8 @@
 - **Level**: 2
 - **School**: Evocation
 - **Ritual**: false
-- **Classes**: Bard, Sorcerer, Warlock, Wizard
+- **Classes**: Bard, Sorcerer, Wizard
+- **Sub-Classes**: Cleric - Tempest Domain (PHB), Druid - Circle of the Sea
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -32,5 +33,45 @@
 - **Damage Dice**: 3d8
 - **Damage Type**: Thunder
 
-- **Description**: A sudden loud ringing noise, painfully intense, erupts from a point of your choice within range. Each creature in a 10-foot-radius Sphere centered on that point must make a Constitution saving throw. A creature takes 3d8 Thunder damage on a failed save, or half as much damage on a successful one. A creature made of inorganic material such as stone, crystal, or metal has Disadvantage on this saving throw. A nonmagical object that isn't being worn or carried also takes the damage if it's in the spell's area.
-- **Higher Levels**: When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.
+- **Description**: A loud noise erupts from a point of your choice within range. Each creature in a 10-foot-radius Sphere centered there makes a Constitution saving throw, taking 3d8 Thunder damage on a failed save or half as much damage on a successful one. A Construct has Disadvantage on the save. A nonmagical object that isn't being worn or carried also takes the damage if it's in the spell's area.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 2.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Shatter
+Level: 2nd
+Casting Time: 1 Action
+Range/Area: 60 ft. (10 ft.)
+Components: V, S, M *
+Duration: Instantaneous
+School: Evocation
+Attack/Save: CON Save
+Damage/Effect: Thunder
+
+Rules Text:
+A loud noise erupts from a point of your choice within range. Each creature in a 10-foot-radius Sphere centered there makes a Constitution saving throw, taking 3d8 Thunder damage on a failed save or half as much damage on a successful one. A Construct has Disadvantage on the save.
+A nonmagical object that isn’t being worn or carried also takes the damage if it’s in the spell’s area.
+Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 2.
+
+Material Component:
+* - (a chip of mica)
+
+Spell Tags:
+Damage
+
+Available For:
+Bard
+Sorcerer
+Wizard
+Cleric - Tempest Domain (PHB)
+Druid - Circle of the Sea
+
+Referenced Rules:
+Sphere -> /rules-glossary/109-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

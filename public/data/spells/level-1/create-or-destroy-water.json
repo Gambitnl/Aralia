@@ -9,6 +9,11 @@
     "Cleric",
     "Druid"
   ],
+  "subClasses": [
+    "Warlock - The Fathomless (TCoE)",
+    "Paladin - Oath of the Open Sea (TCSR)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,13 +31,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a drop of water (create) or a few grains of sand (destroy)",
+    "materialDescription": "a mix of water and sand",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -52,7 +58,9 @@
     "areaOfEffect": {
       "shape": "Cube",
       "size": 30,
-      "height": 0
+      "height": 0,
+      "sizeType": "edge",
+      "sizeUnit": "feet"
     },
     "maxTargets": 1,
     "filter": {
@@ -62,6 +70,49 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Rain Cube",
+          "shape": "Cube",
+          "size": 30,
+          "sizeType": "edge",
+          "sizeUnit": "feet",
+          "notes": "Create Water alternate mode."
+        },
+        {
+          "label": "Fog Clearance Cube",
+          "shape": "Cube",
+          "size": 30,
+          "sizeType": "edge",
+          "sizeUnit": "feet",
+          "notes": "Destroy Water alternate mode."
+        }
+      ],
+      "measuredDetails": [
+        {
+          "label": "Container Water Volume",
+          "kind": "volume",
+          "value": 10,
+          "unit": "gallons"
+        },
+        {
+          "label": "Higher-Level Volume Increase",
+          "kind": "volume",
+          "value": 10,
+          "unit": "gallons",
+          "qualifier": "per slot level above 1"
+        },
+        {
+          "label": "Higher-Level Cube Increase",
+          "kind": "distance",
+          "value": 5,
+          "unit": "feet",
+          "qualifier": "per slot level above 1"
+        }
+      ]
     }
   },
   "effects": [
@@ -133,8 +184,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You either create or destroy water. Create Water: You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot Cube within range. Destroy Water: You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot Cube within range.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you create or destroy 10 additional gallons of water, or the size of the Cube increases by 5 feet, for each slot level above 1st.",
+  "description": "You do one of the following: Create Water. You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot Cube within range, extinguishing exposed flames there. Destroy Water. You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot Cube within range.",
+  "higherLevels": "Using a Higher-Level Spell Slot. You create or destroy 10 additional gallons of water, or the size of the Cube increases by 5 feet, for each spell slot level above 1.",
   "tags": [
     "utility",
     "creation",

@@ -40,3 +40,43 @@
 - Planar travel is blocked within the warded area.
 Casting this spell on the same spot every day for 365 days makes the spell last until dispelled.
 - **Higher Levels**: You can increase the size of the Cube by 100 feet for each spell slot level above 4.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Mordenkainen's Private Sanctum
+Level: 4th
+Casting Time: 10 Minutes
+Range/Area: 120 ft. (*)
+Components: V, S, M *
+Duration: 24 Hours
+School: Abjuration
+Attack/Save: None
+Damage/Effect: Control (...)
+
+Rules Text:
+You make an area within range magically secure. The area is a Cube that can be as small as 5 feet to as large as 100 feet on each side. The spell lasts for the duration.
+When you cast the spell, you decide what sort of security the spell provides, choosing any of the following properties:
+Casting this spell on the same spot every day for 365 days makes the spell last until dispelled.
+Using a Higher-Level Spell Slot. You can increase the size of the Cube by 100 feet for each spell slot level above 4.
+
+Material Component:
+* - (a thin sheet of lead)
+
+Spell Tags:
+Control
+Warding
+
+Available For:
+Wizard
+Artificer
+
+Referenced Rules:
+Cube -> /rules-glossary/38-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->
+

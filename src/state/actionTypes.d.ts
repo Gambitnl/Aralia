@@ -1,25 +1,9 @@
-// @dependencies-start
-/**
- * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
- *
- * Last Sync: 27/02/2026, 09:29:05
- * Dependents: None (Orphan)
- * Imports: 7 files
- *
- * MULTI-AGENT SAFETY:
- * If you modify exports/imports, re-run the sync tool to update this header:
- * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
- * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
- */
-// @dependencies-end
-
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 12/02/2026, 22:27:44
- * Dependents: CharacterCreator.tsx, CombatReligionAdapter.ts, ConversationPanel.tsx, FeatSelection.tsx, GameContext.tsx, GameGuideModal.tsx, GameModals.tsx, NotificationSystem.tsx, TempleSystem.ts, actionHandlers.ts, appState.ts, characterReducer.ts, companionReducer.ts, conversationReducer.ts, craftingReducer.ts, crimeActions.ts, crimeReducer.ts, dialogueReducer.ts, economyReducer.ts, encounterReducer.ts, entityIntegrationUtils.ts, handleEncounter.ts, handleGeminiCustom.ts, handleItemInteraction.ts, handleMerchantInteraction.ts, handleMovement.ts, handleNpcInteraction.ts, handleObservation.ts, handleOracle.ts, handleResourceActions.ts, handleSystemAndUi.ts, handleWorldEvents.ts, identityReducer.ts, journalReducer.ts, legacyReducer.ts, logReducer.ts, navalReducer.ts, npcReducer.ts, questReducer.ts, religionReducer.ts, ritualReducer.ts, townReducer.ts, types/index.ts, uiReducer.ts, useCompanionBanter.ts, useConversation.ts, useDialogueSystem.ts, useGameActions.ts, useGameInitialization.ts, useHistorySync.ts, useOllamaCheck.ts, worldReducer.ts
+ * Last Sync: 27/02/2026, 09:29:07
+ * Dependents: CharacterCreator.tsx, CombatReligionAdapter.ts, ConversationPanel.tsx, FeatSelection.tsx, GameContext.tsx, GameGuideModal.tsx, GameModals.tsx, NotificationSystem.tsx, TempleSystem.ts, actionHandlers.ts, appState.ts, characterReducer.ts, companionReducer.ts, conversationReducer.ts, craftingReducer.ts, crimeActions.ts, crimeReducer.ts, dialogueReducer.ts, economyReducer.ts, encounterReducer.ts, entityIntegrationUtils.ts, handleEncounter.ts, handleGeminiCustom.ts, handleItemInteraction.ts, handleMerchantInteraction.ts, handleMovement.ts, handleNpcInteraction.ts, handleObservation.ts, handleOracle.ts, handleResourceActions.ts, handleSystemAndUi.ts, handleWorldEvents.ts, identityReducer.ts, index.d.ts, journalReducer.ts, legacyReducer.ts, logReducer.ts, navalReducer.ts, npcReducer.ts, questReducer.ts, religionReducer.ts, ritualReducer.ts, townReducer.ts, types/index.ts, uiReducer.ts, useCompanionBanter.ts, useConversation.ts, useDialogueSystem.ts, useGameActions.ts, useGameInitialization.ts, useHistorySync.ts, useOllamaCheck.ts, worldReducer.ts
  * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
@@ -28,17 +12,28 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 /**
+ * ARCHITECTURAL CONTEXT:
+ * This file is the 'Action Registry'—the central definition of every
+ * state change that can occur in Aralia. It powers the Redux-like
+ * dispatch system.
+ *
+ * Recent updates introduce 'Full Party Initialization' support. While
+ * `SET_PARTY_COMPOSITION` uses templates (ID + class ID) to build
+ * characters, the new `SET_FULL_PARTY` action accepts pre-calculated
+ * `PlayerCharacter` objects. This is critical for the 'Premade Party'
+ * system where characters have deep history, specific gear, and
+ * non-standard stats that shouldn't be overridden by a template generator.
+ *
  * @file src/state/actionTypes.ts
- * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types';
-import { RitualState } from '../types/rituals';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types/index.js';
+import { RitualState } from '../types/rituals.js';
 type RitualEvent = unknown;
-import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
-import { DialogueSession } from '../types/dialogue';
-import { WorldHistoryEvent } from '../types/history';
-import { CrewRole } from '../types/naval';
-import { InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions';
+import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads.js';
+import { DialogueSession } from '../types/dialogue.js';
+import { WorldHistoryEvent } from '../types/history.js';
+import { CrewRole } from '../types/naval.js';
+import { InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions.js';
 export type AppAction = {
     type: 'SET_GAME_PHASE';
     payload: GamePhase;
@@ -281,6 +276,9 @@ export type AppAction = {
     type: 'SET_PARTY_COMPOSITION';
     payload: TempPartyMember[];
 } | {
+    type: 'SET_FULL_PARTY';
+    payload: PlayerCharacter[];
+} | {
     type: 'ADD_GENERATED_CHARACTER';
     payload: PlayerCharacter;
 } | {
@@ -406,7 +404,7 @@ export type AppAction = {
     payload: GeminiLogEntry;
 } | {
     type: 'ADD_OLLAMA_LOG_ENTRY';
-    payload: import('../types').OllamaLogEntry;
+    payload: import('../types/index.js').OllamaLogEntry;
 } | {
     type: 'UPDATE_OLLAMA_LOG_ENTRY';
     payload: {
@@ -513,17 +511,17 @@ export type AppAction = {
     type: 'ADD_COMPANION_MEMORY';
     payload: {
         companionId: string;
-        memory: import('../types/companions').CompanionMemory;
+        memory: import('../types/companions.js').CompanionMemory;
     };
 } | {
     type: 'ADD_DISCOVERED_FACT';
     payload: {
         companionId: string;
-        fact: import('../types/companions').DiscoveredFact;
+        fact: import('../types/companions.js').DiscoveredFact;
     };
 } | {
     type: 'ARCHIVE_BANTER';
-    payload: import('../types/companions').BanterMoment;
+    payload: import('../types/companions.js').BanterMoment;
 } | {
     type: 'UPDATE_BANTER_COOLDOWN';
     payload: {
@@ -565,9 +563,9 @@ export type AppAction = {
 } | {
     type: 'ENTER_TOWN';
     payload: {
-        townMap: import('../types/town').TownState['townMap'];
-        entryPoint: import('../types/town').TownState['entryPoint'];
-        spawnPosition: import('../types/town').TownPosition;
+        townMap: import('../types/town.js').TownState['townMap'];
+        entryPoint: import('../types/town.js').TownState['entryPoint'];
+        spawnPosition: import('../types/town.js').TownPosition;
     };
 } | {
     type: 'SET_TOWN_ENTRY_DIRECTION';
@@ -577,14 +575,14 @@ export type AppAction = {
 } | {
     type: 'MOVE_IN_TOWN';
     payload: {
-        direction: import('../types/town').TownDirection;
+        direction: import('../types/town.js').TownDirection;
     };
 } | {
     type: 'STOP_MOVING_IN_TOWN';
 } | {
     type: 'SET_TOWN_VIEWPORT';
     payload: {
-        center?: import('../types/town').TownPosition;
+        center?: import('../types/town.js').TownPosition;
         zoom?: number;
     };
 } | {
@@ -777,7 +775,9 @@ export type AppAction = {
 } | {
     type: 'ADVANCE_RITUAL';
     payload: {
-        minutes: number;
+        seconds?: number;
+        minutes?: number;
+        rounds?: number;
     };
 } | {
     type: 'INTERRUPT_RITUAL';
@@ -867,7 +867,7 @@ export type AppAction = {
     type: 'FOUND_BUSINESS';
     payload: {
         strongholdId: string;
-        businessType: import('../types/business').BusinessType;
+        businessType: import('../types/business.js').BusinessType;
     };
 } | {
     type: 'SET_BUSINESS_PRICES';
@@ -879,7 +879,7 @@ export type AppAction = {
     type: 'SIGN_SUPPLY_CONTRACT';
     payload: {
         businessId: string;
-        contract: import('../types/business').SupplyContract;
+        contract: import('../types/business.js').SupplyContract;
     };
 } | {
     type: 'CANCEL_SUPPLY_CONTRACT';
@@ -890,7 +890,7 @@ export type AppAction = {
 } | {
     type: 'REGISTER_WORLD_BUSINESS';
     payload: {
-        business: import('../types/business').WorldBusiness;
+        business: import('../types/business.js').WorldBusiness;
     };
 } | {
     type: 'PURCHASE_BUSINESS';
@@ -922,13 +922,13 @@ export type AppAction = {
     payload: {
         factionId: string;
         locationId: string;
-        businessType: import('../types/business').BusinessType;
+        businessType: import('../types/business.js').BusinessType;
     };
 } | {
     type: 'FOUND_STANDALONE_BUSINESS';
     payload: {
         locationId: string;
-        businessType: import('../types/business').BusinessType;
+        businessType: import('../types/business.js').BusinessType;
     };
 } | {
     type: 'ASSIGN_MANAGER';
@@ -987,11 +987,11 @@ export type AppAction = {
     type: 'START_CONVERSATION';
     payload: {
         companionIds: string[];
-        initialMessage: import('../types/conversation').ConversationMessage;
+        initialMessage: import('../types/conversation.js').ConversationMessage;
     };
 } | {
     type: 'ADD_CONVERSATION_MESSAGE';
-    payload: import('../types/conversation').ConversationMessage;
+    payload: import('../types/conversation.js').ConversationMessage;
 } | {
     type: 'SET_CONVERSATION_PENDING';
     payload: boolean;
@@ -1001,7 +1001,7 @@ export type AppAction = {
     type: 'TOGGLE_LOCKPICKING_MODAL';
 } | {
     type: 'OPEN_LOCKPICKING_MODAL';
-    payload: import('../systems/puzzles/types').Lock;
+    payload: import('../systems/puzzles/types.js').Lock;
 } | {
     type: 'CLOSE_LOCKPICKING_MODAL';
 } | {
@@ -1016,16 +1016,16 @@ export type AppAction = {
     type: 'INIT_JOURNAL_STATE';
 } | {
     type: 'ADD_JOURNAL_ENTRY';
-    payload: import('../types/journal').JournalEntry;
+    payload: import('../types/journal.js').JournalEntry;
 } | {
     type: 'UPDATE_JOURNAL_ENTRY';
     payload: {
         entryId: string;
-        updates: Partial<import('../types/journal').JournalEntry>;
+        updates: Partial<import('../types/journal.js').JournalEntry>;
     };
 } | {
     type: 'LOG_JOURNAL_EVENT';
-    payload: import('../types/journal').JournalEvent;
+    payload: import('../types/journal.js').JournalEvent;
 } | {
     type: 'CLEAR_PENDING_EVENTS';
 } | {

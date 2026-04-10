@@ -19,17 +19,49 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: false
-- **Material Description**: none
+- **Material Description**: 
 - **Material Cost GP**: 0
 - **Consumed**: false
 
-- **Duration Type**: concentration
+- **Duration Type**: timed
 - **Duration Value**: 10
-- **Duration Unit**: minutes
+- **Duration Unit**: minute
 - **Concentration**: true
 
 - **Effect Type**: UTILITY
 - **Utility Type**: teleportation
 
-- **Description**: You create linked teleportation portals that remain open for the duration. Choose two points on the ground that you can see, one point within 10 feet of you and one point within 500 feet of you. A circular portal, 10 feet in diameter, opens over each point. If the portal would open in the space occupied by a creature, the spell fails, and the casting is lost. The portals are two-dimensional glowing rings filled with mist, hovering inches from the ground and perpendicular to it at the points you choose. A ring is visible only from one side (your choice), which is the side that functions as a portal. Any creature or object entering the portal exits from the other portal as if the two were adjacent to each other; passing through a portal from the nonportal side has no effect. The mist that fills each portal is opaque and blocks vision through it. On your turn, you can rotate the rings as a bonus action so that the active side faces in a different direction.
+- **Description**: You create linked teleportation portals. Choose two Large, unoccupied spaces on the ground that you can see, one space within range and the other one within 10 feet of you. A circular portal opens in each of those spaces and remains for the duration. The portals are two-dimensional glowing rings filled with mist that blocks sight. They hover inches from the ground and are perpendicular to it. A portal is open on only one side (you choose which). Anything entering the open side of a portal exits from the open side of the other portal as if the two were adjacent to each other. As a Bonus Action, you can change the facing of the open sides.
 - **Higher Levels**: none
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Arcane Gate
+Level: 6th
+Casting Time: 1 Action
+Range/Area: 500 ft.
+Components: V, S
+Duration: Concentration 10 Minutes
+School: Conjuration
+Attack/Save: None
+Damage/Effect: Teleportation
+
+Rules Text:
+You create linked teleportation portals. Choose two Large, unoccupied spaces on the ground that you can see, one space within range and the other one within 10 feet of you. A circular portal opens in each of those spaces and remains for the duration.
+The portals are two-dimensional glowing rings filled with mist that blocks sight. They hover inches from the ground and are perpendicular to it.
+A portal is open on only one side (you choose which). Anything entering the open side of a portal exits from the open side of the other portal as if the two were adjacent to each other. As a Bonus Action, you can change the facing of the open sides.
+
+Spell Tags:
+Teleportation
+
+Available For:
+Sorcerer
+Warlock
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->

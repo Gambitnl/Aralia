@@ -1,0 +1,18 @@
+{
+  "id": "sphere_area",
+  "title": "Sphere",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "A Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specifies the distance it extends as the radius of the Sphere. A Sphere's point of origin is included in the Sphere's area of effect.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/sphere_area.json",
+  "markdown": "# Sphere\n\nA Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specifies the distance it extends as the radius of the Sphere. A Sphere's point of origin is included in the Sphere's area of effect.\n\n---\n## Referenced By Spells\n\n- [[acid-splash|Acid Splash]]\n- [[calm-emotions|Calm Emotions]]\n- [[circle-of-death|Circle of Death]]\n- [[cloudkill|Cloudkill]]\n- [[confusion|Confusion]]\n- [[darkness|Darkness]]\n- [[daylight|Daylight]]\n- [[delayed-blast-fireball|Delayed Blast Fireball]]\n- [[fireball|Fireball]]\n- [[fog-cloud|Fog Cloud]]\n- [[glyph-of-warding|Glyph of Warding]]\n- [[hunger-of-hadar|Hunger of Hadar]]\n- [[incendiary-cloud|Incendiary Cloud]]\n- [[insect-plague|Insect Plague]]\n- [[meteor-swarm|Meteor Swarm]]\n- [[otilukes-freezing-sphere|Otiluke's Freezing Sphere]]\n- [[plant-growth|Plant Growth]]\n- [[purify-food-and-drink|Purify Food and Drink]]\n- [[shatter|Shatter]]\n- [[silence|Silence]]\n- [[sleep|Sleep]]\n- [[spike-growth|Spike Growth]]\n- [[stinking-cloud|Stinking Cloud]]\n- [[sunburst|Sunburst]]\n- [[symbol|Symbol]]\n- [[vitriolic-sphere|Vitriolic Sphere]]\n- [[weird|Weird]]\n- [[zone-of-truth|Zone of Truth]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 27/03/2026, 23:48:01
+ * Dependents: None (Orphan)
+ * Imports: 45 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -105,10 +121,10 @@ const NotFound = lazy(() => import('./components/ui/NotFound'));
 // -------------------------------------------
 
 
-// TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
+// TODO: Add AI model OPTIONALITY settings to allow players to choose between local (Ollama) or cloud (Gemini) models
 // PROGRESS: Most AI functions (location descriptions, NPC interactions, etc.) now use local Ollama instead of Gemini,
-// significantly reducing internet dependency. Merchant inventories still require Gemini. Need service worker for caching
-// static assets and handling offline fallbacks when Ollama server is unavailable.
+// significantly reducing internet dependency. Players should be able to configure their preferred AI model in settings
+// and have the system gracefully fall back between local and cloud models based on availability and preference.
 
 // ============================================================================
 // Main Component
@@ -310,6 +326,7 @@ const App: React.FC = () => {
   }, []);
 
   // TODO(QOL): If re-render hotspots appear, profile callback dependencies here and in useGameActions/useGameInitialization (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
+// TODO(FEATURES): Add AI model optionality settings to allow players to choose between local (Ollama) or cloud (Gemini) models in settings, with graceful fallback between models based on availability and preference.
   const { processAction } = useGameActions({
     gameState,
     dispatch,
@@ -639,7 +656,7 @@ const App: React.FC = () => {
   ]);
 
   const handleDevMenuAction = useCallback(async (actionType: string) => {
-    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter', 'restart_dynamic_party'];
+    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter', 'restart_dynamic_party', 'quick_start_dev'];
 
     if (actionsThatNeedMenuToggle.includes(actionType)) {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
@@ -683,6 +700,11 @@ const App: React.FC = () => {
         break;
       case 'char_creator':
         handleNewGame();
+        break;
+      case 'quick_start_dev':
+        // This route used to be a standalone main-menu button. It now lives inside the
+        // shared Dev Menu so all developer-only start flows are grouped in one place.
+        await handleSkipCharacterCreator();
         break;
       case 'save':
         processAction({ type: 'save_game', label: 'Force Save' });
@@ -747,11 +769,21 @@ const App: React.FC = () => {
         dispatch({ type: 'TOGGLE_DICE_ROLLER' });
         break;
     }
-  }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleBattleMapDemo]);
+  }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleBattleMapDemo, handleSkipCharacterCreator]);
 
   const handleModelChange = useCallback((model: string | null) => {
     dispatch({ type: 'SET_DEV_MODEL_OVERRIDE', payload: model });
   }, [dispatch]);
+
+  // The main-menu dev entry now opens the same shared developer modal that gameplay uses,
+  // but it should not silently change the user's Dev Mode choice just because the modal
+  // was reopened. The modal itself exposes the real toggle, so this handler only opens
+  // the shared surface and preserves whatever state the user last chose.
+  const handleOpenDevMenuFromMainMenu = useCallback(() => {
+    if (!gameState.isDevMenuVisible) {
+      dispatch({ type: 'TOGGLE_DEV_MENU' });
+    }
+  }, [dispatch, gameState.isDevMenuVisible]);
 
 
   const handleNavigateToGlossaryFromTooltip = useCallback((termId: string) => {
@@ -843,8 +875,9 @@ const App: React.FC = () => {
           onOpenWorldGeneration={handleOpenWorldGenerationFromMainMenu}
           isWorldGenerationLocked={!canRegenerateWorldMap}
           worldGenerationLockedReason={worldGenerationLockedReason}
-          // Handler to toggle the dev menu visibility when requested by the Main Menu
-          onOpenDevMenu={() => dispatch({ type: 'TOGGLE_DEV_MENU' })}
+          // The main-menu Dev Menu button now reuses the same shared modal as gameplay,
+          // but it preserves the current Dev Mode flag instead of force-enabling it.
+          onOpenDevMenu={handleOpenDevMenuFromMainMenu}
           onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
           canGoBack={canGoBack}
         />

@@ -24,5 +24,36 @@
 - **Effect Type**: HEALING
 - **Healing Dice**: 2d4
 
-- **Description**: A creature of your choice that you can see within range regains hit points equal to 2d4 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 2d4 for each slot level above 1st.
+- **Description**: A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The healing increases by 2d4 for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Healing Word
+Level: 1st
+Casting Time: 1 Bonus Action
+Range/Area: 60 ft.
+Components: V
+Duration: Instantaneous
+School: Abjuration
+Attack/Save: None
+Damage/Effect: Healing
+
+Rules Text:
+A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.
+Using a Higher-Level Spell Slot. The healing increases by 2d4 for each spell slot level above 1.
+
+Spell Tags:
+Healing
+
+Available For:
+Bard
+Cleric
+Druid
+
+Capture Method: http
+Legacy Page: false
+-->

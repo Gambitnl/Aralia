@@ -3,6 +3,7 @@
 - **School**: Necromancy
 - **Ritual**: false
 - **Classes**: Sorcerer, Wizard
+- **Sub-Classes**: Cleric - Death Domain (DMG), Warlock - The Undying (SCAG)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -29,5 +30,38 @@
 - **Damage Type**: Poison
 - **Conditions Applied**: Poisoned
 
-- **Description**: A ray of sickening greenish energy lashes out toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and must make a Constitution saving throw. On a failed save, it is also Poisoned until the end of your next turn.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st.
+- **Description**: You shoot a greenish ray at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and has the Poisoned condition until the end of your next turn.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Ray of Sickness
+Level: 1st
+Casting Time: 1 Action
+Range/Area: 60 ft.
+Components: V, S
+Duration: Instantaneous
+School: Necromancy
+Attack/Save: Ranged
+Damage/Effect: Poison
+
+Rules Text:
+You shoot a greenish ray at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and has the Poisoned condition until the end of your next turn.
+Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 1.
+
+Spell Tags:
+Damage
+Debuff
+
+Available For:
+Sorcerer
+Wizard
+Cleric - Death Domain (DMG)
+Warlock - The Undying (SCAG)
+
+Capture Method: http
+Legacy Page: false
+-->

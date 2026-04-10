@@ -1,4 +1,4 @@
-import { DamageType, ConditionName } from './spells';
+import { DamageType, ConditionName } from './spells.js';
 /**
  * D&D creature types - affects targeting, resistances, and abilities.
  */

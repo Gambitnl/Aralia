@@ -3,17 +3,23 @@
   "name": "Banishing Smite",
   "aliases": [],
   "level": 5,
-  "school": "Evocation",
+  "school": "Conjuration",
   "legacy": false,
-  "classes": [],
+  "classes": [
+    "Paladin"
+  ],
+  "subClasses": [
+    "Warlock - The Hexblade (XGtE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "action",
+    "unit": "bonus_action",
     "combatCost": {
-      "type": "action",
+      "type": "bonus_action",
       "condition": ""
     },
     "explorationCost": {
@@ -22,22 +28,22 @@
     }
   },
   "range": {
-    "type": "ranged",
+    "type": "self",
     "distance": 0
   },
   "components": {
     "verbal": true,
-    "somatic": true,
+    "somatic": false,
     "material": false,
     "materialDescription": "",
     "materialCost": 0,
     "isConsumed": false
   },
   "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "minute"
   },
   "targeting": {
     "type": "single",
@@ -94,7 +100,7 @@
         "saveModifiers": []
       },
       "utilityType": "other",
-      "description": "See description.",
+      "description": "The target hit by the attack roll takes an extra 5d10 Force damage from the attack. If the attack reduces the target to 50 Hit Points or fewer, the target must succeed on a Charisma saving throw or be transported to a harmless demiplane for the duration. While there, the target has the Incapacitated condition. When the spell ends, the target reappears in the space it left or in the nearest unoccupied space if that space is occupied.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -130,7 +136,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "",
+  "description": "The target hit by the attack roll takes an extra 5d10 Force damage from the attack. If the attack reduces the target to 50 Hit Points or fewer, the target must succeed on a Charisma saving throw or be transported to a harmless demiplane for the duration. While there, the target has the Incapacitated condition. When the spell ends, the target reappears in the space it left or in the nearest unoccupied space if that space is occupied.",
   "higherLevels": "",
   "tags": []
 }

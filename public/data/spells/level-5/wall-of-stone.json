@@ -11,6 +11,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -52,9 +55,14 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Cube",
+      "shape": "Wall",
       "size": 100,
-      "height": 0
+      "height": 10,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thickness": 6,
+      "thicknessUnit": "inches"
     },
     "maxTargets": 1,
     "filter": {
@@ -64,6 +72,51 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Standard Panel Wall",
+          "shape": "Wall",
+          "size": 100,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 10,
+          "heightUnit": "feet",
+          "thickness": 6,
+          "thicknessUnit": "inches",
+          "segmentCount": 10,
+          "segmentWidth": 10,
+          "segmentWidthUnit": "feet",
+          "segmentHeight": 10,
+          "segmentHeightUnit": "feet"
+        },
+        {
+          "label": "Tall Panel Wall",
+          "shape": "Wall",
+          "size": 100,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 20,
+          "heightUnit": "feet",
+          "thickness": 3,
+          "thicknessUnit": "inches",
+          "segmentCount": 10,
+          "segmentWidth": 10,
+          "segmentWidthUnit": "feet",
+          "segmentHeight": 20,
+          "segmentHeightUnit": "feet"
+        }
+      ],
+      "measuredDetails": [
+        {
+          "label": "Unsupported Span Threshold",
+          "kind": "distance",
+          "value": 20,
+          "unit": "feet"
+        }
+      ]
     }
   },
   "effects": [

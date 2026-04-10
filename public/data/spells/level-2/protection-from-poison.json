@@ -6,11 +6,14 @@
   "school": "Abjuration",
   "legacy": false,
   "classes": [
+    "Artificer",
     "Cleric",
     "Druid",
     "Paladin",
     "Ranger"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -135,7 +138,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You touch a creature. If it is Poisoned, you neutralize the poison. If more than one poison afflicts the target, you neutralize one poison that you know is present, or you neutralize one at random. For the duration, the target has Advantage on saving throws against being poisoned, and it has Resistance to Poison damage.",
+  "description": "You touch a creature and end the Poisoned condition on it. For the duration, the target has Advantage on saving throws to avoid or end the Poisoned condition, and it has Resistance to Poison damage.",
   "higherLevels": "",
   "tags": [
     "abjuration",

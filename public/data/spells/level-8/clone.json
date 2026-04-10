@@ -8,6 +8,8 @@
   "classes": [
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -31,7 +33,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a diamond worth 1,000+ GP, and a vessel worth 2,000+ GP that is large enough to hold the creature being cloned",
+    "materialDescription": "a diamond worth 1,000+ GP, which the spell consumes, and a sealable vessel worth 2,000+ GP that is large enough to hold the creature being cloned",
     "materialCost": 3000,
     "isConsumed": true
   },

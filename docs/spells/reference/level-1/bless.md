@@ -3,6 +3,7 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Cleric, Paladin
+- **Sub-Classes**: Cleric - Life Domain, Cleric - Community Domain (HCS), Paladin - Oath of the River (OTTG)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -32,5 +33,41 @@
 - **Save Outcome**: none
 - **Conditions Applied**: Blessed
 
-- **Description**: You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target can roll a d4 and add the number rolled to the attack roll or saving throw.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.
+- **Description**: You bless up to three creatures within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target adds 1d4 to the attack roll or save.
+- **Higher Levels**: Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Bless
+Level: 1st
+Casting Time: 1 Action
+Range/Area: 30 ft.
+Components: V, S, M *
+Duration: Concentration 1 Minute
+School: Enchantment
+Attack/Save: None
+Damage/Effect: Buff
+
+Rules Text:
+You bless up to three creatures within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target adds 1d4 to the attack roll or save.
+Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 1.
+
+Material Component:
+* - (a Holy Symbol worth 5+ GP)
+
+Spell Tags:
+Buff
+
+Available For:
+Cleric
+Paladin
+Cleric - Life Domain
+Cleric - Community Domain (HCS)
+Paladin - Oath of the River (OTTG)
+
+Capture Method: http
+Legacy Page: false
+-->

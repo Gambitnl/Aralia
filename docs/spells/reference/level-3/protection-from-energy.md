@@ -2,7 +2,8 @@
 - **Level**: 3
 - **School**: Abjuration
 - **Ritual**: false
-- **Classes**: Cleric, Druid, Ranger, Sorcerer, Wizard
+- **Classes**: Artificer, Cleric, Druid, Ranger, Sorcerer, Wizard
+- **Sub-Classes**: Cleric - Forge Domain (XGtE), Paladin - Oath of Glory, Paladin - Oath of the Ancients, Paladin - Oath of Vengeance, Sorcerer - Clockwork Sorcery, Warlock - Future You Patron
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -29,3 +30,43 @@
 
 - **Description**: For the duration, the willing creature you touch has Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Protection from Energy
+Level: 3rd
+Casting Time: 1 Action
+Range/Area: Touch
+Components: V, S
+Duration: Concentration 1 Hour
+School: Abjuration
+Attack/Save: None
+Damage/Effect: Buff (...)
+
+Rules Text:
+For the duration, the willing creature you touch has Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.
+
+Spell Tags:
+Buff
+Warding
+
+Available For:
+Cleric
+Druid
+Ranger
+Sorcerer
+Wizard
+Artificer
+Cleric - Forge Domain (XGtE)
+Paladin - Oath of Glory
+Paladin - Oath of the Ancients
+Paladin - Oath of Vengeance
+Sorcerer - Clockwork Sorcery
+Warlock - Future You Patron
+
+Capture Method: http
+Legacy Page: false
+-->

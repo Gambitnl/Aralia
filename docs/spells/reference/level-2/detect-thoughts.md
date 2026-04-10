@@ -3,32 +3,84 @@
 - **School**: Divination
 - **Ritual**: false
 - **Classes**: Bard, Sorcerer, Wizard
-
+- **Sub-Classes**: Warlock - Great Fool Patron, Warlock - Great Old One Patron
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
-
 - **Range Type**: self
-- **Targeting Type**: self
+- **Range Distance**: 0
+- **Range Distance Unit**: feet
+- **Targeting Type**: area
+- **Targeting Range**: 0
+- **Targeting Range Unit**: feet
+- **Area Shape**: Emanation
+- **Area Size**: 30
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
+- **Area Height**: 0
+- **Area Height Unit**: feet
 - **Valid Targets**: self
 - **Line of Sight**: false
-
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: a copper piece
+- **Material Description**: 1 Copper Piece
 - **Material Cost GP**: 0
 - **Consumed**: false
-
 - **Duration Type**: timed
 - **Duration Value**: 1
 - **Duration Unit**: minute
 - **Concentration**: true
-
 - **Effect Type**: UTILITY
 - **Utility Type**: information
 - **Save Stat**: Wisdom
 - **Save Outcome**: negates
-
-- **Description**: For the duration, you can read the thoughts of certain creatures. When you cast the spell and as your action on each turn until the spell ends, you can focus your mind on any one creature that you can see within 30 feet of you. If the creature you choose has an Intelligence of 3 or lower or doesn't speak any language, the creature is unaffected. You initially learn the surface thoughts of the creature-what is most on its mind in that moment. As an action, you can either shift your attention to another creature's thoughts or attempt to probe deeper into the same creature's mind. If you probe deeper, the target must make a Wisdom saving throw. If it fails, you gain insight into its reasoning (if any), its emotional state, and something that looms large in its mind (such as something it worries over, loves, or hates). If it succeeds, the spell ends. Either way, the target knows that you are probing into its mind, and unless you shift your attention to another creature's thoughts, the creature can use its action on its turn to make an Intelligence check contested by your Intelligence check; if it succeeds, the spell ends. Questions verbally directed at the target creature naturally shape the course of its thoughts, so this spell is particularly effective as part of an interrogation. You can also use this spell to detect the presence of thinking creatures you can't see. When you cast the spell or as your action during the duration, you can search for thoughts within 30 feet of you. The spell can penetrate barriers, but 2 feet of rock, 2 inches of any metal other than lead, or a thin sheet of lead blocks you. You can't detect a creature with an Intelligence of 3 or lower or one that doesn't speak any language. Once you detect the presence of a creature in this way, you can read its thoughts for the rest of the duration as described above, even if you can't see it, but it must still be within range.
+- **Description**: You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns. Sense Thoughts. You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don't read the thoughts, but you know that a thinking creature is present. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead. Read Thoughts. Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target's mind right now. If the target doesn't know any languages and isn't telepathic, you learn nothing. As a Magic action on your next turn, you can try to probe deeper into the target's mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target's reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target's mind, the target can take an action on its turn to make an Intelligence (Arcana) check against your spell save DC, ending the spell on a success.
 - **Higher Levels**: None
+- **Spatial Detail 1 Label**: Barrier Thickness
+- **Spatial Detail 1 Kind**: blocker
+- **Spatial Detail 1 Subject**: stone, dirt, or wood
+- **Spatial Detail 1 Value**: 1
+- **Spatial Detail 1 Unit**: feet
+- **Spatial Detail 2 Label**: Barrier Thickness
+- **Spatial Detail 2 Kind**: blocker
+- **Spatial Detail 2 Subject**: metal
+- **Spatial Detail 2 Value**: 1
+- **Spatial Detail 2 Unit**: inches
+- **Spatial Detail 3 Label**: Barrier Thickness
+- **Spatial Detail 3 Kind**: blocker
+- **Spatial Detail 3 Subject**: lead
+- **Spatial Detail 3 Qualifier**: thin sheet
+## Canonical D&D Beyond Snapshot
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+<!--
+Name: Detect Thoughts
+Level: 2nd
+Casting Time: 1 Action
+Range/Area: Self
+Components: V, S, M *
+Duration: Concentration 1 Minute
+School: Divination
+Attack/Save: WIS Save
+Damage/Effect: Detection (...)
+Rules Text:
+You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.
+Sense Thoughts. You sense the presence of thoughts within 30 feet of yourself that belong to creatures that know languages or are telepathic. You don’t read the thoughts, but you know that a thinking creature is present.
+The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.
+Read Thoughts. Target one creature you can see within 30 feet of yourself or one creature within 30 feet of yourself that you detected with the Sense Thoughts option. You learn what is most on the target’s mind right now. If the target doesn’t know any languages and isn’t telepathic, you learn nothing.
+As a Magic action on your next turn, you can try to probe deeper into the target’s mind. If you probe deeper, the target makes a Wisdom saving throw. On a failed save, you discern the target’s reasoning, emotions, and something that looms large in its mind (such as a worry, love, or hate). On a successful save, the spell ends. Either way, the target knows that you are probing into its mind, and until you shift your attention away from the target’s mind, the target can take an action on its turn to make an Intelligence (Arcana) check against your spell save DC, ending the spell on a success.
+Material Component:
+* - (1 Copper Piece)
+Spell Tags:
+Social
+Detection
+Available For:
+Bard
+Sorcerer
+Wizard
+Sorcerer - Aberrant Sorcery
+Warlock - Great Old One Patron
+Warlock - Great Fool Patron
+Capture Method: http
+Legacy Page: false
+-->

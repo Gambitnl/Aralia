@@ -3,13 +3,13 @@
  * This file contains all combat-related TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application's battle map feature.
  */
-import type { AbilityScoreName, CharacterStats } from './core';
-import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character';
-import type { Item } from './items';
-import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect } from './spells';
-import { StateTag } from './elemental';
-import { Plane } from './planes';
-import { RitualState } from './ritual';
+import type { AbilityScoreName, CharacterStats } from './core.js';
+import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character.js';
+import type { Item } from './items.js';
+import type { Spell, DamageType, ConditionName, EffectDuration, SpellEffect } from './spells.js';
+import { StateTag } from './elemental.js';
+import { Plane } from './planes.js';
+import { RitualState } from './ritual.js';
 export type { CharacterStats };
 /**
  * Filter criteria for selecting targets for an effect.

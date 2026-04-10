@@ -32,5 +32,39 @@
 - **Damage Dice**: 5d12
 - **Damage Type**: Necrotic
 
-- **Description**: You send ribbons of negative energy at one creature you can see within range. Unless the target is undead, it must make a Constitution saving throw, taking 5d12 necrotic damage on a failed save, or half as much damage on a successful one. A target killed by this damage rises up as a zombie at the start of your next turn. The zombie pursues whatever creature it can see that is closest to it. Statistics for the zombie are in the Monster Manual. If you target an undead with this spell, the target doesn't make a saving throw. Instead, it rolls 5d12 and gains half the total as temporary hit points.
+- **Description**: You send ribbons of negative energy at one creature you can see within range. Unless the target is undead, it must make a Constitution saving throw, taking 5d12 necrotic damage on a failed save, or half as much damage on a successful one. A target killed by this damage rises up as a zombie at the start of your next turn. The zombie pursues whatever creature it can see that is closest to it. Statistics for the zombie are in the Monster Manual. If you target an undead with this spell, the target doesn't make a saving throw. Instead, roll 5d12. The target gains half the total as temporary hit points.
 - **Higher Levels**:
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Negative Energy Flood
+Level: 5th
+Casting Time: 1 Action
+Range/Area: 60 ft.
+Components: V, M *
+Duration: Instantaneous
+School: Necromancy
+Attack/Save: CON Save
+Damage/Effect: Necrotic
+
+Rules Text:
+You send ribbons of negative energy at one creature you can see within range. Unless the target is undead, it must make a Constitution saving throw, taking 5d12 necrotic damage on a failed save, or half as much damage on a successful one. A target killed by this damage rises up as a zombie at the start of your next turn. The zombie pursues whatever creature it can see that is closest to it. Statistics for the zombie are in the Monster Manual.
+If you target an undead with this spell, the target doesn’t make a saving throw. Instead, roll 5d12. The target gains half the total as temporary hit points.
+
+Material Component:
+* - (a broken bone and a square of black silk)
+
+Spell Tags:
+Creation
+Damage
+
+Available For:
+Warlock
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->

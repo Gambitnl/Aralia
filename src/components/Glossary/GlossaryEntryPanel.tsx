@@ -1,14 +1,46 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/04/2026, 13:54:03
+ * Dependents: components/Glossary/Glossary.tsx, components/Glossary/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file GlossaryEntryPanel.tsx
- * Entry display panel showing the selected glossary entry content.
- * Extracted from Glossary.tsx for better modularity.
+ * This file renders the right-hand glossary panel for the currently selected entry.
+ *
+ * It exists so the large glossary modal can keep its selection logic separate from the
+ * actual detail display. Ordinary entries still flow through the generic full-entry
+ * renderer, while spell entries render the spell card and delegate the developer-only
+ * spell gate diagnostics to the dedicated spellGateChecker module.
+ *
+ * Called by: Glossary.tsx
+ * Depends on: FullEntryDisplay, SpellCardTemplate, Breadcrumb, and SpellGateChecksPanel
  */
 import React from 'react';
 import { GlossaryEntry } from '../../types';
-import { GateResult } from '../../hooks/useSpellGateChecks';
+import type { GateResult } from './spellGateChecker';
+import { SpellGateChecksPanel } from './spellGateChecker';
 import { FullEntryDisplay } from './FullEntryDisplay';
 import SpellCardTemplate, { SpellData } from './SpellCardTemplate';
 import { Breadcrumb } from './glossaryUIUtils';
+
+// ============================================================================
+// Prop shapes
+// ============================================================================
+// This section describes the navigation state and spell data the panel needs.
+// The panel does not own any of this state; it only renders what Glossary.tsx
+// already selected and resolved.
+// ============================================================================
 
 interface BreadcrumbPath {
     parents: string[];
@@ -28,77 +60,30 @@ interface GlossaryEntryPanelProps {
     onNavigateToGlossary: (termId: string) => void;
     /** Spell JSON data for spell entries */
     spellJsonData: SpellData | null;
+    /** Referenced rule chips derived from canonical spell snapshot enrichment */
+    spellReferencedRules: Array<{
+        label: string;
+        description: string;
+        glossaryTermId?: string;
+    }>;
     /** Whether spell JSON is loading */
     spellJsonLoading: boolean;
     /** Spell gate check results */
     gateResults: Record<string, GateResult>;
     /** Whether column resize is in progress */
     isColumnResizing: boolean;
+    /** Whether developer-only spell diagnostics should be shown */
+    isDevModeEnabled: boolean;
 }
 
-/**
- * Renders the spell gate checks panel for a spell entry.
- */
-const SpellGateChecks: React.FC<{
-    selectedEntry: GlossaryEntry;
-    gateResults: Record<string, GateResult>;
-}> = ({ selectedEntry, gateResults }) => {
-    const gate = gateResults[selectedEntry.id];
-    if (!gate) return null;
+// ============================================================================
+// Main panel renderer
+// ============================================================================
+// This file now owns only the generic entry-panel shell. The detailed spell gate
+// rendering logic moved into the dedicated spellGateChecker folder so the spell
+// truth UI can evolve without making this generic glossary panel unreadable again.
+// ============================================================================
 
-    const checks = [
-        { label: "Manifest path under correct level", ok: gate.checklist.manifestPathOk },
-        { label: "Spell JSON exists", ok: gate.checklist.spellJsonExists },
-        { label: "Spell JSON passes schema", ok: gate.checklist.spellJsonValid },
-        { label: "No known behavior gaps", ok: gate.checklist.noKnownGaps },
-    ];
-
-    return (
-        <div className="mt-4 p-3 border border-gray-700 rounded bg-gray-900/70 text-sm">
-            <div className="font-semibold mb-2 text-gray-200">Spell Gate Checks: {selectedEntry.title}</div>
-            <ul className="space-y-1 text-gray-300">
-                {checks.map((c, idx) => (
-                    <li key={idx} className="flex items-center gap-2">
-                        <span className={`inline-block w-4 text-center ${c.ok ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {c.ok ? '✓' : '✕'}
-                        </span>
-                        <span>{c.label}</span>
-                    </li>
-                ))}
-
-                {gate.status === 'gap' && (
-                    <li className="text-amber-300 mt-1">Marked as a gap: This spell has engine-level limitations in the combat system.</li>
-                )}
-
-                {gate.gapAnalysis && (
-                    <div className="mt-2 text-xs border-t border-gray-700 pt-2">
-                        <div className="text-gray-400 uppercase tracking-tighter font-bold">Audit Status</div>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${gate.gapAnalysis.state === 'analyzed_clean' ? 'bg-emerald-900 text-emerald-300' :
-                                gate.gapAnalysis.state === 'analyzed_with_gaps' ? 'bg-amber-900 text-amber-300' :
-                                    'bg-gray-700 text-gray-400'
-                                }`}>
-                                {gate.gapAnalysis.state.replace('_', ' ')}
-                            </span>
-                            <span className="text-gray-500 italic">Last Audit: {gate.gapAnalysis.lastAuditDate || 'Never'}</span>
-                        </div>
-                        {gate.gapAnalysis.notes && (
-                            <p className="mt-1.5 text-gray-400 line-clamp-3 hover:line-clamp-none transition-all">{gate.gapAnalysis.notes}</p>
-                        )}
-                    </div>
-                )}
-
-                {gate.status === 'fail' && gate.reasons.length > 0 && (
-                    <li className="text-red-300 mt-1">Issues: {gate.reasons.join('; ')}</li>
-                )}
-            </ul>
-        </div>
-    );
-};
-
-/**
- * Renders the entry display panel with breadcrumbs and content.
- */
 export const GlossaryEntryPanel: React.FC<GlossaryEntryPanelProps> = ({
     selectedEntry,
     breadcrumbPath,
@@ -106,9 +91,11 @@ export const GlossaryEntryPanel: React.FC<GlossaryEntryPanelProps> = ({
     onExpandCategory,
     onNavigateToGlossary,
     spellJsonData,
+    spellReferencedRules,
     spellJsonLoading,
     gateResults,
     isColumnResizing,
+    isDevModeEnabled,
 }) => {
     return (
         <div
@@ -117,7 +104,6 @@ export const GlossaryEntryPanel: React.FC<GlossaryEntryPanelProps> = ({
         >
             {selectedEntry ? (
                 <>
-                    {/* Breadcrumb navigation */}
                     <Breadcrumb
                         category={selectedEntry.category}
                         parentPath={breadcrumbPath.parents}
@@ -135,17 +121,21 @@ export const GlossaryEntryPanel: React.FC<GlossaryEntryPanelProps> = ({
                         }}
                     />
 
-                    {/* Entry content */}
                     {selectedEntry.category === 'Spells' ? (
                         spellJsonLoading ? (
                             <p className="text-gray-400 italic">Loading spell data...</p>
                         ) : spellJsonData ? (
-                            <SpellCardTemplate spell={spellJsonData} />
+                            <SpellCardTemplate
+                                spell={spellJsonData}
+                                referencedRules={spellReferencedRules}
+                                onNavigateToGlossary={onNavigateToGlossary}
+                            />
                         ) : (
                             <div className="text-red-400">
                                 <p>Failed to load JSON for this spell.</p>
                                 <p className="text-sm text-gray-500 mt-2">
-                                    JSON file may not exist at: /data/spells/level-{gateResults[selectedEntry.id]?.level ?? '?'}/{selectedEntry.id}.json
+                                    JSON file may not exist at: /data/spells/level-{gateResults[selectedEntry.id]?.level ?? '?'}
+                                    /{selectedEntry.id}.json
                                 </p>
                             </div>
                         )
@@ -153,9 +143,12 @@ export const GlossaryEntryPanel: React.FC<GlossaryEntryPanelProps> = ({
                         <FullEntryDisplay entry={selectedEntry} onNavigate={onNavigateToGlossary} />
                     )}
 
-                    {/* Spell gate checks */}
-                    {selectedEntry.category === 'Spells' && gateResults[selectedEntry.id] && (
-                        <SpellGateChecks selectedEntry={selectedEntry} gateResults={gateResults} />
+                    {isDevModeEnabled && selectedEntry.category === 'Spells' && gateResults[selectedEntry.id] && (
+                        <SpellGateChecksPanel
+                            selectedEntry={selectedEntry}
+                            gateResults={gateResults}
+                            spellJsonData={spellJsonData}
+                        />
                     )}
                 </>
             ) : (

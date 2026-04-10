@@ -29,5 +29,34 @@
 - **Damage Dice**: 2d6
 - **Damage Type**: Radiant
 
-- **Description**: The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon flares with bright light, and the attack deals an extra 2d6 Radiant damage to the target. The target sheds bright light in a 5-foot radius and dim light for an additional 5 feet until the spell ends. The light remains even if the target is invisible. As long as the target is shedding this light, attack rolls against it have Advantage, and it can't benefit from being Invisible.
-- **Higher Levels**: When you cast this spell using a spell slot of 3rd level or higher, the extra damage increases by 1d6 for each slot level above 2nd.
+- **Description**: The target hit by the strike takes an extra 2d6 Radiant damage from the attack. Until the spell ends, the target sheds Bright Light in a 5-foot radius, attack rolls against it have Advantage, and it can't benefit from the Invisible condition.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 2.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Shining Smite
+Level: 2nd
+Casting Time: 1 Bonus Action *
+Range/Area: Self
+Components: V
+Duration: Concentration 1 Minute
+School: Transmutation
+Attack/Save: None
+Damage/Effect: Radiant
+
+Rules Text:
+The target hit by the strike takes an extra 2d6 Radiant damage from the attack. Until the spell ends, the target sheds Bright Light in a 5-foot radius, attack rolls against it have Advantage, and it can’t benefit from the Invisible condition.
+Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 2.
+
+Available For:
+Paladin
+
+Referenced Rules:
+Bright Light -> /rules-glossary/21-tooltip
+
+Capture Method: http
+Legacy Page: true
+-->

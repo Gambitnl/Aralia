@@ -11,6 +11,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -47,6 +50,7 @@
   "targeting": {
     "type": "single",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -115,7 +119,10 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A creature that you can see within range makes a Constitution saving throw, taking 8d8 Necrotic damage on a failed save or half as much damage on a successful one. A Plant creature automatically fails the save. Alternatively, target a nonmagical plant that isn't a creature, such as a tree or shrub. It doesn't make a save; it simply withers and dies.",
-  "higherLevels": "The damage increases by 1d8 for each spell slot level above 4.",
-  "tags": []
+  "description": "A creature that you can see within range makes a Constitution saving throw, taking 8d8 Necrotic damage on a failed save or half as much damage on a successful one. A Plant creature automatically fails the save. Alternatively, target a nonmagical plant that isn't a creature, such as a tree or shrub. It doesn't make a save; it simply withers and dies. Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 4.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 4.",
+  "tags": [
+    "damage",
+    "necrotic"
+  ]
 }

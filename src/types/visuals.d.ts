@@ -4,9 +4,9 @@
  * Used to standardize how entities (Spells, Items, NPCs, Classes, Status Effects) are displayed
  * and to provide specifications for AI asset generation.
  */
-import { SpellSchool, DamageType } from './spells';
-import { FactionType } from './factions';
-import { BattleMapTerrain, BattleMapDecoration } from './combat';
+import { SpellSchool, DamageType } from './spells.js';
+import { FactionType } from './factions.js';
+import { BattleMapTerrain, BattleMapDecoration } from './combat.js';
 /**
  * Standard sizes for icons in the UI.
  */

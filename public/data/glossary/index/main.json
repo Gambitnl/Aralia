@@ -1,5 +1,5 @@
 {
-  "lastGenerated": "2026-01-25T09:58:48.996Z",
+  "lastGenerated": "2026-04-06T01:09:48.206Z",
   "index_files": [
     "/data/glossary/index/character_classes.json",
     "/data/glossary/index/character_races.json",
@@ -8,6 +8,7 @@
     "/data/glossary/index/magic_items.json",
     "/data/glossary/index/rules_glossary.json",
     "/data/glossary/index/spellcasting_mechanics.json",
-    "/data/glossary/index/spells.json"
+    "/data/glossary/index/spells.json",
+    "/data/glossary/index/technology.json"
   ]
 }

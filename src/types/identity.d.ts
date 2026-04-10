@@ -6,7 +6,7 @@
  * Defines types for the Identity, Disguise, and Secret systems.
  * Supports multi-layered identity, espionage, and information warfare.
  */
-import type { FactionReputationChange } from './factions';
+import type { FactionReputationChange } from './factions.js';
 export type IdentityType = 'true' | 'alias';
 /**
  * Represents a persona within the world.

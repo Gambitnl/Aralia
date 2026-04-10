@@ -26,5 +26,33 @@
 - **Effect Type**: HEALING
 - **Utility Type**: other
 
-- **Description**: A flood of healing energy flows from you into creatures around you. You restore up to 700 Hit Points, divided as you choose among any number of creatures that you can see within range. Creatures healed by this spell also have the Blinded, Deafened, and Poisoned conditions removed from them.
+- **Description**: A flood of healing energy flows from you into creatures around you. You restore up to 700 Hit Points, divided as you choose among any number of creatures that you can see within range. Creatures healed by this spell also have the Blinded , Deafened , and Poisoned conditions removed from them.
 - **Higher Levels**: N/A
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Mass Heal
+Level: 9th
+Casting Time: 1 Action
+Range/Area: 60 ft.
+Components: V, S
+Duration: Instantaneous
+School: Abjuration
+Attack/Save: None
+Damage/Effect: Blinded (...)
+
+Rules Text:
+A flood of healing energy flows from you into creatures around you. You restore up to 700 Hit Points, divided as you choose among any number of creatures that you can see within range. Creatures healed by this spell also have the Blinded , Deafened , and Poisoned conditions removed from them.
+
+Spell Tags:
+Healing
+
+Available For:
+Cleric
+
+Capture Method: http
+Legacy Page: false
+-->

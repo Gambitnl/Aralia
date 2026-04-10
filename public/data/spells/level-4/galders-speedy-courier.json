@@ -3,9 +3,13 @@
   "name": "Galders Speedy Courier",
   "aliases": [],
   "level": 4,
-  "school": "Evocation",
+  "school": "Conjuration",
   "legacy": false,
-  "classes": [],
+  "classes": [
+    "Wizard"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -23,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 0
+    "distance": 10,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -34,10 +39,10 @@
     "isConsumed": false
   },
   "duration": {
-    "type": "instantaneous",
+    "type": "timed",
     "concentration": false,
-    "value": 0,
-    "unit": "round"
+    "value": 10,
+    "unit": "minute"
   },
   "targeting": {
     "type": "single",

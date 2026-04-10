@@ -8,6 +8,8 @@
   "classes": [
     "Cleric"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",

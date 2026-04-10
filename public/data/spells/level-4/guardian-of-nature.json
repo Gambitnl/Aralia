@@ -1,19 +1,24 @@
 {
   "id": "guardian-of-nature",
-  "name": "Guardian Of Nature",
+  "name": "Guardian of Nature",
   "aliases": [],
   "level": 4,
-  "school": "Evocation",
+  "school": "Transmutation",
   "legacy": false,
-  "classes": [],
+  "classes": [
+    "Druid",
+    "Ranger"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "action",
+    "unit": "bonus_action",
     "combatCost": {
-      "type": "action",
+      "type": "bonus_action",
       "condition": ""
     },
     "explorationCost": {
@@ -22,22 +27,22 @@
     }
   },
   "range": {
-    "type": "ranged",
+    "type": "self",
     "distance": 0
   },
   "components": {
     "verbal": true,
-    "somatic": true,
+    "somatic": false,
     "material": false,
     "materialDescription": "",
     "materialCost": 0,
     "isConsumed": false
   },
   "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "minute"
   },
   "targeting": {
     "type": "single",
@@ -130,7 +135,10 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "",
+  "description": "A nature spirit answers your call and transforms you into a powerful guardian. The transformation lasts until the spell ends. You choose one of the following forms to assume: Primal Beast or Great Tree. Primal Beast. Bestial fur covers your body, your facial features become feral, and you gain the following benefits: Great Tree. Your skin appears barky, leaves sprout from your hair, and you gain the following benefits:",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "buff",
+    "shapechanging"
+  ]
 }

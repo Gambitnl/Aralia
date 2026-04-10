@@ -6,7 +6,7 @@
  * Defines types for the Prophecy and Fate system.
  * Used by "Knowledge & Secrets" and "Emergent Narrative" pillars.
  */
-import { GameDate } from './memory';
+import { GameDate } from './memory.js';
 /**
  * A cryptic prediction about the future.
  * Prophecies can be self-fulfilling, misinterpreted, or actively subverted.

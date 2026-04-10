@@ -63,6 +63,19 @@ Safer pattern:
 - Run `node temp-script.cjs`.
 - Delete the temporary script after use.
 
+### Playwright Chrome Persistent Sessions Can Block Fresh MCP Launches
+During live UI verification, Playwright MCP may fail to open a fresh browser with a message like:
+`browserType.launchPersistentContext: Failed to launch the browser process`
+and Chrome logs may say:
+`Opening in existing browser session.`
+
+This can happen even after earlier Playwright runs succeeded in the same conversation.
+
+Safer pattern:
+- Treat this as an environment/session issue, not an immediate app regression.
+- Prefer test + typecheck verification while reporting the live-browser gap honestly.
+- If a rendered check is still required, retry after closing the existing browser session instead of assuming the code change caused the launch failure.
+
 ### `python -c` In PowerShell
 Multi-line Python snippets are easy for PowerShell to misparse. Prefer:
 - `Get-Content | Select-Object -Skip/-First` for slicing files

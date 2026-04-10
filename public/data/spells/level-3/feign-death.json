@@ -11,6 +11,10 @@
     "Druid",
     "Wizard"
   ],
+  "subClasses": [
+    "Warlock - The Undying (SCAG)"
+  ],
+  "subClassesVerification": "unverified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -185,7 +189,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You touch a willing creature and put it into a cataleptic state that is indistinguishable from death. For the duration, the target has the Blinded and Incapacitated conditions, and its Speed is 0. The target has Resistance to all damage except Psychic damage. If the target is diseased or poisoned when you cast the spell or becomes diseased or poisoned while under the spell's effect, the disease and poison have no effect until the spell ends.",
+  "description": "You touch a willing creature and put it into a cataleptic state that is indistinguishable from death. For the duration, the target appears dead to outward inspection and to spells used to determine the target's status. The target has the Blinded and Incapacitated conditions, and its Speed is 0. The target also has Resistance to all damage except Psychic damage, and it has Immunity to the Poisoned condition.",
   "higherLevels": "",
   "tags": []
 }

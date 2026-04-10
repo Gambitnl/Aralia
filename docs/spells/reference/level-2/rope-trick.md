@@ -2,7 +2,8 @@
 - **Level**: 2
 - **School**: Transmutation
 - **Ritual**: false
-- **Classes**: Wizard
+- **Classes**: Wizard, Artificer
+- **Sub-Classes**: Ranger - Gloom Stalker
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -16,7 +17,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: powdered corn extract and a twisted loop of parchment
+- **Material Description**: a segment of rope
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -30,5 +31,39 @@
 - **Save Stat**: None
 - **Save Outcome**: none
 
-- **Description**: You touch a length of rope that is up to 60 feet long. One end of the rope then rises into the air until the whole rope hangs perpendicular to the ground. At the upper end of the rope, an invisible entrance opens to an extradimensional space that lasts until the spell ends. The extradimensional space can be reached by climbing to the top of the rope. The space can hold as many as eight Medium or smaller creatures. The rope can be pulled into the space, making the rope disappear from view outside the space. Attacks and spells can't cross through the entrance into or out of the extradimensional space, but those inside can see out of it as if through a 3-foot-by-5-foot window centered on the rope. Anything inside the extradimensional space drops out when the spell ends.
+- **Description**: You touch a rope. One end of it hovers upward until the rope hangs perpendicular to the ground or the rope reaches a ceiling. At the rope's upper end, an Invisible 3-foot-by-5-foot portal opens to an extradimensional space that lasts until the spell ends. That space can be reached by climbing the rope, which can be pulled into or dropped out of it. The space can hold up to eight Medium or smaller creatures. Attacks, spells, and other effects can't pass into or out of the space, but creatures inside it can see through the portal. Anything inside the space drops out when the spell ends.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Rope Trick
+Level: 2nd
+Casting Time: 1 Action
+Range/Area: Touch
+Components: V, S, M *
+Duration: 1 Hour
+School: Transmutation
+Attack/Save: None
+Damage/Effect: Utility
+
+Rules Text:
+You touch a rope. One end of it hovers upward until the rope hangs perpendicular to the ground or the rope reaches a ceiling. At the rope’s upper end, an Invisible 3-foot-by-5-foot portal opens to an extradimensional space that lasts until the spell ends. That space can be reached by climbing the rope, which can be pulled into or dropped out of it.
+The space can hold up to eight Medium or smaller creatures. Attacks, spells, and other effects can’t pass into or out of the space, but creatures inside it can see through the portal. Anything inside the space drops out when the spell ends.
+
+Material Component:
+* - (a segment of rope)
+
+Spell Tags:
+Utility
+
+Available For:
+Wizard
+Artificer
+Ranger - Gloom Stalker
+
+Capture Method: http
+Legacy Page: false
+-->

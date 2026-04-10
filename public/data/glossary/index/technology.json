@@ -1,0 +1,15 @@
+[
+  {
+    "id": "gemini",
+    "title": "Gemini",
+    "category": "Technology",
+    "tags": [
+      "ai",
+      "system"
+    ],
+    "excerpt": "The advanced AI model powering this world's narrative and interactions.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/lore/gemini.json"
+  }
+]

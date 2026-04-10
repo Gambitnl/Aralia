@@ -16,6 +16,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -33,7 +35,8 @@
   },
   "range": {
     "type": "self",
-    "distance": 0
+    "distance": 0,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -50,17 +53,21 @@
     "concentration": true
   },
   "targeting": {
-    "type": "self",
+    "type": "area",
     "validTargets": [
       "self"
     ],
     "lineOfSight": false,
     "range": 0,
+    "rangeUnit": "feet",
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Emanation",
+      "size": 30,
+      "sizeUnit": "feet",
+      "height": 0,
+      "heightUnit": "feet",
+      "followsCaster": true
     },
     "filter": {
       "creatureTypes": [],
@@ -140,7 +147,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "For the duration, you sense the presence of magic within 30 feet of you. If you sense magic in this way, you can use your action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its school of magic, if any. The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.",
+  "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
   "higherLevels": "",
   "tags": [
     "ritual",

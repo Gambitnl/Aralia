@@ -9,6 +9,8 @@
     "Bard",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +28,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -52,9 +55,14 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Line",
+      "shape": "Wall",
       "size": 90,
-      "height": 0
+      "height": 30,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thickness": 1,
+      "thicknessUnit": "inches"
     },
     "maxTargets": 1,
     "filter": {
@@ -64,6 +72,38 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Prismatic Wall",
+          "shape": "Wall",
+          "size": 90,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 30,
+          "heightUnit": "feet",
+          "thickness": 1,
+          "thicknessUnit": "inches"
+        },
+        {
+          "label": "Prismatic Globe",
+          "shape": "Globe",
+          "size": 30,
+          "sizeType": "diameter",
+          "sizeUnit": "feet"
+        }
+      ],
+      "measuredDetails": [
+        {
+          "label": "Hazard Radius",
+          "kind": "distance",
+          "value": 20,
+          "unit": "feet",
+          "notes": "Creatures that move within this distance or start their turn there are affected."
+        }
+      ]
     }
   },
   "effects": [

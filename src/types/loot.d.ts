@@ -5,7 +5,7 @@
  * This system allows for flexible loot generation including nested tables,
  * currency drops, and weighted probability pools.
  */
-import { Item } from './items';
+import { Item } from './items.js';
 /**
  * Common properties shared by all loot entry types.
  */

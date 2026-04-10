@@ -17,7 +17,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: a pinch of powdered iron or iron filings
+- **Material Description**: iron filings
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -29,5 +29,45 @@
 - **Effect Type**: UTILITY
 - **Utility Type**: other
 
-- **Description**: A 10-foot-radius invisible sphere of antimagic surrounds you. This area is divorced from the magical energy that suffuses the multiverse. Within the sphere, spells can't be cast, summoned creatures disappear, and even magic items become mundane. Until the spell ends, the sphere moves with you, centered on you. Spells and other magical effects, except those created by an artifact or a deity, are suppressed in the sphere and can't protrude into it. A slot expended to cast a suppressed spell is consumed. While an effect is suppressed, it doesn't function, but the time it spends suppressed counts against its duration.
+- **Description**: An aura of antimagic surrounds you in 10-foot Emanation . No one can cast spells, take Magic actions, or create other magical effects inside the aura, and those things can't target or otherwise affect anything inside it. Magical properties of magic items don't work inside the aura or on anything inside it. Areas of effect created by spells or other magic can't extend into the aura, and no one can teleport into or out of it or use planar travel there. Portals close temporarily while in the aura. Ongoing spells, except those cast by an Artifact or a deity, are suppressed in the area. While an effect is suppressed, it doesn't function, but the time it spends suppressed counts against its duration. Dispel Magic has no effect on the aura, and the auras created by different Antimagic Field spells don't nullify each other.
 - **Higher Levels**:
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Antimagic Field
+Level: 8th
+Casting Time: 1 Action
+Range/Area: Self (10 ft. Emanation)
+Components: V, S, M *
+Duration: Concentration 1 Hour
+School: Abjuration
+Attack/Save: None
+Damage/Effect: Control (...)
+
+Rules Text:
+An aura of antimagic surrounds you in 10-foot Emanation . No one can cast spells, take Magic actions, or create other magical effects inside the aura, and those things can’t target or otherwise affect anything inside it. Magical properties of magic items don’t work inside the aura or on anything inside it.
+Areas of effect created by spells or other magic can’t extend into the aura, and no one can teleport into or out of it or use planar travel there. Portals close temporarily while in the aura.
+Ongoing spells, except those cast by an Artifact or a deity, are suppressed in the area. While an effect is suppressed, it doesn’t function, but the time it spends suppressed counts against its duration.
+Dispel Magic has no effect on the aura, and the auras created by different Antimagic Field spells don’t nullify each other.
+
+Material Component:
+* - (iron filings)
+
+Spell Tags:
+Control
+Negation
+Warding
+
+Available For:
+Cleric
+Wizard
+
+Referenced Rules:
+Emanation -> /rules-glossary/54-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

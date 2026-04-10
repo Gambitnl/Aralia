@@ -6,11 +6,16 @@
   "school": "Transmutation",
   "legacy": false,
   "classes": [
+    "Artificer",
     "Druid",
     "Ranger",
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -34,7 +39,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "either a pinch of dried carrot or an agate",
+    "materialDescription": "a dried carrot",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -135,7 +140,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You touch a willing creature to grant it the ability to see in the dark. For the duration, that creature has Darkvision out to a range of 150 feet.",
+  "description": "For the duration, a willing creature you touch has Darkvision with a range of 150 feet.",
   "higherLevels": "",
   "tags": [
     "utility",

@@ -11,6 +11,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -66,6 +69,31 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Portal Opening",
+          "shape": "Portal",
+          "sizeType": "diameter",
+          "notes": "Choose a diameter from 5 to 20 feet."
+        }
+      ],
+      "measuredDetails": [
+        {
+          "label": "Minimum Portal Diameter",
+          "kind": "diameter",
+          "value": 5,
+          "unit": "feet"
+        },
+        {
+          "label": "Maximum Portal Diameter",
+          "kind": "diameter",
+          "value": 20,
+          "unit": "feet"
+        }
+      ]
     }
   },
   "effects": [

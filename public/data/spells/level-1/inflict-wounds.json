@@ -8,6 +8,13 @@
   "classes": [
     "Cleric"
   ],
+  "subClasses": [
+    "Paladin - Oathbreaker (DMG)",
+    "Paladin - Oath of Castigation",
+    "Sorcerer - Crimson Sorcery",
+    "Warlock - Mother of Sorrows (BoET)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -112,8 +119,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Make a melee spell attack against a creature you can reach. On a hit, the target takes 2d10 Necrotic damage.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.",
+  "description": "A creature you touch makes a Constitution saving throw, taking 2d10 Necrotic damage on a failed save or half as much damage on a successful one.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 1.",
   "tags": [
     "damage",
     "necrotic",

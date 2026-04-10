@@ -8,6 +8,8 @@
   "classes": [
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

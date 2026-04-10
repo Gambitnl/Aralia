@@ -9,6 +9,10 @@
     "Druid",
     "Ranger"
   ],
+  "subClasses": [
+    "Warlock - The Many"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 90
+    "distance": 90,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +50,7 @@
   "targeting": {
     "type": "area",
     "range": 90,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -52,6 +58,7 @@
     "areaOfEffect": {
       "shape": "Square",
       "size": 20,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -315,7 +322,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Grasping weeds and vines sprout from the ground in a 20-foot square starting from a point within range. For the duration, these plants turn the ground in the area into Difficult Terrain. A creature in the area when you cast the spell must succeed on a Strength saving throw or be Restrained by the entangling plants until the spell ends. A creature Restrained by the plants can use its action to make a Strength (Athletics) check against your spell save DC. On a success, it frees itself.",
+  "description": "Grasping plants sprout from the ground in a 20-foot square within range. For the duration, these plants turn the ground in the area into Difficult Terrain . They disappear when the spell ends. Each creature (other than you) in the area when you cast the spell must succeed on a Strength saving throw or have the Restrained condition until the spell ends. A Restrained creature can take an action to make a Strength (Athletics) check against your spell save DC. On a success, it frees itself from the grasping plants and is no longer Restrained by them.",
   "higherLevels": "",
   "tags": [
     "control",

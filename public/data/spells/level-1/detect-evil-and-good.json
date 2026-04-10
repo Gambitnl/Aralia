@@ -7,10 +7,12 @@
   "legacy": false,
   "classes": [
     "Cleric",
-    "Paladin",
-    "Warlock",
-    "Wizard"
+    "Paladin"
   ],
+  "subClasses": [
+    "Warlock - The Genie (TCoE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +30,8 @@
   },
   "range": {
     "type": "self",
-    "distance": 0
+    "distance": 0,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,7 +48,7 @@
     "concentration": true
   },
   "targeting": {
-    "type": "self",
+    "type": "area",
     "validTargets": [
       "self"
     ],
@@ -53,9 +56,13 @@
     "range": 0,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Emanation",
+      "size": 30,
+      "height": 0,
+      "sizeType": "radius",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "followsCaster": true
     },
     "filter": {
       "creatureTypes": [],
@@ -64,6 +71,31 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "measuredDetails": [
+        {
+          "label": "Barrier Thickness",
+          "kind": "blocker",
+          "subject": "stone, dirt, or wood",
+          "value": 1,
+          "unit": "feet"
+        },
+        {
+          "label": "Barrier Thickness",
+          "kind": "blocker",
+          "subject": "metal",
+          "value": 1,
+          "unit": "inches"
+        },
+        {
+          "label": "Barrier Thickness",
+          "kind": "blocker",
+          "subject": "lead",
+          "qualifier": "thin sheet"
+        }
+      ]
     }
   },
   "effects": [
@@ -135,7 +167,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "For the duration, you know if there is an Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of you, as well as where the creature is located. Similarly, you know if there is a place or object within 30 feet of you that has been magically consecrated or desecrated. The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.",
+  "description": "For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the Hallow spell is active there and, if so, where. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
   "higherLevels": "",
   "tags": [
     "detection",

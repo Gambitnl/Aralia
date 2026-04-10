@@ -2,7 +2,7 @@
 - **Level**: 4
 - **School**: Conjuration
 - **Ritual**: false
-- **Classes**: Wizard
+- **Classes**: Artificer, Wizard
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -34,3 +34,40 @@
 
 - **Description**: You conjure a phantom watchdog in an unoccupied space that you can see within range. The hound remains for the duration or until the two of you are more than 300 feet apart from each other. No one but you can see the hound, and it is intangible and invulnerable. When a Small or larger creature comes within 30 feet of it without first speaking the password that you specify when you cast this spell, the hound starts barking loudly. The hound has Truesight with a range of 30 feet. At the start of each of your turns, the hound attempts to bite one enemy within 5 feet of it. That enemy must succeed on a Dexterity saving throw or take 4d8 Force damage. On your later turns, you can take a Magic action to move the hound up to 30 feet.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Mordenkainen's Faithful Hound
+Level: 4th
+Casting Time: 1 Action
+Range/Area: 30 ft.
+Components: V, S, M *
+Duration: 8 Hours
+School: Conjuration
+Attack/Save: DEX Save
+Damage/Effect: Force
+
+Rules Text:
+You conjure a phantom watchdog in an unoccupied space that you can see within range. The hound remains for the duration or until the two of you are more than 300 feet apart from each other.
+No one but you can see the hound, and it is intangible and invulnerable. When a Small or larger creature comes within 30 feet of it without first speaking the password that you specify when you cast this spell, the hound starts barking loudly. The hound has Truesight with a range of 30 feet.
+At the start of each of your turns, the hound attempts to bite one enemy within 5 feet of it. That enemy must succeed on a Dexterity saving throw or take 4d8 Force damage.
+On your later turns, you can take a Magic action to move the hound up to 30 feet.
+
+Material Component:
+* - (a silver whistle)
+
+Spell Tags:
+Damage
+Warding
+
+Available For:
+Wizard
+Artificer
+Cleric - Community Domain (HCS)
+
+Capture Method: http
+Legacy Page: false
+-->

@@ -1,0 +1,18 @@
+{
+  "id": "emanation_area",
+  "title": "Emanation",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Emanation.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/emanation_area.json",
+  "markdown": "# Emanation\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[antilife-shell|Antilife Shell]]\n- [[antimagic-field|Antimagic Field]]\n- [[arms-of-hadar|Arms of Hadar]]\n- [[aura-of-vitality|Aura of Vitality]]\n- [[conjure-minor-elementals|Conjure Minor Elementals]]\n- [[conjure-woodland-beings|Conjure Woodland Beings]]\n- [[crusaders-mantle|Crusader's Mantle]]\n- [[darkness|Darkness]]\n- [[daylight|Daylight]]\n- [[destructive-wave|Destructive Wave]]\n- [[globe-of-invulnerability|Globe of Invulnerability]]\n- [[holy-aura|Holy Aura]]\n- [[leomunds-tiny-hut|Leomund's Tiny Hut]]\n- [[pass-without-trace|Pass without Trace]]\n- [[speak-with-plants|Speak with Plants]]\n- [[spirit-guardians|Spirit Guardians]]\n- [[thunderclap|Thunderclap]]\n- [[word-of-radiance|Word of Radiance]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

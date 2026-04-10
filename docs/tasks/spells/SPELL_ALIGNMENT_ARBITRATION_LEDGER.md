@@ -1,8 +1,33 @@
 # Spell Alignment Arbitration Ledger
 
-Last Updated: 2026-03-20
+Last Updated: 2026-04-09
 
 This ledger records spell-alignment mismatches that need arbitration or that were already arbitrated.
+
+## Current Status Note
+
+This file is now best read as the durable arbitration policy surface rather than
+the live mismatch counter.
+
+The live active grouped review surfaces are:
+- `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
+  - `418` mismatches across `9` grouped buckets on `2026-04-09`
+- `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - `177` mismatches across `7` grouped buckets on `2026-04-09`
+- `F:\Repos\Aralia\docs\tasks\spells\SPELL_DESCRIPTION_SUBBUCKET_REPORT.md`
+  - `51` description mismatches split into `6` review families on `2026-04-09`
+- `F:\Repos\Aralia\docs\tasks\spells\SPELL_HIGHER_LEVEL_DESCRIPTION_COVERAGE_REPORT.md`
+  - `7` analyzed higher-level description mismatches, all currently `represented-elsewhere`
+
+The main reason this ledger still matters is that the remaining spell-truth work
+is now mostly grouped review and policy interpretation rather than broad blind sync.
+
+When an arbitration outcome concludes that the current spell model is too weak,
+the main implementation surfaces to inspect next are:
+- `F:\Repos\Aralia\src\types\spells.ts`
+- `F:\Repos\Aralia\src\systems\spells\validation\spellValidator.ts`
+- `F:\Repos\Aralia\scripts\add_spell.js`
+- `F:\Repos\Aralia\src\systems\spells\mechanics\ScalingEngine.ts`
 
 The point of this file is not to treat every mismatch as equally urgent. The point is to make sure every mismatch is captured somewhere durable, so repeated patterns can be discovered and handled in grouped passes instead of being rediscovered one spell at a time.
 
@@ -169,3 +194,35 @@ Guiding principle:
 - `arbitration_needed`: `Resolved on 2026-03-20.`
 - `resolution`: `Arbitrated on 2026-03-20: blank or structurally missing spell reference docs may be regenerated directly from verified JSON rather than waiting for manual per-spell rewrites.`
 - `notes`: `A dedicated regeneration script was added at F:\Repos\Aralia\scripts\regenerateBlankSpellReferenceDocs.ts and used to rebuild 23 zero-byte spell reference docs. After a clean rerun of npm run validate:spell-markdown, the mismatch surface dropped from 1057 mismatches in 31 grouped buckets to 637 mismatches in 23 grouped buckets.`
+
+### Entry 006
+
+- `id`: `spell-align-006`
+- `status`: `fixed`
+- `family`: `json-vs-phb`
+- `group_key`: `json-vs-phb / classes missing in regenerated batch`
+- `spell`: `regenerated-reference-batch`
+- `field_or_mechanic`: `classes`
+- `source_a`: `F:\Repos\Aralia\public\data\spells\level-3\catnap.json and the regenerated-batch peer files`
+- `source_b`: `official D&D Beyond spell pages used in F:\Repos\Aralia\docs\tasks\spells\SPELL_REGENERATED_REFERENCE_OFFICIAL_CHECK.md`
+- `mismatch_summary`: `During the official-source verification pass for the 23 regenerated spell reference docs, the local spell JSON files repeatedly exposed empty classes arrays even when the official D&D Beyond spell page clearly listed one or more classes for the same spell.`
+- `why_it_matters`: `Class availability is a first-order canonical spell fact. When it is blank in the local JSON, the regenerated markdown reference is structurally present but still not trustworthy as a canon-facing reference. This also distorts any later capability or class-access analysis built on the spell dataset.`
+- `arbitration_needed`: `Resolved on 2026-03-23.`
+- `resolution`: `Arbitrated on 2026-03-23: local spell JSON should store only default/base class access in classes, while subclass or domain-specific access should be stored separately in a new subClasses field and mirrored in markdown as Sub-Classes. The regenerated 23-spell batch was backfilled using the verified official-source review, and the one legacy spell outside that batch that still embedded a subclass in classes (light) was split to match the new rule.`
+- `notes`: `Implemented via F:\Repos\Aralia\scripts\backfillRegeneratedSpellClasses.ts plus validator/parity support updates in F:\Repos\Aralia\src\systems\spells\validation\spellValidator.ts and F:\Repos\Aralia\scripts\validateSpellMarkdownParity.ts. After moving the lone legacy subclass entry out of F:\Repos\Aralia\public\data\spells\level-0\light.json, npm run validate:spells returned to a fully green state.`
+
+### Entry 007
+
+- `id`: `spell-align-007`
+- `status`: `grouped`
+- `family`: `json-vs-phb`
+- `group_key`: `json-vs-phb / placeholder top-level defaults in regenerated batch`
+- `spell`: `regenerated-reference-batch`
+- `field_or_mechanic`: `top-level canonical spell facts`
+- `source_a`: `F:\Repos\Aralia\public\data\spells\level-4\guardian-of-nature.json and the regenerated-batch peer files`
+- `source_b`: `official D&D Beyond spell pages used in F:\Repos\Aralia\docs\tasks\spells\SPELL_REGENERATED_REFERENCE_OFFICIAL_CHECK.md`
+- `mismatch_summary`: `The official-source verification pass surfaced a repeated placeholder-like pattern in part of the regenerated batch: local JSON often uses school Evocation, range distance 0, instantaneous duration, empty classes, flattened material data, and blank descriptions even when the official spell page clearly exposes different canonical top-level facts.`
+- `why_it_matters`: `This is not a small markdown drift problem. It means some regenerated docs now accurately mirror local JSON that still appears materially wrong at the canonical top-level spell-fact layer. If the project fixes markdown alone here, it will make the spell-truth surface look cleaner while leaving the underlying implementation data untrustworthy.`
+- `arbitration_needed`: `Yes. The project needs to decide whether these spells should now enter a JSON-repair lane that backfills canonical top-level facts from official sources before any further markdown parity polishing is attempted on them.`
+- `resolution`: `A first grouped repair pass was applied on 2026-03-23, but the bucket is not fully closed yet. The repair script at F:\Repos\Aralia\scripts\repairRegeneratedTopLevelDefaults.ts updated clearly evidenced top-level facts for find-greater-steed, guardian-of-nature, shadow-of-moil, sickening-radiance, storm-sphere, summon-greater-demon, vitriolic-sphere, banishing-smite, control-winds, galders-speedy-courier, staggering-smite, temporal-shunt, tether-essence, and gravity-sinkhole. The unresolved remainder is now the narrower question of which placeholder-default spells still need more top-level source repair, especially where the report did not give enough exact data to patch safely.`
+- `notes`: `The strongest examples called out in F:\Repos\Aralia\docs\tasks\spells\SPELL_REGENERATED_REFERENCE_OFFICIAL_CHECK.md are find-greater-steed, guardian-of-nature, shadow-of-moil, sickening-radiance, storm-sphere, summon-greater-demon, vitriolic-sphere, banishing-smite, and control-winds. A 2026-03-22 follow-up also closed the earlier page-discovery gap for gravity-sinkhole, temporal-shunt, gravity-fissure, and tether-essence using user-approved secondary sources, which further reinforced the same placeholder-default pattern rather than weakening it. After the first grouped repair pass, npm run validate:spells remained green at 469 valid / 0 invalid. The markdown parity counts did not drop because the markdown files were intentionally regenerated to mirror the repaired JSON immediately, so this issue remains a json-vs-phb tracking lane rather than a markdown-parity bucket.`

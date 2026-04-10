@@ -3,35 +3,77 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Bard, Sorcerer, Wizard
+- **Sub-Classes**: Cleric - Twilight Domain (TCoE), Paladin - Oath of Redemption (XGtE), Warlock - Archfey Patron, Cleric - Night Domain (HCS), Cleric - Blood Domain (TCSR)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
 
 - **Range Type**: ranged
-- **Range Distance**: 90
+- **Range Distance**: 60
 - **Targeting Type**: area
 - **Area Shape**: sphere
-- **Area Size**: 20
+- **Area Size**: 5
 - **Valid Targets**: creatures
 - **Line of Sight**: true
 
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: a pinch of fine sand, rose petals, or a cricket
+- **Material Description**: a pinch of sand or rose petals
 - **Material Cost GP**: 0
 - **Consumed**: false
 
 - **Duration Type**: timed
 - **Duration Value**: 1
 - **Duration Unit**: minute
-- **Concentration**: false
+- **Concentration**: true
 
 - **Effect Type**: STATUS_CONDITION
 - **Save Stat**: None
 - **Save Outcome**: none
 - **Conditions Applied**: Unconscious
 
-- **Description**: This spell sends creatures into a magical slumber. Roll 5d8; the total is how many Hit Points of creatures this spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of their current Hit Points (ignoring Unconscious creatures). Starting with the creature that has the lowest current Hit Points, each creature affected by this spell falls Unconscious until the spell ends, the sleeper takes damage, or someone uses an action to shake or slap the sleeper awake. Subtract each creature's Hit Points from the total before moving on to the creature with the next lowest Hit Points. A creature's Hit Points must be equal to or less than the remaining total for that creature to be affected. Undead and creatures immune to being Charmed aren't affected by this spell.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d8 for each slot level above 1st.
+- **Description**: Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell's effect. Creatures that don't sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Sleep
+Level: 1st
+Casting Time: 1 Action
+Range/Area: 60 ft. (5 ft. Sphere)
+Components: V, S, M *
+Duration: Concentration 1 Minute
+School: Enchantment
+Attack/Save: WIS Save
+Damage/Effect: Incapacitated (...)
+
+Rules Text:
+Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell’s effect.
+Creatures that don’t sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell.
+
+Material Component:
+* - (a pinch of sand or rose petals)
+
+Spell Tags:
+Control
+
+Available For:
+Bard
+Sorcerer
+Wizard
+Cleric - Twilight Domain (TCoE)
+Paladin - Oath of Redemption (XGtE)
+Warlock - Archfey Patron
+Cleric - Night Domain (HCS)
+Cleric - Blood Domain (TCSR)
+
+Referenced Rules:
+Sphere -> /rules-glossary/109-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

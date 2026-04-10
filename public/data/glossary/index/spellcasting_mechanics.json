@@ -27,6 +27,125 @@
     "filePath": "/data/glossary/entries/rules/spells/casting_time_rules.json"
   },
   {
+    "id": "cone_area",
+    "title": "Cone",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Cone.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/cone_area.json"
+  },
+  {
+    "id": "cube_area",
+    "title": "Cube",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Cube.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/cube_area.json"
+  },
+  {
+    "id": "curse",
+    "title": "curse",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for curse.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/curse.json"
+  },
+  {
+    "id": "cylinder_area",
+    "title": "Cylinder",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Cylinder.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/cylinder_area.json"
+  },
+  {
+    "id": "difficult_terrain",
+    "title": "Difficult Terrain",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Difficult Terrain.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/difficult_terrain.json"
+  },
+  {
+    "id": "emanation_area",
+    "title": "Emanation",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Emanation.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/emanation_area.json"
+  },
+  {
+    "id": "friendly_attitude",
+    "title": "Friendly",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Friendly.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/friendly_attitude.json"
+  },
+  {
     "id": "gaining_spells",
     "title": "Gaining and Preparing Spells",
     "category": "Spellcasting Mechanics",
@@ -47,6 +166,142 @@
       "class_spell_lists"
     ],
     "filePath": "/data/glossary/entries/rules/spells/gaining_spells.json"
+  },
+  {
+    "id": "half_cover",
+    "title": "Half Cover",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Half Cover.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/half_cover.json"
+  },
+  {
+    "id": "heavily_obscured",
+    "title": "Heavily Obscured",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Heavily Obscured.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/heavily_obscured.json"
+  },
+  {
+    "id": "hostile_attitude",
+    "title": "Hostile",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Hostile.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/hostile_attitude.json"
+  },
+  {
+    "id": "indifferent_attitude",
+    "title": "Indifferent",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Indifferent.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/indifferent_attitude.json"
+  },
+  {
+    "id": "lightly_obscured",
+    "title": "Lightly Obscured",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Lightly Obscured.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/lightly_obscured.json"
+  },
+  {
+    "id": "line_area",
+    "title": "Line",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Line.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/line_area.json"
+  },
+  {
+    "id": "passive_perception",
+    "title": "Passive Perception",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Passive Perception.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/passive_perception.json"
+  },
+  {
+    "id": "possessed",
+    "title": "possessed",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for possessed.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/possessed.json"
   },
   {
     "id": "school_of_magic",
@@ -75,6 +330,23 @@
       "class_spell_lists"
     ],
     "filePath": "/data/glossary/entries/rules/spells/school_of_magic.json"
+  },
+  {
+    "id": "shape_shift",
+    "title": "Shape-Shifting",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Shape-Shifting.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/shape_shift.json"
   },
   {
     "id": "spell_components_rules",
@@ -195,5 +467,97 @@
       "spell_effects_rules"
     ],
     "filePath": "/data/glossary/entries/rules/spells/spell_range_rules.json"
+  },
+  {
+    "id": "spell_referenced_rules_enrichment",
+    "title": "Spell Referenced Rules Enrichment",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "glossary enrichment",
+      "referenced rules",
+      "spell links"
+    ],
+    "excerpt": "Aggregates the glossary and rules links referenced by captured canonical spell pages, grouped by rule and by spell.",
+    "aliases": [
+      "spell rule references",
+      "spell glossary enrichment"
+    ],
+    "seeAlso": [
+      "spell_effects_rules",
+      "spell_components_rules",
+      "spell_duration_rules",
+      "spell_range_rules"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/spell_referenced_rules_enrichment.json"
+  },
+  {
+    "id": "sphere_area",
+    "title": "Sphere",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "A Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specifies the distance it extends as the radius of the Sphere. A Sphere's point of origin is included in the Sphere's area of effect.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/sphere_area.json"
+  },
+  {
+    "id": "stable",
+    "title": "Stable",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Stable.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/stable.json"
+  },
+  {
+    "id": "three_quarters_cover",
+    "title": "Three-Quarters Cover",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Three-Quarters Cover.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/three_quarters_cover.json"
+  },
+  {
+    "id": "total_cover",
+    "title": "Total Cover",
+    "category": "Spellcasting Mechanics",
+    "tags": [
+      "rules",
+      "spellcasting",
+      "referenced rule",
+      "generated"
+    ],
+    "excerpt": "Generated rule entry for Total Cover.",
+    "aliases": [],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/spells/referenced/total_cover.json"
   }
 ]

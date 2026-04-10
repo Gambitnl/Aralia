@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/02/2026, 09:29:07
- * Dependents: CharacterCreator.tsx, CombatReligionAdapter.ts, ConversationPanel.tsx, FeatSelection.tsx, GameContext.tsx, GameGuideModal.tsx, GameModals.tsx, NotificationSystem.tsx, TempleSystem.ts, actionHandlers.ts, appState.ts, characterReducer.ts, companionReducer.ts, conversationReducer.ts, craftingReducer.ts, crimeActions.ts, crimeReducer.ts, dialogueReducer.ts, economyReducer.ts, encounterReducer.ts, entityIntegrationUtils.ts, handleEncounter.ts, handleGeminiCustom.ts, handleItemInteraction.ts, handleMerchantInteraction.ts, handleMovement.ts, handleNpcInteraction.ts, handleObservation.ts, handleOracle.ts, handleResourceActions.ts, handleSystemAndUi.ts, handleWorldEvents.ts, identityReducer.ts, index.d.ts, journalReducer.ts, legacyReducer.ts, logReducer.ts, navalReducer.ts, npcReducer.ts, questReducer.ts, religionReducer.ts, ritualReducer.ts, townReducer.ts, types/index.ts, uiReducer.ts, useCompanionBanter.ts, useConversation.ts, useDialogueSystem.ts, useGameActions.ts, useGameInitialization.ts, useHistorySync.ts, useOllamaCheck.ts, worldReducer.ts
- * Imports: 7 files
+ * Last Sync: 05/04/2026, 00:55:31
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useOllamaCheck.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, types/index.ts, utils/context/entityIntegrationUtils.ts
+ * Imports: None
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -238,7 +238,9 @@ export type AppAction =
   | { type: 'END_DIALOGUE_SESSION' }
   // Ritual Actions
   | { type: 'START_RITUAL'; payload: RitualState }
-  | { type: 'ADVANCE_RITUAL'; payload: { minutes: number } }
+  // Ritual advancement now accepts seconds, minutes, or rounds so whichever
+  // system is driving time can hand off its native unit without local guesswork.
+  | { type: 'ADVANCE_RITUAL'; payload: { seconds?: number; minutes?: number; rounds?: number } }
   | { type: 'INTERRUPT_RITUAL'; payload: { event: RitualEvent } }
   // TODO(lint-intent): The any on this value hides the intended shape of this data.
   // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.

@@ -34,3 +34,46 @@
 
 - **Description**: You unleash a blast of cold air. Each creature in a 60-foot Cone originating from you makes a Constitution saving throw, taking 8d8 Cold damage on a failed save or half as much damage on a successful one. A creature killed by this spell becomes a frozen statue until it thaws.
 - **Higher Levels**: When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Cone of Cold
+Level: 5th
+Casting Time: 1 Action
+Range/Area: Self (60 ft. Cone)
+Components: V, S, M *
+Duration: Instantaneous
+School: Evocation
+Attack/Save: CON Save
+Damage/Effect: Cold
+
+Rules Text:
+You unleash a blast of cold air. Each creature in a 60-foot Cone originating from you makes a Constitution saving throw, taking 8d8 Cold damage on a failed save or half as much damage on a successful one. A creature killed by this spell becomes a frozen statue until it thaws.
+Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 5.
+
+Material Component:
+* - (a small crystal or glass cone)
+
+Spell Tags:
+Damage
+
+Available For:
+Druid
+Sorcerer
+Wizard
+Warlock - The Fathomless (TCoE)
+Warlock - The Genie (TCoE)
+Warlock - The Hexblade (XGtE)
+Cleric - Shadow Domain (BoET)
+Druid - Circle of Shadows (BoET)
+
+Referenced Rules:
+Cone -> /rules-glossary/17-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->
+

@@ -3,6 +3,7 @@
 - **School**: Conjuration
 - **Ritual**: false
 - **Classes**: Druid, Ranger
+- **Sub-Classes**: Cleric - Festus Domain, Cleric - Community Domain (HCS)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -30,5 +31,40 @@
 - **Save Stat**: None
 - **Save Outcome**: none
 
-- **Description**: Up to ten berries appear in your hand and are infused with magic for the duration. A creature can use its Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. The berries lose their potency if they haven't been consumed within 24 hours of the casting of this spell.
+- **Description**: Ten berries appear in your hand and are infused with magic for the duration. A creature can take a Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. Uneaten berries disappear when the spell ends.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot (2024 / Non-Legacy)
+
+This spell keeps the raw official-source snapshot inside an HTML comment so the
+repo-facing spell field block above remains the only validator-facing markdown surface.
+
+<!--
+Name: Goodberry
+Level: 1st
+Casting Time: 1 Action
+Range/Area: Self
+Components: V, S, M *
+Duration: 24 Hours
+School: Conjuration
+Attack/Save: None
+Damage/Effect: Healing
+
+Rules Text:
+Ten berries appear in your hand and are infused with magic for the duration.
+A creature can take a Bonus Action to eat one berry.
+Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day.
+Uneaten berries disappear when the spell ends.
+
+Material Component:
+* - (a sprig of mistletoe)
+
+Spell Tags:
+Healing
+
+Available For:
+Druid
+Ranger
+Cleric - Festus Domain
+Cleric - Community Domain (HCS)
+-->

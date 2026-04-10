@@ -3,7 +3,7 @@
  * Defines the state and mechanics for long-duration ritual casting.
  * "Time is part of the magic."
  */
-import { SavingThrowAbility } from './spells';
+import { SavingThrowAbility } from './spells.js';
 /**
  * Represents the current state of a ritual being cast.
  * Attached to a character (e.g., character.currentRitual).
@@ -15,10 +15,14 @@ export interface RitualState {
     casterId: string;
     /** When the ritual started (game time or round number) */
     startTime: number;
-    /** Total duration required in rounds (for combat) or minutes (for narrative) */
+    /** Canonical runtime duration stored in seconds so combat and world time share one scalar */
+    durationTotalSeconds: number;
+    /** Canonical runtime progress stored in seconds */
+    progressSeconds: number;
+    /** Human-facing display duration derived from the canonical seconds value */
     durationTotal: number;
-    durationUnit: 'rounds' | 'minutes' | 'hours';
-    /** Current progress (same unit as durationTotal) */
+    durationUnit: 'seconds' | 'rounds' | 'minutes' | 'hours';
+    /** Human-facing display progress derived from progressSeconds */
     progress: number;
     /** If true, the ritual is paused but not broken */
     isPaused: boolean;

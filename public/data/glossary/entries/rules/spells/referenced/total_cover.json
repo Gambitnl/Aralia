@@ -1,0 +1,18 @@
+{
+  "id": "total_cover",
+  "title": "Total Cover",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Total Cover.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/total_cover.json",
+  "markdown": "# Total Cover\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[draconic-transformation|Draconic Transformation]]\n- [[enervation|Enervation]]\n- [[witch-bolt|Witch Bolt]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

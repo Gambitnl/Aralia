@@ -10,6 +10,12 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - War Domain",
+    "Warlock - Fiend Patron",
+    "Warlock - The Genie (TCoE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

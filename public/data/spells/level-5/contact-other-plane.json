@@ -9,6 +9,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",

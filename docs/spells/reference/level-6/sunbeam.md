@@ -2,7 +2,7 @@
 - **Level**: 6
 - **School**: Evocation
 - **Ritual**: false
-- **Classes**: Druid, Sorcerer, Wizard
+- **Classes**: Cleric, Druid, Sorcerer, Wizard
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -34,5 +34,47 @@
 - **Damage Dice**: 6d8
 - **Damage Type**: Radiant
 
-- **Description**: A beam of brilliant light flashes out from your hand in a 5-foot-wide, 60-foot-line. Each creature in the line must make a Constitution saving throw. On a failed save, a creature takes 6d8 radiant damage and is blinded until your next turn. On a successful save, it takes half as much damage and isn't blinded by this spell. Undead and oozes have disadvantage on this saving throw. You can create a new line of radiance as your action on any turn until the spell ends. For the duration, a mote of brilliant radiance shines in your hand. It sheds bright light in a 30-foot radius and dim light for an additional 30 feet. The light is sunlight.
+- **Description**: You launch a sunbeam in a 5-foot-wide, 60-foot-long Line . Each creature in the Line makes a Constitution saving throw. On a failed save, a creature takes 6d8 Radiant damage and has the Blinded condition until the start of your next turn. On a successful save, it takes half as much damage only. Until the spell ends, you can take a Magic action to create a new Line of radiance. For the duration, a mote of brilliant radiance shines above you. It sheds Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. This light is sunlight.
 - **Higher Levels**: none
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Sunbeam
+Level: 6th
+Casting Time: 1 Action
+Range/Area: Self (60 ft. Line)
+Components: V, S, M *
+Duration: Concentration 1 Minute
+School: Evocation
+Attack/Save: CON Save
+Damage/Effect: Radiant
+
+Rules Text:
+You launch a sunbeam in a 5-foot-wide, 60-foot-long Line . Each creature in the Line makes a Constitution saving throw. On a failed save, a creature takes 6d8 Radiant damage and has the Blinded condition until the start of your next turn. On a successful save, it takes half as much damage only.
+Until the spell ends, you can take a Magic action to create a new Line of radiance.
+For the duration, a mote of brilliant radiance shines above you. It sheds Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. This light is sunlight.
+
+Material Component:
+* - (a magnifying glass)
+
+Spell Tags:
+Damage
+Debuff
+
+Available For:
+Cleric
+Druid
+Sorcerer
+Wizard
+
+Referenced Rules:
+Line -> /rules-glossary/80-tooltip
+Bright Light -> /rules-glossary/21-tooltip
+Dim Light -> /rules-glossary/52-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

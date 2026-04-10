@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 27/02/2026, 09:31:55
- * Dependents: CalendarSystem.ts, DiscoveryLogPane.tsx, FactionManager.ts, FeywildMechanics.ts, HistoryService.ts, NobleIntrigueManager.ts, PassTimeModal.tsx, PortalSystem.ts, QuestManager.ts, RitualManager.ts, SeasonalSystem.ts, TavernGossipSystem.ts, TimeWidget.tsx, WeatherSystem.ts, WorldEventManager.ts, WorldPane.tsx, actionHandlers.ts, appState.ts, dialogueService.ts, economyReducer.ts, handleMerchantInteraction.ts, handleMovement.ts, handleResourceActions.ts, handleWorldEvents.ts, initialState.ts, questUtils.ts, saveLoadService.ts, useDayNightOverlay.ts, useQuickTravel.ts, utils/index.ts, worldReducer.ts
- * Imports: 10 files
+ * Last Sync: 05/04/2026, 00:55:31
+ * Dependents: components/Logbook/DiscoveryLogPane.tsx, components/QuestLog/questUtils.ts, components/Submap/useDayNightOverlay.ts, components/Submap/useQuickTravel.ts, components/Town/PassTimeModal.tsx, components/WorldPane.tsx, components/ui/TimeWidget.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleWorldEvents.ts, services/dialogueService.ts, services/saveLoadService.ts, state/appState.ts, state/initialState.ts, state/reducers/economyReducer.ts, state/reducers/worldReducer.ts, systems/environment/WeatherSystem.ts, systems/history/HistoryService.ts, systems/intrigue/TavernGossipSystem.ts, systems/planar/FeywildMechanics.ts, systems/planar/PortalSystem.ts, systems/quests/QuestManager.ts, systems/rituals/RitualManager.ts, systems/time/CalendarSystem.ts, systems/time/SeasonalSystem.ts, systems/world/FactionManager.ts, systems/world/NobleIntrigueManager.ts, systems/world/WorldEventManager.ts, utils/index.ts
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,7 @@
 
 export * from './factories';
 export * from './idGenerator';
+export * from './spellTimeUtils';
 export * from './timeUtils';
 export * from './logger';
 export * from './storageUtils';

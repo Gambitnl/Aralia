@@ -8,8 +8,13 @@
   "classes": [
     "Bard",
     "Sorcerer",
-    "Wizard"
+    "Wizard",
+    "Artificer"
   ],
+  "subClasses": [
+    "Cleric - Forge Domain (XGtE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +32,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +52,7 @@
   "targeting": {
     "type": "multi",
     "range": 120,
+    "rangeUnit": "feet",
     "validTargets": [
       "objects"
     ],

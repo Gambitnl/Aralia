@@ -1,0 +1,18 @@
+{
+  "id": "friendly_attitude",
+  "title": "Friendly",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Friendly.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/friendly_attitude.json",
+  "markdown": "# Friendly\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[charm-monster|Charm Monster]]\n- [[charm-person|Charm Person]]\n- [[simulacrum|Simulacrum]]\n- [[true-polymorph|True Polymorph]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

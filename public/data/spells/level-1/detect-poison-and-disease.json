@@ -11,6 +11,10 @@
     "Paladin",
     "Ranger"
   ],
+  "subClasses": [
+    "Warlock - Mother of Sorrows (BoET)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +32,8 @@
   },
   "range": {
     "type": "self",
-    "distance": 0
+    "distance": 0,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,7 +50,7 @@
     "concentration": true
   },
   "targeting": {
-    "type": "self",
+    "type": "area",
     "validTargets": [
       "self"
     ],
@@ -53,9 +58,13 @@
     "range": 0,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Emanation",
+      "size": 30,
+      "height": 0,
+      "sizeType": "radius",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "followsCaster": true
     },
     "filter": {
       "creatureTypes": [],
@@ -64,6 +73,31 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "measuredDetails": [
+        {
+          "label": "Barrier Thickness",
+          "kind": "blocker",
+          "subject": "stone, dirt, or wood",
+          "value": 1,
+          "unit": "feet"
+        },
+        {
+          "label": "Barrier Thickness",
+          "kind": "blocker",
+          "subject": "metal",
+          "value": 1,
+          "unit": "inches"
+        },
+        {
+          "label": "Barrier Thickness",
+          "kind": "blocker",
+          "subject": "lead",
+          "qualifier": "thin sheet"
+        }
+      ]
     }
   },
   "effects": [
@@ -135,7 +169,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "For the duration, you can sense the presence and location of poisons, poisonous creatures, and diseases within 30 feet of you. You also identify the kind of poison, poisonous creature, or disease in each case. The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.",
+  "description": "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
   "higherLevels": "",
   "tags": [
     "detection",

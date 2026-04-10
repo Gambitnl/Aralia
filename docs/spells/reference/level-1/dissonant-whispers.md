@@ -3,6 +3,7 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Bard
+- **Sub-Classes**: Sorcerer - Aberrant Sorcery, Warlock - Great Fool Patron, Warlock - Great Old One Patron
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -29,5 +30,38 @@
 - **Movement Type**: push
 - **Forced Movement**: usesReaction true, direction away_from_caster, maxDistance target_speed
 
-- **Description**: You whisper a discordant melody that only one creature of your choice within range can hear, wracking it with terrible pain. The target must make a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far as its speed allows away from you. The creature doesn't move into obvious danger, such as a fire or a pit. On a successful save, the target takes half as much damage and doesn't have to move away. A Deafened creature automatically succeeds on the save.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.
+- **Description**: One creature of your choice that you can see within range hears a discordant melody in its mind. The target makes a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far away from you as it can, using the safest route. On a successful save, the target takes half as much damage only.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Dissonant Whispers
+Level: 1st
+Casting Time: 1 Action
+Range/Area: 60 ft.
+Components: V
+Duration: Instantaneous
+School: Enchantment
+Attack/Save: WIS Save
+Damage/Effect: Psychic
+
+Rules Text:
+One creature of your choice that you can see within range hears a discordant melody in its mind. The target makes a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far away from you as it can, using the safest route. On a successful save, the target takes half as much damage only.
+Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 1.
+
+Spell Tags:
+Damage
+Control
+
+Available For:
+Bard
+Sorcerer - Aberrant Sorcery
+Warlock - Great Old One Patron
+Warlock - Great Fool Patron
+
+Capture Method: http
+Legacy Page: false
+-->

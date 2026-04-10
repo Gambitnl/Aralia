@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/04/2026, 13:54:02
+ * Dependents: components/Glossary/Glossary.tsx, components/Glossary/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file GlossarySidebar.tsx
  * Sidebar component showing categories and entry tree for glossary navigation.
@@ -20,13 +36,14 @@ import { GlossaryEntry } from '../../types';
 
 // Import spell gate check result type for displaying spell status indicators
 // - GateResult: Type containing spell gate check status and reasons
-import { GateResult } from '../../hooks/useSpellGateChecks';
+import type { GateResult } from './spellGateChecker';
 
 // Import utility functions for glossary UI formatting and styling
 // - getCategoryIcon: Returns appropriate icon for each category
 // - highlightSearchTerm: Wraps search terms in highlighting markup
 // - getCategoryColor: Returns color classes for category headers
 import { getCategoryIcon, highlightSearchTerm, getCategoryColor } from './glossaryUIUtils';
+import { buildGateLabel } from './spellGateChecker';
 
 // Define the props interface for the GlossarySidebar component
 // This ensures type safety and documents all expected input properties
@@ -61,6 +78,8 @@ interface GlossarySidebarProps {
     entryRefs: MutableRefObject<Record<string, HTMLLIElement | HTMLButtonElement | null>>;
     /** Whether column resize is in progress */
     isColumnResizing: boolean;
+    /** Whether developer-only spell diagnostics should be shown inline */
+    isDevModeEnabled: boolean;
 }
 
 /**
@@ -95,6 +114,8 @@ const GlossaryEntryNode: React.FC<{
 
     /** Refs for entry elements */
     entryRefs: MutableRefObject<Record<string, HTMLLIElement | HTMLButtonElement | null>>;
+    /** Whether dev-only spell gate diagnostics should appear in the sidebar */
+    isDevModeEnabled: boolean;
 }> = ({
     entry,
     level,
@@ -105,6 +126,7 @@ const GlossaryEntryNode: React.FC<{
     searchTerm,
     gateResults,
     entryRefs,
+    isDevModeEnabled,
 }) => {
         // Determine if this entry has sub-entries (is a parent node)
         const isParent = entry.subEntries && entry.subEntries.length > 0;
@@ -129,13 +151,18 @@ const GlossaryEntryNode: React.FC<{
         const gate = entry.category === 'Spells' ? gateResults[entry.id] : undefined;
 
         // Extract gate reason message for tooltip display
-        const gateLabel = gate?.reasons?.join('; ');
+        // The sidebar tooltip should answer the direct question "what is wrong
+        // with this spell?" without requiring the user to open the full panel.
+        // Prefer the explicit issue summary list now produced by the hook, and
+        // only fall back to the older raw reasons list if the richer summary
+        // is unavailable.
+        const gateLabel = buildGateLabel(gate, isDevModeEnabled);
 
         // Create status indicator dot based on gate check result
         // - Green (bg-emerald-400): Pass - spell meets all requirements
         // - Amber (bg-amber-400): Gap - spell has some missing information
         // - Red (bg-red-500): Fail - spell fails gate checks
-        const gateDot = gate ? (
+        const gateDot = isDevModeEnabled && gate ? (
             <span
                 className={
                     gate.status === 'pass'
@@ -202,6 +229,7 @@ const GlossaryEntryNode: React.FC<{
                                 searchTerm={searchTerm}
                                 gateResults={gateResults}
                                 entryRefs={entryRefs}
+                                isDevModeEnabled={isDevModeEnabled}
                             />
                         ))}
                     </ul>
@@ -231,6 +259,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
     categoryCounts,
     entryRefs,
     isColumnResizing,
+    isDevModeEnabled,
 }) => {
     /**
      * State: Controls whether the search input field is visible.
@@ -324,6 +353,7 @@ export const GlossarySidebar: React.FC<GlossarySidebarProps> = ({
                                         searchTerm={searchTerm}
                                         gateResults={gateResults}
                                         entryRefs={entryRefs}
+                                        isDevModeEnabled={isDevModeEnabled}
                                     />
                                 ))}
                             </ul>

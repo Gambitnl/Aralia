@@ -10,6 +10,8 @@
     "Druid",
     "Artificer"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 15
+    "distance": 15,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "single",
     "range": 15,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "allies"

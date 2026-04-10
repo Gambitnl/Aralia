@@ -10,6 +10,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,13 +29,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": false,
     "somatic": true,
     "material": true,
-    "materialDescription": "a drop of water or piece of ice",
+    "materialDescription": "a drop of water or a piece of ice",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "multi",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -53,6 +57,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 5,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -157,7 +162,7 @@
     "playerInputRequired": false
   },
   "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the Cold damage increases by 1d6 for each slot level above 1st.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The Cold damage increases by 1d6 for each spell slot level above 1.",
   "tags": [
     "damage",
     "cold",

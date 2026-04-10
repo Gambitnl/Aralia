@@ -11,6 +11,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -29,7 +31,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -48,6 +51,7 @@
   "targeting": {
     "type": "multi",
     "range": 60,
+    "rangeUnit": "feet",
     "maxTargets": 5,
     "validTargets": [
       "creatures"
@@ -136,7 +140,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If the creature lands before the spell ends, it takes no falling damage and can land on its feet, and the spell ends for that creature.",
+  "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature.",
   "higherLevels": "",
   "tags": [
     "reaction",

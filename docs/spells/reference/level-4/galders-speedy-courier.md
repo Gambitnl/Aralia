@@ -1,14 +1,16 @@
 # Galders Speedy Courier
 - **Level**: 4
-- **School**: Evocation
+- **School**: Conjuration
 - **Ritual**: false
-- **Classes**: 
+- **Classes**: Wizard
+- **Sub-Classes**: None
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
 
 - **Range Type**: ranged
+- **Range Distance**: 10
 - **Targeting Type**: single
 - **Valid Targets**: creatures
 - **Line of Sight**: true
@@ -17,7 +19,9 @@
 - **Somatic**: true
 - **Material**: false
 
-- **Duration Type**: instantaneous
+- **Duration Type**: timed
+- **Duration Value**: 10
+- **Duration Unit**: minute
 - **Concentration**: false
 
 - **Effect Type**: UTILITY

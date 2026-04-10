@@ -10,7 +10,9 @@
     "Cleric",
     "Druid"
   ],
-  "ritual": false,
+  "subClasses": [],
+  "subClassesVerification": "verified",
+  "ritual": true,
   "rarity": "common",
   "attackType": "",
   "castingTime": {
@@ -27,13 +29,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a gem-encrusted bowl worth at least 1,000 gp, which the spell consumes",
+    "materialDescription": "a gem-encrusted bowl worth 1,000+ GP, which the spell consumes",
     "materialCost": 1000,
     "isConsumed": true
   },
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "point",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "objects",
@@ -136,7 +140,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You bring forth a great feast, including magnificent food and drink. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast. A creature that partakes of the feast gains several benefits. The creature is cured of all diseases and poison, becomes immune to poison and being frightened, and makes all Wisdom saving throws with advantage. Its hit point maximum also increases by 2d10, and it gains the same number of hit points. These benefits last for 24 hours.",
+  "description": "You conjure a feast that appears on a surface in an unoccupied 10-foot Cube next to you. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast. A creature that partakes gains several benefits, which last for 24 hours. The creature has Resistance to Poison damage, and it has Immunity to the Frightened and Poisoned conditions. Its Hit Point maximum also increases by 2d10, and it gains the same number of Hit Points.",
   "higherLevels": "",
   "tags": []
 }

@@ -9,6 +9,11 @@
     "Druid",
     "Ranger"
   ],
+  "subClasses": [
+    "Cleric - Nature Domain (PHB)",
+    "Paladin - Oath of the Ancients"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

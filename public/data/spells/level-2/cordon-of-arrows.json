@@ -8,6 +8,8 @@
   "classes": [
     "Ranger"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -49,6 +51,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 30,
+      "sizeUnit": "feet",
       "height": 0
     },
     "lineOfSight": false,
@@ -96,10 +99,10 @@
         "saveModifiers": []
       },
       "damage": {
-        "dice": "1d6",
+        "dice": "2d4",
         "type": "Piercing"
       },
-      "description": "One planted ammo piece makes a ranged spell attack; on hit, deals 1d6 piercing and is consumed.",
+      "description": "One planted ammo piece strikes a creature that enters the area or ends its turn there; on a failed Dexterity save, it deals 2d4 Piercing damage and is destroyed.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+2 ammo pieces",
@@ -112,8 +115,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You plant four pieces of nonmagical ammunition-arrows or crossbow bolts-in the ground within range and lay magic upon them to protect an area. Until the spell ends, whenever a creature other than you comes within 30 feet of the ammunition for the first time on a turn or ends its turn there, one piece of ammunition flies up to strike it. The creature must succeed on a Dexterity saving throw or take 1d6 Piercing damage. The piece of ammunition is then destroyed. The spell ends when no ammunition remains. When you cast this spell, you can designate any creatures you choose, and the spell ignores them.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the amount of ammunition that can be affected increases by two for each slot level above 2nd.",
+  "description": "You touch up to four nonmagical Arrows or Bolts and plant them in the ground in your space. Until the spell ends, the ammunition canâ€™t be physically uprooted, and whenever a creature other than you enters a space within 30 feet of the ammunition for the first time on a turn or ends its turn there, one piece of ammunition flies up to strike it. The creature must succeed on a Dexterity saving throw or take 2d4 Piercing damage. The piece of ammunition is then destroyed. The spell ends when none of the ammunition remains planted in the ground. When you cast this spell, you can designate any creatures you choose, and the spell ignores them.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The amount of ammunition that can be affected increases by two for each spell slot level above 2.",
   "tags": [
     "control",
     "trap"

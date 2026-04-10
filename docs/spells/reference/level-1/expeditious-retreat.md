@@ -3,6 +3,7 @@
 - **School**: Transmutation
 - **Ritual**: false
 - **Classes**: Artificer, Sorcerer, Warlock, Wizard
+- **Sub-Classes**: Paladin - Oath of the Open Sea (TCSR)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: bonus_action
@@ -27,5 +28,37 @@
 - **Save Stat**: None
 - **Save Outcome**: none
 
-- **Description**: This spell allows you to move at an incredible pace. When you cast this spell, and then as a Bonus Action on each of your turns until the spell ends, you can take the Dash action.
+- **Description**: You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Expeditious Retreat
+Level: 1st
+Casting Time: 1 Bonus Action
+Range/Area: Self
+Components: V, S
+Duration: Concentration 10 Minutes
+School: Transmutation
+Attack/Save: None
+Damage/Effect: Movement
+
+Rules Text:
+You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action.
+
+Spell Tags:
+Movement
+
+Available For:
+Sorcerer
+Warlock
+Wizard
+Artificer
+Paladin - Oath of the Open Sea (TCSR)
+
+Capture Method: http
+Legacy Page: false
+-->

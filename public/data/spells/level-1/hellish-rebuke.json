@@ -8,6 +8,10 @@
   "classes": [
     "Warlock"
   ],
+  "subClasses": [
+    "Paladin - Oathbreaker (DMG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +50,7 @@
   "targeting": {
     "type": "single",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -113,8 +119,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a Dexterity saving throw. It takes 2d10 Fire damage on a failed save, or half as much damage on a successful one.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.",
+  "description": "The creature that damaged you is momentarily surrounded by green flames. It makes a Dexterity saving throw, taking 2d10 Fire damage on a failed save or half as much damage on a successful one.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 1.",
   "tags": [
     "damage",
     "reaction",

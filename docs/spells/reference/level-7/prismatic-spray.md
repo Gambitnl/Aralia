@@ -10,7 +10,6 @@
 
 - **Range Type**: self
 - **Targeting Type**: area
-- **Area Shape**: cone
 - **Area Size**: 60
 - **Valid Targets**: creatures
 - **Line of Sight**: true
@@ -28,7 +27,7 @@
 - **Damage Dice**: 12d6
 - **Damage Type**: Fire, Acid, Lightning, Poison, Cold
 
-- **Description**: Eight rays of light flash from you in a 60-foot Cone. Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.
+- **Description**: Eight rays of light flash from you in a 60-foot Cone . Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.
 
   **Prismatic Rays**
   | d8 | Ray |
@@ -42,3 +41,37 @@
   | 7 | Violet. Failed Save: The target has the Blinded condition and makes a Wisdom saving throw at the start of your next turn. On a Successful Save, the condition ends. On a Failed Save, the condition ends, and the creature teleports to another plane of existence (DM's choice). |
   | 8 | Special. The target is struck by two rays. Roll twice, rerolling any 8. |
 - **Higher Levels**:
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Prismatic Spray
+Level: 7th
+Casting Time: 1 Action
+Range/Area: Self (60 ft. Cone)
+Components: V, S
+Duration: Instantaneous
+School: Evocation
+Attack/Save: DEX Save
+Damage/Effect: Fire (...)
+
+Rules Text:
+Eight rays of light flash from you in a 60-foot Cone . Each creature in the Cone makes a Dexterity saving throw. For each target, roll 1d8 to determine which color ray affects it, consulting the Prismatic Rays table.
+
+Spell Tags:
+Damage
+Control
+
+Available For:
+Bard
+Sorcerer
+Wizard
+
+Referenced Rules:
+Cone -> /rules-glossary/17-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

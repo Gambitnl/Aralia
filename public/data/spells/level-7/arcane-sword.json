@@ -11,6 +11,8 @@
     "Bard",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 90
+    "distance": 90,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -47,6 +50,7 @@
   "targeting": {
     "type": "single",
     "range": 90,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],

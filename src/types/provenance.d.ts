@@ -6,7 +6,7 @@
  * Defines the types for tracking the history and origin of items.
  * "If they don't remember, it didn't happen." - Recorder
  */
-import { GameDate } from './memory';
+import { GameDate } from './memory.js';
 export type ProvenanceEventType = 'CRAFTED' | 'FOUND' | 'STOLEN' | 'SOLD' | 'USED_IN_COMBAT' | 'ENCHANTED' | 'DAMAGED' | 'REPAIRED' | 'GIFTED';
 export interface ProvenanceEvent {
     date: GameDate;

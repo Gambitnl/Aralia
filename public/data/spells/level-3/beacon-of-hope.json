@@ -6,9 +6,13 @@
   "school": "Abjuration",
   "legacy": false,
   "classes": [
-    "Cleric",
-    "Paladin"
+    "Cleric"
   ],
+  "subClasses": [
+    "Paladin - Oath of Devotion",
+    "Paladin - Oath of the Harvest (HGtMH1)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +50,7 @@
   "targeting": {
     "type": "multi",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -133,7 +139,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "This spell bestows hope and vitality. Choose any number of creatures within range. For the duration, each target has Advantage on Wisdom saving throws and death saving throws, and regains the maximum number of hit points possible from any healing.",
+  "description": "Choose any number of creatures within range. For the duration, each target has Advantage on Wisdom saving throws and Death Saving Throws and regains the maximum number of Hit Points possible from any healing.",
   "higherLevels": "",
   "tags": []
 }

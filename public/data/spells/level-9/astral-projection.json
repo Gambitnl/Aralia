@@ -10,6 +10,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 10
+    "distance": 10,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -38,7 +41,7 @@
     "isConsumed": true
   },
   "duration": {
-    "type": "special",
+    "type": "until_dispelled",
     "concentration": false,
     "value": 0,
     "unit": "round"
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "multi",
     "range": 10,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],

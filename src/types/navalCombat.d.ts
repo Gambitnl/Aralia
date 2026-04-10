@@ -5,7 +5,7 @@
  * @file src/types/navalCombat.ts
  * Types for the naval combat system, including state, maneuvers, and resolution.
  */
-import { Ship, CrewRole } from './naval';
+import { Ship, CrewRole } from './naval.js';
 export type WindDirection = 'North' | 'South' | 'East' | 'West' | 'NorthEast' | 'NorthWest' | 'SouthEast' | 'SouthWest';
 export type RelativeWind = 'Headwind' | 'Tailwind' | 'Crosswind';
 export type CombatRange = 'Long' | 'Medium' | 'Short' | 'Boarding';

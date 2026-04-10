@@ -1,3 +1,19 @@
+/**
+ * This file draws the interactive spell-filter tree that branches off the Spells pillar node.
+ *
+ * When the player opens the Spells pillar on the roadmap canvas, this overlay appears and lets
+ * them explore spells by filtering along axes (Class, Level, Casting Time, etc.). Clicking an
+ * axis node expands it to show every distinct value for that axis; clicking a value narrows the
+ * visible spell count. The tree can be expanded several levels deep (axis → value → sub-axis).
+ *
+ * Layout is handled entirely by `computeVirtualLayout` (exported for unit testing): it places
+ * each virtual node in a depth column, centres sibling groups on their parent, then runs a
+ * group-level overlap pass so children from different expanded axes never interleave.
+ *
+ * Called by: RoadmapVisualizer (renders this component when pillar_spells is expanded)
+ * Depends on: axis-engine (builds the filter tree), virtual-node-id (stable IDs),
+ *             roadmap utils/constants (shared drawing helpers)
+ */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   BRANCH_WIDTH,
@@ -46,8 +62,10 @@ export interface VirtualLayoutNode extends VirtualLayoutInputNode {
 }
 
 /**
- * Technical: pure layout — assigns x/y to each virtual node using depth-column × leaf-cursor.
- * Layman: places each spell tree card in a column grid; parents centre on their children.
+ * Technical: pure layout — assigns x/y to each virtual node using parent-anchored centering.
+ * Each group of siblings is centred around their parent's Y, so expanding one branch
+ * never shifts its siblings.
+ * Layman: places each spell tree card beside its parent; only the expanded branch moves.
  */
 export function computeVirtualLayout(input: VirtualLayoutInput): VirtualLayoutNode[] {
   const { nodes, projectCenterX, projectCenterY, side } = input;
@@ -64,47 +82,74 @@ export function computeVirtualLayout(input: VirtualLayoutInput): VirtualLayoutNo
     childrenOf.set(n.parentId, list);
   }
 
-  // Assign X by depth (column)
+  // Assign X by depth (column) — unchanged
   for (const n of nodeMap.values()) {
     n.x = Math.round(
       projectCenterX + side * (BRANCH_BASE_DISTANCE + (n.depth - 1) * BRANCH_COL_DISTANCE) - BRANCH_WIDTH / 2
     );
   }
 
-  // Count leaves to centre the tree on the project node
-  const leafCount = nodes.filter(
-    (n) => (childrenOf.get(n.id) ?? []).length === 0
-  ).length || 1;
-  const totalHeight = leafCount * BRANCH_MIN_HEIGHT + Math.max(0, leafCount - 1) * BRANCH_ROW_GAP;
-  let leafCursorY = projectCenterY - totalHeight / 2;
-
-  const visited = new Set<string>();
-
-  function assignY(id: string): { minY: number; maxY: number } {
-    if (visited.has(id)) return { minY: 0, maxY: 0 };
-    visited.add(id);
-    const node = nodeMap.get(id);
-    if (!node) return { minY: 0, maxY: 0 };
-    const children = (childrenOf.get(id) ?? []).sort();
-    if (children.length === 0) {
-      node.y = leafCursorY;
-      leafCursorY += node.height + BRANCH_ROW_GAP;
-      return { minY: node.y, maxY: node.y + node.height };
-    }
-    let minY = Infinity;
-    let maxY = -Infinity;
-    for (const childId of children) {
-      const range = assignY(childId);
-      minY = Math.min(minY, range.minY);
-      maxY = Math.max(maxY, range.maxY);
-    }
-    node.y = Math.round((minY + maxY) / 2 - node.height / 2);
-    return { minY: node.y, maxY: node.y + node.height };
+  // Group node IDs by depth once to avoid repeated linear scans below.
+  const byDepth = new Map<number, string[]>();
+  for (const n of nodes) {
+    const list = byDepth.get(n.depth) ?? [];
+    list.push(n.id);
+    byDepth.set(n.depth, list);
   }
 
-  // Walk depth-1 nodes in sorted order
-  const depth1Ids = nodes.filter((n) => n.depth === 1).map((n) => n.id).sort();
-  for (const id of depth1Ids) assignY(id);
+  // Place a group of sibling nodes centred around parentCenterY, then recurse into each.
+  // Because every level is independently anchored to its parent, expanding one branch
+  // cannot displace its siblings at the same depth.
+  function placeGroup(ids: string[], parentCenterY: number): void {
+    if (ids.length === 0) return;
+    const sorted = [...ids].sort();
+    const totalHeight =
+      sorted.reduce((sum, id) => sum + (nodeMap.get(id)?.height ?? 0), 0) +
+      Math.max(0, sorted.length - 1) * BRANCH_ROW_GAP;
+    let cursorY = Math.round(parentCenterY - totalHeight / 2);
+    for (const id of sorted) {
+      const node = nodeMap.get(id);
+      if (!node) continue;
+      node.y = cursorY;
+      cursorY += node.height + BRANCH_ROW_GAP;
+      // Children are centred on this node's vertical midpoint
+      placeGroup(childrenOf.get(id) ?? [], node.y + node.height / 2);
+    }
+  }
+
+  // Push a node and all its descendants down by delta to preserve relative positions.
+  function pushSubtree(id: string, delta: number): void {
+    const node = nodeMap.get(id);
+    if (!node) return;
+    node.y += delta;
+    for (const childId of childrenOf.get(id) ?? []) pushSubtree(childId, delta);
+  }
+
+  // Depth-1 nodes are centred on the spell project node.
+  placeGroup(byDepth.get(1) ?? [], projectCenterY);
+
+  // Resolve overlaps depth by depth, treating all children of one parent as a unit.
+  // Groups are sorted by parent Y and pushed as whole blocks, so siblings always
+  // stay together and children from different parents never interleave.
+  // Each parent's children are already entirely at `depth` (tree invariant), so no
+  // depth filter is needed when reading from childrenOf.
+  const depths = [...byDepth.keys()].sort((a, b) => a - b);
+  for (const depth of depths) {
+    const parentIds = [...new Set((byDepth.get(depth) ?? []).map((id) => nodeMap.get(id)!.parentId))].sort(
+      (a, b) => (nodeMap.get(a)?.y ?? projectCenterY) - (nodeMap.get(b)?.y ?? projectCenterY)
+    );
+    for (let i = 1; i < parentIds.length; i++) {
+      const prevIds = childrenOf.get(parentIds[i - 1]) ?? [];
+      const currIds = childrenOf.get(parentIds[i]) ?? [];
+      if (prevIds.length === 0 || currIds.length === 0) continue;
+      const prevBottom = Math.max(...prevIds.map((id) => { const n = nodeMap.get(id)!; return n.y + n.height; }));
+      const currTop    = Math.min(...currIds.map((id) => { const n = nodeMap.get(id)!; return n.y; }));
+      const gap = prevBottom + BRANCH_ROW_GAP - currTop;
+      if (gap > 0) {
+        for (const id of currIds) pushSubtree(id, gap);
+      }
+    }
+  }
 
   return Array.from(nodeMap.values());
 }
@@ -310,8 +355,10 @@ export function SpellGraphOverlay({
   );
 
   // ---- SVG Edges ----
+  // Each edge records its path and both endpoint coordinates so the dot-cap layer
+  // (rendered above buttons) can place a small filled circle right at the node border.
   const edges = useMemo(() => {
-    const result: Array<{ id: string; path: string }> = [];
+    const result: Array<{ id: string; path: string; sx: number; sy: number; ex: number; ey: number }> = [];
     for (const node of laid) {
       const parentLaid = laidById.get(node.parentId);
       const parentNode: Pick<RenderNode, 'x' | 'y' | 'width' | 'height'> | null = parentLaid
@@ -324,12 +371,14 @@ export function SpellGraphOverlay({
       const pCenter = centerOf(parentNode as RenderNode);
       const nCenter = centerOf({ x: node.x, y: node.y, width: node.width, height: node.height } as RenderNode);
       const edgeSide: 1 | -1 = nCenter.x >= pCenter.x ? 1 : -1;
-      const startX = pCenter.x + edgeSide * (parentNode.width / 2 - 3);
-      const endX = nCenter.x - edgeSide * (node.width / 2 - 3);
+      const startX = pCenter.x + edgeSide * (parentNode.width / 2);
+      const endX = nCenter.x - edgeSide * (node.width / 2);
 
       result.push({
         id: `virt-edge-${node.id}`,
         path: buildCurvePath(startX, pCenter.y, endX, nCenter.y, edgeSide),
+        sx: startX, sy: pCenter.y,
+        ex: endX,   ey: nCenter.y,
       });
     }
     return result;
@@ -403,6 +452,27 @@ export function SpellGraphOverlay({
           </button>
         );
       })}
+
+      {/* Dot-cap layer — renders above buttons so connection dots are visible on node borders */}
+      <svg
+        className="absolute pointer-events-none"
+        style={{
+          left: -canvasOffset,
+          top: -canvasOffset,
+          width: canvasOffset * 2,
+          height: canvasOffset * 2,
+          overflow: 'visible',
+        }}
+      >
+        <g transform={`translate(${canvasOffset} ${canvasOffset})`}>
+          {edges.map((edge) => (
+            <React.Fragment key={`cap-${edge.id}`}>
+              <circle cx={edge.sx} cy={edge.sy} r={3} fill={isDark ? '#a78bfa' : '#7c3aed'} opacity={0.85} />
+              <circle cx={edge.ex} cy={edge.ey} r={3} fill={isDark ? '#a78bfa' : '#7c3aed'} opacity={0.85} />
+            </React.Fragment>
+          ))}
+        </g>
+      </svg>
     </>
   );
 }

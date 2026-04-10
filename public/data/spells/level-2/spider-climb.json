@@ -8,8 +8,11 @@
   "classes": [
     "Sorcerer",
     "Warlock",
-    "Wizard"
+    "Wizard",
+    "Artificer"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -134,8 +137,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and upside down along ceilings, while leaving its hands free. The target also gains a climbing speed equal to its walking speed.",
-  "higherLevels": "",
+  "description": "Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and along ceilings, while leaving its hands free. The target also gains a Climb Speed equal to its Speed.",
+  "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2.",
   "tags": [
     "movement",
     "transmutation",

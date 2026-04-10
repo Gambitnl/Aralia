@@ -8,6 +8,8 @@
   "classes": [
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -25,13 +27,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 90
+    "distance": 90,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "powdered rhubarb leaf and an adder's stomach",
+    "materialDescription": "powdered rhubarb leaf",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -44,6 +47,7 @@
   "targeting": {
     "type": "single",
     "range": 90,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -154,8 +158,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 Acid damage immediately and 2d4 Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage and no damage at the end of its next turn.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the initial damage and the damage at the end of the next turn both increase by 1d4 for each slot level above 2nd.",
+  "description": "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 Acid damage and 2d4 Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage only.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage (both initial and later) increases by 1d4 for each spell slot level above 2.",
   "tags": [
     "damage",
     "acid"

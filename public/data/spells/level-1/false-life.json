@@ -10,6 +10,16 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Blood Domain (TCSR)",
+    "Cleric - Death Domain (DMG)",
+    "Cleric - Grave Domain (XGtE)",
+    "Cleric - Shadow Domain (BoET)",
+    "Druid - Circle of Shadows (BoET)",
+    "Warlock - The Undead (VRGtR)",
+    "Warlock - The Undying (SCAG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -33,7 +43,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a drop of alcohol or distilled spirits",
+    "materialDescription": "a drop of alcohol",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -114,8 +124,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Bolstering yourself with a necromantic facsimile of life, you gain 2d4 + 4 Temporary Hit Points for the duration.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you gain 5 additional Temporary Hit Points for each slot level above 1st.",
+  "description": "You gain 2d4 + 4 Temporary Hit Points .",
+  "higherLevels": "Using a Higher-Level Spell Slot. You gain 5 additional Temporary Hit Points for each spell slot level above 1.",
   "tags": [
     "temporary_hp",
     "necromancy"

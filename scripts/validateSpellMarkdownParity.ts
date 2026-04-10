@@ -30,6 +30,7 @@ const SPELL_JSON_ROOT = path.resolve(REPO_ROOT, 'public', 'data', 'spells');
 const SPELL_MARKDOWN_ROOT = path.resolve(REPO_ROOT, 'docs', 'spells', 'reference');
 const DEFAULT_JSON_OUT = path.resolve(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-markdown-parity-report.json');
 const DEFAULT_MD_OUT = path.resolve(REPO_ROOT, 'docs', 'tasks', 'spells', 'SPELL_MARKDOWN_PARITY_REPORT.md');
+const CANONICAL_ONLY_MARKER = '<!-- CANONICAL-ONLY-REFERENCE -->';
 
 type MismatchFamily = 'markdown-vs-json';
 type MismatchKind =
@@ -148,6 +149,11 @@ function readSpellJson(jsonPath: string): Record<string, unknown> {
     return JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as Record<string, unknown>;
 }
 
+function isCanonicalOnlyMarkdown(markdownPath: string): boolean {
+    const content = fs.readFileSync(markdownPath, 'utf8');
+    return content.includes(CANONICAL_ONLY_MARKER);
+}
+
 // ============================================================================
 // Value normalization
 // ============================================================================
@@ -166,6 +172,11 @@ function normalizeNumber(value: unknown): string {
 
 function normalizeList(value: unknown): string {
     return Array.isArray(value) ? value.map((entry) => String(entry)).join(', ') : '';
+}
+
+function normalizeOptionalList(value: unknown): string {
+    if (!Array.isArray(value) || value.length === 0) return 'None';
+    return value.map((entry) => String(entry)).join(', ');
 }
 
 function normalizeOptionalText(value: unknown): string {
@@ -208,6 +219,7 @@ function buildStructuredFieldMap(spell: Record<string, unknown>): Map<string, st
     fields.set('School', typeof spell.school === 'string' ? spell.school : '');
     fields.set('Ritual', normalizeBoolean(spell.ritual));
     fields.set('Classes', normalizeList(spell.classes));
+    fields.set('Sub-Classes', normalizeOptionalList(spell.subClasses));
     fields.set('Casting Time Value', normalizeNumber(castingTime.value));
     fields.set('Casting Time Unit', typeof castingTime.unit === 'string' ? castingTime.unit : '');
     fields.set('Combat Cost', typeof combatCost.type === 'string' ? combatCost.type : '');
@@ -543,6 +555,13 @@ function buildParityReport(): SpellParityReport {
     const mismatches: SpellParityMismatch[] = [];
 
     for (const file of files) {
+        // Canonical-only placeholder files belong to the retrieval lane, not the
+        // structured parity lane. Skip them here so the project can preserve raw
+        // source captures before the Aralia field block has been authored.
+        if (isCanonicalOnlyMarkdown(file.markdownPath)) {
+            continue;
+        }
+
         if (!fs.existsSync(file.jsonPath)) {
             const spellName = path.basename(file.markdownPath, '.md');
             mismatches.push({

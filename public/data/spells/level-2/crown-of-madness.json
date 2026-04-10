@@ -11,6 +11,10 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [
+    "Paladin - Oathbreaker (DMG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +32,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -47,6 +52,7 @@
   "targeting": {
     "type": "single",
     "range": 120,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -137,7 +143,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "One Humanoid of your choice that you can see within range must succeed on a Wisdom saving throw or become Charmed by you for the duration. While the target is Charmed in this way, a twisted crown of jagged iron appears on its head, and a madness glows in its eyes. The Charmed target must use its action before moving on each of its turns to make a melee attack against a creature other than itself that you mentally choose. The target can act normally on its turn if you choose no creature or if none are within its reach. On your subsequent turns, you must use your action to maintain control over the target, or the spell ends. Also, the target can make a Wisdom saving throw at the end of each of its turns. On a success, the spell ends.",
+  "description": "One creature that you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The creature succeeds automatically if it isn't Humanoid. A spectral crown appears on the Charmed target's head, and it must use its action before moving on each of its turns to make a melee attack against a creature other than itself that you mentally choose. The target can act normally on its turn if you choose no creature or if no creature is within its reach. The target repeats the save at the end of each of its turns, ending the spell on itself on a success. On your later turns, you must take the Magic action to maintain control of the target, or the spell ends.",
   "higherLevels": "",
   "tags": [
     "control",

@@ -1,0 +1,18 @@
+{
+  "id": "heavily_obscured",
+  "title": "Heavily Obscured",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Heavily Obscured.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/heavily_obscured.json",
+  "markdown": "# Heavily Obscured\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[cloudkill|Cloudkill]]\n- [[druid-grove|Druid Grove]]\n- [[fog-cloud|Fog Cloud]]\n- [[guards-and-wards|Guards and Wards]]\n- [[incendiary-cloud|Incendiary Cloud]]\n- [[shadow-of-moil|Shadow Of Moil]]\n- [[sleet-storm|Sleet Storm]]\n- [[stinking-cloud|Stinking Cloud]]\n- [[storm-of-vengeance|Storm of Vengeance]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

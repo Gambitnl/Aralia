@@ -9,6 +9,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +28,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 5280
+    "distance": 5280,
+    "distanceUnit": "miles"
   },
   "components": {
     "verbal": true,
@@ -49,9 +52,11 @@
     ],
     "lineOfSight": true,
     "range": 5280,
+    "rangeUnit": "miles",
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 40,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,

@@ -9,6 +9,14 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Light Domain",
+    "Druid - Circle of Wildfire (TCoE)",
+    "Warlock - Fiend Patron",
+    "Warlock - The Genie (TCoE)",
+    "Warlock - The Many"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +34,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +54,7 @@
   "targeting": {
     "type": "multi",
     "range": 120,
+    "rangeUnit": "feet",
     "maxTargets": 3,
     "validTargets": [
       "creatures"
@@ -113,8 +123,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create three rays of fire and hurl them at targets within range. You can hurl them at one target or several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you create one additional ray for each slot level above 2nd.",
+  "description": "You hurl three fiery rays. You can hurl them at one target within range or at several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.",
+  "higherLevels": "Using a Higher-Level Spell Slot. You create one additional ray for each spell slot level above 2.",
   "tags": [
     "damage",
     "fire"

@@ -3,6 +3,7 @@
 - **School**: Evocation
 - **Ritual**: false
 - **Classes**: Paladin
+- **Sub-Classes**: Cleric - War Domain
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -30,5 +31,38 @@
 - **Damage Dice**: 1d4
 - **Damage Type**: Radiant
 
-- **Description**: Holy power radiates from you in an aura with a 30-foot radius, awakening boldness in friendly creatures. Until the spell ends, the aura moves with you, centered on you. While in the aura, each nonhostile creature in the aura (including you) deals an extra 1d4 Radiant damage when it hits with a weapon attack.
+- **Description**: You radiate a magical aura in a 30-foot Emanation . While in the aura, you and your allies each deal an extra 1d4 Radiant damage when hitting with a weapon or an Unarmed Strike.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Crusader's Mantle
+Level: 3rd
+Casting Time: 1 Action
+Range/Area: Self (30 ft.)
+Components: V
+Duration: Concentration 1 Minute
+School: Evocation
+Attack/Save: None
+Damage/Effect: Radiant
+
+Rules Text:
+You radiate a magical aura in a 30-foot Emanation . While in the aura, you and your allies each deal an extra 1d4 Radiant damage when hitting with a weapon or an Unarmed Strike.
+
+Spell Tags:
+Damage
+Buff
+
+Available For:
+Paladin
+Cleric - War Domain
+
+Referenced Rules:
+Emanation -> /rules-glossary/54-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

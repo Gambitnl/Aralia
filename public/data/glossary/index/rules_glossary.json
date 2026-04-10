@@ -1191,6 +1191,28 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/glassblowers_tools.json"
   },
   {
+    "id": "glossary_conventions",
+    "title": "Glossary Conventions",
+    "category": "Rules Glossary",
+    "tags": [
+      "glossary",
+      "navigation",
+      "conventions",
+      "rules"
+    ],
+    "excerpt": "Explains how to read Aralia's glossary entries, tags, rule chips, and spell backlinks.",
+    "aliases": [
+      "glossary rules",
+      "glossary format"
+    ],
+    "seeAlso": [
+      "spell_referenced_rules_enrichment",
+      "sphere_area",
+      "casting_time_rules"
+    ],
+    "filePath": "/data/glossary/entries/rules/glossary_conventions.json"
+  },
+  {
     "id": "grappled_condition",
     "title": "Grappled",
     "category": "Rules Glossary",

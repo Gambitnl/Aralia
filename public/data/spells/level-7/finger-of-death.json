@@ -10,6 +10,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "single",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -114,7 +118,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You unleash negative energy toward a creature you can see within range. The target makes a Constitution saving throw, taking 7d8 + 30 Necrotic damage on a failed save or half as much damage on a successful one. A Humanoid killed by this spell rises at the start of your next turn as a Zombie (see appendix B) that follows your verbal orders.",
+  "description": "You unleash negative energy toward a creature you can see within range. The target makes a Constitution saving throw, taking 7d8 + 30 Necrotic damage on a failed save or half as much damage on a successful one. A Humanoid killed by this spell rises at the start of your next turn as a Zombie that follows your verbal orders.",
   "higherLevels": "",
   "tags": []
 }

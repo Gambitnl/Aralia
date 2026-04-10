@@ -272,12 +272,41 @@ function renderSpellQueryResults(occurrences = [], totalMatches = 0) {
         return;
     }
 
+    const formatHitLine = (occurrence) => {
+        const lineNumber = Number(occurrence?.lineNumber || 0);
+        return lineNumber > 0 ? `Hit line: ${lineNumber}` : 'Hit line: unavailable';
+    };
+
+    const buildSpellViewHref = (occurrence) => {
+        const browserPath = String(occurrence?.browserPath || '').trim();
+        if (!browserPath) return '#';
+
+        // The standalone validation page opens the runtime JSON directly in a new
+        // tab instead of inventing a second viewer surface. The search result row
+        // still shows the hit line locally so the user can cross-reference the raw
+        // file even though the browser JSON view itself cannot scroll to a line.
+        return browserPath;
+    };
+
+    const formatSemanticField = (occurrence) => {
+        const semanticFieldPath = String(occurrence?.semanticFieldPath || '').trim();
+        const structuralFieldPath = String(occurrence?.fieldPath || '').trim();
+        if (!semanticFieldPath || semanticFieldPath === structuralFieldPath) return '';
+        return semanticFieldPath;
+    };
+
     listEl.innerHTML = `
         <div class="spellinv-empty">Showing ${occurrences.length} of ${totalMatches} matches.</div>
         ${occurrences.map((occurrence) => `
             <div class="spellinv-row">
-                <div class="path">${spellInvEscape(occurrence.spellName)} (Level ${occurrence.level})</div>
+                <div class="path">
+                    <a class="spellval-result-link" href="${spellInvEscape(buildSpellViewHref(occurrence))}" target="_blank" rel="noopener noreferrer">
+                        ${spellInvEscape(occurrence.spellName)} (Level ${occurrence.level})
+                    </a>
+                </div>
                 <div class="meta">${spellInvEscape(occurrence.fieldPath)} = ${spellInvEscape(occurrence.value)}</div>
+                ${formatSemanticField(occurrence) ? `<div class="meta spellval-semantic-field">Semantic field: ${spellInvEscape(formatSemanticField(occurrence))} = ${spellInvEscape(occurrence.value)}</div>` : ''}
+                <div class="meta">${spellInvEscape(formatHitLine(occurrence))} | ${spellInvEscape(occurrence.browserPath || occurrence.filePath)}</div>
                 <div class="meta">${spellInvEscape(occurrence.filePath)}</div>
             </div>
         `).join('')}

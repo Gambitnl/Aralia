@@ -9,6 +9,8 @@
     "Artificer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +28,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -62,6 +65,33 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "measuredDetails": [
+        {
+          "label": "Eye Darkvision Range",
+          "kind": "distance",
+          "value": 30,
+          "unit": "feet",
+          "notes": "The eye can see in every direction with this Darkvision range."
+        },
+        {
+          "label": "Opening Allowance",
+          "kind": "opening",
+          "value": 1,
+          "unit": "inches",
+          "qualifier": "diameter",
+          "notes": "The eye can pass through an opening this small."
+        },
+        {
+          "label": "Move Distance",
+          "kind": "distance",
+          "value": 30,
+          "unit": "feet",
+          "notes": "As a Bonus Action, you can move the eye this far in any direction."
+        }
+      ]
     }
   },
   "effects": [

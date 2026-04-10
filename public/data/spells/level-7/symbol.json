@@ -11,6 +11,8 @@
     "Druid",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +30,8 @@
   },
   "range": {
     "type": "touch",
-    "distance": 0
+    "distance": 0,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -54,7 +57,9 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 60,
-      "height": 0
+      "height": 0,
+      "sizeType": "radius",
+      "sizeUnit": "feet"
     },
     "maxTargets": 1,
     "filter": {
@@ -64,6 +69,27 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Glyph Coverage",
+          "shape": "Circle",
+          "size": 10,
+          "sizeType": "diameter",
+          "sizeUnit": "feet"
+        }
+      ],
+      "measuredDetails": [
+        {
+          "label": "Break Distance",
+          "kind": "distance",
+          "value": 10,
+          "unit": "feet",
+          "notes": "Moving the object farther breaks the symbol."
+        }
+      ]
     }
   },
   "effects": [

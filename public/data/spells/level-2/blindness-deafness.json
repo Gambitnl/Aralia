@@ -11,6 +11,12 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Druid - Circle of Spores (TCoE)",
+    "Warlock - The Undead (VRGtR)",
+    "Warlock - The Undying (SCAG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +34,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -47,6 +54,7 @@
   "targeting": {
     "type": "single",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -129,8 +137,8 @@
     "prompt": "Ask the player if they want to inflict Blindness or Deafness.",
     "playerInputRequired": true
   },
-  "description": "You can Clone a foe's eyes or ears. Choose one creature that you can see within range to make a Constitution saving throw. If it fails, the target is either Blinded or Deafened (your choice) for the duration. At the end of each of its turns, the target can make a Constitution saving throw. On a success, the spell ends.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.",
+  "description": "One creature that you can see within range must succeed on a Constitution saving throw, or it has the Blinded or Deafened condition (your choice) for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.",
+  "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2.",
   "tags": [
     "debuff",
     "control",

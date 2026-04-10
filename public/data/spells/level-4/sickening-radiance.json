@@ -5,7 +5,13 @@
   "level": 4,
   "school": "Evocation",
   "legacy": false,
-  "classes": [],
+  "classes": [
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -23,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 0
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -34,10 +41,10 @@
     "isConsumed": false
   },
   "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
+    "type": "timed",
+    "concentration": true,
+    "value": 10,
+    "unit": "minute"
   },
   "targeting": {
     "type": "single",

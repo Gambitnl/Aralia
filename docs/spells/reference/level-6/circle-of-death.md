@@ -19,7 +19,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: the powder of a crushed black pearl worth at least 500 gp
+- **Material Description**: the powder of a crushed black pearl worth 500+ GP
 - **Material Cost GP**: 500
 - **Consumed**: false
 
@@ -32,5 +32,42 @@
 - **Damage Dice**: 8d6
 - **Damage Type**: Necrotic
 
-- **Description**: A sphere of negative energy ripples out in a 60-foot-radius sphere from a point within range. Each creature in that area must make a Constitution saving throw. A target takes 8d6 necrotic damage on a failed save, or half as much damage on a successful one.
-- **Higher Levels**: When you cast this spell using a spell slot of 7th level or higher, the damage increases by 2d6 for each slot level above 6th.
+- **Description**: Negative energy ripples out in a 60-foot-radius Sphere from a point you choose within range. Each creature in that area makes a Constitution saving throw, taking 8d8 Necrotic damage on a failed save or half as much damage on a successful one.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 2d8 for each spell slot level above 6.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Circle of Death
+Level: 6th
+Casting Time: 1 Action
+Range/Area: 150 ft. (60 ft.)
+Components: V, S, M *
+Duration: Instantaneous
+School: Necromancy
+Attack/Save: CON Save
+Damage/Effect: Necrotic
+
+Rules Text:
+Negative energy ripples out in a 60-foot-radius Sphere from a point you choose within range. Each creature in that area makes a Constitution saving throw, taking 8d8 Necrotic damage on a failed save or half as much damage on a successful one.
+Using a Higher-Level Spell Slot. The damage increases by 2d8 for each spell slot level above 6.
+
+Material Component:
+* - (the powder of a crushed black pearl worth 500+ GP)
+
+Spell Tags:
+Damage
+
+Available For:
+Sorcerer
+Warlock
+Wizard
+
+Referenced Rules:
+Sphere -> /rules-glossary/109-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

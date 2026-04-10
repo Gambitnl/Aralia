@@ -3,9 +3,14 @@
   "name": "Summon Greater Demon",
   "aliases": [],
   "level": 4,
-  "school": "Evocation",
+  "school": "Conjuration",
   "legacy": false,
-  "classes": [],
+  "classes": [
+    "Warlock",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -23,21 +28,22 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 0
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false,
+    "material": true,
     "materialDescription": "",
     "materialCost": 0,
     "isConsumed": false
   },
   "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "hour"
   },
   "targeting": {
     "type": "single",

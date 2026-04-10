@@ -9,25 +9,56 @@
 - **Combat Cost**: none
 
 - **Range Type**: touch
-- **Range Distance**: 0
 - **Targeting Type**: touch
-- **Area Shape**: none
-- **Area Size**: 0
 - **Valid Targets**: objects
 - **Line of Sight**: false
 
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: a sapphire worth 1,000 gp
+- **Material Description**: a sapphire worth 1,000+ GP
 - **Material Cost GP**: 1000
 - **Consumed**: false
 
-- **Duration Type**: special
+- **Duration Type**: until_dispelled
 - **Concentration**: false
 
 - **Effect Type**: UTILITY
 - **Utility Type**: teleportation
 
-- **Description**: You touch an object weighing 10 pounds or less whose longest dimension is 6 feet or less. The spell leaves an invisible mark on its surface and invisibly inscribes the name of the item on the sapphire you use as the material component. Each time you cast this spell, you must use a different sapphire. At any time thereafter, you can use your action to speak the item's name and crush the sapphire. The item instantly appears in your hand regardless of physical or planar distances, and the spell ends. If another creature is holding or carrying the item, crushing the sapphire doesn't transport the item to you, but instead you learn who the creature possessing the object is and roughly where that creature is located at that moment. Dispel Magic or a similar effect successfully applied to the sapphire ends this spell's effect.
+- **Description**: You touch the sapphire used in the casting and an object weighing 10 pounds or less whose longest dimension is 6 feet or less. The spell leaves an Invisible mark on that object and invisibly inscribes the object's name on the sapphire. Each time you cast this spell, you must use a different sapphire. Thereafter, you can take a Magic action to speak the object's name and crush the sapphire. The object instantly appears in your hand regardless of physical or planar distances, and the spell ends. If another creature is holding or carrying the object, crushing the sapphire doesn't transport it, but instead you learn who that creature is and where that creature is currently located.
 - **Higher Levels**: none
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Drawmij's Instant Summons
+Level: 6th
+Casting Time: 1 Minute Ritual
+Range/Area: Touch
+Components: V, S, M *
+Duration: Until Dispelled
+School: Conjuration
+Attack/Save: None
+Damage/Effect: Detection (...)
+
+Rules Text:
+You touch the sapphire used in the casting and an object weighing 10 pounds or less whose longest dimension is 6 feet or less. The spell leaves an Invisible mark on that object and invisibly inscribes the object’s name on the sapphire. Each time you cast this spell, you must use a different sapphire.
+Thereafter, you can take a Magic action to speak the object’s name and crush the sapphire. The object instantly appears in your hand regardless of physical or planar distances, and the spell ends.
+If another creature is holding or carrying the object, crushing the sapphire doesn’t transport it, but instead you learn who that creature is and where that creature is currently located.
+
+Material Component:
+* - (a sapphire worth 1,000+ GP)
+
+Spell Tags:
+Teleportation
+Detection
+
+Available For:
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->

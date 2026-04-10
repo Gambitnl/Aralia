@@ -1,9 +1,27 @@
 /**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 30/03/2026, 01:18:41
+ * Dependents: data/summonTemplates.ts, hooks/useSpellGateChecks.ts, utils/validation/spellAuditor.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+/**
  * @file spellValidator.ts
  *
  * PURPOSE:
  * This file defines the Zod schema used for validating every Spell JSON file in the codebase.
  * It ensures that our "Gold Standard" data remains structuraly sound and consistent.
+ *
+ * CHANGE LOG:
+ * 2026-02-27 09:24:00: [Preservationist] Added an explicit 'any' type to
+ * the 'cls' parameter in the 'BASE_CLASS_NAMES' mapping to resolve
+ * implicit any warnings in the script environment.
  *
  * WHO USES THIS:
  * 1. Data Validation Script (`scripts/validate-data.ts`): Runs during `npm run validate`.
@@ -49,32 +67,16 @@ export declare const SummonedEntityStatBlock: z.ZodObject<{
  * - aiContext: Instructions for the AI DM for non-mechanical outcomes.
  * - effects: Array of structured mechanical results.
  * - description: Flavor text for the Glossary.
+ * - source: intentionally not part of the live schema anymore. The spell JSON files
+ *   no longer carry a top-level source field, so validation should not keep enforcing
+ *   a dead requirement that the dataset has already moved away from.
  */
 export declare const SpellValidator: z.ZodObject<{
-    id: z.ZodString;
-    name: z.ZodString;
-    aliases: z.ZodArray<z.ZodString>;
-    level: z.ZodNumber;
-    school: z.ZodEnum<{
-        Abjuration: "Abjuration";
-        Conjuration: "Conjuration";
-        Divination: "Divination";
-        Enchantment: "Enchantment";
-        Evocation: "Evocation";
-        Illusion: "Illusion";
-        Necromancy: "Necromancy";
-        Transmutation: "Transmutation";
-    }>;
-    source: z.ZodString;
-    legacy: z.ZodBoolean;
-    classes: z.ZodArray<z.ZodEnum<{
-        [x: string]: string;
-    }>>;
     ritual: z.ZodBoolean;
     rarity: z.ZodEnum<{
-        rare: "rare";
         common: "common";
         uncommon: "uncommon";
+        rare: "rare";
         very_rare: "very_rare";
         legendary: "legendary";
     }>;
@@ -83,17 +85,17 @@ export declare const SpellValidator: z.ZodObject<{
         value: z.ZodNumber;
         unit: z.ZodEnum<{
             action: "action";
-            special: "special";
-            reaction: "reaction";
             bonus_action: "bonus_action";
+            reaction: "reaction";
             minute: "minute";
             hour: "hour";
+            special: "special";
         }>;
         combatCost: z.ZodObject<{
             type: z.ZodEnum<{
                 action: "action";
-                reaction: "reaction";
                 bonus_action: "bonus_action";
+                reaction: "reaction";
             }>;
             condition: z.ZodString;
         }, z.core.$strip>;
@@ -109,8 +111,8 @@ export declare const SpellValidator: z.ZodObject<{
         type: z.ZodEnum<{
             special: "special";
             self: "self";
-            ranged: "ranged";
             touch: "touch";
+            ranged: "ranged";
         }>;
         distance: z.ZodNumber;
     }, z.core.$strip>;
@@ -141,13 +143,13 @@ export declare const SpellValidator: z.ZodObject<{
     }, z.core.$strip>;
     targeting: z.ZodObject<{
         type: z.ZodEnum<{
-            area: "area";
-            point: "point";
             self: "self";
-            melee: "melee";
             ranged: "ranged";
             single: "single";
             multi: "multi";
+            area: "area";
+            melee: "melee";
+            point: "point";
         }>;
         range: z.ZodNumber;
         maxTargets: z.ZodUnion<readonly [z.ZodNumber, z.ZodObject<{
@@ -161,18 +163,17 @@ export declare const SpellValidator: z.ZodObject<{
             }, z.core.$strip>;
         }, z.core.$strip>]>;
         validTargets: z.ZodArray<z.ZodEnum<{
-            point: "point";
             self: "self";
+            point: "point";
             creatures: "creatures";
-            objects: "objects";
             allies: "allies";
             enemies: "enemies";
+            objects: "objects";
             ground: "ground";
         }>>;
         lineOfSight: z.ZodBoolean;
         areaOfEffect: z.ZodObject<{
             shape: z.ZodEnum<{
-                Ring: "Ring";
                 Cone: "Cone";
                 Cube: "Cube";
                 Cylinder: "Cylinder";
@@ -182,6 +183,7 @@ export declare const SpellValidator: z.ZodObject<{
                 Emanation: "Emanation";
                 Wall: "Wall";
                 Hemisphere: "Hemisphere";
+                Ring: "Ring";
             }>;
             size: z.ZodNumber;
             height: z.ZodOptional<z.ZodNumber>;
@@ -190,10 +192,10 @@ export declare const SpellValidator: z.ZodObject<{
             width: z.ZodOptional<z.ZodNumber>;
             shapeVariant: z.ZodOptional<z.ZodObject<{
                 options: z.ZodArray<z.ZodEnum<{
-                    Ring: "Ring";
                     Line: "Line";
                     Sphere: "Sphere";
                     Hemisphere: "Hemisphere";
+                    Ring: "Ring";
                 }>>;
                 default: z.ZodString;
             }, z.core.$strip>>;
@@ -205,8 +207,8 @@ export declare const SpellValidator: z.ZodObject<{
             triggerZone: z.ZodOptional<z.ZodObject<{
                 triggerDistance: z.ZodOptional<z.ZodNumber>;
                 triggerSide: z.ZodOptional<z.ZodEnum<{
-                    both: "both";
                     one: "one";
+                    both: "both";
                     inside: "inside";
                 }>>;
             }, z.core.$strip>>;
@@ -220,10 +222,10 @@ export declare const SpellValidator: z.ZodObject<{
             isNativeToPlane: z.ZodBoolean;
         }, z.core.$strip>;
         shape: z.ZodOptional<z.ZodEnum<{
-            line: "line";
-            cone: "cone";
             sphere: "sphere";
+            cone: "cone";
             cube: "cube";
+            line: "line";
             cylinder: "cylinder";
         }>>;
         radius: z.ZodOptional<z.ZodNumber>;
@@ -231,18 +233,18 @@ export declare const SpellValidator: z.ZodObject<{
     effects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -258,13 +260,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -275,16 +277,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -311,8 +313,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -349,18 +351,18 @@ export declare const SpellValidator: z.ZodObject<{
     }, z.core.$strip>, z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -376,13 +378,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -393,16 +395,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -429,8 +431,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -467,18 +469,18 @@ export declare const SpellValidator: z.ZodObject<{
     }, z.core.$strip>, z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -494,13 +496,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -511,16 +513,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -547,8 +549,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -582,9 +584,9 @@ export declare const SpellValidator: z.ZodObject<{
             name: z.ZodString;
             duration: z.ZodObject<{
                 type: z.ZodEnum<{
+                    special: "special";
                     rounds: "rounds";
                     minutes: "minutes";
-                    special: "special";
                 }>;
                 value: z.ZodOptional<z.ZodNumber>;
             }, z.core.$strip>;
@@ -634,18 +636,18 @@ export declare const SpellValidator: z.ZodObject<{
     }, z.core.$strip>, z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -661,13 +663,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -678,16 +680,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -714,8 +716,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -747,10 +749,10 @@ export declare const SpellValidator: z.ZodObject<{
         type: z.ZodLiteral<"MOVEMENT">;
         movementType: z.ZodEnum<{
             push: "push";
-            stop: "stop";
-            teleport: "teleport";
             pull: "pull";
+            teleport: "teleport";
             speed_change: "speed_change";
+            stop: "stop";
         }>;
         distance: z.ZodOptional<z.ZodNumber>;
         speedChange: z.ZodOptional<z.ZodObject<{
@@ -760,9 +762,9 @@ export declare const SpellValidator: z.ZodObject<{
         }, z.core.$strip>>;
         duration: z.ZodObject<{
             type: z.ZodEnum<{
+                special: "special";
                 rounds: "rounds";
                 minutes: "minutes";
-                special: "special";
             }>;
             value: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strip>;
@@ -779,18 +781,18 @@ export declare const SpellValidator: z.ZodObject<{
     }, z.core.$strip>, z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -806,13 +808,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -823,16 +825,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -859,8 +861,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -893,19 +895,19 @@ export declare const SpellValidator: z.ZodObject<{
         summon: z.ZodObject<{
             entityType: z.ZodEnum<{
                 object: "object";
-                creature: "creature";
                 familiar: "familiar";
                 servant: "servant";
                 construct: "construct";
+                creature: "creature";
                 undead: "undead";
                 mount: "mount";
             }>;
             persistent: z.ZodBoolean;
             dismissAction: z.ZodOptional<z.ZodEnum<{
                 action: "action";
+                bonus_action: "bonus_action";
                 none: "none";
                 free: "free";
-                bonus_action: "bonus_action";
             }>>;
             count: z.ZodOptional<z.ZodNumber>;
             countByCR: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodNumber>>;
@@ -942,9 +944,9 @@ export declare const SpellValidator: z.ZodObject<{
             objectDescription: z.ZodOptional<z.ZodString>;
             commandCost: z.ZodEnum<{
                 action: "action";
+                bonus_action: "bonus_action";
                 none: "none";
                 free: "free";
-                bonus_action: "bonus_action";
             }>;
             commandsPerTurn: z.ZodOptional<z.ZodNumber>;
             initiative: z.ZodOptional<z.ZodEnum<{
@@ -967,9 +969,9 @@ export declare const SpellValidator: z.ZodObject<{
                 description: z.ZodString;
                 cost: z.ZodEnum<{
                     action: "action";
+                    bonus_action: "bonus_action";
                     reaction: "reaction";
                     free: "free";
-                    bonus_action: "bonus_action";
                 }>;
                 damage: z.ZodOptional<z.ZodObject<{
                     dice: z.ZodString;
@@ -980,18 +982,18 @@ export declare const SpellValidator: z.ZodObject<{
     }, z.core.$strip>, z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -1007,13 +1009,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -1024,16 +1026,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -1060,8 +1062,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -1093,10 +1095,10 @@ export declare const SpellValidator: z.ZodObject<{
         type: z.ZodLiteral<"TERRAIN">;
         terrainType: z.ZodEnum<{
             difficult: "difficult";
-            wall: "wall";
             obscuring: "obscuring";
             damaging: "damaging";
             blocking: "blocking";
+            wall: "wall";
         }>;
         areaOfEffect: z.ZodObject<{
             shape: z.ZodEnum<{
@@ -1112,9 +1114,9 @@ export declare const SpellValidator: z.ZodObject<{
         }, z.core.$strip>;
         duration: z.ZodObject<{
             type: z.ZodEnum<{
+                special: "special";
                 rounds: "rounds";
                 minutes: "minutes";
-                special: "special";
             }>;
             value: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strip>;
@@ -1130,9 +1132,9 @@ export declare const SpellValidator: z.ZodObject<{
         manipulation: z.ZodOptional<z.ZodObject<{
             type: z.ZodEnum<{
                 fill: "fill";
-                normal: "normal";
                 difficult: "difficult";
                 excavate: "excavate";
+                normal: "normal";
                 cosmetic: "cosmetic";
             }>;
             volume: z.ZodOptional<z.ZodObject<{
@@ -1142,9 +1144,9 @@ export declare const SpellValidator: z.ZodObject<{
             }, z.core.$strip>>;
             duration: z.ZodOptional<z.ZodObject<{
                 type: z.ZodEnum<{
+                    special: "special";
                     rounds: "rounds";
                     minutes: "minutes";
-                    special: "special";
                 }>;
                 value: z.ZodOptional<z.ZodNumber>;
             }, z.core.$strip>>;
@@ -1153,18 +1155,18 @@ export declare const SpellValidator: z.ZodObject<{
     }, z.core.$strip>, z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -1180,13 +1182,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -1197,16 +1199,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -1233,8 +1235,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -1265,19 +1267,19 @@ export declare const SpellValidator: z.ZodObject<{
         type: z.ZodLiteral<"UTILITY">;
         utilityType: z.ZodEnum<{
             light: "light";
-            other: "other";
-            information: "information";
             communication: "communication";
             creation: "creation";
+            information: "information";
             control: "control";
             sensory: "sensory";
+            other: "other";
         }>;
         description: z.ZodString;
         grantedActions: z.ZodOptional<z.ZodArray<z.ZodObject<{
             type: z.ZodEnum<{
                 action: "action";
-                reaction: "reaction";
                 bonus_action: "bonus_action";
+                reaction: "reaction";
             }>;
             action: z.ZodString;
             frequency: z.ZodEnum<{
@@ -1321,9 +1323,9 @@ export declare const SpellValidator: z.ZodObject<{
             }>;
             duration: z.ZodOptional<z.ZodObject<{
                 type: z.ZodEnum<{
+                    special: "special";
                     rounds: "rounds";
                     minutes: "minutes";
-                    special: "special";
                 }>;
                 value: z.ZodOptional<z.ZodNumber>;
             }, z.core.$strip>>;
@@ -1332,27 +1334,27 @@ export declare const SpellValidator: z.ZodObject<{
             brightRadius: z.ZodNumber;
             dimRadius: z.ZodOptional<z.ZodNumber>;
             attachedTo: z.ZodOptional<z.ZodEnum<{
-                target: "target";
                 point: "point";
                 caster: "caster";
+                target: "target";
             }>>;
             color: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>>;
     }, z.core.$strip>, z.ZodObject<{
         trigger: z.ZodObject<{
             type: z.ZodEnum<{
-                turn_start: "turn_start";
-                turn_end: "turn_end";
                 immediate: "immediate";
                 after_primary: "after_primary";
+                turn_start: "turn_start";
+                turn_end: "turn_end";
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
                 on_target_move: "on_target_move";
+                on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
                 on_target_cast: "on_target_cast";
                 on_caster_action: "on_caster_action";
-                on_attack_hit: "on_attack_hit";
             }>;
             frequency: z.ZodOptional<z.ZodEnum<{
                 every_time: "every_time";
@@ -1368,13 +1370,13 @@ export declare const SpellValidator: z.ZodObject<{
             attackFilter: z.ZodOptional<z.ZodObject<{
                 weaponType: z.ZodOptional<z.ZodEnum<{
                     any: "any";
-                    melee: "melee";
                     ranged: "ranged";
+                    melee: "melee";
                 }>>;
                 attackType: z.ZodOptional<z.ZodEnum<{
-                    spell: "spell";
-                    weapon: "weapon";
                     any: "any";
+                    weapon: "weapon";
+                    spell: "spell";
                 }>>;
             }, z.core.$strip>>;
             movementType: z.ZodOptional<z.ZodEnum<{
@@ -1385,16 +1387,16 @@ export declare const SpellValidator: z.ZodObject<{
             sustainCost: z.ZodOptional<z.ZodObject<{
                 actionType: z.ZodEnum<{
                     action: "action";
-                    reaction: "reaction";
                     bonus_action: "bonus_action";
+                    reaction: "reaction";
                 }>;
                 optional: z.ZodBoolean;
             }, z.core.$strip>>;
         }, z.core.$strip>;
         condition: z.ZodObject<{
             type: z.ZodEnum<{
-                save: "save";
                 hit: "hit";
+                save: "save";
                 always: "always";
             }>;
             saveType: z.ZodOptional<z.ZodEnum<{
@@ -1421,8 +1423,8 @@ export declare const SpellValidator: z.ZodObject<{
             requiresStatus: z.ZodOptional<z.ZodArray<z.ZodString>>;
             saveModifiers: z.ZodOptional<z.ZodArray<z.ZodObject<{
                 type: z.ZodEnum<{
-                    disadvantage: "disadvantage";
                     advantage: "advantage";
+                    disadvantage: "disadvantage";
                     bonus: "bonus";
                     penalty: "penalty";
                 }>;
@@ -1453,13 +1455,13 @@ export declare const SpellValidator: z.ZodObject<{
         description: z.ZodString;
         type: z.ZodLiteral<"DEFENSIVE">;
         defenseType: z.ZodEnum<{
-            resistance: "resistance";
             ac_bonus: "ac_bonus";
-            advantage_on_saves: "advantage_on_saves";
             set_base_ac: "set_base_ac";
             ac_minimum: "ac_minimum";
+            resistance: "resistance";
             immunity: "immunity";
             temporary_hp: "temporary_hp";
+            advantage_on_saves: "advantage_on_saves";
         }>;
         value: z.ZodOptional<z.ZodNumber>;
         baseACFormula: z.ZodOptional<z.ZodString>;
@@ -1475,9 +1477,9 @@ export declare const SpellValidator: z.ZodObject<{
         }>>>;
         duration: z.ZodObject<{
             type: z.ZodEnum<{
+                special: "special";
                 rounds: "rounds";
                 minutes: "minutes";
-                special: "special";
             }>;
             value: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strip>;
@@ -1515,4 +1517,27 @@ export declare const SpellValidator: z.ZodObject<{
     description: z.ZodString;
     higherLevels: z.ZodString;
     tags: z.ZodArray<z.ZodString>;
+    classes: z.ZodArray<z.ZodEnum<{
+        [x: string]: string;
+    }>>;
+    subClasses: z.ZodArray<z.ZodString>;
+    subClassesVerification: z.ZodEnum<{
+        unverified: "unverified";
+        verified: "verified";
+    }>;
+    id: z.ZodString;
+    name: z.ZodString;
+    aliases: z.ZodArray<z.ZodString>;
+    level: z.ZodNumber;
+    school: z.ZodEnum<{
+        Abjuration: "Abjuration";
+        Conjuration: "Conjuration";
+        Divination: "Divination";
+        Enchantment: "Enchantment";
+        Evocation: "Evocation";
+        Illusion: "Illusion";
+        Necromancy: "Necromancy";
+        Transmutation: "Transmutation";
+    }>;
+    legacy: z.ZodBoolean;
 }, z.core.$strip>;

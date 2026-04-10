@@ -1,0 +1,18 @@
+{
+  "id": "cube_area",
+  "title": "Cube",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Cube.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/cube_area.json",
+  "markdown": "# Cube\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[cloud-of-daggers|Cloud of Daggers]]\n- [[control-water|Control Water]]\n- [[create-or-destroy-water|Create or Destroy Water]]\n- [[creation|Creation]]\n- [[disintegrate|Disintegrate]]\n- [[fabricate|Fabricate]]\n- [[faerie-fire|Faerie Fire]]\n- [[fire-storm|Fire Storm]]\n- [[forcecage|Forcecage]]\n- [[hallucinatory-terrain|Hallucinatory Terrain]]\n- [[heroes-feast|Heroes' Feast]]\n- [[hypnotic-pattern|Hypnotic Pattern]]\n- [[major-image|Major Image]]\n- [[minor-illusion|Minor Illusion]]\n- [[mordenkainens-magnificent-mansion|Mordenkainen's Magnificent Mansion]]\n- [[mordenkainens-private-sanctum|Mordenkainen's Private Sanctum]]\n- [[phantasmal-force|Phantasmal Force]]\n- [[programmed-illusion|Programmed Illusion]]\n- [[silent-image|Silent Image]]\n- [[slow|Slow]]\n- [[thunderwave|Thunderwave]]\n- [[web|Web]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

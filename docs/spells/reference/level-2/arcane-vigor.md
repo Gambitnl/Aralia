@@ -2,7 +2,7 @@
 - **Level**: 2
 - **School**: Abjuration
 - **Ritual**: false
-- **Classes**: Sorcerer, Wizard
+- **Classes**: Artificer, Sorcerer, Wizard
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: bonus_action
@@ -26,5 +26,32 @@
 - **Save Outcome**: none
 - **Damage Type**: Healing
 
-- **Description**: You channel magic into your own body to heal wounds. You can expend one or two of your Hit Dice to regain Hit Points. Roll the dice, add your spellcasting ability modifier to the total, and regain that many Hit Points.
-- **Higher Levels**: When you cast this spell using a spell slot of 3rd level or higher, you can expend one additional Hit Die for each slot level above 2nd.
+- **Description**: You tap into your life force to heal yourself. Roll one or two of your unexpended Hit Point Dice, and regain a number of Hit Points equal to the roll's total plus your spellcasting ability modifier. Those dice are then expended.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The number of unexpended Hit Dice you can roll increases by one for each spell slot level above 2.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Arcane Vigor
+Level: 2nd
+Casting Time: 1 Bonus Action
+Range/Area: Self
+Components: V, S
+Duration: Instantaneous
+School: Abjuration
+Attack/Save: None
+
+Rules Text:
+You tap into your life force to heal yourself. Roll one or two of your unexpended Hit Point Dice, and regain a number of Hit Points equal to the roll’s total plus your spellcasting ability modifier. Those dice are then expended.
+Using a Higher-Level Spell Slot. The number of unexpended Hit Dice you can roll increases by one for each spell slot level above 2.
+
+Available For:
+Sorcerer
+Wizard
+Artificer
+
+Capture Method: http
+Legacy Page: false
+-->

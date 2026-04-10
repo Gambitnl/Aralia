@@ -9,6 +9,11 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Arcana Domain (SCAG)",
+    "Warlock - The Many"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +31,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +51,7 @@
   "targeting": {
     "type": "multi",
     "range": 120,
+    "rangeUnit": "feet",
     "maxTargets": 3,
     "validTargets": [
       "creatures"
@@ -113,8 +120,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the spell creates one more dart for each slot level above 1st.",
+  "description": "You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The spell creates one more dart for each spell slot level above 1.",
   "tags": [
     "damage",
     "force",

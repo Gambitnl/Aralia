@@ -8,6 +8,8 @@
   "classes": [
     "Cleric"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -51,6 +53,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 5,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,

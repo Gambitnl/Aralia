@@ -1,4 +1,4 @@
-import { MagicSchool } from './spells';
+import { MagicSchool } from './spells.js';
 export type TimeFlowRate = 'normal' | 'fast' | 'slow' | 'erratic' | 'timeless';
 export type PlanarValence = 'positive' | 'negative' | 'neutral' | 'chaotic';
 export type PlanarTraitType = 'gravity' | 'magic' | 'time' | 'memory' | 'alignment' | 'environmental';

@@ -16,7 +16,7 @@
 - **Verbal**: false
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: ink worth 10+ gp
+- **Material Description**: ink worth 10+ GP, which the spell consumes
 - **Material Cost GP**: 10
 - **Consumed**: true
 
@@ -30,5 +30,40 @@
 - **Save Stat**: None
 - **Save Outcome**: none
 
-- **Description**: You write on parchment, paper, or some other suitable writing material and imbue it with a potent illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, you can cause the writing to appear to be an entirely different message, written in a different hand and language, though the language must be one you know. Should the spell be dispelled, the original script and the illusion both disappear. A creature with Truesight can read the hidden message.
+- **Description**: You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know. If the spell is dispelled, the original script and the illusion both disappear. A creature that has Truesight can read the hidden message.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Illusory Script
+Level: 1st
+Casting Time: 1 Minute Ritual
+Range/Area: Touch
+Components: S, M *
+Duration: 10 Days
+School: Illusion
+Attack/Save: None
+Damage/Effect: Communication
+
+Rules Text:
+You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know.
+If the spell is dispelled, the original script and the illusion both disappear.
+A creature that has Truesight can read the hidden message.
+
+Material Component:
+* - (ink worth 10+ GP, which the spell consumes)
+
+Spell Tags:
+Communication
+
+Available For:
+Bard
+Warlock
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->

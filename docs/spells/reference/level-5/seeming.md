@@ -3,6 +3,7 @@
 - **School**: Illusion
 - **Ritual**: false
 - **Classes**: Bard, Sorcerer, Wizard
+- **Sub-Classes**: Cleric - Night Domain (HCS), Ranger - Gloom Stalker, Warlock - Archfey Patron, Warlock - The Genie (TCoE)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -29,3 +30,40 @@
 - **Save Outcome**: negates
 
 - **Description**: You give an illusory appearance to each creature of your choice that you can see within range. An unwilling target can make a Charisma saving throw, and if it succeeds, it is unaffected by this spell. You can give the same appearance or different ones to the targets. The spell can change the appearance of the targets' bodies and equipment. You can make each creature seem 1 foot shorter or taller and appear heavier or lighter. A target's new appearance must have the same basic arrangement of limbs as the target, but the extent of the illusion is otherwise up to you. The spell lasts for the duration. The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to a creature's outfit, objects pass through the hat. A creature that takes the Study action to examine a target can make an Intelligence (Investigation) check against your spell save DC. If it succeeds, it becomes aware that the target is disguised.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Seeming
+Level: 5th
+Casting Time: 1 Action
+Range/Area: 30 ft.
+Components: V, S
+Duration: 8 Hours
+School: Illusion
+Attack/Save: CHA Save
+Damage/Effect: Control
+
+Rules Text:
+You give an illusory appearance to each creature of your choice that you can see within range. An unwilling target can make a Charisma saving throw, and if it succeeds, it is unaffected by this spell.
+You can give the same appearance or different ones to the targets. The spell can change the appearance of the targets’ bodies and equipment. You can make each creature seem 1 foot shorter or taller and appear heavier or lighter. A target’s new appearance must have the same basic arrangement of limbs as the target, but the extent of the illusion is otherwise up to you. The spell lasts for the duration.
+The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to a creature’s outfit, objects pass through the hat.
+A creature that takes the Study action to examine a target can make an Intelligence (Investigation) check against your spell save DC. If it succeeds, it becomes aware that the target is disguised.
+
+Spell Tags:
+Control
+
+Available For:
+Bard
+Sorcerer
+Wizard
+Ranger - Gloom Stalker
+Warlock - The Genie (TCoE)
+Warlock - Archfey Patron
+Cleric - Night Domain (HCS)
+
+Capture Method: http
+Legacy Page: false
+-->

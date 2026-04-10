@@ -9,6 +9,11 @@
     "Druid",
     "Ranger"
   ],
+  "subClasses": [
+    "Cleric - Festus Domain",
+    "Cleric - Community Domain (HCS)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -133,7 +138,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Up to ten berries appear in your hand and are infused with magic for the duration. A creature can use its Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. The berries lose their potency if they haven't been consumed within 24 hours of the casting of this spell.",
+  "description": "Ten berries appear in your hand and are infused with magic for the duration. A creature can take a Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. Uneaten berries disappear when the spell ends.",
   "higherLevels": "",
   "tags": [
     "healing",

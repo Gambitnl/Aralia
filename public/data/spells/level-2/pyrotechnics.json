@@ -11,6 +11,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +30,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -47,6 +50,7 @@
   "targeting": {
     "type": "area",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "objects"
@@ -54,6 +58,7 @@
     "areaOfEffect": {
       "shape": "Cube",
       "size": 20,
+      "sizeUnit": "feet",
       "height": 0
     },
     "lineOfSight": true,
@@ -198,7 +203,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Choose an area of flame that fits in a 5-foot cube within range. You can extinguish the fire in that area, creating either fireworks (bright light flash and potential blindness) or smoke (heavily obscures a 20-foot cube for 1 minute). Creatures in the fireworks make a Constitution saving throw or are blinded until the end of your next turn; smoke disperses with strong wind.",
+  "description": "Choose an area of nonmagical flame that you can see and that fits within a 5-foot cube within range. You can extinguish the fire in that area, and you create either fireworks or smoke when you do so. Fireworks. The target explodes with a dazzling display of colors. Each creature within 10 feet of the target must succeed on a Constitution saving throw or become blinded until the end of your next turn. Smoke. Thick black smoke spreads out from the target in a 20-foot radius, moving around corners. The area of the smoke is heavily obscured. The smoke persists for 1 minute or until a strong wind disperses it.",
   "higherLevels": "None",
   "tags": [
     "control",

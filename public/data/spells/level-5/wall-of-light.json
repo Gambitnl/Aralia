@@ -10,6 +10,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -51,9 +54,14 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Line",
+      "shape": "Wall",
       "size": 60,
-      "height": 0
+      "height": 10,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thickness": 5,
+      "thicknessUnit": "feet"
     },
     "maxTargets": 1,
     "filter": {
@@ -63,6 +71,50 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Wall of Light",
+          "shape": "Wall",
+          "size": 60,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 10,
+          "heightUnit": "feet",
+          "thickness": 5,
+          "thicknessUnit": "feet",
+          "notes": "The wall can be horizontal, vertical, or diagonal."
+        }
+      ],
+      "measuredDetails": [
+        {
+          "label": "Bright Light Radius",
+          "kind": "distance",
+          "value": 120,
+          "unit": "feet"
+        },
+        {
+          "label": "Dim Light Radius",
+          "kind": "distance",
+          "value": 120,
+          "unit": "feet",
+          "qualifier": "additional"
+        },
+        {
+          "label": "Beam Range From Wall",
+          "kind": "distance",
+          "value": 60,
+          "unit": "feet"
+        },
+        {
+          "label": "Length Reduction Per Beam",
+          "kind": "distance",
+          "value": 10,
+          "unit": "feet"
+        }
+      ]
     }
   },
   "effects": [

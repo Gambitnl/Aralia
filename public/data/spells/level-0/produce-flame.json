@@ -8,6 +8,8 @@
   "classes": [
     "Druid"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -48,6 +50,7 @@
     ],
     "lineOfSight": false,
     "range": 5,
+    "rangeUnit": "feet",
     "maxTargets": 1,
     "areaOfEffect": {
       "shape": "Sphere",

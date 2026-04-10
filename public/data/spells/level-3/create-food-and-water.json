@@ -6,9 +6,14 @@
   "school": "Conjuration",
   "legacy": false,
   "classes": [
+    "Artificer",
     "Cleric",
     "Paladin"
   ],
+  "subClasses": [
+    "Warlock - The Genie (TCoE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +31,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +51,7 @@
   "targeting": {
     "type": "point",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "ground"
     ],
@@ -133,7 +140,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create 45 pounds of food and 30 gallons of fresh water on the ground or in containers within range, enough to sustain up to fifteen humanoids or five steeds for 24 hours. The food is bland but nourishing, and spoils if uneaten after 24 hours. The water is clean and doesn't go bad.",
+  "description": "You create 45 pounds of food and 30 gallons of fresh water on the ground or in containers within range-both useful in fending off the hazards of malnutrition and dehydration . The food is bland but nourishing and looks like a food of your choice, and the water is clean. The food spoils after 24 hours if uneaten.",
   "higherLevels": "",
   "tags": []
 }

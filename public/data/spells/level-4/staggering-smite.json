@@ -5,7 +5,13 @@
   "level": 4,
   "school": "Evocation",
   "legacy": true,
-  "classes": [],
+  "classes": [
+    "Paladin"
+  ],
+  "subClasses": [
+    "Warlock - The Hexblade (XGTE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

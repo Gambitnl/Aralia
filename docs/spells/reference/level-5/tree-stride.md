@@ -3,6 +3,7 @@
 - **School**: Conjuration
 - **Ritual**: false
 - **Classes**: Druid, Ranger
+- **Sub-Classes**: Cleric - Nature Domain (PHB), Paladin - Oath of the Ancients
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -27,3 +28,36 @@
 - **Utility Type**: other
 
 - **Description**: You gain the ability to enter a tree and move from inside it to inside another tree of the same kind within 500 feet. Both trees must be living and at least the same size as you. You must use 5 feet of movement to enter a tree. You instantly know the location of all other trees of the same kind within 500 feet and, as part of the move used to enter the tree, can either pass into one of those trees or step out of the tree you're in. You appear in a spot of your choice within 5 feet of the destination tree, using another 5 feet of movement. If you have no movement left, you appear within 5 feet of the tree you entered. You can use this transportation ability only once on each of your turns. You must end each turn outside a tree.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Tree Stride
+Level: 5th
+Casting Time: 1 Action
+Range/Area: Self
+Components: V, S
+Duration: Concentration 1 Minute
+School: Conjuration
+Attack/Save: None
+Damage/Effect: Movement (...)
+
+Rules Text:
+You gain the ability to enter a tree and move from inside it to inside another tree of the same kind within 500 feet. Both trees must be living and at least the same size as you. You must use 5 feet of movement to enter a tree. You instantly know the location of all other trees of the same kind within 500 feet and, as part of the move used to enter the tree, can either pass into one of those trees or step out of the tree you’re in. You appear in a spot of your choice within 5 feet of the destination tree, using another 5 feet of movement. If you have no movement left, you appear within 5 feet of the tree you entered.
+You can use this transportation ability only once on each of your turns. You must end each turn outside a tree.
+
+Spell Tags:
+Teleportation
+Movement
+
+Available For:
+Druid
+Ranger
+Cleric - Nature Domain (PHB)
+Paladin - Oath of the Ancients
+
+Capture Method: http
+Legacy Page: false
+-->

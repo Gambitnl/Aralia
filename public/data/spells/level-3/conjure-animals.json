@@ -9,6 +9,8 @@
     "Druid",
     "Ranger"
   ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +28,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -49,9 +52,11 @@
     ],
     "lineOfSight": true,
     "range": 60,
+    "rangeUnit": "feet",
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 30,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -117,7 +122,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Semi-real bestial spirits flit around you. When you cast the spell, you choose a point within range. The spirits fill a 30-foot-radius Sphere centered on that point. A creature you choose must make a Dexterity saving throw when it enters the spell's area for the first time on a turn or starts its turn there. On a failed save, the creature takes 3d10 Slashing damage. On a successful save, the creature takes half as much damage. You can use a Bonus Action to move the sphere up to 30 feet.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d10 for each slot level above 3rd.",
+  "description": "You conjure nature spirits that appear as a Large pack of spectral, intangible animals in an unoccupied space you can see within range. The pack lasts for the duration, and you choose the spirits' animal form, such as wolves, serpents, or birds. You have Advantage on Strength saving throws while you're within 5 feet of the pack, and when you move on your turn, you can also move the pack up to 30 feet to an unoccupied space you can see. Whenever the pack moves within 10 feet of a creature you can see and whenever a creature you can see enters a space within 10 feet of the pack or ends its turn there, you can force that creature to make a Dexterity saving throw. On a failed save, the creature takes 3d10 Slashing damage. A creature makes this save only once per turn.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 3.",
   "tags": []
 }

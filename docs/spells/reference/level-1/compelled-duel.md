@@ -3,6 +3,7 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Paladin
+- **Sub-Classes**: Paladin - Oath of the Crown (SCAG)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: bonus_action
@@ -29,5 +30,38 @@
 - **Save Outcome**: negates_condition
 - **Conditions Applied**: None
 
-- **Description**: You attempt to compel a creature into a duel. One creature that you can see within range must make a Wisdom saving throw. On a failed save, the creature is drawn to you, compelled by your divine demand. For the duration, it has Disadvantage on attack rolls against creatures other than you, and must make a Wisdom saving throw each time it attempts to move to a space that is more than 30 feet away from you; if it fails this save, its movement ends. This spell ends if you attack any other creature, if you cast a spell that targets a hostile creature other than the target, if a creature friendly to you damages the target or casts a harmful spell on it, or if you end your turn more than 30 feet away from the target.
+- **Description**: You try to compel a creature into a duel. One creature that you can see within range makes a Wisdom saving throw. On a failed save, the target has Disadvantage on attack rolls against creatures other than you, and it can't willingly move to a space that is more than 30 feet away from you. The spell ends if you make an attack roll against a creature other than the target, if you cast a spell on an enemy other than the target, if an ally of yours damages the target, or if you end your turn more than 30 feet away from the target.
 - **Higher Levels**: None
+- **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Compelled Duel
+Level: 1st
+Casting Time: 1 Bonus Action
+Range/Area: 30 ft.
+Components: V
+Duration: Concentration 1 Minute
+School: Enchantment
+Attack/Save: WIS Save
+Damage/Effect: Control (...)
+
+Rules Text:
+You try to compel a creature into a duel. One creature that you can see within range makes a Wisdom saving throw. On a failed save, the target has Disadvantage on attack rolls against creatures other than you, and it can’t willingly move to a space that is more than 30 feet away from you.
+The spell ends if you make an attack roll against a creature other than the target, if you cast a spell on an enemy other than the target, if an ally of yours damages the target, or if you end your turn more than 30 feet away from the target.
+
+Spell Tags:
+Control
+Social
+Debuff
+
+Available For:
+Paladin
+Paladin - Oath of the Crown (SCAG)
+
+Capture Method: http
+Legacy Page: false
+-->

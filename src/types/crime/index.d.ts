@@ -1,4 +1,4 @@
-import { Item } from '../items';
+import { Item } from '../items.js';
 export declare enum CrimeType {
     Theft = "Theft",
     Assault = "Assault",

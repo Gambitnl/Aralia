@@ -2,7 +2,7 @@
 - **Level**: 2
 - **School**: Abjuration
 - **Ritual**: false
-- **Classes**: Wizard
+- **Classes**: Artificer, Wizard
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -16,7 +16,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: gold dust worth 25+ GP
+- **Material Description**: gold dust worth 25+ GP, which the spell consumes
 - **Material Cost GP**: 25
 - **Consumed**: true
 
@@ -28,5 +28,38 @@
 - **Save Stat**: None
 - **Save Outcome**: none
 
-- **Description**: You touch a closed door, window, gate, chest, or other entryway, and it becomes locked for the duration. You and the creatures you designate when you cast this spell can open the object normally. You can also set a password that, when spoken within 5 feet of the object, suppresses this spell for 1 minute. Otherwise, it is impassable until it is broken or the spell is dispelled or suppressed. Casting Knock on the object suppresses Arcane Lock for 10 minutes. While affected by this spell, the object is more difficult to break or force open; the DC to break it or pick any locks on it increases by 10.
+- **Description**: You touch a closed door, window, gate, container, or hatch and magically lock it for the duration. This lock can't be unlocked by any nonmagical means. You and any creatures you designate when you cast the spell can open and close the object despite the lock. You can also set a password that, when spoken within 5 feet of the object, unlocks it for 1 minute.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Arcane Lock
+Level: 2nd
+Casting Time: 1 Action
+Range/Area: Touch
+Components: V, S, M *
+Duration: Until Dispelled
+School: Abjuration
+Attack/Save: None
+Damage/Effect: Utility (...)
+
+Rules Text:
+You touch a closed door, window, gate, container, or hatch and magically lock it for the duration. This lock can’t be unlocked by any nonmagical means. You and any creatures you designate when you cast the spell can open and close the object despite the lock. You can also set a password that, when spoken within 5 feet of the object, unlocks it for 1 minute.
+
+Material Component:
+* - (gold dust worth 25+ GP, which the spell consumes)
+
+Spell Tags:
+Utility
+Warding
+
+Available For:
+Wizard
+Artificer
+
+Capture Method: http
+Legacy Page: false
+-->

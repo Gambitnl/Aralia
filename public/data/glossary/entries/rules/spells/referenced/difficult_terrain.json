@@ -1,0 +1,18 @@
+{
+  "id": "difficult_terrain",
+  "title": "Difficult Terrain",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Difficult Terrain.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/difficult_terrain.json",
+  "markdown": "# Difficult Terrain\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[blade-barrier|Blade Barrier]]\n- [[conjure-minor-elementals|Conjure Minor Elementals]]\n- [[earthquake|Earthquake]]\n- [[entangle|Entangle]]\n- [[evards-black-tentacles|Evard's Black Tentacles]]\n- [[freedom-of-movement|Freedom of Movement]]\n- [[grease|Grease]]\n- [[guardian-of-nature|Guardian Of Nature]]\n- [[hunger-of-hadar|Hunger of Hadar]]\n- [[ice-storm|Ice Storm]]\n- [[insect-plague|Insect Plague]]\n- [[mirage-arcane|Mirage Arcane]]\n- [[sleet-storm|Sleet Storm]]\n- [[speak-with-plants|Speak with Plants]]\n- [[spike-growth|Spike Growth]]\n- [[storm-of-vengeance|Storm of Vengeance]]\n- [[web|Web]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

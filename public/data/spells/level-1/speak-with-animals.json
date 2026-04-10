@@ -11,6 +11,11 @@
     "Ranger",
     "Warlock"
   ],
+  "subClasses": [
+    "Cleric - Nature Domain (PHB)",
+    "Paladin - Oath of the Ancients"
+  ],
+  "subClassesVerification": "verified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -135,7 +140,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You gain the ability to comprehend and verbally communicate with Beasts for the duration. The knowledge and awareness of many Beasts is limited by their intelligence, but at minimum, Beasts can give you information about nearby locations and monsters, including whatever they can perceive or have perceived within the past day. You might be able to persuade a Beast to perform a small favor for you, at the GM's discretion.",
+  "description": "For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them. Most Beasts have little to say about topics that don't pertain to survival or companionship, but at minimum, a Beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.",
   "higherLevels": "",
   "tags": [
     "utility",

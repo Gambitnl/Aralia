@@ -84,6 +84,7 @@ import {
   type OpportunitySeverity
 } from './modules/opportunity-triage-workspace';
 import type { RoadmapHistoryTraceabilityPayload } from './modules/roadmap-history-traceability';
+import { loadRoadmapBootstrapData } from './modules/roadmap-bootstrap-loader';
 import type { RenderNode, RoadmapData, ThemeMode } from './types';
 import { formatLevelCounts } from './utils';
 
@@ -277,19 +278,6 @@ const moduleBadgeClass = (isDark: boolean) =>
 
 // Technical: guards layout payload so only numeric {x,y} entries survive.
 // Layman: ignores broken save data so bad coordinates do not crash layout restore.
-const sanitizeLayoutPositions = (input: unknown): LayoutPositions => {
-  if (!input || typeof input !== 'object') return {};
-  const output: LayoutPositions = {};
-  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-    if (!value || typeof value !== 'object') continue;
-    const x = Number((value as { x?: unknown }).x);
-    const y = Number((value as { y?: unknown }).y);
-    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-    output[key] = { x, y };
-  }
-  return output;
-};
-
 // Technical: guards label override payload so only non-empty string entries survive.
 // Layman: ignore invalid rename entries so bad saved data cannot break node labels.
 const sanitizeLabelOverrides = (input: unknown): Record<string, string> => {
@@ -784,51 +772,34 @@ export const RoadmapVisualizer: React.FC<RoadmapVisualizerProps> = ({ onOpenSpel
     }
   }, [themeMode]);
 
-  // Technical: initial data bootstrap:
-  // 1) fetch roadmap content, 2) fetch saved layout, 3) hydrate state.
+  // Technical: initial data bootstrap — fetches graph data, saved positions, and label
+  // overrides in parallel via Promise.all, then hydrates component state in one shot.
+  // An AbortController ties the fetch lifetime to this effect instance so React
+  // StrictMode's unmount + remount cycle cancels the first in-flight batch instead
+  // of letting both complete and double-writing state.
   //
   // Layman:
-  // On first load, this grabs roadmap nodes/edges and then applies your saved node positions.
+  // On first load, this grabs roadmap nodes/edges, saved positions, and custom
+  // labels all at the same time (instead of one after another), then applies them.
+  // If the component unmounts before they finish, the requests are cancelled cleanly.
   useEffect(() => {
+    const controller = new AbortController();
     const loadData = async () => {
       try {
-        const response = await fetch('/Aralia/api/roadmap/data');
-        if (!response.ok) throw new Error('Failed to load roadmap data');
-        const json = (await response.json()) as RoadmapData;
-
-        let loadedLayout: LayoutPositions = {};
-        let loadedLabelOverrides: Record<string, string> = {};
-        try {
-          const layoutResponse = await fetch('/Aralia/api/roadmap/layout');
-          if (layoutResponse.ok) {
-            const layoutJson = (await layoutResponse.json()) as { positions?: unknown };
-            loadedLayout = sanitizeLayoutPositions(layoutJson.positions);
-          }
-        } catch {
-          // optional during transition
-        }
-
-        try {
-          const labelResponse = await fetch('/Aralia/api/roadmap/labels');
-          if (labelResponse.ok) {
-            const labelJson = (await labelResponse.json()) as { overrides?: unknown };
-            loadedLabelOverrides = sanitizeLabelOverrides(labelJson.overrides);
-          }
-        } catch {
-          // optional during transition
-        }
-
-        setData(json);
-        setPositionOverrides(loadedLayout);
-        setNodeLabelOverrides(loadedLabelOverrides);
+        const { data, layout, labelOverrides } = await loadRoadmapBootstrapData(controller.signal);
+        setData(data);
+        setPositionOverrides(layout);
+        setNodeLabelOverrides(labelOverrides);
         setLoading(false);
       } catch (loadErr) {
+        if (loadErr instanceof Error && loadErr.name === 'AbortError') return;
         console.error(loadErr);
         setError('Roadmap data not found or inaccessible.');
         setLoading(false);
       }
     };
-    loadData();
+    void loadData();
+    return () => controller.abort();
   }, []);
 
   // Technical: loads local scanner settings (interval, stale threshold, default mode).

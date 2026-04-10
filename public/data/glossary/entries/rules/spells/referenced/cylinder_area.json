@@ -1,0 +1,18 @@
+{
+  "id": "cylinder_area",
+  "title": "Cylinder",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Cylinder.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/cylinder_area.json",
+  "markdown": "# Cylinder\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[call-lightning|Call Lightning]]\n- [[conjure-celestial|Conjure Celestial]]\n- [[flame-strike|Flame Strike]]\n- [[ice-storm|Ice Storm]]\n- [[magic-circle|Magic Circle]]\n- [[moonbeam|Moonbeam]]\n- [[reverse-gravity|Reverse Gravity]]\n- [[sleet-storm|Sleet Storm]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

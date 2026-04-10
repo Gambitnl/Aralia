@@ -5,7 +5,11 @@
   "level": 5,
   "school": "Transmutation",
   "legacy": true,
-  "classes": [],
+  "classes": [
+    "Ranger"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

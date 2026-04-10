@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/03/2026, 23:48:00
+ * Dependents: App.tsx
+ * Imports: 38 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * ARCHITECTURAL CONTEXT:
  * This component is the 'Modal Manager' for the Aralia RPG. It centralizes 
@@ -10,6 +26,18 @@
  * modals (like Trade or Heist) are only accessed after significant gameplay.
  * 
  * @file src/components/layout/GameModals.tsx
+ *
+ * 2026-03-24 note:
+ * The shared DevMenu modal now also carries the real Dev Mode toggle state so the
+ * main-menu "Dev Menu" entry and the in-game Dev Mode controls no longer feel like
+ * two disconnected systems. This file is the bridge that feeds that shared modal
+ * the current flag and the reducer action that changes it.
+ *
+ * 2026-03-25 note:
+ * The old main-menu "Quick Start (Dev)" button is now folded into that same shared
+ * modal, so we also pass the current game phase down. The modal decides whether the
+ * quick-start action should appear instead of the main menu rendering a separate
+ * developer-only launch button.
  */
 import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -244,6 +272,9 @@ const GameModals: React.FC<GameModalsProps> = ({
                             hasNewRateLimitError={gameState.hasNewRateLimitError}
                             currentModelOverride={gameState.devModelOverride}
                             onModelChange={handleModelChange}
+                            isDevModeEnabled={gameState.isDevModeEnabled}
+                            onSetDevModeEnabled={(enabled) => dispatch({ type: 'SET_DEV_MODE_ENABLED', payload: enabled })}
+                            gamePhase={gameState.phase}
                         />
                     </ErrorBoundary>
                 </Suspense>
@@ -372,6 +403,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             isOpen={gameState.isGlossaryVisible}
                             onClose={handleOpenGlossary}
                             initialTermId={gameState.selectedGlossaryTermForModal}
+                            isDevModeEnabled={gameState.isDevModeEnabled}
                         />
                     </ErrorBoundary>
                 </Suspense>

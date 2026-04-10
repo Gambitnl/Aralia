@@ -10,6 +10,22 @@ Do not mistake a cleaner diff, lower lint count, or less code for automatic prog
 
 Under uncertainty, the safer failure is usually temporary duplication, not premature pruning.
 
+## User Calibration
+
+When available, consult `.agent/workflows/USER.local.md` before substantial work.
+
+Use it as a values-and-risk calibration file:
+
+1. what the user is trying to protect
+2. what counts as meaningful progress
+3. what patterns break trust
+4. what recurring pitfalls agents should help contain
+
+Do not treat `USER.local.md` as permission to invent personal lore about the user.
+Prefer confirmed values, observed work-patterns, and explicit trust signals over speculative personality claims.
+
+If `USER.local.md` contains both confirmed observations and open questions, optimize your behavior around the confirmed parts and treat the open questions as prompts for cautious inquiry, not as settled truth.
+
 ## Cold-Start Rules
 
 Before writing new code, assume the repo may already contain:
@@ -31,6 +47,52 @@ Good starting surfaces:
 1. `docs/AGENT.md` for broad architecture and directory orientation
 2. `docs/ARCHITECTURE.md` for domain-level system mapping
 3. roadmap/workflow docs when the task touches unfinished or planned capability
+4. the MemPalace memory system (see below)
+
+## MemPalace (AI Memory System)
+
+This project has a local, persistent AI memory system called **MemPalace**. It contains 143,000+ searchable text chunks ("drawers") from:
+
+1. The entire Aralia codebase (source, docs, game data, config)
+2. All past Claude Code conversation transcripts
+3. All past OpenAI Codex CLI session transcripts
+
+### How to query it
+
+**Via MCP (Claude Code):** The MCP server is already configured. Use the `mempalace` tool to search for past decisions, code context, or conversation history.
+
+**Via CLI:**
+```
+mempalace search "your query here"
+```
+
+**Via Python:**
+```python
+import chromadb
+c = chromadb.PersistentClient(path="C:/Users/Gambit/.mempalace/palace")
+col = c.get_collection("mempalace_drawers")
+results = col.query(query_texts=["your query"], n_results=5)
+```
+
+### When to use it
+
+- **Cold starts**: Before building something new, search the palace for prior discussions or decisions about that system.
+- **Debugging**: Search for past conversations where a similar issue was discussed or resolved.
+- **Architecture questions**: Query for past rationale behind design choices.
+- **Continuity**: When picking up work another agent started, search for their session context.
+
+### Keeping it updated
+
+After significant project changes, re-mine to index new files (already-filed files are skipped automatically):
+```
+mempalace mine F:\Repos\Aralia
+```
+
+### Palace location
+
+- Config: `F:\Repos\Aralia\mempalace.yaml`
+- Database: `C:\Users\Gambit\.mempalace\palace`
+- Wing: `aralia` (single wing covering the whole project)
 
 ## Risk Priorities
 

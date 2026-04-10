@@ -42,6 +42,70 @@ interface ValidationResult {
 }
 
 // ============================================================================
+// Semantic Spell-Truth Checks
+// ============================================================================
+// The Zod schema proves that the spell JSON has the right structure, but some
+// trust-system problems still exist even when the file is formally valid.
+//
+// One example is redundant subclass/domain access. If a spell already grants the
+// full base class in `classes`, then a `subClasses` entry for that same base
+// class does not add new access information; it only repeats the base lane in a
+// more specific form. The owner asked for this pattern to be flagged as
+// problematic so it can be arbitrated instead of silently normalized.
+// ============================================================================
+const NON_CASTER_BASE_CLASSES = new Set([
+    'Barbarian',
+    'Fighter',
+    'Monk',
+    'Rogue',
+]);
+
+function collectSemanticSpellErrors(json: Record<string, unknown>): string[] {
+    const errors: string[] = [];
+    const classes = Array.isArray(json.classes)
+        ? json.classes.map((entry) => String(entry))
+        : [];
+    const subClasses = Array.isArray(json.subClasses)
+        ? json.subClasses.map((entry) => String(entry))
+        : [];
+
+    for (const subClassEntry of subClasses) {
+        // The current subclass/domain convention is "Base Class - Subclass Name".
+        // Only entries that match that shape can be checked for base-class
+        // redundancy; everything else should remain visible for separate review.
+        const match = subClassEntry.match(/^(.+?)\s*-\s+(.+)$/);
+        if (!match) {
+            continue;
+        }
+
+        const baseClass = match[1].trim();
+        if (!classes.includes(baseClass)) {
+            continue;
+        }
+
+        errors.push(
+            `subClasses: redundant access entry "${subClassEntry}" repeats base class "${baseClass}" that is already present in classes`,
+        );
+    }
+
+    for (const classEntry of classes) {
+        // These base classes are not full spellcasting classes in the project's
+        // current class model. If a spell lists one of them in `classes`, the
+        // access is suspicious and should move into extra checking instead of
+        // being treated as ordinary broad spell-list membership.
+        if (!NON_CASTER_BASE_CLASSES.has(classEntry)) {
+            continue;
+        }
+
+        errors.push(
+            `classes: non-caster base class "${classEntry}" is listed as a broad spellcasting class and should be reviewed explicitly`,
+        );
+    }
+
+    return errors;
+}
+
+// ============================================================================
 // File Validation
 // ============================================================================
 // This section loads a single spell JSON file, parses it, and asks the live
@@ -60,7 +124,15 @@ function validateSpellFile(filePath: string, level: number): ValidationResult {
         const result = SpellValidator.safeParse(json);
 
         if (result.success) {
-            return { file: fileName, level, valid: true };
+            // Only run the semantic spell-truth checks after the file has already
+            // passed shape validation. That keeps the report honest about whether
+            // a failure is "bad JSON shape" or "valid shape but problematic data."
+            const semanticErrors = collectSemanticSpellErrors(json as Record<string, unknown>);
+            if (semanticErrors.length === 0) {
+                return { file: fileName, level, valid: true };
+            }
+
+            return { file: fileName, level, valid: false, errors: semanticErrors };
         }
 
         // Convert the Zod issue list into compact path + message lines that are

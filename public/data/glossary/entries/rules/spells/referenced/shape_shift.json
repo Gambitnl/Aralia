@@ -1,0 +1,18 @@
+{
+  "id": "shape_shift",
+  "title": "Shape-Shifting",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Shape-Shifting.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/shape_shift.json",
+  "markdown": "# Shape-Shifting\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[animal-shapes|Animal Shapes]]\n- [[gaseous-form|Gaseous Form]]\n- [[moonbeam|Moonbeam]]\n- [[polymorph|Polymorph]]\n- [[shapechange|Shapechange]]\n- [[true-polymorph|True Polymorph]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

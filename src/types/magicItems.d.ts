@@ -5,7 +5,7 @@
  * This module defines the specialized properties for magic items, including
  * rarity tiers, attunement requirements, charge management, and curses.
  */
-import type { AbilityScoreName } from './core';
+import type { AbilityScoreName } from './core.js';
 /**
  * The standard rarity tiers for magic items.
  * Used to determine value, availability, and power level.

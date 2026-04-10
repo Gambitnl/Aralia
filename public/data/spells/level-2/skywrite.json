@@ -11,6 +11,8 @@
     "Druid",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -135,7 +137,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You cause up to ten words to form in the sky, made of clouds, lasting for the duration. The words are visible up to 50 miles away. The message dissipates if strong winds (at least 20 mph) disperse the clouds.",
+  "description": "You cause up to ten words to form in a part of the sky you can see. The words appear to be made of cloud and remain in place for the spell's duration. The words dissipate when the spell ends. A strong wind can disperse the clouds and end the spell early.",
   "higherLevels": "None",
   "tags": [
     "utility",

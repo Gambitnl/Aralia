@@ -1,4 +1,4 @@
-import { AbilityScoreName } from '../../types/core';
+import { AbilityScoreName } from '../../types/core.js';
 export type DamageType = 'acid' | 'bludgeoning' | 'cold' | 'fire' | 'force' | 'lightning' | 'necrotic' | 'piercing' | 'poison' | 'psychic' | 'radiant' | 'slashing' | 'thunder';
 export interface DiceRoll {
     count: number;

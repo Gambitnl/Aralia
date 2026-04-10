@@ -11,15 +11,13 @@
 - **Range Type**: ranged
 - **Range Distance**: 60
 - **Targeting Type**: creature
-- **Area Shape**: none
-- **Area Size**: 0
 - **Valid Targets**: creatures, objects
 - **Line of Sight**: true
 
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: a lodestone and a pinch of dust
+- **Material Description**: a lodestone and dust
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -32,5 +30,45 @@
 - **Damage Dice**: 10d6+40
 - **Damage Type**: Force
 
-- **Description**: A thin green ray springs from your pointing finger to a target that you can see within range. The target can be a creature, an object, or a creation of magical force, such as the wall created by wall of force. A creature targeted by this spell must make a Dexterity saving throw. On a failed save, the target takes 10d6 + 40 force damage. The target is disintegrated if this damage leaves it with 0 hit points. A disintegrated creature and everything it is wearing and carrying, except magic items, are reduced to a pile of fine gray dust. The creature can be restored to life only by means of a true resurrection or a wish spell. This spell automatically disintegrates a Large or smaller nonmagical object or a creation of magical force. If the target is a Huge or larger object or creation of force, this spell disintegrates a 10-foot-cube portion of it. A magic item is unaffected by this spell.
-- **Higher Levels**: When you cast this spell using a spell slot of 7th level or higher, the damage increases by 3d6 for each slot level above 6th.
+- **Description**: You launch a green ray at a target you can see within range. The target can be a creature, a nonmagical object, or a creation of magical force, such as the wall created by Wall of Force . A creature targeted by this spell makes a Dexterity saving throw. On a failed save, the target takes 10d6 + 40 Force damage. If this damage reduces it to 0 Hit Points, it and everything nonmagical it is wearing and carrying are disintegrated into gray dust. The target can be revived only by a True Resurrection or a Wish spell. This spell automatically disintegrates a Large or smaller nonmagical object or a creation of magical force. If such a target is Huge or larger, this spell disintegrates a 10-foot- Cube portion of it.
+Using a Higher-Level Spell Slot. The damage increases by 3d6 for each spell slot level above 6.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 3d6 for each spell slot level above 6.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Disintegrate
+Level: 6th
+Casting Time: 1 Action
+Range/Area: 60 ft.
+Components: V, S, M *
+Duration: Instantaneous
+School: Transmutation
+Attack/Save: DEX Save
+Damage/Effect: Force
+
+Rules Text:
+You launch a green ray at a target you can see within range. The target can be a creature, a nonmagical object, or a creation of magical force, such as the wall created by Wall of Force .
+A creature targeted by this spell makes a Dexterity saving throw. On a failed save, the target takes 10d6 + 40 Force damage. If this damage reduces it to 0 Hit Points, it and everything nonmagical it is wearing and carrying are disintegrated into gray dust. The target can be revived only by a True Resurrection or a Wish spell.
+This spell automatically disintegrates a Large or smaller nonmagical object or a creation of magical force. If such a target is Huge or larger, this spell disintegrates a 10-foot- Cube portion of it.
+Using a Higher-Level Spell Slot. The damage increases by 3d6 for each spell slot level above 6.
+
+Material Component:
+* - (a lodestone and dust)
+
+Spell Tags:
+Damage
+Control
+
+Available For:
+Sorcerer
+Wizard
+
+Referenced Rules:
+Cube -> /rules-glossary/38-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

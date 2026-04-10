@@ -31,3 +31,39 @@
 - **Damage Type**: Force
 
 - **Description**: You flourish the weapon used in the casting and then vanish to strike like the wind. Choose up to five creatures you can see within range. Make a melee spell attack against each target. On a hit, a target takes 6d10 force damage. You can then teleport to an unoccupied space you can see within 5 feet of one of the targets you hit or missed.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Steel Wind Strike
+Level: 5th
+Casting Time: 1 Action
+Range/Area: 30 ft.
+Components: S, M *
+Duration: Instantaneous
+School: Conjuration
+Attack/Save: Melee
+Damage/Effect: Force
+
+Rules Text:
+You flourish the weapon used in the casting and then vanish to strike like the wind. Choose up to five creatures you can see within range. Make a melee spell attack against each target. On a hit, a target takes 6d10 force damage.
+You can then teleport to an unoccupied space you can see within 5 feet of one of the targets you hit or missed.
+
+Material Component:
+* - (a melee weapon worth at least 1 sp)
+
+Spell Tags:
+Teleportation
+Damage
+Combat
+
+Available For:
+Ranger
+Wizard
+
+Capture Method: http
+Legacy Page: true
+-->
+

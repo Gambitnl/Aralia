@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/02/2026, 09:30:27
- * Dependents: AISpellArbitrator.ts, AISpellInputModal.tsx, AbilityCommandFactory.ts, AbilityEffectMapper.ts, BaseEffectCommand.ts, BattleMapDemo.tsx, CombatView.tsx, ConcentrationCommands.ts, ConcentrationTracker.ts, CreatureTaxonomy.ts, DamageCommand.ts, DefensiveCommand.ts, EnvironmentSystem.ts, HealingCommand.ts, LegacySpellValidator.ts, MovementCommand.ts, PreviewCombatSandbox.tsx, ReactionPrompt.tsx, RegisterRiderCommand.ts, RitualManager.ts, SavingThrowResolver.ts, ScalingEngine.ts, SpellCommand.ts, SpellCommandFactory.ts, SpellIntegrityValidator.ts, StatusConditionCommand.ts, SummoningCommand.ts, TargetAllocator.ts, TargetValidationUtils.ts, TargetingPresets.ts, TerrainCommand.ts, UtilityCommand.ts, audit_enchantment_consistency.ts, character.d.ts, character.ts, combat.d.ts, combat.ts, combatUtils.ts, creatures.d.ts, creatures.ts, effects.d.ts, effects.ts, environment.d.ts, environment.ts, factories.ts, featsData.ts, hazards.ts, index.d.ts, mechanics.ts, planes.d.ts, planes.ts, resistanceUtils.ts, ritual.ts, rituals.d.ts, rituals.ts, savingThrowUtils.ts, spellAuditor.ts, spellConsistencyValidator.ts, spellVisuals.ts, triggerHandler.ts, types/index.ts, ui.d.ts, ui.ts, useAbilitySystem.ts, useSummons.ts, visuals.d.ts, visuals.ts
+ * Last Sync: 06/04/2026, 03:47:23
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/SpellCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AISpellInputModal.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, data/feats/featsData.ts, hooks/combat/useSummons.ts, hooks/useAbilitySystem.ts, scripts/audit_enchantment_consistency.ts, systems/creatures/CreatureTaxonomy.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/SavingThrowResolver.ts, systems/spells/mechanics/ScalingEngine.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/validation/LegacySpellValidator.ts, systems/spells/validation/SpellIntegrityValidator.ts, systems/spells/validation/TargetingPresets.ts, types/index.ts, types/mechanics.ts, utils/character/savingThrowUtils.ts, utils/combat/combatUtils.ts, utils/combat/resistanceUtils.ts, utils/core/factories.ts, utils/validation/spellAuditor.ts, utils/validation/spellConsistencyValidator.ts, utils/visuals/spellVisuals.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -49,7 +49,36 @@ export interface Spell {
   classes: string[];
   description: string;
   higherLevels?: string;
+  /**
+   * Structured higher-level scaling data for the runtime engine.
+   *
+   * Why this exists:
+   * `higherLevels` is still the readable prose surface, but it is not a stable
+   * runtime format. This field gives the JSON a machine-readable place to store
+   * cantrip tier scaling, slot-level bonuses, breakpoint tables, and odd cases
+   * that still need to preserve raw rules text without forcing the engine to
+   * parse prose later.
+   *
+   * What it preserves:
+   * - existing prose-based `higherLevels` for glossary/readability
+   * - future room for richer runtime scaling without breaking old spells
+   *
+   * Current limitation:
+   * most of the live corpus still uses prose only. This field is additive so the
+   * migration can happen incrementally instead of forcing a corpus-wide rewrite.
+   */
+  higherLevelScaling?: HigherLevelScaling;
   tags?: string[];
+  /**
+   * Whether the spell can also be cast as a ritual.
+   *
+   * Why this stays separate from `castingTime`:
+   * canonical spell pages often display ritual as part of the visible casting
+   * time line, for example `1 Minute Ritual`. The runtime model keeps ritual as
+   * its own switch so the app can reason about the normal cast time and the
+   * ritual-capable status separately instead of flattening both ideas into one
+   * string.
+   */
   ritual?: boolean;
   rarity?: SpellRarity;
   attackType?: SpellAttackType;
@@ -151,6 +180,11 @@ export type SpellAttackType = "melee" | "ranged" | "none";
 
 /**
  * Defines the time required to cast a spell.
+ *
+ * Ritual note:
+ * `ritual` is intentionally not part of `unit`. A ritual spell still keeps its
+ * normal timing here and then marks the ritual-capable status with the separate
+ * top-level `ritual` flag above.
  */
 export interface CastingTime {
   value: number;
@@ -166,9 +200,44 @@ export interface CastingTime {
 /**
  * Defines the spell's effective range.
  */
+export type DistanceUnit = "feet" | "miles" | "inches";
+
+/**
+ * Extra unit choices for measured spatial facts that are not always pure
+ * distances.
+ *
+ * Why this exists:
+ * the risky spell review found a second category of geometry-adjacent facts that
+ * still mattered to spell placement and footprint review, but were not distances:
+ * gallons for Create or Destroy Water, minutes for rubble-clear time, and similar
+ * values that would otherwise be forced back into prose notes.
+ *
+ * What stays preserved:
+ * the main range/area geometry still uses `DistanceUnit` above. This wider unit
+ * type is only for the additive `spatialDetails.measuredDetails` channel.
+ */
+export type SpatialMeasuredUnit = DistanceUnit | "gallons" | "minutes";
+
+/**
+ * This spell-range shape now supports explicit measurement units instead of
+ * assuming every numeric distance is in feet.
+ *
+ * Why this changed:
+ * Range/Area review uncovered that the runtime model was carrying real geometry
+ * in numbers, but the "feet" part only lived in comments and formatter
+ * assumptions. That made the spell JSON weaker than the structured markdown and
+ * canonical source when mile-based ranges or future unit-bearing geometry show
+ * up.
+ *
+ * What stays preserved:
+ * Existing spell JSON can still omit the unit fields for now. Missing units are
+ * treated as legacy "feet" during the migration so we do not force a risky
+ * corpus-wide rewrite in one step.
+ */
 export interface Range {
-  type: "self" | "touch" | "ranged" | "special";
-  distance?: number; // in feet, for 'ranged' type
+  type: "self" | "touch" | "ranged" | "special" | "sight" | "unlimited";
+  distance?: number;
+  distanceUnit?: DistanceUnit;
 }
 
 /**
@@ -202,6 +271,7 @@ export type SpellTargeting =
   | SingleTargeting
   | MultiTargeting
   | AreaTargeting
+  | PointTargeting
   | SelfTargeting
   | HybridTargeting;
 
@@ -234,10 +304,26 @@ export interface AreaOfEffect {
    */
   shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere" | "Square"
   | "Emanation" | "Wall" | "Hemisphere" | "Ring";
-  /** Primary dimension in feet (radius for spheres/emanations, length for lines/walls). */
+  /**
+   * Primary dimension of the area (radius for spheres/emanations, length for
+   * lines/walls).
+   *
+   * Legacy spell JSON usually omits `sizeUnit`, which should currently be read
+   * as feet. The explicit unit field exists so future mile-based or otherwise
+   * non-default geometry does not have to hide behind formatter assumptions.
+   *
+   * Follow-up note:
+   * newer spell review also showed that the *kind* of size matters just as much
+   * as the number. A `30` might mean radius, diameter, cube edge, or wall
+   * length depending on the spell, so future authors should set `sizeType`
+   * whenever the distinction matters.
+   */
   size: number;
+  sizeType?: GeometrySizeType;
+  sizeUnit?: DistanceUnit;
   /** Optional vertical dimension for planar effects like squares on the ground. */
   height?: number;
+  heightUnit?: DistanceUnit;
 
   // --- Extended semantics (optional, shape-dependent) ---
 
@@ -247,11 +333,13 @@ export interface AreaOfEffect {
    */
   followsCaster?: boolean;
 
-  /** For Wall/Line shapes: thickness in feet (default 1 if not specified). */
+  /** For Wall/Line shapes: thickness (default 1 if not specified). */
   thickness?: number;
+  thicknessUnit?: DistanceUnit;
 
-  /** For Wall shapes: width of each segment in feet. */
+  /** For Wall shapes: width of each segment. */
   width?: number;
+  widthUnit?: DistanceUnit;
 
   /**
    * For spells that allow shape choice at cast time (e.g., Wall of Fire: line or ring).
@@ -282,6 +370,103 @@ export interface AreaOfEffect {
     /** Which side(s) of the wall trigger the effect. */
     triggerSide?: "one" | "both" | "inside";
   };
+}
+
+/**
+ * Clarifies what the main scalar on a spatial form actually means.
+ *
+ * Why this exists:
+ * risky Range/Area spells uncovered that a raw number like `20` is not enough
+ * once the repo starts storing walls, globes, rings, disks, pillars, and other
+ * constructed geometry explicitly. This type says whether the number means a
+ * radius, diameter, wall length, square edge, and so on.
+ */
+export type GeometrySizeType =
+  | "radius"
+  | "diameter"
+  | "length"
+  | "edge"
+  | "side";
+
+/**
+ * A fully explicit spatial form used when the base `range` + `areaOfEffect`
+ * fields are too compressed to describe what the spell really creates.
+ *
+ * Why it exists:
+ * the older runtime shape works well for ordinary cones, cubes, spheres, and
+ * simple walls. It becomes too lossy for risky spells like Wall of Force,
+ * Forcecage, Prismatic Wall, Daylight, or Create or Destroy Water, where we
+ * need to preserve alternate forms, edge-vs-radius meaning, height/thickness,
+ * or panel counts without flattening everything into prose.
+ */
+export interface SpatialForm {
+  label?: string;
+  shape: string;
+  size?: number;
+  sizeType?: GeometrySizeType;
+  sizeUnit?: DistanceUnit;
+  height?: number;
+  heightUnit?: DistanceUnit;
+  width?: number;
+  widthUnit?: DistanceUnit;
+  thickness?: number;
+  thicknessUnit?: DistanceUnit;
+  segmentCount?: number;
+  segmentWidth?: number;
+  segmentWidthUnit?: DistanceUnit;
+  segmentHeight?: number;
+  segmentHeightUnit?: DistanceUnit;
+  notes?: string;
+}
+
+/**
+ * A measured spell fact that matters spatially but does not belong inside the
+ * one primary area shape.
+ *
+ * Examples:
+ * - a detect spell being blocked by 1 inch of metal
+ * - Arcane Eye fitting through a 1-inch-diameter opening
+ * - Prismatic Wall being 1 inch thick
+ *
+ * This keeps those facts explicit instead of leaving them trapped in prose.
+ */
+export interface SpatialMeasuredDetail {
+  label: string;
+  kind:
+    | "blocker"
+    | "opening"
+    | "diameter"
+    | "thickness"
+    | "depth"
+    | "size_change"
+    | "distance"
+    | "count"
+    | "volume"
+    | "time"
+    | "special";
+  subject?: string;
+  value?: number;
+  unit?: SpatialMeasuredUnit;
+  qualifier?: string;
+  notes?: string;
+}
+
+/**
+ * A spell's explicit spatial fact bundle.
+ *
+ * Why this exists:
+ * the base runtime geometry is still the primary engine surface, but risky
+ * spells need a place to store alternate forms and secondary measurements
+ * without pretending those details do not exist.
+ *
+ * Typical examples:
+ * - a spell that can create either a wall or a globe
+ * - a spell whose main footprint is a Cube but whose rules also track gallons
+ * - a spell whose area is ordinary but whose blocker/opening dimensions matter
+ */
+export interface SpatialDetails {
+  forms?: SpatialForm[];
+  measuredDetails?: SpatialMeasuredDetail[];
 }
 
 /**
@@ -348,18 +533,25 @@ interface BaseTargeting {
    * Checked at cast time (unlike effect conditions which are checked at resolution).
    */
   filter?: TargetConditionFilter;
+  /**
+   * Optional richer spatial facts for risky spells whose geometry cannot be
+   * expressed cleanly by one flat range/area pair.
+   */
+  spatialDetails?: SpatialDetails;
 }
 
 /** Targets a single entity. Example: Chromatic Orb. */
 export interface SingleTargeting extends BaseTargeting {
   type: "single";
   range: number;
+  rangeUnit?: DistanceUnit;
 }
 
 /** Targets multiple specific entities. Example: Magic Missile, Eldritch Blast. */
 export interface MultiTargeting extends BaseTargeting {
   type: "multi";
   range: number;
+  rangeUnit?: DistanceUnit;
   /** Can be a fixed number or scale with level (e.g., Eldritch Blast beams) */
   maxTargets: ScalableNumber;
 }
@@ -368,7 +560,29 @@ export interface MultiTargeting extends BaseTargeting {
 export interface AreaTargeting extends BaseTargeting {
   type: "area";
   range: number; // Distance to the point of origin
+  rangeUnit?: DistanceUnit;
   areaOfEffect: AreaOfEffect;
+}
+
+/**
+ * Targets a chosen point in space that then anchors a placed effect.
+ *
+ * Why this exists:
+ * some spells do not target a creature directly and are not best described as
+ * "the whole area is the target" either. They place something at a point and
+ * that placed effect then creates a wall, globe, burst, or similar geometry.
+ *
+ * Example:
+ * Prismatic Wall is cast on a point within range and then creates either a wall
+ * or a globe from that origin. The validator already accepts `point`, so the
+ * shared TypeScript template must expose it too.
+ */
+export interface PointTargeting extends BaseTargeting {
+  type: "point";
+  range: number;
+  rangeUnit?: DistanceUnit;
+  maxTargets?: ScalableNumber;
+  areaOfEffect?: AreaOfEffect;
 }
 
 /** Targets only the caster. Example: Shield. */
@@ -835,6 +1049,121 @@ export interface FamiliarContract {
 //==============================================================================
 // Scaling System
 //==============================================================================
+
+/**
+ * A single machine-readable higher-level scaling rule.
+ *
+ * These leaf rule shapes are intentionally narrow. They are meant to cover the
+ * recurring runtime patterns first, while still leaving a `special_text_only`
+ * escape hatch for rules text that cannot yet be modeled safely.
+ */
+export type HigherLevelScalingRule =
+  | CharacterLevelTierScaling
+  | SlotLevelBonusScaling
+  | SlotLevelTableScaling
+  | TargetCountBonusScaling
+  | AreaSizeBonusScaling;
+
+/**
+ * Top-level higher-level scaling container stored on a spell.
+ *
+ * Single-rule spells can store one direct rule. More complex spells can use the
+ * `multiple` form to preserve several simultaneous scaling behaviors without
+ * flattening them into one ambiguous string.
+ */
+export type HigherLevelScaling =
+  | HigherLevelScalingRule
+  | MultipleHigherLevelScaling
+  | SpecialTextOnlyHigherLevelScaling;
+
+/**
+ * Character-level tier scaling, primarily for cantrips.
+ *
+ * Example:
+ * Fire Bolt can map 5 -> 2d10, 11 -> 3d10, 17 -> 4d10.
+ */
+export interface CharacterLevelTierScaling {
+  type: "character_level_tiers";
+  tiers: Record<string, string>;
+  notes?: string;
+}
+
+/**
+ * Simple slot-level bonus scaling.
+ *
+ * Example:
+ * Fireball adds +1d6 per slot above 3rd.
+ */
+export interface SlotLevelBonusScaling {
+  type: "slot_level_bonus";
+  baseSpellLevel: number;
+  bonusPerLevel: string;
+  notes?: string;
+}
+
+/**
+ * Explicit slot-level breakpoint table for spells that do not scale linearly.
+ *
+ * Example:
+ * a duration that becomes 10 minutes at slot 5, 1 hour at slot 6, and 8 hours
+ * at slot 7+.
+ */
+export interface SlotLevelTableScaling {
+  type: "slot_level_table";
+  baseSpellLevel: number;
+  entries: Record<string, string>;
+  notes?: string;
+}
+
+/**
+ * Structured target-count scaling for spells that affect more creatures per slot.
+ */
+export interface TargetCountBonusScaling {
+  type: "target_count_bonus";
+  baseSpellLevel: number;
+  additionalTargetsPerLevel: number;
+  targetLabel?: string;
+  notes?: string;
+}
+
+/**
+ * Structured area-size scaling for spells whose radius/size grows with slot level.
+ */
+export interface AreaSizeBonusScaling {
+  type: "area_size_bonus";
+  baseSpellLevel: number;
+  increasePerLevel: number;
+  unit: "feet";
+  dimension: "radius" | "diameter" | "cube_size" | "line_length" | "wall_length" | "wall_height";
+  notes?: string;
+}
+
+/**
+ * Multiple simultaneous higher-level scaling rules on one spell.
+ *
+ * Example:
+ * a spell might scale both damage and target count. This keeps those as separate
+ * runtime facts instead of collapsing them into one prose blob.
+ */
+export interface MultipleHigherLevelScaling {
+  type: "multiple";
+  rules: HigherLevelScalingRule[];
+  notes?: string;
+}
+
+/**
+ * Escape hatch for valid canonical scaling text that the runtime model still
+ * cannot safely express.
+ *
+ * This exists to preserve future possibility. It is better to mark the runtime
+ * scaling as "structured storage still pending" than to force a misleading fake
+ * shape just to satisfy neatness.
+ */
+export interface SpecialTextOnlyHigherLevelScaling {
+  type: "special_text_only";
+  referenceText: string;
+  reason?: string;
+}
 
 /** Defines how a spell's effects improve when cast at higher levels. */
 export interface ScalingFormula {

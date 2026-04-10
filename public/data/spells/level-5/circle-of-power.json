@@ -5,7 +5,13 @@
   "level": 5,
   "school": "Abjuration",
   "legacy": true,
-  "classes": [],
+  "classes": [
+    "Paladin"
+  ],
+  "subClasses": [
+    "Cleric - Twilight Domain (TCOE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

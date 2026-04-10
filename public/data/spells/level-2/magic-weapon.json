@@ -9,8 +9,15 @@
     "Paladin",
     "Ranger",
     "Sorcerer",
-    "Wizard"
+    "Wizard",
+    "Artificer"
   ],
+  "subClasses": [
+    "Cleric - War Domain",
+    "Cleric - Arcana Domain (SCAG)",
+    "Cleric - Forge Domain (XGtE)"
+  ],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -135,8 +142,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls. If the weapon isn't magical, it counts as a magic weapon for the duration.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the bonus increases to +2. When you use a spell slot of 6th level or higher, the bonus increases to +3.",
+  "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls. The spell ends early if you cast it again.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The bonus increases to +2 with a level 3-5 spell slot. The bonus increases to +3 with a level 6+ spell slot.",
   "tags": [
     "buff",
     "transmutation",

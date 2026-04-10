@@ -1,10 +1,29 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/03/2026, 23:48:00
+ * Dependents: App.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file MainMenu.tsx
  * This component renders the main menu screen for the Aralia RPG.
  * It provides options to start a new game, load a saved game (placeholder),
  * and view a game compendium (placeholder).
- * It now also includes a conditional "Skip Character Creator" button for development.
+ *
+ * The 2026-03-25 change removes the standalone "Quick Start (Dev)" button from the
+ * main menu and folds that action into the shared Dev Menu modal instead. This keeps
+ * developer-only entry points grouped together instead of splitting them across the
+ * main menu surface.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { LoadGameModal, SaveSlotSelector } from '../SaveLoad';
@@ -20,8 +39,8 @@ interface MainMenuProps {
   onShowCompendium: () => void;
   hasSaveGame: boolean;
   latestSaveTimestamp: number | null;
-  isDevDummyActive: boolean; // New prop
-  onSkipCharacterCreator: () => void; // New prop
+  isDevDummyActive: boolean; // Retained for now because other call sites/tests still document the old quick-start capability.
+  onSkipCharacterCreator: () => void; // Retained for now because App still owns the quick-start action routed through the Dev Menu.
   onClearAllSaves?: () => void; // New prop
   hasActiveRun?: boolean;
   onAbandonRun?: () => void;
@@ -47,11 +66,13 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onShowCompendium,
   hasSaveGame,
   latestSaveTimestamp,
-  // TODO(lint-intent): 'isDevDummyActive' is an unused parameter, which suggests a planned input for this flow.
-  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  // This prop is intentionally retained even though the button moved into the Dev Menu.
+  // Keeping it here avoids a broader signature cleanup while the quick-start action is
+  // still part of the overall main-menu dev flow owned by App.tsx.
   isDevDummyActive: _isDevDummyActive,
-  onSkipCharacterCreator,
+  // Same story for the callback: App still passes the quick-start handler, but the
+  // main menu no longer renders it directly after folding that action into Dev Menu.
+  onSkipCharacterCreator: _onSkipCharacterCreator,
   onClearAllSaves,
   hasActiveRun = false,
   onAbandonRun,
@@ -192,17 +213,10 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.save_to_slot')}
           </button>
-          {/* TODO: Also gate this dev skip button on isDevDummyActive/onSkipCharacterCreator so it only appears when the dummy flow is enabled, matching the test expectation. */}
           {canUseDevTools() && (
             <>
-              <button
-                onClick={onSkipCharacterCreator}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
-                aria-label={t('main_menu.skip_character_creator')}
-              >
-                {t('main_menu.skip_character_creator')}
-              </button>
-              {/* Render the Dev Menu button if development tools are available and the handler is provided */}
+              {/* The dev-only quick-start path now lives inside Dev Menu so this main-menu
+                  surface only shows one developer entry point instead of two disjoint ones. */}
               {onOpenDevMenu && (
                 <button
                   onClick={onOpenDevMenu}

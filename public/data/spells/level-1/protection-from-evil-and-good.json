@@ -12,6 +12,10 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [
+    "Sorcerer - Clockwork Sorcery"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -35,7 +39,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "holy water or powdered silver and iron worth 25+ gp",
+    "materialDescription": "a flask of Holy Water worth 25+ GP, which the spell consumes",
     "materialCost": 25,
     "isConsumed": true
   },
@@ -149,7 +153,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Until the spell ends, one willing creature you touch is protected against certain types of creatures: Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be Charmed, Frightened, or possessed by them. If the target is already Charmed, Frightened, or possessed by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+  "description": "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
   "higherLevels": "",
   "tags": [
     "defense",

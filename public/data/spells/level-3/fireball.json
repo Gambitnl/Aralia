@@ -9,6 +9,12 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Light Domain",
+    "Warlock - The Genie (TCoE)",
+    "Warlock - Fiend Patron"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,13 +32,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 150
+    "distance": 150,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a tiny ball of bat guano and sulfur",
+    "materialDescription": "a ball of bat guano and sulfur",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -45,6 +52,7 @@
   "targeting": {
     "type": "area",
     "range": 150,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -52,6 +60,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 20,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -113,7 +122,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius Sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 Fire damage on a failed save, or half as much damage on a successful one. The fire spreads around corners. It ignites flammable objects in the area that aren't being worn or carried.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.",
+  "description": "A bright streak flashes from you to a point you choose within range and then blossoms with a low roar into a fiery explosion. Each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw, taking 8d6 Fire damage on a failed save or half as much damage on a successful one. Flammable objects in the area that aren't being worn or carried start burning .",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 3.",
   "tags": []
 }

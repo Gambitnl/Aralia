@@ -497,6 +497,7 @@ function evaluateAoEPlan(
   // ability cast from the same tile at the same center. The key combines ability,
   // target center, and the chosen cast position.
   // TODO(FEATURES): Persist AoE reachability/impact caches across evaluations per turn to reduce repeated sampling costs (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// TODO(FEATURES): Add AI model optionality to combat AI system to allow players to choose between local (Ollama) or cloud (Gemini) models for tactical decision-making, with graceful fallback between models based on availability and preference.
   const aoeCache = new Map<string, Position[]>();
 
   for (const center of candidateCenters) {

@@ -3,13 +3,15 @@
   "name": "Aura of Vitality",
   "aliases": [],
   "level": 3,
-  "school": "Evocation",
+  "school": "Abjuration",
   "legacy": false,
   "classes": [
     "Cleric",
     "Druid",
     "Paladin"
   ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -52,6 +54,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 30,
+      "sizeUnit": "feet",
       "height": 0
     },
     "range": 0,
@@ -134,7 +137,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Healing energy radiates from you in an aura with a 30-foot radius. Until the spell ends, the aura moves with you, centered on you. You can use a Bonus Action to cause one creature in the aura (including you) to regain 2d6 Hit Points.",
+  "description": "An aura radiates from you in a 30-foot Emanation for the duration. When you create the aura and at the start of each of your turns while it persists, you can restore 2d6 Hit Points to one creature in it.",
   "higherLevels": "",
   "tags": []
 }

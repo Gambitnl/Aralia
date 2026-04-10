@@ -1,0 +1,50 @@
+wing: aralia
+rooms:
+- name: antigravityception
+  description: Files from AntiGravityCeption/
+- name: artifacts
+  description: Files from artifacts/
+- name: claudeception
+  description: Files from Claudeception/
+- name: conductor
+  description: Files from conductor/
+- name: devtools
+  description: Files from devtools/
+- name: documentation
+  description: Files from docs/
+- name: misc
+  description: Files from misc/
+- name: output
+  description: Files from output/
+- name: playwright_report
+  description: Files from playwright-report/
+- name: public
+  description: Files from public/
+- name: scripts
+  description: Files from scripts/
+- name: sideprojects
+  description: Files from sideprojects/
+- name: skills
+  description: Files from skills/
+- name: src
+  description: Files from src/
+- name: test_results
+  description: Files from test-results/
+- name: testing
+  description: Files from tests/
+- name: tmp
+  description: Files from tmp/
+- name: verification
+  description: Files from verification/
+- name: planning
+  description: Files from roadmap/
+- name: design
+  description: Files from assets/
+- name: frontend
+  description: Files from components/
+- name: configuration
+  description: Files from config/
+- name: backend
+  description: Files from services/
+- name: general
+  description: Files that don't fit other rooms

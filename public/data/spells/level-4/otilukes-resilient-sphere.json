@@ -9,6 +9,11 @@
     "Artificer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Peace Domain (TCoE)",
+    "Paladin - Oath of Redemption (XGtE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +31,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +51,7 @@
   "targeting": {
     "type": "single",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "objects"

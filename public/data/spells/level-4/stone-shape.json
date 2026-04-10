@@ -11,6 +11,10 @@
     "Druid",
     "Wizard"
   ],
+  "subClasses": [
+    "Warlock - The Genie (TCoE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

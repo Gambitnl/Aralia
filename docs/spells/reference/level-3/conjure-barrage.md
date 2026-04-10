@@ -18,7 +18,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: one piece of ammunition or a thrown weapon
+- **Material Description**: a Melee or Ranged weapon worth at least 1 CP
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -31,5 +31,40 @@
 - **Damage Dice**: 3d8
 - **Damage Type**: weapon_damage_type
 
-- **Description**: You throw a nonmagical weapon or fire a piece of nonmagical ammunition into the air to create a cone of identical weapons that shoot forward and then disappear. Each creature in a 60-foot Cone must succeed on a Dexterity saving throw. A creature takes 3d8 damage on a failed save, or half as much damage on a successful one. The damage type is the same as that of the weapon or ammunition used as a component.
-- **Higher Levels**: When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d8 for each slot level above 3rd.
+- **Description**: You brandish the weapon used to cast the spell and conjure similar spectral weapons (or ammunition appropriate to the weapon) that launch forward and then disappear. Each creature of your choice that you can see in a 60-foot Cone makes a Dexterity saving throw, taking 5d8 Force damage on a failed save or half as much damage on a successful one.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 3.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Conjure Barrage
+Level: 3rd
+Casting Time: 1 Action
+Range/Area: Self (60 ft.)
+Components: V, S, M *
+Duration: Instantaneous
+School: Conjuration
+Attack/Save: DEX Save
+Damage/Effect: Force
+
+Rules Text:
+You brandish the weapon used to cast the spell and conjure similar spectral weapons (or ammunition appropriate to the weapon) that launch forward and then disappear. Each creature of your choice that you can see in a 60-foot Cone makes a Dexterity saving throw, taking 5d8 Force damage on a failed save or half as much damage on a successful one.
+Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 3.
+
+Material Component:
+* - (a Melee or Ranged weapon worth at least 1 CP)
+
+Spell Tags:
+Damage
+
+Available For:
+Ranger
+
+Referenced Rules:
+Cone -> /rules-glossary/17-tooltip
+
+Capture Method: http
+Legacy Page: false
+-->

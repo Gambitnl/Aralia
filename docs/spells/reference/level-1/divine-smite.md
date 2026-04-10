@@ -27,5 +27,31 @@
 - **Damage Type**: Radiant
 - **Additional Damage**: 1d8 Radiant against Fiend or Undead targets
 
-- **Description**: Immediately after you hit a creature with a melee weapon or an Unarmed Strike, you can expend a spell slot to deal Radiant damage to the target. The damage is 2d8 for a 1st-level spell slot, plus 1d8 for each slot level higher than 1st, to a maximum of 5d8. The damage increases by 1d8 if the target is an Undead or a Fiend.
-- **Higher Levels**: Damage increases by 1d8 per slot level above 1.
+- **Description**: The target takes an extra 2d8 Radiant damage from the attack. The damage increases by 1d8 if the target is a Fiend or an Undead.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Divine Smite
+Level: 1st
+Casting Time: 1 Bonus Action *
+Range/Area: Self
+Components: V
+Duration: Instantaneous
+School: Evocation
+Attack/Save: None
+Damage/Effect: Radiant
+
+Rules Text:
+The target takes an extra 2d8 Radiant damage from the attack. The damage increases by 1d8 if the target is a Fiend or an Undead.
+Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 1.
+
+Available For:
+Paladin
+
+Capture Method: http
+Legacy Page: false
+-->

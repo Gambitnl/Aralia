@@ -10,6 +10,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -51,6 +53,7 @@
     "areaOfEffect": {
       "shape": "Cone",
       "size": 15,
+      "sizeUnit": "feet",
       "height": 0
     },
     "lineOfSight": false,
@@ -190,7 +193,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A dazzling array of flashing, colorful light springs from your hand. Each creature in a 15-foot Cone must succeed on a Constitution saving throw or be Blinded until the end of your next turn.",
+  "description": "You launch a dazzling array of flashing, colorful light. Each creature in a 15-foot Cone originating from you must succeed on a Constitution saving throw or have the Blinded condition until the end of your next turn.",
   "higherLevels": "",
   "tags": [
     "control",

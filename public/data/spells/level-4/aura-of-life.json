@@ -5,7 +5,15 @@
   "level": 4,
   "school": "Abjuration",
   "legacy": true,
-  "classes": [],
+  "classes": [
+    "Paladin"
+  ],
+  "subClasses": [
+    "Cleric - Twilight Domain (TCOE)",
+    "Druid - Circle of Wildfire (TCOE)",
+    "Warlock - The Undying (SCAG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

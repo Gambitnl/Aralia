@@ -1,9 +1,9 @@
-import type { NPCVisualSpec } from './visuals';
-import type { NPCKnowledgeProfile } from './dialogue';
-import type { Position as CombatPosition } from './combat';
-import type { NPCMemory } from './memory';
-import type { AbilityScores } from './character';
-import type { EquipmentSlotType, Item } from './items';
+import type { NPCVisualSpec } from './visuals.js';
+import type { NPCKnowledgeProfile } from './dialogue.js';
+import type { Position as CombatPosition } from './combat.js';
+import type { NPCMemory } from './memory.js';
+import type { AbilityScores } from './character.js';
+import type { EquipmentSlotType, Item } from './items.js';
 export type Position = CombatPosition;
 export interface FamilyMember {
     id: string;

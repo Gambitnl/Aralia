@@ -10,6 +10,12 @@
     "Cleric",
     "Ranger"
   ],
+  "subClasses": [
+    "Warlock - Mother of Sorrows (BoET)",
+    "Warlock - The Fathomless (TCoE)",
+    "Warlock - The Undying (SCAG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": true,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +33,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,12 +53,14 @@
   "targeting": {
     "type": "area",
     "range": 120,
+    "rangeUnit": "feet",
     "validTargets": [
       "point"
     ],
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 20,
+      "sizeUnit": "feet",
       "height": 0
     },
     "lineOfSight": true,
@@ -134,7 +143,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "For the duration, no sound can be created within or pass through a 20-foot-radius Sphere centered on a point you choose within range. Any creature or object entirely inside the Sphere is immune to Thunder damage, and creatures are Deafened while entirely inside it. Casting a spell that includes a Verbal component is impossible there.",
+  "description": "For the duration, no sound can be created within or pass through a 20-foot-radius Sphere centered on a point you choose within range. Any creature or object entirely inside the Sphere has Immunity to Thunder damage, and creatures have the Deafened condition while entirely inside it. Casting a spell that includes a Verbal component is impossible there.",
   "higherLevels": "",
   "tags": [
     "illusion",

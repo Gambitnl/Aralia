@@ -2,14 +2,14 @@
 - **Level**: 6
 - **School**: Conjuration
 - **Ritual**: false
-- **Classes**: Druid, Warlock
+- **Classes**: Druid
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
 
 - **Range Type**: ranged
-- **Range Distance**: 90
+- **Range Distance**: 60
 - **Targeting Type**: point
 - **Area Shape**: none
 - **Area Size**: 0
@@ -19,17 +19,49 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: false
-- **Material Description**: none
+- **Material Description**: 
 - **Material Cost GP**: 0
 - **Consumed**: false
 
-- **Duration Type**: concentration
-- **Duration Value**: 1
-- **Duration Unit**: hour
+- **Duration Type**: timed
+- **Duration Value**: 10
+- **Duration Unit**: minute
 - **Concentration**: true
 
 - **Effect Type**: SUMMONING
 - **Utility Type**: other
 
-- **Description**: You summon a fey creature of challenge rating 6 or lower, or a fey spirit that takes the form of a beast of challenge rating 6 or lower. It appears in an unoccupied space that you can see within range. The fey creature disappears when it drops to 0 hit points or when the spell ends. The fey creature is friendly to you and your companions for the duration. Roll initiative for the creature, which has its own turns. It obeys any verbal commands that you issue to it (no action required by you), as long as they don't violate its alignment. If you don't issue any commands to the fey creature, it defends itself from hostile creatures but otherwise takes no actions. If your concentration is broken, the fey creature doesn't disappear. Instead, you lose control of the fey creature, it becomes hostile toward you and your companions, and it might attack. An uncontrolled fey creature can't be dismissed by you, and it disappears 1 hour after you summoned it. The DM has the fey creature's statistics.
-- **Higher Levels**: When you cast this spell using a spell slot of 7th level or higher, the challenge rating increases by 1 for each slot level above 6th.
+- **Description**: You conjure a Medium spirit from the Feywild in an unoccupied space you can see within range. The spirit lasts for the duration, and it looks like a Fey creature of your choice. When the spirit appears, you can make one melee spell attack against a creature within 5 feet of it. On a hit, the target takes Psychic damage equal to 3d12 plus your spellcasting ability modifier, and the target has the Frightened condition until the start of your next turn, with both you and the spirit as the source of the fear. As a Bonus Action on your later turns, you can teleport the spirit to an unoccupied space you can see within 30 feet of the space it left and make the attack against a creature within 5 feet of it.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d12 for each spell slot level above 6.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Conjure Fey
+Level: 6th
+Casting Time: 1 Action
+Range/Area: 60 ft.
+Components: V, S
+Duration: Concentration 10 Minutes
+School: Conjuration
+Attack/Save: Melee
+Damage/Effect: Psychic
+
+Rules Text:
+You conjure a Medium spirit from the Feywild in an unoccupied space you can see within range. The spirit lasts for the duration, and it looks like a Fey creature of your choice. When the spirit appears, you can make one melee spell attack against a creature within 5 feet of it. On a hit, the target takes Psychic damage equal to 3d12 plus your spellcasting ability modifier, and the target has the Frightened condition until the start of your next turn, with both you and the spirit as the source of the fear.
+As a Bonus Action on your later turns, you can teleport the spirit to an unoccupied space you can see within 30 feet of the space it left and make the attack against a creature within 5 feet of it.
+Using a Higher-Level Spell Slot. The damage increases by 1d12 for each spell slot level above 6.
+
+Spell Tags:
+Summoning
+Damage
+Debuff
+
+Available For:
+Druid
+
+Capture Method: http
+Legacy Page: false
+-->

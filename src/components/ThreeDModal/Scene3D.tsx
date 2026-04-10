@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import type { Color, Mesh } from 'three';
 import { ACESFilmicToneMapping, Color as ThreeColor, DoubleSide, SRGBColorSpace } from 'three';
 import { BIOMES } from '../../constants';
@@ -22,6 +22,7 @@ import NpcUnit from './NpcUnit';
 import PartyUnit from './PartyUnit';
 import SkyDome from './SkyDome';
 import EnhancedSkyDome from './EnhancedSkyDome';
+import TakramSkySystem from './TakramSkySystem';
 import WaterPlane from './WaterPlane';
 import EnhancedWaterPlane from './EnhancedWaterPlane';
 import LabGround from './LabGround';
@@ -77,6 +78,27 @@ interface Scene3DProps {
   cameraFocusRequestId?: number;
   cameraFocusDistance?: number;
   cameraFocusLock?: boolean;
+  /**
+   * 'legacy'  — current EnhancedSkyDome + LabClouds + PostProcessingPipeline (default)
+   * 'takram'  — @takram/three-atmosphere sky + @takram/three-clouds volumetric clouds
+   *             (disables PostProcessingPipeline to avoid double-render conflict)
+   */
+  skyMode?: 'legacy' | 'takram';
+  takramCloudCoverage?: number;
+  /** Sky Lab debug toggles — only used when skyMode='takram' */
+  takramCorrectAltitude?: boolean;
+  takramGround?: boolean;
+  takramStars?: boolean;
+  /** When false, disables the @react-three/postprocessing EffectComposer in takram mode. */
+  takramEffectComposer?: boolean;
+  /** Exposure multiplier for the Takram sky's ACES tone mapping pass (default 6). */
+  takramExposure?: number;
+  /** Show procedural moon (opposite sun) in Takram mode. */
+  takramMoon?: boolean;
+  /** Altitude multiplier for cloud layers (default 1.0). */
+  takramCloudAltitude?: number;
+  /** Sky-cam debug mode: snaps the camera to orbit a point in the cloud layer so clouds are visible looking upward. */
+  takramSkyCam?: boolean;
   labGrassEnabled?: boolean;
   labGrassCount?: number;
   labFlowersEnabled?: boolean;
@@ -160,6 +182,16 @@ const SceneContents = ({
   onEntitySelect,
   hoveredEntityId,
   selectedEntityId,
+  skyMode = 'legacy',
+  takramCloudCoverage = 0.5,
+  takramCorrectAltitude = true,
+  takramGround = false,
+  takramStars = true,
+  takramEffectComposer = true,
+  takramExposure = 6,
+  takramMoon = true,
+  takramCloudAltitude = 1,
+  takramSkyCam = false,
 }: Scene3DProps) => {
   const playerRef = useRef<Mesh>(null);
   const partyPositionsRef = useRef<Array<{ x: number; y: number; z: number } | null>>([]);
@@ -178,11 +210,17 @@ const SceneContents = ({
     () => getLightingForTime(gameTime, biomeId, biome?.rgbaColor),
     [gameTime, biomeId, biome?.rgbaColor]
   );
+  // Scene lighting sun direction — clamped above horizon for directional light.
   const sunDirection = useMemo(() => {
     const base = lighting.sunDirection.clone();
     // Allow the test harness to override sun position so artists can light
     // trees without waiting for a specific in-game time of day.
-    if (lightingOverrides?.sunAzimuth !== undefined || lightingOverrides?.sunElevation !== undefined) {
+    // In Takram mode the time slider drives the sun position so the
+    // physically-based atmosphere responds to time-of-day changes.
+    if (
+      skyMode !== 'takram' &&
+      (lightingOverrides?.sunAzimuth !== undefined || lightingOverrides?.sunElevation !== undefined)
+    ) {
       const azimuth = ((lightingOverrides?.sunAzimuth ?? 0) * Math.PI) / 180;
       const elevation = ((lightingOverrides?.sunElevation ?? 45) * Math.PI) / 180;
       base.set(
@@ -192,10 +230,36 @@ const SceneContents = ({
       );
     }
     return base.normalize();
-  }, [lighting.sunDirection, lightingOverrides?.sunAzimuth, lightingOverrides?.sunElevation]);
+  }, [lighting.sunDirection, lightingOverrides?.sunAzimuth, lightingOverrides?.sunElevation, skyMode]);
+  // True astronomical sun direction for the Takram atmosphere — unclamped so
+  // the sun actually dips below the horizon, enabling sunset, night sky, stars, and moon.
+  const takramSunDirection = useMemo(
+    () => lighting.trueSunDirection.clone().normalize(),
+    [lighting.trueSunDirection]
+  );
   const sunIntensity = lightingOverrides?.sunIntensity ?? lighting.sunIntensity;
   const ambientIntensity = lightingOverrides?.ambientIntensity ?? lighting.ambientIntensity;
   const fogDensity = lightingOverrides?.fogDensity ?? lighting.fogDensity;
+
+  // In takram mode, boost toneMappingExposure so Bruneton's low relative-luminance
+  // sky values (0.01–0.1) become visible after ACES tone mapping.
+  // At night the exposure ramps down so the sky goes properly dark and stars
+  // become visible instead of amplifying residual scattering glow.
+  // In legacy mode, restore the default exposure of 1.0.
+  const { gl } = useThree();
+  const takramEffectiveExposure = useMemo(() => {
+    if (skyMode !== 'takram') return 1.0;
+    // takramSunDirection.y < 0 means sun below horizon.
+    const sunY = takramSunDirection.y;
+    // Smoothly ramp: full exposure when sun above ~10°, minimum (~1.5×) when
+    // sun is well below horizon (-0.2 or lower).
+    const t = Math.max(0, Math.min(1, (sunY + 0.2) / 0.35)); // 0 at sunY≤-0.2, 1 at sunY≥0.15
+    const nightExposure = 1.5;
+    return nightExposure + t * (takramExposure - nightExposure);
+  }, [skyMode, takramExposure, takramSunDirection.y]);
+  useEffect(() => {
+    gl.toneMappingExposure = takramEffectiveExposure;
+  }, [gl, takramEffectiveExposure]);
   const terrainSamplers = useMemo(() => {
     // Tree-lab mode uses a large ground plane so there are no visible tile edges.
     // Keeping height flat also makes tree shape iteration easier to judge.
@@ -395,11 +459,26 @@ const SceneContents = ({
         shadow-camera-bottom={-100}
         shadow-bias={-0.0001}
       />
-      {!isSafeRender && (
-        <EnhancedSkyDome 
-          sunDirection={sunDirection} 
-          biomeId={biomeId} 
-          tint={lighting.biomeColor} 
+      {!isSafeRender && skyMode === 'takram' && (
+        <TakramSkySystem
+          sunDirection={takramSunDirection}
+          visible={skyVisible}
+          cloudCoverage={takramCloudCoverage}
+          qualityPreset="low"
+          correctAltitude={takramCorrectAltitude}
+          ground={takramGround}
+          starsEnabled={takramStars}
+          moonEnabled={takramMoon}
+          effectComposerEnabled={takramEffectComposer}
+          exposure={takramEffectiveExposure}
+          cloudAltitude={takramCloudAltitude}
+        />
+      )}
+      {!isSafeRender && skyMode === 'legacy' && (
+        <EnhancedSkyDome
+          sunDirection={sunDirection}
+          biomeId={biomeId}
+          tint={lighting.biomeColor}
           visible={skyVisible}
           gameTime={gameTime}
           cloudCoverage={0.6}
@@ -414,7 +493,9 @@ const SceneContents = ({
           size={Math.max(20000, submapFootprintFt * 8)}
           tint={lighting.biomeColor.clone().multiplyScalar(0.85)}
         />
-          <LabClouds size={Math.max(6000, submapFootprintFt * 3)} height={240} />
+          {skyMode === 'legacy' && (
+            <LabClouds size={Math.max(6000, submapFootprintFt * 3)} height={240} />
+          )}
           <LabGrass
             seed={submapSeed}
             grassEnabled={labGrassEnabled}
@@ -577,9 +658,17 @@ const SceneContents = ({
         onPositionChange={onPlayerPosition}
         onSpeedChange={onPlayerSpeed}
       />
+      {/* In takram sky mode allow tilting camera past horizontal so the user
+          can look upward and verify volumetric clouds are rendering. The
+          default (Math.PI * 0.48 ≈ 86°) blocks any upward view of the sky.
+          skyCam snaps the orbit target into the cloud layer (~400m) for a
+          direct under-cloud view. */}
       <CameraRig
         playerRef={playerRef}
         maxDistance={500}
+        maxPolarAngle={skyMode === 'takram' ? Math.PI * 0.85 : Math.PI * 0.48}
+        skyCam={skyMode === 'takram' && takramSkyCam}
+        skyCamAltitude={400}
         focusTarget={focusTarget}
         focusRequestId={cameraFocusRequestId}
         focusDistance={cameraFocusDistance}
@@ -591,17 +680,20 @@ const SceneContents = ({
         heightSampler={heightSampler}
         visible={showGrid}
       />
-      {!isSafeRender && (
-        <PostProcessingPipeline 
+      {/* PostProcessingPipeline (three-stdlib) is legacy-only — it conflicts with
+          @react-three/postprocessing's EffectComposer used in Takram mode. */}
+      {!isSafeRender && skyMode === 'legacy' && (
+        <PostProcessingPipeline
           enabled={true}
-          // Keep bloom extremely conservative; aggressive bloom reads as "exposure ramping"
-          // and can white-out the whole scene in bright fog/sky conditions.
           bloomIntensity={0.15}
           bloomThreshold={0.85}
           bloomRadius={0.12}
           fxaaEnabled={true}
         />
       )}
+      {/* Note: In takram mode the EffectComposer (with Clouds + ToneMapping) lives
+          inside TakramSkySystem, not here. It must be a child of <Atmosphere> so
+          that <Clouds> can access AtmosphereContext for sun direction / ECEF matrix. */}
     </>
   );
 };

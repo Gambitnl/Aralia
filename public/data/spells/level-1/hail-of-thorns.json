@@ -8,6 +8,8 @@
   "classes": [
     "Ranger"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -50,6 +52,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 5,
+      "sizeUnit": "feet",
       "height": 0
     },
     "range": 0,
@@ -155,7 +158,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal effect of the attack, the target of the attack and each creature within 5 feet of it must make a Dexterity saving throw. A creature takes 1d10 Piercing damage on a failed save, or half as much damage on a successful one.",
-  "higherLevels": "If you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.",
+  "description": "As you hit the creature, this spell creates a rain of thorns that sprouts from your Ranged weapon or ammunition. The target of the attack and each creature within 5 feet of it make a Dexterity saving throw, taking 1d10 Piercing damage on a failed save or half as much damage on a successful one.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 1.",
   "tags": []
 }

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 05/04/2026, 00:55:31
+ * Dependents: systems/rituals/RitualManager.ts, types/index.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/types/rituals.ts
  * Defines the state and mechanics for long-duration ritual casting.
@@ -21,11 +37,17 @@ export interface RitualState {
   /** When the ritual started (game time or round number) */
   startTime: number;
 
-  /** Total duration required in rounds (for combat) or minutes (for narrative) */
-  durationTotal: number;
-  durationUnit: 'rounds' | 'minutes' | 'hours';
+  /** Canonical runtime duration stored in seconds so combat and world time share one scalar */
+  durationTotalSeconds: number;
 
-  /** Current progress (same unit as durationTotal) */
+  /** Canonical runtime progress stored in seconds */
+  progressSeconds: number;
+
+  /** Human-facing display duration derived from the canonical seconds value */
+  durationTotal: number;
+  durationUnit: 'seconds' | 'rounds' | 'minutes' | 'hours';
+
+  /** Human-facing display progress derived from progressSeconds */
   progress: number;
 
   /** If true, the ritual is paused but not broken */

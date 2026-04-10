@@ -367,18 +367,6 @@
         "hasSpellJson": true
       },
       {
-        "id": "sapping-sting",
-        "title": "Sapping Sting",
-        "category": "Spells",
-        "tags": [
-          "level 0"
-        ],
-        "excerpt": "Necromancy spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
         "id": "shape-water",
         "title": "Shape Water",
         "category": "Spells",
@@ -2722,18 +2710,6 @@
         "hasSpellJson": true
       },
       {
-        "id": "pulse-wave",
-        "title": "Pulse Wave",
-        "category": "Spells",
-        "tags": [
-          "level 3"
-        ],
-        "excerpt": "Evocation spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
         "id": "remove-curse",
         "title": "Remove Curse",
         "category": "Spells",
@@ -3205,7 +3181,7 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Conjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3241,7 +3217,7 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Conjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3266,18 +3242,6 @@
           "level 4"
         ],
         "excerpt": "Conjuration spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
-        "id": "gravity-sinkhole",
-        "title": "Gravity Sinkhole",
-        "category": "Spells",
-        "tags": [
-          "level 4"
-        ],
-        "excerpt": "Evocation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3313,7 +3277,7 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Transmutation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3433,7 +3397,7 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Necromancy spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3457,7 +3421,7 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Enchantment spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3505,7 +3469,7 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Conjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3598,7 +3562,7 @@
         "tags": [
           "level 5"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Conjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -3730,7 +3694,7 @@
         "tags": [
           "level 5"
         ],
-        "excerpt": "Evocation spell",
+        "excerpt": "Transmutation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -4180,18 +4144,6 @@
         "hasSpellJson": true
       },
       {
-        "id": "temporal-shunt",
-        "title": "Temporal Shunt",
-        "category": "Spells",
-        "tags": [
-          "level 5"
-        ],
-        "excerpt": "Evocation spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
         "id": "transmute-rock",
         "title": "Transmute Rock",
         "category": "Spells",
@@ -4472,18 +4424,6 @@
           "level 6"
         ],
         "excerpt": "Abjuration spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
-        "id": "gravity-fissure",
-        "title": "Gravity Fissure",
-        "category": "Spells",
-        "tags": [
-          "level 6"
-        ],
-        "excerpt": "Evocation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -5124,18 +5064,6 @@
         "hasSpellJson": true
       },
       {
-        "id": "tether-essence",
-        "title": "Tether Essence",
-        "category": "Spells",
-        "tags": [
-          "level 7"
-        ],
-        "excerpt": "Evocation spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
         "id": "whirlwind",
         "title": "Whirlwind",
         "category": "Spells",
@@ -5224,18 +5152,6 @@
           "level 8"
         ],
         "excerpt": "Transmutation spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
-        "id": "dark-star",
-        "title": "Dark Star",
-        "category": "Spells",
-        "tags": [
-          "level 8"
-        ],
-        "excerpt": "Evocation spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -5392,18 +5308,6 @@
           "level 8"
         ],
         "excerpt": "Enchantment spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
-        "id": "reality-break",
-        "title": "Reality Break",
-        "category": "Spells",
-        "tags": [
-          "level 8"
-        ],
-        "excerpt": "Conjuration spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true
@@ -5610,18 +5514,6 @@
         "hasSpellJson": true
       },
       {
-        "id": "ravenous-void",
-        "title": "Ravenous Void",
-        "category": "Spells",
-        "tags": [
-          "level 9"
-        ],
-        "excerpt": "Evocation spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
         "id": "shapechange",
         "title": "Shapechange",
         "category": "Spells",
@@ -5641,18 +5533,6 @@
           "level 9"
         ],
         "excerpt": "Conjuration spell",
-        "aliases": [],
-        "filePath": null,
-        "hasSpellJson": true
-      },
-      {
-        "id": "time-ravage",
-        "title": "Time Ravage",
-        "category": "Spells",
-        "tags": [
-          "level 9"
-        ],
-        "excerpt": "Necromancy spell",
         "aliases": [],
         "filePath": null,
         "hasSpellJson": true

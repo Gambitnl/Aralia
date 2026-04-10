@@ -297,7 +297,10 @@ function buildIndex() {
 
   const files = glob.sync("**/*.json", {
     cwd: ENTRY_BASE_DIR,
-    ignore: ["spells/**", "dev/**"], // spells come from spells_manifest.json; dev entries excluded
+    // Only the top-level glossary spell entries are manifest-driven. Nested rules/spells
+    // entries are real glossary content and must stay visible to the index builder, so
+    // the ignore rule must target only the root-level `entries/spells/*.json` files.
+    ignore: ["spells/*.json", "dev/**"],
   });
 
   console.log(`Found ${files.length} files...`);

@@ -10,6 +10,12 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Tempest Domain (PHB)",
+    "Warlock - The Fathomless (TCoE)",
+    "Warlock - The Genie (TCoE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,13 +33,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 150
+    "distance": 150,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a pinch of dust and a few drops of water",
+    "materialDescription": "a miniature umbrella",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -46,6 +53,7 @@
   "targeting": {
     "type": "area",
     "range": 150,
+    "rangeUnit": "feet",
     "validTargets": [
       "point"
     ],
@@ -53,6 +61,7 @@
     "areaOfEffect": {
       "shape": "Cylinder",
       "size": 40,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -128,7 +137,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Until the spell ends, freezing rain and sleet fall in a 20-foot-tall Cylinder with a 40-foot radius centered on a point you choose within range. The area is Heavily Obscured, and exposed flames in the area are doused. The ground in the area is covered with slick ice, making it Difficult Terrain. When a creature enters the spell's area for the first time on a turn or starts its turn there, it must make a Dexterity saving throw. On a failed save, it falls Prone. If a creature is concentrating in the spell's area, the creature must make a successful Constitution saving throw against your spell save DC or lose Concentration.",
+  "description": "Until the spell ends, sleet falls in a 40-foot-tall, 20-foot-radius Cylinder centered on a point you choose within range. The area is Heavily Obscured , and exposed flames in the area are doused. Ground in the Cylinder is Difficult Terrain . When a creature enters the Cylinder for the first time on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the Prone condition and lose Concentration .",
   "higherLevels": "",
   "tags": []
 }

@@ -10,6 +10,8 @@
     "Cleric",
     "Druid"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "single",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -114,8 +118,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A creature of your choice that you can see within range regains hit points equal to 2d4 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 2d4 for each slot level above 1st.",
+  "description": "A creature of your choice that you can see within range regains Hit Points equal to 2d4 plus your spellcasting ability modifier.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The healing increases by 2d4 for each spell slot level above 1.",
   "tags": [
     "healing",
     "ranged"

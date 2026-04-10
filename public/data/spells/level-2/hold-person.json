@@ -13,6 +13,14 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [
+    "Paladin - Oath of Castigation",
+    "Paladin - Oath of Conquest (XGtE)",
+    "Paladin - Oath of Redemption (XGtE)",
+    "Paladin - Oath of Vengeance",
+    "Ranger - Grim Harbinger"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -30,13 +38,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a small, straight piece of iron",
+    "materialDescription": "a straight piece of iron",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -49,6 +58,7 @@
   "targeting": {
     "type": "single",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -125,7 +135,7 @@
         "bonusPerLevel": "+1 target",
         "customFormula": ""
       },
-      "description": ""
+      "description": "On failed save, target is paralyzed for the duration. The save repeats at the end of each turn."
     }
   ],
   "arbitrationType": "mechanical",
@@ -133,8 +143,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Choose a Humanoid that you can see within range. The target must succeed on a Wisdom saving throw or be Paralyzed for the duration. At the end of each of its turns, the target can make another Wisdom saving throw. On a success, the spell ends on the target.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional Humanoid for each slot level above 2nd. The Humanoids must be within 30 feet of each other when you target them.",
+  "description": "Choose a Humanoid that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.",
+  "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional Humanoid for each spell slot level above 2.",
   "tags": [
     "control",
     "paralysis",

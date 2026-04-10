@@ -6,16 +6,20 @@ export interface SpellRecord {
     level: number;
     filePath: string;
     relativePath: string;
+    browserPath: string;
 }
 export interface InventoryOccurrence {
     spellId: string;
     spellName: string;
     level: number;
     filePath: string;
+    browserPath: string;
     fieldPath: string;
+    semanticFieldPath: string;
     value: string;
     valueKind: ValueKind;
     isFreeText: boolean;
+    lineNumber: number | null;
 }
 export interface InventoryValueSummary {
     value: string;

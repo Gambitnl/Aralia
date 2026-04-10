@@ -10,6 +10,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -66,7 +69,11 @@
       "triggerZone": {
         "triggerDistance": 10,
         "triggerSide": "one"
-      }
+      },
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thicknessUnit": "feet"
     },
     "filter": {
       "creatureTypes": [],
@@ -75,6 +82,42 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Straight Wall",
+          "shape": "Wall",
+          "size": 60,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 20,
+          "heightUnit": "feet",
+          "thickness": 1,
+          "thicknessUnit": "feet"
+        },
+        {
+          "label": "Ringed Wall",
+          "shape": "Ring",
+          "size": 20,
+          "sizeType": "diameter",
+          "sizeUnit": "feet",
+          "height": 20,
+          "heightUnit": "feet",
+          "thickness": 1,
+          "thicknessUnit": "feet"
+        }
+      ],
+      "measuredDetails": [
+        {
+          "label": "Damage Side Radius",
+          "kind": "distance",
+          "value": 10,
+          "unit": "feet",
+          "notes": "Only the chosen side deals this proximity damage."
+        }
+      ]
     }
   },
   "effects": [

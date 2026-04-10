@@ -12,6 +12,8 @@
     "Warlock",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -29,7 +31,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -48,9 +51,11 @@
   "targeting": {
     "type": "area",
     "range": 60,
+    "rangeUnit": "feet",
     "areaOfEffect": {
       "shape": "Cube",
       "size": 5,
+      "sizeUnit": "feet",
       "height": 0
     },
     "validTargets": [

@@ -8,6 +8,8 @@
   "classes": [
     "Druid"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -25,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -44,6 +47,7 @@
   "targeting": {
     "type": "area",
     "range": 120,
+    "rangeUnit": "feet",
     "validTargets": [
       "point"
     ],
@@ -51,6 +55,7 @@
     "areaOfEffect": {
       "shape": "Cylinder",
       "size": 30,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,

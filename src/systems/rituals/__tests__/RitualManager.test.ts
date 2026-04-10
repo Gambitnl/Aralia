@@ -1,10 +1,23 @@
-
 import { describe, it, expect } from 'vitest';
 import { startRitual, advanceRitual, checkRitualInterrupt, isRitualComplete } from '../RitualManager';
 import { CombatCharacter } from '../../../types/combat';
 import { Spell } from '../../../types/spells';
 
-// Mocks
+/**
+ * These tests protect the ritual timing bridge between spell semantics and runtime math.
+ *
+ * The ritual manager now stores canonical progress in seconds, but it still exposes
+ * round/minute/hour display fields for unfinished UI surfaces. These tests make sure
+ * both layers stay truthful as the ritual system evolves.
+ */
+
+// ============================================================================
+// Shared Ritual Test Fixtures
+// ============================================================================
+// These spell and caster stubs intentionally stay small. The ritual manager only
+// needs enough data to prove timing, interruption, and completion behavior.
+// ============================================================================
+
 const mockCaster: CombatCharacter = {
   id: 'caster-1',
   name: 'Mage',
@@ -42,6 +55,7 @@ const mockSpell: Spell = {
   school: 'Divination' as unknown as Spell['school'],
   classes: ['Wizard'],
   description: 'You choose an object...',
+  ritual: true,
   castingTime: { value: 1, unit: 'minute' },
   range: { type: 'touch' },
   components: { verbal: true, somatic: true, material: true },
@@ -51,25 +65,38 @@ const mockSpell: Spell = {
 };
 
 describe('RitualManager', () => {
-  it('should start a ritual with correct duration', () => {
+  it('stores base ritual timing canonically in seconds while keeping minute display fields', () => {
     const ritual = startRitual(mockCaster, mockSpell, 1);
 
     expect(ritual.casterId).toBe('caster-1');
     expect(ritual.spellName).toBe('Identify');
-    expect(ritual.durationTotal).toBe(10); // 1 minute = 10 rounds
+    expect(ritual.durationTotalSeconds).toBe(60);
+    expect(ritual.durationTotal).toBe(1);
+    expect(ritual.durationUnit).toBe('minutes');
     expect(ritual.progress).toBe(0);
+    expect(ritual.progressSeconds).toBe(0);
     expect(ritual.isPaused).toBe(false);
   });
 
-  it('should advance ritual progress', () => {
-    let ritual = startRitual(mockCaster, mockSpell, 1);
-    ritual = advanceRitual(ritual, 1);
+  it('adds ten extra minutes when the spell is cast as a ritual', () => {
+    const ritual = startRitual(mockCaster, mockSpell, 1, true);
 
-    expect(ritual.progress).toBe(1);
+    expect(ritual.durationTotalSeconds).toBe(660);
+    expect(ritual.durationTotal).toBe(11);
+    expect(ritual.durationUnit).toBe('minutes');
+  });
+
+  it('advances ritual progress in seconds while preserving derived display progress', () => {
+    let ritual = startRitual(mockCaster, mockSpell, 1);
+    ritual = advanceRitual(ritual, 30);
+
+    expect(ritual.progressSeconds).toBe(30);
+    expect(ritual.progress).toBe(0.5);
     expect(isRitualComplete(ritual)).toBe(false);
 
-    ritual = advanceRitual(ritual, 9);
-    expect(ritual.progress).toBe(10);
+    ritual = advanceRitual(ritual, 30);
+    expect(ritual.progressSeconds).toBe(60);
+    expect(ritual.progress).toBe(1);
     expect(isRitualComplete(ritual)).toBe(true);
   });
 

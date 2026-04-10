@@ -193,7 +193,11 @@ export const buildRenderGraph = (
   const projectSideById = new Map<string, 1 | -1>();
   const rightQueue: RoadmapNode[] = [];
   const leftQueue: RoadmapNode[] = [];
+  // Technical: pillar_spells is pinned above the root so it is excluded from the fan queue.
+  // Layman: the Spells node lives above the tree, not in the left/right fan below the root.
+  const ABOVE_ROOT_IDS = new Set(['pillar_spells']);
   projectNodes.forEach((project, index) => {
+    if (ABOVE_ROOT_IDS.has(project.id)) return;
     if (index % 2 === 0) rightQueue.push(project);
     else leftQueue.push(project);
   });
@@ -227,6 +231,19 @@ export const buildRenderGraph = (
       });
     });
   }
+
+  // Technical: above-root nodes are placed in the left column above ROOT_Y with a symmetric gap.
+  // Layman: Spells floats above the root node, vertically aligned with the left feature column.
+  const aboveRootLeftX = snapToGrid(rootCenter.x - fanXOffset - PROJECT_SIZE / 2);
+  projectNodes
+    .filter((p) => ABOVE_ROOT_IDS.has(p.id))
+    .forEach((project, stackIndex) => {
+      projectPositions.set(project.id, {
+        x: aboveRootLeftX,
+        y: snapToGrid(rootRender.y - 84 - PROJECT_SIZE - stackIndex * (PROJECT_SIZE + fanRowGap)),
+        side: -1
+      });
+    });
 
   // Technical: populate detailById regardless of visibility so detail resolution is stable.
   // Layman: we still prepare panel text even when sections are folded closed.

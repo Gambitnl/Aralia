@@ -8,8 +8,23 @@
   "classes": [
     "Bard",
     "Sorcerer",
-    "Wizard"
+    "Wizard",
+    "Artificer"
   ],
+  "subClasses": [
+    "Cleric - Light Domain",
+    "Cleric - Twilight Domain (TCoE)",
+    "Paladin - Oath of the Watchers (TCoE)",
+    "Warlock - The Many"
+  ],
+  "subClassesVerification": "verified",
+  "subClasses": [
+    "Warlock - The Many",
+    "Cleric - Light Domain",
+    "Cleric - Twilight Domain (TCoE)",
+    "Paladin - Oath of the Watchers (TCoE)"
+  ],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -33,7 +48,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a pinch of talc and a small sprinkling of powdered silver",
+    "materialDescription": "a pinch of talc",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -98,7 +113,7 @@
         "saveModifiers": []
       },
       "utilityType": "sensory",
-      "description": "See invisible creatures/objects and into the Ethereal Plane for 1 hour.",
+  "description": "For the duration, you see creatures and objects that have the Invisible condition as if they were visible, and you can see into the Ethereal Plane. Creatures and objects there appear ghostly.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -134,7 +149,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "For the duration, you see creatures and objects that are currently Invisible as if they were visible, and you can see into the Ethereal Plane. Ethereal creatures and objects appear ghostly and translucent.",
+  "description": "For the duration, you see creatures and objects that have the Invisible condition as if they were visible, and you can see into the Ethereal Plane. Creatures and objects there appear ghostly.",
   "higherLevels": "",
   "tags": [
     "divination",

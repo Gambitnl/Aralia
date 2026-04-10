@@ -6,12 +6,20 @@
   "school": "Abjuration",
   "legacy": false,
   "classes": [
+    "Artificer",
     "Cleric",
     "Druid",
     "Ranger",
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Paladin - Oath of Glory",
+    "Paladin - Oath of the Ancients",
+    "Paladin - Oath of Vengeance",
+    "Warlock - Future You Patron"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

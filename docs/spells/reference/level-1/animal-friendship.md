@@ -3,6 +3,7 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Bard, Druid, Ranger
+- **Sub-Classes**: Cleric - Nature Domain (PHB), Warlock - Horned King Patron
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -32,5 +33,42 @@
 - **Save Outcome**: negates_condition
 - **Conditions Applied**: Charmed
 
-- **Description**: This spell lets you convince a Beast that you mean it no harm. Choose a Beast that you can see within range. It must succeed on a Wisdom saving throw or be Charmed by you for the duration. If you or one of your companions causes damage to the target, the spell ends.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, you can affect one additional Beast for each slot level above 1st.
+- **Description**: Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spell ends.
+- **Higher Levels**: Using a Higher-Level Spell Slot. You can target one additional Beast for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Animal Friendship
+Level: 1st
+Casting Time: 1 Action
+Range/Area: 30 ft.
+Components: V, S, M *
+Duration: 24 Hours
+School: Enchantment
+Attack/Save: WIS Save
+Damage/Effect: Charmed
+
+Rules Text:
+Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spell ends.
+Using a Higher-Level Spell Slot. You can target one additional Beast for each spell slot level above 1.
+
+Material Component:
+* - (a morsel of food)
+
+Spell Tags:
+Control
+Social
+
+Available For:
+Bard
+Druid
+Ranger
+Cleric - Nature Domain (PHB)
+Warlock - Horned King Patron
+
+Capture Method: http
+Legacy Page: false
+-->

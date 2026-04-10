@@ -252,9 +252,24 @@ h1 {
     word-break: break-word;
 }
 
+.spellval-result-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(56, 189, 248, 0.35);
+}
+
+.spellval-result-link:hover {
+    color: #bae6fd;
+    border-bottom-color: rgba(251, 191, 36, 0.7);
+}
+
 .spellinv-row .meta {
     margin-top: 0.2rem;
     color: #7f8ea8;
+}
+
+.spellval-semantic-field {
+    color: #bae6fd;
 }
 
 .spellinv-row .chips {

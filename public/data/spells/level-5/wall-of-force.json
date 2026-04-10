@@ -8,6 +8,8 @@
   "classes": [
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -25,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -49,9 +52,14 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Cube",
+      "shape": "Wall",
       "size": 100,
-      "height": 0
+      "height": 10,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thickness": 0.25,
+      "thicknessUnit": "inches"
     },
     "maxTargets": 1,
     "filter": {
@@ -61,6 +69,48 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Hemisphere",
+          "shape": "Hemisphere",
+          "size": 10,
+          "sizeType": "radius",
+          "sizeUnit": "feet",
+          "thickness": 0.25,
+          "thicknessUnit": "inches",
+          "notes": "A hemispherical dome with a 10-foot radius."
+        },
+        {
+          "label": "Globe",
+          "shape": "Sphere",
+          "size": 10,
+          "sizeType": "radius",
+          "sizeUnit": "feet",
+          "thickness": 0.25,
+          "thicknessUnit": "inches",
+          "notes": "A spherical globe with a 10-foot radius."
+        },
+        {
+          "label": "Flat Surface",
+          "shape": "Wall",
+          "size": 100,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 10,
+          "heightUnit": "feet",
+          "thickness": 0.25,
+          "thicknessUnit": "inches",
+          "segmentCount": 10,
+          "segmentWidth": 10,
+          "segmentWidthUnit": "feet",
+          "segmentHeight": 10,
+          "segmentHeightUnit": "feet",
+          "notes": "Made of contiguous panels."
+        }
+      ]
     }
   },
   "effects": [

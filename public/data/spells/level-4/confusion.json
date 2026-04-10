@@ -11,6 +11,13 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Trickery Domain",
+    "Paladin - Oathbreaker (DMG)",
+    "Warlock - Great Old One Patron",
+    "Warlock - Great Fool Patron"
+  ],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -28,7 +35,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 90
+    "distance": 90,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -47,6 +55,7 @@
   "targeting": {
     "type": "area",
     "range": 90,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -54,6 +63,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 10,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -129,7 +139,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Each creature in a 10-foot-radius Sphere centered on a point you choose within range must succeed on a Wisdom saving throw, or that target can't take Bonus Actions or Reactions and must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting the table below.",
-  "higherLevels": "The Sphere's radius increases by 5 feet for each spell slot level above 4.",
+  "description": "Each creature in a 10-foot-radius Sphere centered on a point you choose within range must succeed on a Wisdom saving throw, or that target can't take Bonus Actions or Reactions and must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting the table below. At the end of each of its turns, an affected target repeats the save, ending the spell on itself on a success.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The Sphere's radius increases by 5 feet for each spell slot level above 4.",
   "tags": []
 }

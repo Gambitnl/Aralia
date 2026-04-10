@@ -3,7 +3,7 @@
  * Defines the types for the structured dialogue and conversation system.
  * This system allows for topic-based conversations, knowledge tracking, and social skill checks.
  */
-import { Skill } from './core';
+import { Skill } from './core.js';
 export type TopicCategory = 'rumor' | 'personal' | 'quest' | 'lore' | 'trade' | 'intimidate' | 'flirt';
 export interface TopicPrerequisite {
     type: 'topic_known' | 'relationship' | 'quest_status' | 'item_owned' | 'faction_standing' | 'min_gold';

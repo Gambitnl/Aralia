@@ -8,6 +8,10 @@
   "classes": [
     "Warlock"
   ],
+  "subClasses": [
+    "Paladin - Oath of Conquest (XGtE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -177,8 +181,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A protective magical force surrounds you, manifesting as a spectral frost that covers you and your gear. You gain 5 Temporary Hit Points for the duration. If a creature hits you with a melee attack while you have these hit points, the creature takes 5 Cold damage. The spell ends early if you have no Temporary Hit Points.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the Temporary Hit Points and the Cold damage both increase by 5 for each slot level above 1st.",
+  "description": "Protective magical frost surrounds you. You gain 5 Temporary Hit Points . If a creature hits you with a melee attack roll before the spell ends, the creature takes 5 Cold damage. The spell ends early if you have no Temporary Hit Points.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The Temporary Hit Points and the Cold damage both increase by 5 for each spell slot level above 1.",
   "tags": [
     "defense",
     "damage",

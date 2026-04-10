@@ -11,6 +11,12 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Tempest Domain (PHB)",
+    "Warlock - The Fathomless (TCoE)",
+    "Warlock - The Genie (TCoE)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -52,6 +58,7 @@
     "areaOfEffect": {
       "shape": "Line",
       "size": 60,
+      "sizeUnit": "feet",
       "height": 0
     },
     "lineOfSight": false,
@@ -108,7 +115,7 @@
         "maxDistance": "15 ft",
         "usesReaction": false
       },
-      "description": "Creatures starting their turn in the line must make a Strength save or be pushed 15 feet away along the line.",
+      "description": "Creatures in the Line that start their turn there or enter it must make a Strength save or be pushed 15 feet away along the Line.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -153,7 +160,7 @@
         "saveModifiers": []
       },
       "utilityType": "control",
-      "description": "Disperses gas/vapor and extinguishes unprotected flames in the line.",
+      "description": "Disperses gas/vapor and extinguishes unprotected flames in the Line.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -189,7 +196,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "A line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the duration. Each creature that starts its turn in the line or enters it must succeed on a Strength saving throw or be pushed 15 feet away from you in a direction following the line. Any creature in the line must spend 2 feet of movement for every 1 foot it moves when moving closer to you. The gust disperses gas or vapor, and it extinguishes candles, torches, and similar unprotected flames in the area. It causes protected flames, such as those of lanterns, to dance wildly and has a 50 percent chance to extinguish them. As a Bonus Action on each of your turns before the spell ends, you can change the direction in which the line blasts from you.",
+  "description": "A Line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the duration. Each creature in the Line must succeed on a Strength saving throw or be pushed 15 feet away from you in a direction following the Line. A creature that ends its turn in the Line must make the same save. Any creature in the Line must spend 2 feet of movement for every 1 foot it moves when moving closer to you. The gust disperses gas or vapor, and it extinguishes candles and similar unprotected flames in the area. It causes protected flames, such as those of lanterns, to dance wildly and has a 50 percent chance to extinguish them. As a Bonus Action on your later turns, you can change the direction in which the Line blasts from you.",
   "higherLevels": "",
   "tags": [
     "control",

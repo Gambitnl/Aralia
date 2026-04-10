@@ -2,7 +2,7 @@
 - **Level**: 3
 - **School**: Enchantment
 - **Ritual**: false
-- **Classes**: Cleric, Wizard
+- **Classes**: Cleric, Sorcerer, Warlock, Wizard
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -31,5 +31,40 @@
 - **Save Outcome**: negates
 - **Conditions Applied**: Charmed
 
-- **Description**: When you cast this spell, you present a gem worth 50 gp. You can choose any number of creatures you can see within range that can see the gem. Each target must succeed on a Wisdom saving throw or be Charmed by you for the duration. While Charmed in this way, the creature can do nothing on its turn except use its movement to move toward you (or the gem) by the safest route available. A Charmed creature ends its turn as close to you (or the gem) as possible. If the creature is within 5 feet of you (or the gem), it stays there and doesn't move. The creature can make a Wisdom saving throw at the end of each of its turns. On a successful save, the spell ends for that creature.
+- **Description**: When you cast this spell, you present the gem used as the material component and choose any number of creatures within range that can see you. Each target must succeed on a Wisdom saving throw or be charmed by you until the spell ends, or until you or your companions do anything harmful to it. While charmed in this way, a creature can do nothing but use its movement to approach you in a safe manner. While an affected creature is within 5 feet of you, it cannot move, but simply stares greedily at the gem you present. At the end of each of its turns, an affected target can make a Wisdom saving throw. If it succeeds, this effect ends for that target.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Incite Greed
+Level: 3rd
+Casting Time: 1 Action
+Range/Area: 30 ft.
+Components: V, S, M *
+Duration: Concentration 1 Minute
+School: Enchantment
+Attack/Save: WIS Save
+Damage/Effect: Charmed
+
+Rules Text:
+When you cast this spell, you present the gem used as the material component and choose any number of creatures within range that can see you. Each target must succeed on a Wisdom saving throw or be charmed by you until the spell ends, or until you or your companions do anything harmful to it. While charmed in this way, a creature can do nothing but use its movement to approach you in a safe manner. While an affected creature is within 5 feet of you, it cannot move, but simply stares greedily at the gem you present.
+At the end of each of its turns, an affected target can make a Wisdom saving throw. If it succeeds, this effect ends for that target.
+
+Material Component:
+* - (a gem worth at least 50 gp)
+
+Spell Tags:
+Charmed
+
+Available For:
+Cleric
+Sorcerer
+Warlock
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->

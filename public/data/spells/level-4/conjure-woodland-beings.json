@@ -9,6 +9,8 @@
     "Druid",
     "Ranger"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -51,6 +53,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 10,
+      "sizeUnit": "feet",
       "height": 0
     },
     "range": 0,

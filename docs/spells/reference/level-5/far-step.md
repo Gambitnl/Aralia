@@ -28,3 +28,34 @@
 - **Effect Type**: UTILITY
 - **Utility Type**: other
 - **Description**: You teleport up to 60 feet to an unoccupied space you can see. On each of your turns before the spell ends, you can use a bonus action to teleport in this way again.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Far Step
+Level: 5th
+Casting Time: 1 Bonus Action
+Range/Area: Self
+Components: V
+Duration: Concentration 1 Minute
+School: Conjuration
+Attack/Save: None
+Damage/Effect: Teleportation
+
+Rules Text:
+You teleport up to 60 feet to an unoccupied space you can see. On each of your turns before the spell ends, you can use a bonus action to teleport in this way again.
+
+Spell Tags:
+Teleportation
+
+Available For:
+Sorcerer
+Warlock
+Wizard
+
+Capture Method: http
+Legacy Page: false
+-->
+

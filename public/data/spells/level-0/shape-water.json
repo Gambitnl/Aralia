@@ -10,6 +10,8 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": false,
@@ -46,6 +49,7 @@
   "targeting": {
     "type": "area",
     "range": 30,
+    "rangeUnit": "feet",
     "validTargets": [
       "objects",
       "ground"
@@ -54,6 +58,7 @@
     "areaOfEffect": {
       "shape": "Cube",
       "size": 5,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,

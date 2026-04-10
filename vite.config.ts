@@ -1012,6 +1012,22 @@ const roadmapManager = () => ({
 
       next();
     });
+
+    // Technical: when local roadmap engine files change, clear the in-process data
+    // cache so the next request re-runs the bridge with the updated files.
+    // Layman: editing a roadmap node definition immediately reflects after the next
+    // page reload, instead of requiring a full server restart.
+    const engineDir = path.resolve(process.cwd(), 'devtools', 'roadmap', 'scripts', 'roadmap-engine');
+    const bridgePath = path.resolve(process.cwd(), 'devtools', 'roadmap', 'scripts', 'roadmap-local-bridge.ts');
+    server.watcher.add([engineDir, bridgePath]);
+    server.watcher.on('change', async (file: string) => {
+      const normalized = file.replace(/\\/g, '/');
+      if (normalized.includes('roadmap-engine') || normalized.includes('roadmap-local-bridge')) {
+        const { clearRoadmapDataCache } = await import('./devtools/roadmap/scripts/roadmap-server-logic.ts');
+        clearRoadmapDataCache();
+        console.info('[roadmap] Data cache cleared due to file change:', path.basename(file));
+      }
+    });
   }
 });
 
@@ -1433,6 +1449,144 @@ const scriptRegistryManager = () => ({
       }
 
       next();
+    });
+  },
+});
+
+// ============================================================================
+// Glossary Index Dev Refresh API
+// ============================================================================
+// Technical: adds a dev-server-only endpoint that runs generateGlossaryIndex.js on demand.
+// Layman: when the user opens the glossary in dev mode, the app can ask the local server to
+// rebuild the glossary catalog so newly added entries show up without a separate terminal step.
+// ============================================================================
+const glossaryIndexManager = () => ({
+  name: 'glossary-index-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+      const isGlossaryIndexPath = urlPath === '/api/glossary/rebuild-index' || urlPath === '/Aralia/api/glossary/rebuild-index';
+      if (!isGlossaryIndexPath) {
+        next();
+        return;
+      }
+
+      const json = (data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      if (req.method !== 'POST') {
+        json({ error: 'Method not allowed.' }, 405);
+        return;
+      }
+
+      try {
+        const scriptPath = path.resolve(process.cwd(), 'scripts', 'generateGlossaryIndex.js');
+        const command = `node "${scriptPath}"`;
+        const { stdout, stderr } = await execAsync(command, {
+          cwd: process.cwd(),
+          shell: true,
+          timeout: 60000,
+          windowsHide: true,
+        });
+
+        json({
+          ok: true,
+          command,
+          stdout: stdout.trim(),
+          stderr: stderr.trim(),
+        });
+      } catch (error) {
+        console.error('[dev] Failed to rebuild glossary index:', error);
+        const message = error instanceof Error ? error.message : String(error);
+        json({ ok: false, error: 'Failed to rebuild glossary index', message }, 500);
+      }
+    });
+  },
+});
+
+// ============================================================================
+// Glossary Spell Gate Dev Refresh API
+// ============================================================================
+// The spell gate checker already has good per-spell rendering logic in the browser,
+// but its richer canonical buckets come from generated reports. This endpoint gives
+// the glossary a dev-only way to ask for one fresh spell answer at a time instead of
+// rebuilding the whole corpus every time the user clicks a spell.
+// ============================================================================
+const glossarySpellGateManager = () => ({
+  name: 'glossary-spell-gate-manager',
+  configureServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      const urlPath = (req.url || '').split('?')[0];
+      const isSpellGatePath = urlPath === '/api/glossary/recheck-spell-gate' || urlPath === '/Aralia/api/glossary/recheck-spell-gate';
+      if (!isSpellGatePath) {
+        next();
+        return;
+      }
+
+      const json = (data: any, status = 200) => {
+        res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify(data));
+      };
+
+      if (req.method !== 'POST') {
+        json({ error: 'Method not allowed.' }, 405);
+        return;
+      }
+
+      try {
+        const body = JSON.parse(await readBody(req));
+        const spellId = typeof body?.spellId === 'string' ? body.spellId.trim() : '';
+
+        if (!spellId) {
+          json({ error: 'Missing spellId.' }, 400);
+          return;
+        }
+
+        // We deliberately execute the existing spell-truth scripts in one-spell
+        // mode instead of reimplementing their logic in the dev server. That keeps
+        // the glossary aligned with the same criteria the broader audits already use.
+        const gateCommand = `npx tsx scripts/generateSpellGateReport.ts --spell-id=${spellId} --json`;
+        const structuredCommand = `npx tsx scripts/auditSpellStructuredAgainstCanonical.ts --spell-id=${spellId} --json`;
+        const structuredJsonCommand = `npx tsx scripts/auditSpellStructuredAgainstJson.ts --spell-id=${spellId} --json`;
+        const [{ stdout: gateStdout }, { stdout: structuredStdout }, { stdout: structuredJsonStdout }] = await Promise.all([
+          execAsync(gateCommand, {
+            cwd: process.cwd(),
+            shell: true,
+            timeout: 60000,
+            windowsHide: true,
+          }),
+          execAsync(structuredCommand, {
+            cwd: process.cwd(),
+            shell: true,
+            timeout: 60000,
+            windowsHide: true,
+          }),
+          execAsync(structuredJsonCommand, {
+            cwd: process.cwd(),
+            shell: true,
+            timeout: 60000,
+            windowsHide: true,
+          }),
+        ]);
+        const gateEntry = JSON.parse(gateStdout);
+        const structuredReport = JSON.parse(structuredStdout);
+        const structuredJsonReport = JSON.parse(structuredJsonStdout);
+
+        json({
+          ok: true,
+          spellId,
+          gateEntry,
+          structuredMismatches: structuredReport.mismatches.filter((mismatch) => mismatch.spellId === spellId),
+          structuredJsonMismatches: structuredJsonReport.mismatches.filter((mismatch) => mismatch.spellId === spellId),
+          generatedAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error('[dev] Failed to refresh one spell gate check:', error);
+        const message = error instanceof Error ? error.message : String(error);
+        json({ ok: false, error: 'Failed to refresh one spell gate check', message }, 500);
+      }
     });
   },
 });
@@ -2150,11 +2304,14 @@ export default defineConfig(async ({ mode, command }) => {
   const mainPlugins = [
     react(),
     visualizerManager(),
+    roadmapManager(),
     roadmapLauncherManager(),
     conductorManager(),
     scanManager(),
     gitStatusManager(),
     devHubApiManager(),
+    glossarySpellGateManager(),
+    glossaryIndexManager(),
     scriptRegistryManager(),
     portraitApiManager(),
     codexRunManager(),
@@ -2260,6 +2417,12 @@ export default defineConfig(async ({ mode, command }) => {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
     },
     resolve: {
+      // Force a single Three.js instance — @react-three/postprocessing and the
+      // takram packages can pull in their own bundled copy, causing vNormal
+      // redefinition shader crashes. dedupe forces Vite to resolve all `three`
+      // imports to the same copy without bypassing the package exports map
+      // (which a raw path alias would do, breaking three/addons/* imports).
+      dedupe: ['three', '@react-three/fiber', '@react-three/drei'],
       alias: {
         '@': path.resolve(__dirname, 'src'),
       }

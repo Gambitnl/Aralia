@@ -19,7 +19,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: false
-- **Material Description**: none
+- **Material Description**:
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -32,5 +32,34 @@
 - **Damage Dice**: 14d6
 - **Damage Type**: Necrotic
 
-- **Description**: You unleash a virulent disease on a creature that you can see within range. The target must make a Constitution saving throw. On a failed save, it takes 14d6 necrotic damage, or half as much damage on a successful save. The damage can't reduce the target's hit points below 1. If the target fails the saving throw, its hit point maximum is reduced for 1 hour by an amount equal to the necrotic damage it took. Any effect that removes a disease allows a creature's hit point maximum to return to normal before that time passes.
+- **Description**: You unleash virulent magic on a creature you can see within range. The target makes a Constitution saving throw. On a failed save, it takes 14d6 Necrotic damage, and its Hit Point maximum is reduced by an amount equal to the Necrotic damage it took. On a successful save, it takes half as much damage only. This spell can't reduce a target's Hit Point maximum below 1.
 - **Higher Levels**: none
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Harm
+Level: 6th
+Casting Time: 1 Action
+Range/Area: 60 ft.
+Components: V, S
+Duration: Instantaneous
+School: Necromancy
+Attack/Save: CON Save
+Damage/Effect: Necrotic
+
+Rules Text:
+You unleash virulent magic on a creature you can see within range. The target makes a Constitution saving throw. On a failed save, it takes 14d6 Necrotic damage, and its Hit Point maximum is reduced by an amount equal to the Necrotic damage it took. On a successful save, it takes half as much damage only. This spell can’t reduce a target’s Hit Point maximum below 1.
+
+Spell Tags:
+Damage
+Debuff
+
+Available For:
+Cleric
+
+Capture Method: http
+Legacy Page: false
+-->

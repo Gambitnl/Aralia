@@ -163,12 +163,29 @@ const runBridge = <T>(action: BridgeAction, payload?: unknown): T | null => {
 };
 
 // ============================================================================
+// Roadmap Data Cache
+// ============================================================================
+// Technical: in-process cache so repeated requests (e.g. React StrictMode double-
+// invoke, or the opportunities endpoint also calling generateRoadmapData) re-use
+// the result of the first expensive `npx tsx` bridge spawn instead of paying the
+// ~1.3–2s startup cost on every request.
+// Layman: the roadmap data is computed once and kept in memory; refreshes only happen
+// when the cache is manually cleared (e.g. on file-watch events).
+// ============================================================================
+let _roadmapDataCache: RoadmapData | null = null;
+
+export function clearRoadmapDataCache(): void {
+  _roadmapDataCache = null;
+}
+
+// ============================================================================
 // Roadmap Data Fallback
 // ============================================================================
 // Technical: deterministic empty roadmap payload used when roadmap engine is local-only.
 // Layman: keeps UI/API stable without shipping private roadmap tooling to GitHub.
 // ============================================================================
 export function generateRoadmapData(): RoadmapData {
+  if (_roadmapDataCache) return _roadmapDataCache;
   const local = runBridge<RoadmapData>('generate-roadmap');
 
   // Technical: choose local engine output when available, otherwise deterministic fallback.
@@ -229,6 +246,7 @@ export function generateRoadmapData(): RoadmapData {
     } as RoadmapNode);
   }
 
+  _roadmapDataCache = data;
   return data;
 }
 

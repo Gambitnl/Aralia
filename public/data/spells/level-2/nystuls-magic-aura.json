@@ -8,6 +8,10 @@
   "classes": [
     "Wizard"
   ],
+  "subClasses": [
+    "Cleric - Arcana Domain (SCAG)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -96,7 +100,7 @@
         "saveModifiers": []
       },
       "utilityType": "other",
-      "description": "You place an illusion on a creature or an object you touch so that divination spells reveal false information about it. The target can be a willing creature or an object that isn't being carried or worn by another creature. When you cast the spell, choose one or both of the following effects. The effect lasts for the duration. If you use this spell on the same creature or object every day for 30 days, placing the same effect on it each time, the illusion becomes permanent. False Aura: You change the way the target appears to spells and magical effects, such as Detect Magic, that detect magical auras. You can make a nonmagical object appear to be magical, a magical object appear to be nonmagical, or change the object's magical aura so that it appears to belong to a specific school of magic that you choose. Mask: You change the way the target appears to spells and magical effects that detect creature types, such as a Paladin's Divine Sense. You choose a creature type and other spells and magical effects treat the target as if it were a creature of that type or of that alignment.",
+      "description": "With a touch, you place an illusion on a willing creature or an object that isn’t being worn or carried. A creature gains the Mask effect below, and an object gains the False Aura effect below. The effect lasts for the duration. If you cast the spell on the same target every day for 30 days, the illusion lasts until dispelled.\nMask (Creature). Choose a creature type other than the target’s actual type. Spells and other magical effects treat the target as if it were a creature of the chosen type.\nFalse Aura (Object). You change the way the target appears to spells and magical effects that detect magical auras, such as Detect Magic . You can make a nonmagical object appear magical, make a magic item appear nonmagical, or change the object’s aura so that it appears to belong to a school of magic you choose.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -132,7 +136,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You place an illusion on a creature or an object you touch so that divination spells reveal false information about it. The target can be a willing creature or an object that isn't being carried or worn by another creature. When you cast the spell, choose one or both of the following effects. The effect lasts for the duration. If you use this spell on the same creature or object every day for 30 days, placing the same effect on it each time, the illusion becomes permanent. False Aura: You change the way the target appears to spells and magical effects, such as Detect Magic, that detect magical auras. You can make a nonmagical object appear to be magical, a magical object appear to be nonmagical, or change the object's magical aura so that it appears to belong to a specific school of magic that you choose. Mask: You change the way the target appears to spells and magical effects that detect creature types, such as a Paladin's Divine Sense. You choose a creature type and other spells and magical effects treat the target as if it were a creature of that type or of that alignment.",
+  "description": "With a touch, you place an illusion on a willing creature or an object that isn’t being worn or carried. A creature gains the Mask effect below, and an object gains the False Aura effect below. The effect lasts for the duration. If you cast the spell on the same target every day for 30 days, the illusion lasts until dispelled.\nMask (Creature). Choose a creature type other than the target’s actual type. Spells and other magical effects treat the target as if it were a creature of the chosen type.\nFalse Aura (Object). You change the way the target appears to spells and magical effects that detect magical auras, such as Detect Magic . You can make a nonmagical object appear magical, make a magic item appear nonmagical, or change the object’s aura so that it appears to belong to a school of magic you choose.",
   "higherLevels": "",
   "tags": []
 }

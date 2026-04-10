@@ -3,6 +3,7 @@
 - **School**: Necromancy
 - **Ritual**: false
 - **Classes**: Cleric
+- **Sub-Classes**: Paladin - Oathbreaker (DMG), Paladin - Oath of Castigation, Sorcerer - Crimson Sorcery, Warlock - Mother of Sorrows (BoET)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -25,5 +26,38 @@
 - **Damage Dice**: 2d10
 - **Damage Type**: Necrotic
 
-- **Description**: Make a melee spell attack against a creature you can reach. On a hit, the target takes 2d10 Necrotic damage.
-- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.
+- **Description**: A creature you touch makes a Constitution saving throw, taking 2d10 Necrotic damage on a failed save or half as much damage on a successful one.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Inflict Wounds
+Level: 1st
+Casting Time: 1 Action
+Range/Area: Touch
+Components: V, S
+Duration: Instantaneous
+School: Necromancy
+Attack/Save: CON Save
+Damage/Effect: Necrotic
+
+Rules Text:
+A creature you touch makes a Constitution saving throw, taking 2d10 Necrotic damage on a failed save or half as much damage on a successful one.
+Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 1.
+
+Spell Tags:
+Damage
+
+Available For:
+Cleric
+Paladin - Oathbreaker (DMG)
+Paladin - Oath of Castigation
+Sorcerer - Crimson Sorcery
+Warlock - Mother of Sorrows (BoET)
+
+Capture Method: http
+Legacy Page: false
+-->

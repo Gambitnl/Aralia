@@ -3,6 +3,7 @@
 - **School**: Divination
 - **Ritual**: false
 - **Classes**: Ranger
+- **Sub-Classes**: Paladin - Oath of Vengeance, Warlock - The Predator (HWT), Cleric - Keeper Domain (BoET)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: bonus_action
@@ -27,5 +28,39 @@
 - **Damage Dice**: 1d6
 - **Damage Type**: Force
 
-- **Description**: You choose a creature you can see within range and mystically mark it as your quarry. Until the spell ends, you deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll. You also have Advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find it. If the target drops to 0 Hit Points before this spell ends, you can use a Bonus Action on a subsequent turn of yours to mark a new creature.
-- **Higher Levels**: When you cast this spell using a spell slot of 3rd or 4th level, you can maintain your Concentration on the spell for up to 8 hours. When you use a spell slot of 5th level or higher, you can maintain your Concentration on the spell for up to 24 hours.
+- **Description**: You magically mark one creature you can see within range as your quarry. Until the spell ends, you deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll. You also have Advantage on any Wisdom (Perception or Survival) check you make to find it. If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action to move the mark to a new creature you can see within range.
+- **Higher Levels**: Using a Higher-Level Spell Slot. Your Concentration can last longer with a spell slot of level 3-4 (up to 8 hours) or 5+ (up to 24 hours).
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Hunter's Mark
+Level: 1st
+Casting Time: 1 Bonus Action
+Range/Area: 90 ft.
+Components: V
+Duration: Concentration 1 Hour
+School: Divination
+Attack/Save: None
+Damage/Effect: Force
+
+Rules Text:
+You magically mark one creature you can see within range as your quarry. Until the spell ends, you deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll. You also have Advantage on any Wisdom (Perception or Survival) check you make to find it.
+If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action to move the mark to a new creature you can see within range.
+Using a Higher-Level Spell Slot. Your Concentration can last longer with a spell slot of level 3–4 (up to 8 hours) or 5+ (up to 24 hours).
+
+Spell Tags:
+Damage
+Debuff
+
+Available For:
+Ranger
+Paladin - Oath of Vengeance
+Warlock - The Predator (HWT)
+Cleric - Keeper Domain (BoET)
+
+Capture Method: http
+Legacy Page: false
+-->

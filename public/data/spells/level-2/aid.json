@@ -6,12 +6,19 @@
   "school": "Abjuration",
   "legacy": false,
   "classes": [
+    "Artificer",
     "Bard",
     "Cleric",
     "Druid",
     "Paladin",
     "Ranger"
   ],
+  "subClasses": [
+    "Sorcerer - Clockwork Sorcery",
+    "Sorcerer - Crimson Sorcery",
+    "Warlock - Celestial Patron"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -29,7 +36,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 30
+    "distance": 30,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -48,6 +56,7 @@
   "targeting": {
     "type": "multi",
     "range": 30,
+    "rangeUnit": "feet",
     "maxTargets": 3,
     "validTargets": [
       "creatures"
@@ -139,8 +148,8 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's Hit Point maximum and current Hit Points increase by 5 for the duration.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, a target's Hit Points increase by an additional 5 for each slot level above 2nd.",
+  "description": "Choose up to three creatures within range. Each target's Hit Point maximum and current Hit Points increase by 5 for the duration.",
+  "higherLevels": "Using a Higher-Level Spell Slot. Each target's Hit Points increase by 5 for each spell slot level above 2.",
   "tags": [
     "buff",
     "abjuration"

@@ -10,9 +10,12 @@
     "Bard",
     "Cleric",
     "Sorcerer",
-    "Wizard",
+    "Wizard"
+  ],
+  "subClasses": [
     "Warlock - Celestial Patron"
   ],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -49,6 +52,7 @@
   "targeting": {
     "type": "single",
     "range": 5,
+    "rangeUnit": "feet",
     "validTargets": [
       "objects"
     ],

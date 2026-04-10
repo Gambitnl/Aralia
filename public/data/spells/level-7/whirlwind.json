@@ -7,8 +7,11 @@
   "legacy": false,
   "classes": [
     "Druid",
+    "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +29,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 300
+    "distance": 300,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +49,7 @@
   "targeting": {
     "type": "multi",
     "range": 300,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures",
       "objects"

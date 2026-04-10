@@ -1,4 +1,3 @@
-
 import { describe, it, expect } from 'vitest';
 import { ritualReducer } from '../ritualReducer';
 import { GameState } from '../../../types';
@@ -6,13 +5,27 @@ import { RitualState } from '../../../types/ritual';
 import * as RitualManager from '../../../systems/rituals/RitualManager';
 import { AppAction } from '../../actionTypes';
 
-// Mock the Singular RitualState
+/**
+ * These tests verify that the reducer feeds ritual progress using the same canonical
+ * seconds-based unit as the ritual manager, while still exposing familiar display
+ * fields for older UI and message surfaces.
+ */
+
+// ============================================================================
+// Shared Ritual Reducer Fixtures
+// ============================================================================
+// The reducer only needs a lightweight ritual object, but the fixture now includes
+// both canonical seconds and derived display values so unit drift is caught early.
+// ============================================================================
+
 const mockRitual: RitualState = {
   id: 'ritual-123',
   spellId: 'spell-1',
   spellName: 'Test Spell',
   casterId: 'caster-1',
   startTime: 0,
+  durationTotalSeconds: 1200,
+  progressSeconds: 0,
   durationTotal: 20,
   durationUnit: 'minutes',
   progress: 0,
@@ -51,18 +64,20 @@ describe('ritualReducer', () => {
     const result = ritualReducer(stateWithRitual as GameState, action);
 
     expect(result.activeRitual?.progress).toBe(10);
+    expect(result.activeRitual?.progressSeconds).toBe(600);
     expect(RitualManager.isRitualComplete(result.activeRitual as RitualState)).toBe(false);
     expect(result.messages).toHaveLength(0);
   });
 
   it('should complete ritual via ADVANCE_RITUAL', () => {
-    const almostDoneRitual = { ...mockRitual, progress: 15 };
+    const almostDoneRitual = { ...mockRitual, progress: 15, progressSeconds: 900 };
     const stateWithRitual = { ...mockState, activeRitual: almostDoneRitual };   
     const action: AppAction = { type: 'ADVANCE_RITUAL', payload: { minutes: 10 } };
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
     const result = ritualReducer(stateWithRitual as GameState, action);
 
     expect(result.activeRitual?.progress).toBe(20); // Clamped to durationTotal (20)
+    expect(result.activeRitual?.progressSeconds).toBe(1200);
     expect(RitualManager.isRitualComplete(result.activeRitual as RitualState)).toBe(true);
     expect(result.messages).toHaveLength(1);
     expect(result.messages![0].text).toContain('The ritual is complete!');
@@ -76,6 +91,17 @@ describe('ritualReducer', () => {
     const result = ritualReducer(stateWithRitual as GameState, action);
 
     expect(result.activeRitual?.progress).toBe(10);
+    expect(result.activeRitual?.progressSeconds).toBe(600);
+  });
+
+  it('should handle ADVANCE_RITUAL when the caller advances in rounds', () => {
+    const stateWithRitual = { ...mockState, activeRitual: mockRitual };
+    const action: AppAction = { type: 'ADVANCE_RITUAL', payload: { rounds: 5 } };
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const result = ritualReducer(stateWithRitual as GameState, action);
+
+    expect(result.activeRitual?.progressSeconds).toBe(30);
+    expect(result.activeRitual?.progress).toBe(0.5);
   });
 
   it('should handle INTERRUPT_RITUAL', () => {

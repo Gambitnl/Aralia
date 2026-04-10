@@ -2,7 +2,8 @@
 - **Level**: 2
 - **School**: Transmutation
 - **Ritual**: false
-- **Classes**: Druid, Ranger, Sorcerer, Wizard
+- **Classes**: Artificer, Druid, Ranger, Sorcerer, Wizard
+- **Sub-Classes**: Druid - Circle of Shadows (BoET)
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -16,7 +17,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: either a pinch of dried carrot or an agate
+- **Material Description**: a dried carrot
 - **Material Cost GP**: 0
 - **Consumed**: false
 
@@ -30,5 +31,41 @@
 - **Save Stat**: None
 - **Save Outcome**: none
 
-- **Description**: You touch a willing creature to grant it the ability to see in the dark. For the duration, that creature has Darkvision out to a range of 150 feet.
+- **Description**: For the duration, a willing creature you touch has Darkvision with a range of 150 feet.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Darkvision
+Level: 2nd
+Casting Time: 1 Action
+Range/Area: Touch
+Components: V, S, M *
+Duration: 8 Hours
+School: Transmutation
+Attack/Save: None
+Damage/Effect: Buff
+
+Rules Text:
+For the duration, a willing creature you touch has Darkvision with a range of 150 feet.
+
+Material Component:
+* - (a dried carrot)
+
+Spell Tags:
+Buff
+
+Available For:
+Druid
+Ranger
+Sorcerer
+Wizard
+Artificer
+Druid - Circle of Shadows (BoET)
+
+Capture Method: http
+Legacy Page: false
+-->

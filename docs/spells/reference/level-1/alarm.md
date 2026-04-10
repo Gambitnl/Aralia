@@ -3,6 +3,7 @@
 - **School**: Abjuration
 - **Ritual**: true
 - **Classes**: Artificer, Ranger, Wizard
+- **Sub-Classes**: Paladin - Oath of the Watchers (TCoE), Sorcerer - Clockwork Sorcery
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: minute
@@ -35,5 +36,42 @@
 - **Damage Dice**: 0
 - **Damage Type**: None
 
-- **Description**: You set an alert against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a Tiny or larger creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is mental or audible. A mental alarm alerts you with a ping in your mind if you are within 1 mile of the warded area. This ping awakens you if you are sleeping. An audible alarm produces the sound of a handbell for 10 seconds within 60 feet.
+- **Description**: You set an alarm against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is audible or mental: Audible Alarm. The alarm produces the sound of a handbell for 10 seconds within 60 feet of the warded area. Mental Alarm. You are alerted by a mental ping if you are within 1 mile of the warded area. This ping awakens you if you're asleep.
 - **Higher Levels**: None
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Alarm
+Level: 1st
+Casting Time: 1 Minute Ritual
+Range/Area: 30 ft. (20 ft. Cube)
+Components: V, S, M *
+Duration: 8 Hours
+School: Abjuration
+Attack/Save: None
+Damage/Effect: Detection
+
+Rules Text:
+You set an alarm against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters the warded area. When you cast the spell, you can designate creatures that won’t set off the alarm. You also choose whether the alarm is audible or mental:
+Audible Alarm. The alarm produces the sound of a handbell for 10 seconds within 60 feet of the warded area.
+Mental Alarm. You are alerted by a mental ping if you are within 1 mile of the warded area. This ping awakens you if you’re asleep.
+
+Material Component:
+* - (a bell and silver wire)
+
+Spell Tags:
+Detection
+
+Available For:
+Ranger
+Wizard
+Artificer
+Paladin - Oath of the Watchers (TCoE)
+Sorcerer - Clockwork Sorcery
+
+Capture Method: http
+Legacy Page: true
+-->

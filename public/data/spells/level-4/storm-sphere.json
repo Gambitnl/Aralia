@@ -5,7 +5,12 @@
   "level": 4,
   "school": "Evocation",
   "legacy": false,
-  "classes": [],
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -23,7 +28,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 0
+    "distance": 150,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -34,14 +40,15 @@
     "isConsumed": false
   },
   "duration": {
-    "type": "instantaneous",
-    "concentration": false,
-    "value": 0,
-    "unit": "round"
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "minute"
   },
   "targeting": {
     "type": "single",
-    "range": 0,
+    "range": 150,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -49,7 +56,8 @@
     "maxTargets": 1,
     "areaOfEffect": {
       "shape": "Sphere",
-      "size": 0,
+      "size": 20,
+      "sizeUnit": "feet",
       "height": 0
     },
     "filter": {
@@ -130,7 +138,11 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "",
-  "higherLevels": "",
-  "tags": []
+  "description": "A 20-foot-radius sphere of whirling air springs into existence centered on a point you choose within range. The sphere remains for the spell's duration. Each creature in the sphere when it appears or that ends its turn there must succeed on a Strength saving throw or take 2d6 bludgeoning damage. The sphere's space is difficult terrain. Until the spell ends, you can use a bonus action on each of your turns to cause a bolt of lightning to leap from the center of the sphere toward one creature you choose within 60 feet of the center. Make a ranged spell attack. You have advantage on the attack roll if the target is in the sphere. On a hit, the target takes 4d6 lightning damage. Creatures within 30 feet of the sphere have disadvantage on Wisdom (Perception) checks made to listen.",
+  "higherLevels": "When you cast this spell using a spell slot of 5th level or higher, the damage increases for each of its effects by 1d6 for each slot level above 4th.",
+  "tags": [
+    "damage",
+    "control",
+    "debuff"
+  ]
 }

@@ -3,11 +3,13 @@
   "name": "Reincarnate",
   "aliases": [],
   "level": 5,
-  "school": "Necromancy",
+  "school": "Transmutation",
   "legacy": true,
   "classes": [
     "Druid"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

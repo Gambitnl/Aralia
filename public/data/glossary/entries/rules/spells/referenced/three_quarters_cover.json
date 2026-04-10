@@ -1,0 +1,18 @@
+{
+  "id": "three_quarters_cover",
+  "title": "Three-Quarters Cover",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for Three-Quarters Cover.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/three_quarters_cover.json",
+  "markdown": "# Three-Quarters Cover\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[blade-barrier|Blade Barrier]]\n- [[sacred-flame|Sacred Flame]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

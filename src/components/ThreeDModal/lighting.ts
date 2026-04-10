@@ -77,9 +77,20 @@ export const getLightingForTime = (gameTime: Date, biomeId: string | null | unde
   const fogColor = dayFog.lerp(nightFog, nightStrength);
   const fogDensity = getFogDensity(biomeId, sunHeight);
 
+  // Clamped direction for scene lighting — keeps the directional light slightly
+  // above the horizon so the scene never goes pitch black at night.
   const sunDirection = new Vector3(
     Math.cos(sunAngle),
     Math.max(0.15, sunHeight + 0.25),
+    Math.sin(sunAngle)
+  ).normalize();
+
+  // True astronomical direction (unclamped) for the Takram atmosphere shader.
+  // The physically-based sky needs the sun to actually dip below the horizon
+  // to produce sunset/night transitions, stars, and moon visibility.
+  const trueSunDirection = new Vector3(
+    Math.cos(sunAngle),
+    sunHeight,
     Math.sin(sunAngle)
   ).normalize();
 
@@ -91,6 +102,7 @@ export const getLightingForTime = (gameTime: Date, biomeId: string | null | unde
     fogColor,
     fogDensity,
     sunDirection,
+    trueSunDirection,
     biomeColor,
     ambientOcclusion // New AO properties
   };

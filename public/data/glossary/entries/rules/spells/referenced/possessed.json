@@ -1,0 +1,18 @@
+{
+  "id": "possessed",
+  "title": "possessed",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "referenced rule",
+    "generated"
+  ],
+  "excerpt": "Generated rule entry for possessed.",
+  "aliases": [],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/referenced/possessed.json",
+  "markdown": "# possessed\n\nCanonical rule text has not been captured yet for this referenced rule.\n\n---\n## Referenced By Spells\n\n- [[hallow|Hallow]]\n- [[magic-circle|Magic Circle]]\n- [[magic-jar|Magic Jar]]\n- [[protection-from-evil-and-good|Protection from Evil and Good]]\n\n---\n## Notes\n\nThis glossary entry was generated from canonical spell snapshot references.\nIt exists so spell details can cross-link into the glossary rules surface.\n"
+}

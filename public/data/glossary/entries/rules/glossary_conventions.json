@@ -1,0 +1,23 @@
+{
+  "id": "glossary_conventions",
+  "title": "Glossary Conventions",
+  "category": "Rules Glossary",
+  "tags": [
+    "glossary",
+    "navigation",
+    "conventions",
+    "rules"
+  ],
+  "excerpt": "Explains how to read Aralia's glossary entries, tags, rule chips, and spell backlinks.",
+  "aliases": [
+    "glossary rules",
+    "glossary format"
+  ],
+  "seeAlso": [
+    "spell_referenced_rules_enrichment",
+    "sphere_area",
+    "casting_time_rules"
+  ],
+  "filePath": "/data/glossary/entries/rules/glossary_conventions.json",
+  "markdown": "# Glossary Conventions\n\nAralia's glossary uses a few repeated patterns so rules, spells, and linked concepts can be explored without guessing what a label does.\n\n## Entry Types\n\n- **Rules entries** define a game concept, rule, or mechanic.\n- **Spell entries** show spell data from the spell JSON corpus.\n- **Generated referenced-rule entries** are created when spell canonical data points at a rule that should be browseable in the glossary.\n\n## Links And Chips\n\n- **Inline rule chips** appear inside spell text when a spell description references a known rule term.\n- **Spell Tags** can also include rule chips such as `Area: Sphere` when the spell references a rule family that is useful as metadata.\n- **Clicking a chip** navigates directly to that glossary rule entry.\n- **Hovering a chip** shows a short glossary excerpt so the user can preview the rule before opening it.\n\n## Cross-References\n\n- **See Also** links connect one glossary entry to related rules.\n- **Referenced By Spells** lists which spells currently point at a rule.\n- When a rule is linked from spell canonical data, the rule entry can act as a hub back into the spell system.\n\n## Reading Generated Rule Entries\n\nSome rule entries are generated from canonical spell references rather than hand-authored first. Those entries still exist as real glossary destinations, but they should be treated as enrichment surfaces that help connect spells to rule concepts.\n\n## Scope\n\nThis glossary is meant to help users move between mechanics, spell details, and related concepts quickly. It is a navigation and interpretation surface, not just a flat index of isolated entries.\n"
+}

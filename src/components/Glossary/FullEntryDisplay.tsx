@@ -1,8 +1,94 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 30/03/2026, 01:32:38
+ * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/Glossary/GlossaryEntryPanel.tsx, components/Glossary/SingleGlossaryEntryModal.tsx, components/Glossary/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useState } from 'react';
 import { GlossaryEntry } from '../../types';
 import { fetchWithTimeout } from '../../utils/networkUtils';
 import { assetUrl } from '../../config/env';
 import { GlossaryEntryTemplate } from './GlossaryEntryTemplate';
+
+/**
+ * This file loads full glossary entry content and now also applies spell-rule enrichment.
+ *
+ * The glossary already knows how to fetch a rule entry from its normal JSON file, but the
+ * spell-canonical lane introduced a second layer of truth: some rule terms are referenced by
+ * captured spell pages and should show a "Referenced By Spells" section when the owner opens
+ * that rule in the glossary. Instead of rewriting every rule JSON file, this component merges
+ * the enrichment data in at render time.
+ *
+ * Called by: GlossaryEntryPanel when the selected entry is not a spell card
+ * Depends on: glossary JSON files, spell_referenced_rules_enrichment.json, GlossaryEntryTemplate
+ */
+
+// ============================================================================
+// Enrichment dataset types and cache
+// ============================================================================
+// This section describes the small slice of the referenced-rules enrichment file
+// that the renderer cares about. The file is shared project data, so the viewer
+// caches it in memory instead of re-downloading it every time a rule entry opens.
+// ============================================================================
+
+const REFERENCED_RULES_ENRICHMENT_PATH = '/data/glossary/entries/rules/spells/spell_referenced_rules_enrichment.json';
+
+interface ReferencedBySpellRecord {
+  spellId: string;
+  spellName: string;
+  level: number;
+}
+
+interface ReferencedRuleLookupRecord {
+  glossaryTermId: string;
+  label: string;
+  spells: ReferencedBySpellRecord[];
+}
+
+interface ReferencedRulesEnrichmentPayload {
+  enrichmentDataset?: {
+    rulesByGlossaryTermId?: Record<string, ReferencedRuleLookupRecord>;
+  };
+}
+
+let referencedRulesLookupPromise: Promise<Record<string, ReferencedRuleLookupRecord>> | null = null;
+
+/**
+ * Load the referenced-rules lookup only once per session.
+ *
+ * Why it exists:
+ * Every rule entry could ask for the same enrichment file. Caching keeps the
+ * glossary responsive and avoids turning this feature into a repeated network cost.
+ */
+const loadReferencedRulesLookup = async (): Promise<Record<string, ReferencedRuleLookupRecord>> => {
+  if (!referencedRulesLookupPromise) {
+    referencedRulesLookupPromise = fetchWithTimeout<ReferencedRulesEnrichmentPayload>(assetUrl(REFERENCED_RULES_ENRICHMENT_PATH))
+      .then((payload) => payload.enrichmentDataset?.rulesByGlossaryTermId ?? {})
+      .catch((error) => {
+        console.error('Error loading spell referenced-rules enrichment:', error);
+        return {};
+      });
+  }
+
+  return referencedRulesLookupPromise;
+};
+
+// ============================================================================
+// Markdown enrichment helpers
+// ============================================================================
+// This section converts the machine-readable rule lookup into a markdown section
+// that the normal glossary renderer already knows how to display and cross-link.
+// ============================================================================
 
 const stripMainHeading = (markdownContent: string): string => {
   // Remove YAML frontmatter if it exists
@@ -15,6 +101,40 @@ const stripMainHeading = (markdownContent: string): string => {
   content = content.replace(h1Regex, '').trimStart();
 
   return content;
+};
+
+/**
+ * Decide whether a glossary entry should receive the spell backlink section.
+ *
+ * What it preserves:
+ * - generated referenced-rule files already contain their own backlink section
+ * - non-rule entries stay untouched
+ * - hand-authored files are only augmented when the enrichment dataset has real data
+ */
+const shouldAppendReferencedBySpells = (filePath: string | null | undefined, markdownContent: string, referencedByRule: ReferencedRuleLookupRecord | undefined): boolean => {
+  if (!filePath || !referencedByRule || referencedByRule.spells.length === 0) return false;
+  if (filePath.includes('/rules/spells/referenced/')) return false;
+  if (markdownContent.includes('## Referenced By Spells')) return false;
+  return true;
+};
+
+/**
+ * Render the backlink section as markdown so existing glossary link shorthand can be reused.
+ */
+const buildReferencedBySpellsMarkdown = (referencedByRule: ReferencedRuleLookupRecord): string => {
+  const lines = [
+    '',
+    '---',
+    '## Referenced By Spells',
+    '',
+    ...referencedByRule.spells
+      .slice()
+      .sort((a, b) => a.spellName.localeCompare(b.spellName))
+      .map((spell) => `- [[${spell.spellId}|${spell.spellName}]]`),
+    '',
+  ];
+
+  return lines.join('\n');
 };
 
 type GlossaryEntryFileJson = {
@@ -58,24 +178,31 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
     const isJsonEntry = filePath.toLowerCase().endsWith('.json');
 
     const fetchPromise = isJsonEntry
-      ? fetchWithTimeout<any>(fullPath)
+      ? fetchWithTimeout<Record<string, unknown>>(fullPath)
       : fetchWithTimeout<string>(fullPath, { responseType: 'text' });
 
     fetchPromise
-      .then((data) => {
+      .then(async (data) => {
         if (cancelled) return;
+        const referencedRulesLookup = await loadReferencedRulesLookup();
+        const referencedByRule = entry ? referencedRulesLookup[entry.id] : undefined;
+
         if (isJsonEntry) {
-          const json = data as any;
+          const json = data as Record<string, unknown>;
           const nextMarkdown =
             typeof json.markdown === 'string'
               ? json.markdown
               : typeof json.content === 'string'
                 ? json.content
                 : '';
+          const strippedMarkdown = stripMainHeading(nextMarkdown);
+          const enrichedMarkdown = shouldAppendReferencedBySpells(filePath, strippedMarkdown, referencedByRule)
+            ? `${strippedMarkdown.trimEnd()}\n${buildReferencedBySpellsMarkdown(referencedByRule!)}`
+            : strippedMarkdown;
 
           setFetchState({
             filePath,
-            markdownContent: stripMainHeading(nextMarkdown),
+            markdownContent: enrichedMarkdown,
             enrichedEntry: { ...entry, ...json } as GlossaryEntry,
             error: null
           });
@@ -83,9 +210,13 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
         }
 
         const text = data as string;
+        const strippedMarkdown = stripMainHeading(text);
+        const enrichedMarkdown = shouldAppendReferencedBySpells(filePath, strippedMarkdown, referencedByRule)
+          ? `${strippedMarkdown.trimEnd()}\n${buildReferencedBySpellsMarkdown(referencedByRule!)}`
+          : strippedMarkdown;
         setFetchState({
           filePath,
-          markdownContent: stripMainHeading(text),
+          markdownContent: enrichedMarkdown,
           enrichedEntry: entry,
           error: null
         });

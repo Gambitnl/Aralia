@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:30:05
- * Dependents: spellAuditor.ts, summonTemplates.ts, useSpellGateChecks.ts
- * Imports: 1 files
+ * Last Sync: 06/04/2026, 03:47:23
+ * Dependents: components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
+ * Imports: None
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -57,6 +57,7 @@ const SUBCLASS_CLASS_NAMES = [
 
 const CLASS_NAMES = Array.from(new Set([...BASE_CLASS_NAMES, ...SUBCLASS_CLASS_NAMES]));
 const ClassNameEnum = z.enum(CLASS_NAMES as [string, ...string[]]);
+const BaseClassNameEnum = z.enum(BASE_CLASS_NAMES as [string, ...string[]]);
 
 const SpellRarity = z.enum(["common", "uncommon", "rare", "very_rare", "legendary"]);
 
@@ -70,6 +71,31 @@ const ArbitrationType = z.enum(["mechanical", "ai_assisted", "ai_dm"]);
 const AIContext = z.object({
   prompt: z.string(),
   playerInputRequired: z.boolean(),
+});
+
+// ============================================================================
+// Class Access Shape
+// ============================================================================
+// This section keeps spell class access explicit and testable across the entire
+// corpus. The owner ruled that base/default class access and subclass/domain
+// access should not be flattened into one ambiguous array.
+//
+// That means every spell JSON should expose:
+// - `classes`: base/default class access only
+// - `subClasses`: subclass/domain-specific access, or an explicit empty array
+// - `subClassesVerification`: whether the subclass/domain access field has been
+//   explicitly checked yet
+//
+// Requiring both fields makes the validation lane answer a stronger question:
+// not just "is subclass data legal when present?" but also "does every spell
+// JSON declare whether subclass-specific access exists at all?"
+// ============================================================================
+const SubClassesVerificationStatus = z.enum(["unverified", "verified"]);
+
+const SpellClassAccess = z.object({
+  classes: z.array(BaseClassNameEnum),
+  subClasses: z.array(z.string()),
+  subClassesVerification: SubClassesVerificationStatus,
 });
 
 const SavingThrowAbility = z.enum(["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]);
@@ -87,9 +113,23 @@ const CastingTime = z.object({
   }),
 });
 
+// ============================================================================
+// Range And Geometry Units
+// ============================================================================
+// Range/Area review showed that the spell JSON was carrying numeric geometry
+// while the "feet" part lived only in comments and formatter assumptions.
+//
+// These unit enums make that geometry explicit without forcing the whole corpus
+// to migrate in one pass. Missing unit fields still mean "legacy feet" for now.
+// ============================================================================
+const DistanceUnit = z.enum(["feet", "miles", "inches"]);
+const SpatialMeasuredUnit = z.enum(["feet", "miles", "inches", "gallons", "minutes"]);
+const GeometrySizeType = z.enum(["radius", "diameter", "length", "edge", "side"]);
+
 const Range = z.object({
-  type: z.enum(["self", "touch", "ranged", "special"]),
-  distance: z.number(),
+  type: z.enum(["self", "touch", "ranged", "special", "sight", "unlimited"]),
+  distance: z.number().optional(),
+  distanceUnit: DistanceUnit.optional(),
 });
 
 const Components = z.object({
@@ -127,12 +167,17 @@ const TargetingAreaOfEffect = z.object({
     "Emanation", "Wall", "Hemisphere", "Ring"
   ]),
   size: z.number(),
+  sizeType: GeometrySizeType.optional(),
+  sizeUnit: DistanceUnit.optional(),
   height: z.number().optional(),
+  heightUnit: DistanceUnit.optional(),
 
   // Extended semantics (optional, shape-dependent)
   followsCaster: z.boolean().optional(),
   thickness: z.number().optional(),
+  thicknessUnit: DistanceUnit.optional(),
   width: z.number().optional(),
+  widthUnit: DistanceUnit.optional(),
 
   shapeVariant: z.object({
     options: z.array(z.enum(["Line", "Ring", "Hemisphere", "Sphere"])),
@@ -149,6 +194,64 @@ const TargetingAreaOfEffect = z.object({
     triggerDistance: z.number().optional(),
     triggerSide: z.enum(["one", "both", "inside"]).optional()
   }).optional()
+});
+
+// ============================================================================
+// Explicit Spatial Details
+// ============================================================================
+// These additive schemas give risky spells a place to store alternate forms and
+// measured spatial rules without flattening them back into one ambiguous prose
+// string. The older range/area fields still remain the primary runtime shape;
+// this section only fills the gaps for edge-case geometry.
+// ============================================================================
+const SpatialForm = z.object({
+  label: z.string().optional(),
+  shape: z.string(),
+  size: z.number().optional(),
+  sizeType: GeometrySizeType.optional(),
+  sizeUnit: DistanceUnit.optional(),
+  height: z.number().optional(),
+  heightUnit: DistanceUnit.optional(),
+  width: z.number().optional(),
+  widthUnit: DistanceUnit.optional(),
+  thickness: z.number().optional(),
+  thicknessUnit: DistanceUnit.optional(),
+  segmentCount: z.number().optional(),
+  segmentWidth: z.number().optional(),
+  segmentWidthUnit: DistanceUnit.optional(),
+  segmentHeight: z.number().optional(),
+  segmentHeightUnit: DistanceUnit.optional(),
+  notes: z.string().optional(),
+});
+
+const SpatialMeasuredDetail = z.object({
+  label: z.string(),
+  kind: z.enum([
+    "blocker",
+    "opening",
+    "diameter",
+    "thickness",
+    "depth",
+    "size_change",
+    "distance",
+    "count",
+    "volume",
+    "time",
+    "special",
+  ]),
+  subject: z.string().optional(),
+  value: z.number().optional(),
+  // Some pulled-apart spatial facts are not pure distances. Risky spells like
+  // Create or Destroy Water and Bones of the Earth need gallons and minutes to
+  // stay explicit instead of getting pushed back into prose-only notes.
+  unit: SpatialMeasuredUnit.optional(),
+  qualifier: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const SpatialDetails = z.object({
+  forms: z.array(SpatialForm).optional(),
+  measuredDetails: z.array(SpatialMeasuredDetail).optional(),
 });
 
 const ValidTargetType = z.enum([
@@ -172,11 +275,13 @@ const TargetConditionFilter = z.object({
 const Targeting = z.object({
   type: z.enum(["self", "single", "multi", "area", "melee", "ranged", "point"]),
   range: z.number(),
+  rangeUnit: DistanceUnit.optional(),
   maxTargets: ScalableNumber,
   validTargets: z.array(ValidTargetType),
   lineOfSight: z.boolean(),
   areaOfEffect: TargetingAreaOfEffect,
   filter: TargetConditionFilter,
+  spatialDetails: SpatialDetails.optional(),
   // Legacy fields (deprecated, use areaOfEffect instead - keeping optional for backwards compat during migration if needed, but script backfilled them)
   shape: z.enum(["sphere", "cone", "cube", "line", "cylinder"]).optional(),
   radius: z.number().optional()
@@ -255,7 +360,87 @@ const ScalingFormula = z.object({
   type: z.enum(["slot_level", "character_level", "custom"]),
   bonusPerLevel: z.string().optional(),
   customFormula: z.string().optional(),
+  scalingTiers: z.record(z.string(), z.string()).optional(),
 });
+
+// ============================================================================
+// Higher-Level Scaling Schema
+// ============================================================================
+// The live spell corpus still stores most scaling rules in readable prose under
+// `higherLevels`. That is fine for glossary display, but it is too weak for the
+// runtime engine if we want reliable cantrip tiers or slot-level calculations.
+//
+// This schema adds an optional machine-readable home for those rules without
+// forcing a one-shot migration of every spell. Existing JSON keeps validating,
+// while new or upgraded spells can start declaring their higher-level behavior
+// explicitly here.
+// ============================================================================
+const CharacterLevelTierScaling = z.object({
+  type: z.literal("character_level_tiers"),
+  tiers: z.record(z.string(), z.string()),
+  notes: z.string().optional(),
+});
+
+const SlotLevelBonusScaling = z.object({
+  type: z.literal("slot_level_bonus"),
+  baseSpellLevel: z.number(),
+  bonusPerLevel: z.string(),
+  notes: z.string().optional(),
+});
+
+const SlotLevelTableScaling = z.object({
+  type: z.literal("slot_level_table"),
+  baseSpellLevel: z.number(),
+  entries: z.record(z.string(), z.string()),
+  notes: z.string().optional(),
+});
+
+const TargetCountBonusScaling = z.object({
+  type: z.literal("target_count_bonus"),
+  baseSpellLevel: z.number(),
+  additionalTargetsPerLevel: z.number(),
+  targetLabel: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const AreaSizeBonusScaling = z.object({
+  type: z.literal("area_size_bonus"),
+  baseSpellLevel: z.number(),
+  increasePerLevel: z.number(),
+  unit: z.literal("feet"),
+  dimension: z.enum(["radius", "diameter", "cube_size", "line_length", "wall_length", "wall_height"]),
+  notes: z.string().optional(),
+});
+
+const HigherLevelScalingRule = z.discriminatedUnion("type", [
+  CharacterLevelTierScaling,
+  SlotLevelBonusScaling,
+  SlotLevelTableScaling,
+  TargetCountBonusScaling,
+  AreaSizeBonusScaling,
+]);
+
+const MultipleHigherLevelScaling = z.object({
+  type: z.literal("multiple"),
+  rules: z.array(HigherLevelScalingRule),
+  notes: z.string().optional(),
+});
+
+const SpecialTextOnlyHigherLevelScaling = z.object({
+  type: z.literal("special_text_only"),
+  referenceText: z.string(),
+  reason: z.string().optional(),
+});
+
+const HigherLevelScaling = z.discriminatedUnion("type", [
+  CharacterLevelTierScaling,
+  SlotLevelBonusScaling,
+  SlotLevelTableScaling,
+  TargetCountBonusScaling,
+  AreaSizeBonusScaling,
+  MultipleHigherLevelScaling,
+  SpecialTextOnlyHigherLevelScaling,
+]);
 
 const BaseEffect = z.object({
   trigger: EffectTrigger,
@@ -565,7 +750,9 @@ export const SpellValidator = z.object({
   level: z.number(),
   school: SpellSchool,
   legacy: z.boolean(),
-  classes: z.array(ClassNameEnum),
+  // Spread the dedicated class-access schema into the main spell shape so the
+  // validator can enforce the explicit split everywhere, not only in new data.
+  ...SpellClassAccess.shape,
   ritual: z.boolean(), // Validation Rule: Must be false for Level 0 (enforce via .refine or subclass)
   rarity: SpellRarity,
   attackType: z.string(),
@@ -579,6 +766,7 @@ export const SpellValidator = z.object({
   aiContext: AIContext,
   description: z.string(),
   higherLevels: z.string(),
+  higherLevelScaling: HigherLevelScaling.optional(),
   tags: z.array(z.string()),
 }).superRefine((spell, ctx) => {
   /**

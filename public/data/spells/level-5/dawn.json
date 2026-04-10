@@ -9,6 +9,8 @@
     "Cleric",
     "Wizard"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -26,7 +28,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 60
+    "distance": 60,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -45,6 +48,7 @@
   "targeting": {
     "type": "area",
     "range": 60,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -52,7 +56,9 @@
     "areaOfEffect": {
       "shape": "Cylinder",
       "size": 30,
-      "height": 40
+      "sizeUnit": "feet",
+      "height": 40,
+      "heightUnit": "feet"
     },
     "maxTargets": 1,
     "filter": {

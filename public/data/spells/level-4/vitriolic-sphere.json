@@ -5,7 +5,12 @@
   "level": 4,
   "school": "Evocation",
   "legacy": false,
-  "classes": [],
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -23,13 +28,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 0
+    "distance": 150,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false,
-    "materialDescription": "",
+    "material": true,
+    "materialDescription": "a drop bile",
     "materialCost": 0,
     "isConsumed": false
   },
@@ -40,17 +46,19 @@
     "unit": "round"
   },
   "targeting": {
-    "type": "single",
-    "range": 0,
+    "type": "area",
+    "range": 150,
     "validTargets": [
-      "creatures"
+      "point"
     ],
     "lineOfSight": true,
     "maxTargets": 1,
     "areaOfEffect": {
       "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "size": 20,
+      "height": 0,
+      "sizeType": "radius",
+      "sizeUnit": "feet"
     },
     "filter": {
       "creatureTypes": [],
@@ -59,11 +67,30 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Acid Projectile",
+          "shape": "Sphere",
+          "size": 1,
+          "sizeType": "diameter",
+          "sizeUnit": "feet"
+        },
+        {
+          "label": "Explosion",
+          "shape": "Sphere",
+          "size": 20,
+          "sizeType": "radius",
+          "sizeUnit": "feet"
+        }
+      ]
     }
   },
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "DAMAGE",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -93,8 +120,12 @@
         "requiresStatus": [],
         "saveModifiers": []
       },
+      "damage": {
+        "dice": "10d4",
+        "type": "Acid"
+      },
       "utilityType": "other",
-      "description": "See description.",
+      "description": "You point at a location within range, and a glowing, 1-foot-diameter ball of acid streaks there and explodes in a 20-foot-radius Sphere. Each creature in that area makes a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and another 5d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage only.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -130,7 +161,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "",
-  "higherLevels": "",
+  "description": "You point at a location within range, and a glowing, 1-foot-diameter ball of acid streaks there and explodes in a 20-foot-radius Sphere. Each creature in that area makes a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and another 5d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage only.",
+  "higherLevels": "Using a Higher-Level Spell Slot. The initial damage increases by 2d4 for each spell slot level above 4.",
   "tags": []
 }

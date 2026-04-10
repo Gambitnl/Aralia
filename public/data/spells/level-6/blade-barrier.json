@@ -8,6 +8,8 @@
   "classes": [
     "Cleric"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -25,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 90
+    "distance": 90,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -49,9 +52,14 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Line",
+      "shape": "Wall",
       "size": 100,
-      "height": 0
+      "height": 20,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "heightUnit": "feet",
+      "thickness": 5,
+      "thicknessUnit": "feet"
     },
     "maxTargets": 1,
     "filter": {
@@ -61,6 +69,33 @@
       "alignments": [],
       "hasCondition": [],
       "isNativeToPlane": false
+    },
+    "rangeUnit": "feet",
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Straight Wall",
+          "shape": "Wall",
+          "size": 100,
+          "sizeType": "length",
+          "sizeUnit": "feet",
+          "height": 20,
+          "heightUnit": "feet",
+          "thickness": 5,
+          "thicknessUnit": "feet"
+        },
+        {
+          "label": "Ringed Wall",
+          "shape": "Ring",
+          "size": 60,
+          "sizeType": "diameter",
+          "sizeUnit": "feet",
+          "height": 20,
+          "heightUnit": "feet",
+          "thickness": 5,
+          "thicknessUnit": "feet"
+        }
+      ]
     }
   },
   "effects": [
@@ -97,7 +132,7 @@
       },
       "damage": {
         "dice": "6d10",
-        "type": "Slashing"
+        "type": "Force"
       },
       "scaling": {
         "type": "slot_level",
@@ -112,7 +147,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create a vertical wall of whirling, razor-sharp blades made of magical energy. The wall appears within range and lasts for the duration. You can make a straight wall up to 100 feet long, 20 feet high, and 5 feet thick, or a ringed wall up to 60 feet in diameter, 20 feet high, and 5 feet thick. The wall provides three-quarters cover to creatures behind it, and its space is difficult terrain. When a creature enters the wall's area for the first time on a turn or starts its turn there, the creature must make a Dexterity saving throw. On a failed save, the creature takes 6d10 slashing damage. On a successful save, the creature takes half as much damage.",
+  "description": "You create a wall of whirling blades made of magical energy. The wall appears within range and lasts for the duration. You make a straight wall up to 100 feet long, 20 feet high, and 5 feet thick, or a ringed wall up to 60 feet in diameter, 20 feet high, and 5 feet thick. The wall provides Three-Quarters Cover , and its space is Difficult Terrain . Any creature in the wall's space makes a Dexterity saving throw, taking 6d10 Force damage on a failed save or half as much damage on a successful one. A creature also makes that save if it enters the wall's space or ends it turn there. A creature makes that save only once per turn.",
   "higherLevels": "",
   "tags": []
 }

@@ -29,5 +29,34 @@
 - **Damage Dice**: 1d10
 - **Damage Type**: Piercing
 
-- **Description**: The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal effect of the attack, the target of the attack and each creature within 5 feet of it must make a Dexterity saving throw. A creature takes 1d10 Piercing damage on a failed save, or half as much damage on a successful one.
-- **Higher Levels**: If you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.
+- **Description**: As you hit the creature, this spell creates a rain of thorns that sprouts from your Ranged weapon or ammunition. The target of the attack and each creature within 5 feet of it make a Dexterity saving throw, taking 1d10 Piercing damage on a failed save or half as much damage on a successful one.
+- **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 1.
+
+## Canonical D&D Beyond Snapshot
+
+This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
+
+<!--
+Name: Hail of Thorns
+Level: 1st
+Casting Time: 1 Bonus Action *
+Range/Area: Self
+Components: V
+Duration: Instantaneous
+School: Conjuration
+Attack/Save: DEX Save
+Damage/Effect: Piercing
+
+Rules Text:
+As you hit the creature, this spell creates a rain of thorns that sprouts from your Ranged weapon or ammunition. The target of the attack and each creature within 5 feet of it make a Dexterity saving throw, taking 1d10 Piercing damage on a failed save or half as much damage on a successful one.
+Using a Higher-Level Spell Slot. The damage increases by 1d10 for each spell slot level above 1.
+
+Spell Tags:
+Damage
+
+Available For:
+Ranger
+
+Capture Method: http
+Legacy Page: false
+-->

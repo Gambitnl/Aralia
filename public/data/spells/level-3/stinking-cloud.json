@@ -10,6 +10,12 @@
     "Sorcerer",
     "Wizard"
   ],
+  "subClasses": [
+    "Warlock - Fiend Patron",
+    "Cleric - Festus Domain",
+    "Warlock - Mother of Sorrows (BoET)"
+  ],
+  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -27,13 +33,14 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 90
+    "distance": 90,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a rotten egg or several skunk cabbage leaves",
+    "materialDescription": "a rotten egg",
     "isConsumed": false,
     "materialCost": 0
   },
@@ -46,6 +53,7 @@
   "targeting": {
     "type": "area",
     "range": 90,
+    "rangeUnit": "feet",
     "validTargets": [
       "creatures"
     ],
@@ -53,6 +61,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 20,
+      "sizeUnit": "feet",
       "height": 0
     },
     "maxTargets": 1,
@@ -128,7 +137,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create a 20-foot-radius sphere of yellow, nauseating gas centered on a point within range. The cloud spreads around corners, and its area is heavily obscured. The cloud lingers in the air for the duration. Each creature that is completely within the cloud at the start of its turn must make a Constitution saving throw against poison. On a failed save, the creature is Poisoned until the start of its next turn. While Poisoned in this way, the creature can take either an action or a bonus action on its turn, not both, and it can't take reactions. A moderate wind (at least 10 miles per hour) disperses the cloud after 4 rounds. A strong wind (at least 20 miles per hour) disperses it after 1 round.",
+  "description": "You create a 20-foot-radius Sphere of yellow, nauseating gas centered on a point within range. The cloud is Heavily Obscured . The cloud lingers in the air for the duration or until a strong wind (such as the one created by Gust of Wind) disperses it. Each creature that starts its turn in the Sphere must succeed on a Constitution saving throw or have the Poisoned condition until the end of the current turn. While Poisoned in this way, the creature can't take an action or a Bonus Action.",
   "higherLevels": "",
   "tags": []
 }

@@ -3,12 +3,14 @@
   "name": "Glibness",
   "aliases": [],
   "level": 8,
-  "school": "Transmutation",
+  "school": "Enchantment",
   "legacy": false,
   "classes": [
     "Bard",
     "Warlock"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",

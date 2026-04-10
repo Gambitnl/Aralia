@@ -8,6 +8,8 @@
   "classes": [
     "Warlock"
   ],
+  "subClasses": [],
+  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "ranged",
@@ -25,7 +27,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
   "components": {
     "verbal": true,
@@ -44,6 +47,7 @@
   "targeting": {
     "type": "multi",
     "range": 120,
+    "rangeUnit": "feet",
     "maxTargets": {
       "base": 1,
       "scaling": {

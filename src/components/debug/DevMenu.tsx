@@ -1,17 +1,47 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 27/03/2026, 23:48:00
+ * Dependents: components/layout/GameModals.tsx
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file DevMenu.tsx
- * This component displays a developer menu modal with various debug/utility actions.
+ * This file renders the shared developer tools modal used from both gameplay and
+ * the main menu.
+ *
+ * The important 2026-03-24 change is that this modal now also exposes the same
+ * Dev Mode state that used to feel separate from the main-menu entry point. That
+ * keeps the "Dev Menu" launch surface and the actual "Dev Mode" switch tied to
+ * the same UI instead of forcing the player to mentally model two unrelated systems.
+ *
+ * The 2026-03-25 follow-up change folds the old standalone "Quick Start (Dev)"
+ * main-menu button into this shared modal. That keeps all developer-only entry
+ * points in one surface instead of scattering them across the main menu.
+ *
+ * Called by: GameModals.tsx
+ * Depends on: GameContext for direct dispatch-only tools, App.tsx for high-level
+ * dev actions, and the central UI reducer for the actual Dev Mode state.
  */
 import React, { useEffect, useRef } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../../config/geminiConfig';
 import { useGameState } from '../../state/GameContext';
 import { generateVillageTemple } from '../../utils/templeUtils';
-import { VillageActionContext, VillagePersonality } from '../../types';
+import { GamePhase, VillageActionContext, VillagePersonality } from '../../types';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import StateViewer from './StateViewer';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'quick_start_dev' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -20,9 +50,22 @@ interface DevMenuProps {
   hasNewRateLimitError: boolean;
   currentModelOverride: string | null;
   onModelChange: (model: string | null) => void;
+  isDevModeEnabled: boolean;
+  onSetDevModeEnabled: (enabled: boolean) => void;
+  gamePhase: GamePhase;
 }
 
-const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewRateLimitError, currentModelOverride, onModelChange }) => {
+const DevMenu: React.FC<DevMenuProps> = ({
+  isOpen,
+  onClose,
+  onDevAction,
+  hasNewRateLimitError,
+  currentModelOverride,
+  onModelChange,
+  isDevModeEnabled,
+  onSetDevModeEnabled,
+  gamePhase,
+}) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   // TODO(lint-intent): 'state' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
@@ -48,9 +91,18 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
     return null;
   }
 
+  // This select continues to control Gemini overrides only. It stays in this modal
+  // because the dev menu is still the central debugging surface, even after Dev Mode
+  // itself became part of the shared flow.
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     onModelChange(value === 'default' ? null : value);
+  };
+
+  // This helper keeps the Dev Mode toggle wording and behavior consistent no matter
+  // whether the modal was opened from the main menu or from in-game play.
+  const handleToggleDevMode = () => {
+    onSetDevModeEnabled(!isDevModeEnabled);
   };
 
   const openTestTemple = () => {
@@ -93,10 +145,16 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
     onClose();
   };
 
+  // The first group now conditionally exposes Quick Start only from the main menu.
+  // In active gameplay that action would be redundant or misleading, so we keep the
+  // button scoped to the phase where it replaces the old standalone main-menu control.
   const devActionGroups: Array<{ title: string; buttons: Array<{ label: string; action: DevMenuActionType; style?: string; onClick?: () => void }> }> = [
     {
       title: 'Game State & Navigation',
       buttons: [
+        ...(gamePhase === GamePhase.MAIN_MENU
+          ? [{ label: 'Quick Start (Dev)', action: 'quick_start_dev' as const, style: 'bg-orange-500 hover:bg-orange-600 text-white' }]
+          : []),
         { label: 'Force Save Game', action: 'save', style: 'bg-yellow-500 hover:bg-yellow-400 text-gray-900' },
         { label: 'Force Load Game', action: 'load', style: 'bg-teal-500 hover:bg-teal-400' },
         { label: 'Go to Main Menu', action: 'main_menu', style: 'bg-blue-600 hover:bg-blue-500' },
@@ -155,6 +213,34 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
           >
             &times;
           </button>
+        </div>
+
+        {/* This top status block is the unification point for the old split mental model.
+            The main menu can now open the same modal and show the actual Dev Mode state,
+            instead of pretending the menu and the mode are separate concepts. */}
+        <div className="mb-6 rounded-lg border border-gray-700 bg-gray-900/60 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm uppercase tracking-wider text-gray-400 font-bold">
+                Dev Mode State
+              </h3>
+              <p className="mt-1 text-sm text-gray-300">
+                {isDevModeEnabled
+                  ? 'Dev Mode is currently enabled. Gameplay-only diagnostics like the glossary spell checks can appear when their local toggles are turned on.'
+                  : 'Dev Mode is currently disabled. You can enable it here before using tools that depend on the gameplay dev-state flag.'}
+              </p>
+            </div>
+            <button
+              onClick={handleToggleDevMode}
+              className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold shadow-md transition-colors ${
+                isDevModeEnabled
+                  ? 'bg-emerald-700 text-white hover:bg-emerald-600'
+                  : 'bg-slate-600 text-white hover:bg-slate-500'
+              }`}
+            >
+              {isDevModeEnabled ? 'Disable Dev Mode' : 'Enable Dev Mode'}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-6 mb-6">
