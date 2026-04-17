@@ -101,6 +101,16 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
     [worldSeed, worldX, worldY, biomeId]
   );
 
+  // Caches findBuildingAt results by tile coordinate while layout is stable to avoid repeated scans in dense markets.
+  const buildingCache = useMemo(() => new Map<string, any>(), [layout]);
+  const getBuildingAt = (tx: number, ty: number) => {
+    const key = `${tx},${ty}`;
+    if (buildingCache.has(key)) return buildingCache.get(key);
+    const b = findBuildingAt(layout, tx, ty);
+    buildingCache.set(key, b);
+    return b;
+  };
+
   // Draw the deterministic canvas every time layout changes.
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -163,8 +173,7 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
     const rect = canvasRef.current.getBoundingClientRect();
     const x = Math.floor((event.clientX - rect.left) / TILE_SIZE);
     const y = Math.floor((event.clientY - rect.top) / TILE_SIZE);
-    // TODO(QOL): Cache findBuildingAt results by tile coordinate while layout is stable to avoid repeated scans in dense markets (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
-    const building = findBuildingAt(layout, x, y);
+    const building = getBuildingAt(x, y);
     const tileType: VillageTileType = building?.type || layout.tiles[y]?.[x] || 'grass';
     const label = interactionLabels[tileType] || 'Investigate';
 
