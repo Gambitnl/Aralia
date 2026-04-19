@@ -639,7 +639,7 @@ const App: React.FC = () => {
   ]);
 
   const handleDevMenuAction = useCallback(async (actionType: string) => {
-    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter', 'restart_dynamic_party'];
+    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter', 'restart_dynamic_party', 'test_village'];
 
     if (actionsThatNeedMenuToggle.includes(actionType)) {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
@@ -745,6 +745,9 @@ const App: React.FC = () => {
         break;
       case 'test_dice_roller':
         dispatch({ type: 'TOGGLE_DICE_ROLLER' });
+        break;
+      case 'test_village':
+        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.VILLAGE_VIEW });
         break;
     }
   }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleBattleMapDemo]);

@@ -93,16 +93,6 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
     onClose();
   };
 
-  const openTestVillage = () => {
-    // Force transition to a village view with dummy coordinates
-    dispatch({
-      type: 'SET_GAME_PHASE',
-      payload: GamePhase.VILLAGE_VIEW
-    });
-    // Ensure we have some minimal town state if needed, though TownCanvas can handle defaults
-    onClose();
-  };
-
   const devActionGroups: Array<{ title: string; buttons: Array<{ label: string; action: DevMenuActionType; style?: string; onClick?: () => void }> }> = [
     {
       title: 'Game State & Navigation',
@@ -135,7 +125,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
       title: 'Feature Testing',
       buttons: [
         { label: 'Test Temple UI', action: 'test_temple', style: 'bg-amber-600 hover:bg-amber-500', onClick: openTestTemple },
-        { label: 'Open Village Scene', action: 'test_village', style: 'bg-emerald-600 hover:bg-emerald-500', onClick: openTestVillage },
+        { label: 'Open Village Scene', action: 'test_village', style: 'bg-emerald-600 hover:bg-emerald-500' },
         { label: 'Test Lockpicking UI', action: 'test_lockpicking', style: 'bg-yellow-700 hover:bg-yellow-600 border border-yellow-500' },
         { label: '3D Dice Roller', action: 'test_dice_roller', style: 'bg-indigo-700 hover:bg-indigo-600 border border-indigo-500' },
         { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
