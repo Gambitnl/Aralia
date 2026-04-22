@@ -24,7 +24,7 @@ Use [`FEATURES_TODO.md`](./FEATURES_TODO.md) for larger feature-delivery backlog
 - [ ] Add mobile-responsiveness QA checklist guidance. (`docs/DEVELOPMENT_GUIDE.md`)
 - [ ] Add console-error cleanup checklist guidance for core flows. (`docs/DEVELOPMENT_GUIDE.md`)
 - [ ] Add automated accessibility coverage for focus-trap and keyboard-navigation behavior in save-slot flows. (`src/components/SaveSlotSelector.tsx`)
-- [ ] Cache `findBuildingAt` results by tile coordinate while the village layout is stable. (`src/components/VillageScene.tsx`)
+- [x] Cache `findBuildingAt` results by tile coordinate while the village layout is stable. (`src/components/VillageScene.tsx`)
 - [ ] Add on-canvas affordances that surface `integrationTagline` before click. (`src/components/VillageScene.tsx`)
 - [ ] Expand biome-specific village profiles so each biome has more distinct hooks and flavor. (`src/data/villagePersonalityProfiles.ts`)
 - [ ] Derive the UI toggle list in `useGameActions` from a shared action registry to reduce drift. (`src/hooks/useGameActions.ts`)
