@@ -2444,6 +2444,12 @@ export default defineConfig(async ({ mode, command }) => {
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'spell_data_validation.html'))
             ? { spell_data_validation: path.resolve(__dirname, 'misc', 'spell_data_validation.html') }
             : {}),
+          // Standalone Spell Pipeline Atlas — bucket dashboard + execution maps +
+          // coverage matrix. Lives beside spell_data_validation.html so the Dev
+          // Hub can link to it directly without routing through DesignPreview.
+          ...(fs.existsSync(path.resolve(__dirname, 'misc', 'spell_pipeline_atlas.html'))
+            ? { spell_pipeline_atlas: path.resolve(__dirname, 'misc', 'spell_pipeline_atlas.html') }
+            : {}),
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'agent_docs.html'))
             ? { agent_docs: path.resolve(__dirname, 'misc', 'agent_docs.html') }
             : {}),

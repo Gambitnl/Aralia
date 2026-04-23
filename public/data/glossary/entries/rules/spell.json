@@ -1,0 +1,25 @@
+{
+  "id": "spell",
+  "title": "Spell",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "magic",
+    "world-state"
+  ],
+  "excerpt": "A spell is a defined magical effect package. Its text establishes how that effect enters the world, what resources or components it needs, what it can target, and how long its state persists.",
+  "aliases": [
+    "spells"
+  ],
+  "seeAlso": [
+    "spells_chapter",
+    "magic_action",
+    "spell_level_slots",
+    "spell_components_rules",
+    "spell_effects_rules",
+    "spell_duration_rules"
+  ],
+  "filePath": "/data/glossary/entries/rules/spell.json",
+  "markdown": "# Spell\n\nA spell is a rules-defined magical effect. When a creature casts one, the spell's own text tells the world what kind of effect is being created, what inputs are required, what targets or areas it can resolve against, and how long that new state lasts.\n\n## Rules Surface\n\nA spell usually brings together several narrower rule surfaces:\n- [[magic_action|Casting time and action timing]]\n- [[spell_level_slots|Spell level and slot use]]\n- [[spell_components_rules|Verbal, somatic, and material requirements]]\n- [[spell_effects_rules|Targets, saves, attacks, and areas]]\n- [[spell_duration_rules|Duration and concentration handling]]\n\n## Chapter Relationship\n\nUse [[spells_chapter]] when the question is about the broader spellcasting chapter as a whole. Use the linked rules entries above when the question is about one narrower part of spell resolution.\n"
+}

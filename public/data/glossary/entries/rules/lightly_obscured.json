@@ -1,0 +1,17 @@
+{
+  "id": "lightly_obscured",
+  "title": "Lightly Obscured",
+  "category": "Rules Glossary",
+  "tags": ["vision", "obscurement", "visibility", "detection"],
+  "excerpt": "A lightly obscured area interferes with sight enough to reduce visual clarity without fully blocking what lies inside or beyond it.",
+  "aliases": [],
+  "seeAlso": [
+    "obscured_areas",
+    "vision",
+    "dim_light",
+    "search_action",
+    "heavily_obscured"
+  ],
+  "filePath": "/data/glossary/entries/rules/lightly_obscured.json",
+  "markdown": "# Lightly Obscured\n\nA lightly obscured area interferes with sight enough to reduce clarity without fully shutting vision down. Dim light, thin fog, drifting smoke, sparse foliage, and similar conditions commonly create light obscurity.\n\n## Rules\n\n- lightly obscured spaces make creatures, objects, and details harder to pick out through normal sight\n- the visual penalty is enough to interfere with notice and detail, but not enough to create the same level of blindness as heavy obscurity\n- light obscurity usually matters most for checks, searches, and other moments where fine visual detail determines what a creature can reliably notice\n- a lightly obscured area can become heavily obscured if the blocking effect thickens, deepens, or stacks with stronger interference\n\n## Perception Pressure\n\nLight obscurity creates partial uncertainty rather than full visual collapse. A creature can usually still tell that something is present, but details, identity, or subtle motion become easier to miss. That makes [[search_action|Search [Action]]] and other deliberate detection efforts more important when the scene is only partly visible.\n\n## Relationship To Other Vision Rules\n\n[[dim_light|Dim Light]] commonly creates a lightly obscured area, while [[heavily_obscured|Heavily Obscured]] spaces block vision far more aggressively. The broader [[obscured_areas|Obscured Areas]] rule describes how both levels of visual interference affect sight-based resolution.\n"
+}

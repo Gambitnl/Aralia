@@ -1,0 +1,16 @@
+{
+  "id": "enemy",
+  "title": "Enemy",
+  "category": "Rules Glossary",
+  "tags": ["relationships", "combat", "targeting"],
+  "excerpt": "An enemy is a creature the current game state treats as opposed to another creature for conflict, hostile targeting, or adverse effects.",
+  "aliases": ["Hostile Enemy"],
+  "seeAlso": [
+    "ally",
+    "attitude",
+    "hostile_attitude",
+    "target"
+  ],
+  "filePath": "/data/glossary/entries/rules/enemy.json",
+  "markdown": "# Enemy\n\nAn enemy is a creature the current game state treats as opposed to another creature for conflict resolution. Enemy status matters when a spell, feature, or rule refers to hostile targets, damaging enemies, excluding enemies from benefits, or applying effects only to creatures on the opposing side.\n\n## Relationship State\n\nEnemy status is determined by the active relationship state, not by creature type. A creature can count as an enemy because of faction opposition, combat-side alignment, a control conflict, or another world-state relationship that places the creature on the opposing side for the current effect.\n\n## Rules Use\n\n### Hostile Targeting\n- some effects can target only an enemy or hostile creature\n- some effects exclude enemies from benefits or protection\n- some effects distinguish enemies from allies when resolving an area or aura\n\n### State Can Change\n- enemy status can change if a creature changes sides, is controlled, or otherwise stops being treated as an opposing creature in the current situation\n- a rule that depends on an enemy should use the relationship state that exists when the effect resolves\n\n### Separate From Attitude\n- an enemy often has a hostile attitude, but the two concepts are not identical\n- enemy status is usually used for tactical and effect-resolution purposes, while attitude is broader and more social\n"
+}

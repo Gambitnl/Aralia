@@ -1,0 +1,17 @@
+{
+  "id": "attitude",
+  "title": "Attitude",
+  "category": "Rules Glossary",
+  "tags": ["relationships", "social", "targeting"],
+  "excerpt": "Attitude describes how one creature currently regards another creature, which can affect negotiation, cooperation, and how some effects interpret relationship state.",
+  "aliases": [],
+  "seeAlso": [
+    "ally",
+    "enemy",
+    "friendly_attitude",
+    "indifferent_attitude",
+    "hostile_attitude"
+  ],
+  "filePath": "/data/glossary/entries/rules/attitude.json",
+  "markdown": "# Attitude\n\nAttitude describes a creature's current social stance toward another creature or group. It is a relationship-state signal used to interpret trust, cooperation, openness to influence, and some rules that distinguish between friendly, indifferent, and hostile creatures.\n\n## Relationship State\n\nAttitude is not the same thing as faction, permanent allegiance, or formal alliance. It reflects how a creature is currently disposed toward another creature in the active situation.\n\n## Common Attitude States\n\n- [[friendly_attitude|Friendly]] creatures are inclined to cooperate or respond positively\n- [[indifferent_attitude|Indifferent]] creatures are not strongly aligned either way\n- [[hostile_attitude|Hostile]] creatures oppose, resist, or wish harm to the other creature\n\n## Rules Use\n\nAttitude matters when a rule depends on social stance, willingness to cooperate, or whether a creature can be treated as a suitable social target. A creature's attitude can change if the world state changes, if harm is dealt, if trust is earned, or if another effect changes the relationship.\n\n## Separate From Ally And Enemy\n\nAttitude overlaps with allied and hostile behavior, but it is not identical to those combat-facing relationship states. A creature can be socially friendly without being a full ally for every effect, and a creature can be an enemy in combat even if it is not actively hostile in every moment.\n"
+}

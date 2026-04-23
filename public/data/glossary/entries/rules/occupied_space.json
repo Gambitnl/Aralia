@@ -1,0 +1,15 @@
+{
+  "id": "occupied_space",
+  "title": "Occupied Space",
+  "category": "Rules Glossary",
+  "tags": ["space", "movement", "positioning", "targeting"],
+  "excerpt": "An occupied space is a space currently filled by a creature, object, or other effect that is being treated as present there for movement or placement resolution.",
+  "aliases": ["Filled Space", "Taken Space"],
+  "seeAlso": [
+    "area_of_effect",
+    "object",
+    "unoccupied_space"
+  ],
+  "filePath": "/data/glossary/entries/rules/occupied_space.json",
+  "markdown": "# Occupied Space\n\nAn occupied space is a space the current game state treats as already filled by something present there. The occupying thing can be a creature, an object, or another effect whose rules make that space unavailable for ordinary placement or movement.\n\n## Space State\n\n- A space counts as occupied when something is currently resolved as being in it\n- Occupation matters because many rules check whether a creature can move through a space, end movement there, appear there, or place an effect there\n- A space can be occupied even when the occupying thing is not acting on its own, as long as the world still treats it as present\n\n## Rules Use\n\n### Movement And Placement\n- A rule can forbid ending movement in an occupied space unless another rule explicitly allows it\n- Teleportation, summoning, forced movement, and effect placement often require a destination that is not already occupied\n- Large creatures or objects can occupy multiple spaces, making all of those spaces occupied while that presence remains there\n\n### Spatial Resolution\n- An occupied space can still be inside an [[area_of_effect|area of effect]]\n- A space being occupied does not automatically block every effect; it mainly changes whether something else can be placed into that same space and how movement resolves around it\n- Whether a rule can pass through, overlap, ignore, or displace an occupied space depends on that rule's own text\n\n### Occupied By Objects As Well As Creatures\n- A creature is not the only thing that can occupy space\n- A crate, wall segment, vehicle, door, summoned barrier, or other [[object|object]] can also make a space occupied if it is presently resolved there\n\n## Common Uses\n\n- Choosing whether a creature can move into or stop in a space\n- Determining whether a summoned creature or created effect has a valid destination\n- Checking whether a teleport destination is available\n- Resolving contested battlefield space around creatures, obstacles, and environmental features\n"
+}

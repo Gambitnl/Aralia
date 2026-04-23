@@ -1,0 +1,22 @@
+{
+  "id": "hostile_attitude",
+  "title": "Hostile",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "relationships",
+    "social",
+    "attitude"
+  ],
+  "excerpt": "A hostile attitude means one creature currently opposes another and is disposed to resist, undermine, injure, or otherwise work against it.",
+  "aliases": [],
+  "seeAlso": [
+    "attitude",
+    "enemy",
+    "friendly_attitude",
+    "indifferent_attitude",
+    "influence_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/hostile_attitude.json",
+  "markdown": "# Hostile\n\nA hostile attitude describes a creature that currently opposes another creature and is disposed against that creature's interests. Hostility can express itself as refusal, obstruction, aggression, pursuit, or an active desire to cause harm.\n\n## Rules Use\n\nHostile indicates the most adverse common social stance. Attempts to negotiate, calm, or redirect a hostile creature are working against an already opposed relationship state rather than a neutral or favorable one.\n\n## Relationship State\n\nA hostile attitude is not necessarily permanent. It can harden through injury, fear, vengeance, or conflicting goals, and it can soften if those pressures change or if another effect alters the creature's disposition.\n"
+}

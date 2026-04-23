@@ -1,0 +1,22 @@
+{
+  "id": "high_jump",
+  "title": "High Jump",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "movement",
+    "jumping",
+    "high jump",
+    "strength"
+  ],
+  "excerpt": "A High Jump is the vertical branch of the broader jumping rules. It resolves through Strength-based jump distance, movement expenditure, and any nearby terrain or obstacle constraints.",
+  "aliases": [],
+  "seeAlso": [
+    "jumping",
+    "speed",
+    "strength",
+    "difficult_terrain"
+  ],
+  "filePath": "/data/glossary/entries/rules/high_jump.json",
+  "markdown": "# High Jump\r\nA High Jump is the vertical form of <span data-term-id=\"jumping\" class=\"glossary-term-link-from-markdown\">Jumping</span>. Resolve it through the broader <span data-term-id=\"jumping\" class=\"glossary-term-link-from-markdown\">Jumping</span> rules, which establish how <span data-term-id=\"strength\" class=\"glossary-term-link-from-markdown\">Strength</span>, movement cost, running start, and landing context shape the leap. If the jump interacts with hazardous footing or constrained landing space, the result can also turn on the creature's remaining <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> and any <span data-term-id=\"difficult_terrain\" class=\"glossary-term-link-from-markdown\">Difficult Terrain</span> at the destination.\r\n"
+}

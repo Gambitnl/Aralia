@@ -1,0 +1,17 @@
+{
+  "id": "heavily_obscured",
+  "title": "Heavily Obscured",
+  "category": "Rules Glossary",
+  "tags": ["vision", "obscurement", "visibility", "detection"],
+  "excerpt": "A heavily obscured area blocks ordinary sight so strongly that creatures effectively cannot see clearly into, through, or within it.",
+  "aliases": [],
+  "seeAlso": [
+    "obscured_areas",
+    "vision",
+    "darkness",
+    "blinded_condition",
+    "hide_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/heavily_obscured.json",
+  "markdown": "# Heavily Obscured\n\nA heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision. Dense darkness, thick fog, heavy smoke, and dense foliage commonly create this level of visual obstruction.\n\n## Rules\n\n- a heavily obscured area prevents normal sight from clearly resolving creatures, objects, and spaces inside or beyond it\n- when a creature tries to see something in a heavily obscured area, that visual uncertainty is severe enough to function like the [[blinded_condition|Blinded]] condition for that attempt\n- heavy obscurity interferes with target tracking, threat recognition, and visual confirmation of exact position unless another sense or effect bypasses the obstruction\n- heavy obscurity does not remove creatures or objects from the world state; it changes how reliably sight can resolve them\n\n## Detection And Position\n\nA creature can still infer that something is present through sound, movement, known last position, or other clues, but sight alone no longer provides clean certainty. That makes heavily obscured spaces strong support for concealment, ambushes, and broken lines of observation.\n\n## Relationship To Other Vision Rules\n\n[[darkness|Darkness]] commonly creates a heavily obscured area, and the broader [[obscured_areas|Obscured Areas]] rule distinguishes heavy obscurity from lighter visual interference. A creature using the [[hide_action|Hide [Action]]] becomes harder to track when the environment is already heavily obscured.\n"
+}

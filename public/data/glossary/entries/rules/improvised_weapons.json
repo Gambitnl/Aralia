@@ -1,0 +1,23 @@
+{
+  "id": "improvised_weapons",
+  "title": "Improvised Weapons",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "combat",
+    "weapons",
+    "objects"
+  ],
+  "excerpt": "Improvised weapons are nonstandard objects or environmental items used as weapon substitutes. Their effectiveness depends on what kind of object is being used, how it is applied, and whether another rule treats it as close enough to an existing weapon profile.",
+  "aliases": [
+    "Improvised Weapon"
+  ],
+  "seeAlso": [
+    "attack_action",
+    "object",
+    "unarmed_strike",
+    "weapons"
+  ],
+  "filePath": "/data/glossary/entries/rules/improvised_weapons.json",
+  "markdown": "# Improvised Weapons\n\nImprovised weapons are objects being used as weapons even though they were not built or listed as standard weapons. They matter when combat resolution depends on a creature striking, throwing, or otherwise attacking with something improvised from the environment.\n\n## Rules\n\n- An improvised weapon is a nonstandard object being used as a weapon substitute\n- The governing combat rule determines what attack profile, damage handling, reach, or thrown behavior the improvised object resolves with\n- Some improvised objects can be treated as close enough to a standard weapon to use a similar profile when their form and use strongly match that weapon\n- If an improvised object does not meaningfully match a standard weapon, it still resolves as an attackable object-based weapon substitute rather than as an unarmed strike by default\n\n## Combat Resolution\n\n### Object Used As A Weapon\nAn improvised weapon begins as an [[object|Object]] or environmental item and only becomes a weapon for the duration of the attack or effect using it that way.\n\n### Similarity Matters\nIf the object functions much like an existing weapon, combat resolution can follow that weapon shape more closely. If not, the attack still resolves as improvised rather than inheriting a full standard weapon identity.\n\n### Distinct From Unarmed Attacks\nAn improvised weapon is not the same as an [[unarmed_strike|Unarmed Strike]]. The attack is being made with an external object rather than with the body alone.\n\n## Common Uses\n\n- Striking with a bottle, chair leg, tool, or loose piece of debris\n- Throwing a stone, mug, or similar object as an attack\n- Using a battlefield object as a temporary substitute for a missing or unavailable standard weapon\n"
+}

@@ -2,10 +2,10 @@
 
 This report compares the validator-facing structured spell markdown block to the raw canonical snapshot stored lower in the same file.
 
-Generated: 2026-04-10T14:43:18.069Z
+Generated: 2026-04-23T22:11:08.213Z
 Markdown files scanned: 459
 Spell files compared: 409
-Total mismatches: 411
+Total mismatches: 408
 Grouped mismatch buckets: 9
 
 This report does not arbitrate which side is correct. It only surfaces where the structured Aralia spell data and the copied canonical snapshot are not currently identical.
@@ -28,15 +28,15 @@ This report does not arbitrate which side is correct. It only surfaces where the
 ### structured-vs-canonical / Sub-Classes
 
 - Kind: `value-mismatch`
-- Occurrences: 67
-- Distinct spells: 67
-- Sample spells: bane, command, cure-wounds, detect-magic, divine-favor, guiding-bolt, heroism, protection-from-evil-and-good, sanctuary, shield-of-faith
+- Occurrences: 65
+- Distinct spells: 65
+- Sample spells: bane, command, cure-wounds, detect-thoughts, divine-favor, guiding-bolt, heroism, protection-from-evil-and-good, sanctuary, shield-of-faith
 - Sample findings:
   - Bane records Sub-Classes differently in the structured block and the canonical snapshot.
   - Command records Sub-Classes differently in the structured block and the canonical snapshot.
   - Cure Wounds records Sub-Classes differently in the structured block and the canonical snapshot.
-  - Detect Magic records Sub-Classes differently in the structured block and the canonical snapshot.
   - Divine Favor is missing structured Sub-Classes data that exists in the canonical snapshot.
+  - Guiding Bolt records Sub-Classes differently in the structured block and the canonical snapshot.
 
 ### structured-vs-canonical / Casting Time
 
@@ -106,9 +106,9 @@ This report does not arbitrate which side is correct. It only surfaces where the
 ### structured-vs-canonical / Material Component
 
 - Kind: `value-mismatch`
-- Occurrences: 8
-- Distinct spells: 8
-- Sample spells: arcane-sword, divination, feather-fall, mordenkainens-magnificent-mansion, raise-dead, reincarnate, soul-cage, stoneskin
+- Occurrences: 7
+- Distinct spells: 7
+- Sample spells: arcane-sword, divination, feather-fall, raise-dead, reincarnate, soul-cage, stoneskin
 - Sample findings:
   - Feather Fall records Material Component differently in the structured block and the canonical snapshot.
   - Divination records Material Component differently in the structured block and the canonical snapshot.

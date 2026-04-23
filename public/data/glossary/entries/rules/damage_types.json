@@ -1,0 +1,16 @@
+{
+  "id": "damage_types",
+  "title": "Damage Types",
+  "category": "Rules Glossary",
+  "tags": ["combat", "damage", "resistance", "vulnerability"],
+  "excerpt": "Damage types classify the kind of harm an effect deals, which matters for interaction with resistance, vulnerability, immunity, and rule-specific triggers.",
+  "aliases": [],
+  "seeAlso": [
+    "damage",
+    "resistance",
+    "vulnerability",
+    "immunity"
+  ],
+  "filePath": "/data/glossary/entries/rules/damage_types.json",
+  "markdown": "# Damage Types\n\nDamage types classify the kind of harm an effect deals. The type matters because other rules can react differently depending on whether the harm is physical, elemental, psychic, necrotic, radiant, or another specific form.\n\n## Rules Use\n\nDamage type is part of the effect being resolved, not just descriptive flavor. It determines how that damage interacts with [[resistance|Resistance]], [[vulnerability|Vulnerability]], [[immunity|Immunity]], and other rule-specific checks.\n\n## Why It Matters\n\n- two effects can deal the same amount of [[damage]] but behave differently if their damage types differ\n- a target's defenses or weaknesses often depend on damage type rather than on the source's name alone\n- some rules care whether the effect is magical, elemental, physical, or tied to a specific damage family\n"
+}

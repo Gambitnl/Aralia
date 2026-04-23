@@ -1,0 +1,20 @@
+{
+  "id": "passive_perception",
+  "title": "Passive Perception",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "perception",
+    "awareness",
+    "world-state"
+  ],
+  "excerpt": "Passive Perception is a creature's ongoing background awareness when it is not actively using an action to search for detail.",
+  "aliases": [],
+  "seeAlso": [
+    "search_action",
+    "hide_action",
+    "invisible_condition"
+  ],
+  "filePath": "/data/glossary/entries/rules/passive_perception.json",
+  "markdown": "# Passive Perception\n\nPassive Perception is a creature's ongoing background awareness when it is not spending time or an action on deliberate searching.\n\n## Rules Use\n\nPassive Perception represents what a creature can notice through ordinary alertness, routine observation, and constant low-level awareness.\n\n## Passive Versus Active Detection\n\n- passive awareness runs in the background without using an action\n- [[search_action|Search [Action]]] represents deliberate effort to uncover something not already obvious\n- passive perception is often the first threshold another effect must overcome before remaining unnoticed\n\n## Related Concepts\n\nPassive Perception matters when another creature tries to remain hidden, when a subtle effect competes with ordinary awareness, or when the scene contains details that should be noticed without a focused search.\n"
+}

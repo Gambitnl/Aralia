@@ -1,0 +1,25 @@
+{
+  "id": "spell_attack",
+  "title": "Spell Attack",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "combat",
+    "attack roll"
+  ],
+  "excerpt": "A spell attack is an attack roll produced by a spell or spell-like feature. It resolves against Armor Class using the caster's spell attack modifier instead of a weapon attack formula.",
+  "aliases": [
+    "spell attack roll",
+    "spell attacks"
+  ],
+  "seeAlso": [
+    "spell",
+    "spell_effects_rules",
+    "attack_roll",
+    "armor_class",
+    "target"
+  ],
+  "filePath": "/data/glossary/entries/rules/spell_attack.json",
+  "markdown": "# Spell Attack\n\nA spell attack is an [[attack_roll]] created by a [[spell]] or by another feature that tells the caster to make a spell attack. The attack resolves against the target's [[armor_class]] rather than asking the target for a saving throw.\n\n## Resolution Meaning\n\nA spell attack is still an attack roll, so it follows the ordinary attack-roll outcome rules for hitting, missing, and critical hits. What makes it distinct is the source of the attack and the modifier being used.\n\n## Spell-Side Formula\n\nWhen a rule calls for a spell attack, the roll uses the caster's spell attack modifier:\n- d20\n- plus proficiency bonus\n- plus the caster's spellcasting ability modifier\n\n## Targeting Context\n\nA spell attack only happens when the spell or feature explicitly uses that form of resolution. Other spells resolve through saving throws, automatic effects, or area rules instead. For the broader spell targeting surface, see [[spell_effects_rules]] and [[target]].\n"
+}

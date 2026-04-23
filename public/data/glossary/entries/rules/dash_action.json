@@ -1,0 +1,17 @@
+{
+  "id": "dash_action",
+  "title": "Dash [Action]",
+  "category": "Rules Glossary",
+  "tags": ["actions", "movement", "combat"],
+  "excerpt": "The Dash action spends a creature's action to add extra movement equal to its current speed for the turn.",
+  "aliases": ["Dash"],
+  "seeAlso": [
+    "action",
+    "speed",
+    "climbing",
+    "swimming",
+    "flying"
+  ],
+  "filePath": "/data/glossary/entries/rules/dash_action.json",
+  "markdown": "# Dash [Action]\n\nThe Dash action converts a creature's [[action]] into more movement for the current turn. When a creature Dashes, it gains extra movement equal to its current [[speed]].\n\n## Core Effect\n\n- Dash adds movement for the current turn instead of changing the creature's base speed\n- the extra movement is measured from the speed the creature currently has after other active modifiers are applied\n- the added movement can be spent in the same turn only; unused movement does not carry forward\n\n## Movement Modes\n\nDash supports whatever movement modes the creature can currently use. If the creature is moving across the ground, [[climbing|Climbing]], [[swimming|Swimming]], or [[flying|Flying]], the extra movement can be spent through that mode as long as the world state still allows it.\n\n## Limits\n\n- Dash does not remove terrain costs, movement penalties, or speed reductions\n- Dash does not prevent hostile reactions, including movement-based triggers\n- Dash does not let a creature move through blocked space or ignore other restrictions on movement\n"
+}

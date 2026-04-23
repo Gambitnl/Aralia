@@ -47,7 +47,7 @@ const ThreeDModal = ({
   const [playerPosition, setPlayerPosition] = useState<{ x: number; y: number; z: number } | null>(null);
   const [playerSpeedPerRound, setPlayerSpeedPerRound] = useState(0);
   const [isDevTurbo, setIsDevTurbo] = useState(false);
-  const [fps, setFps] = useState<number | null>(null);
+  const [frameTimeMs, setFrameTimeMs] = useState<number | null>(null);
   const [isHmrDisconnected, setIsHmrDisconnected] = useState(false);
   const [hoveredEntity, setHoveredEntity] = useState<SceneEntity | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<SceneEntity | null>(null);
@@ -211,7 +211,7 @@ const ThreeDModal = ({
           isCombatMode={isCombatMode}
           onPlayerPosition={setPlayerPosition}
           onPlayerSpeed={setPlayerSpeedPerRound}
-          onFps={setFps}
+          onFrameTime={setFrameTimeMs}
           onEntityHover={setHoveredEntity}
           onEntitySelect={(entity) => {
             setSelectedEntity(entity);
@@ -266,7 +266,7 @@ const ThreeDModal = ({
             Position: {playerPosition.x.toFixed(1)} ft, {playerPosition.z.toFixed(1)} ft
           </div>
         )}
-        <div>FPS: {fps ?? "--"}</div>
+        <div>Frame: {frameTimeMs != null ? `${frameTimeMs} ms` : "--"}</div>
       </div>
       {interactionTarget && (
         <div className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs text-gray-100 bg-black/70 rounded px-4 py-2 space-y-1 pointer-events-none">

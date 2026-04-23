@@ -1,0 +1,14 @@
+{
+  "id": "unoccupied_space",
+  "title": "Unoccupied Space",
+  "category": "Rules Glossary",
+  "tags": ["space", "movement", "positioning", "placement"],
+  "excerpt": "An unoccupied space is a space the current game state treats as open for valid placement, arrival, or movement because nothing else is presently resolved as occupying it.",
+  "aliases": ["Open Space", "Available Space"],
+  "seeAlso": [
+    "area_of_effect",
+    "occupied_space"
+  ],
+  "filePath": "/data/glossary/entries/rules/unoccupied_space.json",
+  "markdown": "# Unoccupied Space\n\nAn unoccupied space is a space the current game state treats as open because nothing else is presently resolved as occupying it. Rules often require an unoccupied space when a creature, object, or effect needs a valid place to appear, move, or be placed.\n\n## Space State\n\n- A space is unoccupied when no creature, object, or other present effect is currently using that space as part of its resolved position\n- A space being unoccupied does not automatically mean every rule can use it; other requirements such as range, visibility, support, or terrain can still matter\n- Unoccupied space is mainly a placement and movement state, not a guarantee that the space is otherwise ideal or safe\n\n## Rules Use\n\n### Arrival And Placement\n- Teleportation, summoning, conjuration, and other placement rules often require an unoccupied destination space\n- A created object or effect can fail to place if the intended space is already taken\n- A rule that asks for an unoccupied space is checking availability before the new presence is resolved there\n\n### Movement Resolution\n- Many movement rules assume a creature can end movement only in an unoccupied space unless another rule explicitly overrides that restriction\n- Forced movement and repositioning effects may also require the destination space to remain open at the moment of resolution\n- A space can stop being unoccupied if another creature or effect reaches it first\n\n### Separate From Other Restrictions\n- An unoccupied space can still be difficult to use because of hazards, [[area_of_effect|areas of effect]], cover geometry, or other battlefield conditions\n- The space is merely open in the sense that it is not already filled by another resolved presence\n\n## Common Uses\n\n- Choosing a valid teleport destination\n- Summoning a creature into play\n- Creating an object or effect at a location\n- Ending movement in a legal space after repositioning or travel\n"
+}

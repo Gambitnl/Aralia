@@ -1,0 +1,24 @@
+{
+  "id": "healing",
+  "title": "Healing",
+  "category": "Rules Glossary",
+  "tags": [
+    "combat",
+    "health",
+    "recovery",
+    "world-state"
+  ],
+  "excerpt": "Healing restores lost vitality that still remains recoverable in the target's current state, usually by raising current hit points without exceeding the target's maximum.",
+  "aliases": [
+    "Restore Hit Points",
+    "Recovery"
+  ],
+  "seeAlso": [
+    "hit_points",
+    "temporary_hp",
+    "death_saving_throw",
+    "dead"
+  ],
+  "filePath": "/data/glossary/entries/rules/healing.json",
+  "markdown": "# Healing\n\nHealing restores lost vitality that the target can still recover in its present world-state. In ordinary resolution, that means adding restored value back to current [[hit_points]] without pushing the total above its maximum.\n\n## Rules Use\n\n### Healing Restores Loss, It Does Not Create Extra Capacity\n- Healing raises current [[hit_points]] by the amount restored\n- Healing cannot raise a creature above its hit point maximum unless another rule explicitly changes that ceiling\n- Healing matters only to the extent that the target still has recoverable life-state available to restore\n\n### Healing Is Not Temporary Buffering\n- Healing is different from gaining [[temporary_hp|Temporary Hit Points]]\n- Temporary hit points add a separate damage buffer\n- Healing restores actual lost hit points instead of creating a second pool over them\n\n### Crisis States Can Change When Healing Lands\n- Healing can pull a creature out of the 0-hit-point crisis that would otherwise continue through [[death_saving_throw|Death Saving Throws]]\n- If the target is still alive but unconscious at 0 hit points, healing can return it to a more stable active state according to the governing rule\n- Healing does not by itself undo a completed [[dead|dead]] state unless a more specific effect says it restores life rather than merely restoring hit points\n\n## Resolution Meaning\n\nHealing is the rule-layer expression of recovery. It closes existing harm that the target can still come back from, but it does not automatically reverse every consequence attached to that harm. Ongoing conditions, curses, severed effects, or completed death can require something more specific than healing alone.\n"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "critical_hit",
+  "title": "Critical Hit",
+  "category": "Rules Glossary",
+  "tags": ["combat", "attacks", "damage"],
+  "excerpt": "A critical hit is an attack result that lands with exceptional force and increases the damage the hit delivers.",
+  "aliases": [],
+  "seeAlso": [
+    "attack_roll",
+    "damage_roll",
+    "damage",
+    "attack_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/critical_hit.json",
+  "markdown": "# Critical Hit\n\nA critical hit is an attack result that lands with exceptional force and increases the damage the hit delivers.\n\n## Rules Use\n\nA critical hit matters only after an attack has already succeeded. It changes how the attack's damage is resolved by turning a normal hit into a stronger impact.\n\n## Resolution Effect\n\n- a critical hit increases the damage produced by the hit\n- the attack still uses its normal target, damage type, and delivery method unless another rule changes them\n- a critical hit does not create a separate attack; it changes the result of the attack that already hit\n\n## Related Concepts\n\nCritical hits depend on a successful [[attack_roll]] and usually produce a stronger [[damage_roll]].\n"
+}

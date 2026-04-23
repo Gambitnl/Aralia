@@ -1,0 +1,15 @@
+{
+  "id": "suffocation",
+  "title": "Suffocation",
+  "category": "Rules Glossary",
+  "tags": ["hazard", "air", "breathing", "survival"],
+  "excerpt": "Suffocation is an air-deprivation hazard that resolves when a creature can no longer breathe and exhausts the limited time it can survive without breathable air.",
+  "aliases": ["Air Deprivation", "Asphyxiation"],
+  "seeAlso": [
+    "hazards",
+    "hit_points",
+    "unconscious_condition"
+  ],
+  "filePath": "/data/glossary/entries/rules/suffocation.json",
+  "markdown": "# Suffocation\n\nSuffocation is a hazard that resolves when a creature is prevented from breathing and runs out of breathable air. It is not ordinary damage over time; it is a survival-state failure caused by air deprivation.\n\n## Rules\n\n### Breath Deprivation\n- Suffocation begins when a creature that needs breathable air cannot draw it from the current environment\n- The governing rule determines how long that creature can continue to function before the lack of air becomes fatal\n- A creature that does not need to breathe, or that is sustained by another rule, may ignore or alter normal suffocation resolution\n\n### Timed Survival Window\n- Suffocation usually includes a limited survival window before collapse or death resolution begins\n- That window is part of the creature's current hazard state and should be tracked separately from ordinary damage totals\n- When breathable air is restored in time, the suffocation state can end before it reaches its final consequence\n\n### Final Consequence\n- Once the survival window is exhausted, the creature stops sustaining itself through normal breathing\n- From that point forward, the governing rule decides whether the result is immediate collapse, rapid loss of life, or another terminal state\n- Suffocation is therefore resolved as a hazard timeline rather than as a standard attack or spell effect\n\n## Common Uses\n\n- A creature trapped underwater, in a vacuum, or inside a sealed space without breathable air\n- A restraint, environment, or effect preventing normal breathing long enough to trigger hazard resolution\n- Checking whether a creature's current form, traits, or magic allow it to ignore air deprivation\n- Determining whether breathable air returns before the creature's suffocation state reaches its final consequence\n"
+}

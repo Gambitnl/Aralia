@@ -728,6 +728,9 @@ Current bucket reading:
 - normalization rule:
   - combined `Range/Area` display strings are derived summaries, not the
     authoritative structured payload
+- range rule:
+  - `range.distance` is a required numeric field in spell JSON
+  - `0` is the explicit sentinel when a spell has no measured distance to store
 - structured `.md` field template direction:
   - minimum authoritative geometry fields should be written explicitly in the
     spell block

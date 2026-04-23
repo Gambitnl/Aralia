@@ -76,6 +76,14 @@ Safer pattern:
 - Prefer test + typecheck verification while reporting the live-browser gap honestly.
 - If a rendered check is still required, retry after closing the existing browser session instead of assuming the code change caused the launch failure.
 
+### Tidy-Up Flow Is A Workflow, Not A Script
+The repo still has `scripts/tidy-up.ps1`, but it only prints a warning and points back to the agent workflow. The real end-of-session path is the workflow chain in `.agent/workflows/tidy-up.md`, with steps like `/test-ts`, `/roadmap-node-orchestration`, `/session-ritual`, and `/extract-terminal-learnings`.
+
+Practical rule:
+- On Windows PowerShell, do not treat `scripts/tidy-up.ps1` as the runnable cleanup path.
+- Use the workflow docs directly when the session asks for tidy-up.
+- If a bash wrapper exists, it is just a launcher for the same agent workflow and is not the primary Windows entry point.
+
 ### `python -c` In PowerShell
 Multi-line Python snippets are easy for PowerShell to misparse. Prefer:
 - `Get-Content | Select-Object -Skip/-First` for slicing files

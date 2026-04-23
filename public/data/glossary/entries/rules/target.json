@@ -1,0 +1,16 @@
+{
+  "id": "target",
+  "title": "Target",
+  "category": "Rules Glossary",
+  "tags": ["targeting", "combat", "spellcasting", "resolution"],
+  "excerpt": "A target is the creature, object, space, point, area, or other valid focus that an attack, spell, feature, hazard, or interaction is resolving against.",
+  "aliases": ["Valid Target", "Affected Target", "Chosen Target"],
+  "seeAlso": [
+    "action",
+    "area_of_effect",
+    "attack_roll",
+    "spell_effects_rules"
+  ],
+  "filePath": "/data/glossary/entries/rules/target.json",
+  "markdown": "# Target\n\nA target is the creature, object, space, point, area, or other valid focus that an effect is resolving against. A target is not limited to spells. Attacks, features, hazards, interactions, and environmental effects can all resolve against targets.\n\n## Rules Use\n\n### Valid Focus Of Resolution\nA rule determines what counts as a valid target for that specific effect. Some effects require a creature, some require an object, some choose a point in space, and some affect an area without selecting a single creature first.\n\n### Targeting Is Narrower Than Reach\nBeing within range, reach, line of effect, or line of sight does not automatically make something a valid target. The effect still has to permit that kind of target.\n\n### Effects Can Use Different Target Shapes\nAn effect can target:\n- A single creature\n- Multiple creatures\n- An object\n- A point in space\n- A defined [[area_of_effect|area of effect]]\n- The source itself\n\n### Chosen Target Versus Affected Target\nSome effects choose a target directly. Others choose a point, space, or area and then affect every valid creature or object inside it. In those cases, the chosen focus and the affected targets are not always the same thing.\n\n## Resolution Notes\n\n- A target must satisfy the effect's own conditions at the time of resolution\n- If a target becomes invalid before resolution, the effect can fail, redirect, or resolve only against the remaining valid targets depending on the governing rule\n- Filters such as creature type, attitude, visibility, cover, or current state can further narrow what counts as a valid target\n\n## Common Uses\n\n- Making an attack against a creature or object\n- Choosing a point where a spell or hazard begins\n- Applying a feature to an ally, enemy, or controlled creature\n- Resolving an interaction against a door, lever, item, or other world object\n"
+}

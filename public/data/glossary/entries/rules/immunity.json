@@ -1,0 +1,16 @@
+{
+  "id": "immunity",
+  "title": "Immunity",
+  "category": "Rules Glossary",
+  "tags": ["combat", "defense", "damage", "conditions"],
+  "excerpt": "Immunity means a creature or object is unaffected by a specified category of harm or effect. The protected category must be named by the feature, trait, spell, item, or rule that grants the immunity.",
+  "aliases": ["Damage Immunity", "Condition Immunity", "Effect Immunity"],
+  "seeAlso": [
+    "armor_class",
+    "blinded_condition",
+    "deafened_condition",
+    "exhaustion_condition"
+  ],
+  "filePath": "/data/glossary/entries/rules/immunity.json",
+  "markdown": "# Immunity\n\nImmunity is a complete protection against a named category of harm or effect. The scope of the immunity is defined by the rule that grants it.\n\n## Rules\n\n- Immunity always applies to a specific thing, such as a damage type, a condition, or another named effect\n- If a creature or object is immune to that thing, the protected result does not apply to it\n- Immunity is broader than reducing harm; it prevents the named result rather than merely weakening it\n- A rule can grant immunity to one category while leaving all other categories unaffected\n\n## Common Forms Of Immunity\n\n### Damage Immunity\nA creature with damage immunity to a damage type takes none of that damage type when an effect would otherwise deal it.\n\n### Condition Immunity\nA creature with immunity to a condition does not gain that condition. For example, immunity might prevent [[blinded_condition|Blinded]], [[deafened_condition|Deafened]], or [[exhaustion_condition|Exhaustion]] from taking hold.\n\n### Effect Immunity\nSome traits, spells, or features ignore a narrower class of effect, such as being charmed by a certain source or being affected by a particular magical influence.\n\n## Scope Matters\n\nImmunity applies only to the category that the rule names. A creature can be immune to one damage type while remaining vulnerable to other damage types, or immune to one condition while still being affected by other conditions.\n\n## Immunity Versus Other Defenses\n\nImmunity is not the same as Armor Class, cover, or partial damage reduction. Those defenses can make an attack less likely to land or reduce its impact. Immunity means the named result does not apply at all.\n"
+}

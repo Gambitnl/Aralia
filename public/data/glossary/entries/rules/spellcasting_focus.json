@@ -1,0 +1,25 @@
+{
+  "id": "spellcasting_focus",
+  "title": "Spellcasting Focus",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "magic",
+    "components"
+  ],
+  "excerpt": "A spellcasting focus is an allowed object that stands in for eligible material components when a spell is cast. It helps satisfy the spell's component requirement but does not override restrictions the spell text keeps in force.",
+  "aliases": [
+    "focus",
+    "arcane focus",
+    "divine focus"
+  ],
+  "seeAlso": [
+    "spell",
+    "spells_chapter",
+    "spell_components_rules",
+    "magic_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/spellcasting_focus.json",
+  "markdown": "# Spellcasting Focus\n\nA spellcasting focus is a permitted object that can stand in for a spell's eligible material components when that [[spell]] is cast. The focus does not become a new kind of magic rule by itself; it is one way the caster satisfies the material-component part of the casting requirement.\n\n## What A Focus Does\n\nIf a spell's material component has no listed cost and is not consumed, an allowed focus can usually satisfy that requirement instead of the caster handling the listed item directly.\n\n## What A Focus Does Not Do\n\nA focus does not remove other casting requirements:\n- It does not replace verbal or somatic components\n- It does not satisfy costly materials the spell specifically requires\n- It does not preserve a cast that already fails some other rule of timing, targeting, or availability\n\n## Rules Surface\n\nThe full component rules live under [[spell_components_rules]]. This entry exists as the narrower bridge term for cases where rules text, class features, or item text specifically call out a spellcasting focus.\n"
+}

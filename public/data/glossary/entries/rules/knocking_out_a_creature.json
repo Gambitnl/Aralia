@@ -1,0 +1,25 @@
+{
+  "id": "knocking_out_a_creature",
+  "title": "Knocking Out a Creature",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "combat",
+    "damage",
+    "conditions"
+  ],
+  "excerpt": "Knocking out a creature is a nonlethal combat resolution that leaves the target unconscious instead of dead when an appropriate attack or effect reduces it to the required threshold. It matters when a conflict is being resolved by capture, restraint, or removal without a lethal finish.",
+  "aliases": [
+    "Knock Out",
+    "Nonlethal Finish"
+  ],
+  "seeAlso": [
+    "damage",
+    "hit_points",
+    "attack_action",
+    "unarmed_strike",
+    "unconscious_condition"
+  ],
+  "filePath": "/data/glossary/entries/rules/knocking_out_a_creature.json",
+  "markdown": "# Knocking Out a Creature\n\nKnocking out a creature is a nonlethal outcome that replaces a lethal defeat when a qualifying attack or effect reduces the target to the required point in combat resolution. It is used when the goal is to disable a creature without killing it.\n\n## Rules\n\n- Knocking a creature out is a nonlethal resolution rather than a separate damage type\n- It becomes relevant when an appropriate attack or effect would reduce the target to the defeat threshold that would otherwise end the fight lethally\n- The target is left alive but disabled, typically by entering the [[unconscious_condition|Unconscious]] state until another rule changes that outcome\n- Whether a creature can be knocked out depends on the kind of attack, effect, and governing combat rule involved\n\n## Combat Resolution\n\n### Nonlethal Finish\nWhen a qualifying attack reduces a creature to the relevant threshold, the resolving side can produce an unconscious outcome instead of a lethal one.\n\n### Damage Still Resolves First\nThe attack or effect still resolves through ordinary [[damage|Damage]] and [[hit_points|Hit Points]] handling. The knockout choice changes the final outcome of the defeat, not the fact that the attack connected.\n\n### Appropriate Source Matters\nKnocking out a creature depends on the kind of attack or effect being used. Close-quarters physical attacks are the most common source, while other effects may not support a nonlethal finish unless a rule says they do.\n\n## Common Uses\n\n- Ending a fight by capture instead of killing\n- Dropping a guard, witness, or rival alive for later interaction\n- Resolving a melee victory as incapacitation rather than death\n"
+}

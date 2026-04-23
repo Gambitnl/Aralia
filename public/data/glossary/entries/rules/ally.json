@@ -1,0 +1,15 @@
+{
+  "id": "ally",
+  "title": "Ally",
+  "category": "Rules Glossary",
+  "tags": ["relationships", "targeting", "spellcasting"],
+  "excerpt": "An ally is a creature the current game state treats as aligned with another creature for targeting, protection, support, or coordinated effects.",
+  "aliases": ["Allied Creature", "Friendly Ally"],
+  "seeAlso": [
+    "friendly_attitude",
+    "hostile_attitude",
+    "indifferent_attitude"
+  ],
+  "filePath": "/data/glossary/entries/rules/ally.json",
+  "markdown": "# Ally\n\nAn ally is a creature the current game state treats as aligned with another creature for effect resolution. Ally status matters when a spell, feature, or rule refers to protecting allies, excluding allies from harm, sharing benefits with allies, or choosing an allied target.\n\n## Relationship State\n\nAlly status is a relationship state, not a creature type. A creature can count as an ally because of party membership, faction alignment, a control relationship, a summoning or ownership relationship, or another explicit world-state link that places the creature on the same side for the current effect.\n\n## Rules Use\n\n### Targeting and Protection\n- Some effects can target only an ally\n- Some effects exclude allies from an area or harmful rider\n- Some effects grant benefits to allies within a range or area\n\n### Not Automatically Permanent\n- Ally status can change if a creature changes sides, becomes controlled by another source, or otherwise stops being treated as aligned for the current situation\n- A rule that depends on an ally should use the current relationship state at the time the effect resolves\n\n### Separate From Attitude\n- A creature can be friendly without necessarily being treated as an ally for every effect\n- A creature can be neutral or temporarily cooperative without gaining allied status unless the active game state treats it as such\n\n## Common Uses\n\n- Spells that heal or protect allies\n- Features that grant bonuses to nearby allies\n- Area effects that spare allies while affecting hostile creatures\n- Summoned or controlled creatures that are treated as aligned with their source\n"
+}

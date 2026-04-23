@@ -36,6 +36,72 @@ let spellInventorySummary = null;
 let spellInventoryFilteredFields = [];
 let selectedSpellFieldPath = '';
 let spellFieldDropdownOpen = false;
+let spellFieldDropdownMode = 'auto';
+
+function getSpellFieldMatches(fieldNeedle) {
+    const needle = String(fieldNeedle || '').trim().toLowerCase();
+    if (!spellInventorySummary || !needle) return [];
+
+    return (spellInventorySummary.fields || []).filter((field) => {
+        return field.fieldPath.toLowerCase().includes(needle);
+    });
+}
+
+function getResolvedSpellFieldPath(fieldNeedle) {
+    const needle = String(fieldNeedle || '').trim().toLowerCase();
+    if (!needle) {
+        return {
+            matchingFields: [],
+            resolvedFieldPath: '',
+            isAmbiguous: false,
+        };
+    }
+
+    const matchingFields = getSpellFieldMatches(needle);
+    const exactMatch = matchingFields.find((field) => field.fieldPath.toLowerCase() === needle);
+    const resolvedFieldPath = exactMatch?.fieldPath || (matchingFields.length === 1 ? matchingFields[0].fieldPath : '');
+
+    return {
+        matchingFields,
+        resolvedFieldPath,
+        isAmbiguous: !resolvedFieldPath && matchingFields.length > 1,
+    };
+}
+
+// ============================================================================
+// Dropdown Accordion Mode
+// ============================================================================
+// The field-path dropdown normally opens groups based on the active search so
+// the page can be smart by default. The user can also force the tree fully open
+// or fully closed when they want to inspect the field family layout all at once.
+// This mode stays separate from the field filter so the search text itself never
+// gets rewritten just because the accordion view changed.
+// ============================================================================
+function setSpellFieldDropdownMode(mode) {
+    spellFieldDropdownMode = mode;
+    renderSpellFieldSuggestions();
+}
+
+function getSpellFieldDropdownToggleLabel() {
+    return spellFieldDropdownMode === 'collapsed' ? 'Expand all' : 'Collapse all';
+}
+
+function getSpellFieldDropdownModeNote() {
+    if (spellFieldDropdownMode === 'collapsed') return 'Accordion forced closed.';
+    if (spellFieldDropdownMode === 'expanded') return 'Accordion forced open.';
+    return 'Accordion follows the current field filter.';
+}
+
+function renderSpellFieldDropdownToolbar() {
+    return `
+        <div class="spellval-dropdown-toolbar">
+            <button type="button" class="spellval-dropdown-action" data-dropdown-accordion-toggle="true">
+                ${spellInvEscape(getSpellFieldDropdownToggleLabel())}
+            </button>
+            <div class="spellval-dropdown-toolbar-note">${spellInvEscape(getSpellFieldDropdownModeNote())}</div>
+        </div>
+    `;
+}
 
 function getSpellFieldCategory(fieldPath) {
     const normalized = String(fieldPath || '').trim();
@@ -53,6 +119,40 @@ function formatSpellFieldCategoryLabel(category) {
 
     if (!label) return 'Other';
     return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function renderSpellValueSearchHelp() {
+    const helpEl = document.getElementById('spellValueSearchHelp');
+    if (!helpEl) return;
+
+    const fieldNeedle = String(document.getElementById('spellFieldFilterInput')?.value || '').trim();
+    const valueNeedle = String(document.getElementById('spellValueSearchInput')?.value || '').trim();
+    const { matchingFields, resolvedFieldPath, isAmbiguous } = getResolvedSpellFieldPath(fieldNeedle);
+
+    if (!fieldNeedle) {
+        helpEl.textContent = valueNeedle
+            ? `Searching across all fields for ${valueNeedle}.`
+            : 'Choose one field path before searching by value.';
+        helpEl.classList.remove('is-warning');
+        return;
+    }
+
+    if (isAmbiguous) {
+        helpEl.textContent = 'Field selection incomplete, multiple fields found that match your field filter. first choose, see field paths.';
+        helpEl.classList.add('is-warning');
+        return;
+    }
+
+    if (!matchingFields.length) {
+        helpEl.textContent = 'No field paths match the current filter.';
+        helpEl.classList.add('is-warning');
+        return;
+    }
+
+    helpEl.classList.remove('is-warning');
+    helpEl.textContent = valueNeedle
+        ? `Ready to search within ${resolvedFieldPath || fieldNeedle}.`
+        : `Ready to search within ${resolvedFieldPath || fieldNeedle}.`;
 }
 
 // ============================================================================
@@ -112,7 +212,11 @@ function renderSpellFieldSuggestions() {
 
     dropdownEl.innerHTML = Array.from(groupedFields.entries()).map(([root, fields]) => {
         const rootLabel = spellInvEscape(formatSpellFieldCategoryLabel(root));
-        const shouldOpen = !inputNeedle || root.toLowerCase().includes(inputNeedle) || fields.some((field) => field.fieldPath === selectedSpellFieldPath);
+        const shouldOpen = spellFieldDropdownMode === 'collapsed'
+            ? false
+            : spellFieldDropdownMode === 'expanded'
+                ? true
+                : (!inputNeedle || root.toLowerCase().includes(inputNeedle) || fields.some((field) => field.fieldPath === selectedSpellFieldPath));
         const rows = fields.map((field) => {
             const relativePath = field.fieldPath === root ? '(root field)' : field.fieldPath.replace(new RegExp(`^${root}\\.?`), '') || '(root field)';
             const repeatedSampleValues = (field.sampleValues || [])
@@ -145,10 +249,22 @@ function renderSpellFieldSuggestions() {
         `;
     }).join('');
 
+    // The toolbar sits above the accordion groups so the user can collapse or
+    // expand the whole tree without having to click each category one by one.
+    dropdownEl.innerHTML = `${renderSpellFieldDropdownToolbar()}${dropdownEl.innerHTML}`;
+
     dropdownEl.querySelectorAll('button[data-field-path]').forEach((button) => {
         button.addEventListener('click', () => {
             selectSpellFieldPath(button.getAttribute('data-field-path') || '');
             closeSpellFieldDropdown();
+        });
+    });
+
+    dropdownEl.querySelectorAll('button[data-dropdown-accordion-toggle]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setSpellFieldDropdownMode(spellFieldDropdownMode === 'collapsed' ? 'expanded' : 'collapsed');
         });
     });
 }
@@ -167,6 +283,22 @@ function renderSpellValueSuggestions(values = []) {
     listEl.innerHTML = repeatedValues
         .map((value) => `<option value="${spellInvEscape(value.value)}"></option>`)
         .join('');
+}
+
+function applyValueChipSearch(value) {
+    const valueInput = document.getElementById('spellValueSearchInput');
+    const fieldInput = document.getElementById('spellFieldFilterInput');
+
+    // Value chips are meant to act like "show me everything that uses this value"
+    // rather than locking the user back into the source field. Clearing the field
+    // filter keeps the click behavior broad and makes the pills useful as corpus
+    // exploration shortcuts instead of just another way to type into the same box.
+    if (fieldInput) fieldInput.value = '';
+    selectedSpellFieldPath = '';
+    if (valueInput) valueInput.value = String(value || '');
+
+    filterSpellFieldList();
+    runSpellInventoryQuery();
 }
 
 // ============================================================================
@@ -197,20 +329,20 @@ function renderSpellFieldList() {
         const rows = fields.map((field) => {
             const selectedClass = field.fieldPath === selectedSpellFieldPath ? ' is-selected' : '';
             const sampleChips = (field.sampleValues || []).slice(0, 4).map((value) =>
-                `<span class="spellinv-chip">${spellInvEscape(value.value)} <strong>${value.occurrenceCount}</strong></span>`
+                `<button type="button" class="spellinv-chip spellinv-chip-button" data-chip-value="${spellInvEscape(value.value)}" title="Search this value across all fields">${spellInvEscape(value.value)} <strong>${value.occurrenceCount}</strong></button>`
             ).join('');
 
             return `
                 <div class="spellinv-row${selectedClass}">
-                    <button type="button" data-field-path="${spellInvEscape(field.fieldPath)}">
+                    <button type="button" class="spellinv-row-main" data-field-path="${spellInvEscape(field.fieldPath)}">
                         <div class="path">${spellInvEscape(field.fieldPath)}</div>
                         <div class="meta">
                             kind: ${spellInvEscape(field.containerKind)} |
                             spells: ${field.spellCount} |
                             distinct values: ${field.distinctValueCount}
                         </div>
-                        <div class="chips">${sampleChips}</div>
                     </button>
+                    <div class="chips">${sampleChips}</div>
                 </div>
             `;
         }).join('');
@@ -233,6 +365,14 @@ function renderSpellFieldList() {
             selectSpellFieldPath(button.getAttribute('data-field-path') || '');
         });
     });
+
+    listEl.querySelectorAll('button[data-chip-value]').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            applyValueChipSearch(button.getAttribute('data-chip-value') || '');
+        });
+    });
 }
 
 // ============================================================================
@@ -252,7 +392,7 @@ function renderSpellValueList(values = []) {
     }
 
     listEl.innerHTML = values.map((value) => `
-        <div class="spellinv-row">
+        <div class="spellinv-row spellinv-value-row">
             <div class="path">${spellInvEscape(value.value)}</div>
             <div class="meta">
                 kind: ${spellInvEscape(value.valueKind)} |
@@ -263,12 +403,54 @@ function renderSpellValueList(values = []) {
     `).join('');
 }
 
-function renderSpellQueryResults(occurrences = [], totalMatches = 0) {
+function renderSpellResultsLevelFilters(occurrences = []) {
+    const stripEl = document.getElementById('spellResultsLevelFilters');
+    if (!stripEl) return;
+
+    const levelSelect = document.getElementById('spellLevelFilterSelect');
+    const activeLevel = String(levelSelect?.value || '').trim();
+    const counts = new Map();
+
+    for (const occurrence of occurrences) {
+        const level = String(occurrence?.level ?? '');
+        counts.set(level, (counts.get(level) || 0) + 1);
+    }
+
+    const levels = Array.from(counts.entries())
+        .sort((a, b) => Number(a[0]) - Number(b[0]));
+
+    if (!levels.length) {
+        stripEl.innerHTML = '<div class="spellinv-empty">No level filters available for the current results.</div>';
+        return;
+    }
+
+    stripEl.innerHTML = `
+        <button type="button" class="spellval-level-chip${activeLevel === '' ? ' is-active' : ''}" data-level="">
+            All levels
+        </button>
+        ${levels.map(([level, count]) => `
+            <button type="button" class="spellval-level-chip${activeLevel === level ? ' is-active' : ''}" data-level="${spellInvEscape(level)}">
+                Level ${spellInvEscape(level)} <strong>${count}</strong>
+            </button>
+        `).join('')}
+    `;
+
+    stripEl.querySelectorAll('button[data-level]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const levelValue = button.getAttribute('data-level') || '';
+            if (levelSelect) levelSelect.value = levelValue;
+            runSpellInventoryQuery();
+        });
+    });
+}
+
+function renderSpellQueryResults(occurrences = [], totalMatches = 0, emptyMessage = '') {
     const listEl = document.getElementById('spellQueryResults');
     if (!listEl) return;
 
     if (!occurrences.length) {
-        listEl.innerHTML = '<div class="spellinv-empty">No spells match the current field/value filters.</div>';
+        listEl.innerHTML = `<div class="spellinv-empty spellinv-empty-strong">${spellInvEscape(emptyMessage || 'No spells match the current field/value filters.')}</div>`;
+        renderSpellResultsLevelFilters([]);
         return;
     }
 
@@ -311,6 +493,8 @@ function renderSpellQueryResults(occurrences = [], totalMatches = 0) {
             </div>
         `).join('')}
     `;
+
+    renderSpellResultsLevelFilters(occurrences);
 }
 
 // ============================================================================
@@ -323,6 +507,11 @@ function renderSpellQueryResults(occurrences = [], totalMatches = 0) {
 function filterSpellFieldList() {
     if (!spellInventorySummary) return;
 
+    // When the field filter changes, the tree returns to its normal smart-open
+    // behavior. That keeps manual collapse/expand actions from sticking around
+    // after the user has started a new search.
+    spellFieldDropdownMode = 'auto';
+
     const needle = String(document.getElementById('spellFieldFilterInput')?.value || '').trim().toLowerCase();
     spellInventoryFilteredFields = (spellInventorySummary.fields || []).filter((field) => {
         if (!needle) return true;
@@ -331,6 +520,7 @@ function filterSpellFieldList() {
 
     renderSpellFieldSuggestions();
     renderSpellFieldList();
+    renderSpellValueSearchHelp();
 }
 
 function openSpellFieldDropdown() {
@@ -353,6 +543,7 @@ function selectSpellFieldPath(fieldPath) {
     const input = document.getElementById('spellFieldFilterInput');
     if (input) input.value = selectedSpellFieldPath;
     filterSpellFieldList();
+    renderSpellValueSearchHelp();
     runSpellInventoryQuery();
 }
 
@@ -369,15 +560,18 @@ async function refreshSpellInventory(forceRefresh = false) {
 
         spellInventorySummary = await res.json();
         spellInventoryFilteredFields = spellInventorySummary.fields || [];
+        spellFieldDropdownMode = 'auto';
 
         renderSpellInventoryStatus();
         renderSpellFieldSuggestions();
         filterSpellFieldList();
+        renderSpellValueSearchHelp();
         await runSpellInventoryQuery();
     } catch (error) {
         renderSpellInventoryStatus(`Spell inventory load failed: ${String(error)}`);
         renderSpellValueList([]);
         renderSpellQueryResults([], 0);
+        renderSpellResultsLevelFilters([]);
     } finally {
         if (refreshBtn) refreshBtn.disabled = false;
     }
@@ -391,11 +585,18 @@ async function runSpellInventoryQuery() {
     const value = String(document.getElementById('spellValueSearchInput')?.value || '').trim();
     const level = String(document.getElementById('spellLevelFilterSelect')?.value || '').trim();
     const includeFreeText = Boolean(document.getElementById('spellIncludeFreeTextToggle')?.checked);
+    const { matchingFields, resolvedFieldPath, isAmbiguous } = getResolvedSpellFieldPath(fieldPath);
+    const shouldBlockValueSearch = Boolean(value) && Boolean(fieldPath) && isAmbiguous;
 
     try {
         const params = new URLSearchParams();
-        if (fieldPath) params.set('fieldPath', fieldPath);
-        if (value) params.set('value', value);
+        if (shouldBlockValueSearch) {
+            params.set('fieldPath', fieldPath);
+        } else if (fieldPath) {
+            params.set('fieldPath', resolvedFieldPath || fieldPath);
+        }
+
+        if (value && !shouldBlockValueSearch) params.set('value', value);
         if (level) params.set('level', level);
         if (includeFreeText) params.set('includeFreeText', '1');
         params.set('limit', '200');
@@ -404,17 +605,32 @@ async function runSpellInventoryQuery() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();
-        selectedSpellFieldPath = fieldPath;
+        selectedSpellFieldPath = shouldBlockValueSearch ? '' : (resolvedFieldPath || fieldPath);
         renderSpellValueList(data.distinctValues || []);
         renderSpellValueSuggestions(data.distinctValues || []);
-        renderSpellQueryResults(data.occurrences || [], data.totalMatches || 0);
-        renderSpellInventoryStatus(`Current field filter: ${fieldPath || 'all fields'}`);
+        renderSpellQueryResults(
+            shouldBlockValueSearch ? [] : (data.occurrences || []),
+            shouldBlockValueSearch ? 0 : (data.totalMatches || 0),
+            shouldBlockValueSearch
+                ? 'Field selection incomplete, multiple fields found that match your field filter. first choose, see field paths.'
+                : ''
+        );
+        if (shouldBlockValueSearch) {
+            renderSpellInventoryStatus(`Field selection incomplete, multiple fields found that match your field filter. First choose one from Field Paths.`);
+        } else if (value && !fieldPath) {
+            renderSpellInventoryStatus(`Searching across all fields for ${value}.`);
+        } else {
+            renderSpellInventoryStatus(`Current field filter: ${fieldPath || 'all fields'}`);
+        }
+        renderSpellValueSearchHelp();
         filterSpellFieldList();
     } catch (error) {
         renderSpellValueList([]);
         renderSpellValueSuggestions([]);
         renderSpellQueryResults([], 0);
         renderSpellInventoryStatus(`Spell query failed: ${String(error)}`);
+        renderSpellResultsLevelFilters([]);
+        renderSpellValueSearchHelp();
     } finally {
         if (searchBtn) searchBtn.disabled = false;
     }

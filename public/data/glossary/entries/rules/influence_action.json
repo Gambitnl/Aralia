@@ -1,0 +1,17 @@
+{
+  "id": "influence_action",
+  "title": "Influence [Action]",
+  "category": "Rules Glossary",
+  "tags": ["actions", "social", "relationships", "resolution"],
+  "excerpt": "A creature uses the Influence action to apply deliberate social pressure, persuasion, leverage, or presence in an attempt to change another creature's disposition, decision state, or willingness to cooperate.",
+  "aliases": ["Influence"],
+  "seeAlso": [
+    "action",
+    "ally",
+    "friendly_attitude",
+    "hostile_attitude",
+    "indifferent_attitude"
+  ],
+  "filePath": "/data/glossary/entries/rules/influence_action.json",
+  "markdown": "# Influence [Action]\n\nThe Influence action is a deliberate attempt to change another creature's disposition or decision state through words, tone, authority, leverage, presence, or social pressure. It is used when the acting creature is not forcing the outcome through direct damage or control, but is instead trying to shift what another creature is willing to allow, reveal, accept, or do.\n\n## Rules\n\n- A creature uses its [[action]] to make a focused social attempt against another creature or group\n- Influence is about changing cooperation, resistance, disclosure, or immediate decision state\n- The current relationship between the creatures matters to how much influence is possible\n- Existing fear, loyalty, hostility, indifference, obligation, and leverage can all change how the action resolves\n\n## Relationship Pressure\n\nInfluence operates on disposition and willingness. A creature that is already aligned, friendly, or uncertain may be easier to move toward cooperation, while a creature that is actively hostile, protected by strong loyalty, or committed to an opposing goal may resist even a strong attempt.\n\n## Scope\n\nInfluence does not automatically create lasting friendship or rewrite a creature's core nature. It resolves a social pressure event in the current situation. The result may be cooperation, hesitation, limited disclosure, a softened stance, or no change at all depending on the governing rule and the target's state.\n\n## Common Uses\n\n- Convincing a creature to allow passage, offer aid, or delay aggression\n- Pressuring a witness, guard, or negotiator to reveal information\n- Shifting a creature from resistance toward temporary cooperation\n- Testing whether another creature can be swayed without magic or violence\n"
+}

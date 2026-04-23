@@ -1,0 +1,17 @@
+{
+  "id": "falling",
+  "title": "Falling",
+  "category": "Rules Glossary",
+  "tags": ["hazards", "movement", "combat"],
+  "excerpt": "Falling is forced downward movement caused by loss of support or stable flight, often ending in impact damage, collision, or prone state changes.",
+  "aliases": [],
+  "seeAlso": [
+    "hazards",
+    "flying",
+    "hover",
+    "prone_condition",
+    "occupied_space"
+  ],
+  "filePath": "/data/glossary/entries/rules/falling.json",
+  "markdown": "# Falling\n\nFalling is forced downward movement that begins when a creature or object loses support, loses stable flight, or is no longer held in a valid position. It is a [[hazards|hazard]] because the descent itself and the impact at the end can both change the world state abruptly.\n\n## When Falling Starts\n\nA fall usually begins when a surface gives way, a creature moves beyond secure footing, or aerial movement fails. A creature using [[flying|Flying]] can fall if it loses the state required to remain aloft, while a creature that can [[hover|Hover]] is harder to force downward just because it stops moving.\n\n## Common Outcomes\n\n- the falling creature is moved into lower space until something stops the descent\n- impact at the end of the fall can deal damage or trigger other collision consequences\n- the creature can end the fall [[prone_condition|Prone]] if the landing leaves it sprawled or destabilized\n\n## Landing State\n\nThe final result depends on what occupies the destination, whether the landing space is [[occupied_space|occupied]], whether another effect interrupts the descent, and whether the creature reaches a surface, fluid, structure, or other obstacle before the fall would otherwise continue.\n"
+}

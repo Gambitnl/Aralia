@@ -1,0 +1,20 @@
+{
+  "id": "hover",
+  "title": "Hover",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "movement",
+    "flying",
+    "positioning"
+  ],
+  "excerpt": "Hover is the ability to remain aloft without immediately falling when ordinary flight would otherwise collapse. A hovering creature can hold position in the air even when its movement state is disrupted, unless a stronger rule says otherwise.",
+  "aliases": [],
+  "seeAlso": [
+    "falling",
+    "flying",
+    "speed"
+  ],
+  "filePath": "/data/glossary/entries/rules/hover.json",
+  "markdown": "# Hover\n\nHover is a flight property that allows a creature or effect to remain suspended in the air without needing the same continuous flight state that ordinary flying depends on. It matters when a presence would otherwise drop because its aerial movement breaks down.\n\n## Rules\n\n- A hovering creature can remain aloft without immediately falling in situations that would normally end ordinary flight\n- Hover lets a flying presence maintain position even when it is not actively advancing through the air\n- A rule that grants hover changes how aerial position resolves when speed is reduced, posture changes, or control is interrupted\n- Hover does not make a creature immune to every form of forced movement, suppression, or displacement; the governing effect still determines what can move, ground, or disable it\n\n## Combat Resolution\n\n### Stable Aerial Position\nA creature with hover can hold an airborne position without depending on the same ongoing movement state that ordinary [[flying|Flying]] requires.\n\n### Falling Interaction\nOrdinary flight can collapse into [[falling|Falling]] when a creature becomes unable to sustain itself in the air. Hover changes that outcome by allowing the creature to remain aloft in cases where normal flight would fail.\n\n### Forced Movement Still Matters\nHover prevents some fall outcomes, but it does not automatically ignore pushes, pulls, teleports, or other relocation effects. Those effects still resolve according to their own movement or positioning rules.\n\n## Common Uses\n\n- Remaining suspended over terrain, hazards, or gaps without landing\n- Holding a tactical position in the air while attacking, observing, or guarding space\n- Avoiding immediate fall resolution when flight is disrupted but hover is still active\n"
+}

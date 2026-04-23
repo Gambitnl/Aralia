@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 06/04/2026, 03:47:23
+ * Last Sync: 23/04/2026, 01:46:03
  * Dependents: components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
  * Imports: None
  *
@@ -120,7 +120,9 @@ const CastingTime = z.object({
 // while the "feet" part lived only in comments and formatter assumptions.
 //
 // These unit enums make that geometry explicit without forcing the whole corpus
-// to migrate in one pass. Missing unit fields still mean "legacy feet" for now.
+// to migrate in one pass. Distance itself is always present; spells that do not
+// have a measured distance use `0` rather than omitting the field. Missing unit
+// fields still mean "legacy feet" for now.
 // ============================================================================
 const DistanceUnit = z.enum(["feet", "miles", "inches"]);
 const SpatialMeasuredUnit = z.enum(["feet", "miles", "inches", "gallons", "minutes"]);
@@ -128,7 +130,7 @@ const GeometrySizeType = z.enum(["radius", "diameter", "length", "edge", "side"]
 
 const Range = z.object({
   type: z.enum(["self", "touch", "ranged", "special", "sight", "unlimited"]),
-  distance: z.number().optional(),
+  distance: z.number(),
   distanceUnit: DistanceUnit.optional(),
 });
 

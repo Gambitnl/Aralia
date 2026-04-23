@@ -1,0 +1,23 @@
+{
+  "id": "challenge_rating",
+  "title": "Challenge Rating",
+  "category": "Rules Glossary",
+  "tags": [
+    "creatures",
+    "stat-blocks",
+    "difficulty",
+    "spellcasting"
+  ],
+  "excerpt": "Challenge Rating is a creature stat-block value used to express encounter weight and to gate some effect comparisons, especially for monster proficiency bonus and transformation or summoning limits.",
+  "aliases": [
+    "CR"
+  ],
+  "seeAlso": [
+    "stat_block",
+    "creature",
+    "proficiency_bonus",
+    "target"
+  ],
+  "filePath": "/data/glossary/entries/rules/challenge_rating.json",
+  "markdown": "# Challenge Rating\n\nChallenge Rating (CR) is a stat-block value used to describe how heavy a creature's rules weight is in encounter terms. Other rules can compare against CR when deciding whether a creature is a valid form, summon, or target for a creature-selecting effect.\n\n## Rules Use\n\n### Creature-Side Difficulty Index\n- Challenge Rating belongs to the creature's stat block rather than to the current encounter state\n- It can appear as a fractional or whole-number value depending on the creature\n- Later rules can compare against CR without recalculating the creature from scratch\n\n### Proficiency Bonus Reference\n- A monster's proficiency bonus is derived from its Challenge Rating\n- When a creature-facing rule needs that bonus and the creature uses CR, the CR value is part of the lookup path\n\n### Eligibility And Form Limits\n- Some effects use Challenge Rating to limit what creature can be summoned, transformed into, controlled, or otherwise selected\n- If an effect compares a creature's CR to a level, another CR, or a stated ceiling, use the creature's current valid CR for that check\n\n## Resolution Meaning\n\nChallenge Rating is a compact index that lets other rules refer to a creature's relative mechanical weight without restating the whole stat block. It is not the same thing as character level, even when a rule compares those values."
+}

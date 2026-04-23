@@ -1,0 +1,15 @@
+{
+  "id": "attunement",
+  "title": "Attunement",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "A bond between a creature and a magic item that unlocks attuned properties.",
+  "aliases": [],
+  "seeAlso": [
+    "attune_during_short_rest",
+    "ending_attunement",
+    "no_more_than_three_items"
+  ],
+  "filePath": "/data/glossary/entries/rules/attunement.json",
+  "markdown": "# Attunement\r\nAttunement is a bond between a creature and a magic item. When a magic item requires Attunement, that bond determines whether the creature can access the item's attuned magical properties.\r\n\r\n## Bond Requirement\r\nA creature that isn't attuned to a magic item receives only the item's nonmagical benefits unless the item's description states otherwise.\r\n\r\n## Establishing Attunement\r\nAttunement is established only when the creature satisfies the item's prerequisites and completes the required bonding process.\r\n\r\n## Capacity Limit\r\nA creature can be attuned to no more than three magic items at one time.\r\n\r\n## Ending Attunement\r\nAttunement ends when the bond's prerequisites are no longer met, when the item remains too far away for too long, when the creature dies, or when another creature forms the bond first.\r\n"
+}

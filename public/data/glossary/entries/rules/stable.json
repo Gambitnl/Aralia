@@ -1,0 +1,21 @@
+{
+  "id": "stable",
+  "title": "Stable",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "death",
+    "hit_points",
+    "recovery"
+  ],
+  "excerpt": "A stable creature at 0 hit points is no longer at immediate risk of dying from that collapse and stops making death saving throws, though it remains unconscious until it recovers.",
+  "aliases": [],
+  "seeAlso": [
+    "death_saving_throw",
+    "hit_points",
+    "unconscious_condition",
+    "dead"
+  ],
+  "filePath": "/data/glossary/entries/rules/stable.json",
+  "markdown": "# Stable\n\nA stable creature at 0 hit points is no longer in the immediate death-save crisis caused by that collapse. The creature stops making death saving throws, but it remains unconscious.\n\n## Rules Use\n\nBeing stable halts the ongoing slide toward death without restoring ordinary action or awareness. Stability means the creature's condition has stopped worsening on its own for the moment.\n\n## Relationship To Recovery\n\nA stable creature remains at 0 hit points until healing or some other effect changes that state. If left alone, the creature can eventually wake naturally after enough time has passed, but it is not combat-ready while it remains unconscious at 0 hit points.\n\n## Losing Stability\n\nDamage or another worsening effect can end the stable state and return the creature to immediate danger, including renewed death saving throw progression if the creature is still at 0 hit points.\n"
+}

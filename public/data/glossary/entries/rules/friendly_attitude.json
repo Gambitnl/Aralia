@@ -1,0 +1,22 @@
+{
+  "id": "friendly_attitude",
+  "title": "Friendly",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "relationships",
+    "social",
+    "attitude"
+  ],
+  "excerpt": "A friendly attitude means one creature currently regards another with goodwill and is inclined toward cooperation, help, or other favorable treatment.",
+  "aliases": [],
+  "seeAlso": [
+    "attitude",
+    "ally",
+    "indifferent_attitude",
+    "hostile_attitude",
+    "influence_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/friendly_attitude.json",
+  "markdown": "# Friendly\n\nA friendly attitude describes a creature that presently regards another creature with goodwill. It wants that other creature to fare well and is disposed toward cooperation, reassurance, or aid.\n\n## Rules Use\n\nFriendly does not guarantee obedience, self-sacrifice, or permanent alliance. It indicates that the current relationship is favorable, so requests, negotiation, and other social pressure begin from a more cooperative state than indifference or hostility.\n\n## Relationship State\n\nA friendly attitude is part of the world's current social state, not a permanent label. Harm, betrayal, fear, competing loyalties, or major changes in circumstance can weaken it, while trust, gratitude, or shared cause can reinforce it.\n"
+}

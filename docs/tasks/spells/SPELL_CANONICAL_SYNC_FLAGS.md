@@ -414,6 +414,8 @@ Bucket policy answer now confirmed:
   than inventing per-spell formatting
 - combined `Range/Area` display strings should now be treated as derived display
   surfaces, not as the authoritative structured payload
+- `range.distance` is a required numeric field in spell JSON, and `0` is the
+  explicit sentinel when a spell has no measured distance to store
 - the working spell inventory and queue breakdown now live in:
   - `F:\Repos\Aralia\docs\tasks\spells\range-area\SPELL_RANGE_AREA_INVENTORY.md`
 

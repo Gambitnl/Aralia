@@ -1,0 +1,20 @@
+{
+  "id": "surprise",
+  "title": "Surprise",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "combat",
+    "encounter",
+    "initiative"
+  ],
+  "excerpt": "Surprise is a combat-start state that reflects an encounter beginning before one side is fully ready to respond. It affects how creatures enter the first round and whether they can act immediately when initiative begins.",
+  "aliases": [],
+  "seeAlso": [
+    "hide_action",
+    "initiative",
+    "invisible_condition"
+  ],
+  "filePath": "/data/glossary/entries/rules/surprise.json",
+  "markdown": "# Surprise\n\nSurprise is a combat-state determination made at the start of an encounter when not all combatants are equally prepared for immediate conflict. It is about readiness at initiative start, not an emotional reaction.\n\n## Rules\n\n- Surprise is resolved when combat begins and initiative order becomes relevant\n- A surprised creature enters the encounter from a disadvantaged readiness state during the opening exchange\n- The governing combat rule determines what actions, reactions, movement, or other responses are unavailable until that initial surprise state clears\n- Surprise depends on encounter awareness, detection, concealment, and timing rather than on allegiance alone\n\n## Encounter Start\n\n### Readiness State\nA creature can be present in the scene and still be surprised if the encounter begins before it has a resolved opportunity to react as combat starts.\n\n### Detection Matters\nConcealment, hidden approach, misdirection, or failed detection can cause one side to begin combat without full readiness. Effects related to [[hide_action|Hide]], obscuration, or invisibility often influence whether surprise is possible.\n\n### Initiative Interaction\nSurprise matters when [[initiative|Initiative]] begins. It changes how the first combat round opens rather than creating a separate encounter outside initiative.\n\n## Common Uses\n\n- An ambush beginning from concealment or obscured positioning\n- A hidden or unseen threat initiating combat before a target is ready\n- A sudden hostile transition in an encounter that had not yet resolved into open combat\n"
+}

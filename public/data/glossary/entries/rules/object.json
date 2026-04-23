@@ -1,0 +1,14 @@
+{
+  "id": "object",
+  "title": "Object",
+  "category": "Rules Glossary",
+  "tags": ["space", "targeting", "interaction", "effects"],
+  "excerpt": "An object is a discrete thing in the game world that can occupy space, be interacted with, be targeted, or be affected by rules and effects without being a creature.",
+  "aliases": ["World Object", "Physical Object"],
+  "seeAlso": [
+    "area_of_effect",
+    "interacting_with_objects"
+  ],
+  "filePath": "/data/glossary/entries/rules/object.json",
+  "markdown": "# Object\n\nAn object is a discrete thing in the game world that is not being resolved as a creature. Doors, weapons, chests, levers, vehicles, hazards, furnishings, tools, and many environmental features are treated as objects when rules need to determine targeting, interaction, damage, or movement around them.\n\n## Rules Use\n\n### Distinct From Creatures\n- An object is resolved through its physical presence, properties, and current state rather than as a living actor\n- A creature can carry, wear, control, create, or interact with an object, but that does not make the object a creature\n- Some effects can affect creatures and objects differently, or affect only one of those categories\n\n### Targeting And Effects\n- A rule can target an object directly if the effect is written to affect objects, unattended items, structures, or physical features in the environment\n- An object can also be caught inside an [[area_of_effect|area of effect]] even when it was not selected individually\n- Whether the object is damaged, moved, ignited, blocked, opened, protected, or transformed depends on the effect's own rules\n\n### Interaction State\n- Objects often matter because they can be opened, activated, carried, dropped, broken, locked, destroyed, or otherwise changed\n- World-state changes to an object can alter movement, line use, cover, hazards, access, or the validity of later actions\n- Some objects are simple props, while others are mechanically important because rules explicitly care about them\n\n## Common Uses\n\n- A lever, door, or switch being used through [[interacting_with_objects|object interaction]]\n- A chest, weapon, or tool being carried, dropped, or manipulated\n- A structure or item being targeted by a spell or damaged by an effect\n- Environmental features that occupy space and change how combat or movement resolves\n"
+}

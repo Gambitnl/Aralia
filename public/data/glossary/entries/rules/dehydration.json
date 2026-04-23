@@ -1,0 +1,16 @@
+{
+  "id": "dehydration",
+  "title": "Dehydration",
+  "category": "Rules Glossary",
+  "tags": ["hazards", "survival", "fatigue"],
+  "excerpt": "Dehydration is the hazard state created by insufficient water over time, degrading a creature's physical condition until it is restored.",
+  "aliases": [],
+  "seeAlso": [
+    "hazards",
+    "malnutrition",
+    "exhaustion_condition",
+    "long_rest"
+  ],
+  "filePath": "/data/glossary/entries/rules/dehydration.json",
+  "markdown": "# Dehydration\n\nDehydration is a long-duration [[hazards|hazard]] caused by insufficient water intake. It represents a creature's body losing the water balance needed to keep movement, cognition, and recovery stable.\n\n## Hazard State\n\nDehydration builds over time instead of resolving in a single moment. As the deficit grows, the creature becomes less resilient, more vulnerable to fatigue, and less able to recover from other pressures.\n\n## World-State Triggers\n\nA creature can become dehydrated when the environment, travel conditions, captivity, illness, or other ongoing circumstances deny enough safe water for long enough. The exact onset depends on the world state, but once dehydration exists it continues until the water shortage is corrected.\n\n## Recovery Context\n\nDehydration often compounds with [[malnutrition|Malnutrition]] and can contribute to worsening [[exhaustion_condition|Exhaustion]]. Recovery usually requires restored access to water and enough time or rest conditions, including a viable [[long_rest|Long Rest]], for the body to stabilize again.\n"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "dead",
+  "title": "Dead",
+  "category": "Rules Glossary",
+  "tags": [
+    "creatures",
+    "death",
+    "world-state",
+    "combat"
+  ],
+  "excerpt": "A dead creature has reached a completed death state rather than a reversible 0-hit-point crisis. It no longer resolves as an unconscious creature making death saving throws unless another effect changes that state.",
+  "aliases": [
+    "Death State",
+    "Dead Creature"
+  ],
+  "seeAlso": [
+    "hit_points",
+    "unconscious_condition",
+    "death_saving_throw"
+  ],
+  "filePath": "/data/glossary/entries/rules/dead.json",
+  "markdown": "# Dead\n\nDead is the state in which a creature's life has ended for current rules resolution. A dead creature is no longer resolving the unstable 0-hit-point state that can still lead to stabilization, recovery, or further failure through death saving throws.\n\n## Rules Use\n\n### Completed Death State\n- Dead is a completed outcome, not merely the moment a creature reaches 0 hit points\n- A creature can reach 0 hit points without being dead yet if another rule places it in an unconscious and unstable state instead\n- Once a creature is dead, ordinary creature-turn resolution, movement, and action use stop unless another effect restores life or creates a new state\n\n### Distinct From Unconscious\n- An unconscious creature at 0 hit points can still be in a recoverable state\n- A dead creature is not continuing through ordinary death-save progression\n- Rules that help, heal, stabilize, or protect a living but failing creature do not automatically imply reversal of death itself\n\n### Remains Can Still Matter\n- A dead creature can still matter to later rules through its body, remains, equipment, location, or effects tied to death\n- Other mechanics may interact with a dead creature differently from how they interact with an active or unconscious creature\n- If a rule restores life, animates remains, or otherwise changes the state, later resolution follows that new state instead\n\n## Common Uses\n\n- Distinguishing death from temporary defeat or unconscious collapse\n- Determining whether stabilization or ordinary healing still applies\n- Resolving later effects that care about corpses, remains, or restoration of life\n"
+}

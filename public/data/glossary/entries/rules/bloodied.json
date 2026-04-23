@@ -1,0 +1,21 @@
+{
+  "id": "bloodied",
+  "title": "Bloodied",
+  "category": "Rules Glossary",
+  "tags": [
+    "combat",
+    "health",
+    "world-state",
+    "thresholds"
+  ],
+  "excerpt": "A creature is bloodied when its current hit points are at or below half its hit point maximum and it still has at least 1 hit point.",
+  "aliases": [],
+  "seeAlso": [
+    "hit_points",
+    "healing",
+    "temporary_hp",
+    "conditions"
+  ],
+  "filePath": "/data/glossary/entries/rules/bloodied.json",
+  "markdown": "# Bloodied\n\nA creature is bloodied when its current hit points are at or below half its hit point maximum and it still has at least 1 hit point remaining.\n\n## Rules Use\n\n### Threshold State\n- Bloodied is a current health-state threshold, not a permanent trait\n- A creature becomes bloodied as soon as its current hit points fall to half its maximum or lower\n- A creature stops being bloodied if healing raises its current hit points above that threshold\n\n### Separate From 0 Hit Points\n- Bloodied does not mean defeated, unconscious, or dead\n- A creature at 0 hit points has crossed into a different crisis state\n- Rules that care about bloodied creatures are looking for a wounded but still active target unless they say otherwise\n\n### Temporary Hit Points Do Not Change The Threshold\n- The bloodied threshold is based on normal hit point maximum and current hit points\n- Temporary hit points can absorb damage before normal hit points are lost\n- Temporary hit points do not raise the maximum and do not by themselves remove a creature from being bloodied\n\n## Resolution Meaning\n\nBloodied is a live world-state signal that a creature has been worn down past its midpoint but is still in play. Other rules can use that state as a trigger, requirement, or limiter for effects that care about visible injury or narrowing reserves."
+}

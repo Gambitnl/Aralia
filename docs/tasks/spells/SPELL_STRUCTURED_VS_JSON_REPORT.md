@@ -2,10 +2,10 @@
 
 This report compares the validator-facing structured spell markdown block to the live runtime spell JSON that the glossary renders.
 
-Generated: 2026-04-09T10:52:47.278Z
+Generated: 2026-04-23T22:11:09.187Z
 Markdown files scanned: 459
 Spell files compared: 412
-Total mismatches: 177
+Total mismatches: 179
 Grouped mismatch buckets: 7
 
 This is the second parity phase in the spell-truth workflow. It shows where runtime JSON still lags behind the structured markdown after canonical review work has already happened.
@@ -92,14 +92,14 @@ This is the second parity phase in the spell-truth workflow. It shows where runt
 
 ### structured-vs-json / Material Component
 
-- Kind: `value-mismatch`
-- Occurrences: 5
-- Distinct spells: 5
-- Sample spells: magic-mouth, melfs-acid-arrow, true-seeing, vitriolic-sphere, wall-of-ice
+- Kind: `missing-json-field`
+- Occurrences: 7
+- Distinct spells: 7
+- Sample spells: arcane-sword, conjure-volley, mordenkainens-magnificent-mansion, summon-greater-demon, swift-quiver, true-seeing, wall-of-ice
 - Sample findings:
-  - Magic Mouth records Material Component differently in the structured markdown block and the runtime spell JSON.
-  - Melf's Acid Arrow records Material Component differently in the structured markdown block and the runtime spell JSON.
-  - Vitriolic Sphere still has structured Material Component data, but the runtime spell JSON does not currently store a comparable Material Component value.
+  - Summon Greater Demon still has structured Material Component data, but the runtime spell JSON does not currently store a comparable Material Component value.
+  - Conjure Volley still has structured Material Component data, but the runtime spell JSON does not currently store a comparable Material Component value.
+  - Swift Quiver still has structured Material Component data, but the runtime spell JSON does not currently store a comparable Material Component value.
   - True Seeing records Material Component differently in the structured markdown block and the runtime spell JSON.
   - Wall of Ice records Material Component differently in the structured markdown block and the runtime spell JSON.
 

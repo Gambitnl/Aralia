@@ -1,0 +1,15 @@
+{
+  "id": "teleportation",
+  "title": "Teleportation",
+  "category": "Rules Glossary",
+  "tags": ["movement", "space", "positioning", "magic"],
+  "excerpt": "Teleportation is instantaneous relocation from one position to another without moving through the intervening space. The governing rule defines the destination limits, valid occupants, and what happens if the destination is blocked or invalid.",
+  "aliases": ["Instant Relocation", "Teleport"],
+  "seeAlso": [
+    "occupied_space",
+    "target",
+    "unoccupied_space"
+  ],
+  "filePath": "/data/glossary/entries/rules/teleportation.json",
+  "markdown": "# Teleportation\n\nTeleportation is instantaneous relocation from one position to another without traveling through the space between those points. A teleporting creature, object, or effect leaves one resolved location and appears at another according to the rule that permits the transfer.\n\n## Rules\n\n- Teleportation changes position immediately rather than by ordinary movement through intervening spaces\n- A teleportation rule defines the valid destination, range, targeting conditions, and what counts as a legal arrival point\n- Because the relocation is instantaneous, terrain, obstacles, and threats between the origin and destination do not resolve the same way they would for normal movement unless another rule says otherwise\n- Teleportation still depends on a valid destination and can fail, redirect, or resolve differently if that destination is blocked or illegal\n\n## Spatial Resolution\n\n### Destination Matters\nMany teleportation effects require a visible point, a known location, a chosen creature, or an [[unoccupied_space|unoccupied space]]. The governing rule determines which kind of destination is valid.\n\n### Separate From Ordinary Movement\nTeleportation is not the same as walking, climbing, flying, swimming, or forced movement. It relocates the subject directly instead of tracing a path through each intervening space.\n\n### Occupancy And Blockage\nA teleport destination can become invalid if it is already filled by another creature, [[object|object]], or effect, or if the rule imposes other arrival restrictions. Whether teleportation can overlap, displace, ignore, or reject an [[occupied_space|occupied space]] depends on the effect that is providing it.\n\n## Common Uses\n\n- Instantly repositioning across the battlefield\n- Moving to a known or visible destination without traversing the path between\n- Escaping confinement, pressure, or reach-based threats when the destination remains valid\n- Bringing a creature or object into a new location through magical relocation\n"
+}

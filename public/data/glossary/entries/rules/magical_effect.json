@@ -1,0 +1,16 @@
+{
+  "id": "magical_effect",
+  "title": "Magical Effect",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "magic", "resolution", "rules interpretation"],
+  "excerpt": "A magical effect is an outcome, state, or ongoing influence created or sustained by magic, whether it comes from a spell, magical feature, enchanted object, magical hazard, or another explicitly magical source.",
+  "aliases": ["Magic Effect", "Magical Influence"],
+  "seeAlso": [
+    "concentration",
+    "magic_action",
+    "spell",
+    "spell_effects_rules"
+  ],
+  "filePath": "/data/glossary/entries/rules/magical_effect.json",
+  "markdown": "# Magical Effect\n\nA magical effect is an outcome, state, or ongoing influence created or sustained by magic. The source can be a spell, a magical feature, an enchanted object, a magical hazard, or another rule that explicitly produces a magical result.\n\n## What Counts As Magical\n\nAn effect counts as magical when the governing rule identifies the source as magic or when the effect exists only because a magical source is actively producing it. This includes created energy, conjured matter, imposed conditions, transformations, barriers, summons, and other rule results that depend on magic to exist or continue.\n\n## Rules Use\n\n### Source Matters\nA result is magical because of the source producing it, not merely because it is unusual or powerful. A nonmagical attack, environmental hazard, or creature trait does not become a magical effect unless the governing rule makes that magical origin explicit.\n\n### Ongoing Dependence\nSome magical effects persist only while the source remains active, such as a spell maintained through [[concentration]], a summoned construct sustained by magic, or a ward created by an enchanted object. If the magical support ends, the effect can also end unless another rule says otherwise.\n\n### Interaction With Other Rules\nRules that suppress, resist, ignore, detect, or end magical effects care about whether the active result is magical. That distinction matters for adjudicating protection, disruption, detection, and overlap between magical and nonmagical sources.\n\n## Common Uses\n\n- Determining whether an effect is suppressed by antimagic or similar disruption\n- Deciding whether a protection applies only against magical sources\n- Distinguishing a spell-created barrier from a mundane obstacle\n- Interpreting whether an ongoing condition, transformation, or summoned presence depends on magic to remain in effect\n"
+}

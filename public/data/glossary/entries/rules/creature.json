@@ -1,0 +1,25 @@
+{
+  "id": "creature",
+  "title": "Creature",
+  "category": "Rules Glossary",
+  "tags": [
+    "creatures",
+    "entities",
+    "combat",
+    "world-state"
+  ],
+  "excerpt": "A creature is a rule-resolved being in the world that can have a stat block, occupy space, change state, and be affected by actions, damage, conditions, and other effects.",
+  "aliases": [
+    "Living Entity",
+    "Creature Entity"
+  ],
+  "seeAlso": [
+    "creature_type",
+    "stat_block",
+    "hit_points",
+    "size",
+    "speed"
+  ],
+  "filePath": "/data/glossary/entries/rules/creature.json",
+  "markdown": "# Creature\n\nA creature is a being that the rules resolve as an active entity in the world. A creature can occupy space, move, take actions, gain conditions, suffer damage, and interact with effects that refer to creatures as targets, allies, enemies, or occupants of an area.\n\n## Rules Use\n\n### Active Entity Surface\n- A creature is resolved through creature-facing rules rather than object-only handling\n- A creature can have a stat block, current state, location, and rule-relevant traits\n- A creature can be targeted by effects that specify a creature, a willing creature, an enemy, an ally, or another creature-based qualifier\n\n### State Can Change\n- A creature's current state can change through damage, healing, conditions, movement, transformation, control effects, or death\n- Later rule resolution uses the creature's current state, not only its original one\n- A creature can stop functioning as an active participant if another rule leaves it unconscious, incapacitated, dead, banished, dismissed, or otherwise unable to act\n\n### Distinct From Objects\n- A creature is not treated as an ordinary object while it is resolving as a creature\n- Some effects can turn an object into a creature or leave behind an object or remains when creature-state ends\n- When a rule distinguishes between creatures and objects, the current resolved state determines which handling applies\n\n## Common Uses\n\n- Determining whether an effect can target a creature at all\n- Resolving movement, occupied space, and presence in an area\n- Applying damage, healing, conditions, or saving throws to an active being\n- Checking whether a creature is still an active participant in the current world-state\n"
+}

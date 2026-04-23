@@ -45,7 +45,7 @@ interface Scene3DProps {
   isCombatMode: boolean;
   onPlayerPosition?: (position: { x: number; y: number; z: number }) => void;
   onPlayerSpeed?: (speedFeetPerRound: number) => void;
-  onFps?: (fps: number) => void;
+  onFrameTime?: (ms: number) => void;
   onEntityHover?: (entity: SceneEntity | null) => void;
   onEntitySelect?: (entity: SceneEntity | null) => void;
   hoveredEntityId?: string | null;
@@ -107,30 +107,41 @@ interface Scene3DProps {
   labRocksPerType?: number;
 }
 
-interface FpsTrackerProps {
-  onFps?: (fps: number) => void;
+interface FrameTimeTrackerProps {
+  onFrameTime?: (ms: number) => void;
   sampleWindow?: number;
 }
 
-const FpsTracker = ({ onFps, sampleWindow = 0.5 }: FpsTrackerProps) => {
-  const accumulatorRef = useRef({ time: 0, frames: 0 });
-  const lastFpsRef = useRef<number | null>(null);
+/**
+ * Reports average frame time in milliseconds using performance.now().
+ * Unlike RAF-delta-based FPS counters, this isn't capped at vsync (60 Hz)
+ * and reveals actual render cost. 16.6ms = 60fps, >33ms = noticeable stutter.
+ */
+const FrameTimeTracker = ({ onFrameTime, sampleWindow = 0.5 }: FrameTimeTrackerProps) => {
+  const stateRef = useRef({ totalMs: 0, frames: 0, prevTime: 0 });
+  const lastValueRef = useRef<number | null>(null);
 
-  useFrame((_, delta) => {
-    const accumulator = accumulatorRef.current;
-    accumulator.time += delta;
-    accumulator.frames += 1;
+  useFrame(() => {
+    const now = performance.now();
+    const s = stateRef.current;
 
-    // Emit FPS updates in a short window instead of every frame so the UI
-    // overlay updates smoothly without adding extra render pressure.
-    if (accumulator.time >= sampleWindow) {
-      const fps = Math.round(accumulator.frames / accumulator.time);
-      if (fps !== lastFpsRef.current) {
-        lastFpsRef.current = fps;
-        onFps?.(fps);
+    if (s.prevTime === 0) {
+      s.prevTime = now;
+      return;
+    }
+
+    s.totalMs += now - s.prevTime;
+    s.frames += 1;
+    s.prevTime = now;
+
+    if (s.totalMs >= sampleWindow * 1000) {
+      const avgMs = +(s.totalMs / s.frames).toFixed(1);
+      if (avgMs !== lastValueRef.current) {
+        lastValueRef.current = avgMs;
+        onFrameTime?.(avgMs);
       }
-      accumulator.time = 0;
-      accumulator.frames = 0;
+      s.totalMs = 0;
+      s.frames = 0;
     }
   });
 
@@ -149,7 +160,7 @@ const SceneContents = ({
   isCombatMode,
   onPlayerPosition,
   onPlayerSpeed,
-  onFps,
+  onFrameTime,
   treeCountMultiplier,
   rockCountMultiplier,
   heroLineEnabled,
@@ -433,7 +444,7 @@ const SceneContents = ({
 
   return (
     <>
-      <FpsTracker onFps={onFps} />
+      <FrameTimeTracker onFrameTime={onFrameTime} />
       {!skyVisible && <color attach="background" args={[lighting.fogColor]} />}
       {/* In "safe" mode, we intentionally reduce atmospheric effects to debug geometry/material issues. */}
       {!isSafeRender && <fogExp2 attach="fog" args={[fogColor, fogDensity]} />}

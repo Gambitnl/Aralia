@@ -1,0 +1,24 @@
+{
+  "id": "fly_speed",
+  "title": "Fly Speed",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "movement",
+    "speed",
+    "flying",
+    "fly speed"
+  ],
+  "excerpt": "Fly Speed is the movement rating that lets a creature or effect move through the air under the flying rules. Questions about aerial movement resolve through the broader flying and speed entries.",
+  "aliases": [],
+  "seeAlso": [
+    "flying",
+    "special_speeds",
+    "speed",
+    "changes_to_your_speeds",
+    "hover",
+    "falling"
+  ],
+  "filePath": "/data/glossary/entries/rules/fly_speed.json",
+  "markdown": "# Fly Speed\r\nA Fly Speed is the part of a creature's movement profile that lets it travel through the air. Questions about staying aloft, switching between movement types, or losing aerial movement resolve through <span data-term-id=\"flying\" class=\"glossary-term-link-from-markdown\">Flying</span>, <span data-term-id=\"special_speeds\" class=\"glossary-term-link-from-markdown\">Special Speeds</span>, <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span>, and <span data-term-id=\"changes_to_your_speeds\" class=\"glossary-term-link-from-markdown\">Changes to Your Speeds</span>. Effects that keep a creature airborne or cause it to drop still interact with <span data-term-id=\"hover\" class=\"glossary-term-link-from-markdown\">Hover</span> and <span data-term-id=\"falling\" class=\"glossary-term-link-from-markdown\">Falling</span> when those rules become relevant.\r\n"
+}

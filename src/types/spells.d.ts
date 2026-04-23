@@ -106,7 +106,7 @@ export interface CastingTime {
  */
 export interface Range {
     type: "self" | "touch" | "ranged" | "special";
-    distance?: number;
+    distance: number;
 }
 /**
  * Defines the components required to cast a spell.

@@ -1,0 +1,17 @@
+{
+  "id": "damage",
+  "title": "Damage",
+  "category": "Rules Glossary",
+  "tags": ["combat", "health", "damage"],
+  "excerpt": "Damage is the loss inflicted on a creature or object when an attack, hazard, spell, or other harmful effect successfully takes effect.",
+  "aliases": [],
+  "seeAlso": [
+    "hit_points",
+    "damage_roll",
+    "damage_types",
+    "temporary_hp",
+    "dead"
+  ],
+  "filePath": "/data/glossary/entries/rules/damage.json",
+  "markdown": "# Damage\n\nDamage is the loss inflicted on a creature or object when an attack, hazard, spell, or other harmful effect successfully takes effect.\n\n## Rules Use\n\nDamage reduces a target's staying power. For creatures, that usually means reducing current [[hit_points]]. For objects, it means degrading whatever durability the relevant rule tracks.\n\n## Applying Damage\n\n- damage is applied after the effect that caused it successfully resolves\n- the amount can come from a fixed value, a [[damage_roll]], or another rule-defined source\n- the target's current state can change the final result through mitigation, vulnerability, or other modifiers\n\n## Common Outcomes\n\nDamage can wear down a target over time, overwhelm temporary buffers such as [[temporary_hp|Temporary Hit Points]], or push a creature toward defeat, unconsciousness, or death.\n"
+}

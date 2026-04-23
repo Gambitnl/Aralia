@@ -1,0 +1,16 @@
+{
+  "id": "possession",
+  "title": "Possession",
+  "category": "Rules Glossary",
+  "tags": ["control", "mental effects", "creatures", "spellcasting"],
+  "excerpt": "Possession is a control state in which one creature's will or presence occupies, overrides, or directs another creature's body or actions.",
+  "aliases": [],
+  "seeAlso": [
+    "target",
+    "charmed_condition",
+    "invisible_condition",
+    "magical_effect"
+  ],
+  "filePath": "/data/glossary/entries/rules/possession.json",
+  "markdown": "# Possession\n\nPossession is a control state in which one creature's will, presence, or animating force occupies, overrides, or directs another creature's body or actions.\n\n## Rules Use\n\nPossession matters when a rule needs to determine who currently controls a creature, whose choices drive that creature's actions, and whether the creature's normal self-governance has been displaced.\n\n## Possession State\n\n- the possessed creature is no longer acting only under its own independent control\n- another force is sharing, overriding, or replacing the creature's control state\n- the exact limits of that control depend on the effect or rule that created the possession\n\n## Related Concepts\n\nPossession can overlap with domination, mental override, or spiritual inhabitation, but it is more specific than ordinary influence because it changes who is effectively directing the body or action source.\n"
+}

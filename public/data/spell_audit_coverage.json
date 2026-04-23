@@ -1,0 +1,1852 @@
+{
+  "generatedAt": "2026-04-22T23:50:07.453Z",
+  "scripts": {
+    "canonicalAudit": {
+      "label": "auditSpellStructuredAgainstCanonical.ts",
+      "fieldsRead": [
+        "Area Shape",
+        "Area Size",
+        "Casting Time",
+        "Casting Time Unit",
+        "Casting Time Value",
+        "Classes",
+        "Components",
+        "Concentration",
+        "Description",
+        "Duration",
+        "Duration Type",
+        "Duration Unit",
+        "Duration Value",
+        "Higher Levels",
+        "Level",
+        "Material",
+        "Material Component",
+        "Material Description",
+        "Name",
+        "Range Distance",
+        "Range Type",
+        "Range Unit",
+        "Range/Area",
+        "Reaction Trigger",
+        "School",
+        "Somatic",
+        "Sub-Classes",
+        "Verbal"
+      ]
+    },
+    "structuredJsonAudit": {
+      "label": "auditSpellStructuredAgainstJson.ts",
+      "fieldsRead": [
+        "Area Shape",
+        "Area Size",
+        "Area Size Type",
+        "Area Size Unit",
+        "Area Unit",
+        "Casting Time",
+        "Casting Time Unit",
+        "Casting Time Value",
+        "Classes",
+        "Components",
+        "Concentration",
+        "Description",
+        "Duration",
+        "Duration Type",
+        "Duration Unit",
+        "Duration Value",
+        "Higher Levels",
+        "Level",
+        "Material",
+        "Material Component",
+        "Material Description",
+        "Name",
+        "Range Distance",
+        "Range Distance Unit",
+        "Range Type",
+        "Range Unit",
+        "Range/Area",
+        "Reaction Trigger",
+        "School",
+        "Somatic",
+        "Spatial Details",
+        "Sub-Classes",
+        "Verbal"
+      ]
+    },
+    "parityScript": {
+      "label": "validateSpellMarkdownParity.ts",
+      "fieldsRead": []
+    }
+  },
+  "fields": [
+    {
+      "field": "Additional Damage",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Height",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 24,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Height Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 15,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Shape",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 162,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Size",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 166,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Size Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 23,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Size Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 23,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Thickness",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 11,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Thickness Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 11,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Area Unit",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Armor Class",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Attack Roll",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 15,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Casting Time",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Casting Time Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Casting Time Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Classes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Combat Cost",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 411,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Components",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Concentration",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Condition",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Conditions Applied",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 51,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Consumed",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 254,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Control Options",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Damage Dice",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 135,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Damage Flat",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Damage Trigger",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Damage Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 137,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Defense Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Defense Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Description",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Duration",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Duration Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Duration Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 286,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Duration Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 286,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Effect Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 401,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Effect Types",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 11,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Flood",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Forced Movement",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Healing Dice",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 5,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Higher Levels",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 381,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Hit Points",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Languages",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Level",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Line of Sight",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 411,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Material",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Material Component",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Material Cost GP",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 244,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Material Description",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 242,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Movement Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Name",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Part Water",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Primary Damage Dice",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Primary Damage Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Range Distance",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 295,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Range Distance Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 28,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Range Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Range Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 4,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Range/Area",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Reaction Trigger",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 7,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Redirect Flow",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Ritual",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Save Outcome",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 273,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Save Stat",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 278,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "School",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Secondary Damage Dice",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Secondary Damage Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Secondary Save Outcome",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Secondary Save Stat",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Senses",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Somatic",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 1 Kind",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 20,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 1 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 20,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 1 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 8,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 1 Qualifier",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 1 Subject",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 1 Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 19,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 1 Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 20,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 2 Kind",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 2 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 2 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 6,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 2 Qualifier",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 4,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 2 Subject",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 2 Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 2 Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 3 Kind",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 11,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 3 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 11,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 3 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 3 Qualifier",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 4,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 3 Subject",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 3 Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 7,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 3 Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 8,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 4 Kind",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 6,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 4 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 6,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 4 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 4 Qualifier",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 4 Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 6,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 4 Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 6,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 5 Kind",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 5 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 5 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 5 Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 5 Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 6 Kind",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 6 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 6 Qualifier",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 6 Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 6 Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 7 Kind",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 7 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 7 Qualifier",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Detail 7 Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Details",
+      "appearsInStructuredMd": false,
+      "mdFileCount": 0,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Height Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 10,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Height Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 10,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 23,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 11,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Segment Count",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Segment Height Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Segment Height Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Segment Width Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Segment Width Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Shape",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 23,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Size Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 23,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Size Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 22,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Size Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 22,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Thickness Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 12,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 1 Thickness Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 12,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Height Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 6,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Height Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 6,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 14,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 7,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Segment Count",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Segment Height Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Segment Height Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Segment Width Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Segment Width Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Shape",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 14,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Size Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Size Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Size Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Thickness Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 7,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 2 Thickness Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 7,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Height Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Height Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Segment Count",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Segment Height Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Segment Height Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Segment Width Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Segment Width Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Shape",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Size Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Size Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Size Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Thickness Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 3 Thickness Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 4 Label",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 4 Notes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 4 Shape",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 4 Size Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 4 Size Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Spatial Form 4 Size Value",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Speed",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Sub-Classes",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 186,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Target Filter Creature Types",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Targeting Max",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 13,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Targeting Range",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 28,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Targeting Range Unit",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 28,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Targeting Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 408,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Temporary HP",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Terrain Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 3,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Triggered Applications",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 2,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Utility Type",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 243,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Valid Targets",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 411,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Verbal",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 412,
+      "coverage": {
+        "canonicalAudit": true,
+        "structuredJsonAudit": true,
+        "parityScript": false
+      }
+    },
+    {
+      "field": "Whirlpool",
+      "appearsInStructuredMd": true,
+      "mdFileCount": 1,
+      "coverage": {
+        "canonicalAudit": false,
+        "structuredJsonAudit": false,
+        "parityScript": false
+      }
+    }
+  ]
+}

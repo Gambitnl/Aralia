@@ -320,6 +320,8 @@ after the canonical sync and retrieval work.
     structured or runtime reshaping
   - current normalization rule: combined `Range/Area` strings are display
     derivatives, not the authoritative structured payload
+  - `range.distance` is a required numeric field in spell JSON, and `0` is the
+    explicit sentinel when a spell has no measured distance to store
   - latest canonical repair result:
     - the remaining confirmed self-centered icon-loss mini-queue was completed on:
       - `antilife-shell`

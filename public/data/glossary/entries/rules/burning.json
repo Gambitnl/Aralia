@@ -1,0 +1,24 @@
+{
+  "id": "burning",
+  "title": "Burning",
+  "category": "Rules Glossary",
+  "tags": [
+    "combat",
+    "damage",
+    "fire",
+    "world-state"
+  ],
+  "excerpt": "Burning is an ongoing fire-harm state in which a creature, object, or surface remains actively aflame and can continue dealing damage or spreading danger until something ends the ignition.",
+  "aliases": [
+    "On Fire",
+    "Aflame"
+  ],
+  "seeAlso": [
+    "damage",
+    "damage_types",
+    "concentration",
+    "hit_points"
+  ],
+  "filePath": "/data/glossary/entries/rules/burning.json",
+  "markdown": "# Burning\n\nBurning is the state of an actively ignited creature, object, or surface that continues to carry fire through the world instead of resolving as a single completed flash of harm. While something is burning, the fire can keep threatening [[hit_points]], space control, equipment, or nearby materials until the ignition is ended.\n\n## Rules Use\n\n### Ongoing Fire State\n- Burning means the fire remains present after the initial ignition event\n- The source that set the target ablaze determines how long the burning persists, how it spreads, and when further [[damage]] is applied\n- If no more specific rule says otherwise, treat burning as a continuing hazard rather than as a one-moment burst\n\n### Burning Is Not Automatically A Named Condition\n- Burning can exist as a meaningful world-state even when no formal condition entry has been applied\n- Another effect can still add conditions, movement limits, or panic outcomes on top of the burning state\n- The fire's rules text determines whether the target is merely taking recurring harm or also suffering other restrictions\n\n### Repeated Harm And Disruption\n- Burning most often deals fire harm, which should resolve through the relevant entry in [[damage_types|Damage Types]] when type-based defenses or weaknesses matter\n- Repeated burning damage can break [[concentration]] the same way any other qualifying damage can\n- A burning target keeps carrying risk until the flames are extinguished, the source expires, or the target is otherwise no longer able to burn in the same way\n\n## Resolution Meaning\n\nBurning matters because the hazard remains live in the world-state. The important question is not only how much damage the ignition dealt at first, but whether fire is still present and still entitled to change what happens next.\n"
+}

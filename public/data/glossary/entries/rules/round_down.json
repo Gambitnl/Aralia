@@ -1,0 +1,14 @@
+{
+  "id": "round_down",
+  "title": "Round Down",
+  "category": "Rules Glossary",
+  "tags": ["math", "resolution", "interpretation", "mechanics"],
+  "excerpt": "Round Down is the default interpretation rule for fractional results. When a calculation produces a fraction and no other rule overrides it, the result resolves to the next lower whole number.",
+  "aliases": ["Rounding Down", "Floor"],
+  "seeAlso": [
+    "damage",
+    "temporary_hp"
+  ],
+  "filePath": "/data/glossary/entries/rules/round_down.json",
+  "markdown": "# Round Down\n\nRound Down is the default numeric interpretation rule when a rules calculation produces a fraction. Unless another rule explicitly says otherwise, the result resolves to the next lower whole number.\n\n## Rules\n\n- If a formula divides, halves, or otherwise produces a fractional value, the result rounds down by default\n- Round Down applies only when the rule leaves a fractional remainder; whole-number results are unchanged\n- A more specific rule can replace this convention with a different rounding method or with exact non-rounded handling\n- Rounding is part of result interpretation after the calculation is produced, not a separate modifier to the calculation itself\n\n## Use In Aralia\n\nRound Down keeps numeric resolution stable when effects produce partial values. It prevents ambiguous fractions from lingering in damage, healing, scaling, or derived calculations unless a more specific rule preserves a different result."
+}

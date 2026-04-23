@@ -112,6 +112,9 @@ Policy answer now locked in for this bucket:
   - measured size: `20`
   - measured unit: `feet`
   - shape: `Cube`
+- `range.distance` is now treated as a required numeric field in spell JSON;
+  `0` is the explicit "no measured distance" sentinel rather than a missing
+  value
 - follow-up implication:
   - structured `.md` and runtime JSON should prefer storing those facts separately
     rather than treating the combined display string as the authoritative payload

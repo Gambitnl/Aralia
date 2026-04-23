@@ -1,0 +1,16 @@
+{
+  "id": "damage_roll",
+  "title": "Damage Roll",
+  "category": "Rules Glossary",
+  "tags": ["combat", "damage", "dice"],
+  "excerpt": "A damage roll determines how much harm a successful attack or effect actually inflicts.",
+  "aliases": [],
+  "seeAlso": [
+    "damage",
+    "critical_hit",
+    "damage_types",
+    "attack_roll"
+  ],
+  "filePath": "/data/glossary/entries/rules/damage_roll.json",
+  "markdown": "# Damage Roll\n\nA damage roll determines how much harm a successful attack or effect actually inflicts.\n\n## Rules Use\n\nA damage roll is resolved only after the underlying hit or damaging effect has taken hold. It converts the effect's damaging potential into a concrete amount of [[damage]].\n\n## Resolution\n\n- the damage roll uses the dice, values, and modifiers specified by the attack or effect\n- the result becomes the damage amount before mitigation or amplification rules are applied\n- a [[critical_hit|Critical Hit]] can change how the damage roll is resolved by increasing the damaging impact of the hit\n"
+}

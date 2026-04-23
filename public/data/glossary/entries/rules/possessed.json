@@ -1,0 +1,19 @@
+{
+  "id": "possessed",
+  "title": "Possessed",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "control",
+    "world-state",
+    "creatures"
+  ],
+  "excerpt": "Possessed describes a creature that is currently under a possession state.",
+  "aliases": [],
+  "seeAlso": [
+    "possession",
+    "magical_effect"
+  ],
+  "filePath": "/data/glossary/entries/rules/possessed.json",
+  "markdown": "# Possessed\n\nA creature is possessed when another will, presence, or force is currently occupying or directing it.\n\n## Relationship To Possession\n\n`Possessed` is the state label for a creature affected by [[possession|Possession]]. Use the main possession rule when you need the broader control concept.\n"
+}

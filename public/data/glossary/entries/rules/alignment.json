@@ -1,0 +1,22 @@
+{
+  "id": "alignment",
+  "title": "Alignment",
+  "category": "Rules Glossary",
+  "tags": [
+    "creatures",
+    "world-state",
+    "identity",
+    "relationships"
+  ],
+  "excerpt": "Alignment is a creature's durable ethical or cosmic orientation in the rules layer. It can appear in a stat block and can remain relevant even when other game statistics change.",
+  "aliases": [],
+  "seeAlso": [
+    "attitude",
+    "ally",
+    "enemy",
+    "creature",
+    "stat_block"
+  ],
+  "filePath": "/data/glossary/entries/rules/alignment.json",
+  "markdown": "# Alignment\n\nAlignment is a durable ethical or cosmic orientation carried by a creature in the rules layer. It is part of how a creature is described and can matter when an effect, stat block, or transformation rule refers to the creature's deeper nature rather than only its immediate behavior.\n\n## Rules Use\n\n### Persistent Identity Field\n- Alignment is usually a creature-level identity marker rather than a momentary combat state\n- A creature's alignment can remain relevant even when other parts of its rules surface change\n- Some transformation effects preserve alignment while replacing much of the creature's active stat block\n\n### Separate From Situational Stance\n- Alignment is not the same as current attitude\n- A creature can be an ally or an enemy in the present situation without that relationship fully describing its alignment\n- Immediate cooperation, hostility, trust, or conflict can shift faster than alignment does\n\n### Stat-Block Presence\n- Alignment can appear as part of a creature's stat block when that information matters to the rules surface\n- Later effects can reference that alignment directly when checking eligibility, preservation, or altered form state\n\n## Resolution Meaning\n\nAlignment is a long-lived orientation signal. It helps the rules distinguish enduring nature from short-term world-state changes such as mood, allegiance, or tactical side."
+}

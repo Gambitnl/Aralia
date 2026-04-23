@@ -1,0 +1,18 @@
+{
+  "id": "area_of_effect",
+  "title": "Area of Effect",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "targeting", "space"],
+  "excerpt": "An area of effect is a defined region of space affected by a spell, feature, hazard, or other effect rather than a single target.",
+  "aliases": ["AOE", "Effect Area"],
+  "seeAlso": [
+    "cone_area",
+    "cube_area",
+    "cylinder_area",
+    "emanation_area",
+    "line_area",
+    "sphere_area"
+  ],
+  "filePath": "/data/glossary/entries/rules/area_of_effect.json",
+  "markdown": "# Area of Effect\n\nAn area of effect is a defined region of space affected by a spell, feature, hazard, or other effect. Instead of resolving against a single target only, the effect resolves against creatures, objects, or spaces inside the affected area.\n\n## Parent Rule\n\nArea of Effect is the parent rule for common spatial shapes used by effects:\n\n- [[cone_area|Cone]]\n- [[cube_area|Cube]]\n- [[cylinder_area|Cylinder]]\n- [[emanation_area|Emanation]]\n- [[line_area|Line]]\n- [[sphere_area|Sphere]]\n\n## Rules Use\n\n### Point of Origin\nAn area effect begins from a point of origin or another explicitly defined source position. The effect's shape, size, and placement determine which spaces are included.\n\n### Space Resolution\nA creature or object inside the defined area can be affected even when it was not selected as an individual target. The effect's own rules then determine whether the result is damage, healing, movement restriction, a condition, protection, or another outcome.\n\n### Shape Matters\nThe shape named by the effect controls how the area extends through space. Two effects can have the same size measurement while affecting different spaces because they use different shapes.\n\n### Exclusions and Filters\nSome area effects exclude allies, limit affected creature types, or apply only to creatures that meet additional conditions. The area defines where the effect reaches; the effect's targeting and filter rules define what inside that area is actually affected.\n\n## Common Uses\n\n- Spells that burst, spread, or project through space\n- Hazards that fill or cover a region\n- Effects that affect every valid creature within a radius, line, or cone\n- Persistent zones that continue affecting a defined area over time\n"
+}

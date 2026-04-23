@@ -1,0 +1,14 @@
+{
+  "id": "resistance",
+  "title": "Resistance",
+  "category": "Rules Glossary",
+  "tags": ["combat", "defense", "damage"],
+  "excerpt": "Resistance reduces incoming damage from a named source or category. When resistance applies, the protected damage is reduced before it is applied to hit points.",
+  "aliases": ["Damage Resistance"],
+  "seeAlso": [
+    "immunity",
+    "temporary_hp"
+  ],
+  "filePath": "/data/glossary/entries/rules/resistance.json",
+  "markdown": "# Resistance\n\nResistance is a damage-resolution rule that reduces damage from a named source, category, or damage type. The protection applies only to the damage the granting rule specifies.\n\n## Rules\n\n- Resistance always applies to something named by a feature, trait, spell, item, or rule\n- When resistance applies, the protected damage is reduced before that damage is applied to hit points\n- Resistance weakens damage; it does not prevent the damage event from existing\n- A creature or object can resist one category of damage while remaining fully affected by other categories\n\n## What Resistance Covers\n\n### Damage Type Resistance\nA common form of resistance reduces damage from a specific type, such as fire, cold, or bludgeoning.\n\n### Source-Limited Resistance\nSome rules reduce damage only from a narrower source, such as nonmagical weapons, environmental harm, or a particular class of effect.\n\n## Resistance Versus Other Defenses\n\nResistance is not the same as [[immunity]]. Immunity prevents the named result from applying at all. Resistance still allows the damage to land, but at a reduced amount.\n\nResistance is also different from Armor Class, cover, and [[temporary_hp|Temporary Hit Points]]. Those rules change whether a strike connects, how hard it is to affect a target, or what pool absorbs the damage first. Resistance changes the amount of protected damage that remains to be applied.\n\n## Scope Matters\n\nResistance applies only where the granting rule says it does. A creature can resist one damage type and still take normal damage from other types, or resist a specific source while remaining vulnerable to similar harm from a different source.\n"
+}

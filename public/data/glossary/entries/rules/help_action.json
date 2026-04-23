@@ -1,0 +1,16 @@
+{
+  "id": "help_action",
+  "title": "Help [Action]",
+  "category": "Rules Glossary",
+  "tags": ["actions", "combat", "support", "coordination"],
+  "excerpt": "The Help action lets a creature spend its action to improve another creature's attempt or to assist with another immediate task in the current scene.",
+  "aliases": ["Help"],
+  "seeAlso": [
+    "action",
+    "ally",
+    "advantage",
+    "skill"
+  ],
+  "filePath": "/data/glossary/entries/rules/help_action.json",
+  "markdown": "# Help [Action]\n\nThe Help action commits a creature's [[action]] to assisting another creature instead of acting directly on its own behalf.\n\n## Rules\n\n- Help improves another creature's immediate chance to succeed at a task, attack, or other resolution that can benefit from timely assistance\n- Help works by adding support, positioning, warning, distraction, or another cooperative contribution that matters to the current situation\n- the assistance must remain relevant when the aided creature resolves the supported action or check\n\n## Common Uses\n\n- aiding an [[ally]] during a combat exchange\n- helping another creature notice, interpret, or manipulate something in the environment\n- contributing to a coordinated effort where timing or shared effort matters\n\n## Limits\n\nHelp does not replace the aided creature's own resolution. It changes the conditions around that resolution by making support available at the right time.\n"
+}

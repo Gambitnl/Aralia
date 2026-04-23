@@ -1,0 +1,21 @@
+{
+  "id": "indifferent_attitude",
+  "title": "Indifferent",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "relationships",
+    "social",
+    "attitude"
+  ],
+  "excerpt": "An indifferent attitude means one creature currently has no strong goodwill or hostility toward another and is not especially motivated to help or hinder it.",
+  "aliases": [],
+  "seeAlso": [
+    "attitude",
+    "friendly_attitude",
+    "hostile_attitude",
+    "influence_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/indifferent_attitude.json",
+  "markdown": "# Indifferent\n\nAn indifferent attitude describes a creature that currently has no strong favorable or hostile investment in another creature's outcome. It is neither eager to help nor especially driven to interfere.\n\n## Rules Use\n\nIndifferent is the middle social stance between friendly and hostile. Negotiation or influence begins from a position that is open to movement, but not already committed toward cooperation.\n\n## Relationship State\n\nIndifference can shift in either direction as events unfold. Kindness, leverage, danger, insult, reward, or shared need can move a creature out of indifference and into a more favorable or more hostile state.\n"
+}

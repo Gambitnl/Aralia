@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/04/2026, 20:32:03
+ * Last Sync: 23/04/2026, 01:44:30
  * Dependents: components/Glossary/Glossary.tsx, components/Glossary/spellGateChecker/SpellGateBucketSections.tsx, components/Glossary/spellGateChecker/SpellGateChecksPanel.tsx, components/Glossary/spellGateChecker/buildGateLabel.ts, components/Glossary/spellGateChecker/index.ts, components/Glossary/spellGateChecker/spellGateIssueSummary.ts, hooks/useSpellGateChecks.ts
  * Imports: 6 files
  *

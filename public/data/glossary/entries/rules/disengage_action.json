@@ -1,0 +1,16 @@
+{
+  "id": "disengage_action",
+  "title": "Disengage [Action]",
+  "category": "Rules Glossary",
+  "tags": ["actions", "combat", "movement"],
+  "excerpt": "The Disengage action lets a creature move without provoking opportunity attacks for the rest of the current turn.",
+  "aliases": ["Disengage"],
+  "seeAlso": [
+    "action",
+    "reaction",
+    "opportunity_attack",
+    "speed"
+  ],
+  "filePath": "/data/glossary/entries/rules/disengage_action.json",
+  "markdown": "# Disengage [Action]\n\nThe Disengage action commits a creature's [[action]] to careful withdrawal. For the rest of the current turn, that creature's movement does not trigger [[opportunity_attack|opportunity attacks]].\n\n## Core Effect\n\n- Disengage changes how movement interacts with hostile reach during the current turn\n- the creature still spends its own movement normally after taking the action\n- the protection applies only for the rest of that turn; it does not continue into later turns or rounds\n\n## Movement Context\n\nA creature can Disengage before leaving melee, repositioning through a threatened area, or retreating to safer ground. The action does not create extra movement, so the creature is still limited by its [[speed]] and any current movement costs.\n\n## Limits\n\n- Disengage does not block every kind of [[reaction]] or triggered effect\n- Disengage does not end grapples, restraints, or other states that prevent movement in the first place\n- Disengage only changes the specific trigger that would normally allow an opportunity attack\n"
+}

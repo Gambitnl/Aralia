@@ -1,0 +1,23 @@
+{
+  "id": "long_jump",
+  "title": "Long Jump",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "movement",
+    "jumping",
+    "long jump",
+    "strength"
+  ],
+  "excerpt": "A Long Jump is the horizontal branch of the broader jumping rules. It resolves through Strength-based jump distance, movement expenditure, and any terrain or landing checks tied to the destination.",
+  "aliases": [],
+  "seeAlso": [
+    "jumping",
+    "speed",
+    "strength",
+    "difficult_terrain",
+    "prone_condition"
+  ],
+  "filePath": "/data/glossary/entries/rules/long_jump.json",
+  "markdown": "# Long Jump\r\nA Long Jump is the horizontal form of <span data-term-id=\"jumping\" class=\"glossary-term-link-from-markdown\">Jumping</span>. Resolve it through the broader <span data-term-id=\"jumping\" class=\"glossary-term-link-from-markdown\">Jumping</span> rules, which establish how <span data-term-id=\"strength\" class=\"glossary-term-link-from-markdown\">Strength</span>, movement cost, and running start determine the leap. The landing still matters: a jump into <span data-term-id=\"difficult_terrain\" class=\"glossary-term-link-from-markdown\">Difficult Terrain</span> or another unstable surface can turn the outcome into a balance or recovery problem, including the risk of ending <span data-term-id=\"prone_condition\" class=\"glossary-term-link-from-markdown\">Prone</span>.\r\n"
+}

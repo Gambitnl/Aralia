@@ -1,0 +1,23 @@
+{
+  "id": "creature_type",
+  "title": "Creature Type",
+  "category": "Rules Glossary",
+  "tags": [
+    "creatures",
+    "classification",
+    "targeting",
+    "world-state"
+  ],
+  "excerpt": "A creature type is the classification a creature belongs to, and other rules use that classification to determine valid targets, altered interactions, protections, and special restrictions.",
+  "aliases": [
+    "Type",
+    "Creature Classification"
+  ],
+  "seeAlso": [
+    "creature",
+    "stat_block",
+    "size"
+  ],
+  "filePath": "/data/glossary/entries/rules/creature_type.json",
+  "markdown": "# Creature Type\n\nA creature type is the classification attached to a creature for rule resolution. Other effects use creature type to decide what can be targeted, what gains protection, what is excluded, or what special interactions apply.\n\n## Rules Use\n\n### Classification Layer\n- Creature type is a classification, not a mood, faction, or temporary combat role\n- It identifies what kind of creature the world-state currently treats the being as for rules that care about type\n- A creature's type is usually part of its stat block or another defining rules surface\n\n### Targeting And Restrictions\n- Some effects apply only to certain creature types\n- Some effects exclude certain creature types from benefits or harms\n- Some protections, wards, summons, and transformations care about creature type as part of their resolution logic\n\n### Type Can Matter Without Replacing Identity\n- Creature type does not by itself determine attitude, allegiance, or whether another creature counts as an enemy\n- A creature can share a type with another creature while still being on a different side of a conflict\n- If an effect changes a creature's type, later rules that care about creature type should use the changed state for as long as that effect lasts\n\n## Examples\n\nCommon creature-type labels include Humanoid, Beast, Undead, Construct, Celestial, Fiend, Fey, and Dragon. The important rule point is not the flavor of the label alone, but that other mechanics can key off that classification.\n"
+}

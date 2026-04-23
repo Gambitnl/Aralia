@@ -1,0 +1,15 @@
+{
+  "id": "skill",
+  "title": "Skill",
+  "category": "Rules Glossary",
+  "tags": ["abilities", "checks", "resolution", "proficiency"],
+  "excerpt": "A skill is a specialized resolution lane tied to an ability score. Skills focus a check on a narrower kind of task, training, or interpretation than the base ability score alone.",
+  "aliases": ["Skill Check", "Trained Check"],
+  "seeAlso": [
+    "ability_check",
+    "expertise",
+    "proficiency"
+  ],
+  "filePath": "/data/glossary/entries/rules/skill.json",
+  "markdown": "# Skill\n\nA skill is a specialized rules concept used to resolve a narrower category of task than an ability score by itself. Skills sit on top of the ability system and help determine what kind of check is being made, what training applies, and how proficiency modifies the result.\n\n## Rules\n\n- Each skill is associated with an ability score, but the skill and the ability are not the same thing\n- A skill check is still an [[ability_check|ability check]], but it is resolved through a more specific task category such as perception, stealth, persuasion, or athletics\n- If a creature is proficient in a skill, its [[proficiency]] bonus applies when that skill is used to resolve the check\n- Some effects, classes, or traits grant stronger specialization, such as [[expertise]], which increases how much training contributes to the result\n\n## Skills Versus Ability Scores\n\nAn ability score describes broad capability. A skill describes a narrower lane of application within that capability. Strength can support many kinds of physical resolution, but Athletics is the specific skill used when the rule calls for trained physical exertion, leverage, or climbing-style effort.\n\n## Use In Aralia\n\nSkills help the system resolve checks at the right level of specificity. They distinguish raw aptitude from trained application, and they let proficiency-based modifiers attach to the correct kind of task instead of treating every check as a generic ability roll."
+}

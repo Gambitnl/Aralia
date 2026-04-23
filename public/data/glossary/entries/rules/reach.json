@@ -1,0 +1,16 @@
+{
+  "id": "reach",
+  "title": "Reach",
+  "category": "Rules Glossary",
+  "tags": ["combat", "space", "targeting", "weapons"],
+  "excerpt": "Reach is the distance from which a creature can affect a target with a close-quarters attack or similar direct interaction.",
+  "aliases": [],
+  "seeAlso": [
+    "target",
+    "opportunity_attack",
+    "weapon",
+    "reach_property"
+  ],
+  "filePath": "/data/glossary/entries/rules/reach.json",
+  "markdown": "# Reach\n\nReach is the distance from which a creature can directly affect a nearby [[target]] with a close-quarters attack or another contact-based interaction.\n\n## Rules Use\n\nReach determines whether a target is close enough for a melee attack, a grab, a physical strike, or another effect that depends on being adjacent or nearly adjacent.\n\n## Changing Reach\n\nA creature's normal reach can be extended by a weapon, anatomy, effect, size relationship, or another rule that changes how far its close-range influence extends.\n\n## Related Concepts\n\n- [[reach_property|Reach Property]] is one common rule that extends reach through a weapon\n- [[opportunity_attack|Opportunity Attacks]] depend on whether another creature leaves the range your reach currently covers\n"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "malnutrition",
+  "title": "Malnutrition",
+  "category": "Rules Glossary",
+  "tags": ["hazards", "survival", "fatigue"],
+  "excerpt": "Malnutrition is the hazard state created by insufficient nourishment over time, weakening a creature until proper intake and recovery restore it.",
+  "aliases": [],
+  "seeAlso": [
+    "hazards",
+    "dehydration",
+    "exhaustion_condition",
+    "long_rest"
+  ],
+  "filePath": "/data/glossary/entries/rules/malnutrition.json",
+  "markdown": "# Malnutrition\n\nMalnutrition is a long-duration [[hazards|hazard]] caused by insufficient food or usable nourishment. It represents a creature's body losing the resources it needs to maintain strength, heal, and sustain normal recovery.\n\n## Hazard State\n\nMalnutrition accumulates over time rather than arriving as a single injury. As it worsens, endurance drops, physical decline accelerates, and other hazards become harder to endure or recover from.\n\n## World-State Triggers\n\nA creature can become malnourished when scarcity, poor-quality provisions, imprisonment, disease, or other survival conditions deny enough nourishment for long enough. Once that state exists, it remains in place until the deficit is corrected and recovery conditions become possible again.\n\n## Recovery Context\n\nMalnutrition often compounds with [[dehydration|Dehydration]] and can contribute to worsening [[exhaustion_condition|Exhaustion]]. Rest matters, but even a [[long_rest|Long Rest]] cannot fully resolve the hazard if the creature still lacks enough usable food.\n"
+}

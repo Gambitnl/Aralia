@@ -1,0 +1,16 @@
+{
+  "id": "ready_action",
+  "title": "Ready [Action]",
+  "category": "Rules Glossary",
+  "tags": ["combat", "actions", "timing", "reactions"],
+  "excerpt": "A creature uses the Ready action to hold part of its turn in reserve, define a trigger, and resolve the prepared response later as a reaction if that trigger occurs before the start of its next turn.",
+  "aliases": ["Ready"],
+  "seeAlso": [
+    "action",
+    "reaction",
+    "initiative",
+    "bonus_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/ready_action.json",
+  "markdown": "# Ready [Action]\n\nThe Ready action delays part of a creature's turn so it can respond to a later event. Instead of resolving an intended action immediately, the creature defines a trigger and holds a specific response in reserve.\n\n## Rules\n\n- A creature uses its [[action]] to ready a response\n- The creature defines a perceivable trigger that will determine when the held response can resolve\n- The creature also defines the response it intends to take when that trigger occurs\n- If the trigger occurs before the start of the creature's next turn, the held response resolves as a [[reaction]]\n- If the trigger never occurs in time, the held response expires without resolving\n\n## Trigger And Resolution\n\nA readied response depends on an external event entering the game state. The trigger should be specific enough that the system can tell when the held response becomes available. Once the trigger occurs, the creature can spend its reaction to execute the reserved response at that moment instead of waiting for its next turn.\n\n## Timing Tradeoff\n\nReadying an action exchanges immediate certainty for later timing control. The creature spends its action now, but the result is delayed and still depends on retaining its reaction until the trigger occurs.\n\n## Common Uses\n\n- Hold an attack until a target leaves cover\n- Move when a doorway opens or a bridge lowers\n- Respond to an enemy crossing a guarded position\n- Release a prepared spell or ability when a specific condition is met\n\n## Limits\n\nThe Ready action does not create an extra action. It repositions when a defined response can occur, and that delayed response still competes for the creature's reaction in the current round.\n"
+}

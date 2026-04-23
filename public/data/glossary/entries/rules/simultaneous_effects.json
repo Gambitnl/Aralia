@@ -1,0 +1,15 @@
+{
+  "id": "simultaneous_effects",
+  "title": "Simultaneous Effects",
+  "category": "Rules Glossary",
+  "tags": ["mechanics", "timing", "resolution"],
+  "excerpt": "When multiple effects would resolve at the same time, the system needs an ordering rule. Simultaneous effects share a trigger moment, but their resolution is still sequenced.",
+  "aliases": [],
+  "seeAlso": [
+    "reaction",
+    "target",
+    "magical_effect"
+  ],
+  "filePath": "/data/glossary/entries/rules/simultaneous_effects.json",
+  "markdown": "# Simultaneous Effects\n\nSimultaneous effects occur when two or more rules, features, hazards, or triggered results would resolve at the same moment. They share a timing window, but their consequences still need an ordered resolution.\n\n## Core Resolution\n\n### Shared Trigger, Ordered Outcome\nIf multiple effects are created by the same moment, they are treated as simultaneous for timing purposes. Their outcomes are then resolved in a defined order so later results can take earlier changes into account.\n\n### Order Matters When State Changes\nResolution order matters whenever an earlier effect changes position, health, targeting validity, availability of a [[reaction]], or whether a later effect can still apply. Simultaneous timing does not mean all results are applied as one indistinguishable block.\n\n### Use the Governing Rule When It Exists\nSome spells, features, or subsystems define their own ordering language. When a governing rule provides an explicit sequence, that sequence overrides any broader default handling.\n\n## Practical Meaning\n\nSimultaneous effects are a timing bucket, not a promise that every result lands in a perfectly merged state. The system still needs a coherent sequence whenever multiple outcomes compete for the same moment of resolution."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "search_action",
+  "title": "Search [Action]",
+  "category": "Rules Glossary",
+  "tags": ["combat", "actions", "perception", "investigation", "detection"],
+  "excerpt": "A creature uses the Search action to actively gather information from its surroundings, looking for hidden creatures, concealed objects, tracks, weak points, or other details that are not immediately obvious.",
+  "aliases": ["Search"],
+  "seeAlso": [
+    "action",
+    "passive_perception",
+    "invisible_condition",
+    "hide_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/search_action.json",
+  "markdown": "# Search [Action]\n\nThe Search action represents deliberate information gathering. A creature slows down enough to inspect a space, study a target, listen for movement, or test whether something hidden is present.\n\n## Rules\n\n- A creature uses its [[action]] to make an active attempt to detect something not already obvious\n- Search is used when the current scene contains uncertainty that can be reduced through focused attention or closer examination\n- The relevant check is usually tied to noticing, interpreting, or uncovering details in the environment rather than directly changing it\n- A successful search reveals information the creature could not reliably act on before the search resolved\n\n## What Search Can Reveal\n\nA Search action can help expose:\n\n- hidden or concealed creatures\n- secret doors, compartments, or disguised openings\n- traps, clues, tracks, and disturbances\n- faint sounds, movement, or other signs of presence\n- details that distinguish illusion, cover, concealment, or misdirection from the underlying reality\n\n## Active Detection\n\nSearch is an active alternative to relying on passive awareness alone. It represents a creature committing time and attention to reduce ambiguity in the current situation.\n\n## Search And Hidden Targets\n\nA hidden or concealed target is not automatically found just because it exists in the scene. Search is one of the main ways a creature can deliberately test whether something unseen is nearby and refine its understanding of where that target actually is.\n\n## Related Concepts\n\n- [[passive_perception|Passive Perception]] reflects ongoing background awareness without spending an action\n- [[hide_action|Hide [Action]]] creates the kind of uncertainty that Search often tries to overcome\n- [[invisible_condition|Invisible]] can prevent ordinary sight from resolving a target clearly, which may force other forms of detection\n"
+}

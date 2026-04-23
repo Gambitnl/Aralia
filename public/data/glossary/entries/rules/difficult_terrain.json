@@ -1,0 +1,17 @@
+{
+  "id": "difficult_terrain",
+  "title": "Difficult Terrain",
+  "category": "Rules Glossary",
+  "tags": ["movement", "terrain", "travel", "positioning"],
+  "excerpt": "Difficult terrain is ground, material, or space that costs extra movement to cross because it resists clear, efficient travel.",
+  "aliases": [],
+  "seeAlso": [
+    "speed",
+    "dash_action",
+    "travel_pace",
+    "climbing",
+    "swimming"
+  ],
+  "filePath": "/data/glossary/entries/rules/difficult_terrain.json",
+  "markdown": "# Difficult Terrain\n\nDifficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground. It changes how much distance a creature can cover with its available movement, even though it does not change that creature's base [[speed]].\n\n## Rules\n\n- moving through difficult terrain costs extra movement compared with crossing clear ground\n- the extra cost reflects unstable footing, entangling growth, rubble, deep snow, mud, shallow water, magical hindrance, or another feature that resists normal travel\n- a creature can still move through difficult terrain if it has enough movement remaining to pay the added cost\n- difficult terrain changes how far movement can carry a creature; it does not create a separate condition on its own\n\n## Sources Of Difficult Terrain\n\nDifficult terrain can come from natural ground, constructed obstacles, hazards, conjured matter, or magical effects that make movement slower, less stable, or harder to route cleanly.\n\n## Movement Pressure\n\nDifficult terrain matters most when position, distance, and remaining movement are already constrained. It can shorten how far a creature advances, reduce how much repositioning fits inside a turn, and make retreat or pursuit more expensive.\n\n## Related Movement Rules\n\nExtra movement from [[dash_action|Dash [Action]]] can help cross difficult terrain, but the terrain still consumes that movement faster than normal. Broader movement rules such as [[travel_pace|Travel Pace]], [[climbing]], and [[swimming]] can stack their own pressures on top of difficult terrain when the world state supports both.\n"
+}

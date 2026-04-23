@@ -1,0 +1,23 @@
+{
+  "id": "swim_speed",
+  "title": "Swim Speed",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "movement",
+    "speed",
+    "swimming",
+    "swim speed"
+  ],
+  "excerpt": "Swim Speed is the movement rating that lets a creature move through water without paying the ordinary extra swimming cost. Questions about water movement resolve through the broader swimming and speed entries.",
+  "aliases": [],
+  "seeAlso": [
+    "swimming",
+    "special_speeds",
+    "speed",
+    "changes_to_your_speeds",
+    "difficult_terrain"
+  ],
+  "filePath": "/data/glossary/entries/rules/swim_speed.json",
+  "markdown": "# Swim Speed\r\nA Swim Speed is the part of a creature's movement profile that lets it move through water without the ordinary extra movement cost that <span data-term-id=\"swimming\" class=\"glossary-term-link-from-markdown\">Swimming</span> usually imposes. Questions about switching movement types, reduced movement, or how much water travel remains in the current move resolve through <span data-term-id=\"special_speeds\" class=\"glossary-term-link-from-markdown\">Special Speeds</span>, <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span>, and <span data-term-id=\"changes_to_your_speeds\" class=\"glossary-term-link-from-markdown\">Changes to Your Speeds</span>. Water can still become harder to cross when <span data-term-id=\"difficult_terrain\" class=\"glossary-term-link-from-markdown\">Difficult Terrain</span> or another effect says it does.\r\n"
+}

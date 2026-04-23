@@ -1,0 +1,14 @@
+{
+  "id": "telepathy",
+  "title": "Telepathy",
+  "category": "Rules Glossary",
+  "tags": ["communication", "mental", "senses", "magic"],
+  "excerpt": "Telepathy is direct mind-to-mind communication that does not rely on spoken words, audible sound, or visible gestures. The governing rule defines its range, limitations, and whether understanding is automatic or conditional.",
+  "aliases": ["Mental Communication", "Mind-to-Mind Communication"],
+  "seeAlso": [
+    "magical_effect",
+    "target"
+  ],
+  "filePath": "/data/glossary/entries/rules/telepathy.json",
+  "markdown": "# Telepathy\n\nTelepathy is direct communication between minds without relying on spoken language, audible sound, or visible gesture. A telepathic link lets thoughts, intent, words, impressions, or other directed meaning pass from one mind to another according to the rule that grants it.\n\n## Rules\n\n- Telepathy does not depend on ordinary speech, hearing, or line-of-mouth communication\n- A telepathic rule determines who can be contacted, how far the link can reach, and whether the connection is one-way or two-way\n- Some telepathic effects transmit clear language-like meaning, while others communicate emotion, impulse, imagery, or simpler intent\n- Telepathy is limited by the source that grants it; it does not automatically create unlimited communication or understanding\n\n## Resolution Use\n\n### Direct Mental Contact\nA telepathic effect resolves as communication aimed at a specific creature or a defined group. The valid recipient still has to satisfy the governing rule's own requirements, such as range, creature type, awareness, or an existing bond.\n\n### Separate From Audible Speech\nTelepathy can function where ordinary conversation is blocked, hidden, or impossible. Because it is not carried by sound, it does not require spoken words to travel through the environment in the normal way.\n\n### Limits Still Matter\nA telepathic connection can still fail, end, or remain unusable if the rule's own conditions are not met. Range limits, blocked targeting, suppression, incompatible minds, or source-specific restrictions can all matter.\n\n## Common Uses\n\n- Silent coordination between allied creatures\n- Communication while hidden, restrained, or separated by noise\n- Contact with creatures that do not share a spoken language\n- Establishing mind-to-mind messaging through a magical or innate feature\n"
+}

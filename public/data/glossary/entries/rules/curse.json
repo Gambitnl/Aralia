@@ -1,0 +1,21 @@
+{
+  "id": "curse",
+  "title": "Curse",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "curse",
+    "harmful magic"
+  ],
+  "excerpt": "A Curse is a harmful magical effect bound to a creature, object, or place. It persists for the duration stated by its source or until magic or another rule ends it.",
+  "aliases": [
+    "curses"
+  ],
+  "seeAlso": [
+    "magical_effect",
+    "shape_shift",
+    "spell_referenced_rules_enrichment"
+  ],
+  "filePath": "/data/glossary/entries/rules/curse.json",
+  "markdown": "# Curse\n\nA curse is a harmful effect attached to a creature, object, place, or ongoing state. Its exact burden is defined by the effect that created it, and that burden remains in force for the curse's stated duration or until something ends it.\n\n## Rules Use\n\nA curse can weaken, restrict, compel, transform, bind, or otherwise afflict its subject. Some magic lifts a curse outright, while other effects continue until a specific condition, ritual, or stronger magic breaks them.\n\n## Resolution Meaning\n\nA curse is not just a moment of harm. It is an attached adverse state that remains live in the world until its ending rule is satisfied.\n"
+}

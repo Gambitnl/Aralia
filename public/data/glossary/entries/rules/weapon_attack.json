@@ -1,0 +1,16 @@
+{
+  "id": "weapon_attack",
+  "title": "Weapon Attack",
+  "category": "Rules Glossary",
+  "tags": ["combat", "attack", "weapons"],
+  "excerpt": "A weapon attack is an attack resolved through a weapon or a weapon-like attack profile. It is distinct from a spell attack and should not be treated as the same rules term as an unarmed strike.",
+  "aliases": [],
+  "seeAlso": [
+    "attack_action",
+    "weapons",
+    "unarmed_strike",
+    "target"
+  ],
+  "filePath": "/data/glossary/entries/rules/weapon_attack.json",
+  "markdown": "# Weapon Attack\n\nA weapon attack is an attack that resolves through a weapon's attack profile. It can be melee or ranged, but it remains part of the weapon-attack rules family rather than the [[magical_effect]] or spell-attack family.\n\n## Core Meaning\n\n### Uses a Weapon Profile\nA weapon attack relies on the attack and damage profile of a weapon, an equipped weapon state, or another rule that explicitly instructs the system to resolve the attack as a weapon attack.\n\n### Distinct From Spell Attacks\nA weapon attack is not the same rules term as a spell attack. Even if a feature has magical qualities, it does not become a spell attack unless a rule explicitly assigns it to that attack family.\n\n### Distinct From Unarmed Strikes\nAn [[unarmed_strike]] can count as a melee weapon attack for some rules interactions, but it is still not itself a weapon. That distinction matters for rules that require an actual weapon to be used, equipped, carried, drawn, or affected.\n\n## Resolution Context\n\nWeapon attacks are commonly used through the [[attack_action]], opportunity attacks, and other combat features that call for melee or ranged weapon-based attacks. The exact attack modifier, range, damage, and trait interactions come from the weapon profile and any active rules modifying it.\n\n## Practical Meaning\n\nWeapon attack is a rules classification used to determine which attack family is resolving. It helps separate weapon-based combat from spell-based attacks and from body-based strikes, even when those systems can overlap in narrower rule interactions."
+}

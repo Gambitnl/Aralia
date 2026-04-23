@@ -61,6 +61,7 @@
                 <label class="spellinv-control">
                     <span>Value Search</span>
                     <input id="spellValueSearchInput" type="text" list="spellValueSearchOptions" placeholder="1d4" onkeydown="if (event.key === 'Enter') runSpellInventoryQuery()">
+                    <div class="spellval-control-hint" id="spellValueSearchHelp">Choose one field path before searching by value.</div>
                     <datalist id="spellValueSearchOptions"></datalist>
                 </label>
                 <label class="spellinv-control">
@@ -121,6 +122,10 @@
             <div class="spellinv-card spellval-results-card">
                 <h3>Matching Spell Records</h3>
                 <p class="spellval-note">Reverse lookup results for the current field/value query.</p>
+                <div class="spellval-results-toolbar">
+                    <div class="spellval-results-toolbar-label">Quick level filters</div>
+                    <div class="spellval-chip-strip" id="spellResultsLevelFilters"></div>
+                </div>
                 <div class="spellinv-list spellval-results-list" id="spellQueryResults"></div>
             </div>
         </section>

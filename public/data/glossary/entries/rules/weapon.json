@@ -1,0 +1,16 @@
+{
+  "id": "weapon",
+  "title": "Weapon",
+  "category": "Rules Glossary",
+  "tags": ["combat", "equipment", "attacks"],
+  "excerpt": "A weapon is an item or implement used to make attacks or apply combat effects through physical force, range, or built-in properties.",
+  "aliases": [],
+  "seeAlso": [
+    "weapon_attack",
+    "attack_action",
+    "weapon_proficiency",
+    "weapons"
+  ],
+  "filePath": "/data/glossary/entries/rules/weapon.json",
+  "markdown": "# Weapon\n\nA weapon is an item or implement used to make attacks or apply combat pressure through physical force, range, or built-in combat properties.\n\n## Rules Use\n\nWeapons matter because they define how an attack is delivered, what properties shape that attack, and what kinds of combat options are available to the wielder.\n\n## Weapon State\n\nA weapon can contribute range, damage profile, handedness requirements, mastery or property behavior, and other combat traits that change how an [[attack_action|Attack Action]] or [[weapon_attack|Weapon Attack]] resolves.\n\n## Related Concepts\n\n- [[weapons|Weapons]] is the broader equipment surface that catalogs weapon groups and tables\n- [[weapon_proficiency|Weapon Proficiency]] affects how effectively a creature can use a weapon\n- [[weapon_attack|Weapon Attack]] is the combat-resolution concept that uses a weapon to deliver the attack\n"
+}

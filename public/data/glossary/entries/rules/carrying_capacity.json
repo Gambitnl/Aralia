@@ -1,0 +1,21 @@
+{
+  "id": "carrying_capacity",
+  "title": "Carrying Capacity",
+  "category": "Rules Glossary",
+  "tags": [
+    "equipment",
+    "weight",
+    "strength",
+    "movement"
+  ],
+  "excerpt": "Carrying capacity is the amount of weight a creature can normally carry. It is based on Strength and can be altered by size or other effects.",
+  "aliases": [],
+  "seeAlso": [
+    "strength",
+    "size",
+    "carrying_objects",
+    "speed"
+  ],
+  "filePath": "/data/glossary/entries/rules/carrying_capacity.json",
+  "markdown": "# Carrying Capacity\n\nCarrying capacity is the amount of weight a creature can carry as a normal load. This rule becomes relevant when the world-state needs an actual weight limit instead of treating gear and treasure abstractly.\n\n## Core Rule\n\nA creature's carrying capacity equals its Strength score multiplied by 15. The result is the amount of weight, in pounds, that the creature can carry.\n\n## Pushing, Dragging, And Lifting\n\nA creature can push, drag, or lift up to twice its carrying capacity. This is the same as 30 times the creature's Strength score in pounds.\n\n## State Modifiers\n\n- Size can change how much weight a creature can manage\n- Specific effects, traits, or forms can increase or decrease carrying capacity\n- When one of those rules applies, use the modified capacity for later load checks\n\n## Resolution Meaning\n\nMost ordinary loads do not need constant weight accounting. Carrying capacity matters when a creature tries to haul something unusually heavy, move while burdened by extreme load, or carry another creature, object, or amount of treasure that pushes past normal assumptions."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "stat_block",
+  "title": "Stat Block",
+  "category": "Rules Glossary",
+  "tags": ["creatures", "rules-surface", "entities", "combat"],
+  "excerpt": "A stat block is a structured rules surface that defines the mechanical state, capabilities, and resolution data for a creature or other game entity.",
+  "aliases": ["Entity Profile", "Creature Stat Block"],
+  "seeAlso": [
+    "armor_class",
+    "challenge_rating",
+    "hit_points",
+    "speed"
+  ],
+  "filePath": "/data/glossary/entries/rules/stat_block.json",
+  "markdown": "# Stat Block\n\nA stat block is a structured rules surface that gathers the mechanical data used to resolve a creature or other entity in play. It defines what the entity is, how durable it is, how it moves, what actions or attacks it can use, and what special traits modify its behavior.\n\n## Rules Use\n\n### Structured Mechanical Surface\n- A stat block exists so an entity can be resolved through explicit mechanical fields rather than loose descriptive text alone\n- Different entities can have different stat block structures, but each stat block serves the same purpose: it exposes the rule-facing data needed to resolve that entity consistently\n- A stat block can belong to a creature, summoned being, companion, hazard-like actor, or another entity type if the governing system gives it one\n\n### Resolved State And Capability\n- A stat block commonly includes identity, defenses, movement, senses, actions, attacks, traits, and other data that determine what the entity can currently do\n- Some values in a stat block are persistent definitions, while others can change during play as the entity takes damage, gains conditions, or is altered by effects\n- If another rule changes one part of a stat block, later resolution should use the changed state until that effect ends or another rule replaces it\n\n### Interpretation Boundary\n- A stat block is not flavor text; it is a compact rule reference for how the entity resolves in the world\n- Narrative description can explain what the entity is like, but the stat block is what determines its mechanical behavior when a rule needs a concrete answer\n- If an entity has no stat block, its behavior may need to be resolved through another system instead of creature-style mechanical fields\n\n## Common Uses\n\n- Reading a creature's [[armor_class|Armor Class]], [[hit_points|Hit Points]], and [[speed|Speed]] before combat resolution\n- Determining what attacks, actions, traits, or reactions an entity can use\n- Resolving summons, companions, or transformed creatures that rely on explicit mechanical profiles\n- Checking whether an effect has changed part of an entity's current mechanical state\n"
+}

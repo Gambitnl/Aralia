@@ -1,0 +1,17 @@
+{
+  "id": "cover",
+  "title": "Cover",
+  "category": "Rules Glossary",
+  "tags": ["combat", "targeting", "terrain", "defense"],
+  "excerpt": "Cover is protection created by an obstacle or barrier that partially or fully blocks a line of attack or effect.",
+  "aliases": [],
+  "seeAlso": [
+    "target",
+    "half_cover",
+    "three_quarters_cover",
+    "total_cover",
+    "attack_roll"
+  ],
+  "filePath": "/data/glossary/entries/rules/cover.json",
+  "markdown": "# Cover\n\nCover is protection created by a barrier, object, terrain feature, or creature that stands between a source and a target. Cover matters when a line of attack or effect is partially or fully blocked.\n\n## What Cover Does\n\nCover can make a target harder to affect by reducing the source's ability to reach that target cleanly. The amount of protection depends on how much of the target is screened by the obstacle.\n\n## Common Degrees Of Cover\n\n- [[half_cover|Half Cover]] provides partial protection\n- [[three_quarters_cover|Three-Quarters Cover]] provides stronger protection\n- [[total_cover|Total Cover]] blocks the target completely for many attacks and effects\n\n## Rules Use\n\nCover is checked between the source of an attack or effect and the target. A creature, wall, object, or terrain feature can provide cover if it interrupts the path between them.\n\n## Cover And Targeting\n\nSome effects can still reach a target behind partial cover, while others fail if the target has total cover. The current geometry of the scene determines whether cover applies when the effect resolves.\n"
+}

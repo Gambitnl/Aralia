@@ -1,0 +1,17 @@
+{
+  "id": "dodge_action",
+  "title": "Dodge [Action]",
+  "category": "Rules Glossary",
+  "tags": ["actions", "combat", "defense"],
+  "excerpt": "The Dodge action commits a creature's action to active defense, imposing disadvantage on attacks against it and improving Dexterity saving throws until its next turn begins.",
+  "aliases": ["Dodge"],
+  "seeAlso": [
+    "action",
+    "attack_roll",
+    "saving_throw",
+    "advantage",
+    "disadvantage"
+  ],
+  "filePath": "/data/glossary/entries/rules/dodge_action.json",
+  "markdown": "# Dodge [Action]\n\nThe Dodge action commits a creature's [[action]] to active defense. Until the start of that creature's next turn, [[attack_roll|attack rolls]] against it have [[disadvantage]], and the creature has [[advantage]] on Dexterity [[saving_throw|saving throws]].\n\n## Core Effect\n\n- Dodge represents a creature devoting its action to evasive movement, guarded posture, and threat awareness\n- the action improves the creature's defense against direct attacks and effects that can be avoided with quick movement\n- the benefit lasts until the start of the creature's next turn unless another rule prevents the creature from using it effectively\n\n## Timing\n\nDodge protects the creature through the rest of the current round and into other creatures' turns, ending when that creature's next turn begins.\n\n## Limits\n\n- Dodge does not stop attacks from being made; it changes how those attacks are resolved\n- Dodge does not grant extra movement, cover, or resistance by itself\n- if the creature cannot actively respond to threats, the world state can prevent Dodge from providing its normal benefit\n"
+}

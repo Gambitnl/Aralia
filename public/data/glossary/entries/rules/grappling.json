@@ -1,0 +1,16 @@
+{
+  "id": "grappling",
+  "title": "Grappling",
+  "category": "Rules Glossary",
+  "tags": ["combat", "conditions", "movement"],
+  "excerpt": "Grappling is the act of physically restraining another creature's movement, usually causing the target to gain the Grappled condition.",
+  "aliases": ["Grapple"],
+  "seeAlso": [
+    "grappled_condition",
+    "unarmed_strike",
+    "target",
+    "speed"
+  ],
+  "filePath": "/data/glossary/entries/rules/grappling.json",
+  "markdown": "# Grappling\n\nGrappling is close-quarters control through direct physical contact. When a grapple succeeds, the [[target]] usually gains the [[grappled_condition|Grappled]] condition, which sharply limits its ability to move.\n\n## Rules Use\n\nA creature grapples to keep another creature in reach, stop escape, drag it into a new position, or hold it inside a dangerous space. It is a control action, not just a source of damage.\n\n## Grapple State\n\n- the grappling creature maintains a controlling hold on the target\n- the target's free movement is restricted because its movement state is now tied to the grappler\n- moving while maintaining the grapple often means the grappler must carry or drag the target instead of moving at full ease\n\n## Relationship To Attacks\n\nGrappling is closely tied to close combat and often appears as part of an [[unarmed_strike|Unarmed Strike]] or similar physical control attempt. Its main purpose is to change position and movement access rather than to inflict immediate injury.\n\n## Ending A Grapple\n\nA grapple ends when the hold is broken, when the required contact or control state no longer exists, when forced movement or another effect separates the creatures enough to invalidate the hold, or when a rule explicitly ends the [[grappled_condition|Grappled]] condition.\n"
+}

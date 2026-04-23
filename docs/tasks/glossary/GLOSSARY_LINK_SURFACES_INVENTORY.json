@@ -1,0 +1,4262 @@
+{
+  "generatedAt": "2026-04-22T20:01:21.511Z",
+  "totals": {
+    "pill": 0,
+    "clickable_pill": 0,
+    "hover_pill": 0,
+    "inline_text": 1369,
+    "footer_see_also": 1257
+  },
+  "components": [
+    {
+      "file": "src/components/Glossary/__tests__/Glossary.test.tsx",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "signals": [
+        "seeAlso+onNavigate"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/FullEntryDisplay.tsx",
+      "surfaces": [
+        "clickable_pill"
+      ],
+      "signals": [
+        "glossaryTermId"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/Glossary.tsx",
+      "surfaces": [
+        "clickable_pill",
+        "inline_text"
+      ],
+      "signals": [
+        "glossaryTermId",
+        "data-term-id"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossaryContentRenderer.tsx",
+      "surfaces": [
+        "inline_text"
+      ],
+      "signals": [
+        "GlossaryContentRenderer",
+        "data-term-id"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossaryEntryPanel.tsx",
+      "surfaces": [
+        "clickable_pill"
+      ],
+      "signals": [
+        "glossaryTermId"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossaryEntryTemplate.tsx",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "signals": [
+        "GlossaryContentRenderer",
+        "seeAlso+onNavigate"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossaryPill.tsx",
+      "surfaces": [
+        "pill",
+        "clickable_pill",
+        "hover_pill"
+      ],
+      "signals": [
+        "GlossaryPill",
+        "glossaryTermId",
+        "GlossaryTooltip"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossarySpellsOfTheMarkTable.tsx",
+      "surfaces": [
+        "inline_text"
+      ],
+      "signals": [
+        "GlossaryContentRenderer"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossarySummaryTable.tsx",
+      "surfaces": [
+        "inline_text"
+      ],
+      "signals": [
+        "GlossaryContentRenderer"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossaryTooltip.tsx",
+      "surfaces": [
+        "hover_pill"
+      ],
+      "signals": [
+        "GlossaryTooltip"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/GlossaryTraitTable.tsx",
+      "surfaces": [
+        "inline_text"
+      ],
+      "signals": [
+        "GlossaryContentRenderer"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/index.ts",
+      "surfaces": [
+        "hover_pill",
+        "inline_text"
+      ],
+      "signals": [
+        "GlossaryTooltip",
+        "GlossaryContentRenderer"
+      ]
+    },
+    {
+      "file": "src/components/Glossary/SpellCardTemplate.tsx",
+      "surfaces": [
+        "pill",
+        "clickable_pill"
+      ],
+      "signals": [
+        "GlossaryPill",
+        "glossaryTermId"
+      ]
+    }
+  ],
+  "indexFiles": [
+    {
+      "file": "public/data/glossary/index/character_classes.json",
+      "entryCount": 13,
+      "seeAlsoEntryCount": 13
+    },
+    {
+      "file": "public/data/glossary/index/character_races.json",
+      "entryCount": 19,
+      "seeAlsoEntryCount": 0
+    },
+    {
+      "file": "public/data/glossary/index/crafting_glossary.json",
+      "entryCount": 9,
+      "seeAlsoEntryCount": 3
+    },
+    {
+      "file": "public/data/glossary/index/crafting.json",
+      "entryCount": 1,
+      "seeAlsoEntryCount": 0
+    },
+    {
+      "file": "public/data/glossary/index/developer.json",
+      "entryCount": 1,
+      "seeAlsoEntryCount": 1
+    },
+    {
+      "file": "public/data/glossary/index/lore.json",
+      "entryCount": 2,
+      "seeAlsoEntryCount": 0
+    },
+    {
+      "file": "public/data/glossary/index/magic_items.json",
+      "entryCount": 2,
+      "seeAlsoEntryCount": 2
+    },
+    {
+      "file": "public/data/glossary/index/main.json",
+      "entryCount": 0,
+      "seeAlsoEntryCount": 0
+    },
+    {
+      "file": "public/data/glossary/index/rules_glossary.json",
+      "entryCount": 298,
+      "seeAlsoEntryCount": 164
+    },
+    {
+      "file": "public/data/glossary/index/spellcasting_mechanics.json",
+      "entryCount": 18,
+      "seeAlsoEntryCount": 18
+    },
+    {
+      "file": "public/data/glossary/index/spells.json",
+      "entryCount": 10,
+      "seeAlsoEntryCount": 0
+    },
+    {
+      "file": "public/data/glossary/index/technology.json",
+      "entryCount": 1,
+      "seeAlsoEntryCount": 0
+    }
+  ],
+  "entries": [
+    {
+      "id": "aarakocra",
+      "file": "public/data/glossary/entries/races/aarakocra.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "aberrant_mind_subclass",
+      "file": "public/data/glossary/entries/classes/sorcerer_subclasses/aberrant_sorcery.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "ability_check",
+      "file": "public/data/glossary/entries/rules/ability_check.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "ability_score_and_modifier",
+      "file": "public/data/glossary/entries/rules/ability_score_and_modifier.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 8
+      }
+    },
+    {
+      "id": "abjurer_subclass",
+      "file": "public/data/glossary/entries/classes/wizard_subclasses/abjurer.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "abyssal_tiefling",
+      "file": "public/data/glossary/entries/races/tiefling_legacies/abyssal.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "action",
+      "file": "public/data/glossary/entries/rules/action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "actions",
+      "file": "public/data/glossary/entries/rules/actions.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "advantage",
+      "file": "public/data/glossary/entries/rules/advantage.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "advantage_disadvantage",
+      "file": "public/data/glossary/entries/rules/advantage_disadvantage.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "air_genasi",
+      "file": "public/data/glossary/entries/races/air_genasi.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "alchemist_subclass",
+      "file": "public/data/glossary/entries/classes/artificer_subclasses/alchemist.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "alchemy_crafting",
+      "file": "public/data/glossary/entries/rules/crafting/alchemy_crafting.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "alignment",
+      "file": "public/data/glossary/entries/rules/alignment.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "ally",
+      "file": "public/data/glossary/entries/rules/ally.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "arcane_trickster_subclass",
+      "file": "public/data/glossary/entries/classes/rogue_subclasses/arcane_trickster.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "archfey_patron_subclass",
+      "file": "public/data/glossary/entries/classes/warlock_subclasses/archfey.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "area_of_effect",
+      "file": "public/data/glossary/entries/rules/area_of_effect.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "armorer_subclass",
+      "file": "public/data/glossary/entries/classes/artificer_subclasses/armorer.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "artificer",
+      "file": "public/data/glossary/entries/classes/artificer.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 9
+      }
+    },
+    {
+      "id": "artificer_infusions",
+      "file": "public/data/glossary/entries/classes/artificer_infusions.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "artificer_spell_list",
+      "file": "public/data/glossary/entries/classes/artificer_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "artillerist_subclass",
+      "file": "public/data/glossary/entries/classes/artificer_subclasses/artillerist.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "assassin_subclass",
+      "file": "public/data/glossary/entries/classes/rogue_subclasses/assassin.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "astral_elf",
+      "file": "public/data/glossary/entries/races/elf_lineages/astral_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 18,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "attack_action",
+      "file": "public/data/glossary/entries/rules/attack_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "attack_roll",
+      "file": "public/data/glossary/entries/rules/attack_roll.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "attitude",
+      "file": "public/data/glossary/entries/rules/attitude.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "attunement",
+      "file": "public/data/glossary/entries/rules/attunement.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "autognome",
+      "file": "public/data/glossary/entries/races/autognome.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "autumn_eladrin",
+      "file": "public/data/glossary/entries/races/eladrin_seasons/autumn.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "barbarian",
+      "file": "public/data/glossary/entries/classes/barbarian.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "bard",
+      "file": "public/data/glossary/entries/classes/bard.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 8
+      }
+    },
+    {
+      "id": "bard_spell_list",
+      "file": "public/data/glossary/entries/classes/bard_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "battle_master_subclass",
+      "file": "public/data/glossary/entries/classes/fighter_subclasses/battle_master.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "battle_smith_subclass",
+      "file": "public/data/glossary/entries/classes/artificer_subclasses/battle_smith.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "beast_master_subclass",
+      "file": "public/data/glossary/entries/classes/ranger_subclasses/beast_master.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "beastborn_human",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/beastborn_human.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 18,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "beasthide_shifter",
+      "file": "public/data/glossary/entries/races/shifter_variants/beasthide.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 10,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "black_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/black.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "blinded_condition",
+      "file": "public/data/glossary/entries/rules/conditions/blinded_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "blindsight",
+      "file": "public/data/glossary/entries/rules/blindsight.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "bloodied",
+      "file": "public/data/glossary/entries/rules/bloodied.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "blue_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/blue.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "bonus_action",
+      "file": "public/data/glossary/entries/rules/bonus_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "bonus_actions",
+      "file": "public/data/glossary/entries/rules/bonus_actions.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "brass_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/brass.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "breaking_objects",
+      "file": "public/data/glossary/entries/rules/breaking_objects.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "bright_light",
+      "file": "public/data/glossary/entries/rules/bright_light.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "bronze_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/bronze.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "bugbear",
+      "file": "public/data/glossary/entries/races/bugbear.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "burning",
+      "file": "public/data/glossary/entries/rules/burning.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "cantrip",
+      "file": "public/data/glossary/entries/rules/cantrip.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "carrying_capacity",
+      "file": "public/data/glossary/entries/rules/carrying_capacity.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "casting_time_rules",
+      "file": "public/data/glossary/entries/rules/spells/casting_time_rules.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "celestial_patron_subclass",
+      "file": "public/data/glossary/entries/classes/warlock_subclasses/celestial.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "centaur",
+      "file": "public/data/glossary/entries/races/centaur.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "challenge_rating",
+      "file": "public/data/glossary/entries/rules/challenge_rating.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "champion_subclass",
+      "file": "public/data/glossary/entries/classes/fighter_subclasses/champion.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "changeling",
+      "file": "public/data/glossary/entries/races/changeling.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 8,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "changes_to_your_speeds",
+      "file": "public/data/glossary/entries/rules/changes_to_your_speeds.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "charisma",
+      "file": "public/data/glossary/entries/rules/charisma.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "charmed_condition",
+      "file": "public/data/glossary/entries/rules/conditions/charmed_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "chthonic_tiefling",
+      "file": "public/data/glossary/entries/races/tiefling_legacies/chthonic.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "circle_of_the_land_subclass",
+      "file": "public/data/glossary/entries/classes/druid_subclasses/circle_of_the_land.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "circle_of_the_moon_subclass",
+      "file": "public/data/glossary/entries/classes/druid_subclasses/circle_of_the_moon.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "circle_of_the_sea_subclass",
+      "file": "public/data/glossary/entries/classes/druid_subclasses/circle_of_the_sea.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "circle_of_the_stars_subclass",
+      "file": "public/data/glossary/entries/classes/druid_subclasses/circle_of_the_stars.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "cleric",
+      "file": "public/data/glossary/entries/classes/cleric.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 7
+      }
+    },
+    {
+      "id": "cleric_spell_list",
+      "file": "public/data/glossary/entries/classes/cleric_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "climbing",
+      "file": "public/data/glossary/entries/rules/movement/climbing.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "clockwork_soul_subclass",
+      "file": "public/data/glossary/entries/classes/sorcerer_subclasses/clockwork_sorcery.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "cloud_giant_goliath",
+      "file": "public/data/glossary/entries/races/goliath_ancestries/cloud_giant_goliath.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "college_of_dance",
+      "file": "public/data/glossary/entries/classes/bard_subclasses/college_of_dance.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "college_of_glamour",
+      "file": "public/data/glossary/entries/classes/bard_subclasses/college_of_glamour.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "college_of_lore",
+      "file": "public/data/glossary/entries/classes/bard_subclasses/college_of_lore.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "college_of_valor",
+      "file": "public/data/glossary/entries/classes/bard_subclasses/college_of_valor.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "concentration",
+      "file": "public/data/glossary/entries/rules/concentration.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "conditions",
+      "file": "public/data/glossary/entries/rules/conditions.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "conditions_dont_stack",
+      "file": "public/data/glossary/entries/rules/conditions_dont_stack.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "cone_area",
+      "file": "public/data/glossary/entries/rules/spells/referenced/cone_area.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "constitution",
+      "file": "public/data/glossary/entries/rules/constitution.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "copper_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/copper.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "cover",
+      "file": "public/data/glossary/entries/rules/cover.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "crawling",
+      "file": "public/data/glossary/entries/rules/movement/crawling.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "creature",
+      "file": "public/data/glossary/entries/rules/creature.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "creature_type",
+      "file": "public/data/glossary/entries/rules/creature_type.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "critical_hit",
+      "file": "public/data/glossary/entries/rules/critical_hit.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "cube_area",
+      "file": "public/data/glossary/entries/rules/spells/referenced/cube_area.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 22,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "curse",
+      "file": "public/data/glossary/entries/rules/curse.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "cylinder_area",
+      "file": "public/data/glossary/entries/rules/spells/referenced/cylinder_area.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 8,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "d20_test",
+      "file": "public/data/glossary/entries/rules/d20_test.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "damage",
+      "file": "public/data/glossary/entries/rules/damage.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "damage_roll",
+      "file": "public/data/glossary/entries/rules/damage_roll.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "damage_threshold",
+      "file": "public/data/glossary/entries/rules/damage_threshold.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "damage_types",
+      "file": "public/data/glossary/entries/rules/damage_types.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "darkness",
+      "file": "public/data/glossary/entries/rules/darkness.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "darkvision",
+      "file": "public/data/glossary/entries/rules/darkvision.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "dash_action",
+      "file": "public/data/glossary/entries/rules/dash_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "dead",
+      "file": "public/data/glossary/entries/rules/dead.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "death_saving_throw",
+      "file": "public/data/glossary/entries/rules/death_saving_throw.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "deep_gnome",
+      "file": "public/data/glossary/entries/races/deep_gnome.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "dehydration",
+      "file": "public/data/glossary/entries/rules/dehydration.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "dexterity",
+      "file": "public/data/glossary/entries/rules/dexterity.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "difficult_terrain",
+      "file": "public/data/glossary/entries/rules/difficult_terrain.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "dim_light",
+      "file": "public/data/glossary/entries/rules/dim_light.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "disadvantage",
+      "file": "public/data/glossary/entries/rules/disadvantage.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "disengage_action",
+      "file": "public/data/glossary/entries/rules/disengage_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "diviner_subclass",
+      "file": "public/data/glossary/entries/classes/wizard_subclasses/diviner.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "dodge_action",
+      "file": "public/data/glossary/entries/rules/dodge_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "draconblood_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/draconblood.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 13,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "draconic_sorcery_subclass",
+      "file": "public/data/glossary/entries/classes/sorcerer_subclasses/draconic_sorcery.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "drow",
+      "file": "public/data/glossary/entries/races/elf_lineages/drow.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 10,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "druid",
+      "file": "public/data/glossary/entries/classes/druid.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 9
+      }
+    },
+    {
+      "id": "druid_spell_list",
+      "file": "public/data/glossary/entries/classes/druid_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "duergar",
+      "file": "public/data/glossary/entries/races/duergar.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "duration_condition",
+      "file": "public/data/glossary/entries/rules/duration_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "earth_genasi",
+      "file": "public/data/glossary/entries/races/earth_genasi.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "eldritch_knight_subclass",
+      "file": "public/data/glossary/entries/classes/fighter_subclasses/eldritch_knight.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "emanation_area",
+      "file": "public/data/glossary/entries/rules/spells/referenced/emanation_area.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 18,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "enemy",
+      "file": "public/data/glossary/entries/rules/enemy.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "equipment_proficiencies",
+      "file": "public/data/glossary/entries/rules/equipment_proficiencies.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "evoker_subclass",
+      "file": "public/data/glossary/entries/classes/wizard_subclasses/evoker.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "exhaustion_condition",
+      "file": "public/data/glossary/entries/rules/conditions/exhaustion_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "expertise",
+      "file": "public/data/glossary/entries/rules/expertise.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "fairy",
+      "file": "public/data/glossary/entries/races/fairy.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "fallen_aasimar",
+      "file": "public/data/glossary/entries/races/aasimar_variants/fallen.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 17,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "falling",
+      "file": "public/data/glossary/entries/rules/falling.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "fey_wanderer_subclass",
+      "file": "public/data/glossary/entries/classes/ranger_subclasses/fey_wanderer.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "fiend_patron_subclass",
+      "file": "public/data/glossary/entries/classes/warlock_subclasses/fiend.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "fighter",
+      "file": "public/data/glossary/entries/classes/fighter.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 9
+      }
+    },
+    {
+      "id": "firbolg",
+      "file": "public/data/glossary/entries/races/firbolg.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 8,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "fire_genasi",
+      "file": "public/data/glossary/entries/races/fire_genasi.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "fire_giant_goliath",
+      "file": "public/data/glossary/entries/races/goliath_ancestries/fire_giant_goliath.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "fly_speed",
+      "file": "public/data/glossary/entries/rules/fly_speed.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "flying",
+      "file": "public/data/glossary/entries/rules/movement/flying.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "forest_gnome",
+      "file": "public/data/glossary/entries/races/gnome_subraces/forest_gnome.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "forgeborn_human",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/forgeborn_human.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 14,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "friendly_attitude",
+      "file": "public/data/glossary/entries/rules/friendly_attitude.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "frightened_condition",
+      "file": "public/data/glossary/entries/rules/conditions/frightened_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "frost_giant_goliath",
+      "file": "public/data/glossary/entries/races/goliath_ancestries/frost_giant_goliath.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "gaining_spells",
+      "file": "public/data/glossary/entries/rules/spells/gaining_spells.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "giff",
+      "file": "public/data/glossary/entries/races/giff.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "githyanki",
+      "file": "public/data/glossary/entries/races/githyanki.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "githzerai",
+      "file": "public/data/glossary/entries/races/githzerai.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 11,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "gloom_stalker_subclass",
+      "file": "public/data/glossary/entries/classes/ranger_subclasses/gloom_stalker.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "glossary_conventions",
+      "file": "public/data/glossary/entries/rules/glossary_conventions.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "goblin",
+      "file": "public/data/glossary/entries/races/goblin.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 11,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "gold_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/gold.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "grappled_condition",
+      "file": "public/data/glossary/entries/rules/conditions/grappled_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "grappling",
+      "file": "public/data/glossary/entries/rules/grappling.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "great_old_one_patron_subclass",
+      "file": "public/data/glossary/entries/classes/warlock_subclasses/great_old_one.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "green_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/green.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "guardian_human",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/guardian_human.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 15,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "hadozee",
+      "file": "public/data/glossary/entries/races/hadozee.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "half_cover",
+      "file": "public/data/glossary/entries/rules/spells/referenced/half_cover.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "half_elf",
+      "file": "public/data/glossary/entries/races/half_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "half_elf_aquatic",
+      "file": "public/data/glossary/entries/races/half_elf_variants/aquatic.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "half_elf_drow",
+      "file": "public/data/glossary/entries/races/half_elf_variants/drow.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 13,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "half_elf_high",
+      "file": "public/data/glossary/entries/races/half_elf_variants/high.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "half_elf_wood",
+      "file": "public/data/glossary/entries/races/half_elf_variants/wood.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "half_orc",
+      "file": "public/data/glossary/entries/races/half_orc.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "halfling",
+      "file": "public/data/glossary/entries/races/halfling.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "harengon",
+      "file": "public/data/glossary/entries/races/harengon.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 10,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "hazards",
+      "file": "public/data/glossary/entries/rules/hazards.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "healing",
+      "file": "public/data/glossary/entries/rules/healing.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "hearthkeeper_halfling",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/hearthkeeper_halfling.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 17,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "heavily_obscured",
+      "file": "public/data/glossary/entries/rules/heavily_obscured.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "help_action",
+      "file": "public/data/glossary/entries/rules/help_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "herbalism_gathering",
+      "file": "public/data/glossary/entries/rules/crafting/herbalism_gathering.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "hide_action",
+      "file": "public/data/glossary/entries/rules/hide_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "hiding",
+      "file": "public/data/glossary/entries/rules/hiding.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "high_elf",
+      "file": "public/data/glossary/entries/races/elf_lineages/high_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "high_jump",
+      "file": "public/data/glossary/entries/rules/high_jump.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "hill_dwarf",
+      "file": "public/data/glossary/entries/races/hill_dwarf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "hill_giant_goliath",
+      "file": "public/data/glossary/entries/races/goliath_ancestries/hill_giant_goliath.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "hit_points",
+      "file": "public/data/glossary/entries/rules/hit_points.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "hobgoblin",
+      "file": "public/data/glossary/entries/races/hobgoblin.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 15,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "hostile_attitude",
+      "file": "public/data/glossary/entries/rules/hostile_attitude.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "hover",
+      "file": "public/data/glossary/entries/rules/hover.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "human",
+      "file": "public/data/glossary/entries/races/human.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "hunter_subclass",
+      "file": "public/data/glossary/entries/classes/ranger_subclasses/hunter.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "illusionist_subclass",
+      "file": "public/data/glossary/entries/classes/wizard_subclasses/illusionist.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "illusions",
+      "file": "public/data/glossary/entries/rules/illusions.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "immunity",
+      "file": "public/data/glossary/entries/rules/immunity.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "improvised_weapons",
+      "file": "public/data/glossary/entries/rules/improvised_weapons.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "incapacitated_condition",
+      "file": "public/data/glossary/entries/rules/conditions/incapacitated_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "indifferent_attitude",
+      "file": "public/data/glossary/entries/rules/indifferent_attitude.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "infernal_tiefling",
+      "file": "public/data/glossary/entries/races/tiefling_legacies/infernal.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "influence_action",
+      "file": "public/data/glossary/entries/rules/influence_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "initiative",
+      "file": "public/data/glossary/entries/rules/initiative.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "invisible_condition",
+      "file": "public/data/glossary/entries/rules/conditions/invisible_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "jumping",
+      "file": "public/data/glossary/entries/rules/movement/jumping.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "kalashtar",
+      "file": "public/data/glossary/entries/races/kalashtar.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "kender",
+      "file": "public/data/glossary/entries/races/kender.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 14,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "kenku",
+      "file": "public/data/glossary/entries/races/kenku.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "knocking_out_a_creature",
+      "file": "public/data/glossary/entries/rules/knocking_out_a_creature.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "kobold",
+      "file": "public/data/glossary/entries/races/kobold.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "leonin",
+      "file": "public/data/glossary/entries/races/leonin.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "life_domain_subclass",
+      "file": "public/data/glossary/entries/classes/cleric_subclasses/life_domain.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "light_domain_subclass",
+      "file": "public/data/glossary/entries/classes/cleric_subclasses/light_domain.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "light_rules",
+      "file": "public/data/glossary/entries/rules/light.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "lightfoot_halfling",
+      "file": "public/data/glossary/entries/races/halfling_subraces/lightfoot.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "lightly_obscured",
+      "file": "public/data/glossary/entries/rules/lightly_obscured.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "line_area",
+      "file": "public/data/glossary/entries/rules/spells/referenced/line_area.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "lizardfolk",
+      "file": "public/data/glossary/entries/races/lizardfolk.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "lockpicking",
+      "file": "public/data/glossary/entries/rules/lockpicking.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "long_jump",
+      "file": "public/data/glossary/entries/rules/long_jump.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "long_rest",
+      "file": "public/data/glossary/entries/rules/long_rest.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "longtooth_shifter",
+      "file": "public/data/glossary/entries/races/shifter_variants/longtooth.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 11,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "lotusden_halfling",
+      "file": "public/data/glossary/entries/races/halfling_subraces/lotusden_halfling.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 8,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "loxodon",
+      "file": "public/data/glossary/entries/races/loxodon.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 8,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "magic_action",
+      "file": "public/data/glossary/entries/rules/magic_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "magic_item_attunement",
+      "file": "public/data/glossary/entries/rules/equipment/magic_items/attunement.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "magical_effect",
+      "file": "public/data/glossary/entries/rules/magical_effect.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "malnutrition",
+      "file": "public/data/glossary/entries/rules/malnutrition.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "mender_halfling",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/mender_halfling.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "minotaur",
+      "file": "public/data/glossary/entries/races/minotaur.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "monk",
+      "file": "public/data/glossary/entries/classes/monk.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "mountain_dwarf",
+      "file": "public/data/glossary/entries/races/dwarf_subraces/mountain_dwarf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 12,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "oath_of_devotion_subclass",
+      "file": "public/data/glossary/entries/classes/paladin_subclasses/oath_of_devotion.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "oath_of_glory_subclass",
+      "file": "public/data/glossary/entries/classes/paladin_subclasses/oath_of_glory.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "oath_of_the_ancients_subclass",
+      "file": "public/data/glossary/entries/classes/paladin_subclasses/oath_of_the_ancients.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "oath_of_vengeance_subclass",
+      "file": "public/data/glossary/entries/classes/paladin_subclasses/oath_of_vengeance.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "object",
+      "file": "public/data/glossary/entries/rules/object.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "occupied_space",
+      "file": "public/data/glossary/entries/rules/occupied_space.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "one_thing_at_a_time",
+      "file": "public/data/glossary/entries/rules/one_thing_at_a_time.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "opportunity_attack",
+      "file": "public/data/glossary/entries/rules/opportunity_attack.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "orc",
+      "file": "public/data/glossary/entries/races/orc.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 10,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "paladin",
+      "file": "public/data/glossary/entries/classes/paladin.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "paladin_spell_list",
+      "file": "public/data/glossary/entries/classes/paladin_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "pallid_elf",
+      "file": "public/data/glossary/entries/races/elf_lineages/pallid_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 17,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "paralyzed_condition",
+      "file": "public/data/glossary/entries/rules/conditions/paralyzed_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "passive_perception",
+      "file": "public/data/glossary/entries/rules/passive_perception.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "path_of_the_berserker",
+      "file": "public/data/glossary/entries/classes/barbarian_subclasses/path_of_the_berserker.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "path_of_the_wild_heart",
+      "file": "public/data/glossary/entries/classes/barbarian_subclasses/path_of_the_wild_heart.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "path_of_the_world_tree",
+      "file": "public/data/glossary/entries/classes/barbarian_subclasses/path_of_the_world_tree.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "path_of_the_zealot",
+      "file": "public/data/glossary/entries/classes/barbarian_subclasses/path_of_the_zealot.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "pathfinder_half_orc",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/pathfinder_half_orc.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 21,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "petrified_condition",
+      "file": "public/data/glossary/entries/rules/conditions/petrified_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "plasmoid",
+      "file": "public/data/glossary/entries/races/plasmoid.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 13,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "poison_crafting",
+      "file": "public/data/glossary/entries/rules/crafting/poison_crafting.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "poisoned_condition",
+      "file": "public/data/glossary/entries/rules/conditions/poisoned_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "possessed",
+      "file": "public/data/glossary/entries/rules/possessed.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "possession",
+      "file": "public/data/glossary/entries/rules/possession.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "proficiency",
+      "file": "public/data/glossary/entries/rules/proficiency.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "proficiency_bonus",
+      "file": "public/data/glossary/entries/rules/proficiency_bonus.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "prone_condition",
+      "file": "public/data/glossary/entries/rules/conditions/prone_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "protector_aasimar",
+      "file": "public/data/glossary/entries/races/aasimar_variants/protector.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "psi_warrior_subclass",
+      "file": "public/data/glossary/entries/classes/fighter_subclasses/psi_warrior.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "ranger",
+      "file": "public/data/glossary/entries/classes/ranger.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 7
+      }
+    },
+    {
+      "id": "ranger_spell_list",
+      "file": "public/data/glossary/entries/classes/ranger_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "ravenite_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/ravenite.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "reach",
+      "file": "public/data/glossary/entries/rules/reach.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "reaction",
+      "file": "public/data/glossary/entries/rules/reaction.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "reactions",
+      "file": "public/data/glossary/entries/rules/reactions.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "ready_action",
+      "file": "public/data/glossary/entries/rules/ready_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "red_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/red.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "resistance",
+      "file": "public/data/glossary/entries/rules/resistance.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "restrained_condition",
+      "file": "public/data/glossary/entries/rules/conditions/restrained_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "ritual",
+      "file": "public/data/glossary/entries/rules/ritual.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "rock_gnome",
+      "file": "public/data/glossary/entries/races/gnome_subraces/rock_gnome.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "rogue",
+      "file": "public/data/glossary/entries/classes/rogue.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "round_down",
+      "file": "public/data/glossary/entries/rules/round_down.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "runeward_dwarf",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/runeward_dwarf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 24,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "satyr",
+      "file": "public/data/glossary/entries/races/satyr.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "save",
+      "file": "public/data/glossary/entries/rules/save.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "saving_throw",
+      "file": "public/data/glossary/entries/rules/saving_throw.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "saving_throw_proficiencies",
+      "file": "public/data/glossary/entries/rules/saving_throw_proficiencies.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "school_of_magic",
+      "file": "public/data/glossary/entries/rules/spells/school_of_magic.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "scourge_aasimar",
+      "file": "public/data/glossary/entries/races/aasimar_variants/scourge.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "scribing_spell_scrolls",
+      "file": "public/data/glossary/entries/rules/equipment/crafting/scribing_spell_scrolls.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "sea_elf",
+      "file": "public/data/glossary/entries/races/elf_lineages/sea_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 11,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "search_action",
+      "file": "public/data/glossary/entries/rules/search_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "seersight_half_elf",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/seersight_half_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 24,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "shadar_kai",
+      "file": "public/data/glossary/entries/races/elf_lineages/shadar_kai.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 15,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "shadowveil_elf",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/shadowveil_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 24,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "shape_shift",
+      "file": "public/data/glossary/entries/rules/shape_shift.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "short_rest",
+      "file": "public/data/glossary/entries/rules/short_rest.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "silver_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/silver.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "simic_hybrid",
+      "file": "public/data/glossary/entries/races/simic_hybrid.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 8,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "simultaneous_effects",
+      "file": "public/data/glossary/entries/rules/simultaneous_effects.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "size",
+      "file": "public/data/glossary/entries/rules/size.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "skill",
+      "file": "public/data/glossary/entries/rules/skill.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "skill_proficiencies",
+      "file": "public/data/glossary/entries/rules/skill_proficiencies.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "sorcerer",
+      "file": "public/data/glossary/entries/classes/sorcerer.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 9
+      }
+    },
+    {
+      "id": "sorcerer_spell_list",
+      "file": "public/data/glossary/entries/classes/sorcerer_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "soulknife_subclass",
+      "file": "public/data/glossary/entries/classes/rogue_subclasses/soulknife.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "special_speeds",
+      "file": "public/data/glossary/entries/rules/special_speeds.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "speed",
+      "file": "public/data/glossary/entries/rules/speed.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 7
+      }
+    },
+    {
+      "id": "spell",
+      "file": "public/data/glossary/entries/rules/spell.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "spell_attack",
+      "file": "public/data/glossary/entries/rules/spell_attack.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "spell_components_rules",
+      "file": "public/data/glossary/entries/rules/spells/spell_components_rules.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "spell_duration_rules",
+      "file": "public/data/glossary/entries/rules/spells/spell_duration_rules.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "spell_effects_rules",
+      "file": "public/data/glossary/entries/rules/spells/spell_effects_rules.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "spell_level_slots",
+      "file": "public/data/glossary/entries/rules/spells/spell_level_slots.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "spell_range_rules",
+      "file": "public/data/glossary/entries/rules/spells/spell_range_rules.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "spell_referenced_rules_enrichment",
+      "file": "public/data/glossary/entries/rules/spells/spell_referenced_rules_enrichment.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 15,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "spell_scroll",
+      "file": "public/data/glossary/entries/magic_items/spell_scroll.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "spell_slot",
+      "file": "public/data/glossary/entries/rules/spell_slot.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "spellcasting_focus",
+      "file": "public/data/glossary/entries/rules/spellcasting_focus.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "spells_chapter",
+      "file": "public/data/glossary/entries/rules/spells_chapter.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 11,
+        "footer_see_also": 11
+      }
+    },
+    {
+      "id": "sphere_area",
+      "file": "public/data/glossary/entries/rules/spells/referenced/sphere_area.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 28,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "spring_eladrin",
+      "file": "public/data/glossary/entries/races/eladrin_seasons/spring.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 14,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "stable",
+      "file": "public/data/glossary/entries/rules/stable.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "stat_block",
+      "file": "public/data/glossary/entries/rules/stat_block.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "stone_giant_goliath",
+      "file": "public/data/glossary/entries/races/goliath_ancestries/stone_giant_goliath.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "storm_giant_goliath",
+      "file": "public/data/glossary/entries/races/goliath_ancestries/storm_giant_goliath.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "stormborn_half_elf",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/stormborn_half_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 23,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "stout_halfling",
+      "file": "public/data/glossary/entries/races/halfling_subraces/stout.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 7,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "strength",
+      "file": "public/data/glossary/entries/rules/strength.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "study_action",
+      "file": "public/data/glossary/entries/rules/study_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "stunned_condition",
+      "file": "public/data/glossary/entries/rules/conditions/stunned_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "suffocation",
+      "file": "public/data/glossary/entries/rules/suffocation.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "summer_eladrin",
+      "file": "public/data/glossary/entries/races/eladrin_seasons/summer.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "surprise",
+      "file": "public/data/glossary/entries/rules/surprise.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "swiftstride_shifter",
+      "file": "public/data/glossary/entries/races/shifter_variants/swiftstride.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 12,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "swim_speed",
+      "file": "public/data/glossary/entries/rules/swim_speed.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "swimming",
+      "file": "public/data/glossary/entries/rules/movement/swimming.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "tabaxi",
+      "file": "public/data/glossary/entries/races/tabaxi.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "target",
+      "file": "public/data/glossary/entries/rules/target.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "telepathy",
+      "file": "public/data/glossary/entries/rules/telepathy.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "teleportation",
+      "file": "public/data/glossary/entries/rules/teleportation.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "temporary_hp",
+      "file": "public/data/glossary/entries/rules/temporary_hp.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "thief_subclass",
+      "file": "public/data/glossary/entries/classes/rogue_subclasses/thief.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "three_quarters_cover",
+      "file": "public/data/glossary/entries/rules/spells/referenced/three_quarters_cover.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 2,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "thri_kreen",
+      "file": "public/data/glossary/entries/races/thri_kreen.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 10,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "tortle",
+      "file": "public/data/glossary/entries/races/tortle.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "total_cover",
+      "file": "public/data/glossary/entries/rules/spells/referenced/total_cover.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "traps",
+      "file": "public/data/glossary/entries/rules/traps.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "tremorsense",
+      "file": "public/data/glossary/entries/rules/tremorsense.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "trickery_domain_subclass",
+      "file": "public/data/glossary/entries/classes/cleric_subclasses/trickery_domain.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "triton",
+      "file": "public/data/glossary/entries/races/triton.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "truesight",
+      "file": "public/data/glossary/entries/rules/truesight.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "unarmed_strike",
+      "file": "public/data/glossary/entries/rules/unarmed_strike.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 1
+      }
+    },
+    {
+      "id": "unconscious_condition",
+      "file": "public/data/glossary/entries/rules/conditions/unconscious_condition.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "unoccupied_space",
+      "file": "public/data/glossary/entries/rules/unoccupied_space.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "utilize_action",
+      "file": "public/data/glossary/entries/rules/utilize_action.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "vedalken",
+      "file": "public/data/glossary/entries/races/vedalken.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 9,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "vehicle_damage_threshold",
+      "file": "public/data/glossary/entries/rules/equipment/vehicles/damage_threshold.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 1,
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "verdan",
+      "file": "public/data/glossary/entries/races/verdan.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 4,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "vision",
+      "file": "public/data/glossary/entries/rules/vision.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 8,
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "vision_and_light",
+      "file": "public/data/glossary/entries/rules/vision_and_light.json",
+      "surfaces": [
+        "inline_text"
+      ],
+      "counts": {
+        "inline_text": 7
+      }
+    },
+    {
+      "id": "vulnerability",
+      "file": "public/data/glossary/entries/rules/vulnerability.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "war_domain_subclass",
+      "file": "public/data/glossary/entries/classes/cleric_subclasses/war_domain.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "warforged",
+      "file": "public/data/glossary/entries/races/warforged.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 6,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "warlock",
+      "file": "public/data/glossary/entries/classes/warlock.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 6
+      }
+    },
+    {
+      "id": "warlock_spell_list",
+      "file": "public/data/glossary/entries/classes/warlock_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "warrior_of_mercy_subclass",
+      "file": "public/data/glossary/entries/classes/monk_subclasses/warrior_of_mercy.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "warrior_of_shadow_subclass",
+      "file": "public/data/glossary/entries/classes/monk_subclasses/warrior_of_shadow.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "warrior_of_the_elements_subclass",
+      "file": "public/data/glossary/entries/classes/monk_subclasses/warrior_of_the_elements.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "warrior_of_the_open_hand_subclass",
+      "file": "public/data/glossary/entries/classes/monk_subclasses/warrior_of_the_open_hand.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "water_genasi",
+      "file": "public/data/glossary/entries/races/water_genasi.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "wayfarer_human",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/wayfarer_human.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 13,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "weapon",
+      "file": "public/data/glossary/entries/rules/weapon.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "weapon_attack",
+      "file": "public/data/glossary/entries/rules/weapon_attack.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 3,
+        "footer_see_also": 4
+      }
+    },
+    {
+      "id": "white_dragonborn",
+      "file": "public/data/glossary/entries/races/dragonborn_ancestries/white.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "wild_magic_subclass",
+      "file": "public/data/glossary/entries/classes/sorcerer_subclasses/wild_magic_sorcery.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "wildhunt_shifter",
+      "file": "public/data/glossary/entries/races/shifter_variants/wildhunt.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 12,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "winter_eladrin",
+      "file": "public/data/glossary/entries/races/eladrin_seasons/winter.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 16,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "wisdom",
+      "file": "public/data/glossary/entries/rules/wisdom.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "wizard",
+      "file": "public/data/glossary/entries/classes/wizard.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 7
+      }
+    },
+    {
+      "id": "wizard_spell_list",
+      "file": "public/data/glossary/entries/classes/wizard_spell_list.json",
+      "surfaces": [
+        "footer_see_also"
+      ],
+      "counts": {
+        "footer_see_also": 2
+      }
+    },
+    {
+      "id": "wood_elf",
+      "file": "public/data/glossary/entries/races/elf_lineages/wood_elf.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 5,
+        "footer_see_also": 5
+      }
+    },
+    {
+      "id": "wordweaver_gnome",
+      "file": "public/data/glossary/entries/races/dragonmark_variants/wordweaver_gnome.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 23,
+        "footer_see_also": 3
+      }
+    },
+    {
+      "id": "yuan_ti",
+      "file": "public/data/glossary/entries/races/yuan_ti.json",
+      "surfaces": [
+        "inline_text",
+        "footer_see_also"
+      ],
+      "counts": {
+        "inline_text": 12,
+        "footer_see_also": 4
+      }
+    }
+  ]
+}

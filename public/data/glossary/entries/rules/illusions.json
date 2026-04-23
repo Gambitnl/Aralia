@@ -1,0 +1,16 @@
+{
+  "id": "illusions",
+  "title": "Illusions",
+  "category": "Rules Glossary",
+  "tags": ["magic", "perception", "spellcasting", "deception"],
+  "excerpt": "Illusions are magical or magical-looking effects that alter what creatures perceive, causing false appearances, concealed truths, or deceptive sensory information to resolve as part of the current world state.",
+  "aliases": ["Illusion Effects", "Illusory Effect"],
+  "seeAlso": [
+    "magical_effect",
+    "target",
+    "search_action",
+    "study_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/illusions.json",
+  "markdown": "# Illusions\n\nIllusions are deceptive magical effects that change what creatures perceive or believe they perceive. An illusion can create false images, false sounds, misleading presences, or other deceptive sensory results that influence how creatures interpret the scene around them.\n\n## Rules Use\n\n### Perception And Misreading\nAn illusion does not usually need to change the physical world to matter. It can change targeting decisions, movement choices, attention, threat assessment, or other rule outcomes by causing a creature to resolve the scene using incomplete or false information.\n\n### Magical Deception\nIllusions are a form of [[magical_effect|Magical Effect]]. Their primary function is not direct force but deceptive presentation. An illusory wall, duplicate creature, phantom sound, or false hazard can all alter behavior and decision state even when the underlying world is different from what the target perceives.\n\n### Discovery And Pressure Testing\nIllusions become less effective when a creature gains enough information to identify the deception. Direct inspection, contradictory sensory evidence, or a successful attempt to [[study_action|Study]] or [[search_action|Search]] can reduce uncertainty and expose the effect as false or incomplete.\n\n## Limits\n\n- An illusion is governed by the specific rule that creates it\n- Some illusions affect only sight, while others affect multiple senses\n- Some illusions can occupy attention without physically blocking movement or damage\n- A creature can still react to an illusion as a meaningful threat until the deception is broken or the effect ends\n\n## Common Uses\n\n- Creating false creatures, hazards, or objects\n- Concealing a real creature, object, or pathway\n- Distorting a creature's understanding of distance, safety, or danger\n- Dividing attention so another action or effect resolves under uncertainty\n"
+}

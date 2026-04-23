@@ -1,0 +1,17 @@
+{
+  "id": "study_action",
+  "title": "Study [Action]",
+  "category": "Rules Glossary",
+  "tags": ["combat", "actions", "knowledge", "detection", "analysis"],
+  "excerpt": "The Study action is a deliberate attempt to analyze, identify, or interpret something in the scene. It is used when a creature spends focused effort to understand a creature, effect, object, clue, or other sign that is not resolved by a glance alone.",
+  "aliases": ["Study"],
+  "seeAlso": [
+    "action",
+    "ability_check",
+    "search_action",
+    "conditions",
+    "spell_effects_rules"
+  ],
+  "filePath": "/data/glossary/entries/rules/study_action.json",
+  "markdown": "# Study [Action]\n\nThe Study action represents deliberate analysis. A creature uses it when it needs focused attention to identify a creature, interpret a magical effect, understand a sign, or extract meaning from information that is present but not yet understood.\n\n## Rules\n\n- A creature uses its [[action]] to study something that requires more than a quick look\n- Study is about interpretation and identification rather than broad scene scanning\n- The result usually depends on the kind of thing being examined, such as a creature, a symbol, a magical effect, a clue, or another unusual feature\n- Study often resolves through an ability check when the information is uncertain, hidden behind complexity, or gated by expertise\n- A successful study attempt can reveal properties, dangers, origins, patterns, weaknesses, or other rule-relevant details\n\n## What Study Is For\n\nStudy is the action for understanding what something is, how it works, or what it implies. It fits situations where the important question is not \"where is it?\" but \"what is this?\" or \"what does this mean?\"\n\n## Study Versus Search\n\nStudy and [[search_action|Search]] are related but not identical. Search is about locating something that is concealed, subtle, or easy to miss. Study begins once the subject is already available to inspect and the challenge is to interpret it correctly.\n\n## Common Study Targets\n\n### Creatures\nA creature can study another creature to identify unusual traits, visible conditions, combat patterns, or other meaningful signs.\n\n### Magical Effects\nA creature can study a magical effect, enchantment, illusion, glyph, or magical residue to understand what kind of effect is present or what it is doing.\n\n### Clues And Signs\nTracks, written signs, ritual marks, damage patterns, and other environmental details can all become study targets when the question is about meaning rather than mere presence.\n\n## Resolution In Aralia\n\nAralia should treat Study as a focused information-gathering action. It converts time and attention into rule-relevant understanding, usually by resolving whether the acting creature can correctly analyze the chosen subject.\n"
+}

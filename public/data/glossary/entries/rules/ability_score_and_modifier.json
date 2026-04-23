@@ -1,0 +1,30 @@
+{
+  "id": "ability_score_and_modifier",
+  "title": "Ability Score and Modifier",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "ability scores",
+    "modifier",
+    "attributes",
+    "d20"
+  ],
+  "excerpt": "Ability scores define a creature's baseline aptitudes, while ability modifiers are the smaller derived values that most rolls and rule checks actually use during resolution.",
+  "aliases": [
+    "ability scores and modifiers",
+    "ability score",
+    "ability modifier"
+  ],
+  "seeAlso": [
+    "strength",
+    "dexterity",
+    "constitution",
+    "wisdom",
+    "charisma",
+    "ability_check_modifier",
+    "attack_roll_modifier",
+    "saving_throw_modifier"
+  ],
+  "filePath": "/data/glossary/entries/rules/ability_score_and_modifier.json",
+  "markdown": "# Ability Score and Modifier\r\nAn ability score records one part of a creature's baseline capability, such as physical force, agility, endurance, awareness, reasoning, or force of personality. Most rule resolution does not use the raw score directly. Instead, the score produces an ability modifier, and that modifier is what usually feeds into checks, saves, attacks, and other contested outcomes.\r\n\r\nUse the individual ability entries when the question is about one specific aptitude, and use the modifier subrules when the question is about how that derived number is applied during resolution.\r\n"
+}

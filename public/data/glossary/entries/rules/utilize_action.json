@@ -1,0 +1,17 @@
+{
+  "id": "utilize_action",
+  "title": "Utilize [Action]",
+  "category": "Rules Glossary",
+  "tags": ["combat", "actions", "objects", "interaction", "systems"],
+  "excerpt": "The Utilize action is a deliberate use of an object or interactable feature that requires more commitment than a free interaction. It covers operating, activating, manipulating, or applying something when that use meaningfully occupies the creature's action.",
+  "aliases": ["Utilize", "Use an Object"],
+  "seeAlso": [
+    "action",
+    "magic_action",
+    "attack_action",
+    "interacting_with_objects",
+    "weapons"
+  ],
+  "filePath": "/data/glossary/entries/rules/utilize_action.json",
+  "markdown": "# Utilize [Action]\n\nThe Utilize action covers deliberate use of an object or an interactable system feature when the interaction is substantial enough to consume a creature's action. It applies when the creature is doing more than a quick free interaction and is instead operating, activating, applying, or manipulating something with meaningful intent.\n\n## Rules\n\n- A creature uses its [[action]] to utilize an object or feature that requires focused handling\n- Utilize is for interaction that goes beyond the small free interaction normally folded into movement or another action\n- The action can involve activating an item, applying a substance, operating a mechanism, or using an environmental feature that requires commitment and timing\n- If a rule gives an object, item, or feature its own activation procedure, that specific rule defines what the utilize attempt accomplishes\n- Utilize does not replace other actions with their own clearer rule identity, such as [[attack_action|Attack]] or [[magic_action|Magic Action]]\n\n## What Counts As Utilize\n\nUtilize is the right action when the important event is deliberate use of something external to the acting creature: a device, potion, tool, switch, lever, consumable, stored object, or comparable interactable feature.\n\n## Free Interaction Versus Utilize\n\nNot every object interaction needs this action. Picking up a loose object, opening an ordinary door, or drawing a weapon may be handled by a simpler interaction rule. Utilize begins when the interaction becomes substantial enough that it should compete with attacking, casting, studying, or other action-level choices.\n\n## Common Utilize Targets\n\n### Objects And Gear\nA creature might use Utilize to activate a device, administer an item, pour or apply a substance, or operate equipment that requires more than a momentary touch.\n\n### Scene Features\nLevers, controls, ritual fixtures, locks, mechanisms, panels, and other environmental systems can all be utilize targets when operating them is a meaningful action choice.\n\n### Consumables And Special Items\nSome consumables and special objects produce effects only when a creature spends the action needed to use them properly.\n\n## Resolution In Aralia\n\nAralia should treat Utilize as a deliberate interaction-action. It converts access to an object or feature into an attempted operation, with the final result determined by the specific item, system, or environmental rule being used.\n"
+}

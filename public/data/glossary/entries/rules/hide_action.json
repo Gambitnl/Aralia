@@ -1,0 +1,17 @@
+{
+  "id": "hide_action",
+  "title": "Hide [Action]",
+  "category": "Rules Glossary",
+  "tags": ["combat", "actions", "stealth", "visibility"],
+  "excerpt": "A creature uses the Hide action to become harder to detect. Hiding depends on line of sight, cover, obscuration, noise, and other conditions that affect whether observers can locate the creature reliably.",
+  "aliases": ["Hide"],
+  "seeAlso": [
+    "action",
+    "hiding",
+    "obscured_areas",
+    "invisible_condition",
+    "heavily_obscured"
+  ],
+  "filePath": "/data/glossary/entries/rules/hide_action.json",
+  "markdown": "# Hide [Action]\n\nThe Hide action changes how easily a creature can be detected. A hiding creature is not automatically absent from the scene; instead, its position, outline, or presence becomes uncertain to observers that do not have a clear way to perceive it.\n\n## Rules\n\n- A creature uses its [[action]] to attempt to hide\n- Hiding depends on whether observers have a clear way to see or otherwise perceive the creature\n- Cover, darkness, fog, foliage, and other forms of obscuration can create space for a hiding attempt\n- A creature that is openly visible and clearly exposed usually does not remain hidden for long\n- A creature can remain unseen without being hidden, and a creature can stop being hidden when noise, movement, or exposure gives away its location\n\n## Detection And Position\n\nA hidden creature forces other creatures to rely on incomplete information about where it is. Observers may still know the general area, hear movement, or infer a likely position, but the creature is no longer being tracked with the same certainty as a plainly visible target.\n\n## Bridge To Hiding\n\nAralia keeps a separate [[hiding|Hiding]] glossary term as a bridge for the broader concept. Use this entry when the rule question is specifically about spending an action to become harder to detect.\n\n## Related Visibility States\n\n- [[obscured_areas|Obscured Areas]] limit sight and often create the conditions needed to hide\n- [[heavily_obscured|Heavily Obscured]] spaces make visual tracking unreliable\n- [[invisible_condition|Invisible]] conceals a creature from ordinary sight, but invisibility and hiding are not identical states\n\n## Ending A Hidden State\n\nA hidden state commonly ends when the creature becomes clearly exposed, makes its location obvious, or otherwise gives observers enough information to track it again. Attacking, leaving concealment, or moving through an exposed position often ends the hidden state even if the creature is still in the same encounter.\n"
+}

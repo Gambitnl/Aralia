@@ -1,0 +1,22 @@
+{
+  "id": "save",
+  "title": "Save",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "d20",
+    "saving throw",
+    "save"
+  ],
+  "excerpt": "Save is the shorthand rules-reference term for a saving throw. When an effect calls for a save, resolve it through the full saving throw rules.",
+  "aliases": [],
+  "seeAlso": [
+    "saving_throw",
+    "d20_test",
+    "saving_throw_modifier",
+    "saving_throw_proficiency",
+    "saving_throw_dc"
+  ],
+  "filePath": "/data/glossary/entries/rules/save.json",
+  "markdown": "# Save\r\nA save is shorthand for a <span data-term-id=\"saving_throw\" class=\"glossary-term-link-from-markdown\">Saving Throw</span>. When an effect says a creature makes, succeeds on, or fails a save, resolve that instruction through <span data-term-id=\"saving_throw\" class=\"glossary-term-link-from-markdown\">Saving Throws</span> as a kind of <span data-term-id=\"d20_test\" class=\"glossary-term-link-from-markdown\">d20 Test</span>, using the relevant <span data-term-id=\"saving_throw_modifier\" class=\"glossary-term-link-from-markdown\">modifier</span>, <span data-term-id=\"saving_throw_proficiency\" class=\"glossary-term-link-from-markdown\">proficiency</span>, and <span data-term-id=\"saving_throw_dc\" class=\"glossary-term-link-from-markdown\">DC</span>.\r\n"
+}

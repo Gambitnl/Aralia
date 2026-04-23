@@ -1,0 +1,24 @@
+{
+  "id": "death_saving_throw",
+  "title": "Death Saving Throw",
+  "category": "Rules Glossary",
+  "tags": [
+    "combat",
+    "saving_throw",
+    "death",
+    "hit_points"
+  ],
+  "excerpt": "A death saving throw is a special saving throw resolved for a creature at 0 hit points that is not yet dead or stable. Repeated results determine whether that creature stabilizes or dies.",
+  "aliases": [
+    "Death Save",
+    "Death Saves"
+  ],
+  "seeAlso": [
+    "saving_throw",
+    "hit_points",
+    "unconscious_condition",
+    "dead"
+  ],
+  "filePath": "/data/glossary/entries/rules/death_saving_throw.json",
+  "markdown": "# Death Saving Throw\n\nA death saving throw is a special saving throw used when a creature is at 0 hit points and remains in an unstable, not-yet-dead state. Its purpose is to track whether that creature moves toward stabilization or toward death.\n\n## Rules Use\n\n### Crisis Resolution At 0 Hit Points\n- Death saving throws apply after a creature has entered the unstable state associated with 0 hit points\n- They are not ordinary defenses against an incoming effect; they resolve the creature's continuing survival state after the collapse has already happened\n- A creature that is already stable or already dead is not using death saving throws in the same way\n\n### Repeated Outcome Tracking\n- Each death saving throw contributes to an accumulating success-or-failure track rather than resolving the entire situation at once\n- Enough successful results can stabilize the creature\n- Enough failed results can cause the creature to die\n\n### Special Results Matter\n- A natural 20 can produce an immediate swing toward recovery rather than only counting as a single ordinary success\n- A natural 1 counts as a heavier setback than a normal failed result\n- Damage, healing, stabilization, or other effects can interrupt or replace normal death-save progression depending on the governing rule\n\n## Relationship To Other States\n\n- Death saving throws exist between simple unconscious collapse and completed death\n- Healing can end the crisis by moving the creature back into an active living state\n- Stabilization can halt the crisis without fully restoring ordinary action-state\n- If the failure track completes first, the creature becomes dead\n"
+}

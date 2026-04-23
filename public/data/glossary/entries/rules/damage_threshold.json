@@ -1,0 +1,20 @@
+{
+  "id": "damage_threshold",
+  "title": "Damage Threshold",
+  "category": "Rules Glossary",
+  "tags": [
+    "durability",
+    "objects",
+    "vehicles"
+  ],
+  "excerpt": "A damage threshold is the minimum damage a single hit or effect must deal for the target to take any damage at all.",
+  "aliases": [],
+  "seeAlso": [
+    "breaking_objects",
+    "object",
+    "vehicle_damage_threshold",
+    "vehicles"
+  ],
+  "filePath": "/data/glossary/entries/rules/damage_threshold.json",
+  "markdown": "# Damage Threshold\n\nA damage threshold sets a floor beneath which a hit or damaging effect fails to injure the target. If the damage from one hit or one effect is lower than the threshold, the target takes no damage from that instance.\n\n## Rules Use\n\n### Per Hit Or Effect\nDamage Threshold is checked against each separate instance of damage. Multiple weak hits do not combine to break the threshold unless a rule explicitly says they do.\n\n### Successful Damage\nWhen a hit or effect meets or exceeds the threshold, the target takes damage normally. The threshold determines whether the damage gets through, not how much damage is dealt after it does.\n\n### Durable Targets\nDamage Threshold is typically used for especially sturdy objects, structures, or vehicles that ignore glancing blows and minor impacts.\n\n## Related Rule Surface\n\nVehicle stat blocks can list a specific application of this rule. See [[vehicle_damage_threshold|Vehicle Damage Threshold]].\n"
+}

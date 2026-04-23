@@ -1,0 +1,23 @@
+{
+  "id": "shape_shift",
+  "title": "Shape-Shifting",
+  "category": "Rules Glossary",
+  "tags": [
+    "rules",
+    "transformation",
+    "world-state",
+    "creatures"
+  ],
+  "excerpt": "Shape-shifting is a transformation state in which magic or another effect changes a creature's body while the world continues resolving that creature through the altered form for the effect's duration.",
+  "aliases": [
+    "Shape Shifting",
+    "Shapeshifting"
+  ],
+  "seeAlso": [
+    "concentration",
+    "creature_type",
+    "size"
+  ],
+  "filePath": "/data/glossary/entries/rules/shape_shift.json",
+  "markdown": "# Shape-Shifting\n\nShape-shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure. While the effect persists, the world resolves the creature through the altered form rather than through the prior one wherever the governing effect says that change matters.\n\n## Rules Use\n\n### Altered Form, Ongoing Identity\n- Shape-shifting changes how a creature currently resolves in the world-state\n- The creature remains the subject of the effect even when its body, profile, or movement expression changes\n- The effect defines which parts of the creature carry over and which parts are replaced by the new form\n\n### Statistics Can Change With The Form\n- A shape-shifting effect can change a creature's [[size]], movement profile, natural attacks, senses, or other embodied capabilities\n- Some effects also change or constrain [[creature_type|Creature Type]], while others leave that classification intact\n- The specific effect determines whether equipment merges, drops, resizes, or remains usable\n\n### Duration And Break Points Matter\n- Many shape-shifting effects persist only while their stated duration continues\n- If the effect requires [[concentration]], the altered form ends when that concentration breaks\n- When the effect ends, the creature returns to whatever state the ending rule specifies instead of remaining indefinitely in the temporary form\n\n## Resolution Meaning\n\nShape-shifting is not only cosmetic. It can reframe targeting, movement, survivability, environmental access, and what body the world currently treats as present. Any question about the transformed creature should be answered from the active effect's text first.\n"
+}
