@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:31:03
- * Dependents: character/index.ts, combatUtils.ts
+ * Last Sync: 23/04/2026, 20:00:21
+ * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -54,12 +54,8 @@ const inferTargeting = (spell: Spell): TargetingType => {
     const desc = (spell.description ?? '').toString().toLowerCase();
     let range = '';
 
-    const spellRange = spell.range as any;
-    if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) { 
-        range = String(spellRange.type).toLowerCase();
-    } else if (typeof spellRange === 'string') {
-        range = spellRange.toLowerCase();
-    }
+    // spell.range is always a Range object (typed), so .type is always available directly
+    range = spell.range.type.toLowerCase();
 
     if (range === 'self') {
         if (spell.areaOfEffect || desc.includes('cone') || desc.includes('sphere') || desc.includes('cube') || desc.includes('line') || desc.includes('radius')) {
@@ -69,7 +65,7 @@ const inferTargeting = (spell: Spell): TargetingType => {
     }
 
     // Heals usually target allies
-    if ((spell as any).tags && Array.isArray((spell as any).tags) && ((spell as any).tags.includes('HEALING') || (spell as any).tags.includes('BUFF'))) {
+    if (spell.tags && Array.isArray(spell.tags) && (spell.tags.includes('HEALING') || spell.tags.includes('BUFF'))) {
         return 'single_ally';
     }
 
@@ -91,8 +87,8 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
     // Check JSON effects first if they exist
     if (Array.isArray(spell.effects)) {
         // Safe find with null check
-    const aoeEffect = spell.effects.find(e => e && typeof e === 'object' && (e as any).areaOfEffect);
-    if (aoeEffect && (aoeEffect as any).areaOfEffect) {
+    const aoeEffect = spell.effects.find(e => e && typeof e === 'object' && e.areaOfEffect);
+    if (aoeEffect && aoeEffect.areaOfEffect) {
             // Map JSON AoE shape to Combat AoE shape
             const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
                 'Sphere': 'circle',
@@ -101,10 +97,10 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
                 'Cube': 'square',
                 'Cylinder': 'circle' // Best approximation for 2D grid
             };
-            const shapeKey = (aoeEffect as any).areaOfEffect.shape;
+            const shapeKey = aoeEffect.areaOfEffect.shape;
             return {
                 shape: shapeMap[shapeKey] || 'circle',
-                size: ((aoeEffect as any).areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
+                size: (aoeEffect.areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
             };
         }
     }
@@ -135,8 +131,8 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
         };
 
         // Pass through extended semantics for downstream handlers
-        if ((spell.areaOfEffect as unknown as { followsCaster?: boolean }).followsCaster) {
-            (result as unknown as { followsCaster: boolean }).followsCaster = true;
+        if (spell.areaOfEffect.followsCaster) {
+            result.followsCaster = true;
         }
 
         return result;
@@ -283,27 +279,17 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
 
         // 2. Determine Range
         let rangeTiles = 1;
-        const spellRange = spell.range;
-        if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
-            const rangeType = String((spellRange as { type?: string }).type ?? '').toLowerCase();
-            const distance = (spellRange as { distance?: number }).distance ?? 0;
-            if (rangeType === 'feet' && distance) {
-                rangeTiles = Math.floor(distance / 5);
-            } else if (rangeType === 'touch') {
-                rangeTiles = 1;
-            } else if (rangeType === 'self') {
-                rangeTiles = 0;
-            }
-        } else if (typeof spellRange === 'string') {
-            const r = String(spellRange).toLowerCase();
-            if (r.includes('touch')) {
-                rangeTiles = 1;
-            } else if (r.includes('self')) {
-                rangeTiles = 0;
-            } else {
-                const match = r.match(/(\d+)/);
-                if (match) rangeTiles = Math.floor(parseInt(match[1]) / 5);
-            }
+        // spell.range is always a fully-typed Range object.
+        // The Range interface uses 'ranged' for measured distances, 'touch', 'self', etc.
+        const spellRangeType = spell.range.type.toLowerCase();
+        const spellRangeDist = spell.range.distance ?? 0;
+        if (spellRangeType === 'self') {
+            rangeTiles = 0;
+        } else if (spellRangeType === 'touch') {
+            rangeTiles = 1;
+        } else if (spellRangeDist > 0) {
+            // 'ranged', 'feet', or any explicit-distance type — convert directly
+            rangeTiles = Math.floor(spellRangeDist / 5);
         }
 
         // 3. Determine Effects
