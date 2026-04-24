@@ -17,16 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
-import { checkTestPresence } from './roadmap/node-test-presence/test-presence-checker.js';
 import { buildMediaSet, hasMediaFile } from './roadmap/node-media-presence/media-scanner';
-import {
-  buildRoadmapHistoryTraceabilityPayload,
-  normalizeRoadmapHistoryLimit,
-  parseRoadmapHistoryGitOutput,
-  resolveRoadmapHistoryPaths,
-  type RoadmapHistoryTraceabilityPayload,
-  type RoadmapHistoryTraceabilityRequest
-} from '../src/components/debug/roadmap/modules/roadmap-history-traceability.ts';
 
 // ============================================================================
 // Shared Types (Minimal Contract)
@@ -91,7 +82,57 @@ export type OpportunityScanPayload = {
   nodes: Array<Record<string, unknown>>;
 };
 
+export type RoadmapHistoryTraceabilityRequest = {
+  repoRoot: string;
+  selectedNodeId?: string | null;
+  selectedNodeLabel?: string | null;
+  selectedPaths?: string[];
+  componentFiles?: string[];
+  docPaths?: string[];
+  limit?: number;
+};
+
+export type RoadmapHistoryTraceabilityCommit = {
+  hash: string;
+  shortHash: string;
+  authorName: string;
+  authoredAt: string;
+  subject: string;
+  body: string;
+  affectedPaths: string[];
+};
+
+export type RoadmapHistoryTraceabilityPathSummary = {
+  path: string;
+  commitCount: number;
+  lastTouchedAt: string | null;
+};
+
+export type RoadmapHistoryTraceabilityPayload = {
+  status: 'ok' | 'empty' | 'unavailable';
+  generatedAt: string;
+  request: {
+    selectedNodeId: string | null;
+    selectedNodeLabel: string | null;
+    limit: number;
+  };
+  resolvedPaths: string[];
+  commits: RoadmapHistoryTraceabilityCommit[];
+  pathSummaries: RoadmapHistoryTraceabilityPathSummary[];
+  summary: {
+    commitCount: number;
+    uniquePathCount: number;
+  };
+  note?: string;
+};
+
 export type LoadRoadmapHistoryTraceabilityInput = Omit<RoadmapHistoryTraceabilityRequest, 'repoRoot'>;
+
+export type TestPresenceResult = {
+  testFileDeclared: boolean;
+  testFileExists: boolean;
+  resolvedPath?: string;
+};
 
 // ============================================================================
 // Fallback State
@@ -109,6 +150,166 @@ const DEFAULT_SETTINGS: OpportunitySettings = {
 
 let fallbackSettings: OpportunitySettings = { ...DEFAULT_SETTINGS };
 let fallbackLatestScan: OpportunityScanPayload | null = null;
+
+// ============================================================================
+// CI-Safe Roadmap Helper Fallbacks
+// ============================================================================
+// Technical: keep the server logic buildable when ignored roadmap helper files
+// are not present in GitHub Actions. These helpers intentionally duplicate the
+// small local-only modules instead of importing them statically.
+//
+// Layman: GitHub gets the simple built-in version it needs to build, while local
+// roadmap tooling can keep its richer ignored files without blocking CI.
+// ============================================================================
+const DEFAULT_HISTORY_LIMIT = 12;
+const MAX_HISTORY_LIMIT = 50;
+const MAX_SELECTED_PATHS = 24;
+
+function checkTestPresence(node: RoadmapNode, repoRoot: string): TestPresenceResult {
+  // Nodes with no declared test file are immediately marked as undeclared/missing.
+  if (!node.testFile) {
+    return { testFileDeclared: false, testFileExists: false };
+  }
+
+  // Resolve the declared path from the repository root and probe the filesystem.
+  const resolvedPath = path.resolve(repoRoot, node.testFile);
+  return {
+    testFileDeclared: true,
+    testFileExists: fs.existsSync(resolvedPath),
+    resolvedPath
+  };
+}
+
+function normalizeRoadmapHistoryPath(rawPath: string, repoRoot: string): string | null {
+  // Ignore blank values so callers can pass partial node metadata safely.
+  if (!rawPath.trim()) return null;
+
+  const normalizedRepoRoot = repoRoot.replace(/\\/g, '/').replace(/\/+$/, '');
+  const normalizedInput = rawPath.replace(/\\/g, '/').trim();
+
+  // Convert absolute in-repo paths back to repo-relative git pathspecs.
+  if (normalizedInput.startsWith(normalizedRepoRoot + '/')) {
+    return normalizedInput.slice(normalizedRepoRoot.length + 1);
+  }
+
+  // Reject absolute paths outside the repo; the server should only ask git about
+  // files that belong to this checkout.
+  if (/^[A-Za-z]:\//.test(normalizedInput) || normalizedInput.startsWith('//')) {
+    return null;
+  }
+
+  // Drop leading "./" noise so payloads remain stable for UI consumers.
+  return normalizedInput.replace(/^\.\/+/, '');
+}
+
+function resolveRoadmapHistoryPaths(request: RoadmapHistoryTraceabilityRequest): string[] {
+  const candidates = [
+    ...(request.selectedPaths ?? []),
+    ...(request.componentFiles ?? []),
+    ...(request.docPaths ?? [])
+  ];
+
+  const deduped = new Set<string>();
+
+  // Fold every incoming path into one small git-friendly set.
+  for (const candidate of candidates) {
+    const normalized = normalizeRoadmapHistoryPath(candidate, request.repoRoot);
+    if (!normalized) continue;
+    deduped.add(normalized);
+    if (deduped.size >= MAX_SELECTED_PATHS) break;
+  }
+
+  return Array.from(deduped);
+}
+
+function normalizeRoadmapHistoryLimit(limit?: number): number {
+  if (!Number.isFinite(limit)) return DEFAULT_HISTORY_LIMIT;
+  return Math.max(1, Math.min(MAX_HISTORY_LIMIT, Math.floor(limit as number)));
+}
+
+function parseRoadmapHistoryGitOutput(rawOutput: string): RoadmapHistoryTraceabilityCommit[] {
+  if (!rawOutput.trim()) return [];
+
+  return rawOutput
+    .split('\u001e')
+    .map((record) => record.trim())
+    .filter(Boolean)
+    .map((record) => {
+      const [headerLine = '', ...pathLines] = record.split(/\r?\n/);
+      const [hash = '', shortHash = '', authorName = '', authoredAt = '', subject = '', body = ''] =
+        headerLine.split('\u001f');
+
+      return {
+        hash,
+        shortHash,
+        authorName,
+        authoredAt,
+        subject,
+        body: body.trim(),
+        affectedPaths: pathLines.map((line) => line.trim()).filter(Boolean)
+      };
+    })
+    .filter((commit) => Boolean(commit.hash) && Boolean(commit.authoredAt));
+}
+
+function buildRoadmapHistoryTraceabilityPayload(input: {
+  request: RoadmapHistoryTraceabilityRequest;
+  generatedAt?: string;
+  commits: RoadmapHistoryTraceabilityCommit[];
+  resolvedPaths?: string[];
+  status?: RoadmapHistoryTraceabilityPayload['status'];
+  note?: string;
+}): RoadmapHistoryTraceabilityPayload {
+  const resolvedPaths = input.resolvedPaths ?? resolveRoadmapHistoryPaths(input.request);
+  const resolvedPathSet = new Set(resolvedPaths);
+  const pathSummaryMap = new Map<string, RoadmapHistoryTraceabilityPathSummary>();
+
+  // Count recent touches only for the selected roadmap files.
+  for (const commit of input.commits) {
+    for (const affectedPath of commit.affectedPaths) {
+      if (!resolvedPathSet.has(affectedPath)) continue;
+      const current = pathSummaryMap.get(affectedPath);
+      if (current) {
+        current.commitCount += 1;
+        if (!current.lastTouchedAt || commit.authoredAt > current.lastTouchedAt) {
+          current.lastTouchedAt = commit.authoredAt;
+        }
+        continue;
+      }
+
+      pathSummaryMap.set(affectedPath, {
+        path: affectedPath,
+        commitCount: 1,
+        lastTouchedAt: commit.authoredAt || null
+      });
+    }
+  }
+
+  const status =
+    input.status ??
+    (resolvedPaths.length === 0 ? 'empty' : input.commits.length === 0 ? 'empty' : 'ok');
+
+  return {
+    status,
+    generatedAt: input.generatedAt ?? new Date().toISOString(),
+    request: {
+      selectedNodeId: input.request.selectedNodeId ?? null,
+      selectedNodeLabel: input.request.selectedNodeLabel ?? null,
+      limit: normalizeRoadmapHistoryLimit(input.request.limit)
+    },
+    resolvedPaths,
+    commits: input.commits,
+    pathSummaries: Array.from(pathSummaryMap.values()).sort((left, right) => {
+      if (left.commitCount !== right.commitCount) return right.commitCount - left.commitCount;
+      return left.path.localeCompare(right.path);
+    }),
+    summary: {
+      commitCount: input.commits.length,
+      uniquePathCount: pathSummaryMap.size
+    },
+    note: input.note
+  };
+}
 
 // ============================================================================
 // Local Engine Bridge
