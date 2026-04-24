@@ -37,6 +37,27 @@ import type {
 } from "./spellGateDataTypes";
 
 // ============================================================================
+// Optional local report paths
+// ============================================================================
+// These structured comparison reports are generated into .agent/roadmap-local.
+// That folder is intentionally ignored by Git, so GitHub Pages builds will not
+// have these files even though a local reviewer may have them on disk.
+// ============================================================================
+
+const STRUCTURED_CANONICAL_REPORT_PATH =
+  "../../../../.agent/roadmap-local/spell-validation/spell-structured-vs-canonical-report.json";
+const STRUCTURED_JSON_REPORT_PATH =
+  "../../../../.agent/roadmap-local/spell-validation/spell-structured-vs-json-report.json";
+
+const EMPTY_STRUCTURED_CANONICAL_REPORT: StructuredCanonicalReportFile = {
+  mismatches: [],
+};
+
+const EMPTY_STRUCTURED_JSON_REPORT: StructuredJsonReportFile = {
+  mismatches: [],
+};
+
+// ============================================================================
 // Known-gap extraction helpers
 // ============================================================================
 // Older gap tracking still lives in markdown documents. The gate checker keeps
@@ -71,6 +92,29 @@ function extractIdsFromMarkdown(md: string): Set<string> {
 }
 
 // ============================================================================
+// Optional local artifact loading
+// ============================================================================
+// Vite resolves literal dynamic imports during production builds. The local
+// .agent reports are ignored files, so we hide these two imports from bundling
+// and fall back to empty reports when the files are unavailable.
+// ============================================================================
+
+async function loadOptionalJsonModule<T>(modulePath: string, fallback: T): Promise<T> {
+  try {
+    // The vite-ignore marker is intentional: these files are local review output,
+    // not production assets. CI should build without them, while local reviewers
+    // can still load them when they exist next to the repo.
+    const module = await import(/* @vite-ignore */ modulePath);
+    return module.default as T;
+  } catch {
+    // Missing local reports should only remove bucket-specific review detail.
+    // The glossary gate checker still has manifest, fidelity, schema, and public
+    // gate-report data, so failing open preserves the usable review surface.
+    return fallback;
+  }
+}
+
+// ============================================================================
 // Dynamic artifact loading
 // ============================================================================
 // These dynamic imports are cached at the module level so turning the spell gate
@@ -87,19 +131,25 @@ let spellGateArtifactsPromise: Promise<{
 async function loadSpellGateArtifacts() {
   if (!spellGateArtifactsPromise) {
     spellGateArtifactsPromise = Promise.all([
-      import("../../../../.agent/roadmap-local/spell-validation/spell-structured-vs-canonical-report.json"),
-      import("../../../../.agent/roadmap-local/spell-validation/spell-structured-vs-json-report.json"),
+      loadOptionalJsonModule<StructuredCanonicalReportFile>(
+        STRUCTURED_CANONICAL_REPORT_PATH,
+        EMPTY_STRUCTURED_CANONICAL_REPORT,
+      ),
+      loadOptionalJsonModule<StructuredJsonReportFile>(
+        STRUCTURED_JSON_REPORT_PATH,
+        EMPTY_STRUCTURED_JSON_REPORT,
+      ),
       import("../../../../docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md?raw"),
       import("../../../../docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md?raw"),
-    ]).then(([canonicalModule, jsonModule, level1Module, cantripModule]) => {
+    ]).then(([structuredCanonicalReport, structuredJsonReport, level1Module, cantripModule]) => {
       const knownGaps = new Set<string>();
       extractIdsFromMarkdown(level1Module.default).forEach((id) => knownGaps.add(id));
       extractIdsFromMarkdown(cantripModule.default).forEach((id) => knownGaps.add(id));
 
       return {
         knownGaps,
-        structuredCanonicalReport: canonicalModule.default as StructuredCanonicalReportFile,
-        structuredJsonReport: jsonModule.default as StructuredJsonReportFile,
+        structuredCanonicalReport,
+        structuredJsonReport,
       };
     });
   }
