@@ -9,8 +9,14 @@
 - **Combat Cost**: action
 
 - **Range Type**: ranged
-- **Range Distance**: 60 ft. (30 ft. *)
+- **Range Distance**: 60
 - **Targeting Type**: area
+- **Area Shape**: Cylinder
+- **Area Size**: 30
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
+- **Area Height**: 40
+- **Area Height Unit**: feet
 - **Valid Targets**: creatures
 - **Line of Sight**: true
 

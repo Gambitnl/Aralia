@@ -11,7 +11,12 @@
 - **Range Type**: ranged
 - **Range Distance**: 100
 - **Targeting Type**: area
+- **Area Shape**: Cylinder
 - **Area Size**: 50
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
+- **Area Height**: 100
+- **Area Height Unit**: feet
 - **Valid Targets**: creatures, objects
 - **Line of Sight**: true
 

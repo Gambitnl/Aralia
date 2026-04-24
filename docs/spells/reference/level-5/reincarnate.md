@@ -11,8 +11,8 @@
 - **Range Type**: touch
 - **Range Distance**: 0
 - **Targeting Type**: creature
-- **Area Shape**:
-- **Area Size**: 0
+- **Area Shape**: N/A
+- **Area Size**: N/A
 - **Valid Targets**: dead_creature
 - **Line of Sight**: false
 

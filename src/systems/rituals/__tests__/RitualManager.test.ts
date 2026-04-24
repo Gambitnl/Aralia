@@ -57,7 +57,8 @@ const mockSpell: Spell = {
   description: 'You choose an object...',
   ritual: true,
   castingTime: { value: 1, unit: 'minute' },
-  range: { type: 'touch' },
+  // Touch spells use 0 because the spell has no numeric cast distance.
+  range: { type: 'touch', distance: 0 },
   components: { verbal: true, somatic: true, material: true },
   duration: { type: 'instantaneous', concentration: false },
   targeting: { type: 'single', range: 5, validTargets: ['objects'] },

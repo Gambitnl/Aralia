@@ -28,8 +28,8 @@
     }
   },
   "range": {
-    "type": "ranged",
-    "distance": 30,
+    "type": "self",
+    "distance": 0,
     "distanceUnit": "feet"
   },
   "components": {
@@ -48,19 +48,21 @@
   },
   "targeting": {
     "type": "point",
-    "range": 30,
+    "range": 10,
     "rangeUnit": "feet",
     "validTargets": [
-      "creatures",
-      "objects",
-      "point"
+      "point",
+      "ground"
     ],
     "lineOfSight": true,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Cube",
+      "size": 10,
+      "sizeType": "edge",
+      "sizeUnit": "feet",
+      "height": 0,
+      "heightUnit": "feet"
     },
     "filter": {
       "creatureTypes": [],

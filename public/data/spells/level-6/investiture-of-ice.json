@@ -55,9 +55,24 @@
     "range": 0,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Cone",
+      "size": 15,
+      "sizeType": "length",
+      "sizeUnit": "feet",
+      "height": 0,
+      "heightUnit": "feet"
+    },
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Icy Ground",
+          "shape": "Emanation",
+          "size": 10,
+          "sizeType": "radius",
+          "sizeUnit": "feet",
+          "notes": "Difficult terrain for creatures other than you; the radius moves with you."
+        }
+      ]
     },
     "filter": {
       "creatureTypes": [],

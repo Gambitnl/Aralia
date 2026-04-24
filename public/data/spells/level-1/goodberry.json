@@ -30,7 +30,7 @@
     }
   },
   "range": {
-    "type": "touch",
+    "type": "self",
     "distance": 0
   },
   "components": {

@@ -54,6 +54,7 @@
     "areaOfEffect": {
       "shape": "Cone",
       "size": 60,
+      "sizeType": "length",
       "sizeUnit": "feet",
       "height": 0
     },

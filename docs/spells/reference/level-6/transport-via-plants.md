@@ -11,8 +11,8 @@
 - **Range Type**: ranged
 - **Range Distance**: 10
 - **Targeting Type**: point
-- **Area Shape**: none
-- **Area Size**: 0
+- **Area Shape**: N/A
+- **Area Size**: N/A
 - **Valid Targets**: none
 - **Line of Sight**: true
 

@@ -56,6 +56,7 @@
     "areaOfEffect": {
       "shape": "Cylinder",
       "size": 30,
+      "sizeType": "radius",
       "sizeUnit": "feet",
       "height": 40,
       "heightUnit": "feet"

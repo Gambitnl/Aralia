@@ -45,7 +45,7 @@
     "concentration": true
   },
   "targeting": {
-    "type": "multi",
+    "type": "area",
     "range": 90,
     "rangeUnit": "feet",
     "validTargets": [
@@ -54,9 +54,12 @@
     "lineOfSight": true,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Cylinder",
+      "size": 10,
+      "sizeType": "radius",
+      "sizeUnit": "feet",
+      "height": 40,
+      "heightUnit": "feet"
     },
     "filter": {
       "creatureTypes": [],

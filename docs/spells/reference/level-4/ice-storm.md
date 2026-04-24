@@ -11,8 +11,12 @@
 - **Range Type**: ranged
 - **Range Distance**: 300
 - **Targeting Type**: area
-- **Area Shape**: cylinder
-- **Area Size**: 20:40
+- **Area Shape**: Cylinder
+- **Area Size**: 20
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
+- **Area Height**: 40
+- **Area Height Unit**: feet
 - **Valid Targets**: point
 - **Line of Sight**: true
 

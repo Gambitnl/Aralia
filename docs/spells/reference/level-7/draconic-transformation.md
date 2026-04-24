@@ -9,8 +9,12 @@
 - **Combat Cost**: bonus action
 
 - **Range Type**: self
-- **Range Distance**: 60
+- **Range Distance**: 0
 - **Targeting Type**: self
+- **Area Shape**: Cone
+- **Area Size**: 60
+- **Area Size Type**: length
+- **Area Size Unit**: feet
 - **Valid Targets**: self
 - **Line of Sight**: false
 

@@ -9,9 +9,10 @@
 - **Combat Cost**: action
 
 - **Range Type**: ranged
-- **Range Distance**: 500 miles
-- **Targeting Type**: self
-- **Valid Targets**: self
+- **Range Distance**: 500
+- **Range Distance Unit**: miles
+- **Targeting Type**: point
+- **Valid Targets**: point
 - **Line of Sight**: false
 
 - **Verbal**: true

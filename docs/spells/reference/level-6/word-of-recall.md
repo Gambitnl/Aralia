@@ -9,9 +9,15 @@
 - **Combat Cost**: action
 
 - **Range Type**: self
-- **Range Distance**: 5
-- **Targeting Type**: self
-- **Valid Targets**: self
+- **Range Distance**: 0
+- **Targeting Type**: multi
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Area Shape**: Sphere
+- **Area Size**: 5
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
+- **Valid Targets**: self, allies
 - **Line of Sight**: false
 
 - **Verbal**: true

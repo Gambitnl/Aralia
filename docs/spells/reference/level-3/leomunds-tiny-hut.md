@@ -11,8 +11,10 @@
 
 - **Range Type**: self
 - **Targeting Type**: area
-- **Area Shape**: hemisphere
+- **Area Shape**: Sphere
 - **Area Size**: 10
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
 - **Valid Targets**: point
 - **Line of Sight**: false
 

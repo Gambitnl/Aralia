@@ -10,8 +10,14 @@
 - **Combat Cost**: action
 
 - **Range Type**: self
+- **Range Distance**: 0
 - **Targeting Type**: self
-- **Valid Targets**: self
+- **Area Shape**: Sphere
+- **Area Size**: 30
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
+- **Area Follows Caster**: true
+- **Valid Targets**: self, allies
 - **Line of Sight**: false
 
 - **Verbal**: true

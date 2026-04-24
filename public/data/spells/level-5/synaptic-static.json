@@ -58,6 +58,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 20,
+      "sizeType": "radius",
       "sizeUnit": "feet",
       "height": 0
     },

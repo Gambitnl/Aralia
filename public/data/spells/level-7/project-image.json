@@ -28,7 +28,8 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 0
+    "distance": 500,
+    "distanceUnit": "miles"
   },
   "components": {
     "verbal": true,
@@ -45,12 +46,13 @@
     "concentration": true
   },
   "targeting": {
-    "type": "self",
+    "type": "point",
     "validTargets": [
-      "self"
+      "point"
     ],
     "lineOfSight": false,
-    "range": 0,
+    "range": 500,
+    "rangeUnit": "miles",
     "maxTargets": 1,
     "areaOfEffect": {
       "shape": "Sphere",

@@ -9,7 +9,8 @@
 - **Casting Time Unit**: action
 - **Combat Cost**: action
 
-- **Range Type**: touch
+- **Range Type**: self
+- **Range Distance**: 0
 - **Targeting Type**: self
 - **Valid Targets**: self
 - **Line of Sight**: false

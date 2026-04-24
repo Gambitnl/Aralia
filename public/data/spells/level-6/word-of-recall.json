@@ -44,17 +44,22 @@
     "unit": "round"
   },
   "targeting": {
-    "type": "self",
+    "type": "multi",
     "validTargets": [
-      "self"
+      "self",
+      "allies"
     ],
     "lineOfSight": false,
-    "range": 0,
-    "maxTargets": 1,
+    "range": 5,
+    "rangeUnit": "feet",
+    "maxTargets": 6,
     "areaOfEffect": {
       "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "size": 5,
+      "sizeType": "radius",
+      "sizeUnit": "feet",
+      "height": 0,
+      "heightUnit": "feet"
     },
     "filter": {
       "creatureTypes": [],

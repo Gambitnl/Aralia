@@ -57,6 +57,7 @@
     "areaOfEffect": {
       "shape": "Cube",
       "size": 10,
+      "sizeType": "edge",
       "sizeUnit": "feet",
       "height": 0
     },

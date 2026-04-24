@@ -50,15 +50,20 @@
     "targeting":  {
                       "type":  "self",
                       "validTargets":  [
-                                           "self"
+                                           "self",
+                                           "allies"
                                        ],
                       "lineOfSight":  false,
                       "range":  0,
                       "maxTargets":  1,
                       "areaOfEffect":  {
-                                           "shape":  "Sphere",
-                                           "size":  0,
-                                           "height":  0
+                                           "shape":  "Emanation",
+                                           "size":  30,
+                                           "sizeType":  "radius",
+                                           "sizeUnit":  "feet",
+                                           "height":  0,
+                                           "heightUnit":  "feet",
+                                           "followsCaster":  true
                                        },
                       "filter":  {
                                      "creatureTypes":  [

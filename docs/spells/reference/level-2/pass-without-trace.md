@@ -11,6 +11,8 @@
 - **Targeting Type**: area
 - **Area Shape**: emanation
 - **Area Size**: 30
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
 - **Valid Targets**: creatures
 - **Line of Sight**: false
 - **Verbal**: true

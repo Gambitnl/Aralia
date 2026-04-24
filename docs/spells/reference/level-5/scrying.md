@@ -10,8 +10,8 @@
 - **Range Type**: self
 - **Range Distance**: 0
 - **Targeting Type**: creature
-- **Area Shape**:
-- **Area Size**: 0
+- **Area Shape**: N/A
+- **Area Size**: N/A
 - **Valid Targets**: creatures
 - **Line of Sight**: false
 - **Verbal**: true

@@ -9,8 +9,12 @@
 - **Combat Cost**: action
 
 - **Range Type**: self
+- **Range Distance**: 0
 - **Targeting Type**: area
+- **Area Shape**: Cone
 - **Area Size**: 60
+- **Area Size Type**: length
+- **Area Size Unit**: feet
 - **Valid Targets**: creatures
 - **Line of Sight**: true
 

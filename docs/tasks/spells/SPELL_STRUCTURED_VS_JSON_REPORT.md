@@ -2,28 +2,15 @@
 
 This report compares the validator-facing structured spell markdown block to the live runtime spell JSON that the glossary renders.
 
-Generated: 2026-04-23T22:11:09.187Z
+Generated: 2026-04-23T22:34:22.423Z
 Markdown files scanned: 459
 Spell files compared: 412
-Total mismatches: 179
+Total mismatches: 125
 Grouped mismatch buckets: 7
 
 This is the second parity phase in the spell-truth workflow. It shows where runtime JSON still lags behind the structured markdown after canonical review work has already happened.
 
 ## Grouped Mismatches
-
-### structured-vs-json / Range/Area
-
-- Kind: `value-mismatch`
-- Occurrences: 61
-- Distinct spells: 61
-- Sample spells: aura-of-vitality, clairvoyance, conjure-animals, conjure-minor-elementals, conjure-woodland-beings, crusaders-mantle, leomunds-tiny-hut, pass-without-trace, sending, skywrite
-- Sample findings:
-  - Pass without Trace records Range/Area differently in the structured markdown block and the runtime spell JSON.
-  - Skywrite is missing structured Range/Area data that still exists in the runtime spell JSON.
-  - Aura of Vitality records Range/Area differently in the structured markdown block and the runtime spell JSON.
-  - Clairvoyance records Range/Area differently in the structured markdown block and the runtime spell JSON.
-  - Conjure Animals records Range/Area differently in the structured markdown block and the runtime spell JSON.
 
 ### structured-vs-json / Sub-Classes
 
@@ -102,4 +89,17 @@ This is the second parity phase in the spell-truth workflow. It shows where runt
   - Swift Quiver still has structured Material Component data, but the runtime spell JSON does not currently store a comparable Material Component value.
   - True Seeing records Material Component differently in the structured markdown block and the runtime spell JSON.
   - Wall of Ice records Material Component differently in the structured markdown block and the runtime spell JSON.
+
+### structured-vs-json / Range/Area
+
+- Kind: `missing-structured-field`
+- Occurrences: 7
+- Distinct spells: 7
+- Sample spells: commune-with-nature, control-weather, earthquake, mirage-arcane, sending, skywrite, telepathy
+- Sample findings:
+  - Skywrite is missing structured Range/Area data that still exists in the runtime spell JSON.
+  - Sending records Range/Area differently in the structured markdown block and the runtime spell JSON.
+  - Commune with Nature records Range/Area differently in the structured markdown block and the runtime spell JSON.
+  - Mirage Arcane records Range/Area differently in the structured markdown block and the runtime spell JSON.
+  - Control Weather records Range/Area differently in the structured markdown block and the runtime spell JSON.
 

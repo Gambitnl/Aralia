@@ -12,8 +12,8 @@
 - **Range Type**: ranged
 - **Range Distance**: 30
 - **Targeting Type**: creature
-- **Area Shape**:
-- **Area Size**: 0
+- **Area Shape**: N/A
+- **Area Size**: N/A
 - **Valid Targets**: creatures
 - **Line of Sight**: true
 

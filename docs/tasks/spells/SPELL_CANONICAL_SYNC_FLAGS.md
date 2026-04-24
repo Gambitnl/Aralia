@@ -939,6 +939,26 @@ Current model-gap / follow-up rule:
 
 ## Bucket-Level Range/Area Model Note
 
+- `2026-04-24` update:
+  - structured -> JSON `Range/Area` residue is now down to `7` spells
+  - the remaining set should not be treated as a bulk data-entry queue
+  - true leftovers needing separate treatment:
+    - `skywrite`: the structured markdown has no usable `Range/Area` header while
+      runtime JSON still stores `0 ft.`
+    - `sending` and `telepathy`: structured uses `Unlimited`, runtime JSON uses
+      `Special`; this needs one project-wide policy answer
+    - `commune-with-nature`: runtime JSON appears to carry a fake `3-ft. Sphere`
+      around a self spell
+    - `mirage-arcane`: `Sight (1 mile Square)` does not fit cleanly into the
+      current runtime special-range model
+    - `control-weather`: `Self (5 miles)` is a no-shape radius around the caster,
+      which the current runtime area model can only approximate by inventing a
+      shape
+    - `earthquake`: the structured layer preserves a ground `Circle`, while
+      runtime JSON currently approximates it as a `Sphere`
+  - the pass intentionally did not edit the glossary spell gate checker because
+    that code is undergoing modularization
+
 - The runtime spell schema no longer treats range and area units as purely
   implicit comments:
   - `distanceUnit`

@@ -10,11 +10,17 @@
 
 - **Range Type**: ranged
 - **Range Distance**: 1
-- **Range Unit**: mile
+- **Range Distance Unit**: miles
 - **Targeting Type**: area
-- **Area Shape**: wall
+- **Area Shape**: Wall
 - **Area Size**: 300
-- **Valid Targets**:
+- **Area Size Type**: length
+- **Area Size Unit**: feet
+- **Area Height**: 300
+- **Area Height Unit**: feet
+- **Area Thickness**: 50
+- **Area Thickness Unit**: feet
+- **Valid Targets**: creatures, objects, point, ground
 - **Line of Sight**: true
 
 - **Verbal**: true

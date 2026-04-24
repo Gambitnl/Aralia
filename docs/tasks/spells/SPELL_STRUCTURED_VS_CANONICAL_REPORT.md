@@ -2,10 +2,10 @@
 
 This report compares the validator-facing structured spell markdown block to the raw canonical snapshot stored lower in the same file.
 
-Generated: 2026-04-23T22:11:08.213Z
+Generated: 2026-04-23T22:34:21.977Z
 Markdown files scanned: 459
 Spell files compared: 409
-Total mismatches: 408
+Total mismatches: 380
 Grouped mismatch buckets: 9
 
 This report does not arbitrate which side is correct. It only surfaces where the structured Aralia spell data and the copied canonical snapshot are not currently identical.
@@ -15,8 +15,8 @@ This report does not arbitrate which side is correct. It only surfaces where the
 ### structured-vs-canonical / Range/Area
 
 - Kind: `value-mismatch`
-- Occurrences: 172
-- Distinct spells: 172
+- Occurrences: 144
+- Distinct spells: 144
 - Sample spells: alarm, arms-of-hadar, burning-hands, color-spray, create-or-destroy-water, detect-evil-and-good, detect-magic, detect-poison-and-disease, entangle, faerie-fire
 - Sample findings:
   - Alarm records Range/Area differently in the structured block and the canonical snapshot.

@@ -12,6 +12,8 @@
 - **Targeting Type**: area
 - **Area Shape**: emanation
 - **Area Size**: 15
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
 - **Valid Targets**: self
 - **Line of Sight**: false
 

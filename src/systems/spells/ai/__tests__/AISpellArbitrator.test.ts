@@ -22,7 +22,8 @@ describe('AISpellArbitrator', () => {
     classes: ['Wizard'],
     description: 'A test spell',
     castingTime: { value: 1, unit: 'action' },
-    range: { type: 'self' },
+    // Self-range spells use explicit 0 distance so tests match the runtime JSON contract.
+    range: { type: 'self', distance: 0 },
     components: { verbal: true, somatic: true, material: false },
     duration: { type: 'instantaneous', concentration: false },
     targeting: { type: 'self', validTargets: ['self'] },

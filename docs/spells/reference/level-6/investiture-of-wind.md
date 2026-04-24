@@ -11,8 +11,10 @@
 - **Range Type**: self
 - **Range Distance**: 0
 - **Targeting Type**: self
-- **Area Shape**: none
-- **Area Size**: 0
+- **Area Shape**: Cube
+- **Area Size**: 15
+- **Area Size Type**: edge
+- **Area Size Unit**: feet
 - **Valid Targets**: self
 - **Line of Sight**: false
 
@@ -33,6 +35,12 @@
 - **Save Outcome**: half
 - **Damage Dice**: 2d10
 - **Damage Type**: Bludgeoning
+- **Spatial Form 1 Label**: Swirling Wind Cube
+- **Spatial Form 1 Shape**: Cube
+- **Spatial Form 1 Size Value**: 15
+- **Spatial Form 1 Size Type**: edge
+- **Spatial Form 1 Size Unit**: feet
+- **Spatial Form 1 Notes**: Centered on a point you can see within 60 feet of you when you use the spell-granted action.
 
 - **Description**: Until the spell ends, wind whirls around you, and you gain the following benefits: Ranged weapon attacks made against you have disadvantage on the attack roll. You gain a flying speed of 60 feet. If you are still flying when the spell ends, you fall, unless you can somehow prevent it. You can use your action to create a 15-foot cube of swirling wind centered on a point you can see within 60 feet of you. Each creature in that area must make a Constitution saving throw. A creature takes 2d10 bludgeoning damage on a failed save, or half as much damage on a successful one. If a Large or smaller creature fails the save, that creature is also pushed up to 10 feet away from the center of the cube.
 - **Higher Levels**: none

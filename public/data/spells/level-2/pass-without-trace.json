@@ -52,10 +52,13 @@
       "creatures"
     ],
     "areaOfEffect": {
-      "shape": "Sphere",
+      "shape": "Emanation",
       "size": 30,
+      "sizeType": "radius",
       "sizeUnit": "feet",
-      "height": 0
+      "height": 0,
+      "heightUnit": "feet",
+      "followsCaster": true
     },
     "lineOfSight": false,
     "range": 0,

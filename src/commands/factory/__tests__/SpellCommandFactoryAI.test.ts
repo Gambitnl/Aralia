@@ -45,7 +45,8 @@ describe('SpellCommandFactory - AI Integration', () => {
     classes: ['Wizard'],
     description: 'A wish spell',
     castingTime: { value: 1, unit: 'action' },
-    range: { type: 'self' },
+    // Self-range spells still store distance explicitly; 0 means no measured cast distance.
+    range: { type: 'self', distance: 0 },
     components: { verbal: true, somatic: false, material: false },
     duration: { type: 'instantaneous', concentration: false },
     targeting: { type: 'self', validTargets: ['self'] },

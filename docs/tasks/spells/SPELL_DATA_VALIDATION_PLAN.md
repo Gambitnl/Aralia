@@ -667,9 +667,16 @@ The `Range/Area` bucket is also a two-phase bucket:
 Current live status:
 
 - canonical -> structured:
-  - `172` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
+  - `144` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
   - current grouped kind: `value-mismatch`
   - practical reading: mostly accepted normalization and source-display residue
+  - latest `2026-04-24` pass:
+    - fixed high-confidence real range/area errors such as `goodberry`,
+      `heroes-feast`, `project-image`, `draconic-transformation`, and the
+      mile-range bug on `meteor-swarm`, `storm-of-vengeance`, and `tsunami`
+    - normalized explicit area facts for auras, cones, cylinders, cubes, spheres,
+      and walls where the spell rules text already gives those facts
+    - converted many false `0-ft. None` structured areas to `N/A`
   - latest canonical repair result:
     - the confirmed self-centered icon-loss mini-queue is now cleared on:
       - `antilife-shell`
@@ -680,9 +687,22 @@ Current live status:
     - total structured-vs-canonical mismatches dropped from `414` to `411`
     - the remaining self-centered canonical-side residue set is now `24`
 - structured -> json:
-  - `61` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - `7` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
   - current grouped kind: `value-mismatch`
-  - practical reading: active runtime implementation-follow-up lane
+  - practical reading: mostly policy/model leftovers rather than ordinary data-entry
+    drift
+  - remaining live spells:
+    - `skywrite`: structured `Range/Area` header is still missing
+    - `sending` and `telepathy`: structured says `Unlimited`, runtime JSON says
+      `Special`
+    - `commune-with-nature`: runtime JSON has a likely fake `Self (3-ft. Sphere)`
+      area while structured says `Self`
+    - `mirage-arcane`: structured has `Sight (1 mile Square)`, runtime JSON says
+      `Special`
+    - `control-weather`: structured has `Self (5 miles)`, runtime JSON cannot yet
+      express a no-shape self radius cleanly
+    - `earthquake`: structured says `Circle`, runtime JSON currently only has
+      `Sphere` as a nearby available shape
 
 Current bucket reading:
 
@@ -764,6 +784,8 @@ Current bucket reading:
   - real implementation drift
   - model/display boundary
   - lower-value source-display residue
+  - the remaining `7`-spell set should now be treated as a small hand-review queue,
+    not a broad runtime backfill queue
 
 Current gate-checker coverage:
 

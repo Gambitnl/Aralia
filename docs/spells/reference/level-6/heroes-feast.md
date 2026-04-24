@@ -8,12 +8,16 @@
 - **Casting Time Unit**: minute
 - **Combat Cost**: none
 
-- **Range Type**: ranged
-- **Range Distance**: 30
+- **Range Type**: self
+- **Range Distance**: 0
 - **Targeting Type**: point
-- **Area Shape**: none
-- **Area Size**: 0
-- **Valid Targets**: none
+- **Targeting Range**: 10
+- **Targeting Range Unit**: feet
+- **Area Shape**: Cube
+- **Area Size**: 10
+- **Area Size Type**: edge
+- **Area Size Unit**: feet
+- **Valid Targets**: point, ground
 - **Line of Sight**: true
 
 - **Verbal**: true

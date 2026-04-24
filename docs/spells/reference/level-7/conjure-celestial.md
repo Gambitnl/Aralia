@@ -11,8 +11,12 @@
 - **Range Type**: ranged
 - **Range Distance**: 90
 - **Targeting Type**: area
-- **Area Shape**: cylinder
-- **Area Size**: 10-foot-radius, 40-foot-high
+- **Area Shape**: Cylinder
+- **Area Size**: 10
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
+- **Area Height**: 40
+- **Area Height Unit**: feet
 - **Valid Targets**: creatures
 - **Line of Sight**: true
 

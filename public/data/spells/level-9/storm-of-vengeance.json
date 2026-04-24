@@ -27,7 +27,7 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 5280,
+    "distance": 1,
     "distanceUnit": "miles"
   },
   "components": {
@@ -50,11 +50,12 @@
       "creatures"
     ],
     "lineOfSight": true,
-    "range": 5280,
+    "range": 1,
     "rangeUnit": "miles",
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 300,
+      "sizeType": "radius",
       "sizeUnit": "feet",
       "height": 0
     },

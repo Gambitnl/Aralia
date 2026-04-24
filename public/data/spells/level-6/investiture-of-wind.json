@@ -55,9 +55,24 @@
     "range": 0,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Cube",
+      "size": 15,
+      "sizeType": "edge",
+      "sizeUnit": "feet",
+      "height": 0,
+      "heightUnit": "feet"
+    },
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Swirling Wind Cube",
+          "shape": "Cube",
+          "size": 15,
+          "sizeType": "edge",
+          "sizeUnit": "feet",
+          "notes": "Centered on a point you can see within 60 feet of you when you use the spell-granted action."
+        }
+      ]
     },
     "filter": {
       "creatureTypes": [],

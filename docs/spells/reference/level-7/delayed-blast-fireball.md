@@ -11,7 +11,10 @@
 - **Range Type**: ranged
 - **Range Distance**: 150
 - **Targeting Type**: area
+- **Area Shape**: Sphere
 - **Area Size**: 20
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
 - **Valid Targets**: creatures
 - **Line of Sight**: true
 

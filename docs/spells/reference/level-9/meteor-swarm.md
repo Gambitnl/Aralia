@@ -10,10 +10,12 @@
 
 - **Range Type**: ranged
 - **Range Distance**: 1
-- **Range Unit**: mile
+- **Range Distance Unit**: miles
 - **Targeting Type**: area
-- **Area Shape**: sphere
+- **Area Shape**: Sphere
 - **Area Size**: 40
+- **Area Size Type**: radius
+- **Area Size Unit**: feet
 - **Valid Targets**: creatures
 - **Line of Sight**: true
 

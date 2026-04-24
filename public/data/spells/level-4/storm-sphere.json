@@ -46,7 +46,7 @@
     "unit": "minute"
   },
   "targeting": {
-    "type": "single",
+    "type": "area",
     "range": 150,
     "rangeUnit": "feet",
     "validTargets": [
@@ -57,6 +57,7 @@
     "areaOfEffect": {
       "shape": "Sphere",
       "size": 20,
+      "sizeType": "radius",
       "sizeUnit": "feet",
       "height": 0
     },

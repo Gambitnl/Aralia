@@ -50,10 +50,13 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Sphere",
+      "shape": "Emanation",
       "size": 10,
+      "sizeType": "radius",
       "sizeUnit": "feet",
-      "height": 0
+      "height": 0,
+      "heightUnit": "feet",
+      "followsCaster": true
     },
     "range": 0,
     "maxTargets": 1,

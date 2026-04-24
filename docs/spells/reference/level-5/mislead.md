@@ -12,8 +12,8 @@
 - **Range Type**: self
 - **Range Distance**: 0
 - **Targeting Type**: self
-- **Area Shape**:
-- **Area Size**: 0
+- **Area Shape**: N/A
+- **Area Size**: N/A
 - **Valid Targets**: self
 - **Line of Sight**: false
 

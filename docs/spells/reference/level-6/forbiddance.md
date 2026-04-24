@@ -11,8 +11,8 @@
 - **Range Type**: touch
 - **Range Distance**: 0
 - **Targeting Type**: touch
-- **Area Shape**: none
-- **Area Size**: 0
+- **Area Shape**: N/A
+- **Area Size**: N/A
 - **Valid Targets**: none
 - **Line of Sight**: false
 

@@ -11,6 +11,7 @@
 
 - **Range Type**: ranged
 - **Range Distance**: 1
+- **Range Distance Unit**: miles
 - **Targeting Type**: point
 - **Valid Targets**: location
 - **Line of Sight**: false

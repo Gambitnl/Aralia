@@ -294,7 +294,7 @@ after the canonical sync and retrieval work.
 ### Range/Area Bucket Progress Note
 
 - canonical -> structured:
-  - `172` mismatches
+  - `144` mismatches
   - current status: active in the report, but mostly accepted normalization and
     source-display residue rather than broad factual geometry failure
   - policy answer: keep the structured `.md` layer explicit and granular; do not
@@ -355,24 +355,33 @@ after the canonical sync and retrieval work.
       - clear area-size drift
       - touch vs touch-area header
 - structured -> json:
-  - `61` mismatches
-  - current status: active runtime follow-up lane
-  - runtime JSON is still lagging behind structured data for this bucket on part of
-    the residue set
-  - remaining spells include a mix of:
-    - real runtime geometry drift
-    - model/display boundary
-    - lower-value source-display residue
+  - `7` mismatches
+  - current status: mostly resolved; the remaining queue is small and policy/model
+    shaped
+  - runtime JSON is no longer broadly lagging behind structured data for this
+    bucket
+  - the remaining spells are:
+    - `skywrite`
+    - `sending`
+    - `commune-with-nature`
+    - `mirage-arcane`
+    - `control-weather`
+    - `earthquake`
+    - `telepathy`
+  - remaining kinds:
+    - one missing structured header
+    - special/unlimited range policy split
+    - no-shape self radius model gap
+    - circle-vs-sphere shape vocabulary gap
+    - one likely fake runtime self-area
 - representative runtime sample spells:
-  - `aura-of-vitality`
-  - `conjure-animals`
-  - `crusaders-mantle`
-  - `leomunds-tiny-hut`
-  - `pass-without-trace`
+  - `control-weather`
+  - `earthquake`
+  - `mirage-arcane`
   - `sending`
   - `skywrite`
-  - `wall-of-sand`
-  - `wind-wall`
+  - `telepathy`
+  - `commune-with-nature`
 - targeted risky-spell follow-through now cleared `Range/Area` runtime mismatches on:
   - `flaming-sphere`
   - `create-or-destroy-water`
@@ -390,14 +399,12 @@ after the canonical sync and retrieval work.
   - `bones-of-the-earth` still has `Description` and `Higher Levels` drift
   - `wall-of-ice` still has `Material Component` wording drift
 - current provisional runtime subbuckets:
-  - self-centered emanation normalization drift (`7`)
-  - structured phantom `0-ft. None` area residue (`31`)
-  - distance-unit and special-range encoding split (`9`)
-  - wall and constructed-shape alias drift (`10`)
-  - structured scalar-area formatting residue (`5`)
-  - runtime JSON missing area geometry (`4`)
-  - shape-semantics boundary set (`5`)
   - structured missing `Range/Area` (`1`)
+  - special/unlimited range policy split (`2`)
+  - no-shape self radius model gap (`1`)
+  - circle-vs-sphere shape vocabulary gap (`1`)
+  - likely fake runtime self-area (`1`)
+  - large illusion footprint / special range policy (`1`)
 - glossary gate checker:
   - canonical -> structured `Range/Area Bucket`: implemented
   - structured -> json `Range/Area Runtime Review`: implemented

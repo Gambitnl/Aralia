@@ -1,8 +1,8 @@
 # Spell Markdown Parity Report
 
-Generated: 2026-04-01T22:38:22.771Z
+Generated: 2026-04-23T22:39:43.336Z
 Markdown files scanned: 459
-Total mismatches: 648
+Total mismatches: 639
 Grouped mismatch buckets: 25
 
 This report is grouped so arbitration can start with repeated mismatch families instead of isolated spell noise.
@@ -27,8 +27,8 @@ This report is grouped so arbitration can start with repeated mismatch families 
 
 - Family: `markdown-vs-json`
 - Kind: `value-mismatch`
-- Occurrences: 101
-- Distinct spells: 101
+- Occurrences: 99
+- Distinct spells: 99
 - Sample spells: animal-messenger, arcane-lock, barkskin, beast-sense, blindness-deafness, calm-emotions, continual-flame, crown-of-madness, darkvision, enhance-ability
 - Sample findings:
   - Animal Messenger records Valid Targets as "beast_tiny" in markdown but "creatures" in JSON.
@@ -41,15 +41,15 @@ This report is grouped so arbitration can start with repeated mismatch families 
 
 - Family: `markdown-vs-json`
 - Kind: `value-mismatch`
-- Occurrences: 65
-- Distinct spells: 65
-- Sample spells: awaken, danse-macabre, dominate-person, dream, enervation, geas, greater-restoration, hold-monster, holy-weapon, wall-of-fire
+- Occurrences: 61
+- Distinct spells: 61
+- Sample spells: awaken, danse-macabre, dominate-person, dream, enervation, geas, greater-restoration, hold-monster, holy-weapon, immolation
 - Sample findings:
-  - Wall of Fire records Targeting Type as "area" in markdown but "multi" in JSON.
   - Awaken records Targeting Type as "creature_or_object" in markdown but "single" in JSON.
   - Danse Macabre records Targeting Type as "creature" in markdown but "single" in JSON.
   - Dominate Person records Targeting Type as "creature" in markdown but "single" in JSON.
   - Dream records Targeting Type as "creature" in markdown but "single" in JSON.
+  - Enervation records Targeting Type as "creature" in markdown but "single" in JSON.
 
 ### markdown-vs-json / Duration Type
 
@@ -76,7 +76,7 @@ This report is grouped so arbitration can start with repeated mismatch families 
   - Bless records Sub-Classes as "Cleric - Life Domain, Cleric - Community Domain (HCS), Paladin - Oath of the River (OTTG)" in markdown but "None" in JSON.
   - Chromatic Orb records Sub-Classes as "Sorcerer - Draconic Sorcery" in markdown but "None" in JSON.
   - Color Spray records Sub-Classes as "" in markdown but "None" in JSON.
-  - Detect Magic records Sub-Classes as "Cleric - Arcana Domain (SCAG), Illrigger - Architect of Ruin, Paladin (Legacy) - Oath of the Spelldrinker, Paladin - Oath of the Spelldrinker, Paladin - Oath of the Watchers (TCoE)" in markdown but "None" in JSON.
+  - Detect Magic records Sub-Classes as "Cleric - Arcana Domain (SCAG), Paladin - Oath of the Spelldrinker, Paladin - Oath of the Watchers (TCoE)" in markdown but "None" in JSON.
   - Divine Favor records Sub-Classes as "" in markdown but "None" in JSON.
 
 ### markdown-vs-json / Combat Cost
@@ -219,20 +219,6 @@ This report is grouped so arbitration can start with repeated mismatch families 
   - Vitriolic Sphere is missing the structured markdown field Damage Dice even though the JSON provides 10d4.
   - Feeblemind records Damage Dice as "4d6" in markdown but "10d12" in JSON.
 
-### markdown-vs-json / Range Distance
-
-- Family: `markdown-vs-json`
-- Kind: `value-mismatch`
-- Occurrences: 5
-- Distinct spells: 5
-- Sample spells: dawn, mighty-fortress, storm-of-vengeance, storm-sphere, tsunami
-- Sample findings:
-  - Storm Sphere records Range Distance as "150 ft. (20 ft.)" in markdown but "150" in JSON.
-  - Dawn records Range Distance as "60 ft. (30 ft. *)" in markdown but "60" in JSON.
-  - Mighty Fortress records Range Distance as "1" in markdown but "5280" in JSON.
-  - Tsunami records Range Distance as "1" in markdown but "5280" in JSON.
-  - Storm of Vengeance records Range Distance as "1" in markdown but "5280" in JSON.
-
 ### markdown-vs-json / Temporary HP
 
 - Family: `markdown-vs-json`
@@ -260,6 +246,19 @@ This report is grouped so arbitration can start with repeated mismatch families 
   - Glibness is missing the structured markdown field Line of Sight even though the JSON provides false.
   - Holy Aura records Line of Sight as "" in markdown but "false" in JSON.
 
+### markdown-vs-json / Material Description
+
+- Family: `markdown-vs-json`
+- Kind: `value-mismatch`
+- Occurrences: 4
+- Distinct spells: 4
+- Sample spells: arcane-sword, mordenkainens-magnificent-mansion, true-seeing, wall-of-ice
+- Sample findings:
+  - True Seeing records Material Description as "mushroom powder worth 25+ GP, which the spell consumes" in markdown but "an ointment for the eyes that costs 25 gp; is made from mushroom powder, saffron, and fat; and is consumed by the spell" in JSON.
+  - Wall of Ice records Material Description as "a piece of quartz" in markdown but "a small piece of quartz" in JSON.
+  - Arcane Sword records Material Description as "A miniature platinum sword with a grip and pommel of copper and zinc, worth 250 gp" in markdown but "a miniature sword worth 250+ GP" in JSON.
+  - Mordenkainen's Magnificent Mansion records Material Description as "a miniature door worth 15+ GP" in markdown but "a miniature portal carved from ivory, a small piece of polished marble, and a tiny silver spoon, each item worth at least 5 gp" in JSON.
+
 ### markdown-vs-json / Damage Type
 
 - Family: `markdown-vs-json`
@@ -271,18 +270,6 @@ This report is grouped so arbitration can start with repeated mismatch families 
   - Conjure Barrage records Damage Type as "weapon_damage_type" in markdown but "Force" in JSON.
   - Vitriolic Sphere is missing the structured markdown field Damage Type even though the JSON provides Acid.
   - Blade Barrier records Damage Type as "Slashing" in markdown but "Force" in JSON.
-
-### markdown-vs-json / Material Description
-
-- Family: `markdown-vs-json`
-- Kind: `value-mismatch`
-- Occurrences: 3
-- Distinct spells: 3
-- Sample spells: magic-mouth, true-seeing, wall-of-ice
-- Sample findings:
-  - Magic Mouth records Material Description as "jade dust worth 10+ GP, which the spell consumes" in markdown but "jade dust worth 10+ GP" in JSON.
-  - True Seeing records Material Description as "mushroom powder worth 25+ GP, which the spell consumes" in markdown but "an ointment for the eyes that costs 25 gp; is made from mushroom powder, saffron, and fat; and is consumed by the spell" in JSON.
-  - Wall of Ice records Material Description as "a piece of quartz" in markdown but "a small piece of quartz" in JSON.
 
 ### markdown-vs-json / Range Type
 
@@ -327,6 +314,16 @@ This report is grouped so arbitration can start with repeated mismatch families 
 - Sample spells: shadow-of-moil
 - Sample findings:
   - Shadow of Moil is missing the structured markdown field Material Cost GP even though the JSON provides 150.
+
+### markdown-vs-json / Targeting Max
+
+- Family: `markdown-vs-json`
+- Kind: `missing-markdown-field`
+- Occurrences: 1
+- Distinct spells: 1
+- Sample spells: word-of-recall
+- Sample findings:
+  - Word of Recall is missing the structured markdown field Targeting Max even though the JSON provides 6.
 
 ### markdown-vs-json / Terrain Type
 

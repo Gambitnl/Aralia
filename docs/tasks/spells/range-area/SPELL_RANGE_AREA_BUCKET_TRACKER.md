@@ -1166,6 +1166,56 @@ structured payload once the explicit facts are present.
 - keep feeding mechanics-shaped cases into the separate spell-casting mechanics lane
   instead of forcing them into plain geometry normalization prematurely
 
+### 2026-04-24
+
+- performed a targeted spell-by-spell runtime prep pass without touching the glossary
+  spell gate checker, because that code is currently being modularized
+- refreshed both live reports:
+  - structured -> json total mismatches: `125`
+  - structured -> json `Range/Area`: `7`
+  - canonical -> structured total mismatches: `380`
+  - canonical -> structured `Range/Area`: `144`
+- fixed high-confidence real range/area drift in structured markdown and runtime JSON:
+  - `goodberry`: corrected range from `touch` to `self`
+  - `heroes-feast`: changed the old `30 ft.` placement to the canonical self-adjacent
+    `10-foot Cube`
+  - `project-image`: corrected runtime range from `0 ft.` to `500 miles`
+  - `meteor-swarm`, `storm-of-vengeance`, and `tsunami`: corrected the mile-range
+    bug where runtime JSON stored `5280 miles` instead of `1 mile`
+  - `draconic-transformation`, `investiture-of-ice`, `investiture-of-wind`, and
+    `prismatic-spray`: moved self-spell area geometry out of plain range distance
+    and into explicit area facts
+- normalized explicit shapes and units where the rules text already supplies the
+  facts:
+  - self-centered auras/emanations
+  - sphere, cone, cube, cylinder, wall, and point-at-range area spells
+  - constructed-height/thickness cases such as `tsunami`, `ice-storm`, `dawn`,
+    `conjure-celestial`, `reverse-gravity`, and `whirlwind`
+- removed false structured areas by changing `0`, blank, or `0-ft. None` area
+  fields to `N/A` on the level 5/6 spells that do not actually have an area
+- added or preserved richer secondary geometry where the primary `Range/Area`
+  display is not enough:
+  - `conjure-animals`: the pack threat radius is now a spatial form rather than a
+    fake primary `30-ft. Emanation`
+  - `investiture-of-ice`: the icy ground radius is now a spatial form separate from
+    the 15-foot cone
+  - `investiture-of-wind`: the spell-granted 15-foot cube is recorded separately
+    from the self buff
+- made `range.distance` required in the shared spell type and fixed the four test
+  fixtures that still omitted it
+- verification:
+  - `npm run validate:spells` -> `459 / 459 valid`
+  - `npm run typecheck` still fails, but the previous `range.distance` fixture
+    errors are gone; remaining failures are outside this bucket
+- remaining structured -> json `Range/Area` queue:
+  - `skywrite`: missing structured header
+  - `sending`: `Unlimited` vs `Special`
+  - `commune-with-nature`: likely fake runtime `Self (3-ft. Sphere)`
+  - `mirage-arcane`: large special/sight footprint model issue
+  - `control-weather`: no-shape `Self (5 miles)` model gap
+  - `earthquake`: `Circle` vs runtime `Sphere` vocabulary gap
+  - `telepathy`: `Unlimited` vs `Special`
+
 ## Open Questions / Model Gaps
 
 1. Should runtime spell JSON ever store a raw canonical `Range/Area` display string,
@@ -1193,9 +1243,9 @@ structured payload once the explicit facts are present.
 ## Current Bucket Verdict
 
 - canonical -> structured: mostly accepted normalization / source-shape residue
-- structured -> json: active implementation-follow-up lane
+- structured -> json: mostly resolved, with `7` policy/model leftovers
 - policy review only: no
-- implementation work still needed: yes
+- implementation work still needed: only for the `7` remaining hand-review cases
 - audit work still needed: yes
 - runtime gate-checker coverage: implemented
   - the bucket now has a separate structured -> json review block rather than relying
