@@ -19,6 +19,7 @@ condition.
 
 - Active
 - Frostbite has been migrated out of the condition bucket and into this lane
+- Blur is the first confirmed incoming-rider pilot in this lane
 - The glossary spell card now has a dedicated attack-roll rider pill row
 - The runtime spell engine now has a dedicated `ATTACK_ROLL_MODIFIER` effect
   path
@@ -90,6 +91,9 @@ spell system; it does not mean the effect is a real condition.
 ## Current Inventory
 
 - `frostbite` - migrated here from the condition bucket
+- `blur` - incoming rider; attacks against the protected creature have
+  disadvantage while the spell lasts, with Blindsight/Truesight immunity noted
+  as a rider caveat
 
 ## Progress Log
 
@@ -104,10 +108,13 @@ spell system; it does not mean the effect is a real condition.
 - The ability attack path now declares its ranged/melee branch before it uses it,
   which keeps rider collection and attack resolution in the same order as the
   attack loop itself
+- Blur now uses the structured attack-roll rider rows and runtime
+  `ATTACK_ROLL_MODIFIER` effect instead of a generic defensive placeholder
 
 ## Remaining Work
 
-- Inventory other spells that should live in this bucket
+- Inventory other spells that should live in this bucket beyond `frostbite` and
+  `blur`
 - Split the bucket into clearer subgroups once more rider patterns show up
 - Decide whether incoming and outgoing riders need separate display labels in
   the glossary gate checker

@@ -1,6 +1,6 @@
 # Spell Sub-Classes Bucket Tracker
 
-Last Updated: 2026-04-10
+Last Updated: 2026-04-29
 
 ## Bucket Purpose
 
@@ -202,6 +202,42 @@ Representative spell surfaces for review:
 - removed Legacy subclass entries from `2` structured spell markdown files:
   - `level-1/detect-magic`
   - `level-4/locate-creature`
+
+### 2026-04-29 (resume after Atlas v3 round closure)
+
+- audited the live state of the `55` spells previously listed under
+  `missing_structured_subclasses`; counts had drifted significantly from the
+  earlier `~30` no-field / `~25` empty-value estimates
+- live audit result:
+  - `12` spells truly had no `Sub-Classes` line (NO_FIELD)
+  - `0` spells had an empty `Sub-Classes` line (EMPTY_VALUE)
+  - `43` spells now carry populated `Sub-Classes` lines, mostly with
+    unsupported entries — these belong to `incomplete_structured_subclasses`
+    shape now and should be re-classified there
+- inserted `Sub-Classes` lines into all `12` NO_FIELD spell `.md` files using
+  only roster-supported subclass-only entries (per Decision 6 / Policy 6 in
+  the canonical-first tracker variant) and skipping repeated-base entries
+  (per Decision 2):
+  - `level-4/arcane-eye` → `Cleric - Light Domain, Sorcerer - Draconic Sorcery`
+  - `level-5/commune` → `Paladin - Oath of Devotion`
+  - `level-4/dominate-beast` → `Warlock - Archfey Patron`
+  - `level-5/dominate-person` → `Cleric - Trickery Domain, Warlock - Archfey Patron`
+  - `level-5/flame-strike` → `Paladin - Oath of Devotion`
+  - `level-4/freedom-of-movement` → `Paladin - Oath of Devotion, Paladin - Oath of Glory`
+  - `level-5/hold-monster` → `Cleric - War Domain, Druid - Circle of the Sea, Paladin - Oath of Vengeance`
+  - `level-4/ice-storm` → `Paladin - Oath of the Ancients`
+  - `level-5/legend-lore` → `Paladin - Oath of Glory, Sorcerer - Draconic Sorcery`
+  - `level-4/stoneskin` → `Paladin - Oath of the Ancients`
+  - `level-5/telekinesis` → `Warlock - Great Old One Patron`
+  - `level-4/wall-of-fire` → `Cleric - Light Domain, Warlock - Celestial Patron, Warlock - Fiend Patron`
+- closed `missing_structured_subclasses:a` (No `Sub-Classes:` line at all) and
+  `:b` (Field present but empty value) edge cases on the Atlas execution map;
+  flipped subbucket status to `done`
+- flipped `incomplete_structured_subclasses` to `active` with a `count: null`
+  pending-recount snapshot — the `43` migrated spells overlap unknown
+  amount with the original tracker `24` so a fresh enumeration is needed
+- `Sub-Classes` bucket active subbucket is now
+  `incomplete_structured_subclasses`
 
 ## Remaining Work
 

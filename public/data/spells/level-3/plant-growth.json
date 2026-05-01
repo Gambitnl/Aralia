@@ -16,19 +16,19 @@
     "Warlock - Archfey Patron"
   ],
   "subClassesVerification": "verified",
-  "ritual": true,
+  "ritual": false,
   "rarity": "common",
   "attackType": "",
   "castingTime": {
-    "value": 1,
-    "unit": "action",
+    "value": 0,
+    "unit": "special",
     "combatCost": {
       "type": "action",
       "condition": ""
     },
     "explorationCost": {
-      "value": 0,
-      "unit": "minute"
+      "value": 8,
+      "unit": "hour"
     }
   },
   "range": {

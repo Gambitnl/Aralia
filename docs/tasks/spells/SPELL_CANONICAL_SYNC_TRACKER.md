@@ -34,7 +34,7 @@ reproducing if those files stay behind the live spell corpus.
 - That higher number should not be read as the manual sync lane being undone. The refreshed report is now dominated by `missing-canonical-field` buckets where the raw canonical snapshot exists, but the current audit does not derive a directly comparable structured field from it.
 - The active implementation follow-up lane is therefore the structured-vs-json report:
   - `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - `177` mismatches across `7` grouped buckets on `2026-04-09`
+  - `101` mismatches across `4` grouped buckets on `2026-04-29`
 - A separate retrieval-format regression is now also visible in:
   - `F:\Repos\Aralia\docs\tasks\spells\SPELL_CANONICAL_RULES_AUDIT_REPORT.md`
   - `455` findings on `2026-04-09`
@@ -44,26 +44,27 @@ reproducing if those files stay behind the live spell corpus.
 
 - `Range/Area` (`172`): the current split structured range/area model still does not round-trip compact canonical displays identically, and the newer size/shape metadata work has not removed the review need yet.
 - `Sub-Classes` (`71`): the canonical snapshot preserves raw `Available For` subclass lines, including repeated-base entries that the current JSON validator intentionally normalizes away.
-- `Casting Time` (`52`): these are mostly ritual/source-display forms such as `1 Minute Ritual` versus the current split structured casting-time fields.
+- `Casting Time` (`0`): current generated report has no canonical -> structured Casting Time mismatch group. Ritual-inline, trigger-footnote, pluralization, and casing display residue are normalized in the audit; `plant-growth` was corrected as the one true special-casting data case.
 - `Description` (`51`): this is now an active prose-review lane rather than the older inflated missing-field artifact. The bucket is currently better explained by `SPELL_DESCRIPTION_SUBBUCKET_REPORT.md`.
 - `Higher Levels` (`24`): this is now a smaller active prose/source-shape lane rather than the older inflated missing-field artifact.
-- `Classes` (`17`): the canonical-side bucket is now a small active residue set. Most remaining cases still come from canonical class access living under `Available For` instead of a directly comparable `Classes` field.
-- `Duration` (`17`): the remaining cases are source-display or model-shape differences such as `Until Dispelled`, `Until Dispelled or Triggered`, and concentration phrasing that do not round-trip identically through the current structured duration surface.
-- `Material Component` (`11`): the remaining cases are the smaller true residue set after the parser fix, not the older inflated count.
+- `Classes` (`17`): the canonical-side report still shows a small residue set, but the `12` missing-derived-class cases were reviewed on `2026-04-29` and closed as source-shape residue. The active Classes work is now the `5` metadata-leak cases where `Capture Method: http` polluted the comparable class value.
+- `Duration` (`17`): the canonical-side cases are source-display or model-shape differences such as `Until Dispelled`, `Until Dispelled or Triggered`, and concentration phrasing that do not round-trip identically through the current structured duration surface.
+- `Material Component` (`0`): resolved on 2026-04-29 across both canonical -> structured and structured -> JSON.
 - `Components` (`3`): the remaining cases use raw canonical component strings with footnote markers that do not map cleanly onto the current split structured component fields.
 
 ## Runtime Follow-Up Buckets
 
-The current live runtime follow-up lane is the structured-vs-json report. Its `2026-04-09`
+The current live runtime follow-up lane is the structured-vs-json report. Its `2026-04-29`
 bucket counts are:
 
-- `Range/Area` (`61`)
-- `Sub-Classes` (`45`)
-- `Description` (`34`)
-- `Duration` (`17`)
-- `Higher Levels` (`8`)
-- `Casting Time` (`7`)
-- `Material Component` (`5`)
+- `Range/Area` (`0`)
+- `Sub-Classes` (`57`)
+- `Description` (`35`)
+- `Duration` (`8`)
+- `Classes` (`1`)
+- `Higher Levels` (`0`)
+- `Casting Time` (`0`)
+- `Material Component` (`0`)
 
 This is the cleaner surface for answering "what is still wrong in runtime JSON?"
 after the canonical sync and retrieval work.
@@ -97,47 +98,37 @@ after the canonical sync and retrieval work.
 ### Casting Time Bucket Progress Note
 
 - canonical -> structured:
-  - `52` mismatches
-  - current status: active in the report, but mostly source-display residue rather
-    than ordinary timing drift
-  - why: canonical spell pages often fold ritual or trigger markers into one compact
-    casting-time string
+  - `0` mismatches
+  - current status: resolved in the current generated report
+  - why: the audit now compares split base timing facts instead of raw source
+    display strings, and `plant-growth` was updated where canonical really says
+    `Special`
 - structured -> json:
-  - `7` mismatches
-  - current status: active runtime follow-up lane
-  - runtime JSON may still lag behind structured data for part of this bucket, but
-    the residue is small and likely mixed
-  - remaining sample spells:
-    - `counterspell`
-    - `dream-of-the-blue-veil`
-    - `feather-fall`
-    - `hellish-rebuke`
-    - `legend-lore`
-    - `mirage-arcane`
-    - `shield`
+  - `0` mismatches
+  - current status: resolved in the current generated report after the same
+    split-facts comparison was applied to runtime JSON
 - glossary gate checker:
   - `Casting Time Review` now covers canonical -> structured
   - `Structured -> JSON` subsection now covers the runtime comparison separately
 - bucket state:
-  - not fully resolved yet
-  - canonical side is mostly boundary/source residue
-  - runtime side still needs direct spell-by-spell audit before it can be called
-    boundary-only
+  - resolved for the current canonical and runtime reports
+  - remaining policy/model note: Plant Growth-style alternate casting costs are
+    represented in JSON `explorationCost`, but those labels are not yet first-class
+    markdown parity fields
 
 ### Higher Levels Bucket Progress Note
 
 - canonical -> structured:
-  - `126` mismatches
+  - `24` mismatches
   - current status: active in the report, but mostly source-shape residue rather
     than broad higher-level drift
   - why: canonical snapshots usually store higher-level behavior inline under raw
     `Rules Text` instead of exposing a separate comparable `Higher Levels` field
 - structured -> json:
-  - `8` mismatches
-  - current status: small active runtime follow-up lane
-  - runtime JSON is not the only lagging layer here; most of the live set is
-    actually structured-header lag where JSON already has the value
-  - remaining runtime sample spells:
+  - `0` mismatches
+  - current status: closed
+  - runtime JSON now matches the structured Higher Levels field for this bucket
+  - closed runtime sample spells:
     - `bigbys-hand`
     - `bones-of-the-earth`
     - `create-undead`
@@ -146,24 +137,21 @@ after the canonical sync and retrieval work.
     - `enervation`
     - `mass-suggestion`
     - `wall-of-thorns`
+    - `chill-touch`
+    - `shocking-grasp`
 - glossary gate checker:
   - canonical -> structured `Higher Levels Review`: implemented
   - structured -> json `Higher Levels Runtime Review`: implemented
 - bucket state:
   - not fully resolved yet
   - canonical side is mostly source-shape residue
-  - runtime side is now a small direct audit lane rather than a broad corpus
-    blocker
+  - runtime side is closed
   - this bucket also has a forward-looking model-gap question around
     `higherLevelScaling`
-  - active subbuckets now in use:
+  - canonical/model subbuckets still in use:
     - `canonical_inline_only`
     - `prefix_only_residue`
     - `statblock_tail_residue`
-    - `structured_missing_json_present`
-    - `runtime_missing_structured_present`
-    - `punctuation_or_formatting_residue`
-    - `true_runtime_drift`
 
 ### Duration Bucket Progress Note
 
@@ -177,8 +165,8 @@ after the canonical sync and retrieval work.
     - `Until Dispelled` and `Until Dispelled or Triggered` do not round-trip cleanly
       through the current duration model
 - structured -> json:
-  - `17` mismatches
-  - current status: active runtime follow-up lane
+  - `15` mismatches
+  - current status: active runtime follow-up lane after closing the two-spell true drift pilot
   - runtime JSON may still lag behind structured data for part of this bucket, but
     the residue is mixed rather than uniformly broken
   - remaining sample spells:
@@ -186,9 +174,7 @@ after the canonical sync and retrieval work.
     - `hold-monster`
     - `hallow`
     - `leomunds-secret-chest`
-    - `pyrotechnics`
     - `symbol`
-    - `transport-via-plants`
 - glossary gate checker:
   - canonical -> structured `Duration Review`: implemented
   - structured -> json `Structured -> JSON` subsection inside `Duration Review`:
@@ -203,55 +189,28 @@ after the canonical sync and retrieval work.
     - plain wording / pluralization residue
     - accepted special-bucket normalization
     - trigger-ended persistence boundary
-    - true runtime drift
+    - resolved true-runtime-drift pilot
   - runtime side still needs direct spell-by-spell audit before it can be called
     boundary-only or true-drift-only
 
 ### Material Component Bucket Progress Note
 
 - canonical -> structured:
-  - `11` mismatches
-  - current status: small active copying/review lane
-  - current reading:
-    - canonical consumed-state drift
-    - missing structured material note
-    - narrower cost/description drift
-    - wording boundary
-    - alternate-source material-note shape
-  - representative spells:
-    - `stoneskin`
-    - `raise-dead`
-    - `reincarnate`
-    - `summon-greater-demon`
-    - `conjure-volley`
-    - `swift-quiver`
+  - `0` grouped `Material Component` mismatches
+  - current status: resolved
 - structured -> json:
-  - `5` mismatches
-  - current status: follow-through runtime lane after structured fixes
-  - runtime JSON is still lagging behind structured data for part of this bucket
-  - remaining spells:
-    - `magic-mouth`
-    - `melfs-acid-arrow`
-    - `true-seeing`
-    - `vitriolic-sphere`
-    - `wall-of-ice`
-  - current reading:
-    - likely real runtime drift on:
-      - `magic-mouth`
-      - `vitriolic-sphere`
-    - likely wording/model-boundary residue on:
-      - `true-seeing`
-      - `wall-of-ice`
-    - still needs direct spell review:
-      - `melfs-acid-arrow`
+  - `0` grouped `Material Component` mismatches
+  - current status: resolved
+  - runtime JSON is no longer lagging behind structured data for this bucket
 - glossary gate checker:
   - canonical -> structured `Material Component Review`: implemented
   - structured -> json `Material Component Runtime Review`: implemented
 - bucket state:
-  - not fully resolved yet
-  - canonical side is now the primary execution surface for this bucket
-  - runtime side is a small named implementation-review lane rather than a broad
-    corpus-scale backlog
+  - resolved on 2026-04-29
+  - no active material-note migration work remains
+  - `legend-lore` keeps the current validator convention where `Material Cost GP`
+    sums written price numbers rather than quantity-expanding prose like
+    "four ivory strips"
 
 ### Components Bucket Progress Note
 
@@ -355,25 +314,24 @@ after the canonical sync and retrieval work.
       - clear area-size drift
       - touch vs touch-area header
 - structured -> json:
-  - `7` mismatches
-  - current status: mostly resolved; the remaining queue is small and policy/model
-    shaped
-  - runtime JSON is no longer broadly lagging behind structured data for this
-    bucket
-  - the remaining spells are:
+  - `0` mismatches
+  - current status: closed in the current generated report
+  - runtime JSON is no longer lagging behind structured `Range/Area` data in the
+    grouped structured -> json audit
+  - `2026-04-29` closure pass resolved:
     - `skywrite`
     - `sending`
+    - `telepathy`
+    - `snare`
     - `commune-with-nature`
     - `mirage-arcane`
     - `control-weather`
     - `earthquake`
-    - `telepathy`
-  - remaining kinds:
-    - one missing structured header
-    - special/unlimited range policy split
-    - no-shape self radius model gap
-    - circle-vs-sphere shape vocabulary gap
-    - one likely fake runtime self-area
+  - remaining boundary/policy note:
+    - `control-weather` still demonstrates why a future no-shape radius model may
+      be cleaner than the current `Sphere` approximation
+    - `commune-with-nature` now demonstrates effect-only radius data housed in
+      `spatialDetails`, not primary `Range/Area`
 - representative runtime sample spells:
   - `control-weather`
   - `earthquake`
@@ -398,13 +356,8 @@ after the canonical sync and retrieval work.
 - focused residuals from that reviewed sample are now outside this bucket:
   - `bones-of-the-earth` still has `Description` and `Higher Levels` drift
   - `wall-of-ice` still has `Material Component` wording drift
-- current provisional runtime subbuckets:
-  - structured missing `Range/Area` (`1`)
-  - special/unlimited range policy split (`2`)
-  - no-shape self radius model gap (`1`)
-  - circle-vs-sphere shape vocabulary gap (`1`)
-  - likely fake runtime self-area (`1`)
-  - large illusion footprint / special range policy (`1`)
+- current runtime subbuckets:
+  - closed in the current report after the `2026-04-29` hand-review pass
 - glossary gate checker:
   - canonical -> structured `Range/Area Bucket`: implemented
   - structured -> json `Range/Area Runtime Review`: implemented
@@ -429,15 +382,11 @@ after the canonical sync and retrieval work.
     - the live runtime geometry-unit audit now finds `0` positive numeric runtime
       geometry fields without explicit unit fields
 - bucket state:
-  - not fully resolved yet
+  - runtime side resolved in the current generated report
   - canonical side is mostly boundary/source residue
-  - runtime side now has a usable subbucket map
-  - runtime side still needs direct spell-by-spell audit before it can be called
-    boundary-only
+  - runtime side no longer has a grouped `Range/Area` backlog
   - explicit-unit backfill sub-lane is now genuinely complete
-  - runtime JSON is therefore still lagging behind structured data for part of this
-  bucket even after the pilot `alarm` / `detect-magic` fixes and the first risky-spell
-  widening pass
+  - future work is policy/model review, not active runtime JSON catch-up
 
 ### Sub-Classes Bucket Progress Note
 
@@ -495,10 +444,14 @@ after the canonical sync and retrieval work.
 
 - canonical -> structured:
   - `17` mismatches
-  - current status: small active residue set
+  - current status: small report residue set; only the `5` metadata-leak cases
+    remain active after the `2026-04-29` direct review
   - why: the live residue now splits into:
     - `12` cases where base-class access still lives only under raw
       `Available For`
+      - reviewed on `2026-04-29`
+      - closed as source-shape residue because the copied canonical snapshots have
+        empty `Available For:` payloads followed by capture metadata / legacy markers
     - `5` cases where `Capture Method: http` leaked into the canonical-side
       comparable class value
 - structured -> json:
@@ -518,10 +471,9 @@ after the canonical sync and retrieval work.
     - whether canonical access is only stored under raw `Available For`
     - whether a real base-class correction is indicated
 - bucket state:
-  - canonical side: small active residue bucket
+  - canonical side: active only for the `5` metadata-leak parser cases
   - runtime side: mostly resolved / no grouped backlog
   - current next work is:
-    - direct review of the remaining `17` spells if further closure is needed
     - canonical-side parser cleanup for the `Capture Method: http` leakage cases
     - audit clarity and policy review
     - not a broad runtime implementation pass

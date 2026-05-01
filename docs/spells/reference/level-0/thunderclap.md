@@ -1,9 +1,43 @@
 # Thunderclap
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Artificer, Bard, Druid, Sorcerer, Warlock, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: area
+- **Targeting Range**: 0
+- **Targeting Max**: 1
+- **Valid Targets**: creatures
+- **Line of Sight**: false
+- **Area Shape**: Sphere
+- **Area Size**: 5
+- **Area Size Unit**: feet
+
+- **Verbal**: false
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE
+- **Save Stat**: Constitution
+- **Save Outcome**: none
+- **Damage Dice**: 1d6
+- **Damage Type**: Thunder
+
+- **Description**: You create a burst of thunderous sound that can be heard up to 100 feet away. Each creature within range, other than you, must succeed on a Constitution saving throw or take 1d6 Thunder damage.
+- **Higher Levels**: The spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).
 
 ## Canonical D&D Beyond Snapshot
 

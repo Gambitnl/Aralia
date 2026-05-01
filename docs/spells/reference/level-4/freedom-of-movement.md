@@ -3,6 +3,7 @@
 - **School**: Abjuration
 - **Ritual**: false
 - **Classes**: Artificer, Bard, Cleric, Druid, Ranger
+- **Sub-Classes**: Paladin - Oath of Devotion, Paladin - Oath of Glory
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

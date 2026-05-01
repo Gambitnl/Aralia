@@ -1,6 +1,6 @@
 # Spell Description Bucket Tracker
 
-Last Updated: 2026-04-04
+Last Updated: 2026-04-29
 
 ## Bucket Purpose
 
@@ -30,12 +30,12 @@ follow-through sync instead of a competing interpretation problem.
   - canonical -> structured `Description Review`: implemented
   - structured -> json `Description Runtime Review`: implemented
 - Canonical -> structured live report:
-  - `51` mismatches
+  - `96` Description mismatches
   - current grouped kind: `value-mismatch`
   - practical reading: real canonical-to-structured prose drift after the canonical-side
     parser bug was fixed on `2026-04-04`
 - Structured -> json live report:
-  - `34` mismatches
+  - `35` Description mismatches
   - current grouped kind: `value-mismatch`
   - practical reading: active runtime follow-up lane with a mix of real drift and lower-value formatting residue
 - Shared docs:
@@ -59,8 +59,8 @@ Current dominant category:
 
 The prior `406` count turned out to be heavily inflated by the canonical audit script
 failing to extract multiline `Rules Text` blocks correctly from the copied snapshot.
-That parser bug is now fixed, so the live `51` count is a much better measure of true
-canonical-to-structured Description disagreement.
+That parser bug is now fixed. The current refreshed `96` Description count is the live
+working queue after more canonical snapshots became comparable.
 
 ### Structured -> JSON
 
@@ -107,14 +107,14 @@ Current execution rule:
 
 ### Canonical -> Structured
 
-- `real-prose-drift`: `30`
-- `canonical-extra-rules-detail`: `13`
-- `higher-level-text-still-inline-or-missing`: `8`
+- `real-prose-drift`: `35`
+- `canonical-extra-rules-detail`: `46`
+- `higher-level-text-still-inline-or-missing`: `15`
 
 ### Structured -> JSON
 
 - `wording-shift-still-needs-review`: `18`
-- `real-runtime-drift`: `16`
+- `real-runtime-drift`: `17`
 
 ## Representative Spell Examples
 
@@ -223,17 +223,26 @@ Actions:
       description-vs-higher-level split cases
     - runtime side: `18` wording-shift cases and `16` real runtime drift cases
 
+- 2026-04-29
+  - refreshed the canonical, structured-vs-json, Description subbucket, and glossary
+    gate artifacts after the Atlas modeling loop closed
+  - synced the dashboard-visible Description counts to the regenerated artifacts:
+    - canonical side: `96`
+    - runtime side: `35`
+  - corrected `polymorph` Description in structured markdown and runtime JSON to match
+    canonical prose; its remaining canonical mismatch is now Sub-Classes only
+
 ## Remaining Work
 
 - finish the canonical -> structured subbuckets first:
-  - `30` `real-prose-drift`
-  - `13` `canonical-extra-rules-detail`
-  - `8` `higher-level-text-still-inline-or-missing`
-- copy the remaining `51` canonical Description mismatches into the structured
+  - `35` `real-prose-drift`
+  - `46` `canonical-extra-rules-detail`
+  - `15` `higher-level-text-still-inline-or-missing`
+- copy the remaining `96` canonical Description mismatches into the structured
   markdown block file-by-file
 - only then copy the corrected structured Description values into runtime JSON for the
-  remaining `34` structured -> json mismatches
-- split the `34` runtime Description mismatches into:
+  remaining `35` structured -> json mismatches
+- keep the `35` runtime Description mismatches split into:
   - real runtime drift
   - wording-shift cases that still need direct review
 - review the highest-signal runtime drift spells first:

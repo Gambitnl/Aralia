@@ -3,6 +3,7 @@
 - **School**: Divination
 - **Ritual**: false
 - **Classes**: Artificer, Wizard
+- **Sub-Classes**: Cleric - Light Domain, Sorcerer - Draconic Sorcery
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action

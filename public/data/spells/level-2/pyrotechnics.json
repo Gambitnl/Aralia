@@ -42,9 +42,9 @@
     "isConsumed": false
   },
   "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
+    "type": "instantaneous",
+    "value": 0,
+    "unit": "round",
     "concentration": false
   },
   "targeting": {

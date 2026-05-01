@@ -1,0 +1,14 @@
+- generic [ref=e7]:
+  - alert [ref=e23]:
+    - generic [ref=e25]:
+      - paragraph [ref=e27]: Game loaded successfully.
+      - button "Close" [ref=e29] [cursor=pointer]:
+        - generic [ref=e30]: Close
+        - img [ref=e31]
+  - status "Loading content" [ref=e33]:
+    - paragraph [ref=e36]: Aralia is weaving fate...
+  - button "💬 Chat History" [ref=e38] [cursor=pointer]:
+    - generic [ref=e39]: 💬
+    - generic [ref=e40]:
+      - generic [ref=e41]: Chat
+      - generic [ref=e42]: History

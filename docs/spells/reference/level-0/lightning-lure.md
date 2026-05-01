@@ -1,9 +1,39 @@
 # Lightning Lure
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Artificer, Sorcerer, Warlock, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: ranged
+- **Targeting Range**: 15
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, enemies
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: false
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: MOVEMENT, DAMAGE
+- **Save Stat**: Strength
+- **Save Outcome**: negates_condition
+
+- **Description**: You create a lash of lightning that strikes one creature you can see within 15 feet. The target makes a Strength saving throw. On a failed save, the target takes lightning damage and is pulled up to 10 feet straight toward you, then takes damage only if it ends within 5 feet of you.
+- **Higher Levels**: The lightning damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).
 
 ## Canonical D&D Beyond Snapshot
 

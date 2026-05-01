@@ -1,9 +1,38 @@
 # Absorb Elements
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 1
+- **School**: Abjuration
+- **Ritual**: false
+- **Classes**: Artificer, Druid, Ranger, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: reaction
+- **Combat Cost**: reaction
+- **Reaction Trigger**: when you take acid, cold, fire, lightning, or thunder damage
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: self
+- **Targeting Range**: 0
+- **Targeting Max**: 1
+- **Valid Targets**: self
+- **Line of Sight**: true
+
+- **Verbal**: false
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DEFENSIVE, DAMAGE
+- **Defense Type**: resistance
+
+- **Description**: The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You gain resistance to the triggering damage type until the start of your next turn. The first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.
+- **Higher Levels**: When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.
 
 ## Canonical D&D Beyond Snapshot
 

@@ -35,10 +35,10 @@
     "distanceUnit": "feet"
   },
   "components": {
-    "verbal": true,
+    "verbal": false,
     "somatic": true,
     "material": true,
-    "materialDescription": "a short piece of copper wire",
+    "materialDescription": "a copper wire",
     "materialCost": 0,
     "isConsumed": false
   },

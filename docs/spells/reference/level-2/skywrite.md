@@ -8,7 +8,8 @@
 - **Casting Time Unit**: action
 - **Combat Cost**: action
 
-- **Range Type**: ranged
+- **Range Type**: sight
+- **Range Distance**: 0
 - **Targeting Type**: point
 - **Valid Targets**: point
 - **Line of Sight**: true

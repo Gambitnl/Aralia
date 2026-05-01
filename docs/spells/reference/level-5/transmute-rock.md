@@ -23,7 +23,7 @@
 - **Material Cost GP**: 0
 - **Consumed**: false
 
-- **Duration Type**: permanent
+- **Duration Type**: until_dispelled
 - **Concentration**: false
 
 - **Effect Type**: UTILITY

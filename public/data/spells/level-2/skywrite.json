@@ -29,7 +29,7 @@
     }
   },
   "range": {
-    "type": "ranged",
+    "type": "sight",
     "distance": 0
   },
   "components": {

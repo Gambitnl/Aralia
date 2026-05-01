@@ -9,10 +9,13 @@
 - **Combat Cost**:
 
 - **Range Type**: self
-- **Area Shape**:
-- **Area Size**: 5 miles
-- **Valid Targets**:
-- **Line of Sight**:
+- **Area Shape**: sphere
+- **Area Size**: 5
+- **Area Size Unit**: miles
+- **Area Size Type**: radius
+- **Targeting Type**: self
+- **Valid Targets**: self
+- **Line of Sight**: false
 
 - **Verbal**: true
 - **Somatic**: true

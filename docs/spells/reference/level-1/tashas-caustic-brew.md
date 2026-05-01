@@ -1,9 +1,45 @@
 # Tasha's Caustic Brew
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 1
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Artificer, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: area
+- **Targeting Range**: 30
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures
+- **Line of Sight**: true
+- **Area Shape**: Line
+- **Area Size**: 30
+- **Area Size Unit**: feet
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: true
+- **Material Description**: a bit of rotten food
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: true
+
+- **Effect Type**: DAMAGE
+- **Save Stat**: Dexterity
+- **Save Outcome**: half
+- **Damage Dice**: 2d4
+- **Damage Type**: Acid
+
+- **Description**: A stream of acid emanates from you in a 30-foot line, coating creatures in corrosive brew.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

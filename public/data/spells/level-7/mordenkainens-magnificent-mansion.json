@@ -35,7 +35,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a miniature portal carved from ivory, a small piece of polished marble, and a tiny silver spoon, each item worth at least 5 gp",
+    "materialDescription": "a miniature door worth 15+ GP",
     "materialCost": 15,
     "isConsumed": false
   },

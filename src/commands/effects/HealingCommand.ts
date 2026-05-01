@@ -1,6 +1,23 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/05/2026, 17:10:59
+ * Dependents: commands/factory/AbilityCommandFactory.ts, commands/factory/SpellCommandFactory.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '@/types/combat'
 import { isHealingEffect } from '../../types/spells'
+import { rollDamage as rollFormula } from '../../utils/combatUtils'
 
 /**
  * Command to apply healing to targets.
@@ -77,26 +94,16 @@ export class HealingCommand extends BaseEffectCommand {
   }
 
   /**
-   * Helper to parse dice string (e.g., "2d8+3") and roll healing.
+   * Helper to parse dice or flat-number healing formulas.
+   *
+   * Simple battle-map abilities such as Second Wind can arrive as a flat value
+   * while spell data usually arrives as dice. Reusing the shared formula roller
+   * keeps both shapes working through the same command pipeline.
+   *
    * @param diceString The dice notation string.
    * @returns The total calculated healing.
    */
   private rollHealing(diceString: string): number {
-    const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/)
-    if (!match) {
-      console.warn(`Invalid dice string for healing: ${diceString}`)
-      return 0
-    }
-
-    const [, countStr, sizeStr, modStr] = match
-    const count = parseInt(countStr)
-    const size = parseInt(sizeStr)
-    const mod = modStr ? parseInt(modStr) : 0
-
-    let total = 0
-    for (let i = 0; i < count; i++) {
-      total += Math.floor(Math.random() * size) + 1
-    }
-    return total + mod
+    return rollFormula(diceString, false)
   }
 }

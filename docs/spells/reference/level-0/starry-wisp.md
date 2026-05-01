@@ -1,9 +1,42 @@
 # Starry Wisp
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Bard, Druid
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 60
+- **Range Distance Unit**: feet
+- **Targeting Type**: single
+- **Targeting Range**: 60
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, objects
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE, UTILITY
+- **Utility Type**: sensory
+- **Attack Roll**: ranged
+- **Damage Dice**: 1d8
+- **Damage Type**: Radiant
+
+- **Description**: Launch a mote of starlight at a creature or object. On a hit, it takes radiant damage and sheds dim light while losing the benefit of invisibility until the end of your next turn.
+- **Higher Levels**: The damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).
 
 ## Canonical D&D Beyond Snapshot
 

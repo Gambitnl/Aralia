@@ -3,6 +3,7 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Bard, Sorcerer, Warlock, Wizard
+- **Sub-Classes**: Cleric - War Domain, Druid - Circle of the Sea, Paladin - Oath of Vengeance
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

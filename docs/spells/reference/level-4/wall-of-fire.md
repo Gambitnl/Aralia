@@ -3,6 +3,7 @@
 - **School**: Evocation
 - **Ritual**: false
 - **Classes**: Druid, Sorcerer, Wizard
+- **Sub-Classes**: Cleric - Light Domain, Warlock - Celestial Patron, Warlock - Fiend Patron
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action

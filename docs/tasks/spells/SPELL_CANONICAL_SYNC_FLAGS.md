@@ -77,22 +77,30 @@ The accepted residue families are:
     separately from the runtime spell-data lane.
 
 - `Higher Levels` structured -> json residue
-  - The runtime bucket is small (`8` live spells), and it is not one uniform class
-    of problem.
-  - Current residue families:
+  - This bucket is now closed in the structured-vs-json report (`0` live
+    `Higher Levels` mismatches).
+  - Closed families:
     - `structured_missing_json_present`
       - examples: `bigbys-hand`, `bones-of-the-earth`, `crown-of-stars`,
         `elemental-bane`, `enervation`
-      - reading: real structured-layer lag, not runtime lag
+      - reading: real structured-layer lag, now fixed
     - `prefix_only_residue`
       - examples: `mass-suggestion`, `wall-of-thorns`
-      - reading: low-severity formatting residue around
-        `Using a Higher-Level Spell Slot.`
+      - reading: low-severity formatting residue around `Using a Higher-Level Spell Slot.`, now aligned in runtime JSON
+    - `description_duplicate_residue`
+      - examples: `banishment`, `blight`, `elemental-bane`, `enervation`
+      - reading: duplicate upcast prose removed from `Description`; the dedicated
+        `Higher Levels` / `higherLevels` surface now owns the text
     - `true_runtime_drift`
       - example: `create-undead`
-      - reading: still needs direct review before being downgraded to formatting
-        residue
-  - This remains an active audit bucket, not a resolved canonical-sync family.
+      - reading: downgraded to formatting residue and corrected
+    - cantrip runtime drift
+      - examples: `chill-touch`, `shocking-grasp`
+      - reading: newly structured cantrip rows exposed runtime higher-level text
+        drift; JSON is now aligned with the structured/canonical cantrip wording
+  - This is no longer an active runtime bucket. The remaining Higher Levels work is
+    canonical source-shape review and the separate `higherLevelScaling` policy/model
+    question.
 
 - `Higher Levels` canonical-side subbucket split
   - The canonical-side residue should no longer be talked about as one vague
@@ -145,6 +153,9 @@ The accepted residue families are:
   - Canonical pages often expose ritual status inline in the casting-time string.
   - The structured model stores ritual separately, so the display does not round-trip
     identically.
+  - On `2026-04-28`, the canonical audit was updated to treat this as accepted
+    normalization when the structured block already has `Ritual: true`.
+  - This flag remains as a boundary note, not as an active Casting Time drift family.
 
 - `Casting Time` trigger-footnote display
   - Canonical pages often use compact footnote or shorthand trigger markers such as
@@ -153,24 +164,28 @@ The accepted residue families are:
     preserving the raw marker.
   - This is source-display residue unless a spell later proves to have lost trigger
     meaning in runtime behavior.
+  - On `2026-04-28`, this was normalized out of both the canonical and runtime
+    Casting Time audit lanes because trigger meaning is a separate spell fact.
+
+- `Casting Time` Plant Growth special timing model gap
+  - `plant-growth` was the one true canonical Casting Time data correction found
+    after display residue was stripped away.
+  - Structured markdown and runtime JSON now use `Casting Time Unit: special`
+    / JSON `unit: "special"`.
+  - The action combat mode remains in `Combat Cost: action`; the 8-hour enrichment
+    mode is recorded in JSON `explorationCost` and matching markdown labels.
+  - The markdown parity tooling does not yet compare `Exploration Cost Value` or
+    `Exploration Cost Unit`, so this is a model/tooling gap rather than an active
+    Casting Time mismatch.
 
 - `Casting Time` structured -> json model/display boundary
   - The glossary now has a dedicated `Structured -> JSON` subsection for `Casting Time`.
   - That lane exists because the glossary renders runtime spell JSON, not the
     structured markdown header.
-  - The remaining `7` runtime mismatches are not yet all proven to be true runtime
-    bugs. They likely mix:
-    - accepted model/display boundaries
-    - narrower real implementation drift
-  - Current representative runtime cases:
-    - `counterspell`
-    - `dream-of-the-blue-veil`
-    - `feather-fall`
-    - `hellish-rebuke`
-    - `legend-lore`
-    - `mirage-arcane`
-    - `shield`
-  - This remains an active audit bucket, not a resolved canonical-sync family.
+  - On `2026-04-28`, the old `7` runtime mismatches were closed as audit-shape
+    residue, not spell JSON drift.
+  - The current generated structured -> JSON report has no Casting Time mismatch
+    group.
 
 - `Duration` display/model boundaries
   - Remaining examples are phrases like `Until Dispelled`, `Until Dispelled or Triggered`,
@@ -202,10 +217,10 @@ The accepted residue families are:
       - canonical-side anchor: `glyph-of-warding`
       - current reading: the source expresses a trigger-ended persistence clause
         that the current runtime duration model does not house explicitly
-    - likely real runtime drift
-      - examples: `pyrotechnics`, `transport-via-plants`
-      - current reading: these do not currently reduce cleanly to wording residue
-        or the `special` bucket boundary and still need direct runtime review
+    - resolved real runtime drift pilot
+      - examples: `pyrotechnics`, `transport-via-plants`, `chill-touch`
+      - current reading: these were confirmed as runtime JSON drift and corrected;
+        they should no longer appear in the structured -> JSON Duration mismatch set
   - `glyph-of-warding` remains the stronger canonical-side model-gap example because
     the copied source says `Until Dispelled or Triggered`, but the current runtime
     duration report does not yet expose it as a grouped structured -> json mismatch.
@@ -218,52 +233,23 @@ The accepted residue families are:
     split fields, so the exact source string does not round-trip cleanly.
 
 - `Material Component` canonical source-shape residue
-  - The old `220`-spell reading for this bucket is no longer the live state.
-  - The current canonical-side live residue is `11` spells and should be treated as a
-    small active review lane, not a giant missing-field noise bucket.
-  - The remaining canonical-side residue splits into:
-    - consumed-state drift
-    - missing structured material note
-    - cost/description drift
-    - wording boundary
-    - alternate-source material-note shape
-  - Representative stronger examples:
-    - `stoneskin`: canonical note adds a consumed-state clause the structured note still omits
-    - `raise-dead`: canonical consumed-material meaning needs to stay visible
-    - `reincarnate`: same consumed-material family
-    - `summon-greater-demon`: canonical material note exists, but structured material note is missing
-    - `conjure-volley`: same missing-structured-note family
-    - `arcane-sword`: alternate-source material-note shape
-  - This lane should now be worked file-by-file before the runtime lane is treated as
-    the primary material bucket.
+  - Resolved on 2026-04-29.
+  - The audit now compares material facts instead of raw source-wrapper text:
+    - ingredient text
+    - cost
+    - consumed state
+  - Footnote wrappers and parentheses should not reappear as live material drift
+    unless the underlying material facts differ.
 
 - `Material Component` structured -> json runtime residue
-  - The glossary spell card renders runtime spell JSON, so this lane is a real
-    implementation-follow-up surface rather than only source-display residue.
-  - Current named runtime residue set:
-    - `magic-mouth`
-    - `melfs-acid-arrow`
-    - `true-seeing`
-    - `vitriolic-sphere`
-    - `wall-of-ice`
-  - Current reading:
-    - likely real runtime drift:
-      - `magic-mouth` because the structured note says the material is consumed but
-        the runtime JSON note does not
-      - `vitriolic-sphere` because the structured note exists but the runtime JSON is
-        missing a comparable material note entirely
-    - likely model/display boundary:
-      - `true-seeing` because the runtime JSON stores a richer explanatory note while
-        cost and consumed-state meaning may still align
-      - `wall-of-ice` because the difference may reduce to wording like `piece` vs
-        `small piece`
-    - still needs direct review:
-      - `melfs-acid-arrow`
-  - This lane should be treated as:
-    - real drift when cost or consumed-state meaning differs, or the runtime note is
-      missing entirely
-    - model/display boundary when the runtime JSON preserves the same facts in richer
-      wording
+  - Resolved on 2026-04-29.
+  - Runtime JSON material notes now match the reviewed structured material facts for
+    the prior live set.
+  - `legend-lore` remains an explicit model-convention note:
+    - `Material Cost GP` currently follows the validator's written-price convention
+    - this means `incense worth 250 GP and four ivory strips worth 50 GP each` is
+      stored as `300`, not quantity-expanded to `450`
+  - Reopen this bucket only if a future audit finds new material-note drift.
 
 - `Components` runtime storage-shape boundary
   - The glossary spell card renders runtime spell JSON, not the structured markdown
@@ -310,6 +296,11 @@ The accepted residue families are:
     access surface under raw `Available For` lines.
   - Current subbucket split:
     - `12` missing-derived-classes cases
+      - reviewed directly on `2026-04-29`
+      - closed as source-shape residue because these copied canonical snapshots have
+        empty `Available For:` payloads followed by capture metadata / legacy markers
+      - structured markdown and runtime JSON already agree on their normalized base-class
+        lists, so no spell data mutation was made
     - `5` metadata-leak parser cases
   - This should be treated as parser/source-shape residue unless a spell shows a true
     narrowed or widened base-class surface.
@@ -959,6 +950,21 @@ Current model-gap / follow-up rule:
   - the pass intentionally did not edit the glossary spell gate checker because
     that code is undergoing modularization
 
+- `2026-04-29` update:
+  - structured -> JSON `Range/Area` residue is now `0` in the regenerated report
+  - the `7` tracked spells plus newly resurfaced `snare` were handled directly
+  - true model/boundary findings preserved from the pass:
+    - `Circle` is now a first-class primary runtime area shape because `snare`
+      and `earthquake` need flat ground footprints
+    - `commune-with-nature` should not use a fake primary `3-ft. Sphere`; its
+      outdoor and underground knowledge radii belong in `spatialDetails`
+    - `control-weather` is currently represented as a 5-mile-radius `Sphere`
+      approximation, but it remains the best example for a future
+      radius-without-shape option if the Range/Area model widens again
+    - `sight` and `unlimited` are valid runtime range types and should be used
+      directly instead of hiding those spells under `special`
+  - no glossary spell gate checker edits were made in this pass
+
 - The runtime spell schema no longer treats range and area units as purely
   implicit comments:
   - `distanceUnit`
@@ -980,7 +986,7 @@ Current model-gap / follow-up rule:
 - Live corpus audit on `2026-04-08` now finds `0` positive numeric runtime geometry
   fields without explicit unit fields.
 - That means the explicit-unit backfill sub-lane is now genuinely complete.
-- What remains is no longer unit omission. It is:
+- What remains is no longer unit omission or runtime JSON catch-up. It is:
   - canonical-side icon-shape capture loss and other source-shape residue
   - geometry semantics
   - shape vocabulary

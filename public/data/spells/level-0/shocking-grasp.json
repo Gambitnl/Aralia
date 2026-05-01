@@ -174,7 +174,7 @@
     "playerInputRequired": false
   },
   "description": "Lightning springs from your hand to deliver a shock. Make a melee spell attack against the target. On a hit, the target takes lightning damage and can't take reactions until the start of its next turn.",
-  "higherLevels": "The damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+  "higherLevels": "Cantrip Upgrade. The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
   "tags": [
     "damage",
     "lightning",

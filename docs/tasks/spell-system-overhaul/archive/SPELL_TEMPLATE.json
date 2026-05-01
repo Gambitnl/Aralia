@@ -28,8 +28,10 @@
   },
 
   "range": {
+    "// COMMENT": "Range type values: self, touch, ranged, special, sight, unlimited. Use distance: 0 for non-numeric range types.",
     "type": "ranged",
-    "distance": 120
+    "distance": 120,
+    "distanceUnit": "feet"
   },
 
   "components": {
@@ -72,8 +74,11 @@
       "validTargets": ["creatures"],
       "lineOfSight": true,
       "areaOfEffect": {
+        "// COMMENT": "Primary shape values: Cone, Cube, Cylinder, Line, Sphere, Square, Circle, Emanation, Wall, Hemisphere, Ring.",
         "shape": "Sphere",
-        "size": 20
+        "size": 20,
+        "sizeType": "radius",
+        "sizeUnit": "feet"
       }
     },
 
@@ -99,8 +104,11 @@
         "validTargets": ["creatures"],
         "lineOfSight": false,
         "areaOfEffect": {
+          "// COMMENT": "Primary shape values: Cone, Cube, Cylinder, Line, Sphere, Square, Circle, Emanation, Wall, Hemisphere, Ring.",
           "shape": "Sphere",
-          "size": 5
+          "size": 5,
+          "sizeType": "radius",
+          "sizeUnit": "feet"
         }
       }
     }
@@ -263,8 +271,11 @@
         },
         "terrainType": "difficult",
         "areaOfEffect": {
+          "// COMMENT": "Primary shape values: Cone, Cube, Cylinder, Line, Sphere, Square, Circle, Emanation, Wall, Hemisphere, Ring.",
           "shape": "Sphere",
-          "size": 20
+          "size": 20,
+          "sizeType": "radius",
+          "sizeUnit": "feet"
         },
         "duration": {
           "type": "minutes",

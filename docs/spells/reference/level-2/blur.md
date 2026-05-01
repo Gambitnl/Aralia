@@ -18,9 +18,15 @@
 - **Duration Value**: 1
 - **Duration Unit**: minute
 - **Concentration**: true
-- **Effect Type**: DEFENSIVE
+- **Effect Type**: ATTACK_ROLL_MODIFIER
 - **Save Stat**: None
 - **Save Outcome**: none
+- **Attack Roll Modifier**: disadvantage
+- **Attack Roll Direction**: incoming
+- **Attack Roll Kind**: any
+- **Attack Roll Consumption**: while_active
+- **Attack Roll Duration**: 1 Minute
+- **Attack Roll Notes**: Attacker is immune if it perceives the caster with Blindsight or Truesight.
 - **Description**: Your body becomes blurred. For the duration, any creature has Disadvantage on attack rolls against you. An attacker is immune to this effect if it perceives you with Blindsight or Truesight .
 - **Higher Levels**: None
 ---

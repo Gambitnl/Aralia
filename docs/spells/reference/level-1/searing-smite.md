@@ -24,6 +24,7 @@
 - **Concentration**: false
 
 - **Effect Type**: DAMAGE, STATUS_CONDITION
+- **Conditions Applied**: Ignited
 - **Save Stat**: Constitution
 - **Save Outcome**: negates_condition
 - **Damage Dice**: 1d6

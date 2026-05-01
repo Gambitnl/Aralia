@@ -3,6 +3,7 @@
 - **School**: Transmutation
 - **Ritual**: false
 - **Classes**: Artificer, Druid, Ranger, Sorcerer, Wizard
+- **Sub-Classes**: Paladin - Oath of the Ancients
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

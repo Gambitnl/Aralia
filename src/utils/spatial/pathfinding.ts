@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:34:08
- * Dependents: pathfinding.ts, spatial/index.ts
+ * Last Sync: 01/05/2026, 14:09:19
+ * Dependents: utils/pathfinding.ts, utils/spatial/index.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -20,7 +20,7 @@
  * Updated to support D&D 5e Variant 5-10-5 diagonal movement.
  */
 import { BattleMapTile, BattleMapData } from '../../types/combat';
-import { calculateMovementCost } from '../combat/movementUtils';
+import { calculateMovementCost, isDifficultMovementCost } from '../combat/movementUtils';
 import { applyMovementCostModifiers, MovementConfig } from '../combat/physicsUtils';
 
 interface PathNode {
@@ -129,7 +129,10 @@ export function findPath(
         // Determine physics modifiers for this specific step
         const stepConfig: MovementConfig = {
           ...movementConfig,
-          isDifficultTerrain: (neighborTile.movementCost || 1) > 1,
+          // movementCost may be stored as 5/10 feet or 1/2 multipliers.
+          // Normalize it before deciding whether physics should add the
+          // difficult-terrain surcharge.
+          isDifficultTerrain: isDifficultMovementCost(neighborTile.movementCost),
           // We assume crawling/climbing/swimming state persists from the passed config
           // unless specific tile logic overrides it (future TODO)
         };

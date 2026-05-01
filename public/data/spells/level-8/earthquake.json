@@ -57,8 +57,9 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Sphere",
+      "shape": "Circle",
       "size": 100,
+      "sizeType": "radius",
       "sizeUnit": "feet",
       "height": 0
     },

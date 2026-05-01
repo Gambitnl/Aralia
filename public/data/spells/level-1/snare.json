@@ -52,8 +52,9 @@
       "creatures"
     ],
     "areaOfEffect": {
-      "shape": "Square",
+      "shape": "Circle",
       "size": 5,
+      "sizeType": "radius",
       "sizeUnit": "feet",
       "height": 0
     },

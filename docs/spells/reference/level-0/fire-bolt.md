@@ -1,9 +1,40 @@
 # Fire Bolt
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Artificer, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 120
+- **Range Distance Unit**: feet
+- **Targeting Type**: single
+- **Targeting Range**: 120
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, objects
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE
+- **Damage Dice**: 1d10
+- **Damage Type**: Fire
+
+- **Description**: You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 fire damage. A flammable object hit by this spell ignites if it isn't being worn or carried.
+- **Higher Levels**: This spell's damage increases by 1d10 when you reach 5th level (2d10), 11th level (3d10), and 17th level (4d10).
 
 ## Canonical D&D Beyond Snapshot
 

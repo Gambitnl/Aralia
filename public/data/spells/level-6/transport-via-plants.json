@@ -41,7 +41,7 @@
   "duration": {
     "type": "timed",
     "value": 1,
-    "unit": "round",
+    "unit": "minute",
     "concentration": false
   },
   "targeting": {

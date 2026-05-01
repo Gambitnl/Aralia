@@ -35,6 +35,10 @@ describe('worldReducer', () => {
         const result = worldReducer(baseState, action);
 
         expect(result.gameTime).toBeDefined();
+        // ADVANCE_TIME remains the authoritative Chronos Loop: the same action
+        // updates gameTime and then gives downstream daily world systems a
+        // chance to react.
+        expect(result.gameTime?.toISOString()).toBe('2024-01-02T12:00:00.000Z');
         // Check if logs were added (implies processWorldEvents was called and result merged)
         expect(result.messages).toHaveLength(baseState.messages.length + 1);
         expect(result.messages?.[0].text).toBe('Mock World Event');
@@ -53,6 +57,9 @@ describe('worldReducer', () => {
         const result = worldReducer(baseState, action);
 
         expect(result.gameTime).toBeDefined();
+        // Small action chunks still use ADVANCE_TIME, even when they do not
+        // cross a daily boundary or trigger world-event logs.
+        expect(result.gameTime?.toISOString()).toBe('2024-01-01T13:00:00.000Z');
         expect(result.messages).toEqual([]); // Expect empty array, not undefined
     });
 });

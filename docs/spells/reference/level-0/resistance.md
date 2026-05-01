@@ -1,9 +1,38 @@
 # Resistance
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Abjuration
+- **Ritual**: false
+- **Classes**: Artificer, Cleric, Druid
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: touch
+- **Range Distance**: 0
+- **Targeting Type**: single
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, allies
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: true
+
+- **Effect Type**: UTILITY
+- **Utility Type**: other
+
+- **Description**: You touch a willing creature and choose a damage type: Acid, Bludgeoning, Cold, Fire, Lightning, Necrotic, Piercing, Poison, Radiant, Slashing, or Thunder. For the duration, when the creature takes damage of the chosen type, it reduces that damage by 1d4 (once per turn).
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

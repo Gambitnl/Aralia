@@ -31,20 +31,23 @@ This bucket is also wider than a single effect label. It has to separate:
   - `47` spells currently contain at least one `STATUS_CONDITION` effect
   - `56` total status-condition effects across those spells
 - Structured markdown:
-  - `51` spell reference files currently contain a `Conditions Applied` row
+  - `56` spell reference files currently contain a `Conditions Applied` row
 - Current overlap:
-  - `41` spells have both a markdown `Conditions Applied` row and a runtime
+  - `46` spells have both a markdown `Conditions Applied` row and a runtime
     `STATUS_CONDITION` effect
 - Current split residue:
-  - `6` runtime condition spells still do not have a markdown `Conditions Applied`
-    row
+  - `0` runtime condition spells still lack a markdown `Conditions Applied` row
+  - Frostbite was removed from this bucket and is now tracked as an attack-roll
+    rider instead of a condition
   - `10` markdown `Conditions Applied` rows do not correspond to a runtime
     `STATUS_CONDITION` effect
 - Gate checker status:
-  - the glossary spell gate checker now has a dedicated `Conditions Runtime Review`
-    block
-  - this bucket is now a live runtime review surface, not just an inventory lane
-  - the structured-vs-JSON audit now compares `Conditions Applied` explicitly
+  - the Atlas execution map now tracks the `Conditions` bucket as a live
+    mechanics-model lane
+  - the glossary spell gate checker does not currently emit a dedicated
+    `Conditions Runtime Review` block in this checkout
+  - the structured-vs-JSON audit does not currently compare `Conditions Applied`
+    as a live report bucket
 - Template policy:
   - `Conditions Applied` is now treated as a required structured markdown field
   - the runtime JSON already carries enough signal to support that requirement,
@@ -119,12 +122,18 @@ Meaning:
   file does not have a matching `Conditions Applied` row
 
 Current examples:
+- none live after the 2026-04-29 pass
+
+Closed examples:
 - `chill-touch`
 - `friends`
-- `frostbite`
 - `searing-smite`
 - `shocking-grasp`
 - `snare`
+
+Frostbite was part of the initial count, but it is now owned by Attack-Roll
+Riders because it changes the target's next attack instead of applying a
+lasting condition.
 
 ### Markdown `Conditions Applied` Row Without Runtime Status Condition
 
@@ -217,7 +226,8 @@ Actions:
     - `56` condition effects
     - `51` markdown `Conditions Applied` rows
     - `41` overlaps
-    - `6` runtime-only condition spells missing the markdown row
+    - `5` runtime-only condition spells missing the markdown row
+    - Frostbite moved out to Attack-Roll Riders
     - `10` markdown-only rows without a runtime status-condition effect
   - identified the live custom condition labels:
     - `Bane`
@@ -229,11 +239,26 @@ Actions:
     - `No Healing`
     - `Prone, Incapacitated`
     - `Reactions Suppressed`
-  - wired the glossary spell gate checker with a dedicated `Conditions Runtime
-    Review` block so the selected spell can now show the structured row and the
-    live runtime JSON side by side
+  - confirmed that the current checkout still needs the glossary spell gate
+    checker and structured-vs-JSON audit to receive a dedicated `Conditions`
+    runtime lane
   - marked `Conditions Applied` as a required structured markdown field in the
     current spell-truth plan
+
+- 2026-04-29
+  - closed the `runtime_condition_missing_markdown_row` subbucket
+  - added `Conditions Applied` rows for:
+    - `chill-touch` - `No Healing`, `Disadvantage on attacks vs. caster`
+    - `friends` - `Charmed`
+    - `searing-smite` - `Ignited`
+    - `shocking-grasp` - `Reactions Suppressed`
+    - `snare` - `Restrained`
+  - converted `chill-touch`, `friends`, `shocking-grasp`, and `snare` from
+    canonical-only reference files into structured spell files so the new rows
+    are visible to parity tooling
+  - left the custom-label policy unresolved; `No Healing`, `Disadvantage on
+    attacks vs. caster`, and `Reactions Suppressed` still need the custom
+    condition-label subbucket
 
 ## Open Questions / Model Gaps
 

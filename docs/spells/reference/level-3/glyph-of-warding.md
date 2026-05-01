@@ -20,7 +20,7 @@
 - **Material Description**: powdered diamond worth 200+ GP, which the spell consumes
 - **Material Cost GP**: 200
 - **Consumed**: true
-- **Duration Type**: until_dispelled
+- **Duration Type**: until_dispelled_or_triggered
 - **Concentration**: false
 - **Effect Type**: UTILITY
 - **Save Stat**: Dexterity

@@ -13,6 +13,8 @@
 - **Targeting Type**: area
 - **Area Shape**: circle
 - **Area Size**: 100
+- **Area Size Unit**: feet
+- **Area Size Type**: radius
 - **Valid Targets**:
 - **Line of Sight**: true
 

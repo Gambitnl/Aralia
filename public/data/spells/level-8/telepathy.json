@@ -26,7 +26,7 @@
     }
   },
   "range": {
-    "type": "special",
+    "type": "unlimited",
     "distance": 0
   },
   "components": {

@@ -1,9 +1,38 @@
 # Guidance
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Divination
+- **Ritual**: false
+- **Classes**: Cleric, Druid, Artificer
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: touch
+- **Range Distance**: 0
+- **Targeting Type**: single
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, allies
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: true
+
+- **Effect Type**: UTILITY
+- **Utility Type**: other
+
+- **Description**: You touch one willing creature and choose one skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

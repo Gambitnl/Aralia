@@ -1,6 +1,6 @@
 # Spell Duration Bucket Tracker
 
-Last Updated: 2026-04-06
+Last Updated: 2026-04-28
 
 ## Bucket Purpose
 
@@ -23,8 +23,8 @@ canonical snapshot and structured duration line were compared successfully.
   - current reading: mostly source-display residue plus a small model-gap core
 - structured -> json:
   - source: `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - live count: `17`
-  - current reading: mixed runtime follow-up lane
+  - live count: `15`
+  - current reading: mixed runtime follow-up lane after closing the two-spell true drift pilot
 - glossary gate checker:
   - canonical -> structured `Duration Review`: implemented
   - structured -> json `Structured -> JSON` subsection inside `Duration Review`: implemented
@@ -60,13 +60,14 @@ This side answers the runtime question:
 - does the structured duration layer still differ from the live spell JSON that
   the glossary actually renders?
 
-Current likely families in the `17`-spell runtime residue set:
+Current likely families in the `15`-spell runtime residue set:
 
 - flattened concentration wording
 - plain duration wording / pluralization residue
 - normalized `special` duration boundaries
 - trigger-ended persistence boundary
-- true runtime drift on a smaller subset
+- alternate-source duration shape
+- resolved true-runtime-drift cases (`pyrotechnics`, `transport-via-plants`, `chill-touch`)
 
 Current runtime spell set:
 
@@ -81,12 +82,10 @@ Current runtime spell set:
 - `maelstrom`
 - `mirage-arcane`
 - `mordenkainens-magnificent-mansion`
-- `pyrotechnics`
 - `sequester`
 - `simulacrum`
 - `symbol`
 - `transmute-rock`
-- `transport-via-plants`
 
 ## Key Mismatch Families
 
@@ -162,21 +161,41 @@ Current reading:
 - structured -> json: model gap if the runtime spell JSON still only has a generic
   `special` duration bucket
 
-### 5. Likely True Runtime Drift
+### 5. Alternate-Source Shape
 
 Examples:
 
+- `arcane-sword`
+
+`arcane-sword` is intentionally kept as an alternate-source duration shape because
+the approved spell source is Roll20 rather than the D&D Beyond capture pattern used
+for most canonical spell records.
+
+Current reading:
+
+- canonical -> structured: source-shape residue / accepted policy boundary
+- structured -> json: not part of the current runtime `15` mismatch set unless a
+  future comparable canonical field is authored
+
+### 6. Likely True Runtime Drift
+
+Examples:
+
+- `chill-touch`
 - `pyrotechnics`
 - `transport-via-plants`
 
-These cases do not currently look like simple wording residue or `special`
-normalization. They still need direct review against the structured duration and
-live runtime JSON facts.
+These cases were direct-review pilots for real runtime duration drift. All were
+confirmed as JSON drift and corrected:
+
+- `chill-touch`: runtime top-level duration changed from `timed 1 round` to `instantaneous`
+- `pyrotechnics`: runtime duration changed from `timed 1 minute` to `instantaneous`
+- `transport-via-plants`: runtime duration unit changed from `round` to `minute`
 
 Current reading:
 
 - canonical -> structured: not the main question
-- structured -> json: real implementation-follow-up lane
+- structured -> json: resolved implementation drift
 
 ## Per-Phase Plan
 
@@ -223,13 +242,13 @@ What the gate checker now shows:
 
 Remaining work:
 
-- review the `17` runtime mismatches directly
+- review the remaining `15` runtime mismatches directly
 - split them into:
   - flattened concentration wording
   - plain duration wording residue
   - accepted special-bucket normalization
   - trigger-ended persistence boundary
-  - real runtime drift
+  - real runtime drift, if any new cases appear after the pilot fix
 
 ## Progress Log
 
@@ -250,15 +269,24 @@ Remaining work:
   distinguish flattened concentration wording from plain wording residue and from
   special-duration model boundaries
 
+### 2026-04-28
+
+- closed the `likely_true_runtime_drift` pilot subbucket
+- corrected `pyrotechnics` runtime JSON from `timed 1 minute` to `instantaneous`
+- corrected `transport-via-plants` runtime JSON from `timed 1 round` to `timed 1 minute`
+- corrected `chill-touch` runtime JSON from `timed 1 round` to `instantaneous`
+- reduced the structured -> json Duration live count from `17` to `15`
+- promoted `duration_wording_runtime_residue` as the next active runtime review lane
+
 ## Remaining Work
 
-- audit the `17` structured -> json mismatches directly
+- audit the remaining `15` structured -> json mismatches directly
 - classify each remaining runtime case as:
   - flattened concentration wording
   - plain duration wording residue
   - accepted special-bucket normalization
   - trigger-ended persistence boundary
-  - real implementation drift
+  - real implementation drift if any cases remain after classification
 - decide whether the runtime duration model should expand beyond the current
   `special` bucket for `until dispelled` style spells
 

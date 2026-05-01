@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 24/04/2026, 00:24:56
+ * Last Sync: 29/04/2026, 17:39:30
  * Dependents: commands/base/BaseEffectCommand.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AISpellInputModal.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/Combat/ReactionPrompt.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, data/feats/featsData.ts, hooks/combat/useSummons.ts, hooks/useAbilitySystem.ts, scripts/audit_enchantment_consistency.ts, systems/creatures/CreatureTaxonomy.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/mechanics/SavingThrowResolver.ts, systems/spells/mechanics/ScalingEngine.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/spells/validation/LegacySpellValidator.ts, systems/spells/validation/SpellIntegrityValidator.ts, systems/spells/validation/TargetingPresets.ts, types/index.ts, types/mechanics.ts, utils/character/savingThrowUtils.ts, utils/combat/combatUtils.ts, utils/combat/resistanceUtils.ts, utils/core/factories.ts, utils/validation/spellAuditor.ts, utils/validation/spellConsistencyValidator.ts, utils/visuals/spellVisuals.ts
  * Imports: 1 files
  *
@@ -297,14 +297,14 @@ export interface TargetAllocation {
 export interface AreaOfEffect {
   /**
    * Shape of the area of effect.
-   * Basic shapes: Cone, Cube, Cylinder, Line, Sphere, Square
+   * Basic shapes: Cone, Cube, Cylinder, Line, Sphere, Square, Circle
    * Extended shapes:
    * - Emanation: Centered on caster, optionally moves with caster
    * - Wall: Linear barrier with length/height/thickness
    * - Hemisphere: Dome shape (half-sphere)
    * - Ring: Hollow circle/cylinder
    */
-  shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere" | "Square"
+  shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere" | "Square" | "Circle"
   | "Emanation" | "Wall" | "Hemisphere" | "Ring";
   /**
    * Primary dimension of the area (radius for spheres/emanations, length for
@@ -611,6 +611,7 @@ export type SpellEffect =
   | DamageEffect
   | HealingEffect
   | StatusConditionEffect
+  | AttackRollModifierEffect
   | MovementEffect
   | SummoningEffect
   | TerrainEffect
@@ -798,6 +799,49 @@ export interface HealingData {
 export interface StatusConditionEffect extends BaseEffect {
   type: "STATUS_CONDITION";
   statusCondition: StatusCondition;
+}
+
+//==============================================================================
+// Attack Roll Rider Effects
+//==============================================================================
+
+/**
+ * A spell effect that changes how an attack roll is made without treating the
+ * change as a named condition.
+ *
+ * Why this exists:
+ * Some spells say "attacks against this creature have disadvantage" or "this
+ * creature's next attack has disadvantage." Those are real combat mechanics,
+ * but they are not conditions like Prone or Blinded. This shape gives those
+ * riders their own runtime home so the attack system can read them later.
+ */
+export interface AttackRollModifierEffect extends BaseEffect {
+  type: "ATTACK_ROLL_MODIFIER";
+  attackRollModifier: {
+    /** Advantage/disadvantage or a numeric/dice shift to the attack roll. */
+    modifier: "advantage" | "disadvantage" | "bonus" | "penalty";
+    /** Incoming modifies attacks against the affected creature; outgoing modifies attacks the affected creature makes. */
+    direction: "incoming" | "outgoing";
+    /** Which attack family the rider applies to. */
+    attackKind: "any" | "weapon" | "melee_weapon" | "ranged_weapon" | "spell";
+    /** Whether the rider is consumed by one attack or remains for the whole active duration. */
+    consumption: "next_attack" | "first_attack" | "while_active";
+    /** How long the rider can be read by combat before it expires. */
+    duration: EffectDuration;
+    /** Optional dice amount for bonus/penalty riders such as Bane. */
+    dice?: string;
+    /** Optional flat amount for bonus/penalty riders. */
+    value?: number;
+    /** Optional attacker filter for rider families that only affect certain creature types. */
+    attackerFilter?: TargetConditionFilter;
+    /** Human-readable caveats that the current combat filter model cannot express yet. */
+    notes?: string;
+  };
+  /**
+   * Optional bundled damage for spells such as Frostbite where the same save
+   * controls both damage and the later attack-roll rider.
+   */
+  damage?: DamageData;
 }
 
 /** Defines the applied status condition and its duration. */
@@ -1233,6 +1277,11 @@ export function isHealingEffect(effect: SpellEffect): effect is HealingEffect {
 /** A type guard to check if a `SpellEffect` is a `StatusConditionEffect`. */
 export function isStatusConditionEffect(effect: SpellEffect): effect is StatusConditionEffect {
   return effect.type === "STATUS_CONDITION";
+}
+
+/** A type guard to check if a `SpellEffect` is an attack-roll rider. */
+export function isAttackRollModifierEffect(effect: SpellEffect): effect is AttackRollModifierEffect {
+  return effect.type === "ATTACK_ROLL_MODIFIER";
 }
 
 /** A type guard to check if a `SpellEffect` is a `MovementEffect`. */

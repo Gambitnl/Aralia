@@ -33,7 +33,7 @@
     "verbal": true,
     "somatic": false,
     "material": true,
-    "materialDescription": "a holy symbol",
+    "materialDescription": "a sunburst token",
     "materialCost": 0,
     "isConsumed": false
   },

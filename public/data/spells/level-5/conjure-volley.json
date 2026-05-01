@@ -34,7 +34,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "",
+    "materialDescription": "one piece of ammunition or one thrown weapon",
     "materialCost": 0,
     "isConsumed": false
   },

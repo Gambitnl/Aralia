@@ -1,9 +1,39 @@
 # Prestidigitation
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Artificer, Bard, Sorcerer, Warlock, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 10
+- **Range Distance Unit**: feet
+- **Targeting Type**: single
+- **Targeting Range**: 10
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, objects
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: hour
+- **Concentration**: false
+
+- **Effect Type**: UTILITY
+- **Utility Type**: sensory
+
+- **Description**: This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

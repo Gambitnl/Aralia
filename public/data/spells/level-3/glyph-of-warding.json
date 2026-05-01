@@ -42,7 +42,7 @@
     "isConsumed": true
   },
   "duration": {
-    "type": "until_dispelled",
+    "type": "until_dispelled_or_triggered",
     "concentration": false,
     "value": 0,
     "unit": "round"

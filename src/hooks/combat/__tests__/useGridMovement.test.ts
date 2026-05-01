@@ -1,7 +1,8 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { useGridMovement } from '../useGridMovement'; // Corrected import path
-import { BattleMapData, CharacterPosition, CombatCharacter } from '../../../types/combat';
+import { BattleMapData, BattleMapTile, CharacterPosition, CombatCharacter } from '../../../types/combat';
+import type { Class } from '../../../types';
 import { vi, describe, it, expect } from 'vitest';
 
 // Mock pathfinding
@@ -14,6 +15,37 @@ vi.mock('../../../utils/pathfinding', () => ({
 }));
 
 describe('useGridMovement', () => {
+  const createOpenMap = (width: number, height: number, movementCost: number): BattleMapData => {
+    const tiles = new Map<string, BattleMapTile>();
+
+    // Build a complete open grid so movement range can expand naturally in all
+    // directions. The movementCost parameter intentionally supports both live
+    // battle-map feet costs (5/10) and older multiplier costs (1/2).
+    for (let x = 0; x < width; x += 1) {
+      for (let y = 0; y < height; y += 1) {
+        const id = `${x}-${y}`;
+        tiles.set(id, {
+          id,
+          coordinates: { x, y },
+          movementCost,
+          blocksMovement: false,
+          terrain: 'grass',
+          elevation: 0,
+          blocksLoS: false,
+          decoration: null,
+          effects: []
+        });
+      }
+    }
+
+    return {
+      dimensions: { width, height },
+      tiles,
+      theme: 'forest',
+      seed: 123
+    };
+  };
+
   const mockMapData: BattleMapData = {
     dimensions: { width: 5, height: 5 },
     tiles: new Map([
@@ -30,10 +62,24 @@ describe('useGridMovement', () => {
     ['char1', { characterId: 'char1', coordinates: { x: 0, y: 0 } }]
   ]);
 
+    const mockClass: Class = {
+      id: 'fighter',
+      name: 'Fighter',
+      description: '',
+      hitDie: 10,
+      primaryAbility: ['Strength'],
+      savingThrowProficiencies: [],
+      skillProficienciesAvailable: [],
+      numberOfSkillProficiencies: 0,
+      armorProficiencies: [],
+      weaponProficiencies: [],
+      features: []
+    };
+
     const mockCharacter: CombatCharacter = {
     id: 'char1',
     name: 'Hero',
-    level: 1 as any,
+    level: 1,
     actionEconomy: {
         movement: { total: 30, used: 0 },
         action: { used: false, remaining: 1 },
@@ -59,19 +105,7 @@ describe('useGridMovement', () => {
     maxHP: 10,
     initiative: 10,
     statusEffects: [],
-    class: {
-        id: 'fighter',
-        name: 'Fighter',
-        description: '',
-        hitDie: 10,
-        primaryAbility: ['Strength'],
-        savingThrowProficiencies: [],
-        skillProficienciesAvailable: [],
-        numberOfSkillProficiencies: 0,
-        armorProficiencies: [],
-        weaponProficiencies: [],
-        features: []
-    } as any
+    class: mockClass
   };
 
   it('should initialize with empty state when no character selected', () => {
@@ -107,6 +141,26 @@ describe('useGridMovement', () => {
     expect(result.current.validMoves.has('0-1')).toBe(true);
     expect(result.current.validMoves.has('1-0')).toBe(true);
     expect(result.current.validMoves.has('1-1')).toBe(true);
+  });
+
+  it('treats generated 5-foot normal tiles as one square, not a 5x terrain multiplier', () => {
+    const openMap = createOpenMap(15, 15, 5);
+    const centeredCharacter = {
+      ...mockCharacter,
+      position: { x: 7, y: 7 }
+    };
+    const centeredPositions = new Map<string, CharacterPosition>([
+      ['char1', { characterId: 'char1', coordinates: centeredCharacter.position }]
+    ]);
+
+    const { result } = renderHook(() => useGridMovement({
+      mapData: openMap,
+      characterPositions: centeredPositions,
+      selectedCharacter: centeredCharacter
+    }));
+
+    expect(result.current.validMoves.has('13-7')).toBe(true);
+    expect(result.current.validMoves.has('14-7')).toBe(false);
   });
 
   it('should calculate path', () => {

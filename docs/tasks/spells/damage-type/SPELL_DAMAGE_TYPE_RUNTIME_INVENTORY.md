@@ -1,0 +1,505 @@
+# Runtime spell damage inventory (DAMAGE effects)
+
+Generated: 2026-05-02 (`scripts/inventory-spell-damage-runtime.mjs`).
+
+## Definitions
+
+- **Mechanical damage spell**: spell JSON has ≥1 **top-level effect** with `effect.type === "DAMAGE"`.
+- **Single known damage type**: for every such row, non-empty `effect.damage.type` that matches PHB-like PascalCase tokens: Acid, Bludgeoning, Cold, Fire, Force, Lightning, Necrotic, Piercing, Poison, Psychic, Radiant, Slashing, Thunder.
+- **Summon / STATUS / Terrain / etc.** with stray `damage` blobs are ignored unless there is an actual DAMAGE effect.
+
+**Caveat:** Spells whose damage appears only in `description`/summons (`elemental-bane`) have **zero** DAMAGE effects until modeled — they appear under *no_damage_effect*.
+
+## Funnel counts
+
+| Stage | Count | Notes |
+| --- | ---: | --- |
+| All spell JSON files under `public/data/spells/level-*` | 459 | |
+| **No** DAMAGE effect | 312 | Not in mechanical damage-type pipeline for this bucket |
+| DAMAGE + every row single known type | 135 | **Filtered out** — no composite / empty type on DAMAGE rows |
+| **Remainder** (needs attention) | 12 | Empty or non-standard `damage.type` on at least one DAMAGE row |
+
+## Remainder — spells to focus on
+
+Each line: `id` — per-DAMAGE-effect `(effectIndex) type="..." dice="..."`.
+
+- **absorb-elements** — (1) type="Acid/Cold/Fire/Lightning/Thunder" dice="1d6"
+- **chromatic-orb** — (0) type="Acid/Cold/Fire/Lightning/Poison/Thunder" dice="3d8"
+- **conjure-elemental** — (0) type="variable" dice="8d8"
+- **conjure-minor-elementals** — (0) type="Acid, Cold, Fire, or Lightning" dice="2d8"
+- **dragons-breath** — (1) type="Acid/Cold/Fire/Lightning/Poison" dice="3d6"
+- **elemental-weapon** — (0) type="Acid/Cold/Fire/Lightning/Thunder" dice="1d4"
+- **fire-shield** — (0) type="Fire or Cold" dice="2d8"
+- **glyph-of-warding** — (0) type="Acid/Cold/Fire/Lightning/Thunder" dice="5d8"
+- **hunger-of-hadar** — (0) type="Cold/Acid" dice="2d6"
+- **illusory-dragon** — (0) type="acid, cold, fire, lightning, necrotic, or poison" dice="7d6"
+- **prismatic-spray** — (0) type="Fire, Acid, Lightning, Poison, Cold" dice="12d6"
+- **spirit-guardians** — (0) type="Radiant/Necrotic" dice="3d8"
+
+## Reference — no DAMAGE effect (full list)
+
+Total: **312** spells. Collapsed for size; use search in editor or re-run script.
+
+<details>
+<summary>Click to expand spell ids</summary>
+
+
+- `aid` (public/data/spells/level-2/aid.json)
+- `alarm` (public/data/spells/level-1/alarm.json)
+- `alter-self` (public/data/spells/level-2/alter-self.json)
+- `animal-friendship` (public/data/spells/level-1/animal-friendship.json)
+- `animal-messenger` (public/data/spells/level-2/animal-messenger.json)
+- `animal-shapes` (public/data/spells/level-8/animal-shapes.json)
+- `animate-dead` (public/data/spells/level-3/animate-dead.json)
+- `animate-objects` (public/data/spells/level-5/animate-objects.json)
+- `antilife-shell` (public/data/spells/level-5/antilife-shell.json)
+- `antimagic-field` (public/data/spells/level-8/antimagic-field.json)
+- `antipathy-sympathy` (public/data/spells/level-8/antipathy-sympathy.json)
+- `arcane-eye` (public/data/spells/level-4/arcane-eye.json)
+- `arcane-gate` (public/data/spells/level-6/arcane-gate.json)
+- `arcane-lock` (public/data/spells/level-2/arcane-lock.json)
+- `arcane-sword` (public/data/spells/level-7/arcane-sword.json)
+- `arcane-vigor` (public/data/spells/level-2/arcane-vigor.json)
+- `astral-projection` (public/data/spells/level-9/astral-projection.json)
+- `augury` (public/data/spells/level-2/augury.json)
+- `aura-of-life` (public/data/spells/level-4/aura-of-life.json)
+- `aura-of-purity` (public/data/spells/level-4/aura-of-purity.json)
+- `aura-of-vitality` (public/data/spells/level-3/aura-of-vitality.json)
+- `awaken` (public/data/spells/level-5/awaken.json)
+- `bane` (public/data/spells/level-1/bane.json)
+- `banishing-smite` (public/data/spells/level-5/banishing-smite.json)
+- `banishment` (public/data/spells/level-4/banishment.json)
+- `barkskin` (public/data/spells/level-2/barkskin.json)
+- `beacon-of-hope` (public/data/spells/level-3/beacon-of-hope.json)
+- `beast-sense` (public/data/spells/level-2/beast-sense.json)
+- `bestow-curse` (public/data/spells/level-3/bestow-curse.json)
+- `bigbys-hand` (public/data/spells/level-5/bigbys-hand.json)
+- `blade-ward` (public/data/spells/level-0/blade-ward.json)
+- `bless` (public/data/spells/level-1/bless.json)
+- `blindness-deafness` (public/data/spells/level-2/blindness-deafness.json)
+- `blink` (public/data/spells/level-3/blink.json)
+- `blur` (public/data/spells/level-2/blur.json)
+- `calm-emotions` (public/data/spells/level-2/calm-emotions.json)
+- `catnap` (public/data/spells/level-3/catnap.json)
+- `charm-monster` (public/data/spells/level-4/charm-monster.json)
+- `charm-person` (public/data/spells/level-1/charm-person.json)
+- `circle-of-power` (public/data/spells/level-5/circle-of-power.json)
+- `clairvoyance` (public/data/spells/level-3/clairvoyance.json)
+- `clone` (public/data/spells/level-8/clone.json)
+- `color-spray` (public/data/spells/level-1/color-spray.json)
+- `command` (public/data/spells/level-1/command.json)
+- `commune` (public/data/spells/level-5/commune.json)
+- `commune-with-nature` (public/data/spells/level-5/commune-with-nature.json)
+- `compelled-duel` (public/data/spells/level-1/compelled-duel.json)
+- `comprehend-languages` (public/data/spells/level-1/comprehend-languages.json)
+- `compulsion` (public/data/spells/level-4/compulsion.json)
+- `confusion` (public/data/spells/level-4/confusion.json)
+- `conjure-animals` (public/data/spells/level-3/conjure-animals.json)
+- `conjure-fey` (public/data/spells/level-6/conjure-fey.json)
+- `conjure-volley` (public/data/spells/level-5/conjure-volley.json)
+- `contact-other-plane` (public/data/spells/level-5/contact-other-plane.json)
+- `contingency` (public/data/spells/level-6/contingency.json)
+- `continual-flame` (public/data/spells/level-2/continual-flame.json)
+- `control-water` (public/data/spells/level-4/control-water.json)
+- `control-weather` (public/data/spells/level-8/control-weather.json)
+- `control-winds` (public/data/spells/level-5/control-winds.json)
+- `counterspell` (public/data/spells/level-3/counterspell.json)
+- `create-food-and-water` (public/data/spells/level-3/create-food-and-water.json)
+- `create-homunculus` (public/data/spells/level-6/create-homunculus.json)
+- `create-or-destroy-water` (public/data/spells/level-1/create-or-destroy-water.json)
+- `create-undead` (public/data/spells/level-6/create-undead.json)
+- `creation` (public/data/spells/level-5/creation.json)
+- `crown-of-madness` (public/data/spells/level-2/crown-of-madness.json)
+- `cure-wounds` (public/data/spells/level-1/cure-wounds.json)
+- `dancing-lights` (public/data/spells/level-0/dancing-lights.json)
+- `danse-macabre` (public/data/spells/level-5/danse-macabre.json)
+- `darkness` (public/data/spells/level-2/darkness.json)
+- `darkvision` (public/data/spells/level-2/darkvision.json)
+- `daylight` (public/data/spells/level-3/daylight.json)
+- `death-ward` (public/data/spells/level-4/death-ward.json)
+- `demiplane` (public/data/spells/level-8/demiplane.json)
+- `detect-evil-and-good` (public/data/spells/level-1/detect-evil-and-good.json)
+- `detect-magic` (public/data/spells/level-1/detect-magic.json)
+- `detect-poison-and-disease` (public/data/spells/level-1/detect-poison-and-disease.json)
+- `detect-thoughts` (public/data/spells/level-2/detect-thoughts.json)
+- `dimension-door` (public/data/spells/level-4/dimension-door.json)
+- `disguise-self` (public/data/spells/level-1/disguise-self.json)
+- `dispel-evil-and-good` (public/data/spells/level-5/dispel-evil-and-good.json)
+- `dispel-magic` (public/data/spells/level-3/dispel-magic.json)
+- `divination` (public/data/spells/level-4/divination.json)
+- `divine-word` (public/data/spells/level-7/divine-word.json)
+- `dominate-beast` (public/data/spells/level-4/dominate-beast.json)
+- `dominate-monster` (public/data/spells/level-8/dominate-monster.json)
+- `dominate-person` (public/data/spells/level-5/dominate-person.json)
+- `drawmijs-instant-summons` (public/data/spells/level-6/drawmijs-instant-summons.json)
+- `dream` (public/data/spells/level-5/dream.json)
+- `dream-of-the-blue-veil` (public/data/spells/level-7/dream-of-the-blue-veil.json)
+- `druid-grove` (public/data/spells/level-6/druid-grove.json)
+- `druidcraft` (public/data/spells/level-0/druidcraft.json)
+- `earthquake` (public/data/spells/level-8/earthquake.json)
+- `elemental-bane` (public/data/spells/level-4/elemental-bane.json)
+- `elementalism` (public/data/spells/level-0/elementalism.json)
+- `enemies-abound` (public/data/spells/level-3/enemies-abound.json)
+- `enhance-ability` (public/data/spells/level-2/enhance-ability.json)
+- `enlarge-reduce` (public/data/spells/level-2/enlarge-reduce.json)
+- `entangle` (public/data/spells/level-1/entangle.json)
+- `enthrall` (public/data/spells/level-2/enthrall.json)
+- `etherealness` (public/data/spells/level-7/etherealness.json)
+- `expeditious-retreat` (public/data/spells/level-1/expeditious-retreat.json)
+- `eyebite` (public/data/spells/level-6/eyebite.json)
+- `fabricate` (public/data/spells/level-4/fabricate.json)
+- `faerie-fire` (public/data/spells/level-1/faerie-fire.json)
+- `false-life` (public/data/spells/level-1/false-life.json)
+- `far-step` (public/data/spells/level-5/far-step.json)
+- `fast-friends` (public/data/spells/level-3/fast-friends.json)
+- `fear` (public/data/spells/level-3/fear.json)
+- `feather-fall` (public/data/spells/level-1/feather-fall.json)
+- `feign-death` (public/data/spells/level-3/feign-death.json)
+- `find-familiar` (public/data/spells/level-1/find-familiar.json)
+- `find-greater-steed` (public/data/spells/level-4/find-greater-steed.json)
+- `find-steed` (public/data/spells/level-2/find-steed.json)
+- `find-the-path` (public/data/spells/level-6/find-the-path.json)
+- `find-traps` (public/data/spells/level-2/find-traps.json)
+- `flesh-to-stone` (public/data/spells/level-6/flesh-to-stone.json)
+- `fly` (public/data/spells/level-3/fly.json)
+- `fog-cloud` (public/data/spells/level-1/fog-cloud.json)
+- `forcecage` (public/data/spells/level-7/forcecage.json)
+- `foresight` (public/data/spells/level-9/foresight.json)
+- `freedom-of-movement` (public/data/spells/level-4/freedom-of-movement.json)
+- `friends` (public/data/spells/level-0/friends.json)
+- `galders-speedy-courier` (public/data/spells/level-4/galders-speedy-courier.json)
+- `galders-tower` (public/data/spells/level-3/galders-tower.json)
+- `gaseous-form` (public/data/spells/level-3/gaseous-form.json)
+- `gate` (public/data/spells/level-9/gate.json)
+- `geas` (public/data/spells/level-5/geas.json)
+- `gentle-repose` (public/data/spells/level-2/gentle-repose.json)
+- `giant-insect` (public/data/spells/level-4/giant-insect.json)
+- `glibness` (public/data/spells/level-8/glibness.json)
+- `globe-of-invulnerability` (public/data/spells/level-6/globe-of-invulnerability.json)
+- `goodberry` (public/data/spells/level-1/goodberry.json)
+- `grease` (public/data/spells/level-1/grease.json)
+- `greater-invisibility` (public/data/spells/level-4/greater-invisibility.json)
+- `greater-restoration` (public/data/spells/level-5/greater-restoration.json)
+- `guardian-of-nature` (public/data/spells/level-4/guardian-of-nature.json)
+- `guards-and-wards` (public/data/spells/level-6/guards-and-wards.json)
+- `guidance` (public/data/spells/level-0/guidance.json)
+- `gust-of-wind` (public/data/spells/level-2/gust-of-wind.json)
+- `hallow` (public/data/spells/level-5/hallow.json)
+- `hallucinatory-terrain` (public/data/spells/level-4/hallucinatory-terrain.json)
+- `haste` (public/data/spells/level-3/haste.json)
+- `heal` (public/data/spells/level-6/heal.json)
+- `healing-word` (public/data/spells/level-1/healing-word.json)
+- `heroes-feast` (public/data/spells/level-6/heroes-feast.json)
+- `heroism` (public/data/spells/level-1/heroism.json)
+- `hold-monster` (public/data/spells/level-5/hold-monster.json)
+- `hold-person` (public/data/spells/level-2/hold-person.json)
+- `holy-aura` (public/data/spells/level-8/holy-aura.json)
+- `holy-weapon` (public/data/spells/level-5/holy-weapon.json)
+- `hypnotic-pattern` (public/data/spells/level-3/hypnotic-pattern.json)
+- `identify` (public/data/spells/level-1/identify.json)
+- `illusory-script` (public/data/spells/level-1/illusory-script.json)
+- `imprisonment` (public/data/spells/level-9/imprisonment.json)
+- `incite-greed` (public/data/spells/level-3/incite-greed.json)
+- `infernal-calling` (public/data/spells/level-5/infernal-calling.json)
+- `intellect-fortress` (public/data/spells/level-3/intellect-fortress.json)
+- `investiture-of-stone` (public/data/spells/level-6/investiture-of-stone.json)
+- `invisibility` (public/data/spells/level-2/invisibility.json)
+- `invulnerability` (public/data/spells/level-9/invulnerability.json)
+- `jump` (public/data/spells/level-1/jump.json)
+- `knock` (public/data/spells/level-2/knock.json)
+- `legend-lore` (public/data/spells/level-5/legend-lore.json)
+- `leomunds-secret-chest` (public/data/spells/level-4/leomunds-secret-chest.json)
+- `leomunds-tiny-hut` (public/data/spells/level-3/leomunds-tiny-hut.json)
+- `lesser-restoration` (public/data/spells/level-2/lesser-restoration.json)
+- `levitate` (public/data/spells/level-2/levitate.json)
+- `light` (public/data/spells/level-0/light.json)
+- `locate-animals-or-plants` (public/data/spells/level-2/locate-animals-or-plants.json)
+- `locate-creature` (public/data/spells/level-4/locate-creature.json)
+- `locate-object` (public/data/spells/level-2/locate-object.json)
+- `longstrider` (public/data/spells/level-1/longstrider.json)
+- `mage-armor` (public/data/spells/level-1/mage-armor.json)
+- `mage-hand` (public/data/spells/level-0/mage-hand.json)
+- `magic-circle` (public/data/spells/level-3/magic-circle.json)
+- `magic-jar` (public/data/spells/level-6/magic-jar.json)
+- `magic-mouth` (public/data/spells/level-2/magic-mouth.json)
+- `magic-weapon` (public/data/spells/level-2/magic-weapon.json)
+- `major-image` (public/data/spells/level-3/major-image.json)
+- `mass-cure-wounds` (public/data/spells/level-5/mass-cure-wounds.json)
+- `mass-heal` (public/data/spells/level-9/mass-heal.json)
+- `mass-healing-word` (public/data/spells/level-3/mass-healing-word.json)
+- `mass-polymorph` (public/data/spells/level-9/mass-polymorph.json)
+- `mass-suggestion` (public/data/spells/level-6/mass-suggestion.json)
+- `maze` (public/data/spells/level-8/maze.json)
+- `meld-into-stone` (public/data/spells/level-3/meld-into-stone.json)
+- `mending` (public/data/spells/level-0/mending.json)
+- `message` (public/data/spells/level-0/message.json)
+- `mighty-fortress` (public/data/spells/level-8/mighty-fortress.json)
+- `mind-blank` (public/data/spells/level-8/mind-blank.json)
+- `minor-illusion` (public/data/spells/level-0/minor-illusion.json)
+- `mirage-arcane` (public/data/spells/level-7/mirage-arcane.json)
+- `mirror-image` (public/data/spells/level-2/mirror-image.json)
+- `mislead` (public/data/spells/level-5/mislead.json)
+- `misty-step` (public/data/spells/level-2/misty-step.json)
+- `modify-memory` (public/data/spells/level-5/modify-memory.json)
+- `mold-earth` (public/data/spells/level-0/mold-earth.json)
+- `mordenkainens-magnificent-mansion` (public/data/spells/level-7/mordenkainens-magnificent-mansion.json)
+- `mordenkainens-private-sanctum` (public/data/spells/level-4/mordenkainens-private-sanctum.json)
+- `motivational-speech` (public/data/spells/level-3/motivational-speech.json)
+- `move-earth` (public/data/spells/level-6/move-earth.json)
+- `nondetection` (public/data/spells/level-3/nondetection.json)
+- `nystuls-magic-aura` (public/data/spells/level-2/nystuls-magic-aura.json)
+- `otilukes-resilient-sphere` (public/data/spells/level-4/otilukes-resilient-sphere.json)
+- `ottos-irresistible-dance` (public/data/spells/level-6/ottos-irresistible-dance.json)
+- `pass-without-trace` (public/data/spells/level-2/pass-without-trace.json)
+- `passwall` (public/data/spells/level-5/passwall.json)
+- `phantom-steed` (public/data/spells/level-3/phantom-steed.json)
+- `planar-ally` (public/data/spells/level-6/planar-ally.json)
+- `planar-binding` (public/data/spells/level-5/planar-binding.json)
+- `plane-shift` (public/data/spells/level-7/plane-shift.json)
+- `plant-growth` (public/data/spells/level-3/plant-growth.json)
+- `polymorph` (public/data/spells/level-4/polymorph.json)
+- `power-word-heal` (public/data/spells/level-9/power-word-heal.json)
+- `power-word-kill` (public/data/spells/level-9/power-word-kill.json)
+- `power-word-pain` (public/data/spells/level-7/power-word-pain.json)
+- `power-word-stun` (public/data/spells/level-8/power-word-stun.json)
+- `prayer-of-healing` (public/data/spells/level-2/prayer-of-healing.json)
+- `prestidigitation` (public/data/spells/level-0/prestidigitation.json)
+- `primordial-ward` (public/data/spells/level-6/primordial-ward.json)
+- `prismatic-wall` (public/data/spells/level-9/prismatic-wall.json)
+- `programmed-illusion` (public/data/spells/level-6/programmed-illusion.json)
+- `project-image` (public/data/spells/level-7/project-image.json)
+- `protection-from-energy` (public/data/spells/level-3/protection-from-energy.json)
+- `protection-from-evil-and-good` (public/data/spells/level-1/protection-from-evil-and-good.json)
+- `protection-from-poison` (public/data/spells/level-2/protection-from-poison.json)
+- `purify-food-and-drink` (public/data/spells/level-1/purify-food-and-drink.json)
+- `pyrotechnics` (public/data/spells/level-2/pyrotechnics.json)
+- `raise-dead` (public/data/spells/level-5/raise-dead.json)
+- `rarys-telepathic-bond` (public/data/spells/level-5/rarys-telepathic-bond.json)
+- `ray-of-enfeeblement` (public/data/spells/level-2/ray-of-enfeeblement.json)
+- `regenerate` (public/data/spells/level-7/regenerate.json)
+- `reincarnate` (public/data/spells/level-5/reincarnate.json)
+- `remove-curse` (public/data/spells/level-3/remove-curse.json)
+- `resistance` (public/data/spells/level-0/resistance.json)
+- `resurrection` (public/data/spells/level-7/resurrection.json)
+- `reverse-gravity` (public/data/spells/level-7/reverse-gravity.json)
+- `revivify` (public/data/spells/level-3/revivify.json)
+- `rope-trick` (public/data/spells/level-2/rope-trick.json)
+- `sanctuary` (public/data/spells/level-1/sanctuary.json)
+- `scatter` (public/data/spells/level-6/scatter.json)
+- `scrying` (public/data/spells/level-5/scrying.json)
+- `see-invisibility` (public/data/spells/level-2/see-invisibility.json)
+- `seeming` (public/data/spells/level-5/seeming.json)
+- `sending` (public/data/spells/level-3/sending.json)
+- `sequester` (public/data/spells/level-7/sequester.json)
+- `shadow-of-moil` (public/data/spells/level-4/shadow-of-moil.json)
+- `shape-water` (public/data/spells/level-0/shape-water.json)
+- `shapechange` (public/data/spells/level-9/shapechange.json)
+- `shield` (public/data/spells/level-1/shield.json)
+- `shield-of-faith` (public/data/spells/level-1/shield-of-faith.json)
+- `shillelagh` (public/data/spells/level-0/shillelagh.json)
+- `sickening-radiance` (public/data/spells/level-4/sickening-radiance.json)
+- `silence` (public/data/spells/level-2/silence.json)
+- `silent-image` (public/data/spells/level-1/silent-image.json)
+- `simulacrum` (public/data/spells/level-7/simulacrum.json)
+- `skill-empowerment` (public/data/spells/level-5/skill-empowerment.json)
+- `skywrite` (public/data/spells/level-2/skywrite.json)
+- `sleep` (public/data/spells/level-1/sleep.json)
+- `sleet-storm` (public/data/spells/level-3/sleet-storm.json)
+- `slow` (public/data/spells/level-3/slow.json)
+- `snare` (public/data/spells/level-1/snare.json)
+- `soul-cage` (public/data/spells/level-6/soul-cage.json)
+- `spare-the-dying` (public/data/spells/level-0/spare-the-dying.json)
+- `speak-with-animals` (public/data/spells/level-1/speak-with-animals.json)
+- `speak-with-dead` (public/data/spells/level-3/speak-with-dead.json)
+- `speak-with-plants` (public/data/spells/level-3/speak-with-plants.json)
+- `spider-climb` (public/data/spells/level-2/spider-climb.json)
+- `spike-growth` (public/data/spells/level-2/spike-growth.json)
+- `staggering-smite` (public/data/spells/level-4/staggering-smite.json)
+- `stinking-cloud` (public/data/spells/level-3/stinking-cloud.json)
+- `stone-shape` (public/data/spells/level-4/stone-shape.json)
+- `stoneskin` (public/data/spells/level-4/stoneskin.json)
+- `storm-sphere` (public/data/spells/level-4/storm-sphere.json)
+- `suggestion` (public/data/spells/level-2/suggestion.json)
+- `summon-beast` (public/data/spells/level-2/summon-beast.json)
+- `summon-greater-demon` (public/data/spells/level-4/summon-greater-demon.json)
+- `summon-lesser-demons` (public/data/spells/level-3/summon-lesser-demons.json)
+- `swift-quiver` (public/data/spells/level-5/swift-quiver.json)
+- `tashas-hideous-laughter` (public/data/spells/level-1/tashas-hideous-laughter.json)
+- `telekinesis` (public/data/spells/level-5/telekinesis.json)
+- `telepathy` (public/data/spells/level-8/telepathy.json)
+- `teleport` (public/data/spells/level-7/teleport.json)
+- `teleportation-circle` (public/data/spells/level-5/teleportation-circle.json)
+- `temple-of-the-gods` (public/data/spells/level-7/temple-of-the-gods.json)
+- `tensers-floating-disk` (public/data/spells/level-1/tensers-floating-disk.json)
+- `tensers-transformation` (public/data/spells/level-6/tensers-transformation.json)
+- `thaumaturgy` (public/data/spells/level-0/thaumaturgy.json)
+- `time-stop` (public/data/spells/level-9/time-stop.json)
+- `tiny-servant` (public/data/spells/level-3/tiny-servant.json)
+- `tongues` (public/data/spells/level-3/tongues.json)
+- `transport-via-plants` (public/data/spells/level-6/transport-via-plants.json)
+- `tree-stride` (public/data/spells/level-5/tree-stride.json)
+- `true-polymorph` (public/data/spells/level-9/true-polymorph.json)
+- `true-resurrection` (public/data/spells/level-9/true-resurrection.json)
+- `true-seeing` (public/data/spells/level-6/true-seeing.json)
+- `true-strike` (public/data/spells/level-0/true-strike.json)
+- `tsunami` (public/data/spells/level-8/tsunami.json)
+- `unseen-servant` (public/data/spells/level-1/unseen-servant.json)
+- `wall-of-force` (public/data/spells/level-5/wall-of-force.json)
+- `wall-of-sand` (public/data/spells/level-3/wall-of-sand.json)
+- `wall-of-stone` (public/data/spells/level-5/wall-of-stone.json)
+- `wall-of-water` (public/data/spells/level-3/wall-of-water.json)
+- `warding-bond` (public/data/spells/level-2/warding-bond.json)
+- `water-breathing` (public/data/spells/level-3/water-breathing.json)
+- `water-walk` (public/data/spells/level-3/water-walk.json)
+- `watery-sphere` (public/data/spells/level-4/watery-sphere.json)
+- `wind-walk` (public/data/spells/level-6/wind-walk.json)
+- `wish` (public/data/spells/level-9/wish.json)
+- `word-of-recall` (public/data/spells/level-6/word-of-recall.json)
+- `zone-of-truth` (public/data/spells/level-2/zone-of-truth.json)
+
+</details>
+
+## Reference — clean DAMAGE rows (filtered out)
+
+Total: **135** spells — each DAMAGE effect uses one known token only.
+
+<details>
+<summary>Click to expand spell ids</summary>
+
+- `abi-dalzims-horrid-wilting`
+- `acid-splash`
+- `armor-of-agathys`
+- `arms-of-hadar`
+- `blade-barrier`
+- `blade-of-disaster`
+- `blight`
+- `blinding-smite`
+- `bones-of-the-earth`
+- `booming-blade`
+- `burning-hands`
+- `call-lightning`
+- `catapult`
+- `chain-lightning`
+- `chill-touch`
+- `circle-of-death`
+- `cloud-of-daggers`
+- `cloudkill`
+- `cone-of-cold`
+- `conjure-barrage`
+- `conjure-celestial`
+- `conjure-woodland-beings`
+- `contagion`
+- `cordon-of-arrows`
+- `create-bonfire`
+- `crown-of-stars`
+- `crusaders-mantle`
+- `dawn`
+- `delayed-blast-fireball`
+- `destructive-wave`
+- `disintegrate`
+- `dissonant-whispers`
+- `divine-favor`
+- `divine-smite`
+- `draconic-transformation`
+- `eldritch-blast`
+- `enervation`
+- `ensnaring-strike`
+- `erupting-earth`
+- `evards-black-tentacles`
+- `feeblemind`
+- `finger-of-death`
+- `fire-bolt`
+- `fire-storm`
+- `fireball`
+- `flame-arrows`
+- `flame-blade`
+- `flame-strike`
+- `flaming-sphere`
+- `forbiddance`
+- `frostbite`
+- `grasping-vine`
+- `green-flame-blade`
+- `guardian-of-faith`
+- `guiding-bolt`
+- `hail-of-thorns`
+- `harm`
+- `heat-metal`
+- `hellish-rebuke`
+- `hex`
+- `hunters-mark`
+- `ice-knife`
+- `ice-storm`
+- `immolation`
+- `incendiary-cloud`
+- `inflict-wounds`
+- `insect-plague`
+- `investiture-of-flame`
+- `investiture-of-ice`
+- `investiture-of-wind`
+- `life-transference`
+- `lightning-arrow`
+- `lightning-bolt`
+- `lightning-lure`
+- `maddening-darkness`
+- `maelstrom`
+- `magic-missile`
+- `magic-stone`
+- `melfs-acid-arrow`
+- `melfs-minute-meteors`
+- `mental-prison`
+- `meteor-swarm`
+- `mind-sliver`
+- `mind-spike`
+- `moonbeam`
+- `mordenkainens-faithful-hound`
+- `negative-energy-flood`
+- `otilukes-freezing-sphere`
+- `phantasmal-force`
+- `phantasmal-killer`
+- `poison-spray`
+- `primal-savagery`
+- `produce-flame`
+- `psychic-scream`
+- `ray-of-frost`
+- `ray-of-sickness`
+- `sacred-flame`
+- `scorching-ray`
+- `searing-smite`
+- `shatter`
+- `shining-smite`
+- `shocking-grasp`
+- `spiritual-weapon`
+- `starry-wisp`
+- `steel-wind-strike`
+- `storm-of-vengeance`
+- `sunbeam`
+- `sunburst`
+- `sword-burst`
+- `symbol`
+- `synaptic-static`
+- `tashas-caustic-brew`
+- `thorn-whip`
+- `thunder-step`
+- `thunderclap`
+- `thunderous-smite`
+- `thunderwave`
+- `tidal-wave`
+- `toll-the-dead`
+- `transmute-rock`
+- `vampiric-touch`
+- `vicious-mockery`
+- `vitriolic-sphere`
+- `wall-of-fire`
+- `wall-of-ice`
+- `wall-of-light`
+- `wall-of-thorns`
+- `web`
+- `weird`
+- `whirlwind`
+- `wind-wall`
+- `witch-bolt`
+- `word-of-radiance`
+- `wrath-of-nature`
+- `wrathful-smite`
+
+</details>

@@ -3,6 +3,7 @@
 - **School**: Divination
 - **Ritual**: false
 - **Classes**: Bard, Cleric, Wizard
+- **Sub-Classes**: Paladin - Oath of Glory, Sorcerer - Draconic Sorcery
 
 - **Casting Time Value**: 10
 - **Casting Time Unit**: minutes
@@ -18,7 +19,7 @@
 - **Somatic**: true
 - **Material**: true
 - **Material Description**: incense worth 250+ GP, which the spell consumes, and four ivory strips worth 50+ GP each
-- **Material Cost GP**: 250
+- **Material Cost GP**: 300
 - **Consumed**: true
 
 - **Duration Type**: instantaneous

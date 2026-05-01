@@ -18,6 +18,7 @@
 - **Somatic**: true
 - **Material**: true
 - **Material Description**: an undead eyeball encased in a gem worth at least 150 gp
+- **Material Cost GP**: 150
 
 - **Duration Type**: timed
 - **Duration Value**: 1

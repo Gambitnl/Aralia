@@ -11,8 +11,10 @@
 - **Range Type**: sight
 - **Targeting Type**: area
 - **Area Shape**: square
-- **Area Size**: 1 mile
-- **Valid Targets**:
+- **Area Size**: 1
+- **Area Size Unit**: miles
+- **Area Size Type**: side
+- **Valid Targets**: ground
 - **Line of Sight**: true
 
 - **Verbal**: true

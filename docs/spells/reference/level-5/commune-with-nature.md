@@ -12,6 +12,18 @@
 - **Targeting Type**: self
 - **Valid Targets**: self
 - **Line of Sight**: false
+- **Spatial Form 1 Label**: Outdoor Knowledge Area
+- **Spatial Form 1 Shape**: Radius
+- **Spatial Form 1 Size Value**: 3
+- **Spatial Form 1 Size Type**: radius
+- **Spatial Form 1 Size Unit**: miles
+- **Spatial Form 1 Notes**: Knowledge area in outdoor natural terrain.
+- **Spatial Form 2 Label**: Underground Knowledge Area
+- **Spatial Form 2 Shape**: Radius
+- **Spatial Form 2 Size Value**: 300
+- **Spatial Form 2 Size Type**: radius
+- **Spatial Form 2 Size Unit**: feet
+- **Spatial Form 2 Notes**: Reduced radius in caves and other natural underground settings.
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: false

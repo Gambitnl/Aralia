@@ -45,8 +45,8 @@
   },
   "duration": {
     "type": "timed",
-    "value": 60,
-    "unit": "minute",
+    "value": 1,
+    "unit": "hour",
     "concentration": false
   },
   "targeting": {

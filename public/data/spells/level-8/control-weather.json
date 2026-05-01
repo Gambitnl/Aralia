@@ -55,7 +55,9 @@
     "maxTargets": 1,
     "areaOfEffect": {
       "shape": "Sphere",
-      "size": 0,
+      "size": 5,
+      "sizeType": "radius",
+      "sizeUnit": "miles",
       "height": 0
     },
     "filter": {

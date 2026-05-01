@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/05/2026, 17:10:36
+ * Dependents: hooks/combat/useTurnManager.ts
+ * Imports: 8 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file hooks/combat/useActionExecutor.ts
  * Encapsulates the logic for executing combat actions.
@@ -12,7 +28,8 @@ import {
   TurnState,
   Animation,
   AbilityCost,
-  ReactiveTrigger
+  ReactiveTrigger,
+  Ability
 } from '../../types/combat';
 import {
   generateId,
@@ -59,6 +76,141 @@ export interface UseActionExecutorProps {
   setMovementDebuffs: React.Dispatch<React.SetStateAction<MovementTriggerDebuff[]>>;
 }
 
+interface ImmediateAbilityEffectResult {
+  character: CombatCharacter;
+  followUpLogs: CombatLogEntry[];
+}
+
+// ============================================================================
+// Immediate Turn-Resource Ability Effects
+// ============================================================================
+// This section handles ability effects that change the current turn itself.
+// Dash and Disengage are not attacks and should not travel through the weapon
+// attack command path; they update movement/reaction rules directly here while
+// still using the same executeAction call that spends the action or bonus action.
+// ============================================================================
+
+const isDisengageAbility = (ability: Ability): boolean => {
+  return ability.id === 'disengage' || ability.tags?.includes('disengage') === true || ability.name.toLowerCase() === 'disengage';
+};
+
+const applyImmediateAbilityTurnEffects = (
+  character: CombatCharacter,
+  ability: Ability,
+  currentTurn: number
+): ImmediateAbilityEffectResult => {
+  let updatedCharacter = character;
+  const followUpLogs: CombatLogEntry[] = [];
+
+  // Dash-style abilities add movement for the rest of the current turn. The
+  // amount comes from the ability data when present, falling back to current
+  // speed so class variants can reuse the same shape.
+  const movementGain = ability.effects
+    .filter(effect => effect.type === 'movement')
+    .reduce((total, effect) => total + Math.max(0, effect.value ?? character.stats.speed), 0);
+
+  if (movementGain > 0) {
+    updatedCharacter = {
+      ...updatedCharacter,
+      actionEconomy: {
+        ...updatedCharacter.actionEconomy,
+        movement: {
+          ...updatedCharacter.actionEconomy.movement,
+          total: updatedCharacter.actionEconomy.movement.total + movementGain
+        }
+      }
+    };
+
+    followUpLogs.push({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'action',
+      message: `${updatedCharacter.name} gains ${movementGain} ft of movement from ${ability.name}.`,
+      characterId: updatedCharacter.id,
+      data: { abilityName: ability.name, movementGain }
+    });
+  }
+
+  // Disengage is represented as a one-turn status marker because the existing
+  // opportunity-attack detector already checks statusEffects for this flag.
+  // TODO(next-agent): Replace this marker with a first-class condition once
+  // reaction prevention, forced movement, and teleport movement all share one
+  // movement-event model.
+  if (isDisengageAbility(ability)) {
+    const alreadyDisengaged = updatedCharacter.statusEffects.some(effect => effect.id === 'disengage' || effect.name === 'Disengage');
+
+    if (!alreadyDisengaged) {
+      updatedCharacter = {
+        ...updatedCharacter,
+        statusEffects: [
+          ...updatedCharacter.statusEffects,
+          {
+            id: 'disengage',
+            name: 'Disengage',
+            type: 'buff',
+            duration: 1,
+            effect: { type: 'condition' },
+            icon: 'shield'
+          }
+        ]
+      };
+    }
+
+    followUpLogs.push({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'status',
+      message: `${updatedCharacter.name} will not provoke opportunity attacks this turn.`,
+      characterId: updatedCharacter.id,
+      data: { abilityName: ability.name, currentTurn }
+    });
+  }
+
+  return { character: updatedCharacter, followUpLogs };
+};
+
+// ============================================================================
+// Opportunity Attack Damage Helpers
+// ============================================================================
+// Opportunity attacks use monster and weapon abilities from several data
+// sources. Some store damage as dice and others store a flat value, so this
+// helper normalizes both shapes before the attack rolls damage.
+// ============================================================================
+
+const getOpportunityAttackDamageFormula = (ability: Ability): string | null => {
+  const damageEffect = ability.effects.find(effect => effect.type === 'damage');
+  if (!damageEffect) return null;
+
+  if (damageEffect.dice) return damageEffect.dice;
+
+  if (typeof damageEffect.value === 'number' && Number.isFinite(damageEffect.value)) {
+    return String(Math.max(0, damageEffect.value));
+  }
+
+  return null;
+};
+
+// ============================================================================
+// Movement Legality Helpers
+// ============================================================================
+// Movement must not place two living combatants on the same tile. The player
+// movement preview and AI planner try to avoid those spaces, but the executor
+// is the final authority before state changes are committed.
+// ============================================================================
+
+const getOccupyingCombatant = (
+  characters: CombatCharacter[],
+  movingCharacterId: string,
+  targetPosition: { x: number; y: number }
+): CombatCharacter | undefined => {
+  return characters.find(character =>
+    character.id !== movingCharacterId &&
+    character.currentHP > 0 &&
+    character.position.x === targetPosition.x &&
+    character.position.y === targetPosition.y
+  );
+};
+
 export const useActionExecutor = ({
   characters,
   turnState,
@@ -89,6 +241,22 @@ export const useActionExecutor = ({
     const startCharacter = characters.find(c => c.id === action.characterId);
     if (!startCharacter) return false;
 
+    if (action.type === 'move' && action.targetPosition) {
+      const occupyingCombatant = getOccupyingCombatant(characters, action.characterId, action.targetPosition);
+
+      if (occupyingCombatant) {
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${startCharacter.name} cannot move to (${action.targetPosition.x}, ${action.targetPosition.y}) because ${occupyingCombatant.name} is already there.`,
+          characterId: startCharacter.id,
+          targetIds: [occupyingCombatant.id]
+        });
+        return false;
+      }
+    }
+
     if (!canAfford(startCharacter, action.cost)) {
       onLogEntry({
         id: generateId(),
@@ -118,6 +286,19 @@ export const useActionExecutor = ({
     // Yes, the bug exists. I will FIX IT here. This is a "Steward" improvement after all.
 
     let updatedCharacter = consumeAction(startCharacter, action.cost);
+    let followUpActionLogs: CombatLogEntry[] = [];
+
+    if (action.type === 'ability' && action.abilityId) {
+      const ability = updatedCharacter.abilities.find(availableAbility => availableAbility.id === action.abilityId);
+
+      // Movement and utility abilities resolve immediately because their job is
+      // to change this turn's legal options, not to roll an attack command.
+      if (ability) {
+        const result = applyImmediateAbilityTurnEffects(updatedCharacter, ability, turnState.currentTurn);
+        updatedCharacter = result.character;
+        followUpActionLogs = result.followUpLogs;
+      }
+    }
 
     if (action.type === 'sustain') {
       if (updatedCharacter.concentratingOn) {
@@ -255,18 +436,18 @@ export const useActionExecutor = ({
                   targetIds: [updatedCharacter.id]
                 });
 
-                const damageEffect = weaponAbility.effects.find(e => e.type === 'damage');
-                if (damageEffect && damageEffect.dice) {
+                const damageFormula = getOpportunityAttackDamageFormula(weaponAbility);
+                if (damageFormula) {
                   // Crit check
                   const isCrit = d20 === 20;
-                  let damage = rollDice(damageEffect.dice);
-                  if (isCrit) damage += rollDice(damageEffect.dice);
+                  let damage = rollDice(damageFormula);
+                  if (isCrit) damage += rollDice(damageFormula);
 
                   updatedCharacter = handleDamage(
                     updatedCharacter,
                     damage,
                     `${attacker.name} (Opportunity Attack)`,
-                    damageEffect.damageType
+                    weaponAbility.effects.find(e => e.type === 'damage')?.damageType
                   );
                 }
               } else {
@@ -452,6 +633,8 @@ export const useActionExecutor = ({
       characterId: updatedCharacter.id,
       data: action as any
     });
+
+    followUpActionLogs.forEach(entry => onLogEntry(entry));
 
     if (action.type === 'ability' && action.abilityId) {
       // TODO(Ritualist): Check if ability has ritual tag or long casting time.

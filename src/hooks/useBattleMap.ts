@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/05/2026, 14:09:08
+ * Dependents: components/BattleMap/BattleMap.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file useBattleMap.ts
  * Custom hook to manage the state and logic of a procedural battle map.
@@ -23,6 +39,7 @@ import { useTurnManager } from './combat/useTurnManager';
 import { useAbilitySystem } from './useAbilitySystem';
 import { useGridMovement } from './combat/useGridMovement';
 import { findPath } from '../utils/pathfinding';
+import { calculatePathMovementCost } from '../utils/movementUtils';
 
 interface UseBattleMapReturn {
   characterPositions: Map<string, CharacterPosition>;
@@ -55,11 +72,17 @@ export function useBattleMap(
         ? currentCharacterId ?? null
         : null;
   const resolvedActionMode =
-    selectedCharacterId && selectedCharacterId === currentCharacterId
-      ? actionMode
-      : currentCharacter?.team === 'player'
-        ? 'move'
-        : null;
+    abilitySystem.targetingMode
+      ? 'ability'
+      : selectedCharacterId && selectedCharacterId === currentCharacterId
+        ? actionMode
+        : currentCharacter?.team === 'player'
+          ? actionMode ?? 'move'
+          : null;
+  // WHAT CHANGED: Active ability targeting now wins over the fallback "move"
+  // mode. This preserves the existing auto-selection of the current player,
+  // but stops the map from treating a target click as movement while an
+  // ability is waiting for a target.
   // TODO(lint-intent): If turn-based selection should persist across turns, store selections keyed by turn id.
 
   // Derived state: Map of character IDs to their positions
@@ -102,27 +125,43 @@ export function useBattleMap(
       const currentActor = turnManager.getCurrentCharacter();
       const selectedAbility = abilitySystem.selectedAbility;
 
-      if (currentActor && selectedAbility && abilitySystem.isValidTarget(selectedAbility, currentActor, character.position)) {
-        abilitySystem.selectTarget(character.position, currentActor);
+      // Let the ability system own final validation and feedback. Invalid
+      // clicks now produce a combat-log reason instead of disappearing here.
+      if (currentActor && selectedAbility) {
+        const didSelectTarget = abilitySystem.selectTarget(character.position, currentActor);
+        if (didSelectTarget) {
+          setActionMode('move');
+        }
       }
+      return;
     } else {
       selectCharacter(character);
     }
   }, [abilitySystem, selectCharacter, turnManager]);
 
   const handleTileClick = useCallback((tile: BattleMapTile) => {
-    if (!resolvedSelectedCharacterId || !mapData) return;
+    if (!mapData) return;
+
+    // Ability targeting handles both creature clicks and ground/area clicks.
+    // Keeping this before movement preserves area spells and prevents an
+    // invalid target click from silently canceling targeting.
+    if (abilitySystem.targetingMode) {
+      const currentActor = turnManager.getCurrentCharacter();
+      if (currentActor && abilitySystem.selectedAbility) {
+        const didSelectTarget = abilitySystem.selectTarget(tile.coordinates, currentActor);
+        if (didSelectTarget) {
+          setActionMode('move');
+        }
+      }
+      return;
+    }
+
+    if (!resolvedSelectedCharacterId) return;
 
     const character = characters.find(c => c.id === resolvedSelectedCharacterId);
     if (!character) return;
 
-    if (resolvedActionMode === 'ability' && abilitySystem.targetingMode) {
-      if (abilitySystem.selectedAbility && abilitySystem.isValidTarget(abilitySystem.selectedAbility, character, tile.coordinates)) {
-        abilitySystem.selectTarget(tile.coordinates, character);
-      } else {
-        abilitySystem.cancelTargeting();
-      }
-    } else if (resolvedActionMode === 'move' && validMoves.has(tile.id)) {
+    if (resolvedActionMode === 'move' && validMoves.has(tile.id)) {
       const startPos = characterPositions.get(resolvedSelectedCharacterId)?.coordinates;
       const startTile = startPos ? mapData.tiles.get(`${startPos.x}-${startPos.y}`) : null;
 
@@ -132,7 +171,10 @@ export function useBattleMap(
         // but we use the local 'path' var for immediate execution logic.
         calculatePath(character, tile);
 
-        const moveCost = path.reduce((acc, t) => acc + t.movementCost, 0) - startTile.movementCost;
+        // Charge movement with the same feet-based path cost used by the range
+        // preview. Summing raw tile movementCost was unsafe because maps mix
+        // two conventions: 5/10 feet-per-tile and 1/2 terrain multipliers.
+        const moveCost = calculatePathMovementCost(path);
         const moveActionCost: AbilityCost = { type: 'movement-only', movementCost: moveCost };
 
         if (turnManager.executeAction({

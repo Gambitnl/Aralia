@@ -1,9 +1,33 @@
 # Shocking Grasp
 
-<!-- CANONICAL-ONLY-REFERENCE -->
-
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Level**: 0
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Sorcerer, Wizard, Artificer
+- **Sub-Classes**: None
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+- **Range Type**: touch
+- **Range Distance**: 0
+- **Targeting Type**: single
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures
+- **Line of Sight**: true
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+- **Duration Type**: instantaneous
+- **Concentration**: false
+- **Effect Type**: DAMAGE, STATUS_CONDITION
+- **Conditions Applied**: Reactions Suppressed
+- **Attack Roll**: melee
+- **Damage Dice**: 1d8
+- **Damage Type**: Lightning
+- **Description**: Lightning springs from you to a creature that you try to touch. Make a melee spell attack against the target. On a hit, the target takes 1d8 Lightning damage, and it can't make Opportunity Attacks until the start of its next turn.
+- **Higher Levels**: Cantrip Upgrade. The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).
 
 ## Canonical D&D Beyond Snapshot
 

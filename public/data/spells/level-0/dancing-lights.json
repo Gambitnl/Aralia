@@ -3,7 +3,7 @@
   "name": "Dancing Lights",
   "aliases": [],
   "level": 0,
-  "school": "Evocation",
+  "school": "Illusion",
   "legacy": false,
   "classes": [
     "Artificer",
@@ -37,7 +37,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "A bit of phosphorus or wychwood, or a glowworm",
+    "materialDescription": "a bit of phosphorus",
     "materialCost": 0,
     "isConsumed": false
   },

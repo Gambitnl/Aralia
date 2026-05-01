@@ -34,7 +34,7 @@
   },
   "components": {
     "verbal": true,
-    "somatic": true,
+    "somatic": false,
     "material": false,
     "materialDescription": "",
     "materialCost": 0,

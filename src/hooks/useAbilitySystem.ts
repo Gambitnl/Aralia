@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/05/2026, 17:10:41
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, hooks/useBattleMap.ts
+ * Imports: 13 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file hooks/useAbilitySystem.ts
  * Manages ability selection, targeting, and execution logic for combat.
@@ -27,6 +43,7 @@ import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
 import { Plane } from '../types/planes';
 import { useTargetValidator } from './combat/useTargetValidator';
+import { consumeActionCost } from '../utils/combat/actionEconomyUtils';
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -49,6 +66,47 @@ export interface PendingReaction {
   reactionSpells: Spell[]; // Spells available to cast
   onResolve: (usedSpellId: string | null) => void;
 }
+
+// ============================================================================
+// Ability Action Resource Preservation
+// ============================================================================
+// The turn manager spends actions, bonus actions, reactions, movement, and spell
+// slots before command effects resolve. These helpers keep that spent-resource
+// state attached to the caster when command results are replayed back into React
+// state, so an attack or spell cannot restore an older pre-action snapshot.
+// ============================================================================
+
+const buildAbilityCombatAction = (
+  ability: Ability,
+  caster: CombatCharacter,
+  targetPosition: Position,
+  targetCharacterIds: string[]
+): CombatAction => ({
+  id: generateId(),
+  characterId: caster.id,
+  type: 'ability',
+  abilityId: ability.id,
+  targetPosition,
+  targetCharacterIds,
+  cost: ability.cost,
+  timestamp: Date.now()
+});
+
+const applyResourceSnapshotToCaster = (
+  finalCaster: CombatCharacter,
+  resourceSnapshot: CombatCharacter
+): CombatCharacter => ({
+  ...finalCaster,
+  actionEconomy: resourceSnapshot.actionEconomy,
+  spellSlots: resourceSnapshot.spellSlots
+});
+
+const replaceCasterForCommandState = (
+  characters: CombatCharacter[],
+  casterWithPaidCost: CombatCharacter
+): CombatCharacter[] => {
+  return characters.map(character => character.id === casterWithPaidCost.id ? casterWithPaidCost : character);
+};
 
 export const useAbilitySystem = ({
   characters,
@@ -77,6 +135,7 @@ export const useAbilitySystem = ({
   // Delegate Validation Logic to specialized hook
   const {
     isValidTarget,
+    getTargetValidation,
     getValidTargets,
     // TODO(lint-intent): 'getCharacterAtPosition' is declared but unused, suggesting an unfinished state/behavior hook in this block.
     // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
@@ -111,7 +170,8 @@ export const useAbilitySystem = ({
       caster: CombatCharacter,
       targets: CombatCharacter[],
       castAtLevel: number,
-      playerInput?: string
+      playerInput?: string,
+      resourceSnapshot?: CombatCharacter
     ) {
       // RALPH: Stability Pattern.
       // We access `charactersRef.current` instead of `characters` from props to avoid re-creating this function on every render.
@@ -121,13 +181,16 @@ export const useAbilitySystem = ({
       const currentTriggers = reactiveTriggersRef.current;
       const currentMapData = mapDataRef.current;
       const activePlane = currentPlaneRef.current;
+      const commandCharacters = resourceSnapshot
+        ? replaceCasterForCommandState(currentCharacters, resourceSnapshot)
+        : currentCharacters;
 
       // 0. Check for AI Input Requirements
       if (spell.arbitrationType === 'ai_dm' && spell.aiContext?.playerInputRequired && !playerInput) {
         if (onRequestInput) {
           onRequestInput(spell, (input) => {
             // Re-trigger execution with the collected input
-            executeSpellImpl(spell, caster, targets, castAtLevel, input);
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot);
           });
           return; // Halt execution until input is provided
         } else {
@@ -138,7 +201,7 @@ export const useAbilitySystem = ({
       // 1. Construct temporary CombatState
       const currentState: CombatState = {
         isActive: true,
-        characters: currentCharacters,
+        characters: commandCharacters,
         turnState: {
           currentTurn: 0,
           turnOrder: [],
@@ -182,7 +245,9 @@ export const useAbilitySystem = ({
             const isCaster = caster.id === finalChar.id;
 
             if (isTarget || isCaster) {
-              onCharacterUpdate(finalChar);
+              onCharacterUpdate(isCaster && resourceSnapshot
+                ? applyResourceSnapshotToCaster(finalChar, resourceSnapshot)
+                : finalChar);
             }
           });
 
@@ -247,6 +312,7 @@ export const useAbilitySystem = ({
     const currentCharacters = charactersRef.current;
     const currentTriggers = reactiveTriggersRef.current;
     const activePlane = currentPlaneRef.current;
+    const liveCaster = currentCharacters.find(character => character.id === caster.id) ?? caster;
 
     // --- Path A: Spell System (Command Pattern) ---
     if (ability.spell) {
@@ -261,17 +327,39 @@ export const useAbilitySystem = ({
         .map(id => currentCharacters.find(c => c.id === id))
         .filter((c): c is CombatCharacter => !!c);
 
-      executeSpell(ability.spell, caster, targets, ability.spell.level);
+      const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds);
+
+      if (!onExecuteAction(action)) {
+        cancelTargeting();
+        return;
+      }
+
+      const casterAfterCost = consumeActionCost(liveCaster, ability.cost);
+
+      executeSpell(ability.spell, casterAfterCost, targets, ability.spell.level, undefined, casterAfterCost);
       cancelTargeting();
       return;
     }
 
     // --- Path B: Ability System (Command Pattern) ---
 
+    // Verify economy costs before command effects run. The turn manager remains
+    // the authoritative executor, while the local resource snapshot protects
+    // command results from restoring a stale caster.
+    const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds);
+
+    if (!onExecuteAction(action)) {
+      cancelTargeting();
+      return;
+    }
+
+    const casterAfterCost = consumeActionCost(liveCaster, ability.cost);
+    const commandCharacters = replaceCasterForCommandState(currentCharacters, casterAfterCost);
+
     // Construct State
     const currentState: CombatState = {
       isActive: true,
-      characters: currentCharacters,
+      characters: commandCharacters,
       turnState: {
         currentTurn: 0,
         turnOrder: [],
@@ -298,34 +386,28 @@ export const useAbilitySystem = ({
       .map(id => currentCharacters.find(c => c.id === id))
       .filter((c): c is CombatCharacter => !!c);
 
-    const commands = AbilityCommandFactory.createCommands(ability, caster, targets, mockGameState);
-
-    // Verify economy costs (Action Points)
-    // We still check this first before executing commands
-    const action: CombatAction = {
-      id: generateId(),
-      characterId: caster.id,
-      type: 'ability',
-      abilityId: ability.id,
-      targetPosition,
-      targetCharacterIds,
-      cost: ability.cost,
-      timestamp: Date.now()
-    };
-
-    if (!onExecuteAction(action)) {
-      cancelTargeting();
-      return;
-    }
+    const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, mockGameState);
 
     // Execute
     const result = CommandExecutor.execute(commands, currentState);
 
     if (result.success) {
       // Propagate State Changes
-      result.finalState.characters.forEach(finalChar => {
-        onCharacterUpdate(finalChar);
-      });
+      if (commands.length > 0) {
+        result.finalState.characters.forEach(finalChar => {
+          const isTarget = targetCharacterIds.includes(finalChar.id);
+          const isCaster = liveCaster.id === finalChar.id;
+
+          // Only command-touched participants are replayed. This preserves the
+          // action executor's Dash/Disengage mutations when an ability has no
+          // command-side effect to apply.
+          if (isTarget || isCaster) {
+            onCharacterUpdate(isCaster
+              ? applyResourceSnapshotToCaster(finalChar, casterAfterCost)
+              : finalChar);
+          }
+        });
+      }
 
       // Propagate Logs
       if (onLogEntry) {
@@ -336,7 +418,7 @@ export const useAbilitySystem = ({
       if (ability.cooldown) {
         const updatedCaster = result.finalState.characters.find(c => c.id === caster.id) || caster;
         const newCaster = {
-          ...updatedCaster,
+          ...applyResourceSnapshotToCaster(updatedCaster, casterAfterCost),
           abilities: updatedCaster.abilities.map(a =>
             a.id === ability.id ? { ...a, currentCooldown: ability.cooldown } : a
           )
@@ -378,7 +460,27 @@ export const useAbilitySystem = ({
   const selectTarget = useCallback((targetPosition: Position, caster: CombatCharacter) => {
     // Note: selectedAbility is from hook state (props/reactive), not ref.
     // This is fine as selectTarget is re-created if selectedAbility changes (which is rare during targeting).
-    if (!selectedAbility) return;
+    if (!selectedAbility) return false;
+
+    // WHAT CHANGED: Target selection now asks the validator for the reason a
+    // target failed, not just the old true/false answer.
+    // WHY: Manual combat should not silently ignore a clicked enemy. The action
+    // still does not execute, and targeting remains active so the player can
+    // pick a legal target without reselecting the ability.
+    const validation = getTargetValidation(selectedAbility, caster, targetPosition);
+    if (!validation.isValid) {
+      if (onLogEntry) {
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: validation.reason ?? `${caster.name} cannot use ${selectedAbility.name} there.`,
+          characterId: caster.id,
+          data: { abilityName: selectedAbility.name }
+        });
+      }
+      return false;
+    }
 
     let targetCharacterIds: string[] = [];
 
@@ -406,7 +508,8 @@ export const useAbilitySystem = ({
     }
 
     executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds);
-  }, [selectedAbility, executeAbility]);
+    return true;
+  }, [selectedAbility, executeAbility, getTargetValidation, onLogEntry]);
 
 
   /**
@@ -480,6 +583,7 @@ export const useAbilitySystem = ({
     cancelTargeting,
     previewAoE,
     isValidTarget,
+    getTargetValidation,
     executeSpell,
     executeAbility,
 
@@ -495,6 +599,7 @@ export const useAbilitySystem = ({
     cancelTargeting, // Stable
     previewAoE, // Stable
     isValidTarget, // Reactive (Changes with map/chars)
+    getTargetValidation, // Reactive (Changes with map/chars)
     executeSpell, // Stable
     executeAbility, // Stable
     dropConcentration, // Stable

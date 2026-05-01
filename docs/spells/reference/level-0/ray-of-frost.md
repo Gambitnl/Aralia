@@ -1,9 +1,40 @@
 # Ray of Frost
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Artificer, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 60
+- **Range Distance Unit**: feet
+- **Targeting Type**: single
+- **Targeting Range**: 60
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE, MOVEMENT
+- **Damage Dice**: 1d8
+- **Damage Type**: Cold
+
+- **Description**: A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 1d8 cold damage, and its speed is reduced by 10 feet until the start of your next turn.
+- **Higher Levels**: The spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).
 
 ## Canonical D&D Beyond Snapshot
 

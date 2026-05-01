@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useActionExecutor } from '../useActionExecutor';
-import { CombatCharacter, CombatAction, TurnState } from '../../../types/combat';
+import { CombatCharacter, CombatAction, TurnState, Ability } from '../../../types/combat';
 
 describe('useActionExecutor', () => {
     // Mocks
@@ -180,5 +180,147 @@ describe('useActionExecutor', () => {
         }));
 
         expect(mockRecordAction).toHaveBeenCalledWith(action);
+    });
+
+    it('should reject movement onto an occupied combatant tile before spending movement', () => {
+        const blocker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'blocker',
+            name: 'Blocker',
+            position: { x: 1, y: 1 },
+            team: 'enemy'
+        };
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mockCharacter, blocker]
+        }));
+
+        const action: CombatAction = {
+            id: 'blocked-move',
+            characterId: mockCharacter.id,
+            type: 'move',
+            targetPosition: blocker.position,
+            cost: { type: 'movement-only', movementCost: 5 },
+            timestamp: Date.now()
+        };
+
+        const success = result.current.executeAction(action);
+
+        expect(success).toBe(false);
+        expect(mockConsumeAction).not.toHaveBeenCalled();
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('Blocker is already there')
+        }));
+    });
+
+    it('should let Dash spend an action and add current-turn movement without making an attack', () => {
+        const dash: Ability = {
+            id: 'dash',
+            name: 'Dash',
+            description: 'Gain extra movement for the turn.',
+            type: 'movement',
+            cost: { type: 'action' },
+            targeting: 'self',
+            range: 0,
+            effects: [{ type: 'movement', value: 30 }]
+        };
+        const characterWithDash = { ...mockCharacter, abilities: [dash] };
+        const afterActionCost = {
+            ...characterWithDash,
+            actionEconomy: {
+                ...characterWithDash.actionEconomy,
+                action: { used: true, remaining: 1 }
+            }
+        };
+        mockConsumeAction.mockReturnValue(afterActionCost);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [characterWithDash]
+        }));
+
+        const action: CombatAction = {
+            id: 'dash-action',
+            characterId: characterWithDash.id,
+            type: 'ability',
+            abilityId: 'dash',
+            cost: dash.cost,
+            targetPosition: characterWithDash.position,
+            targetCharacterIds: [characterWithDash.id],
+            timestamp: Date.now()
+        };
+
+        const success = result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockOnCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            actionEconomy: expect.objectContaining({
+                action: expect.objectContaining({ used: true }),
+                movement: expect.objectContaining({ total: 60, used: 0 })
+            })
+        }));
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('gains 30 ft of movement from Dash')
+        }));
+        expect(mockOnLogEntry).not.toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('attacks Hero')
+        }));
+    });
+
+    it('should spend an enemy reaction and log an opportunity attack when movement leaves reach', () => {
+        const scimitar: Ability = {
+            id: 'scimitar',
+            name: 'Scimitar',
+            description: 'A close melee attack.',
+            type: 'attack',
+            cost: { type: 'action' },
+            targeting: 'single_enemy',
+            range: 1,
+            effects: [{ type: 'damage', value: 4, damageType: 'physical' }]
+        };
+        const mover = { ...mockCharacter, position: { x: 0, y: 1 } };
+        const attacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'orc',
+            name: 'Orc',
+            team: 'enemy',
+            position: { x: 0, y: 0 },
+            abilities: [scimitar],
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        mockConsumeAction.mockReturnValue(mover);
+        mockProcessTileEffects.mockImplementation((char) => char);
+        mockHandleDamage.mockImplementation((char) => char);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, attacker]
+        }));
+
+        const action: CombatAction = {
+            id: 'leave-reach',
+            characterId: mover.id,
+            type: 'move',
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only', movementCost: 5 },
+            timestamp: Date.now()
+        };
+
+        const success = result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockOnCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: 'orc',
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({ used: true })
+            })
+        }));
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('Opportunity Attack')
+        }));
     });
 });

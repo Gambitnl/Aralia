@@ -1,9 +1,45 @@
 # Create Bonfire
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Conjuration
+- **Ritual**: false
+- **Classes**: Artificer, Druid, Sorcerer, Warlock, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 60
+- **Range Distance Unit**: feet
+- **Targeting Type**: area
+- **Targeting Range**: 60
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: ground
+- **Line of Sight**: true
+- **Area Shape**: Cube
+- **Area Size**: 5
+- **Area Size Unit**: feet
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: true
+
+- **Effect Type**: DAMAGE
+- **Save Stat**: Dexterity
+- **Save Outcome**: none
+- **Damage Dice**: 1d8
+- **Damage Type**: Fire
+
+- **Description**: You create a bonfire on ground that you can see within range. Until the spell ends, the magic bonfire fills a 5-foot cube. Any creature in the bonfire's space when you cast the spell must succeed on a Dexterity saving throw or take 1d8 fire damage. A creature must also make the saving throw when it moves into the bonfire's space for the first time on a turn or ends its turn there.
+- **Higher Levels**: The spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).
 
 ## Canonical D&D Beyond Snapshot
 

@@ -15,9 +15,9 @@
   "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "action",
+    "unit": "bonus_action",
     "combatCost": {
-      "type": "action",
+      "type": "bonus_action",
       "condition": ""
     },
     "explorationCost": {

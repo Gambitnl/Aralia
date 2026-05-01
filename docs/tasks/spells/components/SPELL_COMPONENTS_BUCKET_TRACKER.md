@@ -1,6 +1,6 @@
 # Spell Components Bucket Tracker
 
-Last Updated: 2026-04-04
+Last Updated: 2026-04-29
 
 ## Bucket Purpose
 
@@ -25,7 +25,8 @@ the structured `Components` line was compared against the copied canonical snaps
 - structured -> json:
   - source: `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
   - live grouped bucket: none
-  - practical reading: no separate corpus-wide grouped runtime bucket is currently being reported
+  - live count: `0` grouped `Components` mismatches after the 2026-04-29 runtime audit
+  - practical reading: no separate corpus-wide grouped runtime bucket is currently needed
 - glossary gate checker:
   - canonical -> structured `Components Review`: implemented
   - structured -> json `Components Runtime Review`: implemented
@@ -73,9 +74,10 @@ Current reading:
 - gate-checker support now exists
 - the corpus-wide shared report does not currently expose `Components` as a separate
   grouped runtime bucket
-- this means the bucket is not broad active runtime residue right now, but it still
-  needs selected-spell review support so the app layer can be checked directly when
-  a component discrepancy is suspected
+- the 2026-04-29 selected runtime audit found no grouped `Components` mismatches
+- this means the bucket is not broad active runtime residue right now; selected-spell
+  review support remains useful as a diagnostic path when a component discrepancy is
+  suspected later
 
 Current dominant categories:
 
@@ -156,7 +158,7 @@ Meaning:
 Current reading:
 
 - implementation drift
-- currently not proven to be a broad corpus bucket
+- currently not present as a broad corpus bucket
 
 #### 3. Missing runtime components
 
@@ -273,12 +275,44 @@ Actions:
 - updated shared spell-truth docs to reflect that runtime support now exists even
   though the shared runtime report does not currently show a grouped `Components` bucket
 
+### 2026-04-29
+
+- resumed actual Components bucket work after the Atlas V3 modeling round closed
+- reran `npx tsx scripts/auditSpellStructuredAgainstCanonical.ts`
+- found five real canonical -> structured V/S/M drifts beyond the three accepted
+  source-shape residues:
+  - `booming-blade`: removed the extra structured/runtime verbal component
+  - `green-flame-blade`: removed the extra structured/runtime verbal component
+  - `lightning-lure`: removed the extra structured/runtime somatic component
+  - `message`: removed the extra structured/runtime verbal component
+  - `resistance`: removed the extra structured/runtime material component
+- confirmed the canonical-side `Components` bucket returned to `3` live residue
+  cases after those fixes:
+  - `feather-fall`
+  - `soul-cage`
+  - `arcane-sword`
+- reran `npx tsx scripts/auditSpellStructuredAgainstJson.ts`
+- confirmed the refreshed structured-vs-JSON report still has no grouped
+  `Components` bucket:
+  - `0` live `Components` mismatches
+  - `459` spell files compared by the structured-vs-JSON audit
+- regenerated `public/data/spell_gate_report.json` with
+  `npx tsx scripts/generateSpellGateReport.ts`
+- confirmed the public gate artifact now reports:
+  - canonical -> structured `Components`: `3`
+  - structured -> JSON `Components`: `0`
+- checked the three known canonical-side residue spells against the runtime lane:
+  - `feather-fall`: no structured-vs-JSON `Components` mismatch
+  - `soul-cage`: no structured-vs-JSON `Components` mismatch
+  - `arcane-sword`: no structured-vs-JSON `Components` mismatch
+- recorded the runtime decision: selected-spell `Components Runtime Review` remains
+  a diagnostic surface, but the shared runtime report should not grow a dedicated
+  `Components` bucket unless future evidence shows real runtime drift
+
 ## Remaining Work
 
-- verify on live selected spells whether any real structured -> json component drift
-  still exists beyond model/display boundary
-- decide whether the shared structured-vs-json report should grow a dedicated
-  `Components` bucket or whether selected-spell runtime review is sufficient
+- keep `Components Runtime Review` available for future selected-spell checks when
+  a suspected V/S/M discrepancy appears
 - keep `Material Component` and `Components` separate so raw material-note drift does
   not get folded into the V/S/M bucket
 
@@ -288,7 +322,7 @@ Actions:
    component header string, or is semantic agreement on the decomposed facts enough?
 
 2. Should the shared structured-vs-json report gain a dedicated `Components` bucket
-   if the gate checker can already surface selected-spell runtime drift directly?
+   if future audits produce real grouped runtime drift?
 
 3. Should alternate-source shapes like `arcane-sword` remain in the same `Components`
    bucket, or eventually be split into a separate alternate-source residue class?
@@ -296,10 +330,10 @@ Actions:
 ## Current Bucket Verdict
 
 - canonical -> structured: mostly source-shape residue / accepted normalization
-- structured -> json: implementation support now exists in the gate checker, but
-  the shared report does not currently show a grouped runtime Components bucket
+- structured -> json: current audit clean for grouped `Components` mismatches; the
+  selected-spell gate checker remains the diagnostic path for future suspected drift
 - policy review only: no
-- implementation work still needed: maybe, but only if live selected-spell review
-  proves real runtime drift
-- audit work still needed: yes
+- implementation work still needed: no current runtime `Components` implementation work
+- audit work still needed: no current grouped runtime audit work; future selected-spell
+  checks can reopen this if evidence changes
 - runtime gate-checker coverage: implemented

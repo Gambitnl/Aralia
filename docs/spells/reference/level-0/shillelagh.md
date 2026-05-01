@@ -1,9 +1,39 @@
 # Shillelagh
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Druid
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: bonus_action
+- **Combat Cost**: bonus_action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: self
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: self
+- **Line of Sight**: false
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: true
+- **Material Description**: mistletoe
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: false
+
+- **Effect Type**: UTILITY
+- **Utility Type**: other
+
+- **Description**: A club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8. If the attack deals damage, it can be Force damage or the weapon's normal damage type (your choice). The spell ends early if you cast it again or if you let go of the weapon.
+- **Higher Levels**: The damage die changes when you reach 5th level (d10), 11th level (d12), and 17th level (2d6).
 
 ## Canonical D&D Beyond Snapshot
 

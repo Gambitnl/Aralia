@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 29/04/2026, 17:39:30
+ * Dependents: commands/factory/AbilityCommandFactory.ts, commands/index.ts
+ * Imports: 21 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect } from '@/types/spells'
 import { CombatCharacter } from '@/types/combat'
 
@@ -11,6 +27,7 @@ import { SummoningCommand } from '../effects/SummoningCommand'
 import { TerrainCommand } from '../effects/TerrainCommand'
 import { UtilityCommand } from '../effects/UtilityCommand'
 import { DefensiveCommand } from '../effects/DefensiveCommand'
+import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand'
 import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
 import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { NarrativeCommand } from '../effects/NarrativeCommand'
@@ -205,6 +222,9 @@ export class SpellCommandFactory {
 
       case 'STATUS_CONDITION':
         return new StatusConditionCommand(effect, context)
+
+      case 'ATTACK_ROLL_MODIFIER':
+        return new AttackRollModifierCommand(effect, context)
 
       case 'MOVEMENT':
         return new MovementCommand(effect, context)

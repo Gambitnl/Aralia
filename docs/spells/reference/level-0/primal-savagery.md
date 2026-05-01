@@ -1,9 +1,39 @@
 # Primal Savagery
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Druid
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: single
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, objects, enemies
+- **Line of Sight**: true
+
+- **Verbal**: false
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE
+- **Damage Dice**: 1d10
+- **Damage Type**: Acid
+
+- **Description**: You channel primal magic to cause your teeth or fingernails to sharpen, ready to deliver a corrosive attack. Make a melee spell attack against one creature within 5 feet of you. On a hit, the target takes 1d10 acid damage.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

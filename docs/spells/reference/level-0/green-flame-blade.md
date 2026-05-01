@@ -1,9 +1,41 @@
 # Green-Flame Blade
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Evocation
+- **Ritual**: false
+- **Classes**: Sorcerer, Warlock, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: melee
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, enemies
+- **Line of Sight**: true
+
+- **Verbal**: false
+- **Somatic**: true
+- **Material**: true
+- **Material Description**: a melee weapon worth at least 1 sp
+- **Material Cost GP**: 0.1
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE
+- **Damage Dice**: 1d8
+- **Damage Type**: Fire
+
+- **Description**: As part of casting the spell, make a melee attack with a weapon against one creature within 5 feet. On a hit, the target takes the attack's normal damage, and green fire leaps to a second creature of your choice within 5 feet of the target, dealing fire damage equal to your spellcasting ability modifier. The primary target and secondary fire damage scale as you gain levels.
+- **Higher Levels**: At 5th level, the melee attack also deals an extra 1d8 fire damage to the primary target, and the secondary target takes an extra 1d8 fire damage. Both extra dice increase by 1d8 at 11th level and 17th level.
 
 ## Canonical D&D Beyond Snapshot
 

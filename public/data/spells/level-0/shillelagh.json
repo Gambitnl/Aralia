@@ -33,7 +33,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "mistletoe, a shamrock leaf, and a club or quarterstaff",
+    "materialDescription": "mistletoe",
     "materialCost": 0,
     "isConsumed": false
   },

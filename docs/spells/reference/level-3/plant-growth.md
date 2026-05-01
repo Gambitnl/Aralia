@@ -1,13 +1,15 @@
 # Plant Growth
 - **Level**: 3
 - **School**: Transmutation
-- **Ritual**: true
+- **Ritual**: false
 - **Classes**: Bard, Druid, Ranger
 - **Sub-Classes**: Cleric - Nature Domain (PHB), Druid - Circle of Wildfire (TCoE), Paladin - Oath of the Ancients, Warlock - Archfey Patron
 
-- **Casting Time Value**: 1
-- **Casting Time Unit**: action
+- **Casting Time Value**: 0
+- **Casting Time Unit**: special
 - **Combat Cost**: action
+- **Exploration Cost Value**: 8
+- **Exploration Cost Unit**: hour
 
 - **Range Type**: ranged
 - **Range Distance**: 150

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/05/2026, 17:11:04
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file BattleMap.tsx
  * The primary component for rendering the procedural battle map grid, tiles, and character tokens.
@@ -74,6 +90,10 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
   }, [mapData]);
 
   const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
+  const primaryAttack = currentCharacter?.abilities[0];
+  const canUsePrimaryAttack = currentCharacter && primaryAttack
+    ? turnManager.canAffordAction(currentCharacter, primaryAttack.cost)
+    : false;
 
   // --- OPTIMIZATION START ---
   // Memoize sets to reduce O(N) lookups in render loop and prevent re-calcs on mouse move
@@ -113,15 +133,26 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-700 p-2 rounded-md shadow-lg flex gap-2 z-[var(--z-index-submap-overlay)]">
           <button 
-            onClick={() => setActionMode('move')}
+            onClick={() => {
+              // Switching back to movement should leave any half-started attack
+              // targeting state behind; otherwise a later enemy click can still
+              // behave like an ability target instead of a selection/move click.
+              abilitySystem.cancelTargeting();
+              setActionMode('move');
+            }}
             className={`px-3 py-1 text-sm rounded transition-colors ${actionMode === 'move' ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-gray-600 hover:bg-gray-500'}`}
           >Move</button>
           <button
             onClick={() => {
+              // The quick Attack button mirrors the ability palette. If the
+              // action has already been spent, the player should see the button
+              // disabled instead of entering a targeting mode that will fail.
+              if (!currentCharacter || !primaryAttack || !canUsePrimaryAttack) return;
               setActionMode('ability');
-              abilitySystem.startTargeting(currentCharacter.abilities[0], currentCharacter);
+              abilitySystem.startTargeting(primaryAttack, currentCharacter);
             }}
-            className={`px-3 py-1 text-sm rounded transition-colors ${actionMode === 'ability' ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
+            disabled={!canUsePrimaryAttack}
+            className={`px-3 py-1 text-sm rounded transition-colors ${!canUsePrimaryAttack ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : actionMode === 'ability' ? 'bg-red-600 text-white ring-2 ring-red-300' : 'bg-gray-600 hover:bg-gray-500'}`}
           >Attack</button>
         </div>
       )}

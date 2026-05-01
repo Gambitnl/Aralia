@@ -2,22 +2,40 @@
 import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
-import { CombatCharacter, Ability } from '../../types/combat';
+import { CombatCharacter, Ability, BattleMapData } from '../../types/combat';
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
 
 // Mock dependencies
-vi.mock('../combat/useTargeting', () => ({
-    useTargeting: () => ({
-        startTargeting: vi.fn(),
-        cancelTargeting: vi.fn(),
-        selectedAbility: null,
-        targetingMode: null,
-        aoePreview: null,
-        params: null,
-        previewAoE: vi.fn()
-    })
-}));
+vi.mock('../combat/useTargeting', async () => {
+    const React = await vi.importActual<typeof import('react')>('react');
+
+    return {
+        useTargeting: () => {
+            // This mock keeps the real selected-ability state because the
+            // targeting-feedback test needs to exercise the same start-target
+            // then click-target flow used by the battle map.
+            const [selectedAbility, setSelectedAbility] = React.useState<unknown | null>(null);
+            const [targetingMode, setTargetingMode] = React.useState(false);
+
+            return {
+                startTargeting: React.useCallback((ability: unknown) => {
+                    setSelectedAbility(ability);
+                    setTargetingMode(true);
+                }, []),
+                cancelTargeting: React.useCallback(() => {
+                    setSelectedAbility(null);
+                    setTargetingMode(false);
+                }, []),
+                selectedAbility,
+                targetingMode,
+                aoePreview: null,
+                params: null,
+                previewAoE: vi.fn()
+            };
+        }
+    };
+});
 
 vi.mock('../../commands', () => ({
     SpellCommandFactory: { createCommands: vi.fn().mockResolvedValue([]) },
@@ -188,5 +206,54 @@ describe('useAbilitySystem - Reactions', () => {
         // Check that CommandExecutor was called
         const { CommandExecutor } = await import('../../commands');
         expect(CommandExecutor.execute).toHaveBeenCalled();
+    });
+
+    it('should log why a selected target cannot be used instead of failing silently', async () => {
+        const shortAttack: Ability = {
+            ...basicAttack,
+            id: 'short-strike',
+            name: 'Short Strike',
+            range: 1
+        };
+        const localExecuteAction = vi.fn(() => true);
+        const localLogEntry = vi.fn();
+        const validationMap: BattleMapData = {
+            tiles: new Map([
+                ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }]
+            ]),
+            dimensions: { width: 10, height: 10 },
+            theme: 'forest',
+            seed: 1
+        };
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, defender],
+            // This two-tile map is enough for targeting validation. The mocked
+            // distance helper reports a larger distance, which lets the test
+            // focus on out-of-range feedback without depending on map geometry.
+            mapData: validationMap,
+            onExecuteAction: localExecuteAction,
+            onCharacterUpdate: mockCharacterUpdate,
+            onLogEntry: localLogEntry,
+            onAbilityEffect: mockAbilityEffect
+        }));
+
+        act(() => {
+            result.current.startTargeting(shortAttack, defender);
+        });
+
+        let didSelect = true;
+        act(() => {
+            didSelect = result.current.selectTarget(attacker.position, defender);
+        });
+
+        expect(didSelect).toBe(false);
+        expect(localExecuteAction).not.toHaveBeenCalled();
+        expect(localLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            type: 'action',
+            characterId: defender.id,
+            message: expect.stringContaining('Attacker is too far away for Short Strike.')
+        }));
     });
 });

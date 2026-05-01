@@ -1,6 +1,6 @@
 # Spell Classes Bucket Tracker
 
-Last Updated: 2026-04-06
+Last Updated: 2026-04-29
 
 ## Bucket Purpose
 
@@ -25,9 +25,11 @@ proven to be stale.
   - `17` mismatches in
     `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
   - grouped kind: `missing-canonical-field`
-  - current reading: small active residue set with a mix of:
-    - source-shape residue
-    - canonical parse contamination
+  - current reading: small residue set with a split action state:
+    - `12` missing-derived-class cases reviewed on `2026-04-29` and closed as
+      canonical capture/source-shape residue
+    - `5` canonical metadata-leak cases remain active because `Capture Method: http`
+      is still being read as comparable class evidence
 - structured -> json:
   - no grouped `Classes` bucket currently appears in
     `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
@@ -35,8 +37,17 @@ proven to be stale.
     right now
 
 Bucket state:
-- canonical side: active, but mostly residue
+- canonical side: active only for the `5` metadata-leak parser cases
 - runtime side: mostly resolved at the grouped-report level
+
+Atlas execution map:
+- `F:\Repos\Aralia\misc\spell_pipeline_atlas.html?bucket=Classes`
+
+Atlas model fit:
+- fits the current buckets -> phases -> steps -> edge cases model
+- no new Atlas gap entry was added for `Classes`
+- reason: the canonical work splits cleanly into two Phase 1 mismatch families,
+  while the runtime check fits as a downstream Phase 2 recheck
 
 ## Key Mismatch Families
 
@@ -52,6 +63,15 @@ That means the canonical-side audit still reports some spells as:
 Current count in the live `17`-spell bucket:
 - `12` spells
 
+Review result as of `2026-04-29`:
+- all `12` files were checked directly against their structured markdown, runtime
+  JSON, and copied canonical snapshot
+- structured markdown and runtime JSON already agree on the normalized class lists
+- the copied canonical snapshots have an empty `Available For:` section followed by
+  capture metadata / legacy markers
+- no structured or JSON class-list mutation was made, because removing valid class
+  lists to match an empty capture would make the data worse
+
 Representative examples:
 - `aura-of-life`
 - `circle-of-power`
@@ -60,7 +80,10 @@ Representative examples:
 - `raise-dead`
 
 This is no longer a corpus-wide crisis. After the `2026-04-05` report refresh, it
-is the dominant explanation for only a small named residue set.
+was the dominant explanation for only a small named residue set. After the
+`2026-04-29` file-by-file review, this subbucket is considered closed as
+source-shape residue unless a future canonical retrieval rehydrates actual
+`Available For` values for those legacy-page snapshots.
 
 ### 2. Canonical metadata leaking into the comparable class value
 
@@ -109,10 +132,13 @@ The current best reading is:
 
 - canonical -> structured:
   - no longer a broad residue bucket
-  - now a small active review set where:
-    - `12` cases are best read as missing derived classes from `Available For`
-    - `5` cases are parser contamination where capture metadata leaked into the
-      comparable class value
+  - still `17` cases in the generated report, but only `5` remain actionable in
+    the current bucket pass
+  - the `12` missing-derived-class cases were reviewed and closed as source-shape
+    residue because the canonical snapshot did not preserve class access under
+    `Available For`
+  - the remaining `5` cases are parser contamination where capture metadata leaked
+    into the comparable class value
 - structured -> json:
   - no grouped runtime backlog currently exposed
   - runtime JSON does not appear to be lagging behind structured `Classes` data at
@@ -133,8 +159,8 @@ than about an active broad implementation backlog.
 - do not let the older stale count continue to frame the bucket as a broad
   class-data failure lane
 - keep the bucket split visible:
-  - `12` missing-derived-classes cases
-  - `5` metadata-leak parser cases
+  - `12` missing-derived-classes cases: reviewed / closed as source-shape residue
+  - `5` metadata-leak parser cases: active next work
 
 ### Phase 2: Preserve runtime confidence
 
@@ -184,16 +210,47 @@ than about an active broad implementation backlog.
   - `5` metadata-leak parser cases
 - updated the tracker and shared docs so the bucket is now described as a small
   active residue set rather than a corpus-scale class-data problem
+- opened the Atlas onboarding panel and checked the gap registry before updating
+  the execution map
+- confirmed no new Atlas model gap is needed for `Classes`
+- updated the Atlas execution map so Phase 1 leads with the canonical ->
+  structured subbuckets and Phase 2 is framed as the follow-up runtime check
+
+### 2026-04-29
+
+- resumed actual Classes bucket work after the Atlas modeling loop closed
+- reviewed all `12` `missing_derived_base_classes` spells directly:
+  - `aura-of-life`
+  - `staggering-smite`
+  - `circle-of-power`
+  - `conjure-volley`
+  - `mislead`
+  - `modify-memory`
+  - `passwall`
+  - `raise-dead`
+  - `rarys-telepathic-bond`
+  - `reincarnate`
+  - `swift-quiver`
+  - `feeblemind`
+- confirmed their structured markdown class lists and runtime JSON class lists
+  already agree
+- confirmed the canonical snapshot side has empty `Available For:` payloads followed
+  by capture metadata / legacy markers, so there is no canonical class list to
+  migrate into structured data
+- closed `missing_derived_base_classes` as source-shape residue rather than changing
+  correct structured/runtime class data to match an empty capture
+- promoted `canonical_metadata_leak` as the active Classes subbucket
 
 ## Remaining Work
 
 - audit work:
-  - improve the canonical-side comparison so base classes are derived more directly
-    from canonical `Available For`
   - fix the canonical-side parser so metadata lines do not contaminate comparable
     `Classes` values
-  - review the remaining `17` canonical-side spells directly if the bucket needs to
-    be reduced from "small active residue" to "boundary-only"
+  - review the remaining `5` metadata-leak spells directly and decide whether the
+    fix belongs in the canonical parser, the captured markdown, or both
+  - keep the `12` closed source-shape cases visible in the report history until the
+    canonical-side audit stops counting empty legacy-page `Available For` blocks as
+    missing comparable classes
 - policy review:
   - decide whether any legacy-class labels need explicit treatment beyond current
     normalization

@@ -19,7 +19,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: rare oils worth 1,000+ GP
+- **Material Description**: rare oils and unguents worth at least 1,000 gp
 - **Material Cost GP**: 1000
 - **Consumed**: true
 

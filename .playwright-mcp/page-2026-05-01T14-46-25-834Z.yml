@@ -1,0 +1,883 @@
+- generic [ref=e1]:
+  - generic [ref=e265]:
+    - generic [ref=e266]:
+      - heading "Combat Encounter" [level=1] [ref=e267]
+      - 'button "Debug: Auto-Win" [ref=e268] [cursor=pointer]'
+    - generic [ref=e269]:
+      - generic [ref=e271]:
+        - heading "Your Party" [level=3] [ref=e272]
+        - generic [ref=e273]:
+          - generic [ref=e274]:
+            - button "Select Dev Player" [ref=e275] [cursor=pointer]:
+              - paragraph [ref=e277]: Dev Player
+              - paragraph [ref=e281]: 12 / 12
+            - 'button "AI: OFF" [ref=e282] [cursor=pointer]'
+          - generic [ref=e283]:
+            - button "Select Kaelen Thorne" [ref=e284] [cursor=pointer]:
+              - paragraph [ref=e286]: Kaelen Thorne
+              - paragraph [ref=e290]: 10 / 10
+            - 'button "AI: OFF" [ref=e291] [cursor=pointer]'
+          - generic [ref=e292]:
+            - button "Select Elara Vance" [ref=e293] [cursor=pointer]:
+              - paragraph [ref=e295]: Elara Vance
+              - paragraph [ref=e299]: 10 / 10
+            - 'button "AI: OFF" [ref=e300] [cursor=pointer]'
+      - generic [ref=e302]:
+        - generic [ref=e303]:
+          - button "Move" [ref=e304] [cursor=pointer]
+          - button "Attack" [ref=e305] [cursor=pointer]
+        - generic [ref=e307]:
+          - button "Tile grass at 0, 0" [disabled] [ref=e308]
+          - button "Tile grass at 1, 0" [disabled] [ref=e309]
+          - button "Tile grass at 2, 0" [disabled] [ref=e310]
+          - button "Tile grass at 3, 0" [disabled] [ref=e311]
+          - button "Tile difficult at 4, 0" [disabled] [ref=e312]
+          - button "Tile difficult at 5, 0" [disabled] [ref=e313]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile difficult at 6, 0" [disabled] [ref=e314]
+          - button "Tile grass at 7, 0" [disabled] [ref=e315]
+          - button "Tile grass at 8, 0" [disabled] [ref=e316]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 9, 0" [disabled] [ref=e317]
+          - button "Tile grass at 10, 0" [disabled] [ref=e318]
+          - button "Tile grass at 11, 0" [disabled] [ref=e319]
+          - button "Tile grass at 12, 0" [disabled] [ref=e320]
+          - button "Tile grass at 13, 0" [disabled] [ref=e321]
+          - button "Tile grass at 14, 0" [disabled] [ref=e322]
+          - button "Tile grass at 15, 0" [disabled] [ref=e323]
+          - button "Tile grass at 16, 0" [disabled] [ref=e324]
+          - button "Tile grass at 17, 0" [disabled] [ref=e325]
+          - button "Tile grass at 18, 0" [disabled] [ref=e326]
+          - button "Tile grass at 19, 0" [disabled] [ref=e327]
+          - button "Tile grass at 20, 0" [disabled] [ref=e328]
+          - button "Tile grass at 21, 0" [disabled] [ref=e329]
+          - button "Tile grass at 22, 0" [disabled] [ref=e330]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 23, 0" [disabled] [ref=e331]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 24, 0" [disabled] [ref=e332]
+          - button "Tile grass at 25, 0" [disabled] [ref=e333]
+          - button "Tile grass at 26, 0" [disabled] [ref=e334]
+          - button "Tile grass at 27, 0" [disabled] [ref=e335]
+          - button "Tile grass at 28, 0" [disabled] [ref=e336]
+          - button "Tile grass at 29, 0" [disabled] [ref=e337]
+          - button "Tile grass at 0, 1" [ref=e338] [cursor=pointer]
+          - button "Tile grass at 1, 1" [disabled] [ref=e339]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 2, 1" [disabled] [ref=e340]
+          - button "Tile grass at 3, 1" [disabled] [ref=e341]
+          - button "Tile difficult at 4, 1" [disabled] [ref=e342]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile difficult at 5, 1" [disabled] [ref=e343]
+          - button "Tile difficult at 6, 1" [disabled] [ref=e344]
+          - button "Tile grass at 7, 1" [disabled] [ref=e345]
+          - button "Tile grass at 8, 1" [disabled] [ref=e346]
+          - button "Tile grass at 9, 1" [disabled] [ref=e347]
+          - button "Tile grass at 10, 1" [disabled] [ref=e348]
+          - button "Tile grass at 11, 1" [disabled] [ref=e349]
+          - button "Tile grass at 12, 1" [disabled] [ref=e350]
+          - button "Tile grass at 13, 1" [disabled] [ref=e351]
+          - button "Tile grass at 14, 1" [disabled] [ref=e352]
+          - button "Tile grass at 15, 1" [disabled] [ref=e353]
+          - button "Tile grass at 16, 1" [disabled] [ref=e354]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 17, 1" [disabled] [ref=e355]
+          - button "Tile grass at 18, 1" [disabled] [ref=e356]
+          - button "Tile grass at 19, 1" [disabled] [ref=e357]
+          - button "Tile grass at 20, 1" [disabled] [ref=e358]
+          - button "Tile grass at 21, 1" [disabled] [ref=e359]
+          - button "Tile grass at 22, 1" [disabled] [ref=e360]
+          - button "Tile grass at 23, 1" [disabled] [ref=e361]
+          - button "Tile grass at 24, 1" [disabled] [ref=e362]
+          - button "Tile grass at 25, 1" [disabled] [ref=e363]
+          - button "Tile grass at 26, 1" [disabled] [ref=e364]
+          - button "Tile grass at 27, 1" [disabled] [ref=e365]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 28, 1" [disabled] [ref=e366]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 29, 1" [disabled] [ref=e367]
+          - button "Tile grass at 0, 2" [ref=e368] [cursor=pointer]
+          - button "Tile grass at 1, 2" [ref=e369] [cursor=pointer]
+          - button "Tile grass at 2, 2" [ref=e370] [cursor=pointer]
+          - button "Tile grass at 3, 2" [disabled] [ref=e371]
+          - button "Tile difficult at 4, 2" [disabled] [ref=e372]
+          - button "Tile difficult at 5, 2" [disabled] [ref=e373]
+          - button "Tile difficult at 6, 2" [disabled] [ref=e374]
+          - button "Tile grass at 7, 2" [disabled] [ref=e375]
+          - button "Tile grass at 8, 2" [disabled] [ref=e376]
+          - button "Tile grass at 9, 2" [disabled] [ref=e377]
+          - button "Tile grass at 10, 2" [disabled] [ref=e378]
+          - button "Tile grass at 11, 2" [disabled] [ref=e379]
+          - button "Tile grass at 12, 2" [disabled] [ref=e380]
+          - button "Tile grass at 13, 2" [disabled] [ref=e381]
+          - button "Tile grass at 14, 2" [disabled] [ref=e382]
+          - button "Tile grass at 15, 2" [disabled] [ref=e383]
+          - button "Tile grass at 16, 2" [disabled] [ref=e384]
+          - button "Tile grass at 17, 2" [disabled] [ref=e385]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 18, 2" [disabled] [ref=e386]
+          - button "Tile grass at 19, 2" [disabled] [ref=e387]
+          - button "Tile grass at 20, 2" [disabled] [ref=e388]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 21, 2" [disabled] [ref=e389]
+          - button "Tile grass at 22, 2" [disabled] [ref=e390]
+          - button "Tile grass at 23, 2" [disabled] [ref=e391]
+          - button "Tile grass at 24, 2" [disabled] [ref=e392]
+          - button "Tile grass at 25, 2" [disabled] [ref=e393]
+          - button "Tile grass at 26, 2" [disabled] [ref=e394]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 27, 2" [disabled] [ref=e395]
+          - button "Tile grass at 28, 2" [disabled] [ref=e396]
+          - button "Tile grass at 29, 2" [disabled] [ref=e397]
+          - button "Tile grass at 0, 3" [ref=e398] [cursor=pointer]
+          - button "Tile grass at 1, 3" [ref=e399] [cursor=pointer]
+          - button "Tile grass at 2, 3" [disabled] [ref=e400]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 3, 3" [disabled] [ref=e401]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 4, 3" [ref=e402] [cursor=pointer]
+          - button "Tile difficult at 5, 3" [disabled] [ref=e403]
+          - button "Tile difficult at 6, 3" [disabled] [ref=e404]
+          - button "Tile grass at 7, 3" [disabled] [ref=e405]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 8, 3" [disabled] [ref=e406]
+          - button "Tile grass at 9, 3" [disabled] [ref=e407]
+          - button "Tile grass at 10, 3" [disabled] [ref=e408]
+          - button "Tile grass at 11, 3" [disabled] [ref=e409]
+          - button "Tile grass at 12, 3" [disabled] [ref=e410]
+          - button "Tile grass at 13, 3" [disabled] [ref=e411]
+          - button "Tile grass at 14, 3" [disabled] [ref=e412]
+          - button "Tile grass at 15, 3" [disabled] [ref=e413]
+          - button "Tile grass at 16, 3" [disabled] [ref=e414]
+          - button "Tile grass at 17, 3" [disabled] [ref=e415]
+          - button "Tile grass at 18, 3" [disabled] [ref=e416]
+          - button "Tile grass at 19, 3" [disabled] [ref=e417]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 20, 3" [disabled] [ref=e418]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 21, 3" [disabled] [ref=e419]
+          - button "Tile grass at 22, 3" [disabled] [ref=e420]
+          - button "Tile grass at 23, 3" [disabled] [ref=e421]
+          - button "Tile grass at 24, 3" [disabled] [ref=e422]
+          - button "Tile grass at 25, 3" [disabled] [ref=e423]
+          - button "Tile grass at 26, 3" [disabled] [ref=e424]
+          - button "Tile grass at 27, 3" [disabled] [ref=e425]
+          - button "Tile grass at 28, 3" [disabled] [ref=e426]
+          - button "Tile grass at 29, 3" [disabled] [ref=e427]
+          - button "Tile grass at 0, 4" [ref=e428] [cursor=pointer]
+          - button "Tile grass at 1, 4" [ref=e429] [cursor=pointer]
+          - button "Tile grass at 2, 4" [disabled] [ref=e430]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 3, 4" [ref=e431] [cursor=pointer]
+          - button "Tile grass at 4, 4" [disabled] [ref=e432]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 5, 4" [ref=e433] [cursor=pointer]
+          - button "Tile grass at 6, 4" [disabled] [ref=e434]
+          - button "Tile grass at 7, 4" [disabled] [ref=e435]
+          - button "Tile grass at 8, 4" [disabled] [ref=e436]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 9, 4" [disabled] [ref=e437]
+          - button "Tile grass at 10, 4" [disabled] [ref=e438]
+          - button "Tile grass at 11, 4" [disabled] [ref=e439]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 12, 4" [disabled] [ref=e440]
+          - button "Tile grass at 13, 4" [disabled] [ref=e441]
+          - button "Tile grass at 14, 4" [disabled] [ref=e442]
+          - button "Tile grass at 15, 4" [disabled] [ref=e443]
+          - button "Tile grass at 16, 4" [disabled] [ref=e444]
+          - button "Tile grass at 17, 4" [disabled] [ref=e445]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 18, 4" [disabled] [ref=e446]
+          - button "Tile grass at 19, 4" [disabled] [ref=e447]
+          - button "Tile grass at 20, 4" [disabled] [ref=e448]
+          - button "Tile grass at 21, 4" [disabled] [ref=e449]
+          - button "Tile grass at 22, 4" [disabled] [ref=e450]
+          - button "Tile grass at 23, 4" [disabled] [ref=e451]
+          - button "Tile grass at 24, 4" [disabled] [ref=e452]
+          - button "Tile grass at 25, 4" [disabled] [ref=e453]
+          - button "Tile grass at 26, 4" [disabled] [ref=e454]
+          - button "Tile grass at 27, 4" [disabled] [ref=e455]
+          - button "Tile grass at 28, 4" [disabled] [ref=e456]
+          - button "Tile grass at 29, 4" [disabled] [ref=e457]
+          - button "Tile grass at 0, 5" [ref=e458] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 1, 5" [ref=e459] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 2, 5" [ref=e460] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 3, 5" [ref=e461] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 4, 5" [ref=e462] [cursor=pointer]
+          - button "Tile grass at 5, 5" [ref=e463] [cursor=pointer]
+          - button "Tile grass at 6, 5" [disabled] [ref=e464]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 7, 5" [disabled] [ref=e465]
+          - button "Tile grass at 8, 5" [disabled] [ref=e466]
+          - button "Tile grass at 9, 5" [disabled] [ref=e467]
+          - button "Tile grass at 10, 5" [disabled] [ref=e468]
+          - button "Tile grass at 11, 5" [disabled] [ref=e469]
+          - button "Tile grass at 12, 5" [disabled] [ref=e470]
+          - button "Tile grass at 13, 5" [disabled] [ref=e471]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 14, 5" [disabled] [ref=e472]
+          - button "Tile grass at 15, 5" [disabled] [ref=e473]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 16, 5" [disabled] [ref=e474]
+          - button "Tile grass at 17, 5" [disabled] [ref=e475]
+          - button "Tile grass at 18, 5" [disabled] [ref=e476]
+          - button "Tile grass at 19, 5" [disabled] [ref=e477]
+          - button "Tile grass at 20, 5" [disabled] [ref=e478]
+          - button "Tile grass at 21, 5" [disabled] [ref=e479]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 22, 5" [disabled] [ref=e480]
+          - button "Tile grass at 23, 5" [disabled] [ref=e481]
+          - button "Tile grass at 24, 5" [disabled] [ref=e482]
+          - button "Tile grass at 25, 5" [disabled] [ref=e483]
+          - button "Tile grass at 26, 5" [disabled] [ref=e484]
+          - button "Tile grass at 27, 5" [disabled] [ref=e485]
+          - button "Tile grass at 28, 5" [disabled] [ref=e486]
+          - button "Tile grass at 29, 5" [disabled] [ref=e487]
+          - button "Tile grass at 0, 6" [ref=e488] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 1, 6" [ref=e489] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 2, 6" [ref=e490] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 3, 6" [ref=e491] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 4, 6" [ref=e492] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 5, 6" [ref=e493] [cursor=pointer]
+          - button "Tile grass at 6, 6" [ref=e494] [cursor=pointer]
+          - button "Tile grass at 7, 6" [disabled] [ref=e495]
+          - button "Tile grass at 8, 6" [disabled] [ref=e496]
+          - button "Tile grass at 9, 6" [disabled] [ref=e497]
+          - button "Tile grass at 10, 6" [disabled] [ref=e498]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 11, 6" [disabled] [ref=e499]
+          - button "Tile grass at 12, 6" [disabled] [ref=e500]
+          - button "Tile grass at 13, 6" [disabled] [ref=e501]
+          - button "Tile grass at 14, 6" [disabled] [ref=e502]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 15, 6" [disabled] [ref=e503]
+          - button "Tile grass at 16, 6" [disabled] [ref=e504]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 17, 6" [disabled] [ref=e505]
+          - button "Tile grass at 18, 6" [disabled] [ref=e506]
+          - button "Tile grass at 19, 6" [disabled] [ref=e507]
+          - button "Tile grass at 20, 6" [disabled] [ref=e508]
+          - button "Tile grass at 21, 6" [disabled] [ref=e509]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 22, 6" [disabled] [ref=e510]
+          - button "Tile grass at 23, 6" [disabled] [ref=e511]
+          - button "Tile grass at 24, 6" [disabled] [ref=e512]
+          - button "Tile grass at 25, 6" [disabled] [ref=e513]
+          - button "Tile grass at 26, 6" [disabled] [ref=e514]
+          - button "Tile grass at 27, 6" [disabled] [ref=e515]
+          - button "Tile grass at 28, 6" [disabled] [ref=e516]
+          - button "Tile grass at 29, 6" [disabled] [ref=e517]
+          - button "Tile grass at 0, 7" [ref=e518] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 1, 7" [ref=e519] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 2, 7" [ref=e520] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 3, 7" [ref=e521] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 4, 7" [disabled] [ref=e522]:
+            - generic: "3"
+            - generic: 🌳
+          - button "Tile grass at 5, 7" [ref=e523] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 6, 7" [disabled] [ref=e524]
+          - button "Tile grass at 7, 7" [disabled] [ref=e525]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 8, 7" [disabled] [ref=e526]
+          - button "Tile grass at 9, 7" [disabled] [ref=e527]
+          - button "Tile grass at 10, 7" [disabled] [ref=e528]
+          - button "Tile grass at 11, 7" [disabled] [ref=e529]
+          - button "Tile grass at 12, 7" [disabled] [ref=e530]
+          - button "Tile difficult at 13, 7" [disabled] [ref=e531]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 14, 7" [disabled] [ref=e532]
+          - button "Tile grass at 15, 7" [disabled] [ref=e533]
+          - button "Tile grass at 16, 7" [disabled] [ref=e534]
+          - button "Tile grass at 17, 7" [disabled] [ref=e535]
+          - button "Tile grass at 18, 7" [disabled] [ref=e536]
+          - button "Tile grass at 19, 7" [disabled] [ref=e537]
+          - button "Tile grass at 20, 7" [disabled] [ref=e538]
+          - button "Tile grass at 21, 7" [disabled] [ref=e539]
+          - button "Tile grass at 22, 7" [disabled] [ref=e540]
+          - button "Tile grass at 23, 7" [disabled] [ref=e541]
+          - button "Tile grass at 24, 7" [disabled] [ref=e542]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 25, 7" [disabled] [ref=e543]
+          - button "Tile grass at 26, 7" [disabled] [ref=e544]
+          - button "Tile grass at 27, 7" [disabled] [ref=e545]
+          - button "Tile grass at 28, 7" [disabled] [ref=e546]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 29, 7" [disabled] [ref=e547]
+          - button "Tile grass at 0, 8" [ref=e548] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 1, 8" [ref=e549] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 2, 8" [ref=e550] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 3, 8" [ref=e551] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 4, 8" [ref=e552] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 5, 8" [ref=e553] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 6, 8" [ref=e554] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 7, 8" [disabled] [ref=e555]
+          - button "Tile grass at 8, 8" [disabled] [ref=e556]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 9, 8" [disabled] [ref=e557]
+          - button "Tile grass at 10, 8" [disabled] [ref=e558]
+          - button "Tile grass at 11, 8" [disabled] [ref=e559]
+          - button "Tile grass at 12, 8" [disabled] [ref=e560]
+          - button "Tile difficult at 13, 8" [disabled] [ref=e561]
+          - button "Tile difficult at 14, 8" [disabled] [ref=e562]
+          - button "Tile grass at 15, 8" [disabled] [ref=e563]
+          - button "Tile grass at 16, 8" [disabled] [ref=e564]
+          - button "Tile grass at 17, 8" [disabled] [ref=e565]
+          - button "Tile grass at 18, 8" [disabled] [ref=e566]
+          - button "Tile grass at 19, 8" [disabled] [ref=e567]
+          - button "Tile grass at 20, 8" [disabled] [ref=e568]
+          - button "Tile grass at 21, 8" [disabled] [ref=e569]
+          - button "Tile grass at 22, 8" [disabled] [ref=e570]
+          - button "Tile grass at 23, 8" [disabled] [ref=e571]
+          - button "Tile grass at 24, 8" [disabled] [ref=e572]
+          - button "Tile grass at 25, 8" [disabled] [ref=e573]
+          - button "Tile grass at 26, 8" [disabled] [ref=e574]
+          - button "Tile grass at 27, 8" [disabled] [ref=e575]
+          - button "Tile grass at 28, 8" [disabled] [ref=e576]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 29, 8" [disabled] [ref=e577]
+          - button "Tile grass at 0, 9" [ref=e578] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 1, 9" [ref=e579] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 2, 9" [ref=e580] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 3, 9" [ref=e581] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 4, 9" [ref=e582] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 5, 9" [ref=e583] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 6, 9" [disabled] [ref=e584]:
+            - generic: "1"
+          - button "Tile grass at 7, 9" [disabled] [ref=e585]
+          - button "Tile grass at 8, 9" [disabled] [ref=e586]
+          - button "Tile grass at 9, 9" [disabled] [ref=e587]
+          - button "Tile grass at 10, 9" [disabled] [ref=e588]
+          - button "Tile grass at 11, 9" [disabled] [ref=e589]
+          - button "Tile grass at 12, 9" [disabled] [ref=e590]
+          - button "Tile grass at 13, 9" [disabled] [ref=e591]
+          - button "Tile grass at 14, 9" [disabled] [ref=e592]
+          - button "Tile grass at 15, 9" [disabled] [ref=e593]
+          - button "Tile grass at 16, 9" [disabled] [ref=e594]
+          - button "Tile grass at 17, 9" [disabled] [ref=e595]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 18, 9" [disabled] [ref=e596]
+          - button "Tile grass at 19, 9" [disabled] [ref=e597]
+          - button "Tile grass at 20, 9" [disabled] [ref=e598]
+          - button "Tile grass at 21, 9" [disabled] [ref=e599]
+          - button "Tile grass at 22, 9" [disabled] [ref=e600]
+          - button "Tile grass at 23, 9" [disabled] [ref=e601]
+          - button "Tile grass at 24, 9" [disabled] [ref=e602]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 25, 9" [disabled] [ref=e603]
+          - button "Tile grass at 26, 9" [disabled] [ref=e604]
+          - button "Tile grass at 27, 9" [disabled] [ref=e605]
+          - button "Tile grass at 28, 9" [disabled] [ref=e606]
+          - button "Tile grass at 29, 9" [disabled] [ref=e607]
+          - button "Tile grass at 0, 10" [ref=e608] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 1, 10" [ref=e609] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 2, 10" [ref=e610] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 3, 10" [ref=e611] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 4, 10" [ref=e612] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 5, 10" [ref=e613] [cursor=pointer]:
+            - generic: "1"
+          - button "Tile grass at 6, 10" [disabled] [ref=e614]
+          - button "Tile grass at 7, 10" [disabled] [ref=e615]
+          - button "Tile grass at 8, 10" [disabled] [ref=e616]
+          - button "Tile grass at 9, 10" [disabled] [ref=e617]
+          - button "Tile grass at 10, 10" [disabled] [ref=e618]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 11, 10" [disabled] [ref=e619]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 12, 10" [disabled] [ref=e620]
+          - button "Tile grass at 13, 10" [disabled] [ref=e621]
+          - button "Tile grass at 14, 10" [disabled] [ref=e622]
+          - button "Tile grass at 15, 10" [disabled] [ref=e623]
+          - button "Tile grass at 16, 10" [disabled] [ref=e624]
+          - button "Tile grass at 17, 10" [disabled] [ref=e625]
+          - button "Tile grass at 18, 10" [disabled] [ref=e626]
+          - button "Tile grass at 19, 10" [disabled] [ref=e627]
+          - button "Tile grass at 20, 10" [disabled] [ref=e628]
+          - button "Tile grass at 21, 10" [disabled] [ref=e629]
+          - button "Tile grass at 22, 10" [disabled] [ref=e630]
+          - button "Tile grass at 23, 10" [disabled] [ref=e631]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 24, 10" [disabled] [ref=e632]
+          - button "Tile grass at 25, 10" [disabled] [ref=e633]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 26, 10" [disabled] [ref=e634]
+          - button "Tile grass at 27, 10" [disabled] [ref=e635]
+          - button "Tile grass at 28, 10" [disabled] [ref=e636]
+          - button "Tile grass at 29, 10" [disabled] [ref=e637]
+          - button "Tile grass at 0, 11" [ref=e638] [cursor=pointer]
+          - button "Tile grass at 1, 11" [ref=e639] [cursor=pointer]
+          - button "Tile grass at 2, 11" [ref=e640] [cursor=pointer]
+          - button "Tile grass at 3, 11" [disabled] [ref=e641]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 4, 11" [disabled] [ref=e642]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 5, 11" [disabled] [ref=e643]
+          - button "Tile grass at 6, 11" [disabled] [ref=e644]
+          - button "Tile grass at 7, 11" [disabled] [ref=e645]
+          - button "Tile grass at 8, 11" [disabled] [ref=e646]
+          - button "Tile grass at 9, 11" [disabled] [ref=e647]
+          - button "Tile grass at 10, 11" [disabled] [ref=e648]
+          - button "Tile grass at 11, 11" [disabled] [ref=e649]
+          - button "Tile grass at 12, 11" [disabled] [ref=e650]
+          - button "Tile grass at 13, 11" [disabled] [ref=e651]
+          - button "Tile grass at 14, 11" [disabled] [ref=e652]
+          - button "Tile grass at 15, 11" [disabled] [ref=e653]
+          - button "Tile grass at 16, 11" [disabled] [ref=e654]
+          - button "Tile grass at 17, 11" [disabled] [ref=e655]
+          - button "Tile grass at 18, 11" [disabled] [ref=e656]
+          - button "Tile grass at 19, 11" [disabled] [ref=e657]
+          - button "Tile grass at 20, 11" [disabled] [ref=e658]
+          - button "Tile grass at 21, 11" [disabled] [ref=e659]
+          - button "Tile grass at 22, 11" [disabled] [ref=e660]
+          - button "Tile grass at 23, 11" [disabled] [ref=e661]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 24, 11" [disabled] [ref=e662]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 25, 11" [disabled] [ref=e663]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 26, 11" [disabled] [ref=e664]
+          - button "Tile grass at 27, 11" [disabled] [ref=e665]
+          - button "Tile grass at 28, 11" [disabled] [ref=e666]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 29, 11" [disabled] [ref=e667]
+          - button "Tile grass at 0, 12" [ref=e668] [cursor=pointer]
+          - button "Tile grass at 1, 12" [ref=e669] [cursor=pointer]
+          - button "Tile grass at 2, 12" [ref=e670] [cursor=pointer]
+          - button "Tile grass at 3, 12" [ref=e671] [cursor=pointer]
+          - button "Tile grass at 4, 12" [disabled] [ref=e672]
+          - button "Tile grass at 5, 12" [disabled] [ref=e673]
+          - button "Tile grass at 6, 12" [disabled] [ref=e674]
+          - button "Tile grass at 7, 12" [disabled] [ref=e675]
+          - button "Tile grass at 8, 12" [disabled] [ref=e676]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 9, 12" [disabled] [ref=e677]
+          - button "Tile grass at 10, 12" [disabled] [ref=e678]
+          - button "Tile grass at 11, 12" [disabled] [ref=e679]
+          - button "Tile grass at 12, 12" [disabled] [ref=e680]
+          - button "Tile grass at 13, 12" [disabled] [ref=e681]
+          - button "Tile grass at 14, 12" [disabled] [ref=e682]
+          - button "Tile grass at 15, 12" [disabled] [ref=e683]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 16, 12" [disabled] [ref=e684]
+          - button "Tile grass at 17, 12" [disabled] [ref=e685]
+          - button "Tile grass at 18, 12" [disabled] [ref=e686]
+          - button "Tile grass at 19, 12" [disabled] [ref=e687]
+          - button "Tile grass at 20, 12" [disabled] [ref=e688]
+          - button "Tile grass at 21, 12" [disabled] [ref=e689]
+          - button "Tile grass at 22, 12" [disabled] [ref=e690]
+          - button "Tile grass at 23, 12" [disabled] [ref=e691]
+          - button "Tile grass at 24, 12" [disabled] [ref=e692]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 25, 12" [disabled] [ref=e693]
+          - button "Tile grass at 26, 12" [disabled] [ref=e694]
+          - button "Tile grass at 27, 12" [disabled] [ref=e695]
+          - button "Tile grass at 28, 12" [disabled] [ref=e696]
+          - button "Tile grass at 29, 12" [disabled] [ref=e697]
+          - button "Tile grass at 0, 13" [ref=e698] [cursor=pointer]
+          - button "Tile grass at 1, 13" [ref=e699] [cursor=pointer]
+          - button "Tile grass at 2, 13" [disabled] [ref=e700]
+          - button "Tile grass at 3, 13" [disabled] [ref=e701]
+          - button "Tile grass at 4, 13" [disabled] [ref=e702]
+          - button "Tile grass at 5, 13" [disabled] [ref=e703]
+          - button "Tile grass at 6, 13" [disabled] [ref=e704]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 7, 13" [disabled] [ref=e705]
+          - button "Tile grass at 8, 13" [disabled] [ref=e706]
+          - button "Tile grass at 9, 13" [disabled] [ref=e707]
+          - button "Tile grass at 10, 13" [disabled] [ref=e708]
+          - button "Tile grass at 11, 13" [disabled] [ref=e709]
+          - button "Tile grass at 12, 13" [disabled] [ref=e710]
+          - button "Tile grass at 13, 13" [disabled] [ref=e711]
+          - button "Tile grass at 14, 13" [disabled] [ref=e712]
+          - button "Tile grass at 15, 13" [disabled] [ref=e713]
+          - button "Tile grass at 16, 13" [disabled] [ref=e714]
+          - button "Tile grass at 17, 13" [disabled] [ref=e715]
+          - button "Tile grass at 18, 13" [disabled] [ref=e716]
+          - button "Tile grass at 19, 13" [disabled] [ref=e717]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 20, 13" [disabled] [ref=e718]
+          - button "Tile grass at 21, 13" [disabled] [ref=e719]
+          - button "Tile grass at 22, 13" [disabled] [ref=e720]
+          - button "Tile grass at 23, 13" [disabled] [ref=e721]
+          - button "Tile grass at 24, 13" [disabled] [ref=e722]
+          - button "Tile grass at 25, 13" [disabled] [ref=e723]
+          - button "Tile grass at 26, 13" [disabled] [ref=e724]
+          - button "Tile grass at 27, 13" [disabled] [ref=e725]
+          - button "Tile grass at 28, 13" [disabled] [ref=e726]
+          - button "Tile grass at 29, 13" [disabled] [ref=e727]
+          - button "Tile grass at 0, 14" [disabled] [ref=e728]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 1, 14" [disabled] [ref=e729]
+          - button "Tile grass at 2, 14" [disabled] [ref=e730]
+          - button "Tile grass at 3, 14" [disabled] [ref=e731]
+          - button "Tile grass at 4, 14" [disabled] [ref=e732]
+          - button "Tile grass at 5, 14" [disabled] [ref=e733]
+          - button "Tile grass at 6, 14" [disabled] [ref=e734]
+          - button "Tile grass at 7, 14" [disabled] [ref=e735]
+          - button "Tile grass at 8, 14" [disabled] [ref=e736]
+          - button "Tile grass at 9, 14" [disabled] [ref=e737]
+          - button "Tile grass at 10, 14" [disabled] [ref=e738]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 11, 14" [disabled] [ref=e739]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 12, 14" [disabled] [ref=e740]
+          - button "Tile grass at 13, 14" [disabled] [ref=e741]
+          - button "Tile grass at 14, 14" [disabled] [ref=e742]
+          - button "Tile grass at 15, 14" [disabled] [ref=e743]
+          - button "Tile grass at 16, 14" [disabled] [ref=e744]
+          - button "Tile grass at 17, 14" [disabled] [ref=e745]
+          - button "Tile grass at 18, 14" [disabled] [ref=e746]
+          - button "Tile grass at 19, 14" [disabled] [ref=e747]
+          - button "Tile grass at 20, 14" [disabled] [ref=e748]
+          - button "Tile grass at 21, 14" [disabled] [ref=e749]
+          - button "Tile grass at 22, 14" [disabled] [ref=e750]
+          - button "Tile grass at 23, 14" [disabled] [ref=e751]
+          - button "Tile grass at 24, 14" [disabled] [ref=e752]
+          - button "Tile grass at 25, 14" [disabled] [ref=e753]
+          - button "Tile grass at 26, 14" [disabled] [ref=e754]
+          - button "Tile grass at 27, 14" [disabled] [ref=e755]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 28, 14" [disabled] [ref=e756]
+          - button "Tile difficult at 29, 14" [disabled] [ref=e757]
+          - button "Tile grass at 0, 15" [disabled] [ref=e758]
+          - button "Tile grass at 1, 15" [disabled] [ref=e759]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 2, 15" [disabled] [ref=e760]
+          - button "Tile grass at 3, 15" [disabled] [ref=e761]
+          - button "Tile grass at 4, 15" [disabled] [ref=e762]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 5, 15" [disabled] [ref=e763]
+          - button "Tile grass at 6, 15" [disabled] [ref=e764]
+          - button "Tile grass at 7, 15" [disabled] [ref=e765]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 8, 15" [disabled] [ref=e766]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 9, 15" [disabled] [ref=e767]
+          - button "Tile grass at 10, 15" [disabled] [ref=e768]
+          - button "Tile grass at 11, 15" [disabled] [ref=e769]
+          - button "Tile grass at 12, 15" [disabled] [ref=e770]
+          - button "Tile grass at 13, 15" [disabled] [ref=e771]
+          - button "Tile grass at 14, 15" [disabled] [ref=e772]
+          - button "Tile grass at 15, 15" [disabled] [ref=e773]
+          - button "Tile grass at 16, 15" [disabled] [ref=e774]
+          - button "Tile grass at 17, 15" [disabled] [ref=e775]
+          - button "Tile grass at 18, 15" [disabled] [ref=e776]
+          - button "Tile grass at 19, 15" [disabled] [ref=e777]
+          - button "Tile grass at 20, 15" [disabled] [ref=e778]
+          - button "Tile grass at 21, 15" [disabled] [ref=e779]
+          - button "Tile grass at 22, 15" [disabled] [ref=e780]
+          - button "Tile grass at 23, 15" [disabled] [ref=e781]
+          - button "Tile grass at 24, 15" [disabled] [ref=e782]
+          - button "Tile grass at 25, 15" [disabled] [ref=e783]
+          - button "Tile grass at 26, 15" [disabled] [ref=e784]
+          - button "Tile difficult at 27, 15" [disabled] [ref=e785]
+          - button "Tile difficult at 28, 15" [disabled] [ref=e786]
+          - button "Tile difficult at 29, 15" [disabled] [ref=e787]
+          - button "Tile grass at 0, 16" [disabled] [ref=e788]
+          - button "Tile grass at 1, 16" [disabled] [ref=e789]
+          - button "Tile grass at 2, 16" [disabled] [ref=e790]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 3, 16" [disabled] [ref=e791]
+          - button "Tile grass at 4, 16" [disabled] [ref=e792]
+          - button "Tile grass at 5, 16" [disabled] [ref=e793]
+          - button "Tile grass at 6, 16" [disabled] [ref=e794]
+          - button "Tile grass at 7, 16" [disabled] [ref=e795]
+          - button "Tile grass at 8, 16" [disabled] [ref=e796]
+          - button "Tile grass at 9, 16" [disabled] [ref=e797]
+          - button "Tile grass at 10, 16" [disabled] [ref=e798]
+          - button "Tile grass at 11, 16" [disabled] [ref=e799]
+          - button "Tile grass at 12, 16" [disabled] [ref=e800]
+          - button "Tile grass at 13, 16" [disabled] [ref=e801]
+          - button "Tile grass at 14, 16" [disabled] [ref=e802]
+          - button "Tile grass at 15, 16" [disabled] [ref=e803]
+          - button "Tile grass at 16, 16" [disabled] [ref=e804]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 17, 16" [disabled] [ref=e805]
+          - button "Tile grass at 18, 16" [disabled] [ref=e806]
+          - button "Tile grass at 19, 16" [disabled] [ref=e807]
+          - button "Tile grass at 20, 16" [disabled] [ref=e808]
+          - button "Tile grass at 21, 16" [disabled] [ref=e809]
+          - button "Tile grass at 22, 16" [disabled] [ref=e810]
+          - button "Tile grass at 23, 16" [disabled] [ref=e811]
+          - button "Tile grass at 24, 16" [disabled] [ref=e812]
+          - button "Tile grass at 25, 16" [disabled] [ref=e813]
+          - button "Tile difficult at 26, 16" [disabled] [ref=e814]
+          - button "Tile difficult at 27, 16" [disabled] [ref=e815]
+          - button "Tile difficult at 28, 16" [disabled] [ref=e816]
+          - button "Tile difficult at 29, 16" [disabled] [ref=e817]:
+            - generic: "2"
+            - generic: 🌳
+          - button "Tile grass at 0, 17" [disabled] [ref=e818]
+          - button "Tile grass at 1, 17" [disabled] [ref=e819]
+          - button "Tile grass at 2, 17" [disabled] [ref=e820]
+          - button "Tile grass at 3, 17" [disabled] [ref=e821]
+          - button "Tile grass at 4, 17" [disabled] [ref=e822]
+          - button "Tile grass at 5, 17" [disabled] [ref=e823]
+          - button "Tile grass at 6, 17" [disabled] [ref=e824]
+          - button "Tile grass at 7, 17" [disabled] [ref=e825]
+          - button "Tile grass at 8, 17" [disabled] [ref=e826]
+          - button "Tile grass at 9, 17" [disabled] [ref=e827]
+          - button "Tile grass at 10, 17" [disabled] [ref=e828]
+          - button "Tile grass at 11, 17" [disabled] [ref=e829]
+          - button "Tile grass at 12, 17" [disabled] [ref=e830]
+          - button "Tile grass at 13, 17" [disabled] [ref=e831]
+          - button "Tile difficult at 14, 17" [disabled] [ref=e832]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 15, 17" [disabled] [ref=e833]
+          - button "Tile grass at 16, 17" [disabled] [ref=e834]
+          - button "Tile grass at 17, 17" [disabled] [ref=e835]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 18, 17" [disabled] [ref=e836]
+          - button "Tile grass at 19, 17" [disabled] [ref=e837]
+          - button "Tile grass at 20, 17" [disabled] [ref=e838]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 21, 17" [disabled] [ref=e839]
+          - button "Tile grass at 22, 17" [disabled] [ref=e840]
+          - button "Tile grass at 23, 17" [disabled] [ref=e841]
+          - button "Tile grass at 24, 17" [disabled] [ref=e842]
+          - button "Tile difficult at 25, 17" [disabled] [ref=e843]:
+            - generic: "1"
+          - button "Tile difficult at 26, 17" [disabled] [ref=e844]:
+            - generic: "2"
+            - generic: 🪨
+          - button "Tile difficult at 27, 17" [disabled] [ref=e845]
+          - button "Tile difficult at 28, 17" [disabled] [ref=e846]
+          - button "Tile difficult at 29, 17" [disabled] [ref=e847]
+          - button "Tile grass at 0, 18" [disabled] [ref=e848]
+          - button "Tile grass at 1, 18" [disabled] [ref=e849]
+          - button "Tile grass at 2, 18" [disabled] [ref=e850]
+          - button "Tile grass at 3, 18" [disabled] [ref=e851]
+          - button "Tile grass at 4, 18" [disabled] [ref=e852]
+          - button "Tile grass at 5, 18" [disabled] [ref=e853]
+          - button "Tile grass at 6, 18" [disabled] [ref=e854]
+          - button "Tile grass at 7, 18" [disabled] [ref=e855]
+          - button "Tile grass at 8, 18" [disabled] [ref=e856]
+          - button "Tile grass at 9, 18" [disabled] [ref=e857]
+          - button "Tile grass at 10, 18" [disabled] [ref=e858]
+          - button "Tile grass at 11, 18" [disabled] [ref=e859]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 12, 18" [disabled] [ref=e860]
+          - button "Tile grass at 13, 18" [disabled] [ref=e861]
+          - button "Tile difficult at 14, 18" [disabled] [ref=e862]
+          - button "Tile grass at 15, 18" [disabled] [ref=e863]
+          - button "Tile grass at 16, 18" [disabled] [ref=e864]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 17, 18" [disabled] [ref=e865]
+          - button "Tile grass at 18, 18" [disabled] [ref=e866]
+          - button "Tile grass at 19, 18" [disabled] [ref=e867]
+          - button "Tile grass at 20, 18" [disabled] [ref=e868]
+          - button "Tile grass at 21, 18" [disabled] [ref=e869]
+          - button "Tile grass at 22, 18" [disabled] [ref=e870]
+          - button "Tile grass at 23, 18" [disabled] [ref=e871]
+          - button "Tile grass at 24, 18" [disabled] [ref=e872]:
+            - generic: "1"
+          - button "Tile difficult at 25, 18" [disabled] [ref=e873]:
+            - generic: "1"
+          - button "Tile difficult at 26, 18" [disabled] [ref=e874]:
+            - generic: "1"
+          - button "Tile difficult at 27, 18" [disabled] [ref=e875]:
+            - generic: "1"
+          - button "Tile grass at 28, 18" [disabled] [ref=e876]:
+            - generic: "1"
+          - button "Tile grass at 29, 18" [disabled] [ref=e877]
+          - button "Tile grass at 0, 19" [disabled] [ref=e878]
+          - button "Tile grass at 1, 19" [disabled] [ref=e879]
+          - button "Tile grass at 2, 19" [disabled] [ref=e880]
+          - button "Tile grass at 3, 19" [disabled] [ref=e881]
+          - button "Tile grass at 4, 19" [disabled] [ref=e882]
+          - button "Tile grass at 5, 19" [disabled] [ref=e883]
+          - button "Tile grass at 6, 19" [disabled] [ref=e884]:
+            - generic: "1"
+            - generic: 🪨
+          - button "Tile grass at 7, 19" [disabled] [ref=e885]
+          - button "Tile grass at 8, 19" [disabled] [ref=e886]
+          - button "Tile grass at 9, 19" [disabled] [ref=e887]
+          - button "Tile grass at 10, 19" [disabled] [ref=e888]
+          - button "Tile grass at 11, 19" [disabled] [ref=e889]
+          - button "Tile grass at 12, 19" [disabled] [ref=e890]
+          - button "Tile grass at 13, 19" [disabled] [ref=e891]
+          - button "Tile grass at 14, 19" [disabled] [ref=e892]
+          - button "Tile grass at 15, 19" [disabled] [ref=e893]
+          - button "Tile grass at 16, 19" [disabled] [ref=e894]
+          - button "Tile grass at 17, 19" [disabled] [ref=e895]
+          - button "Tile grass at 18, 19" [disabled] [ref=e896]
+          - button "Tile grass at 19, 19" [disabled] [ref=e897]
+          - button "Tile grass at 20, 19" [disabled] [ref=e898]
+          - button "Tile grass at 21, 19" [disabled] [ref=e899]
+          - button "Tile grass at 22, 19" [disabled] [ref=e900]
+          - button "Tile grass at 23, 19" [disabled] [ref=e901]
+          - button "Tile grass at 24, 19" [disabled] [ref=e902]:
+            - generic: "1"
+          - button "Tile grass at 25, 19" [disabled] [ref=e903]:
+            - generic: "1"
+          - button "Tile grass at 26, 19" [disabled] [ref=e904]:
+            - generic: "1"
+          - button "Tile grass at 27, 19" [disabled] [ref=e905]:
+            - generic: "1"
+          - button "Tile grass at 28, 19" [disabled] [ref=e906]:
+            - generic: "1"
+          - button "Tile grass at 29, 19" [disabled] [ref=e907]:
+            - generic: "1"
+          - button "Select Dev Player" [ref=e908] [cursor=pointer]:
+            - generic [ref=e909]: ⚔️
+          - button "Select Kaelen Thorne" [ref=e910] [cursor=pointer]:
+            - generic [ref=e911]: ●
+          - button "Select Elara Vance" [ref=e912] [cursor=pointer]:
+            - generic [ref=e913]: ✝️
+          - button "Select Orc 1" [ref=e914] [cursor=pointer]:
+            - generic [ref=e915]: ⚔️
+          - button "Select Goblin 1" [ref=e916] [cursor=pointer]:
+            - generic [ref=e917]: ⚔️
+      - generic [ref=e918]:
+        - generic [ref=e919]:
+          - heading "Turn Order" [level=3] [ref=e920]
+          - generic [ref=e921]:
+            - 'button "Character: Goblin 1, Turn 1" [disabled] [ref=e922]': ⚔️
+            - 'button "Character: Kaelen Thorne, Turn 2" [ref=e923] [cursor=pointer]': ●
+            - 'button "Character: Orc 1, Turn 3" [disabled] [ref=e924]': ⚔️
+            - 'button "Character: Dev Player, Turn 4" [ref=e925] [cursor=pointer]': ⚔️
+            - 'button "Character: Elara Vance, Turn 5" [ref=e926] [cursor=pointer]': ✝️
+        - generic [ref=e927]:
+          - heading "Actions" [level=3] [ref=e928]
+          - generic [ref=e929]:
+            - generic [ref=e930]:
+              - img "Action" [ref=e931]: ⚔️
+              - generic [ref=e932]: Action
+            - generic [ref=e933]:
+              - img "Bonus Action" [ref=e934]: ⭐
+              - generic [ref=e935]: Bonus
+            - generic [ref=e936]:
+              - img "Reaction" [ref=e937]: 🛡️
+              - generic [ref=e938]: Reaction
+            - generic [ref=e939]:
+              - img "Free Object Interaction" [ref=e940]: 🖐️
+              - generic [ref=e941]: Free
+          - generic [ref=e943]:
+            - generic [ref=e944]: Movement
+            - paragraph [ref=e948]: 30 / 30
+        - generic [ref=e949]:
+          - heading "Kaelen Thorne's Abilities" [level=3] [ref=e966]
+          - generic [ref=e951]:
+            - button "Unarmed Strike, Action cost, range 1 tile (5 ft)" [ref=e967] [cursor=pointer]:
+              - generic [ref=e968]: ✊
+              - generic [ref=e969]: Action
+            - button "Dash, Action cost, range 0 tiles (0 ft)" [active] [ref=e970] [cursor=pointer]:
+              - generic [ref=e971]: 🏃
+              - generic [ref=e972]: Action
+            - button "Disengage, Action cost, range 0 tiles (0 ft)" [ref=e973] [cursor=pointer]:
+              - generic [ref=e974]: 🛡️
+              - generic [ref=e975]: Action
+            - button "Cunning Dash, Bonus cost, range 0 tiles (0 ft)" [ref=e976] [cursor=pointer]:
+              - generic [ref=e977]: 🏃
+              - generic [ref=e978]: Bonus
+        - generic [ref=e958]:
+          - heading "Combat Log" [level=3] [ref=e959]
+          - generic [ref=e960]:
+            - paragraph [ref=e961]: Goblin 1's turn.
+            - paragraph [ref=e962]: "Combat begins! Turn order: Goblin 1 → Kaelen Thorne → Orc 1 → Dev Player → Elara Vance"
+            - paragraph [ref=e963]: Goblin 1 moves to (19, 0)
+            - paragraph [ref=e979]: Kaelen Thorne's turn.
+            - paragraph [ref=e980]: Kaelen Thorne casts Dash
+            - paragraph [ref=e981]: Kaelen Thorne attacks Kaelen Thorne. Rolled 6 + 0 = 6 vs AC 10. MISS.
+        - button "End Turn" [ref=e965] [cursor=pointer]
+  - 'tooltip "Dash Gain extra movement for the turn. Range: 0 tiles (0 ft)" [ref=e982]':
+    - generic [ref=e983]: "Dash Gain extra movement for the turn. Range: 0 tiles (0 ft)"

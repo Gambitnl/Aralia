@@ -3,6 +3,7 @@
 - **School**: Evocation
 - **Ritual**: false
 - **Classes**: Cleric
+- **Sub-Classes**: Paladin - Oath of Devotion
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

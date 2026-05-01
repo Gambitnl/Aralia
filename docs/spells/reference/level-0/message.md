@@ -1,9 +1,40 @@
 # Message
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Artificer, Bard, Druid, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 120
+- **Range Distance Unit**: feet
+- **Targeting Type**: single
+- **Targeting Range**: 120
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures
+- **Line of Sight**: false
+
+- **Verbal**: false
+- **Somatic**: true
+- **Material**: true
+- **Material Description**: a copper wire
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: UTILITY
+- **Utility Type**: communication
+
+- **Description**: You point your finger toward a creature within range and whisper a message. The target (and only the target) hears the message and can reply in a whisper that only you can hear. You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence, 1 foot of stone, metal, or wood, or a thin sheet of lead blocks the spell.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

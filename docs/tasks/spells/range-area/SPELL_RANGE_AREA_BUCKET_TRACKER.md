@@ -1,6 +1,6 @@
 # Spell Range/Area Bucket Tracker
 
-Last Updated: 2026-04-10
+Last Updated: 2026-04-29
 
 ## Bucket Purpose
 
@@ -24,9 +24,9 @@ the structured `Range/Area` header was compared against the copied canonical sna
   - practical reading: mostly accepted normalization and source-display residue
 - structured -> json:
   - source: `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - live count: `61`
-  - grouped kind: `value-mismatch`
-  - practical reading: active runtime implementation follow-up lane
+  - live count: `0`
+  - grouped kind: no grouped `Range/Area` mismatch in the current report
+  - practical reading: runtime implementation lane is closed for the current audit
 - glossary gate checker:
   - canonical -> structured `Range/Area Bucket`: implemented
   - structured -> json `Range/Area Runtime Review`: implemented
@@ -1129,14 +1129,12 @@ structured payload once the explicit facts are present.
 - no further blanket explicit-unit backfill is needed
 - keep the older safe/risky queue split only as historical context for how the unit
   rollout was executed
-- audit the `61` structured -> json mismatches directly
-- work the runtime buckets in this order:
-  - self-centered emanation normalization drift (`7`)
-  - runtime JSON missing area geometry (`4`)
-  - structured missing `Range/Area` (`1`)
-  - wall and constructed-shape alias drift (`10`)
-  - distance-unit and special-range encoding split (`9`)
-  - shape-semantics boundary set (`5`)
+- no active structured -> json `Range/Area` mismatch bucket remains in the current
+  generated report
+- keep `control-weather` visible as a model/display boundary if a future schema
+  adds a cleaner "radius without named shape" primary area option
+- keep `commune-with-nature` as the precedent for moving effect-only knowledge
+  radii into `spatialDetails` rather than forcing them into primary Range/Area
 - defer lower-value structured residue buckets until after the real runtime drift is gone:
   - structured phantom `0-ft. None` area residue (`31`)
   - structured scalar-area formatting residue (`5`)
@@ -1216,6 +1214,42 @@ structured payload once the explicit facts are present.
   - `earthquake`: `Circle` vs runtime `Sphere` vocabulary gap
   - `telepathy`: `Unlimited` vs `Special`
 
+### 2026-04-29
+
+- reran the structured -> json audit before editing and found the live `Range/Area`
+  queue had grown from the tracker's `7` spells to `8` spells because `snare`
+  re-entered with a `Circle` vs `Square` runtime shape mismatch
+- closed the live runtime `Range/Area` queue spell by spell:
+  - `skywrite`: changed structured markdown and runtime JSON from fake `ranged 0`
+    to `sight`
+  - `sending`: changed runtime JSON range type from `special` to `unlimited`
+  - `telepathy`: changed runtime JSON range type from `special` to `unlimited`
+  - `snare`: changed runtime primary area shape from `Square` to `Circle`
+  - `earthquake`: changed runtime primary area shape from `Sphere` to `Circle`
+    and made the radius fact explicit
+  - `commune-with-nature`: removed the fake primary `3-ft. Sphere` and moved the
+    outdoor / underground knowledge radii into `spatialDetails`
+  - `mirage-arcane`: made the runtime range `sight` and the primary area a
+    `1-mile Square`
+  - `control-weather`: made the self-centered 5-mile radius explicit as a
+    `Sphere` approximation because the current primary area model still requires
+    a shape
+- widened the runtime shape vocabulary just enough to support truthful flat
+  ground circles:
+  - `F:\Repos\Aralia\src\types\spells.ts`
+  - `F:\Repos\Aralia\src\systems\spells\validation\spellValidator.ts`
+- updated the archived spell JSON template so future authors can see the accepted
+  range types and primary area shape values, including `sight`, `unlimited`, and
+  `Circle`
+- regenerated the structured -> json report:
+  - total mismatches dropped from `111` to `101`
+  - grouped buckets dropped from `6` to `4`
+  - `Range/Area` no longer appears as a grouped structured -> json mismatch
+- verification:
+  - `npm run validate:spells` -> `459 / 459 valid`
+  - `npx tsx scripts\auditSpellStructuredAgainstJson.ts` -> report regenerated
+    with no grouped `Range/Area` bucket
+
 ## Open Questions / Model Gaps
 
 1. Should runtime spell JSON ever store a raw canonical `Range/Area` display string,
@@ -1231,9 +1265,11 @@ structured payload once the explicit facts are present.
    structured -> json audit eventually learn to treat that as `aligned` rather than
    leaving it in `value-mismatch`?
 
-4. Should `Wall`, `Hemisphere`, and `Circle` become first-class runtime display
-   shapes, or should the runtime lane keep using approximate shapes like `Line`
-   and `Sphere` when the underlying behavior is close enough?
+4. `Circle` is now a first-class primary runtime area shape because `snare` and
+   `earthquake` both need a truthful flat ground footprint. `Wall` and
+   `Hemisphere` were already supported. Future shape questions should now focus
+   on whether the model needs a radius-without-shape option rather than whether
+   circles can be stored at all.
 
 5. This tracker now closes the specific "area size unit is only implicit" gap for
    the runtime schema, but other spell-only geometry-like numbers still remain
@@ -1243,9 +1279,11 @@ structured payload once the explicit facts are present.
 ## Current Bucket Verdict
 
 - canonical -> structured: mostly accepted normalization / source-shape residue
-- structured -> json: mostly resolved, with `7` policy/model leftovers
+- structured -> json: resolved in the current generated report; no grouped
+  `Range/Area` runtime bucket remains
 - policy review only: no
-- implementation work still needed: only for the `7` remaining hand-review cases
+- implementation work still needed: no active runtime implementation work for the
+  current structured -> json `Range/Area` report
 - audit work still needed: yes
 - runtime gate-checker coverage: implemented
   - the bucket now has a separate structured -> json review block rather than relying

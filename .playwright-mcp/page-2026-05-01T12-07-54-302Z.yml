@@ -1,0 +1,132 @@
+- generic [ref=e7]:
+  - generic [ref=e43]:
+    - generic: v0.4.0
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e48]: ❄️ 1 Deepwinter, 351
+            - generic [ref=e49]: 🌒
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]: ☀️ Day
+              - generic [ref=e53]: 07:00 AM
+            - button "Pass Time" [disabled] [ref=e54]: ⏳
+          - generic [ref=e55]: The air is biting cold. The sun is high.
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - heading "Current Position" [level=3] [ref=e58]
+            - paragraph [ref=e59]:
+              - text: "World:"
+              - generic [ref=e60]: (15, 10)
+            - paragraph [ref=e61]:
+              - text: "Submap:"
+              - generic [ref=e62]: (15, 10)
+          - heading "Navigation" [level=3] [ref=e63]
+          - generic [ref=e64]:
+            - button "Move North-West (unavailable)" [disabled] [ref=e130]: NW
+            - button "Move North (unavailable)" [disabled] [ref=e131]: "N"
+            - button "Move North-East (unavailable)" [disabled] [ref=e132]: NE
+            - button "Move West (unavailable)" [disabled] [ref=e133]: W
+            - button "Look Around" [disabled] [ref=e69]: ◎
+            - button "Move East (unavailable)" [disabled] [ref=e134]: E
+            - button "Move South-West (unavailable)" [disabled] [ref=e135]: SW
+            - button "Move South (unavailable)" [disabled] [ref=e136]: S
+            - button "Move South-East (unavailable)" [disabled] [ref=e137]: SE
+          - generic [ref=e74]:
+            - button "Toggle World Map" [disabled] [ref=e75]: 🌍
+            - button "Toggle Submap" [disabled] [ref=e76]: 🗺️
+            - button "Enter 3D World" [disabled] [ref=e77]: 🎥
+      - generic [ref=e78]:
+        - heading "Actions" [level=2] [ref=e79]
+        - generic [ref=e80]:
+          - button "Ask the Oracle" [disabled] [ref=e81]
+          - button "Survey Surroundings" [disabled] [ref=e82]
+        - button "Take Old Map Fragment" [disabled] [ref=e84]
+        - generic [ref=e85]:
+          - heading "Rest & Recovery" [level=3] [ref=e86]
+          - generic [ref=e87]:
+            - button "Short Rest" [disabled] [ref=e88]
+            - button "Long Rest" [disabled] [ref=e89]
+        - button "Dev Menu" [disabled] [ref=e128]
+        - button "Menu" [disabled] [ref=e91]:
+          - img [ref=e129]
+          - generic [ref=e93]: Menu
+    - generic [ref=e94]:
+      - generic [ref=e95]:
+        - heading "Log" [level=2] [ref=e96]
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - paragraph [ref=e99]: Welcome, Dev Player and party! Your adventure begins (Dev Mode - Auto Start).
+            - paragraph [ref=e100]: 11:57 AM
+          - generic [ref=e101]:
+            - paragraph [ref=e102]: You are in a sun-dappled clearing. Paths lead north, east, south, and a well-trodden one heads west towards Aralia Town Center.
+            - paragraph [ref=e103]: 11:57 AM
+          - generic [ref=e104]:
+            - paragraph [ref=e105]: Game loaded successfully.
+            - paragraph [ref=e106]: 12:03 PM
+          - generic [ref=e107]:
+            - paragraph [ref=e108]: Game loaded successfully.
+            - paragraph [ref=e109]: 12:07 PM
+      - button "15, 10" [ref=e110] [cursor=pointer]:
+        - generic: 15, 10
+  - dialog "Developer Menu" [ref=e138]:
+    - generic [ref=e139]:
+      - generic [ref=e140]:
+        - heading "Developer Menu" [level=2] [ref=e141]
+        - button "Close developer menu" [ref=e142] [cursor=pointer]: ×
+      - generic [ref=e144]:
+        - generic [ref=e145]:
+          - heading "Dev Mode State" [level=3] [ref=e146]
+          - paragraph [ref=e147]: Dev Mode is currently enabled. Gameplay-only diagnostics like the glossary spell checks can appear when their local toggles are turned on.
+        - button "Disable Dev Mode" [ref=e148] [cursor=pointer]
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - heading "Game State & Navigation" [level=3] [ref=e151]
+          - generic [ref=e152]:
+            - button "Force Save Game" [active] [ref=e153] [cursor=pointer]
+            - button "Force Load Game" [ref=e154] [cursor=pointer]
+            - button "Go to Main Menu" [ref=e155] [cursor=pointer]
+            - button "Go to Character Creator" [ref=e156] [cursor=pointer]
+            - button "⚡ Restart with Dynamic Party" [ref=e157] [cursor=pointer]
+        - generic [ref=e158]:
+          - heading "Combat & Encounters" [level=3] [ref=e159]
+          - generic [ref=e160]:
+            - button "Battle Map Demo" [ref=e161] [cursor=pointer]
+            - button "Edit Encounter Party" [ref=e162] [cursor=pointer]
+            - button "Generate Encounter" [ref=e163] [cursor=pointer]
+        - generic [ref=e164]:
+          - heading "Debug & Inspection" [level=3] [ref=e165]
+          - generic [ref=e166]:
+            - button "View Gemini Prompt Log" [ref=e167] [cursor=pointer]
+            - button "Banter & AI Inspector" [ref=e168] [cursor=pointer]
+            - button "NPC Interaction Test Plan" [ref=e169] [cursor=pointer]
+            - button "Inspect Noble Houses" [ref=e170] [cursor=pointer]
+        - generic [ref=e171]:
+          - heading "Feature Testing" [level=3] [ref=e172]
+          - generic [ref=e173]:
+            - button "Test Temple UI" [ref=e174] [cursor=pointer]
+            - button "Open Village Scene" [ref=e175] [cursor=pointer]
+            - button "Test Lockpicking UI" [ref=e176] [cursor=pointer]
+            - button "3D Dice Roller" [ref=e177] [cursor=pointer]
+            - button "Access Criminal Underworld" [ref=e178] [cursor=pointer]
+            - button "Naval Dashboard" [ref=e179] [cursor=pointer]
+            - button "Trade Routes" [ref=e180] [cursor=pointer]
+      - generic [ref=e181]:
+        - generic [ref=e182]: Gemini Model Override
+        - combobox "Gemini Model Override" [ref=e183]:
+          - option "Default (Automatic Fallback)" [selected]
+          - option "gemini-2.5-flash"
+          - option "gemini-2.0-flash-lite"
+          - option "gemini-2.0-flash"
+          - option "gemini-2.5-flash-lite"
+          - option "gemini-2.5-pro"
+      - button "State Inspector ▼ Expand" [ref=e185] [cursor=pointer]:
+        - generic [ref=e186]: State Inspector
+        - generic [ref=e187]: ▼ Expand
+      - button "Close developer menu" [ref=e188] [cursor=pointer]: Close Dev Menu
+  - button "💬 Chat History" [ref=e38] [cursor=pointer]:
+    - generic [ref=e39]: 💬
+    - generic [ref=e40]:
+      - generic [ref=e41]: Chat
+      - generic [ref=e42]: History

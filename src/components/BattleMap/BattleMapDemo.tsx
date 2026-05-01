@@ -101,27 +101,10 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     }
   }, [characters, initializeCombat, turnOrderLength]);
 
-  // When initialCharacters prop changes (i.e., a new encounter starts), reset the component's state.
-  const didInitFromPropsRef = useRef(false);
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    if (!didInitFromPropsRef.current) {
-      didInitFromPropsRef.current = true;
-      return;
-    }
-
-    const nextSeed = Date.now();
-    const baseCombatants = getBaseCombatants();
-    const setup = generateBattleSetup(biomeRef.current, nextSeed, baseCombatants);
-
-    setSeed(nextSeed);
-    setCombatLog([]);
-    setSheetCharacter(null);
-    setMapData(setup.mapData);
-    setCharacters(setup.positionedCharacters);
-    initializeCombat(setup.positionedCharacters);
-  }, [getBaseCombatants, initialCharacters, initializeCombat]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  // Removed the useEffect that incorrectly attempted to reset the demo component's state when props changed.
+  // Because App.tsx advances passive time in the background, props like `party` and `initialCharacters`
+  // continuously receive new array references, triggering unintended map regenerations.
+  // Initialization is already safely handled on mount via useState.
 
   const abilitySystem = useAbilitySystem({
     characters,

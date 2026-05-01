@@ -34,7 +34,7 @@
     "somatic": true,
     "material": true,
     "materialDescription": "incense",
-    "isConsumed": true,
+    "isConsumed": false,
     "materialCost": 0
   },
   "duration": {

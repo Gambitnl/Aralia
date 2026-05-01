@@ -1,9 +1,39 @@
 # Druidcraft
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Druid
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 30
+- **Range Distance Unit**: feet
+- **Targeting Type**: point
+- **Targeting Range**: 30
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: point, objects
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: UTILITY
+- **Utility Type**: other
+
+- **Description**: Whispering to the spirits of nature, you create one of the following effects within range: - You create a tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect persists for 1 round. - You instantly make a flower blossom, a seed pod open, or a leaf bud bloom. - You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot cube. - You instantly light or snuff out a candle, a torch, or a small campfire.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

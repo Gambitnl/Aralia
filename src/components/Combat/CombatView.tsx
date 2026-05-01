@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/05/2026, 01:35:37
+ * Dependents: components/Combat/index.ts
+ * Imports: 32 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file CombatView.tsx
  * The main component for the active combat phase.
@@ -58,11 +74,12 @@ interface CombatViewProps {
   party: PlayerCharacter[];
   enemies: CombatCharacter[];
   biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
+  onRoundElapsed?: (seconds: number) => void;
   onBattleEnd: (result: 'victory' | 'defeat', rewards?: { gold: number; items: Item[]; xp: number }) => void;
   currentPlane?: Plane;
 }
 
-const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattleEnd, currentPlane }) => {
+const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundElapsed, onBattleEnd, currentPlane }) => {
   // NEW: Get spell data to hydrate combat abilities
   const allSpells = useContext(SpellContext);
 
@@ -183,6 +200,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     mapData,
     onCharacterUpdate: handleCharacterUpdate,
     onLogEntry: handleLogEntry,
+    // Completed rounds are reported upward so App.tsx can advance gameTime via
+    // ADVANCE_TIME. CombatView stays a coordinator and does not own the global
+    // clock directly.
+    onRoundElapsed,
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
     // TODO: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
@@ -242,6 +263,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     onExecuteAction: turnManager.executeAction,
     onCharacterUpdate: handleCharacterUpdate,
     onAbilityEffect: turnManager.addDamageNumber, // Pass the callback to show visual feedback
+    // WHAT CHANGED: AbilitySystem now receives the same central combat-log
+    // bridge used by the turn manager. This preserves one visible log path
+    // for attacks, spell commands, and invalid-target warnings.
+    onLogEntry: handleLogEntry,
     onRequestInput: handleRequestInput,
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,

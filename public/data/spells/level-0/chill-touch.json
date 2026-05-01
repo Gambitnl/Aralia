@@ -40,8 +40,8 @@
     "isConsumed": false
   },
   "duration": {
-    "type": "timed",
-    "value": 1,
+    "type": "instantaneous",
+    "value": 0,
     "unit": "round",
     "concentration": false
   },
@@ -106,7 +106,7 @@
       },
       "scaling": {
         "type": "character_level",
-        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}",
+        "customFormula": "{\"5\": \"2d10\", \"11\": \"3d10\", \"17\": \"4d10\"}",
         "bonusPerLevel": ""
       },
       "description": ""
@@ -232,7 +232,7 @@
     "playerInputRequired": false
   },
   "description": "You touch one creature. Make a melee spell attack against the target. On a hit, the target takes 1d10 Necrotic damage, and it can't regain Hit Points until the end of your next turn. If you hit an Undead target, it also has Disadvantage on attack rolls against you until the end of your next turn.",
-  "higherLevels": "This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+  "higherLevels": "Cantrip Upgrade. The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).",
   "tags": [
     "damage",
     "necrotic",

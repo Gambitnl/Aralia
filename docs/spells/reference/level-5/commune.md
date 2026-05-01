@@ -3,6 +3,7 @@
 - **School**: Divination
 - **Ritual**: true
 - **Classes**: Cleric
+- **Sub-Classes**: Paladin - Oath of Devotion
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: minute
@@ -19,7 +20,7 @@
 - **Material**: true
 - **Material Description**: incense
 - **Material Cost GP**: 0
-- **Consumed**: true
+- **Consumed**: false
 
 - **Duration Type**: timed
 - **Duration Value**: 1

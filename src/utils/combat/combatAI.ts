@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:31:25
- * Dependents: combat/index.ts, useCombatAI.ts
+ * Last Sync: 01/05/2026, 17:10:47
+ * Dependents: hooks/combat/useCombatAI.ts, utils/combat/index.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -114,8 +114,14 @@ export function evaluateCombatTurn(
     return createEndTurnAction(character);
   }
 
+  // Pre-compute occupied spaces so movement plans do not move an AI creature
+  // onto another living combatant. The executor also guards this, but keeping
+  // the planner aware avoids choosing obviously illegal movement in the first
+  // place.
+  const occupiedTileIds = buildOccupiedTileSet(characters, character.id);
+
   // Pre-compute reachability once so scoring can reuse it.
-  const reachableTiles = buildReachableTileMap(character, mapData);
+  const reachableTiles = buildReachableTileMap(character, mapData, occupiedTileIds);
 
   // 2. Evaluate Possible Actions
   const possiblePlans: AIPlan[] = [];
@@ -181,7 +187,7 @@ export function evaluateCombatTurn(
       const ability = character.abilities.find(a => a.id === bestPlan.abilityId);
       const inRange = ability ? dist <= ability.range : true;
       if (ability && (!inRange || !hasClearShot(character.position, bestPlan.targetPosition, mapData))) {
-        const moveAction = planMovement(character, bestPlan.targetPosition, ability.range, mapData, reachableTiles);
+        const moveAction = planMovement(character, bestPlan.targetPosition, ability.range, mapData, reachableTiles, occupiedTileIds);
         if (moveAction) {
           logger.debug(`[AI] Moving to position to execute plan.`, { target: moveAction.targetPosition });
           return moveAction;
@@ -204,7 +210,7 @@ export function evaluateCombatTurn(
   // Fallback: Move towards nearest enemy if no ability is useful
   const nearestEnemy = getNearestEnemy(character, enemies);
   if (nearestEnemy) {
-    const moveAction = planMovement(character, nearestEnemy.position, 1, mapData, reachableTiles);
+    const moveAction = planMovement(character, nearestEnemy.position, 1, mapData, reachableTiles, occupiedTileIds);
     if (moveAction) {
       logger.info(`[AI] No good abilities. Moving towards nearest enemy.`);
       return moveAction;
@@ -635,6 +641,23 @@ function getNearestEnemy(character: CombatCharacter, enemies: CombatCharacter[])
 }
 
 /**
+ * Builds the set of map spaces already occupied by living combatants.
+ * The moving creature is excluded so its own starting tile remains usable as
+ * the root of the reachability search.
+ */
+function buildOccupiedTileSet(characters: CombatCharacter[], movingCharacterId: string): Set<string> {
+  const occupied = new Set<string>();
+
+  characters.forEach(character => {
+    if (character.id !== movingCharacterId && character.currentHP > 0) {
+      occupied.add(`${character.position.x}-${character.position.y}`);
+    }
+  });
+
+  return occupied;
+}
+
+/**
  * Plans a movement action to get within a desired range of a target position.
  * It searches the `reachableTiles` for the tile that minimizes distance to the
  * target while respecting movement costs.
@@ -651,7 +674,8 @@ function planMovement(
   targetPos: Position,
   rangeNeeded: number,
   mapData: BattleMapData,
-  reachableTiles?: Map<string, { tile: BattleMapTile; cost: number }>
+  reachableTiles?: Map<string, { tile: BattleMapTile; cost: number }>,
+  occupiedTileIds: Set<string> = new Set()
 ): CombatAction | null {
   // We want to get within 'rangeNeeded' of 'targetPos'
   const startTile = mapData.tiles.get(`${character.position.x}-${character.position.y}`);
@@ -663,7 +687,7 @@ function planMovement(
   const availableMovement = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
   if (availableMovement <= 0) return null;
 
-  const searchTiles = reachableTiles || buildReachableTileMap(character, mapData);
+  const searchTiles = reachableTiles || buildReachableTileMap(character, mapData, occupiedTileIds);
 
   let bestTile: BattleMapTile | null = null;
   let minDistToTarget = Infinity;
@@ -688,7 +712,7 @@ function planMovement(
   // TODO(2026-01-03 pass 4 Codex-CLI): Restore direct narrowing once reachableTiles typing no longer collapses.
   // Previously used bestTile.id directly; cast once to avoid the never narrowing error.
   const targetTile = bestTile as BattleMapTile;
-  if (targetTile.id !== startTile.id) {
+  if (targetTile.id !== startTile.id && !occupiedTileIds.has(targetTile.id)) {
     return {
       id: generateId(),
       characterId: character.id,
@@ -712,7 +736,8 @@ function planMovement(
  */
 function buildReachableTileMap(
   character: CombatCharacter,
-  mapData: BattleMapData
+  mapData: BattleMapData,
+  occupiedTileIds: Set<string> = new Set()
 ): Map<string, { tile: BattleMapTile; cost: number }> {
   const reachable = new Map<string, { tile: BattleMapTile; cost: number }>();
   const startTile = mapData.tiles.get(`${character.position.x}-${character.position.y}`);
@@ -733,7 +758,8 @@ function buildReachableTileMap(
         if (dx === 0 && dy === 0) continue;
         const neighborId = `${tile.coordinates.x + dx}-${tile.coordinates.y + dy}`;
         const neighbor = mapData.tiles.get(neighborId);
-        if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId)) {
+        const isOccupied = occupiedTileIds.has(neighborId);
+        if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId) && !isOccupied) {
           const newCost = cost + neighbor.movementCost;
           if (newCost <= availableMovement) {
             visited.add(neighborId);

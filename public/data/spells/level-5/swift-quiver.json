@@ -33,7 +33,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "",
+    "materialDescription": "a quiver containing at least one piece of ammunition",
     "materialCost": 0,
     "isConsumed": false
   },

@@ -201,10 +201,41 @@ function titleCaseWord(value: string): string {
 }
 
 function formatSingularOrPlural(value: number, unit: string): string {
-  const normalizedUnit = unit.replace(/_/g, ' ');
+  const normalizedUnit = unit.replace(/_/g, ' ').trim().toLowerCase();
 
   if (normalizedUnit === 'bonus action') {
     return value === 1 ? 'Bonus Action' : 'Bonus Actions';
+  }
+
+  // Both markdown and JSON can legitimately carry singular or plural unit
+  // labels during the spell migration. Normalize those labels before pluralizing
+  // so the audit does not invent fake drift like `10 Minutess`.
+  if (normalizedUnit === 'minute' || normalizedUnit === 'minutes') {
+    return value === 1 ? 'Minute' : 'Minutes';
+  }
+
+  if (normalizedUnit === 'hour' || normalizedUnit === 'hours') {
+    return value === 1 ? 'Hour' : 'Hours';
+  }
+
+  if (normalizedUnit === 'day' || normalizedUnit === 'days') {
+    return value === 1 ? 'Day' : 'Days';
+  }
+
+  if (normalizedUnit === 'round' || normalizedUnit === 'rounds') {
+    return value === 1 ? 'Round' : 'Rounds';
+  }
+
+  if (normalizedUnit === 'action' || normalizedUnit === 'actions') {
+    return value === 1 ? 'Action' : 'Actions';
+  }
+
+  if (normalizedUnit === 'reaction' || normalizedUnit === 'reactions') {
+    return value === 1 ? 'Reaction' : 'Reactions';
+  }
+
+  if (normalizedUnit === 'special') {
+    return 'Special';
   }
 
   const titleUnit = normalizedUnit
@@ -288,29 +319,23 @@ function formatSizeTypeLabel(sizeType: string): string {
 function formatStructuredCastingTime(labels: Map<string, string>): string {
   const rawValue = labels.get('Casting Time Value') ?? '';
   const unit = labels.get('Casting Time Unit') ?? '';
-  const reactionTrigger = labels.get('Reaction Trigger') ?? '';
   const numericValue = Number(rawValue);
 
+  if (unit.trim().toLowerCase() === 'special') return 'Special';
   if (!Number.isFinite(numericValue) || !unit) return '';
 
-  const rendered = `${numericValue} ${formatSingularOrPlural(numericValue, unit)}`.trim();
-  if (unit === 'reaction' && reactionTrigger && reactionTrigger !== 'None') {
-    return `${rendered}, ${reactionTrigger}`;
-  }
-
-  return rendered;
+  // Reaction trigger prose is a separate spell fact. The runtime JSON comparison
+  // for the Casting Time field should answer whether the base cast timing aligns,
+  // not whether trigger wording is carried in the same display string.
+  return `${numericValue} ${formatSingularOrPlural(numericValue, unit)}`.trim();
 }
 
 function formatJsonCastingTime(spell: unknown): string {
   const parsed = SpellValidator.safeParse(spell);
   if (!parsed.success) return '';
 
-  const reactionTrigger = parsed.data.castingTime.reactionTrigger?.trim() || '';
+  if (parsed.data.castingTime.unit === 'special') return 'Special';
   const rendered = `${parsed.data.castingTime.value} ${formatSingularOrPlural(parsed.data.castingTime.value, parsed.data.castingTime.unit)}`.trim();
-
-  if (parsed.data.castingTime.unit === 'reaction' && reactionTrigger) {
-    return `${rendered}, ${reactionTrigger}`;
-  }
 
   return rendered;
 }
@@ -615,13 +640,86 @@ function formatStructuredMaterial(labels: Map<string, string>): string {
   return `* - (${description})`;
 }
 
-function formatJsonMaterial(spell: unknown): string {
+function parseMaterialCost(value: string): number | null {
+  const normalized = normalizeComparableText(value);
+  const matches = Array.from(normalized.matchAll(/([0-9][0-9,]*(?:\.\d+)?)\+?\s*(gp|sp)\b(?:\s+each)?/gi));
+  if (matches.length === 0) return null;
+
+  const total = matches.reduce((sum, match) => {
+    const amount = Number(match[1].replace(/,/g, ''));
+    if (!Number.isFinite(amount)) return sum;
+
+    const unit = match[2].toLowerCase();
+    let gpValue = unit === 'sp' ? amount / 10 : amount;
+
+    if (/\beach\b/i.test(match[0])) {
+      const beforePrice = normalized.slice(Math.max(0, match.index - 80), match.index).toLowerCase();
+      const numericQuantity = beforePrice.match(/(\d+)\s+\w+\s*$/);
+
+      if (numericQuantity) {
+        gpValue *= Number(numericQuantity[1]);
+      } else if (/\bpair\b/i.test(beforePrice)) {
+        gpValue *= 2;
+      }
+    }
+
+    return sum + gpValue;
+  }, 0);
+
+  return total;
+}
+
+function normalizeMaterialDescriptionForFactComparison(value: string): { description: string; consumedFromText: boolean; costFromText: number | null } {
+  let normalized = normalizeComparableText(value)
+    .replace(/^\*+\s*-\s*/u, '')
+    .trim();
+
+  if (normalized.startsWith('(') && normalized.endsWith(')')) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+
+  const consumedFromText = /\bwhich the spell consumes\b/i.test(normalized);
+  const costFromText = parseMaterialCost(normalized);
+
+  // Material notes are split into multiple structured/runtime fields in
+  // Aralia. Comparing the facts here keeps wrapper text and prose placement
+  // from being reported as runtime drift.
+  normalized = normalized
+    .replace(/,?\s*which the spell consumes\b\.?/i, '')
+    .replace(/\bGP\b/g, 'gp')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return { description: normalized, consumedFromText, costFromText };
+}
+
+function formatStructuredMaterialForJsonComparison(labels: Map<string, string>): string {
+  const description = (labels.get('Material Description') ?? '').trim();
+  const hasMaterial = (labels.get('Material') ?? '').trim() === 'true';
+  if (!hasMaterial || !description || description === 'None') return '';
+
+  const normalized = normalizeMaterialDescriptionForFactComparison(description);
+  const costFromField = Number((labels.get('Material Cost GP') ?? '').replace(/,/g, ''));
+  const cost = Number.isFinite(costFromField) ? costFromField : normalized.costFromText;
+  const consumed = (labels.get('Consumed') ?? '').trim() === 'true' || normalized.consumedFromText;
+
+  return `${normalized.description}|cost:${cost ?? 0}|consumed:${consumed}`;
+}
+
+function formatJsonMaterialForStructuredComparison(spell: unknown): string {
   const parsed = SpellValidator.safeParse(spell);
   if (!parsed.success) return '';
 
-  const description = parsed.data.components.materialDescription?.trim() ?? '';
-  if (!description) return '';
-  return `* - (${description})`;
+  const components = parsed.data.components;
+  const description = components.materialDescription?.trim() ?? '';
+  if (!components.material || !description) return '';
+
+  const normalized = normalizeMaterialDescriptionForFactComparison(description);
+  const cost = typeof components.materialCost === 'number' ? components.materialCost : normalized.costFromText;
+  const consumed = components.isConsumed === true || normalized.consumedFromText;
+
+  return `${normalized.description}|cost:${cost ?? 0}|consumed:${consumed}`;
 }
 
 function formatStructuredDuration(labels: Map<string, string>): string {
@@ -697,7 +795,7 @@ function formatJsonComparableRecord(spellId: string, jsonPath: string, rawSpell:
     ['Casting Time', formatJsonCastingTime(spell)],
     ['Range/Area', formatJsonRange(spell)],
     ['Components', formatJsonComponents(spell)],
-    ['Material Component', formatJsonMaterial(spell)],
+    ['Material Component', formatJsonMaterialForStructuredComparison(spell)],
     ['Duration', formatJsonDuration(spell)],
     ['Description', spell.description ?? ''],
     ['Higher Levels', spell.higherLevels ?? ''],
@@ -722,7 +820,7 @@ function buildComparableFields(structured: StructuredSpellRecord, comparableJson
     { field: 'Casting Time', structuredValue: formatStructuredCastingTime(structured.labels), jsonValue: comparableJson.labels.get('Casting Time') ?? '' },
     { field: 'Range/Area', structuredValue: formatStructuredRange(structured.labels), jsonValue: comparableJson.labels.get('Range/Area') ?? '' },
     { field: 'Components', structuredValue: formatStructuredComponents(structured.labels), jsonValue: comparableJson.labels.get('Components') ?? '' },
-    { field: 'Material Component', structuredValue: formatStructuredMaterial(structured.labels), jsonValue: comparableJson.labels.get('Material Component') ?? '' },
+    { field: 'Material Component', structuredValue: formatStructuredMaterialForJsonComparison(structured.labels), jsonValue: comparableJson.labels.get('Material Component') ?? '' },
     { field: 'Duration', structuredValue: formatStructuredDuration(structured.labels), jsonValue: comparableJson.labels.get('Duration') ?? '' },
     { field: 'Description', structuredValue: structured.labels.get('Description') ?? '', jsonValue: comparableJson.labels.get('Description') ?? '' },
     { field: 'Higher Levels', structuredValue: structured.labels.get('Higher Levels') ?? '', jsonValue: comparableJson.labels.get('Higher Levels') ?? '' },

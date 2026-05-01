@@ -85,7 +85,7 @@
                   },
     "effects":  [
                     {
-                        "type":  "DEFENSIVE",
+                        "type":  "ATTACK_ROLL_MODIFIER",
                         "trigger":  {
                                         "type":  "immediate",
                                         "frequency":  "every_time",
@@ -102,7 +102,6 @@
                                     },
                         "condition":  {
                                           "type":  "always",
-                                          "saveType":  "Strength",
                                           "saveEffect":  "none",
                                           "targetFilter":  {
                                                                "creatureTypes":  [
@@ -129,55 +128,23 @@
 
                                                             ]
                                       },
-                        "defenseType":  "ac_bonus",
-                        "duration":  {
-                                         "type":  "minutes",
-                                         "value":  1
-                                     },
-                        "description":  "Creatures have disadvantage on attack rolls against you; immune if they don\u0027t rely on sight or can see through illusions.",
+                        "attackRollModifier":  {
+                                                   "modifier":  "disadvantage",
+                                                   "direction":  "incoming",
+                                                   "attackKind":  "any",
+                                                   "consumption":  "while_active",
+                                                   "duration":  {
+                                                                    "type":  "minutes",
+                                                                    "value":  1
+                                                                },
+                                                   "notes":  "Attacker is immune if it perceives the caster with Blindsight or Truesight."
+                                               },
+                        "description":  "Creatures have disadvantage on attack rolls against you; immune if they perceive you with Blindsight or Truesight.",
                         "scaling":  {
                                         "type":  "slot_level",
                                         "bonusPerLevel":  "",
                                         "customFormula":  ""
-                                    },
-                        "value":  0,
-                        "baseACFormula":  "",
-                        "acMinimum":  0,
-                        "damageType":  [
-
-                                       ],
-                        "savingThrow":  [
-
-                                        ],
-                        "attackerFilter":  {
-                                               "creatureTypes":  [
-
-                                                                 ],
-                                               "excludeCreatureTypes":  [
-
-                                                                        ],
-                                               "sizes":  [
-
-                                                         ],
-                                               "alignments":  [
-
-                                                              ],
-                                               "hasCondition":  [
-
-                                                                ],
-                                               "isNativeToPlane":  false
-                                           },
-                        "reactionTrigger":  {
-                                                "event":  "when_hit",
-                                                "includesSpells":  [
-
-                                                                   ]
-                                            },
-                        "restrictions":  {
-                                             "noArmor":  false,
-                                             "noShield":  false,
-                                             "targetSelf":  false
-                                         }
+                                    }
                     }
                 ],
     "arbitrationType":  "mechanical",

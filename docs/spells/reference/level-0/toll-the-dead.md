@@ -1,9 +1,42 @@
 # Toll the Dead
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Necromancy
+- **Ritual**: false
+- **Classes**: Cleric, Warlock, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 60
+- **Range Distance Unit**: feet
+- **Targeting Type**: single
+- **Targeting Range**: 60
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE
+- **Save Stat**: Wisdom
+- **Save Outcome**: none
+- **Damage Dice**: 1d8
+- **Damage Type**: Necrotic
+
+- **Description**: You point at one creature you can see within range, and the sound of a dolorous bell fills the air around it for a moment. The target must succeed on a Wisdom saving throw or take 1d8 Necrotic damage. If the target is missing any of its hit points, it instead takes 1d12 Necrotic damage.
+- **Higher Levels**: The spell's damage increases by one die when you reach 5th level (2d8 or 2d12), 11th level (3d8 or 3d12), and 17th level (4d8 or 4d12).
 
 ## Canonical D&D Beyond Snapshot
 

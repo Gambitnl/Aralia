@@ -1,6 +1,6 @@
 # Spell Casting Time Bucket Tracker
 
-Last Updated: 2026-04-03
+Last Updated: 2026-04-28
 
 ## Bucket Purpose
 
@@ -19,12 +19,16 @@ canonical snapshot and structured header were compared successfully.
 
 - canonical -> structured:
   - source: `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
-  - live count: `52`
-  - current reading: mostly source-display residue rather than true timing drift
+  - live count: `0`
+  - current reading: complete for the current report; ritual-inline, trigger-footnote,
+    casing, and pluralization display residue are audit-normalized, and the one
+    true special-timing spell (`plant-growth`) was updated in structured markdown
+    and runtime JSON
 - structured -> json:
   - source: `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - live count: `7`
-  - current reading: active runtime follow-up lane
+  - live count: `0`
+  - current reading: complete for the current report after applying the same
+    split-facts normalization to runtime comparison
 - glossary gate checker:
   - canonical -> structured `Casting Time Review`: implemented
   - structured -> json `Structured -> JSON` subsection inside `Casting Time Review`: implemented
@@ -59,14 +63,14 @@ This side answers the runtime question:
 - does the structured casting-time layer still differ from the live spell JSON that
   the glossary actually renders?
 
-Current likely families in the `7`-spell runtime residue set:
+The old `7`-spell runtime residue set was audit-shape residue:
 
 - reaction trigger wording living in structured text while runtime JSON keeps only
   normalized base timing
 - longer-casting display wording differences
 - possible true implementation drift on a smaller residue subset
 
-Representative runtime sample spells from the report:
+Former representative runtime sample spells:
 
 - `counterspell`
 - `dream-of-the-blue-veil`
@@ -92,8 +96,17 @@ The structured layer and runtime JSON keep ritual as a separate fact.
 
 Current reading:
 
-- canonical -> structured: source-shape residue
+- canonical -> structured: resolved as audit normalization on `2026-04-28`
 - structured -> json: usually model/display boundary, not real runtime drift
+
+Current handling:
+
+- the canonical audit strips a trailing `Ritual` token from the comparable
+  `Casting Time` value only when the structured block already has `Ritual: true`
+- this preserves the raw canonical snapshot while comparing the split structured
+  fact that Aralia actually owns: default casting time
+- ritual-expanded timing remains derived from `Ritual: true` plus the default
+  casting time; it is not yet a first-class structured markdown or JSON field
 
 ### 2. Trigger Footnote Display
 
@@ -142,7 +155,7 @@ Current status:
 
 ### Phase 1: Canonical -> Structured
 
-Status: implemented in the gate checker and sufficiently classified.
+Status: complete in the current generated report.
 
 What the gate checker now shows:
 
@@ -156,13 +169,12 @@ What the gate checker now shows:
 
 Remaining work:
 
-- none required for basic visibility
-- only policy review if the project later wants canonical display strings to
-  round-trip more literally
+- policy review only for whether Plant Growth-style alternate casting costs should
+  gain richer first-class structured markdown fields later
 
 ### Phase 2: Structured -> JSON
 
-Status: implemented in the gate checker as a separate subsection.
+Status: complete in the current generated report.
 
 What the gate checker now shows:
 
@@ -177,12 +189,29 @@ What the gate checker now shows:
 
 Remaining work:
 
-- review the `7` live runtime mismatches one by one
-- split them into:
-  - accepted model/display boundary
-  - real implementation drift
+- none for the current report's Casting Time group
 
 ## Progress Log
+
+### 2026-04-28
+
+- closed the ritual-inline display subbucket for canonical -> structured audit
+  comparison
+- changed the canonical audit so `1 Minute Ritual` compares as `1 Minute` only
+  when the structured spell already records `Ritual: true`
+- verified `alarm` no longer reports a Casting Time mismatch; its remaining
+  mismatch is Range/Area and belongs to another bucket
+- reran the corpus audit and reduced canonical Casting Time residue from `52`
+  to `20`
+- confirmed `0` remaining Casting Time mismatches contain a canonical `Ritual`
+  token after normalization
+- closed trigger-footnote display, bonus-action footnote display, long-cast
+  pluralization, and casing-only display residue by normalizing the audit around
+  split base timing facts
+- updated `plant-growth` from `1 action`/ritual timing to canonical `special`
+  casting time in both structured markdown and runtime JSON
+- reran canonical and runtime audits; both current reports now have `0` Casting
+  Time mismatch groups
 
 ### 2026-04-03
 
@@ -198,10 +227,10 @@ Remaining work:
 
 ## Remaining Work
 
-- audit the `7` structured -> json mismatches directly
-- record which of those are:
-  - real implementation drift
-  - accepted model/display boundary
+- decide whether `Exploration Cost Value` / `Exploration Cost Unit` should become
+  official structured markdown fields. `plant-growth` now records them in markdown
+  and JSON, but the markdown parity tooling does not yet compare those labels.
+- keep watch for new Casting Time mismatches as other agents regenerate reports
 - decide whether any runtime JSON timing shape should expand to carry richer
   trigger-aware casting-time semantics later
 
@@ -218,3 +247,6 @@ Remaining work:
    - trigger semantics aligned
    - ritual semantics aligned
    instead of keeping those all inside one casting-time review surface?
+
+4. Should alternate special casting costs, such as Plant Growth's action combat
+   mode and 8-hour enrichment mode, become first-class structured markdown fields?

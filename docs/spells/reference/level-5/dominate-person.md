@@ -3,6 +3,7 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Bard, Sorcerer, Wizard
+- **Sub-Classes**: Cleric - Trickery Domain, Warlock - Archfey Patron
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

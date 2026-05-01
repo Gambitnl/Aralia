@@ -1,9 +1,46 @@
 # Catapult
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 1
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Artificer, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 60
+- **Range Distance Unit**: feet
+- **Targeting Type**: area
+- **Targeting Range**: 60
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures, objects
+- **Line of Sight**: true
+- **Area Shape**: Line
+- **Area Size**: 90
+- **Area Size Unit**: feet
+
+- **Verbal**: false
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE, UTILITY
+- **Utility Type**: control
+- **Save Stat**: Dexterity
+- **Save Outcome**: none
+- **Damage Dice**: 3d8
+- **Damage Type**: Bludgeoning
+
+- **Description**: Choose one unattended object weighing 1 to 5 pounds within range. The object flies in a straight line up to 90 feet in a direction you choose, stopping early if it would strike a creature or solid surface. A creature in the path must make a Dexterity saving throw or take 3d8 bludgeoning damage from the impact; on a successful save, the object continues along its path until it hits something.
+- **Higher Levels**: The damage increases by 1d8 for each spell slot level above 1st.
 
 ## Canonical D&D Beyond Snapshot
 

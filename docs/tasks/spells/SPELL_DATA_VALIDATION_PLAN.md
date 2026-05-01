@@ -14,8 +14,8 @@ This file captures the current plan for validating spell JSON structure and spel
   - `418` mismatches across `9` grouped buckets
 - The structured-to-runtime comparison lane is the main active implementation-follow-up surface:
   - `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - generated `2026-04-09`
-  - `177` mismatches across `7` grouped buckets
+  - generated `2026-04-29`
+  - `101` mismatches across `4` grouped buckets
 - The canonical-rules audit currently reports a separate high-noise retrieval-shape problem:
   - `F:\Repos\Aralia\docs\tasks\spells\SPELL_CANONICAL_RULES_AUDIT_REPORT.md`
   - generated `2026-04-09`
@@ -66,24 +66,24 @@ Right now the live spell-truth lane is best read as four parallel surfaces:
    - current live residue:
      - `Range/Area` `172`
      - `Sub-Classes` `71`
-     - `Casting Time` `52`
      - `Description` `51`
      - `Higher Levels` `24`
      - `Classes` `17`
      - `Duration` `17`
-     - `Material Component` `11`
+     - `Material Component` `0`
      - `Components` `3`
 
 2. `structured -> json`
    - tracked by `SPELL_STRUCTURED_VS_JSON_REPORT.md`
    - current live residue:
-     - `Range/Area` `61`
-     - `Sub-Classes` `45`
-     - `Description` `34`
-     - `Duration` `17`
-     - `Higher Levels` `8`
-     - `Casting Time` `7`
-     - `Material Component` `5`
+     - `Sub-Classes` `57`
+     - `Description` `35`
+     - `Duration` `8`
+     - `Classes` `1`
+   - closed in the current report:
+     - `Range/Area` `0`
+     - `Higher Levels` `0`
+     - `Material Component` `0`
 
 3. `description taxonomy`
    - tracked by `SPELL_DESCRIPTION_SUBBUCKET_REPORT.md`
@@ -198,30 +198,24 @@ The `Casting Time` bucket is also a two-phase bucket:
 Current live status:
 
 - canonical -> structured:
-  - `52` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
-  - current reading: mostly source-display residue
-  - common cases:
+  - `0` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
+  - current reading: complete for the current generated report
+  - resolved cases:
     - ritual inline display such as `1 Minute Ritual`
     - trigger footnote display such as `1 Reaction *`
+    - long-cast pluralization/casing residue such as `10 Minutess` vs `10 Minutes`
+    - special timing display on `plant-growth`
 - structured -> json:
-  - `7` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - current reading: small active runtime follow-up lane
-  - representative spells:
-    - `counterspell`
-    - `dream-of-the-blue-veil`
-    - `feather-fall`
-    - `hellish-rebuke`
-    - `legend-lore`
-    - `mirage-arcane`
-    - `shield`
+  - `0` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - current reading: complete for the current generated report after applying the
+    same split-facts comparison to runtime JSON
 
 Current bucket reading:
 
-- canonical -> structured is mostly accepted normalization / source-shape residue
-- structured -> json is the meaningful runtime lane and still needs spell-by-spell
-  review to separate:
-  - real implementation drift
-  - model/display boundary
+- canonical -> structured is complete for the current Casting Time report
+- structured -> json is complete for the current Casting Time report
+- remaining policy issue: whether Plant Growth-style alternate special casting
+  costs should become first-class structured markdown fields
 
 Current gate-checker coverage:
 
@@ -231,12 +225,9 @@ Current gate-checker coverage:
 
 What still needs to happen next:
 
-- review the `7` runtime mismatches directly
-- mark which are:
-  - real implementation drift
-  - accepted model/display boundary
-- leave the canonical-side `52` documented as source-display residue unless a spell
-  proves to have a true base timing disagreement
+- no active Casting Time mismatch work remains in the generated reports
+- keep the Plant Growth special-casting-cost model gap visible for later schema /
+  markdown parity policy work
 
 Living tracker:
 - `F:\Repos\Aralia\docs\tasks\spells\casting-time\SPELL_CASTING_TIME_BUCKET_TRACKER.md`
@@ -395,27 +386,25 @@ The `Higher Levels` bucket is also a two-phase bucket:
 Current live status:
 
 - canonical -> structured:
-  - `126` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
-  - current grouped kind: `missing-canonical-field`
+  - `24` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
+  - current grouped kind: mostly source-shape residue with a small true-drift review tail
   - practical reading: mostly source-shape residue, because canonical snapshots
     usually keep higher-level text inline under raw `Rules Text` instead of
     exposing a separate comparable `Higher Levels` field
 - structured -> json:
-  - `8` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - current grouped kinds:
-    - `missing-structured-field`
-    - narrower `value-mismatch` residue
-  - practical reading: small active implementation/audit lane
+  - `0` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - practical reading: closed runtime implementation lane
 
 Current bucket reading:
 
 - canonical -> structured is mostly:
   - source-shape residue
   - accepted normalization
-- structured -> json is currently mixed:
-  - structured-layer lag on a small named set
-  - low-severity formatting residue
-  - possible narrower real runtime drift
+- structured -> json is closed:
+  - structured missing rows were backfilled
+  - duplicate upcast prose was removed from `Description`
+  - runtime JSON was aligned where the structured field was already canonical-clean
+  - cantrip higher-level drift was corrected in runtime JSON
 - this bucket also touches a model gap:
   - whether prose-only `higherLevels` is enough
   - or whether some spells should also require structured `higherLevelScaling`
@@ -428,11 +417,7 @@ Active subbucket direction:
   - `statblock_tail_residue`
   - `true_canonical_drift`
 - runtime side:
-  - `structured_missing_json_present`
-  - `runtime_missing_structured_present`
-  - `prefix_only_residue`
-  - `punctuation_or_formatting_residue`
-  - `true_runtime_drift`
+  - closed as of the 2026-04-29 Higher Levels runtime pass
 
 Current gate-checker coverage:
 
@@ -442,14 +427,9 @@ Current gate-checker coverage:
 
 What still needs to happen next:
 
-- directly review the `8` runtime mismatch spells
-- split them into:
-  - structured missing
-  - formatting-only residue
-  - true runtime drift
 - decide later when `higherLevelScaling` should be considered required rather
   than optional for runtime behavior
-- keep the canonical-side `126` count documented as source-shape residue instead
+- keep the canonical-side `24` count documented as source-shape residue instead
   of treating it as if it were broad unresolved content drift
 
 Living tracker:
@@ -472,16 +452,14 @@ Current live status:
     - `Until Dispelled`
     - `Until Dispelled or Triggered`
 - structured -> json:
-  - `17` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - current reading: mixed runtime follow-up lane
+  - `15` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - current reading: mixed runtime follow-up lane after closing the two-spell true drift pilot
   - representative spells:
     - `conjure-elemental`
     - `hold-monster`
     - `hallow`
     - `leomunds-secret-chest`
-    - `pyrotechnics`
     - `symbol`
-    - `transport-via-plants`
 
 Current bucket reading:
 
@@ -494,7 +472,7 @@ Current bucket reading:
   - plain wording / pluralization residue
   - accepted special-bucket normalization
   - trigger-ended persistence boundary
-  - narrower real implementation drift
+  - resolved real implementation drift pilot
 
 Current gate-checker coverage:
 
@@ -506,13 +484,13 @@ Current gate-checker coverage:
 
 What still needs to happen next:
 
-- audit the `17` runtime mismatches directly
+- audit the remaining `15` runtime mismatches directly
 - split them into:
   - flattened concentration wording
   - plain wording / pluralization residue
   - accepted special-bucket normalization
   - trigger-ended persistence boundary
-  - real runtime drift
+  - real runtime drift if any new cases appear
 - decide whether the runtime duration model should grow explicit support for:
   - `until_dispelled`
   - `until_dispelled_or_triggered`
@@ -524,7 +502,7 @@ Living tracker:
 
 ## Material Component Bucket
 
-The `Material Component` bucket is also a two-phase bucket:
+The `Material Component` bucket is a two-phase bucket:
 
 - `canonical -> structured`
 - `structured -> json`
@@ -532,43 +510,20 @@ The `Material Component` bucket is also a two-phase bucket:
 Current live status:
 
 - canonical -> structured:
-  - `11` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
-  - current grouped kind: `value-mismatch`
-  - practical reading: small active copying/review lane
-  - representative spells:
-    - `stoneskin`
-    - `raise-dead`
-    - `reincarnate`
-    - `summon-greater-demon`
-    - `conjure-volley`
-    - `swift-quiver`
+  - `0` grouped `Material Component` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
+  - practical reading: resolved
 - structured -> json:
-  - `5` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - current grouped kinds:
-    - `value-mismatch`
-    - `missing-json-field`
-  - practical reading: small active runtime implementation lane
-  - current named spells:
-    - `magic-mouth`
-    - `melfs-acid-arrow`
-    - `true-seeing`
-    - `vitriolic-sphere`
-    - `wall-of-ice`
+  - `0` grouped `Material Component` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - practical reading: resolved
 
 Current bucket reading:
 
-- canonical -> structured is now the primary execution lane
-- canonical -> structured currently splits into:
-  - `canonical_consumed_state_drift`
-  - `missing_structured_material_component`
-  - `canonical_cost_drift`
-  - `canonical_description_drift`
-  - `canonical_wording_boundary`
-  - `alternate_source_material_shape`
-- structured -> json is the follow-through implementation lane because the glossary
-  renders runtime spell JSON rather than the structured markdown block
-- runtime review should happen after the matching spell is squared away in the
-  structured layer, not as the first driver of the bucket
+- both material comparison phases are closed
+- the material audits now compare split facts:
+  - ingredient text
+  - cost
+  - consumed state
+- raw canonical footnote wrappers no longer create fake `Material Component` drift
 
 Current gate-checker coverage:
 
@@ -577,26 +532,11 @@ Current gate-checker coverage:
 
 What still needs to happen next:
 
-- work the canonical -> structured lane first in this order:
-  1. `canonical_consumed_state_drift`
-  2. `missing_structured_material_component`
-  3. `canonical_cost_drift`
-  4. `canonical_description_drift`
-  5. `alternate_source_material_shape`
-  6. `canonical_wording_boundary`
-- after each structured fix, immediately check whether the matching runtime JSON
-  is now behind and needs the same material-note correction carried forward
-- then review the `5` runtime mismatch spells under these runtime subbuckets:
-  - `missing_runtime_material_component`
-  - `consumed_state_runtime_drift`
-  - `cost_runtime_drift`
-  - `description_runtime_drift`
-  - `model_display_boundary`
+- no active `Material Component` work remains
+- reopen only if a later audit produces new material-note mismatches
 
 Living tracker:
 - `F:\Repos\Aralia\docs\tasks\spells\material-component\SPELL_MATERIAL_COMPONENT_BUCKET_TRACKER.md`
-Gemini handoff:
-- `F:\Repos\Aralia\docs\tasks\spells\material-component\SPELL_MATERIAL_COMPONENT_GEMINI_HANDOVER.md`
 
 ## Components Bucket
 
@@ -687,22 +627,18 @@ Current live status:
     - total structured-vs-canonical mismatches dropped from `414` to `411`
     - the remaining self-centered canonical-side residue set is now `24`
 - structured -> json:
-  - `7` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - current grouped kind: `value-mismatch`
-  - practical reading: mostly policy/model leftovers rather than ordinary data-entry
-    drift
-  - remaining live spells:
-    - `skywrite`: structured `Range/Area` header is still missing
-    - `sending` and `telepathy`: structured says `Unlimited`, runtime JSON says
-      `Special`
-    - `commune-with-nature`: runtime JSON has a likely fake `Self (3-ft. Sphere)`
-      area while structured says `Self`
-    - `mirage-arcane`: structured has `Sight (1 mile Square)`, runtime JSON says
-      `Special`
-    - `control-weather`: structured has `Self (5 miles)`, runtime JSON cannot yet
-      express a no-shape self radius cleanly
-    - `earthquake`: structured says `Circle`, runtime JSON currently only has
-      `Sphere` as a nearby available shape
+  - `0` mismatches in `F:\Repos\Aralia\docs\tasks\spells\SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - current grouped kind: no grouped `Range/Area` bucket in the current report
+  - practical reading: runtime `Range/Area` is closed for the current audit
+  - `2026-04-29` closure pass:
+    - `skywrite` now uses `sight` instead of fake `ranged 0`
+    - `sending` and `telepathy` now use runtime range type `unlimited`
+    - `snare` and `earthquake` now use primary runtime shape `Circle`
+    - `commune-with-nature` moved its knowledge radii into `spatialDetails`
+      instead of primary Range/Area
+    - `mirage-arcane` now has runtime `Sight (Side 1-mile Square)`
+    - `control-weather` now carries its self-centered 5-mile radius explicitly
+      as the current model's `Sphere` approximation
 
 Current bucket reading:
 
@@ -832,33 +768,24 @@ Current gate-checker coverage:
     - the live runtime geometry-unit audit now finds `0` positive numeric geometry
       fields without explicit unit fields
   - important distinction:
-    - the explicit-unit sub-lane is now complete
-    - the broader `Range/Area` bucket is still not complete because it still has `61`
-      structured -> json mismatches that are about geometry semantics, shape choice,
-      and model/display boundaries rather than hidden units
-    except where the remaining mismatch belongs to another bucket entirely
+    - the explicit-unit sub-lane is complete
+    - the structured -> json `Range/Area` lane is now also closed in the current
+      generated report
+    - remaining `Range/Area` work is canonical-side source/display residue plus
+      future model policy, not live runtime JSON lag
   - the older safe/risky runtime-unit inventory is now only historical execution
     context, not live backlog
   - the explicit-unit backfill sub-lane is now complete
 
 What still needs to happen next:
 
-- work from the current runtime subbucket map instead of treating the `61`-spell
-  set as one undifferentiated lane
-- current provisional runtime subbuckets:
-  - self-centered emanation normalization drift (`7`)
-  - structured phantom `0-ft. None` area residue (`31`)
-  - distance-unit and special-range encoding split (`9`)
-  - wall and constructed-shape alias drift (`10`)
-  - structured scalar-area formatting residue (`5`)
-  - runtime JSON missing area geometry (`4`)
-  - shape-semantics boundary set (`5`)
-  - structured missing `Range/Area` (`1`)
-- fix the likely true runtime-drift buckets first:
-  - self-centered emanation normalization drift
-  - runtime JSON missing area geometry
-  - explicit structured omission
+- no further structured -> json `Range/Area` implementation work is exposed by the
+  current report
 - no further blanket explicit-unit backfill is required
+- keep `control-weather` visible as a future model-policy example if the runtime
+  schema later adds a cleaner radius-without-shape primary area option
+- keep `commune-with-nature` as the precedent for effect-only knowledge areas
+  living in `spatialDetails` instead of primary Range/Area
 - treat the reviewed risky-spell sample as structurally widened for `Range/Area`
   unless a retrospective pass later finds a better spatial formulation:
   - `flaming-sphere`

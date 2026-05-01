@@ -117,6 +117,32 @@ describe('combatAI', () => {
     expect(result.targetPosition?.y).toBeGreaterThan(0);
   });
 
+  it('should not plan movement onto an occupied enemy tile', () => {
+    const meleeAttack: Ability = {
+      ...basicAttack,
+      range: 1
+    };
+    hero = createMockCombatCharacter({
+      id: 'hero',
+      team: 'player',
+      position: { x: 0, y: 0 },
+      abilities: [meleeAttack]
+    });
+
+    enemy = createMockCombatCharacter({
+      id: 'goblin',
+      team: 'enemy',
+      position: { x: 3, y: 0 }
+    });
+
+    // The AI should approach the enemy, but it must choose a legal nearby tile
+    // instead of stepping directly onto the enemy's occupied square.
+    const result = evaluateCombatTurn(hero, [hero, enemy], mapData);
+
+    expect(result.type).toBe('move');
+    expect(result.targetPosition).not.toEqual(enemy.position);
+  });
+
   it('should attack enemy if in range', () => {
     hero = createMockCombatCharacter({
       id: 'hero',

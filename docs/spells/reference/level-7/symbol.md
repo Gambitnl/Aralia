@@ -25,7 +25,7 @@
 - **Material Description**: powdered diamond worth 1,000+ GP, which the spell consumes
 - **Material Cost GP**: 1000
 - **Consumed**: true
-- **Duration Type**: permanent
+- **Duration Type**: until_dispelled_or_triggered
 - **Concentration**: false
 - **Effect Type**: DAMAGE, DEBUFF
 - **Save Stat**: Constitution, Wisdom

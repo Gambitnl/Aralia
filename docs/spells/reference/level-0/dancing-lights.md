@@ -1,9 +1,40 @@
 # Dancing Lights
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Illusion
+- **Ritual**: false
+- **Classes**: Artificer, Bard, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 120
+- **Range Distance Unit**: feet
+- **Targeting Type**: point
+- **Targeting Range**: 120
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: point
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: true
+- **Material Description**: a bit of phosphorus
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: true
+
+- **Effect Type**: UTILITY
+- **Utility Type**: light
+
+- **Description**: You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration. You can also combine the four lights into one glowing vaguely humanoid form of Medium size. Whichever form you choose, each light sheds dim light in a 10-foot radius.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

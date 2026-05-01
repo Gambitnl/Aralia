@@ -41,7 +41,7 @@
     "materialCost": 0
   },
   "duration": {
-    "type": "special",
+    "type": "until_dispelled",
     "concentration": false,
     "value": 0,
     "unit": "round"

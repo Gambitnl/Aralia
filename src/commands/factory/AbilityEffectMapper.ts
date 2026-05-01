@@ -1,6 +1,24 @@
 import { AbilityEffect } from '@/types/combat';
 import { SpellEffect, DamageType, ConditionName } from '@/types/spells';
 
+// This mapper is the bridge between lightweight battle-map abilities and the
+// shared spell-effect command pipeline. Monster attacks and simple combat
+// actions often store a flat `value`, while the command layer expects a dice
+// formula string; keeping that translation here preserves one execution path
+// for damage, healing, logs, and future command-side mechanics.
+const getEffectMagnitudeFormula = (abilityEffect: AbilityEffect): string => {
+  if (abilityEffect.dice) return abilityEffect.dice;
+
+  if (typeof abilityEffect.value === 'number' && Number.isFinite(abilityEffect.value)) {
+    return String(Math.max(0, abilityEffect.value));
+  }
+
+  // Zero remains the explicit fallback for effects that are placeholders or
+  // whose magnitude is supplied by a later mechanic. This keeps old scaffolding
+  // mappable without pretending missing damage data is valid damage.
+  return '0';
+};
+
 export class AbilityEffectMapper {
   static mapToSpellEffect(abilityEffect: AbilityEffect): SpellEffect | null {
     switch (abilityEffect.type) {
@@ -10,7 +28,7 @@ export class AbilityEffectMapper {
           trigger: { type: 'immediate' },
           condition: { type: 'always' }, // Attack roll is handled by Command wrapper
           damage: {
-            dice: abilityEffect.dice || '0',
+            dice: getEffectMagnitudeFormula(abilityEffect),
             type: abilityEffect.damageType || DamageType.Bludgeoning,
           },
         };
@@ -20,7 +38,7 @@ export class AbilityEffectMapper {
           trigger: { type: 'immediate' },
           condition: { type: 'always' },
           healing: {
-            dice: abilityEffect.dice || '0',
+            dice: getEffectMagnitudeFormula(abilityEffect),
           },
         };
       case 'status':

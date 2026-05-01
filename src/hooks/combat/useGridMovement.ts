@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/05/2026, 14:08:58
+ * Dependents: hooks/useBattleMap.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/hooks/combat/useGridMovement.ts
  * Custom hook to manage the state and logic of grid-based movement.
@@ -6,7 +22,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
 import { findPath } from '../../utils/pathfinding';
-import { calculateMovementCost } from '../../utils/movementUtils';
+import { calculateStepMovementCost } from '../../utils/movementUtils';
 
 interface UseGridMovementProps {
   mapData: BattleMapData | null;
@@ -65,10 +81,11 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
           const neighbor = mapData.tiles.get(neighborId);
 
           if (neighbor && !neighbor.blocksMovement) {
-            // Calculate step cost using 5-10-5 rule
-            const { cost: baseStepCost, isDiagonal } = calculateMovementCost(dx, dy, diagonalCount);
-            const terrainMultiplier = neighbor.movementCost || 1;
-            const stepCost = baseStepCost * terrainMultiplier;
+            // Calculate the step in feet, not raw tile units. This matters
+            // because generated battle maps store normal terrain as 5 ft per
+            // square, while some older tests/data store normal terrain as a
+            // 1x multiplier.
+            const { cost: stepCost, isDiagonal } = calculateStepMovementCost(dx, dy, diagonalCount, neighbor.movementCost);
 
             const newCost = cost + stepCost;
             const newDiagonalCount = isDiagonal ? diagonalCount + 1 : diagonalCount;

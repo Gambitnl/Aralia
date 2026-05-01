@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { findBattlePath as findPath } from '../../spatial';
-import { calculateMovementCost, getTargetDistance } from '../movementUtils';
+import { calculateMovementCost, calculatePathMovementCost, calculateStepMovementCost, getTargetDistance, getTileMovementMultiplier } from '../movementUtils';
 import { BattleMapData, BattleMapTile } from '../../../types/combat';
 
 describe('movementUtils: 5-10-5 Rule', () => {
@@ -37,6 +37,18 @@ describe('movementUtils: 5-10-5 Rule', () => {
       expect(getTargetDistance({x:0, y:0}, {x:3, y:3})).toBe(20);
       // 1 straight + 1 diagonal
       expect(getTargetDistance({x:0, y:0}, {x:1, y:2})).toBe(10);
+  });
+
+  it('normalizes live 5-foot tile costs and legacy multiplier tile costs', () => {
+    expect(getTileMovementMultiplier(5)).toBe(1);
+    expect(getTileMovementMultiplier(10)).toBe(2);
+    expect(getTileMovementMultiplier(1)).toBe(1);
+    expect(getTileMovementMultiplier(2)).toBe(2);
+  });
+
+  it('charges one normal generated tile as 5 feet, not 25 feet', () => {
+    expect(calculateStepMovementCost(1, 0, 0, 5)).toEqual({ cost: 5, isDiagonal: false });
+    expect(calculateStepMovementCost(1, 0, 0, 10)).toEqual({ cost: 10, isDiagonal: false });
   });
 });
 
@@ -106,5 +118,27 @@ describe('pathfinding: findPath (5-10-5)', () => {
     expect(path.length).toBeGreaterThan(0);
     // Middle node should not be 1-0
     expect(path.find(t => t.id === '1-0')).toBeUndefined();
+  });
+
+  it('calculates path movement cost in feet for generated 5-foot tiles', () => {
+    const map = createMap(8, 3);
+
+    // Live generated battle maps use 5 for normal terrain. A six-square
+    // straight path should therefore spend exactly 30 feet.
+    map.tiles.forEach(tile => {
+      tile.movementCost = 5;
+    });
+
+    const path = [
+      map.tiles.get('0-1')!,
+      map.tiles.get('1-1')!,
+      map.tiles.get('2-1')!,
+      map.tiles.get('3-1')!,
+      map.tiles.get('4-1')!,
+      map.tiles.get('5-1')!,
+      map.tiles.get('6-1')!
+    ];
+
+    expect(calculatePathMovementCost(path)).toBe(30);
   });
 });

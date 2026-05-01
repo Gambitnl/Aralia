@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/04/2026, 01:46:03
- * Dependents: components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
+ * Last Sync: 29/04/2026, 17:39:30
+ * Dependents: components/Glossary/spellGateChecker/spellGateBucketDetails.ts, components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -163,10 +163,13 @@ const ScalableNumber = z.union([
 ]);
 
 const TargetingAreaOfEffect = z.object({
-  // Extended shape enum to include Emanation, Wall, Hemisphere, Ring
+  // Extended shape enum includes Circle because some spells affect a flat ground
+  // footprint rather than a full sphere. Earthquake is the current Range/Area
+  // driver: its rules text says "100-foot-radius circle", so the runtime JSON
+  // needs a truthful shape instead of pretending the effect is spherical.
   shape: z.enum([
     "Cone", "Cube", "Cylinder", "Line", "Sphere", "Square",
-    "Emanation", "Wall", "Hemisphere", "Ring"
+    "Circle", "Emanation", "Wall", "Hemisphere", "Ring"
   ]),
   size: z.number(),
   sizeType: GeometrySizeType.optional(),
@@ -500,6 +503,31 @@ const StatusConditionEffect = BaseEffect.extend({
   statusCondition: StatusCondition,
 });
 
+// ============================================================================
+// Attack Roll Rider Effect Schema
+// ============================================================================
+// These effects model attack-roll changes that are not real conditions. Blur is
+// the incoming-rider pilot: the protected creature is harder to hit for the
+// spell duration, but it does not gain a named condition.
+// ============================================================================
+const AttackRollModifier = z.object({
+  modifier: z.enum(["advantage", "disadvantage", "bonus", "penalty"]),
+  direction: z.enum(["incoming", "outgoing"]),
+  attackKind: z.enum(["any", "weapon", "melee_weapon", "ranged_weapon", "spell"]),
+  consumption: z.enum(["next_attack", "first_attack", "while_active"]),
+  duration: EffectDuration,
+  dice: z.string().optional(),
+  value: z.number().optional(),
+  attackerFilter: TargetConditionFilter.optional(),
+  notes: z.string().optional(),
+});
+
+const AttackRollModifierEffect = BaseEffect.extend({
+  type: z.literal("ATTACK_ROLL_MODIFIER"),
+  attackRollModifier: AttackRollModifier,
+  damage: DamageData.optional(),
+});
+
 const MovementEffect = BaseEffect.extend({
   type: z.literal("MOVEMENT"),
   movementType: z.enum(["push", "pull", "teleport", "speed_change", "stop"]),
@@ -725,6 +753,7 @@ const SpellEffect = z.discriminatedUnion("type", [
   DamageEffect,
   HealingEffect,
   StatusConditionEffect,
+  AttackRollModifierEffect,
   MovementEffect,
   SummoningEffect,
   TerrainEffect,

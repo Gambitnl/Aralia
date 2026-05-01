@@ -1,0 +1,77 @@
+- generic [ref=e7]:
+  - generic [ref=e43]:
+    - generic: v0.4.0
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e48]: ❄️ 1 Deepwinter, 351
+            - generic [ref=e49]: 🌒
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]: ☀️ Day
+              - generic [ref=e53]: 07:00 AM
+            - button "Pass Time" [ref=e54] [cursor=pointer]: ⏳
+          - generic [ref=e55]: The air is biting cold. The sun is high.
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - heading "Current Position" [level=3] [ref=e58]
+            - paragraph [ref=e59]:
+              - text: "World:"
+              - generic [ref=e60]: (15, 10)
+            - paragraph [ref=e61]:
+              - text: "Submap:"
+              - generic [ref=e62]: (15, 10)
+          - heading "Navigation" [level=3] [ref=e63]
+          - generic [ref=e64]:
+            - button "Move North-West" [ref=e65] [cursor=pointer]: NW
+            - button "Move North" [ref=e66] [cursor=pointer]: "N"
+            - button "Move North-East" [ref=e67] [cursor=pointer]: NE
+            - button "Move West" [ref=e68] [cursor=pointer]: W
+            - button "Look Around" [ref=e69] [cursor=pointer]: ◎
+            - button "Move East" [ref=e70] [cursor=pointer]: E
+            - button "Move South-West" [ref=e71] [cursor=pointer]: SW
+            - button "Move South" [ref=e72] [cursor=pointer]: S
+            - button "Move South-East" [ref=e73] [cursor=pointer]: SE
+          - generic [ref=e74]:
+            - button "Toggle World Map" [ref=e75] [cursor=pointer]: 🌍
+            - button "Toggle Submap" [ref=e76] [cursor=pointer]: 🗺️
+            - button "Enter 3D World" [ref=e77] [cursor=pointer]: 🎥
+      - generic [ref=e78]:
+        - heading "Actions" [level=2] [ref=e79]
+        - generic [ref=e80]:
+          - button "Ask the Oracle" [ref=e81] [cursor=pointer]
+          - button "Survey Surroundings" [ref=e82] [cursor=pointer]
+        - button "Take Old Map Fragment" [ref=e84] [cursor=pointer]
+        - generic [ref=e85]:
+          - heading "Rest & Recovery" [level=3] [ref=e86]
+          - generic [ref=e87]:
+            - button "Short Rest" [ref=e88] [cursor=pointer]
+            - button "Long Rest" [ref=e89] [cursor=pointer]
+        - button "Dev Menu" [ref=e128] [cursor=pointer]
+        - button "Menu" [active] [ref=e91] [cursor=pointer]:
+          - img [ref=e129]
+          - generic [ref=e93]: Menu
+    - generic [ref=e94]:
+      - generic [ref=e95]:
+        - heading "Log" [level=2] [ref=e96]
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - paragraph [ref=e99]: Welcome, Dev Player and party! Your adventure begins (Dev Mode - Auto Start).
+            - paragraph [ref=e100]: 11:57 AM
+          - generic [ref=e101]:
+            - paragraph [ref=e102]: You are in a sun-dappled clearing. Paths lead north, east, south, and a well-trodden one heads west towards Aralia Town Center.
+            - paragraph [ref=e103]: 11:57 AM
+          - generic [ref=e104]:
+            - paragraph [ref=e105]: Game loaded successfully.
+            - paragraph [ref=e106]: 12:03 PM
+          - generic [ref=e107]:
+            - paragraph [ref=e108]: Game loaded successfully.
+            - paragraph [ref=e109]: 12:07 PM
+      - button "15, 10" [ref=e110] [cursor=pointer]:
+        - generic: 15, 10
+  - button "💬 Chat History" [ref=e38] [cursor=pointer]:
+    - generic [ref=e39]: 💬
+    - generic [ref=e40]:
+      - generic [ref=e41]: Chat
+      - generic [ref=e42]: History

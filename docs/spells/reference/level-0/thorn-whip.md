@@ -1,9 +1,42 @@
 # Thorn Whip
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Artificer, Druid
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 30
+- **Range Distance Unit**: feet
+- **Targeting Type**: single
+- **Targeting Range**: 30
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: creatures
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: true
+- **Material Description**: the stem of a plant with thorns
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: DAMAGE, MOVEMENT
+- **Attack Roll**: melee
+- **Damage Dice**: 1d6
+- **Damage Type**: Piercing
+
+- **Description**: You create a vine-like whip covered in thorns. Make a melee spell attack. On a hit, the target takes piercing damage. If the target is Large or smaller, you can pull it up to 10 feet closer to you.
+- **Higher Levels**: The damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).
 
 ## Canonical D&D Beyond Snapshot
 

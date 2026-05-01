@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:31:33
- * Dependents: combat/index.ts, movementUtils.ts, pathfinding.ts
+ * Last Sync: 01/05/2026, 14:08:47
+ * Dependents: utils/combat/index.ts, utils/movementUtils.ts, utils/spatial/pathfinding.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -44,6 +44,34 @@
  */
 
 import { Position } from '../../types/combat';
+import type { BattleMapTile } from '../../types/combat';
+
+// ============================================================================
+// Tile Cost Normalization
+// ============================================================================
+// Older battle-map generators stored tile movementCost as feet per square
+// (5 for normal terrain, 10 for difficult terrain). Newer terrain systems
+// often store it as a multiplier (1 for normal, 2 for difficult). These helpers
+// preserve both formats so movement math can use one feet-based rulebook.
+// ============================================================================
+
+export function getTileMovementMultiplier(tileMovementCost: number | undefined): number {
+  if (!Number.isFinite(tileMovementCost) || tileMovementCost === undefined || tileMovementCost <= 0) {
+    return 1;
+  }
+
+  // Values above 4 are treated as feet-per-tile. A normal generated battle
+  // tile is 5, which means "one 5 ft square", not "5x movement cost".
+  if (tileMovementCost > 4) {
+    return tileMovementCost / 5;
+  }
+
+  return tileMovementCost;
+}
+
+export function isDifficultMovementCost(tileMovementCost: number | undefined): boolean {
+  return getTileMovementMultiplier(tileMovementCost) > 1;
+}
 
 /**
  * Calculates the cost of a single step.
@@ -93,6 +121,43 @@ export function calculateMovementCost(dx: number, dy: number, diagonalCount: num
   const cost = (diagonalCount % 2 === 0) ? 5 : 10;
 
   return { cost, isDiagonal: true };
+}
+
+export function calculateStepMovementCost(
+  dx: number,
+  dy: number,
+  diagonalCount: number,
+  tileMovementCost: number | undefined
+): { cost: number; isDiagonal: boolean } {
+  const baseStep = calculateMovementCost(dx, dy, diagonalCount);
+  const terrainMultiplier = getTileMovementMultiplier(tileMovementCost);
+
+  return {
+    cost: baseStep.cost * terrainMultiplier,
+    isDiagonal: baseStep.isDiagonal
+  };
+}
+
+export function calculatePathMovementCost(path: BattleMapTile[]): number {
+  let totalCost = 0;
+  let diagonalCount = 0;
+
+  // The first tile is the character's current square. Movement is only charged
+  // for entering subsequent tiles, using each destination tile's terrain cost.
+  for (let i = 1; i < path.length; i += 1) {
+    const previous = path[i - 1];
+    const next = path[i];
+    const dx = next.coordinates.x - previous.coordinates.x;
+    const dy = next.coordinates.y - previous.coordinates.y;
+    const step = calculateStepMovementCost(dx, dy, diagonalCount, next.movementCost);
+
+    totalCost += step.cost;
+    if (step.isDiagonal) {
+      diagonalCount += 1;
+    }
+  }
+
+  return totalCost;
 }
 
 /**

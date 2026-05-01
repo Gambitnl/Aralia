@@ -34,7 +34,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a small piece of quartz",
+    "materialDescription": "a piece of quartz",
     "isConsumed": false,
     "materialCost": 0
   },

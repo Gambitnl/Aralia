@@ -1,6 +1,6 @@
 # Spell Material Component Bucket Tracker
 
-Last Updated: 2026-04-10
+Last Updated: 2026-04-29
 
 ## Bucket Purpose
 
@@ -24,11 +24,11 @@ separately from the source-facing canonical lane.
 ## Current Status
 
 - canonical -> structured:
-  - `11` mismatches in `SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
-  - current reading: now a small active copying/review lane
+  - `0` grouped `Material Component` mismatches in `SPELL_STRUCTURED_VS_CANONICAL_REPORT.md`
+  - current reading: resolved
 - structured -> json:
-  - `5` mismatches in `SPELL_STRUCTURED_VS_JSON_REPORT.md`
-  - current reading: follow-through implementation lane after structured fixes
+  - `0` grouped `Material Component` mismatches in `SPELL_STRUCTURED_VS_JSON_REPORT.md`
+  - current reading: resolved
 - glossary gate checker:
   - `Material Component Review`: implemented
   - `Material Component Runtime Review`: implemented
@@ -37,149 +37,82 @@ separately from the source-facing canonical lane.
 
 ### Canonical -> Structured
 
-This is now the primary lane.
+This lane is now closed.
 
-The old high-noise `220`-spell canonical-side snapshot is no longer the live state.
-After the canonical-side audit/report improvements, the real residue set is now:
+The old high-noise `220`-spell snapshot and the later `7`-spell snapshot are both
+resolved. The final 2026-04-29 pass:
 
-- `arcane-sword`
-- `conjure-volley`
-- `divination`
-- `feather-fall`
-- `raise-dead`
-- `reincarnate`
-- `soul-cage`
-- `stoneskin`
-- `summon-greater-demon`
-- `swift-quiver`
-- one additional live report member in the grouped count, to be verified directly from
-  the report row set during execution if needed
+- corrected real material facts where the structured layer was behind canonical
+- taught the canonical audit to compare material facts instead of raw footnote wrappers
+- closed the grouped canonical-side `Material Component` bucket to `0`
 
-Current reading by family:
+Resolved family outcomes:
 
-1. `canonical_consumed_state_drift`
-- canonical note adds a consumed-state clause the structured note still omits
-- representative examples:
-  - `stoneskin`
-  - `raise-dead`
-  - `reincarnate`
+1. `raw_note_shape_residue`
+- resolved
+- wrapper-only differences now compare as material facts
 
-2. `missing_structured_material_component`
-- canonical snapshot has a usable material note, but the structured block still has no
-  comparable `Material Component` line
-- representative examples:
-  - `summon-greater-demon`
-  - `conjure-volley`
-  - `swift-quiver`
+2. `alternate_source_material_shape`
+- resolved
+- `arcane-sword` remains an alternate-source example, but no longer produces live
+  `Material Component` residue
 
-3. `canonical_description_drift`
-- the structured note and canonical note describe different actual material content
-- representative example:
-  - `divination`
-
-4. `canonical_wording_boundary`
-- wording differs, but the underlying material facts may still be equivalent
-- representative example:
-  - `feather-fall`
-
-5. `alternate_source_material_shape`
-- the spell uses a non-standard canonical source shape and should stay separate from
-  normal D&D Beyond-style note handling
-- representative example:
-  - `arcane-sword`
+3. `true_content_drift_on_demand`
+- resolved for the reviewed set
+- real corrections landed for ingredient, cost, and consumed-state mismatches found
+  during the pass
 
 ### Structured -> JSON
 
-This is the follow-through lane after canonical -> structured is squared away.
+This lane is now closed.
 
-Current `5`-spell residue:
+Runtime spell JSON now matches the reviewed structured material facts for this bucket.
 
-- `magic-mouth`
-- `melfs-acid-arrow`
-- `true-seeing`
-- `vitriolic-sphere`
-- `wall-of-ice`
-
-Current reading by family:
+Resolved family outcomes:
 
 1. `missing_runtime_material_component`
-- strongest real drift
-- representative example:
-  - `vitriolic-sphere`
+- resolved
+- missing runtime material notes were backfilled
 
-2. `consumed_state_runtime_drift`
-- real gameplay-relevant drift
-- representative example:
-  - `magic-mouth`
+2. `model_display_boundary`
+- resolved
+- runtime wording was aligned to the reviewed structured layer where needed
 
-3. `description_runtime_drift`
-- material note content differs enough to need spell-by-spell review
-- representative example:
-  - `melfs-acid-arrow`
-
-4. `model_display_boundary`
-- wording differs, but cost/consumed/material facts may already align
-- representative examples:
-  - `true-seeing`
-  - `wall-of-ice`
+3. `true_runtime_drift_on_demand`
+- no live cases remain
 
 ## Key Mismatch Families
 
 ### Canonical -> Structured
 
-1. `canonical_consumed_state_drift`
-2. `missing_structured_material_component`
-3. `canonical_cost_drift`
-4. `canonical_description_drift`
-5. `canonical_wording_boundary`
-6. `alternate_source_material_shape`
+1. `raw_note_shape_residue` - resolved
+2. `alternate_source_material_shape` - resolved
+3. `true_content_drift_on_demand` - resolved for the reviewed set
 
 ### Structured -> JSON
 
-1. `missing_runtime_material_component`
-2. `consumed_state_runtime_drift`
-3. `cost_runtime_drift`
-4. `description_runtime_drift`
-5. `model_display_boundary`
+1. `missing_runtime_material_component` - resolved
+2. `model_display_boundary` - resolved
+3. `true_runtime_drift_on_demand` - no live cases
 
 ## Execution Plan
 
 ### Phase 1: Canonical -> Structured
 
-Work this lane first.
+This lane is closed.
 
-Order:
-
-1. `canonical_consumed_state_drift`
-2. `missing_structured_material_component`
-3. `canonical_cost_drift`
-4. `canonical_description_drift`
-5. `alternate_source_material_shape`
-6. `canonical_wording_boundary`
-
-Rule:
-- after each structured fix, immediately check whether the matching runtime JSON is now
-  behind, but do not let the runtime lane drive the bucket before the structured layer
-  is corrected
+No further canonical-side `Material Component` work is queued unless a future audit
+reintroduces this bucket.
 
 ### Phase 2: Structured -> JSON
 
-Work this lane only after the structured side is squared away for the same spell.
-
-Order:
-
-1. `missing_runtime_material_component`
-2. `consumed_state_runtime_drift`
-3. `cost_runtime_drift`
-4. `description_runtime_drift`
-5. `model_display_boundary`
+This lane is closed.
 
 ## Important Files
 
 Primary docs:
 
 - `F:\Repos\Aralia\docs\tasks\spells\material-component\SPELL_MATERIAL_COMPONENT_BUCKET_TRACKER.md`
-- `F:\Repos\Aralia\docs\tasks\spells\material-component\SPELL_MATERIAL_COMPONENT_GEMINI_HANDOVER.md`
 - `F:\Repos\Aralia\docs\tasks\spells\SPELL_DATA_VALIDATION_PLAN.md`
 - `F:\Repos\Aralia\docs\tasks\spells\SPELL_CANONICAL_SYNC_TRACKER.md`
 - `F:\Repos\Aralia\docs\tasks\spells\SPELL_CANONICAL_SYNC_FLAGS.md`
@@ -188,18 +121,24 @@ Primary docs:
 
 Spell gate checker surfaces:
 
+- `F:\Repos\Aralia\src\components\Glossary\spellGateChecker\useSpellGateChecks.ts`
+- `F:\Repos\Aralia\src\components\Glossary\spellGateChecker\SpellGateBucketSections.tsx`
+- `F:\Repos\Aralia\src\components\Glossary\spellGateChecker\__tests__\SpellGateChecksPanel.test.tsx`
 - `F:\Repos\Aralia\src\hooks\useSpellGateChecks.ts`
 - `F:\Repos\Aralia\src\components\Glossary\GlossaryEntryPanel.tsx`
 - `F:\Repos\Aralia\src\components\Glossary\__tests__\Glossary.test.tsx`
 
 Representative spell files:
 
-- `F:\Repos\Aralia\docs\spells\reference\level-4\stoneskin.md`
-- `F:\Repos\Aralia\docs\spells\reference\level-5\swift-quiver.md`
+- `F:\Repos\Aralia\docs\spells\reference\level-4\divination.md`
+- `F:\Repos\Aralia\docs\spells\reference\level-1\feather-fall.md`
 - `F:\Repos\Aralia\docs\spells\reference\level-5\raise-dead.md`
 - `F:\Repos\Aralia\docs\spells\reference\level-5\reincarnate.md`
-- `F:\Repos\Aralia\docs\spells\reference\level-2\magic-mouth.md`
-- `F:\Repos\Aralia\docs\spells\reference\level-4\vitriolic-sphere.md`
+- `F:\Repos\Aralia\docs\spells\reference\level-6\soul-cage.md`
+- `F:\Repos\Aralia\docs\spells\reference\level-4\stoneskin.md`
+- `F:\Repos\Aralia\docs\spells\reference\level-7\arcane-sword.md`
+- `F:\Repos\Aralia\public\data\spells\level-6\true-seeing.json`
+- `F:\Repos\Aralia\public\data\spells\level-6\wall-of-ice.json`
 
 ## Progress Log
 
@@ -207,28 +146,37 @@ Representative spell files:
   - first material-bucket tracker created while the canonical-side report was still
     being read through an older high-noise snapshot
 - 2026-04-10
-  - corrected the tracker to the live report state:
-    - `11` canonical -> structured
-    - `5` structured -> json
   - reoriented the bucket around a canonical-first execution order
   - split the bucket into explicit canonical-side and runtime-side subbuckets
-  - prepared a Gemini handoff surface for continued execution
+- 2026-04-25
+  - refreshed the tracker against the current live reports:
+    - `7` canonical -> structured
+    - `7` structured -> json
+  - corrected the canonical side away from invented copy-work and toward the real live
+  issue:
+    - raw canonical note formatting vs already-present structured ingredient facts
+  - updated the runtime lane to the current `missing-json-field` set from the live report
+- 2026-04-27
+  - synced the Atlas v2 execution map to the live `7 / 7` material-bucket state
+  - added numeric subbucket counts, edge-case baseline snapshots, and representative
+    spell rosters to the Atlas map so the Dashboard and execution view no longer lag the tracker
+- 2026-04-29
+  - closed canonical -> structured `Material Component` residue to `0`
+  - closed structured -> json `Material Component` residue to `0`
+  - corrected material facts in structured markdown and runtime JSON where the reviewed
+    canonical note showed real ingredient, cost, or consumed-state drift
+  - updated the two material audits so they compare split material facts instead of raw
+    source-wrapper strings
 
 ## Remaining Work
 
-- canonical-side file-by-file review and correction on the `11`-spell residue set
-- runtime follow-through review on the `5` named JSON lag spells
-- possible later parser improvement if the last canonical-side wording/boundary cases
-  remain noisy after direct review
+- no active `Material Component` bucket work remains
+- future work should only reopen this bucket if a later audit produces new material-note
+  mismatches
 
 ## Open Questions / Model Gaps
 
-- Should wording-only canonical note differences be accepted when:
-  - material required matches
-  - cost matches
-  - consumed state matches
-- Should alternate-source material-note shapes stay permanently separate from the
-  normal canonical-side material lane?
-- Does the canonical-side report need one more report-generation pass to expose the
-  exact `11`th spell row more directly in the grouped summary, or is the current report
-  enough once the direct row set is consulted during execution?
+- `legend-lore` keeps the current validator convention for `Material Cost GP`: the field
+  stores the sum of written price numbers (`250 + 50 = 300`) rather than quantity-expanding
+  "four ivory strips worth 50 GP each" to `450`.
+- This is now documented behavior, not an active mismatch.

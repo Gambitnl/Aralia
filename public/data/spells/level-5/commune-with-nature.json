@@ -55,9 +55,28 @@
     "lineOfSight": false,
     "areaOfEffect": {
       "shape": "Sphere",
-      "size": 3,
-      "sizeUnit": "feet",
+      "size": 0,
       "height": 0
+    },
+    "spatialDetails": {
+      "forms": [
+        {
+          "label": "Outdoor Knowledge Area",
+          "shape": "Radius",
+          "size": 3,
+          "sizeType": "radius",
+          "sizeUnit": "miles",
+          "notes": "Knowledge area in outdoor natural terrain."
+        },
+        {
+          "label": "Underground Knowledge Area",
+          "shape": "Radius",
+          "size": 300,
+          "sizeType": "radius",
+          "sizeUnit": "feet",
+          "notes": "Reduced radius in caves and other natural underground settings."
+        }
+      ]
     },
     "range": 0,
     "maxTargets": 1,

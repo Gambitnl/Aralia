@@ -20,7 +20,7 @@
 - **Material**: true
 - **Material Description**: one piece of ammunition or one thrown weapon
 - **Material Cost GP**: 0
-- **Consumed**: true
+- **Consumed**: false
 
 - **Duration Type**: instantaneous
 - **Concentration**: false

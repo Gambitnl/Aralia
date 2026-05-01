@@ -1,9 +1,40 @@
 # Produce Flame
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Conjuration
+- **Ritual**: false
+- **Classes**: Druid
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: bonus_action
+- **Combat Cost**: bonus_action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: self
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: self
+- **Line of Sight**: false
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: timed
+- **Duration Value**: 10
+- **Duration Unit**: minute
+- **Concentration**: false
+
+- **Effect Type**: UTILITY, DAMAGE
+- **Utility Type**: light
+- **Light Bright Radius**: 10
+- **Light Dim Radius**: 10
+
+- **Description**: A flickering flame appears in your hand. The flame remains there for the duration and harms neither you nor your equipment. The flame sheds bright light in a 10-foot radius and dim light for an additional 10 feet. The spell ends if you dismiss it as an action or if you cast it again. You can also attack with the flame, although doing so ends the spell. When you cast this spell, or as an action on a later turn, you can hurl the flame at a creature within 30 feet of you. Make a ranged spell attack. On a hit, the target takes 1d8 fire damage.
+- **Higher Levels**: This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).
 
 ## Canonical D&D Beyond Snapshot
 

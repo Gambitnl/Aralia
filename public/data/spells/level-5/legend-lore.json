@@ -36,7 +36,7 @@
     "somatic": true,
     "material": true,
     "materialDescription": "incense worth 250+ GP, which the spell consumes, and four ivory strips worth 50+ GP each",
-    "materialCost": 250,
+    "materialCost": 300,
     "isConsumed": true
   },
   "duration": {

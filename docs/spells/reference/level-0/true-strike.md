@@ -1,9 +1,39 @@
 # True Strike
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Divination
+- **Ritual**: false
+- **Classes**: Bard, Sorcerer, Warlock, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: self
+- **Range Distance**: 0
+- **Targeting Type**: self
+- **Targeting Range**: 5
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: self
+- **Line of Sight**: false
+
+- **Verbal**: false
+- **Somatic**: true
+- **Material**: true
+- **Material Description**: a weapon with which you have proficiency and that is worth 1+ CP
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: UTILITY
+- **Utility Type**: other
+
+- **Description**: Guided by a flash of magical insight, you make one attack with the weapon used in the spell's casting. The attack uses your spellcasting ability for the attack and damage rolls instead of using Strength or Dexterity. If the attack deals damage, it can be Radiant damage or the weapon's normal damage type (your choice).
+- **Higher Levels**: The attack deals extra Radiant damage when you reach levels 5 (1d6), 11 (2d6), and 17 (3d6).
 
 ## Canonical D&D Beyond Snapshot
 

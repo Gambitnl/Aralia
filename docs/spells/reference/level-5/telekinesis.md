@@ -3,6 +3,7 @@
 - **School**: Transmutation
 - **Ritual**: false
 - **Classes**: Sorcerer, Wizard
+- **Sub-Classes**: Warlock - Great Old One Patron
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

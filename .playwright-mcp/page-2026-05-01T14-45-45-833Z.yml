@@ -1,0 +1,113 @@
+- generic [ref=e3]:
+  - generic [ref=e73]:
+    - generic: v0.4.0
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e78]: ❄️ 1 Deepwinter, 351
+            - generic [ref=e79]: 🌒
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - generic [ref=e82]: ☀️ Day
+              - generic [ref=e83]: 09:41 AM
+            - button "Pass Time" [disabled] [ref=e84]: ⏳
+          - generic [ref=e85]: The air is biting cold. The sun is high.
+        - generic [ref=e86]:
+          - generic [ref=e87]:
+            - heading "Current Position" [level=3] [ref=e88]
+            - paragraph [ref=e89]:
+              - text: "World:"
+              - generic [ref=e90]: (15, 10)
+            - paragraph [ref=e91]:
+              - text: "Submap:"
+              - generic [ref=e92]: (15, 10)
+          - heading "Navigation" [level=3] [ref=e93]
+          - generic [ref=e94]:
+            - button "Move North-West (unavailable)" [disabled] [ref=e168]: NW
+            - button "Move North (unavailable)" [disabled] [ref=e169]: "N"
+            - button "Move North-East (unavailable)" [disabled] [ref=e170]: NE
+            - button "Move West (unavailable)" [disabled] [ref=e171]: W
+            - button "Look Around" [disabled] [ref=e99]: ◎
+            - button "Move East (unavailable)" [disabled] [ref=e172]: E
+            - button "Move South-West (unavailable)" [disabled] [ref=e173]: SW
+            - button "Move South (unavailable)" [disabled] [ref=e174]: S
+            - button "Move South-East (unavailable)" [disabled] [ref=e175]: SE
+          - generic [ref=e104]:
+            - button "Toggle World Map" [disabled] [ref=e105]: 🌍
+            - button "Toggle Submap" [disabled] [ref=e106]: 🗺️
+            - button "Enter 3D World" [disabled] [ref=e107]: 🎥
+      - generic [ref=e108]:
+        - heading "Actions" [level=2] [ref=e109]
+        - generic [ref=e110]:
+          - button "Ask the Oracle" [disabled] [ref=e111]
+          - button "Survey Surroundings" [disabled] [ref=e112]
+        - button "Take Old Map Fragment" [disabled] [ref=e114]
+        - generic [ref=e115]:
+          - heading "Rest & Recovery" [level=3] [ref=e116]
+          - generic [ref=e117]:
+            - button "Short Rest" [disabled] [ref=e118]
+            - button "Long Rest" [disabled] [ref=e119]
+        - button "Dev Menu" [disabled] [ref=e166]
+        - button "Menu" [disabled] [ref=e121]:
+          - img [ref=e167]
+          - generic [ref=e123]: Menu
+    - generic [ref=e124]:
+      - generic [ref=e125]:
+        - heading "Log" [level=2] [ref=e126]
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - paragraph [ref=e129]: Welcome, Dev Player and party! Your adventure begins (Dev Mode - Auto Start).
+            - paragraph [ref=e130]: 11:57 AM
+          - generic [ref=e131]:
+            - paragraph [ref=e132]: You are in a sun-dappled clearing. Paths lead north, east, south, and a well-trodden one heads west towards Aralia Town Center.
+            - paragraph [ref=e133]: 11:57 AM
+          - generic [ref=e134]:
+            - paragraph [ref=e135]: Game loaded successfully.
+            - paragraph [ref=e136]: 12:03 PM
+          - generic [ref=e137]:
+            - paragraph [ref=e138]: Game loaded successfully.
+            - paragraph [ref=e139]: 12:04 PM
+      - button "15, 10" [ref=e140] [cursor=pointer]:
+        - generic: 15, 10
+  - generic [ref=e227]:
+    - button "Resize top-left" [ref=e228]
+    - button "Resize top-right" [ref=e229]
+    - button "Resize bottom-left" [ref=e230]
+    - button "Resize bottom-right" [ref=e231]
+    - button "Resize top edge" [ref=e232]
+    - button "Resize bottom edge" [ref=e233]
+    - button "Resize left edge" [ref=e234]
+    - button "Resize right edge" [ref=e235]
+    - generic [ref=e236]:
+      - heading "Encounter Revealed" [level=2]
+      - generic [ref=e237]:
+        - button "Reset layout" [ref=e238] [cursor=pointer]:
+          - img [ref=e239]
+        - button "Restore window" [ref=e241] [cursor=pointer]:
+          - img [ref=e242]
+        - button "Close" [ref=e244] [cursor=pointer]: ×
+    - generic [ref=e246]:
+      - generic [ref=e247]:
+        - generic [ref=e248]:
+          - heading "Enemies gathered against:" [level=5] [ref=e249]
+          - paragraph [ref=e250]: Lvl 1 Fighter, Lvl 1 Rogue, Lvl 1 Cleric
+        - generic [ref=e251]:
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - heading "Orc x 1" [level=4] [ref=e254]
+              - paragraph [ref=e255]: "CR: 1/2"
+            - paragraph [ref=e256]: A group of Orcs.
+          - generic [ref=e257]:
+            - generic [ref=e258]:
+              - heading "Goblin x 1" [level=4] [ref=e259]
+              - paragraph [ref=e260]: "CR: 1/4"
+            - paragraph [ref=e261]: A group of Goblins.
+      - generic [ref=e262]:
+        - button "Simulate Battle" [ref=e263] [cursor=pointer]
+        - button "Close" [ref=e264] [cursor=pointer]
+  - button "💬 Chat History" [ref=e143] [cursor=pointer]:
+    - generic [ref=e144]: 💬
+    - generic [ref=e145]:
+      - generic [ref=e146]: Chat
+      - generic [ref=e164]: History

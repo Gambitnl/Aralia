@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/05/2026, 17:10:53
+ * Dependents: commands/index.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * ARCHITECTURAL CONTEXT:
  * This factory is responsible for bridging the gap between 'Abilities' 
@@ -24,7 +40,7 @@ import { HealingCommand } from '../effects/HealingCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
 import { rollDice, generateId, calculateCover, resolveAttack } from '@/utils/combatUtils';
-import { isDamageEffect, isStatusConditionEffect } from '@/types/spells';
+import { SpellEffect, isDamageEffect, isHealingEffect, isStatusConditionEffect } from '@/types/spells';
 import { SpellCommandFactory } from './SpellCommandFactory';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 
@@ -234,6 +250,42 @@ export class WeaponAttackCommand implements SpellCommand {
 }
 
 export class AbilityCommandFactory {
+  // ==========================================================================
+  // Non-Attack Effect Commands
+  // ==========================================================================
+  // This section preserves the command pipeline for simple utility abilities
+  // without pretending every ability is a weapon swing. Healing and status
+  // effects can use the same command layer as spells; movement effects remain
+  // with useActionExecutor because Dash changes current-turn movement economy.
+  // ==========================================================================
+
+  private static createEffectCommand(effect: SpellEffect, context: CommandContext): SpellCommand | null {
+    if (isDamageEffect(effect)) {
+      return new DamageCommand(effect, context);
+    }
+
+    if (isHealingEffect(effect)) {
+      return new HealingCommand(effect, context);
+    }
+
+    if (isStatusConditionEffect(effect)) {
+      return new StatusConditionCommand(effect, context);
+    }
+
+    // Movement and teleport effects intentionally do not create commands here.
+    // Dash/Disengage are current-turn rule changes, and useActionExecutor owns
+    // that resource mutation so action economy stays centralized.
+    return null;
+  }
+
+  // ==========================================================================
+  // Ability To Command Translation
+  // ==========================================================================
+  // This is the narrow bridge from battle-map Ability data into executable
+  // command objects. Attack abilities get an attack roll first; non-attacks
+  // only run direct effect commands that match their declared effect type.
+  // ==========================================================================
+
   static createCommands(
     ability: Ability,
     caster: CombatCharacter,
@@ -249,6 +301,14 @@ export class AbilityCommandFactory {
       gameState
     };
 
-    return [new WeaponAttackCommand(ability, caster, targets, context)];
+    if (ability.type === 'attack') {
+      return [new WeaponAttackCommand(ability, caster, targets, context)];
+    }
+
+    return ability.effects
+      .map(effect => AbilityEffectMapper.mapToSpellEffect(effect))
+      .filter((effect): effect is SpellEffect => effect !== null)
+      .map(effect => AbilityCommandFactory.createEffectCommand(effect, context))
+      .filter((command): command is SpellCommand => command !== null);
   }
 }

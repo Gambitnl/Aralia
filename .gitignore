@@ -110,6 +110,7 @@ gha-creds-*.json
 
 # Generated folder
 generated/
+output/
 
 # Chrome profile for Gemini automation
 .chrome-gemini-profile/

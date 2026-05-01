@@ -3,6 +3,7 @@
 - **School**: Enchantment
 - **Ritual**: false
 - **Classes**: Druid, Ranger, Sorcerer
+- **Sub-Classes**: Warlock - Archfey Patron
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

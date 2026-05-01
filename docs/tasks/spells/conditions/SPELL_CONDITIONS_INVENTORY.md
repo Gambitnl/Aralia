@@ -11,9 +11,9 @@ mechanics and condition-adjacent wording.
 
 - Runtime JSON spells with at least one `STATUS_CONDITION` effect: `47`
 - Total runtime status-condition effects: `56`
-- Structured markdown files with a `Conditions Applied` row: `51`
-- Shared overlap: `41`
-- Runtime-only condition spells missing the markdown row: `6`
+- Structured markdown files with a `Conditions Applied` row: `56`
+- Shared overlap: `46`
+- Runtime-only condition spells missing the markdown row: `0`
 - Markdown-only `Conditions Applied` rows without a runtime status-condition effect:
   `10`
 
@@ -158,6 +158,9 @@ not currently carry a `STATUS_CONDITION` effect for them.
 These spells already apply a runtime status condition, but the structured markdown
 file still lacks a matching `Conditions Applied` row.
 
+- None live after the 2026-04-29 pass.
+
+Closed during the 2026-04-29 pass:
 - `chill-touch` - `No Healing`, `Disadvantage on attacks vs. caster`
 - `friends` - `Charmed`
 - `searing-smite` - `Ignited`
@@ -176,6 +179,6 @@ condition. It is now tracked as an attack-roll rider.
   - `Exhaustion`
   - `Petrified`
   - `Stunned`
-- `Conditions Applied` is not yet part of the mandatory structured markdown
-  contract. This inventory records the current reality so the bucket can decide
-  whether that field should become mandatory later.
+- `Conditions Applied` is now required by the structured markdown plan. This
+  inventory records the current reality so the bucket can normalize the row
+  without losing which spells are true condition effects.

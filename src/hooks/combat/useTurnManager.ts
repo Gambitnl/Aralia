@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/05/2026, 01:37:45
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, hooks/useBattleMap.ts
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file hooks/combat/useTurnManager.ts
  * Manages the turn-based combat state using the new action economy system.
@@ -19,6 +35,7 @@ import { useCombatVisuals } from './useCombatVisuals';
 import { useTurnOrder } from './useTurnOrder';
 import { useCombatEngine } from './engine/useCombatEngine';
 import { useActionExecutor } from './useActionExecutor';
+import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
 
 interface UseTurnManagerProps {
   difficulty?: keyof typeof AI_THINKING_DELAY_MS;
@@ -26,6 +43,7 @@ interface UseTurnManagerProps {
   mapData: BattleMapData | null;
   onCharacterUpdate: (character: CombatCharacter) => void;
   onLogEntry: (entry: CombatLogEntry) => void;
+  onRoundElapsed?: (seconds: number) => void;
   autoCharacters?: Set<string>;
   onMapUpdate?: (mapData: BattleMapData) => void;
 }
@@ -35,6 +53,7 @@ export const useTurnManager = ({
   mapData,
   onCharacterUpdate,
   onLogEntry,
+  onRoundElapsed,
   autoCharacters,
   onMapUpdate,
   difficulty = 'normal'
@@ -195,6 +214,12 @@ export const useTurnManager = ({
 
     // 3. Handle New Round Events
     if (isNewRound) {
+      // A full combat round has completed, so six seconds pass for the rest of
+      // the world. The callback keeps global gameTime mutation centralized in
+      // App.tsx -> ADVANCE_TIME -> worldReducer instead of importing global
+      // state into the low-level combat coordinator.
+      onRoundElapsed?.(ROUND_DURATION_SECONDS);
+
       updateRoundBasedEffects(turnState.currentTurn);
 
       onLogEntry({
@@ -232,7 +257,7 @@ export const useTurnManager = ({
       }
     }
 
-  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
+  }, [turnState, characters, processEndOfTurnEffects, expireSavePenaltiesForCaster, onLogEntry, onRoundElapsed, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
 
 
   const { executeAction } = useActionExecutor({

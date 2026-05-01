@@ -1,9 +1,39 @@
 # Thaumaturgy
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Cleric
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 30
+- **Range Distance Unit**: feet
+- **Targeting Type**: point
+- **Targeting Range**: 30
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: point
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: false
+- **Material**: false
+
+- **Duration Type**: timed
+- **Duration Value**: 1
+- **Duration Unit**: minute
+- **Concentration**: false
+
+- **Effect Type**: UTILITY
+- **Utility Type**: creation
+
+- **Description**: Manifest a minor wonder within range. Choose one: boom your voice, alter flames, tremble ground, open/close shutters, change eye color, or cause harmless signs-all lasting up to a minute.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

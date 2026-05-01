@@ -14,10 +14,18 @@ interface AbilityButtonProps {
     isDisabled: boolean;
 }
 
+// Combat ability ranges are stored in grid tiles. The tooltip also shows the
+// D&D-style feet equivalent so melee restrictions are visible before targeting.
+const formatAbilityRange = (range: number): string => {
+    const tileLabel = range === 1 ? 'tile' : 'tiles';
+    return `${range} ${tileLabel} (${range * 5} ft)`;
+};
+
 const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisabled }) => {
     const shouldReduceMotion = useReducedMotion();
     const isOnCooldown = (ability.currentCooldown || 0) > 0;
     const costText = ability.cost.type.charAt(0).toUpperCase() + ability.cost.type.slice(1);
+    const rangeText = formatAbilityRange(ability.range);
 
     const costColors: Record<string, string> = {
         action: 'bg-red-600',
@@ -59,6 +67,9 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         tooltipContent += `\n${ability.spell.school} Cantrip/Spell`;
     }
     tooltipContent += `\n${ability.description}`;
+    // Show range in the ability tooltip so the player can inspect why melee
+    // attacks like Unarmed Strike only target adjacent grid tiles.
+    tooltipContent += `\nRange: ${rangeText}`;
     if (ability.cost.movementCost) {
         tooltipContent += `\nMovement Cost: ${ability.cost.movementCost}`;
     }
@@ -69,7 +80,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         tooltipContent += `\nCooldown: ${ability.currentCooldown} turns`;
     }
 
-    const accessibleLabel = `${visual.label}, ${costText} cost${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}`;
+    const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}`;
 
     return (
         <Tooltip content={<pre className="text-xs whitespace-pre-wrap">{tooltipContent.trim()}</pre>}>

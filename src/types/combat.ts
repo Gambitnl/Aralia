@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 23/04/2026, 20:00:15
+ * Last Sync: 29/04/2026, 17:39:30
  * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/monsters.ts, data/religion/blessings.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/visibility/VisibilitySystem.ts, types/index.ts, types/infernal.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
  * Imports: None
  *
@@ -125,6 +125,18 @@ export interface ActiveEffect {
     disadvantageOnAttacks?: boolean;
     /** When true, this effect grants advantage on attack rolls */
     advantageOnAttacks?: boolean;
+
+    /**
+     * Attack-roll riders are not conditions. They live here so combat can
+     * decide later whether the rider modifies attacks made by this creature
+     * or attacks aimed at this creature.
+     */
+    attackRollDirection?: "incoming" | "outgoing";
+    attackRollModifier?: "advantage" | "disadvantage" | "bonus" | "penalty";
+    attackRollKind?: "any" | "weapon" | "melee_weapon" | "ranged_weapon" | "spell";
+    attackRollConsumption?: "next_attack" | "first_attack" | "while_active";
+    attackRollValue?: number;
+    attackRollDice?: string;
   };
 }
 

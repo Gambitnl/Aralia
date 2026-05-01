@@ -1,4 +1,4 @@
-# Spell System Gap: Unsplit Multi-Component Effects
+fct7j8nyuh, mg # Spell System Gap: Unsplit Multi-Component Effects
 
 ## Overview
 An unresolved architectural debt remains in the implementation of spells that possess 2 or more distinct mechanical outcomes within the JSON data layer. 

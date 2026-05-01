@@ -28,7 +28,7 @@
     }
   },
   "range": {
-    "type": "special",
+    "type": "sight",
     "distance": 0
   },
   "components": {
@@ -46,19 +46,18 @@
     "concentration": false
   },
   "targeting": {
-    "type": "multi",
+    "type": "area",
     "validTargets": [
-      "creatures",
-      "objects",
-      "point",
       "ground"
     ],
     "lineOfSight": true,
     "range": 0,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
+      "shape": "Square",
+      "size": 1,
+      "sizeType": "side",
+      "sizeUnit": "miles",
       "height": 0
     },
     "filter": {

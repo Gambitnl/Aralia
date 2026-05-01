@@ -3,6 +3,7 @@
 - **School**: Evocation
 - **Ritual**: false
 - **Classes**: Druid, Sorcerer, Wizard
+- **Sub-Classes**: Paladin - Oath of the Ancients
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action

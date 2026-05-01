@@ -35,7 +35,7 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "",
+    "materialDescription": "a vial of blood from a humanoid killed within the past 24 hours",
     "materialCost": 0,
     "isConsumed": false
   },

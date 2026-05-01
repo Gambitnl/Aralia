@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
+import { canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
 import { createMockCombatCharacter } from '../../factories';
 
 describe('actionEconomyUtils', () => {
@@ -60,6 +60,31 @@ describe('actionEconomyUtils', () => {
         const resetCharacter = resetEconomy(character);
         expect(resetCharacter).not.toBe(character);
         expect(resetCharacter.actionEconomy).not.toBe(character.actionEconomy);
+    });
+  });
+
+  describe('canAffordActionCost and consumeActionCost', () => {
+    it('marks an action as spent so a second action cannot be afforded', () => {
+      const character = createMockCombatCharacter();
+
+      // A normal attack spends the one action a creature gets on its turn.
+      const afterAttack = consumeActionCost(character, { type: 'action' });
+
+      expect(afterAttack.actionEconomy.action.used).toBe(true);
+      expect(canAffordActionCost(afterAttack, { type: 'action' })).toBe(false);
+      expect(canAffordActionCost(afterAttack, { type: 'bonus' })).toBe(true);
+    });
+
+    it('adds movement spent through the same action economy path used by movement actions', () => {
+      const character = createMockCombatCharacter();
+
+      // Movement-only actions should spend feet without consuming the action or
+      // bonus action; this keeps ordinary movement separate from attacking.
+      const afterMove = consumeActionCost(character, { type: 'movement-only', movementCost: 10 });
+
+      expect(afterMove.actionEconomy.movement.used).toBe(10);
+      expect(afterMove.actionEconomy.action.used).toBe(false);
+      expect(canAffordActionCost(afterMove, { type: 'movement-only', movementCost: 25 })).toBe(false);
     });
   });
 });

@@ -1,9 +1,39 @@
 # Elementalism
 
-<!-- CANONICAL-ONLY-REFERENCE -->
+- **Level**: 0
+- **School**: Transmutation
+- **Ritual**: false
+- **Classes**: Druid, Sorcerer, Wizard
+- **Sub-Classes**: None
 
-This reference file currently stores raw canonical retrieval content only.
-The structured Aralia spell field block has not been authored yet, so parity tooling should skip this file for now.
+- **Casting Time Value**: 1
+- **Casting Time Unit**: action
+- **Combat Cost**: action
+
+- **Range Type**: ranged
+- **Range Distance**: 30
+- **Range Distance Unit**: feet
+- **Targeting Type**: point
+- **Targeting Range**: 30
+- **Targeting Range Unit**: feet
+- **Targeting Max**: 1
+- **Valid Targets**: point, objects
+- **Line of Sight**: true
+
+- **Verbal**: true
+- **Somatic**: true
+- **Material**: false
+
+- **Duration Type**: instantaneous
+- **Duration Value**: 0
+- **Duration Unit**: round
+- **Concentration**: false
+
+- **Effect Type**: UTILITY
+- **Utility Type**: control
+
+- **Description**: You exert control over the elements, creating one of the following effects within range: - Beckon Air: Create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors/shutters (unless held open). - Beckon Earth: Create a thin shroud of dust or sand that covers a 5-foot square area, or cause a single word to appear in handwriting in a patch of dirt or sand. - Beckon Fire: Create a thin cloud of harmless embers and smoke, light a candle/torch/campfire, or snuff out a small flame. - Beckon Water: Create a spray of cool mist or cause up to 1 cup of water to spill from a container. - Sculpt Element: Cause dirt, sand, fire, smoke, mist, or water to assume a crude shape (fitting in a 1-foot cube) for 1 round.
+- **Higher Levels**: None
 
 ## Canonical D&D Beyond Snapshot
 

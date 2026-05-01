@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 27/03/2026, 23:48:01
+ * Last Sync: 01/05/2026, 01:35:24
  * Dependents: None (Orphan)
- * Imports: 45 files
+ * Imports: 46 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -97,6 +97,7 @@ import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { ConversationPanel } from './components/ConversationPanel';
 import { SafeStorage } from './utils/core/storageUtils';
+import { shouldPassiveGameClockRun } from './utils/core/timekeeperUtils';
 
 import { CollapsibleBanterPanel } from './components/ui/CollapsibleBanterPanel';
 import { BanterAttentionBanner } from './components/ui/BanterAttentionBanner';
@@ -392,22 +393,27 @@ const App: React.FC = () => {
   useEffect(() => {
     let timerId: number | undefined;
 
-    const shouldClockRun =
-      gameState.phase === GamePhase.PLAYING &&
-      !gameState.isLoading &&
-      !gameState.isImageLoading &&
-      !gameState.characterSheetModal.isOpen &&
-      !gameState.isMapVisible &&
-      !gameState.isSubmapVisible &&
-      !gameState.isDevMenuVisible &&
-      !gameState.isGeminiLogViewerVisible &&
-      !gameState.isDiscoveryLogVisible &&
-      !gameState.isGlossaryVisible &&
-      !gameState.isNpcTestModalVisible &&
-      !gameState.isLogbookVisible &&
-      !gameState.isGameGuideVisible &&
-      !gameState.merchantModal.isOpen &&
-      !missingChoiceModal.isOpen; // Pause for missing choice modal
+    // Passive time belongs to free exploration only. Combat time now advances
+    // through round-completion callbacks, and blocking modals such as encounter
+    // prep pause the ticker because the player is not taking world actions.
+    const shouldClockRun = shouldPassiveGameClockRun({
+      phase: gameState.phase,
+      isLoading: gameState.isLoading,
+      isImageLoading: gameState.isImageLoading,
+      isCharacterSheetOpen: gameState.characterSheetModal.isOpen,
+      isMapVisible: gameState.isMapVisible,
+      isSubmapVisible: gameState.isSubmapVisible,
+      isDevMenuVisible: gameState.isDevMenuVisible,
+      isGeminiLogViewerVisible: gameState.isGeminiLogViewerVisible,
+      isDiscoveryLogVisible: gameState.isDiscoveryLogVisible,
+      isGlossaryVisible: gameState.isGlossaryVisible,
+      isEncounterModalVisible: gameState.isEncounterModalVisible,
+      isNpcTestModalVisible: gameState.isNpcTestModalVisible,
+      isLogbookVisible: gameState.isLogbookVisible,
+      isGameGuideVisible: gameState.isGameGuideVisible,
+      isMerchantModalOpen: gameState.merchantModal.isOpen,
+      isMissingChoiceModalOpen: missingChoiceModal.isOpen,
+    });
 
 
     if (shouldClockRun) {
@@ -432,6 +438,7 @@ const App: React.FC = () => {
     gameState.isGeminiLogViewerVisible,
     gameState.isDiscoveryLogVisible,
     gameState.isGlossaryVisible,
+    gameState.isEncounterModalVisible,
     gameState.isNpcTestModalVisible,
     gameState.isLogbookVisible,
     gameState.isGameGuideVisible,
@@ -439,6 +446,13 @@ const App: React.FC = () => {
     missingChoiceModal.isOpen,
     dispatch
   ]);
+
+  const handleCombatRoundElapsed = useCallback((seconds: number) => {
+    // Combat reports elapsed time in completed D&D rounds, but the world still
+    // changes through the same ADVANCE_TIME action used by waiting, travel,
+    // resting, crafting, and passive exploration.
+    dispatch({ type: 'ADVANCE_TIME', payload: { seconds } });
+  }, [dispatch]);
 
 
   const handleOpenGlossary = useCallback((initialTermId?: string) => {
@@ -921,6 +935,7 @@ const App: React.FC = () => {
           party={gameState.party}
           enemies={gameState.currentEnemies || []}
           biome={combatBiome}
+          onRoundElapsed={handleCombatRoundElapsed}
           onBattleEnd={(result, rewards) => {
             addMessage(result === 'victory' ? 'Victory! The enemies are defeated.' : 'Defeat! The party has fallen.', 'system');
             if (result === 'victory' && rewards) {

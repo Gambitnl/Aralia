@@ -32,11 +32,11 @@
     "distance": 0
   },
   "components": {
-    "verbal": true,
+    "verbal": false,
     "somatic": true,
     "material": true,
     "materialDescription": "a melee weapon worth at least 1 sp",
-    "materialCost": 0,
+    "materialCost": 0.1,
     "isConsumed": false
   },
   "duration": {
