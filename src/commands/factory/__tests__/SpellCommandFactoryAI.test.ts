@@ -43,6 +43,8 @@ describe('SpellCommandFactory - AI Integration', () => {
     level: 9,
     school: SpellSchool.Conjuration,
     classes: ['Wizard'],
+    subClasses: [],
+    subClassesVerification: 'unverified',
     description: 'A wish spell',
     castingTime: { value: 1, unit: 'action' },
     // Self-range spells still store distance explicitly; 0 means no measured cast distance.

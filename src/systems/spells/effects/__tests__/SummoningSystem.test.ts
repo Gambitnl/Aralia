@@ -45,6 +45,8 @@ const mockSpell: Spell = {
     level: 1,
     school: SpellSchool.Conjuration,
     classes: ['Wizard'],
+    subClasses: [],
+    subClassesVerification: 'unverified',
     castingTime: { value: 1, unit: 'hour' },
     // Touch spells use explicit 0 distance so mock data follows the spell schema.
     range: { type: 'touch', distance: 0 },

@@ -17,6 +17,8 @@ const createMockSpell = (id: string, overrides: Partial<Spell> = {}): Spell => (
   level: 1,
   school: SpellSchool.Evocation,
   classes: ['Wizard'],
+  subClasses: [],
+  subClassesVerification: 'unverified',
   castingTime: { value: 1, unit: 'action' },
   range: { type: 'ranged', distance: 60 },
   components: { verbal: true, somatic: true, material: false },

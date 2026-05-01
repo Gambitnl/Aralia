@@ -6,11 +6,11 @@ import * as villageGenerator from '../../../services/villageGenerator';
 
 // Mock the village generator
 vi.mock('../../../services/villageGenerator', async () => {
-  const actual = await vi.importActual('../../../services/villageGenerator');
+  const actual = await vi.importActual<typeof import('../../../services/villageGenerator')>('../../../services/villageGenerator');
   return {
     ...actual,
-    findBuildingAt: vi.fn(actual.findBuildingAt),
-    generateVillageLayout: vi.fn(actual.generateVillageLayout),
+    findBuildingAt: vi.fn(actual.findBuildingAt as any),
+    generateVillageLayout: vi.fn(actual.generateVillageLayout as any),
   };
 });
 

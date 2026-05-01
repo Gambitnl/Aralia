@@ -54,6 +54,8 @@ const mockSpell: Spell = {
   // TODO(2026-01-03 pass 4 Codex-CLI): spell school cast until test data aligns with enum casing.
   school: 'Divination' as unknown as Spell['school'],
   classes: ['Wizard'],
+  subClasses: [],
+  subClassesVerification: 'unverified',
   description: 'You choose an object...',
   ritual: true,
   castingTime: { value: 1, unit: 'minute' },

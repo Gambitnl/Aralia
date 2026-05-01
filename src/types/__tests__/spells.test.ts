@@ -15,6 +15,8 @@ const validSpell: Spell = {
   level: 3,
   school: SpellSchool.Evocation,
   classes: ['Sorcerer', 'Wizard'],
+  subClasses: [],
+  subClassesVerification: 'unverified',
   castingTime: { value: 1, unit: 'action' },
   range: { type: 'ranged', distance: 150 },
   components: { verbal: true, somatic: true, material: true },

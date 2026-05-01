@@ -24,6 +24,8 @@ describe('AbilityButton', () => {
             level: 3,
             school: SpellSchool.Evocation,
             classes: ['Wizard'],
+            subClasses: [],
+            subClassesVerification: 'unverified',
             description: 'Explosion',
             castingTime: { value: 1, unit: 'action' },
             range: { type: 'ranged', distance: 120 },

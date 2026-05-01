@@ -6,7 +6,7 @@ describe('SpellValidator subclass status marker', () => {
   it('accepts a normalized empty lane with an explicit status marker', () => {
     const spell = createMockSpell({
       subClasses: [],
-      subClassesStatus: 'Unsupported Entries',
+      subClassesVerification: 'verified',
     });
 
     const result = SpellValidator.safeParse(spell);
@@ -20,13 +20,13 @@ describe('SpellValidator subclass status marker', () => {
 
     // Re-attach the marker after factory normalization so we test the validator
     // directly instead of re-testing the helper's cleanup rule.
-    spell.subClassesStatus = 'Folded into Classes';
+    spell.subClassesVerification = 'unverified';
 
     const result = SpellValidator.safeParse(spell);
     expect(result.success).toBe(false);
 
     if (!result.success) {
-      expect(result.error.issues.some(issue => issue.path.join('.') === 'subClassesStatus')).toBe(true);
+      expect(result.error.issues.some(issue => issue.path.join('.') === 'subClassesVerification')).toBe(true);
     }
   });
 });

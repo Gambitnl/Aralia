@@ -20,6 +20,8 @@ describe('AISpellArbitrator', () => {
     level: 1,
     school: SpellSchool.Evocation,
     classes: ['Wizard'],
+    subClasses: [],
+    subClassesVerification: 'unverified',
     description: 'A test spell',
     castingTime: { value: 1, unit: 'action' },
     // Self-range spells use explicit 0 distance so tests match the runtime JSON contract.

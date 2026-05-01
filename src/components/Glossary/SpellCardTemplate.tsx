@@ -220,7 +220,8 @@ const formatSizeTypeLabel = (sizeType?: GeometrySizeType): string => {
  * separate structured records. This helper keeps those records legible without
  * forcing the spell card back into one flattened "Range/Area" string.
  */
-const formatSpatialForm = (form: NonNullable<NonNullable<SpellData['targeting']>['spatialDetails']>['forms'][number]): string => {
+type SpatialFormItem = NonNullable<NonNullable<NonNullable<SpellData['targeting']>['spatialDetails']>['forms']>[number];
+const formatSpatialForm = (form: SpatialFormItem): string => {
     const parts: string[] = [];
 
     if (form.label) {
@@ -272,7 +273,8 @@ const formatSpatialForm = (form: NonNullable<NonNullable<SpellData['targeting']>
  * matter to gameplay, but they do not belong inside the main area shape. This
  * helper keeps those rules visible once they have been pulled out of prose.
  */
-const formatMeasuredDetail = (detail: NonNullable<NonNullable<SpellData['targeting']>['spatialDetails']>['measuredDetails'][number]): string => {
+type SpatialMeasuredDetailItem = NonNullable<NonNullable<NonNullable<SpellData['targeting']>['spatialDetails']>['measuredDetails']>[number];
+const formatMeasuredDetail = (detail: SpatialMeasuredDetailItem): string => {
     const parts: string[] = [detail.label];
 
     if (detail.subject) {

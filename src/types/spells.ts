@@ -47,6 +47,8 @@ export interface Spell {
   source?: string;
   legacy?: boolean;
   classes: string[];
+  subClasses: string[];
+  subClassesVerification: "unverified" | "verified";
   description: string;
   higherLevels?: string;
   /**

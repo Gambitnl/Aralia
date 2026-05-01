@@ -14,6 +14,8 @@ describe('EnvironmentSystem', () => {
       // TODO(2026-01-03 pass 4 Codex-CLI): cast spell school to enum until test helpers supply real enum value.
       school: 'Evocation' as unknown as Spell['school'],
       classes: ['Wizard'],
+      subClasses: [],
+      subClassesVerification: 'unverified',
       description: 'Hurls a mote of fire.',
       castingTime: { value: 1, unit: 'action' },
       range: { type: 'ranged', distance: 120 },

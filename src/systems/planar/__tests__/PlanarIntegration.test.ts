@@ -41,6 +41,8 @@ describe('Planar Mechanics Integration', () => {
       }
     ],
     classes: ['Wizard'],
+    subClasses: [],
+    subClassesVerification: 'unverified',
     description: 'Boom'
   };
 
