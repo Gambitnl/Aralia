@@ -12,6 +12,7 @@
     "validate:spells": "tsx scripts/validateSpellJsons.ts",
     "validate:spell-markdown": "tsx scripts/validateSpellMarkdownParity.ts",
     "audit:spell-template": "tsx scripts/auditSpellRuntimeTemplate.ts",
+        "audit:damage-type-canonical": "tsx scripts/auditSpellDamageTypeCanonical.ts",
     "generate:spell-gates": "tsx scripts/generateSpellGateReport.ts",
     "fix:charset": "tsx scripts/check-non-ascii.ts --write",
     "validate": "npm run validate:charset && tsx scripts/validate-data.ts",

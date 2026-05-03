@@ -128,7 +128,7 @@
       },
       "light": {
         "brightRadius": 0,
-        "dimRadius": 0,
+        "dimRadius": 10,
         "attachedTo": "caster",
         "color": ""
       }

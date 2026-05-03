@@ -40,6 +40,7 @@ import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import { useSummons } from '../../hooks/combat/useSummons';
+import { useCombatAI } from '../../hooks/combat/useCombatAI';
 import InitiativeTracker from '../BattleMap/InitiativeTracker';
 import AbilityPalette from '../BattleMap/AbilityPalette';
 import CombatLog from '../BattleMap/CombatLog';
@@ -309,6 +310,17 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   };
 
   const currentCharacter = turnManager.getCurrentCharacter();
+
+  useCombatAI({
+    difficulty: 'normal',
+    characters,
+    mapData,
+    currentCharacterId: turnManager.turnState.currentCharacterId,
+    executeAction: turnManager.executeAction,
+    executeAbility: abilitySystem.executeAbility,
+    endTurn: turnManager.endTurn,
+    autoCharacters
+  });
 
   return (
     <div id={UI_ID.COMBAT_VIEW} data-testid={UI_ID.COMBAT_VIEW} className="bg-gray-900 text-white min-h-screen flex flex-col p-4 relative">

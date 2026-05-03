@@ -111,15 +111,20 @@ export class UtilityCommand extends BaseEffectCommand {
         }
 
         // Apply taunt/leash markers to targets.
-        if (effect.taunt) {
+        // Guard: Only apply taunt if the block has meaningful data. The spell JSON
+        // includes default `taunt: { disadvantageAgainstOthers: false, leashRangeFeet: 0, breakConditions: [] }`
+        // on ALL utility effects, which is an empty placeholder — not an actual taunt.
+        if (effect.taunt && (effect.taunt.disadvantageAgainstOthers || (effect.taunt.leashRangeFeet ?? 0) > 0)) {
             const targets = this.getTargets(newState)
             for (const target of targets) {
                 newState = this.applyTaunt(newState, target, effect)
             }
         }
 
-        // Register structured save penalties (e.g., from Mind Sliver)
-        if (effect.savePenalty) {
+        // Register structured save penalties (e.g., from Mind Sliver).
+        // Guard: Only apply if the penalty block has meaningful data. Spell JSON includes
+        // default savePenalty objects with `dice: '', flat: 0` on ALL utility effects.
+        if (effect.savePenalty && (effect.savePenalty.dice || (effect.savePenalty.flat ?? 0) !== 0)) {
             const savePenaltySystem = new SavePenaltySystem();
             const targets = this.getTargets(newState);
             for (const target of targets) {

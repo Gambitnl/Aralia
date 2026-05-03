@@ -111,6 +111,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     mapData,
     onExecuteAction: turnManager.executeAction,
     onCharacterUpdate: handleCharacterUpdate,
+    onLogEntry: handleLogEntry,
     onAbilityEffect: turnManager.addDamageNumber,
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,

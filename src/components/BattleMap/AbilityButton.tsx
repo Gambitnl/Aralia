@@ -17,6 +17,7 @@ interface AbilityButtonProps {
 // Combat ability ranges are stored in grid tiles. The tooltip also shows the
 // D&D-style feet equivalent so melee restrictions are visible before targeting.
 const formatAbilityRange = (range: number): string => {
+    if (range === 0) return 'Self';
     const tileLabel = range === 1 ? 'tile' : 'tiles';
     return `${range} ${tileLabel} (${range * 5} ft)`;
 };
@@ -62,28 +63,46 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         ? { borderColor: visual.primaryColor }
         : {};
 
-    let tooltipContent = `${ability.name}`;
-    if (ability.spell) {
-        tooltipContent += `\n${ability.spell.school} Cantrip/Spell`;
-    }
-    tooltipContent += `\n${ability.description}`;
-    // Show range in the ability tooltip so the player can inspect why melee
-    // attacks like Unarmed Strike only target adjacent grid tiles.
-    tooltipContent += `\nRange: ${rangeText}`;
-    if (ability.cost.movementCost) {
-        tooltipContent += `\nMovement Cost: ${ability.cost.movementCost}`;
-    }
-    if (ability.cost.spellSlotLevel) {
-        tooltipContent += `\nCost: Level ${ability.cost.spellSlotLevel} Spell Slot`;
-    }
-    if (isOnCooldown) {
-        tooltipContent += `\nCooldown: ${ability.currentCooldown} turns`;
-    }
+    const tooltipContent = (
+        <div className="space-y-1">
+            <div className="font-bold text-amber-300 border-b border-gray-600 pb-1 mb-1">{ability.name}</div>
+            {ability.spell && (
+                <div className="text-[10px] text-sky-300 italic mb-1">
+                    {ability.spell.school} {ability.spell.level === 0 ? 'Cantrip' : `Level ${ability.spell.level} Spell`}
+                </div>
+            )}
+            <div className="text-gray-200 leading-tight">{ability.description}</div>
+            <div className="pt-1 mt-1 border-t border-gray-700/50 flex flex-col gap-0.5">
+                <div className="flex justify-between text-[10px]">
+                    <span className="text-gray-400">Range:</span>
+                    <span className="text-amber-200 font-medium">{rangeText}</span>
+                </div>
+                {ability.cost.movementCost ? (
+                    <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-400">Movement:</span>
+                        <span className="text-teal-300 font-medium">{ability.cost.movementCost} ft</span>
+                    </div>
+                ) : null}
+                {ability.cost.spellSlotLevel ? (
+                    <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-400">Slot:</span>
+                        <span className="text-sky-300 font-medium">Level {ability.cost.spellSlotLevel}</span>
+                    </div>
+                ) : null}
+                {isOnCooldown && (
+                    <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-400">Cooldown:</span>
+                        <span className="text-red-400 font-medium">{ability.currentCooldown} turns</span>
+                    </div>
+                ) : null}
+            </div>
+        </div>
+    );
 
     const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}`;
 
     return (
-        <Tooltip content={<pre className="text-xs whitespace-pre-wrap">{tooltipContent.trim()}</pre>}>
+        <Tooltip content={tooltipContent}>
             <motion.button
                 onClick={onSelect}
                 disabled={isDisabled}

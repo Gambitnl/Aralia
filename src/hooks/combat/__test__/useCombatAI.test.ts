@@ -7,6 +7,7 @@ import { AI_THINKING_DELAY_MS } from '../../../config/combatConfig';
 
 // Mock dependencies
 const mockExecuteAction = vi.fn(() => true);
+const mockExecuteAbility = vi.fn();
 const mockEndTurn = vi.fn();
 
 // Sample data
@@ -80,6 +81,7 @@ describe('useCombatAI', () => {
       mapData: mockMapData,
       currentCharacterId: 'other-char', // Not the AI character
       executeAction: mockExecuteAction,
+      executeAbility: mockExecuteAbility,
       endTurn: mockEndTurn,
       autoCharacters: new Set()
     }));
@@ -104,6 +106,7 @@ describe('useCombatAI', () => {
       mapData: mockMapData,
       currentCharacterId: mockCharacter.id,
       executeAction: mockExecuteAction,
+      executeAbility: mockExecuteAbility,
       endTurn: mockEndTurn,
       autoCharacters: new Set()
     }));
@@ -145,6 +148,7 @@ describe('useCombatAI', () => {
       mapData: mockMapData,
       currentCharacterId: mockCharacter.id,
       executeAction: mockExecuteAction,
+      executeAbility: mockExecuteAbility,
       endTurn: mockEndTurn,
       autoCharacters: new Set()
     }));
@@ -179,6 +183,7 @@ describe('useCombatAI', () => {
       mapData: mockMapData,
       currentCharacterId: mockCharacter.id,
       executeAction: mockExecuteAction,
+      executeAbility: mockExecuteAbility,
       endTurn: mockEndTurn,
       autoCharacters: new Set()
     }));

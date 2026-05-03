@@ -22,6 +22,8 @@ interface UseCombatAIProps {
     currentCharacterId: string | null;
     /** Callback to execute a chosen action */
     executeAction: (action: CombatAction) => boolean;
+    /** Callback to execute an ability (needed for damage/commands) */
+    executeAbility: (ability: any, caster: CombatCharacter, targetPos: any, targetIds: string[]) => void;
     /** Callback to end the turn */
     endTurn: () => void;
     /** Set of character IDs that are controlled by AI (in addition to 'enemy' team) */
@@ -47,6 +49,7 @@ export const useCombatAI = ({
     mapData,
     currentCharacterId,
     executeAction,
+    executeAbility,
     endTurn,
     autoCharacters
 }: UseCombatAIProps) => {
@@ -139,6 +142,22 @@ export const useCombatAI = ({
                 // AI decided it has nothing productive left to do
                 setTimeout(() => setAiState('done'), 0);
                 endTurn();
+            } else if (action.type === 'ability' && action.abilityId) {
+                const ability = character.abilities.find(a => a.id === action.abilityId);
+                if (ability) {
+                    executeAbility(
+                        ability,
+                        character,
+                        action.targetPosition || character.position,
+                        action.targetCharacterIds || []
+                    );
+                    setAiActionsPerformed(prev => prev + 1);
+                    setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
+                } else {
+                    console.warn(`AI Action failed: Ability ${action.abilityId} not found.`);
+                    setTimeout(() => setAiState('done'), 0);
+                    endTurn();
+                }
             } else {
                 // 5. Execute Action
                 // Attempt to perform the chosen action (Move/Attack/etc).
@@ -179,6 +198,7 @@ export const useCombatAI = ({
         currentCharacterId,
         aiActionsPerformed,
         executeAction,
+        executeAbility,
         endTurn,
         difficulty
     ]);

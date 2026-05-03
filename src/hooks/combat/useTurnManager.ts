@@ -30,7 +30,7 @@ import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
 import { useActionEconomy } from './useActionEconomy';
-import { useCombatAI } from './useCombatAI';
+
 import { useCombatVisuals } from './useCombatVisuals';
 import { useTurnOrder } from './useTurnOrder';
 import { useCombatEngine } from './engine/useCombatEngine';
@@ -287,15 +287,6 @@ export const useTurnManager = ({
 
   const getCurrentCharacter = useCallback(() => currentCharacter, [currentCharacter]);
 
-  useCombatAI({
-    difficulty,
-    characters,
-    mapData,
-    currentCharacterId: turnState.currentCharacterId,
-    executeAction,
-    endTurn,
-    autoCharacters: managedAutoCharacters
-  });
 
   return {
     turnState,

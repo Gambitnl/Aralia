@@ -10,8 +10,8 @@ import { CharacterStats, Ability } from '../types/combat';
 import { CLASSES_DATA as _CLASSES_DATA } from './classes';
 
 const GOBLIN_ABILITIES: Ability[] = [
-    { id: 'scimitar', name: 'Scimitar', description: 'A slash with a rusty scimitar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 4, damageType: 'physical' }], icon: '🗡️' },
-    { id: 'shortbow', name: 'Shortbow', description: 'Fires a crude arrow.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 10, effects: [{ type: 'damage', value: 3, damageType: 'physical' }], icon: '🏹' },
+    { id: 'scimitar', name: 'Scimitar', description: 'A slash with a rusty scimitar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 0, dice: '1d6+2', damageType: 'physical' }], icon: '🗡️', isProficient: true },
+    { id: 'shortbow', name: 'Shortbow', description: 'Fires a crude arrow.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 10, effects: [{ type: 'damage', value: 0, dice: '1d6+2', damageType: 'physical' }], icon: '🏹', isProficient: true },
 ];
 
 const GOBLIN_STATS: Omit<CharacterStats, 'cr'> = {
@@ -27,8 +27,8 @@ const GOBLIN_STATS: Omit<CharacterStats, 'cr'> = {
 };
 
 const ORC_ABILITIES: Ability[] = [
-    { id: 'greataxe', name: 'Greataxe', description: 'A furious swing with a heavy greataxe.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 9, damageType: 'physical' }], icon: '🪓' },
-    { id: 'javelin', name: 'Javelin', description: 'Hurls a javelin.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 6, effects: [{ type: 'damage', value: 6, damageType: 'physical' }], icon: '🎯' },
+    { id: 'greataxe', name: 'Greataxe', description: 'A furious swing with a heavy greataxe.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 0, dice: '1d12+3', damageType: 'physical' }], icon: '🪓', isProficient: true },
+    { id: 'javelin', name: 'Javelin', description: 'Hurls a javelin.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 6, effects: [{ type: 'damage', value: 0, dice: '1d6+3', damageType: 'physical' }], icon: '🎯', isProficient: true },
 ];
 
 const ORC_STATS: Omit<CharacterStats, 'cr'> = {
@@ -72,8 +72,8 @@ export const MONSTERS_DATA: Record<string, MonsterData> = {
         baseStats: { ...ORC_STATS, strength: 17, cr: '1', creatureTypes: ['Humanoid', 'Goblinoid'], alignment: 'Chaotic Evil' },
         maxHP: 27,
         abilities: [
-            { id: 'morningstar', name: 'Morningstar', description: 'A brutal swing with a spiked morningstar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 11, damageType: 'physical' }], icon: '⭐' },
-            { id: 'javelin_bugbear', name: 'Javelin', description: 'Hurls a javelin.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 6, effects: [{ type: 'damage', value: 9, damageType: 'physical' }], icon: '🎯' },
+            { id: 'morningstar', name: 'Morningstar', description: 'A brutal swing with a spiked morningstar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 0, dice: '2d8+3', damageType: 'physical' }], icon: '⭐', isProficient: true },
+            { id: 'javelin_bugbear', name: 'Javelin', description: 'Hurls a javelin.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 6, effects: [{ type: 'damage', value: 0, dice: '1d6+3', damageType: 'physical' }], icon: '🎯', isProficient: true },
         ],
         tags: ['goblinoid', 'forest', 'cave'],
     }

@@ -1,6 +1,6 @@
 /**
  * @file CombatLog.tsx
- * @modified 2026-02-10
+ * @modified 2026-05-03
  *
  * Displays a scrollable log of combat events in the right sidebar of CombatView.
  *
@@ -14,10 +14,17 @@
  * The mode is controlled by the `useRichDisplay` prop. When true AND richMessages are
  * available, rich mode is used. Otherwise it falls back to legacy mode automatically.
  *
+ * FEATURES:
+ *   - Inline resize: Drag the top edge to make the embedded panel taller or shorter.
+ *     The height persists in localStorage so it survives page refreshes.
+ *   - Pop-out window: Click the expand icon to open the log in a draggable, resizable
+ *     WindowFrame modal. Click close to collapse it back into the sidebar.
+ *
  * IMPORTANT: Do not remove inline comments from this file unless the associated code is modified.
  * If code changes, update the comment with the new date and a description of the change.
  */
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { WindowFrame } from '../ui/WindowFrame';
 // CombatLogEntry: The simple log entry type from the existing combat system.
 // Used in legacy display mode (fallback when rich messages aren't available).
 import { CombatLogEntry } from '../../types/combat';
@@ -95,11 +102,46 @@ const getEntryStyle = (type: CombatLogEntry['type']) => {
   }
 };
 
+// ============================================================================
+// Inline Resize Constraints
+// ============================================================================
+// These constants define the min/max height for the embedded combat log panel.
+// The user can drag the top edge to resize between these bounds. The height is
+// saved to localStorage so it persists across page refreshes and sessions.
+// ============================================================================
+const MIN_LOG_HEIGHT = 120;
+const MAX_LOG_HEIGHT = 600;
+const DEFAULT_LOG_HEIGHT = 192; // ~h-48 equivalent
+const STORAGE_KEY = 'aralia-combat-log-height';
+
+/**
+ * Loads the saved log height from localStorage, falling back to the default.
+ * Returns a clamped value to prevent stale saved values from going out of range.
+ */
+const loadSavedHeight = (): number => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (!isNaN(parsed)) {
+        return Math.max(MIN_LOG_HEIGHT, Math.min(MAX_LOG_HEIGHT, parsed));
+      }
+    }
+  } catch {
+    // localStorage unavailable (e.g. SSR) — use default silently
+  }
+  return DEFAULT_LOG_HEIGHT;
+};
+
 /**
  * CombatLog — The combat log display component.
  *
- * Renders inside a fixed-height (h-48) scrollable container in the right sidebar of CombatView.
+ * Renders inside a resizable container in the right sidebar of CombatView.
  * Features:
+ *   - Inline resize: Drag the top edge to make the panel taller or shorter.
+ *     Height persists to localStorage across sessions.
+ *   - Pop-out mode: Click the expand button to open the log in a WindowFrame
+ *     modal that can be dragged, resized, and maximized independently.
  *   - Auto-scrolls to the newest entry when new messages arrive.
  *   - Sticky header ("Combat Log") that stays visible during scroll.
  *   - Conditionally renders in rich or legacy mode based on props.
@@ -125,24 +167,73 @@ const CombatLog: React.FC<CombatLogProps> = ({ logEntries, richMessages, useRich
   // This prevents rendering an empty container when combat hasn't started yet.
   const displayRich = useRichDisplay && richMessages && richMessages.length > 0;
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // ---- Inline Resize State ----
+  // The panel height is stored in state and persisted to localStorage.
+  // The user drags a handle at the top of the panel to resize it.
+  const [logHeight, setLogHeight] = useState(loadSavedHeight);
+  const isResizingRef = useRef(false);
+  const resizeStartYRef = useRef(0);
+  const resizeStartHeightRef = useRef(0);
+
+  /**
+   * Handles the mousedown event on the resize handle.
+   * Captures the starting Y position and height, then attaches global
+   * mousemove/mouseup listeners for the duration of the drag.
+   */
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isResizingRef.current = true;
+    resizeStartYRef.current = e.clientY;
+    resizeStartHeightRef.current = logHeight;
+
+    const handleResizeMove = (moveEvent: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      // Dragging UP increases height (negative deltaY = taller panel)
+      const deltaY = resizeStartYRef.current - moveEvent.clientY;
+      const newHeight = Math.max(
+        MIN_LOG_HEIGHT,
+        Math.min(MAX_LOG_HEIGHT, resizeStartHeightRef.current + deltaY)
+      );
+      setLogHeight(newHeight);
+    };
+
+    const handleResizeEnd = () => {
+      isResizingRef.current = false;
+      // Persist the final height so it survives page refreshes
+      try {
+        localStorage.setItem(STORAGE_KEY, String(logHeight));
+      } catch {
+        // localStorage write failed — non-critical, just lose persistence
+      }
+      document.removeEventListener('mousemove', handleResizeMove);
+      document.removeEventListener('mouseup', handleResizeEnd);
+    };
+
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+  }, [logHeight]);
+
+  // Save height whenever it changes (covers both drag and programmatic updates)
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(logHeight));
+    } catch {
+      // Non-critical
+    }
+  }, [logHeight]);
+
   // Auto-scroll effect: fires whenever either message source changes.
   // Both logEntries and richMessages are in the dependency array so scrolling works
   // regardless of which display mode is active.
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logEntries, richMessages]);
+  }, [logEntries, richMessages, isExpanded]);
 
-  return (
-    // Container: semi-transparent dark background with blur, rounded corners,
-    // subtle border, fixed height (h-48 = 12rem), scrollable overflow.
-    // The 'scrollable-content' class is a project convention for custom scrollbar styling.
-    <div className="bg-gray-800/80 p-3 rounded-lg backdrop-blur-sm shadow-lg border border-gray-700 h-48 overflow-y-auto scrollable-content">
-      {/* Sticky header that stays pinned at the top of the scroll container.
-          bg-gray-800/90 ensures text beneath doesn't bleed through. */}
-      <h3 className="text-center text-sm font-bold text-amber-300 mb-2 sticky top-0 bg-gray-800/90 py-1">Combat Log</h3>
-
-      {/* Message list: space-y-1 adds 0.25rem vertical gap between entries. */}
-      <div className="space-y-1 text-sm">
+  const logContent = (
+      <div className="space-y-1 text-sm pb-2">
         {displayRich
           // --- RICH MODE ---
           // Renders CombatMessage[] with enhanced styling.
@@ -180,7 +271,66 @@ const CombatLog: React.FC<CombatLogProps> = ({ logEntries, richMessages, useRich
             to the bottom whenever new messages arrive. */}
         <div ref={logEndRef} />
       </div>
-    </div>
+  );
+
+  return (
+    <>
+      <div
+        className={`bg-gray-800/80 p-3 rounded-lg backdrop-blur-sm shadow-lg border border-gray-700 flex flex-col overflow-hidden relative`}
+        style={{ height: isExpanded ? 64 : logHeight }}
+      >
+        {/* Resize handle — a thin bar at the top edge that the user can drag
+            to change the panel height. Shows a visible grip indicator on hover
+            and changes cursor to indicate resizability. */}
+        {!isExpanded && (
+          <div
+            className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize group z-20 flex items-center justify-center"
+            onMouseDown={handleResizeStart}
+            title="Drag to resize"
+          >
+            {/* Visual grip indicator — two thin lines that become visible on hover */}
+            <div className="w-8 h-0.5 bg-gray-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        )}
+
+        <div className="flex justify-between items-center mb-2 sticky top-0 bg-gray-800/90 py-1 z-10 border-b border-gray-700/50">
+            <h3 className="text-center text-sm font-bold text-amber-300">Combat Log</h3>
+            {!isExpanded && (
+                <button
+                    onClick={() => setIsExpanded(true)}
+                    className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700 transition-colors"
+                    title="Pop out into resizable window"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                </button>
+            )}
+        </div>
+        {!isExpanded ? (
+            <div className="flex-1 overflow-y-auto scrollable-content">
+                {logContent}
+            </div>
+        ) : (
+            <div className="text-gray-400 text-xs italic text-center mt-1">Log is popped out.</div>
+        )}
+      </div>
+
+      {isExpanded && (
+        <WindowFrame
+            title="Combat Log"
+            onClose={() => setIsExpanded(false)}
+            storageKey="combat-log-window"
+            initialMaximized={false}
+        >
+            <div className="p-4 h-full overflow-y-auto bg-gray-900 scrollable-content">
+                {logContent}
+            </div>
+        </WindowFrame>
+      )}
+    </>
+
+
   );
 };
 

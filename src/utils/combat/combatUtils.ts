@@ -330,13 +330,27 @@ export function rollDamage(diceString: string, isCritical: boolean, minRoll: num
   return total;
 }
 
+/**
+ * Generates a human-readable message for a combat action.
+ * Distinguishes between "attacks with" (physical), "casts" (spells), and "uses" (generic).
+ */
 export function getActionMessage(action: CombatAction, character: CombatCharacter): string {
+  const abilityName = action.abilityId || 'an ability';
+  
   switch (action.type) {
     case 'move':
-      return `${character.name} moves to (${action.targetPosition?.x}, ${action.targetPosition?.y})`;
+      return `${character.name} moves.`;
     case 'ability': {
       const ability = character.abilities.find(a => a.id === action.abilityId);
-      return `${character.name} casts ${ability?.name || 'a spell'}`;
+      const name = ability?.name || abilityName;
+      
+      // Use descriptive verbs based on ability type
+      if (ability?.type === 'attack') {
+        return `${character.name} attacks with ${name}`;
+      } else if (ability?.spell) {
+        return `${character.name} casts ${name}`;
+      }
+      return `${character.name} uses ${name}`;
     }
     case 'end_turn':
       return `${character.name} ends their turn`;
@@ -651,12 +665,12 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     abilities.push({
       id: 'unarmed_strike',
       name: 'Unarmed Strike',
-      description: 'A basic punch or kick.',
+      description: 'A basic punch or kick. Melee Range (5 ft).',
       type: 'attack',
       cost: { type: 'action' },
       targeting: 'single_enemy',
       range: 1,
-      effects: [{ type: 'damage', value: 1 + getAbilityModifierValue(stats.strength), damageType: 'physical' }],
+      effects: [{ type: 'damage', value: 0, dice: `1d1+${getAbilityModifierValue(stats.strength)}`, damageType: 'physical' }],
       icon: '✊'
     });
   }
@@ -701,7 +715,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
         abilities.push(ability);
       } else {
         // Fallback if spell data isn't loaded or available in allSpells
-        // console.warn(`CombatUtils: Spell data for '${spellId}' not found in context.`);
+        console.warn(`CombatUtils: Spell data for '${spellId}' not found in allSpells context.`);
       }
     });
   }
