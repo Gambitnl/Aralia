@@ -22,6 +22,7 @@
 import type { AbilityScoreName, CharacterStats } from './core.js';
 import type { Class, SpellbookData, SpellSlots, FeatChoice, HitPointDicePool } from './character.js';
 import type { Item } from './items.js';
+import type { MaterialType } from "./materials.js";
 // TODO(lint-intent): 'SavingThrowAbility' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -426,6 +427,7 @@ export interface EnvironmentalEffect {
   casterId?: string;
 }
 
+
 export interface BattleMapTile {
   id: string; // "x-y"
   coordinates: { x: number; y: number };
@@ -438,6 +440,8 @@ export interface BattleMapTile {
   effects: string[]; // IDs of active effects
   providesCover?: boolean;
   environmentalEffects?: EnvironmentalEffect[];
+  material?: MaterialType;
+  thicknessInches?: number;
 }
 
 export interface BattleMapData {
