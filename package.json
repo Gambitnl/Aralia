@@ -56,7 +56,7 @@
     "@takram/three-clouds": "^0.7.3",
     "@takram/three-geospatial": "^0.7.1",
     "@types/axe-core": "^2.0.2",
-    "dompurify": "^3.3.1",
+    "dompurify": "^3.4.0",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.3",
     "google-auth-library": "^10.5.0",
@@ -68,7 +68,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.4",
     "three": "^0.170.0",
-    "uuid": "^13.0.0",
+    "uuid": "^14.0.0",
     "ws": "^8.19.0",
     "zod": "^4.1.13"
   },
@@ -103,7 +103,7 @@
     "jsdom": "^27.2.0",
     "mcp-cli": "github:philschmid/mcp-cli",
     "playwright": "^1.57.0",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.14",
     "rimraf": "^6.1.2",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.17",
@@ -111,7 +111,7 @@
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.50.1",
-    "vite": "^7.3.0",
+    "vite": "^7.3.2",
     "vitest": "^4.0.16"
   },
   "gemini": {
