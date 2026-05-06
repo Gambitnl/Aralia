@@ -33,8 +33,11 @@ export function checkMagicalLineOfEffect(
 ): PenetrationResult {
   const line = bresenhamLine(start.x, start.y, end.x, end.y);
 
-  // Track accumulated thickness per material along this specific line
-  const accumulatedThickness: Partial<Record<MaterialType, number>> = {};
+  // Track normalized penetration factor along this specific line.
+  // 1.0 means the magical sensor is fully blocked.
+  let accumulatedPenetrationFactor = 0;
+  let lastBlockedMaterial: MaterialType | undefined;
+  let lastThickness = 0;
 
   for (const point of line) {
     // Skip the start point itself, it doesn't block its own emanation
@@ -45,22 +48,28 @@ export function checkMagicalLineOfEffect(
     const tileId = `${point.x}-${point.y}`;
     const tile = mapData.tiles.get(tileId);
 
-    if (tile && tile.material && tile.thicknessInches) {
+    if (tile && tile.material) {
+      // Reviewer requested default thickness if missing. Assume 60 inches (5ft tile) if not specified
+      const tileThickness = tile.thicknessInches ?? 60;
       const materialProps = MATERIAL_PROPERTIES[tile.material];
 
-      // If the material has a limit defined, track its thickness
       if (materialProps && materialProps.magicPenetrationLimitInches !== undefined) {
-        const currentThickness = accumulatedThickness[tile.material] || 0;
-        const newThickness = currentThickness + tile.thicknessInches;
-        accumulatedThickness[tile.material] = newThickness;
+        if (materialProps.magicPenetrationLimitInches === 0) {
+            // Instant block (like lead)
+            accumulatedPenetrationFactor = 1.0;
+        } else {
+            accumulatedPenetrationFactor += (tileThickness / materialProps.magicPenetrationLimitInches);
+        }
 
-        // If the new thickness exceeds the penetration limit, the magic is blocked
-        if (newThickness >= materialProps.magicPenetrationLimitInches) {
+        lastBlockedMaterial = tile.material;
+        lastThickness = tileThickness;
+
+        if (accumulatedPenetrationFactor >= 1.0) {
           return {
             hasLineOfEffect: false,
             blockingTile: { x: point.x, y: point.y },
-            blockedByMaterial: tile.material,
-            accumulatedThickness: newThickness
+            blockedByMaterial: lastBlockedMaterial,
+            accumulatedThickness: lastThickness
           };
         }
       }

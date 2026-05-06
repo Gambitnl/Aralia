@@ -40,7 +40,7 @@ export interface MaterialProperties {
 
 export const MATERIAL_PROPERTIES: Record<MaterialType, MaterialProperties> = {
   wood: {
-    magicPenetrationLimitInches: 12, // 1 foot of wood
+    magicPenetrationLimitInches: 36, // 3 feet of wood
     baseAc: 15,
     hpPerInch: 3,
   },
@@ -50,7 +50,7 @@ export const MATERIAL_PROPERTIES: Record<MaterialType, MaterialProperties> = {
     hpPerInch: 5,
   },
   dirt: {
-    magicPenetrationLimitInches: 12, // 1 foot of dirt
+    magicPenetrationLimitInches: 36, // 3 feet of dirt
     baseAc: 10,
     hpPerInch: 1,
   },
@@ -60,7 +60,7 @@ export const MATERIAL_PROPERTIES: Record<MaterialType, MaterialProperties> = {
     hpPerInch: 10,
   },
   lead: {
-    magicPenetrationLimitInches: 0.1, // A thin sheet of lead
+    magicPenetrationLimitInches: 0, // Lead blocks magic instantly
     baseAc: 19,
     hpPerInch: 10,
   },
@@ -77,7 +77,7 @@ export const MATERIAL_PROPERTIES: Record<MaterialType, MaterialProperties> = {
   water: {
     magicPenetrationLimitInches: undefined,
     baseAc: 10,
-    hpPerInch: 0,
+    hpPerInch: 1,
   },
   fabric: {
     magicPenetrationLimitInches: undefined,
@@ -87,7 +87,7 @@ export const MATERIAL_PROPERTIES: Record<MaterialType, MaterialProperties> = {
   paper: {
     magicPenetrationLimitInches: undefined,
     baseAc: 11,
-    hpPerInch: 0,
+    hpPerInch: 1,
   },
   force: {
     magicPenetrationLimitInches: undefined, // Usually blocks physical, but divination passes unless specified
