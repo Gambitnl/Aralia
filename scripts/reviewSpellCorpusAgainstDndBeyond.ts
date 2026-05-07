@@ -408,7 +408,7 @@ function parseCanonicalClassAccess(availableFor: string[]): CanonicalClassAccess
 
     const possibleBase = Array.from(BASE_CLASS_NAMES).find((baseClass) => withoutLegacy.startsWith(`${baseClass} `));
     if (possibleBase) {
-      const subclassName = withoutLegacy.slice(possibleBase.length).trim().replace(/^[\-–—:]\s*/, '');
+      const subclassName = withoutLegacy.slice(possibleBase.length).trim().replace(/^[-–—:]\s*/, '');
       if (subclassName.length > 0) {
         subClasses.add(`${possibleBase} - ${subclassName}`);
         continue;

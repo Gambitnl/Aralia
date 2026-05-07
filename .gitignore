@@ -28,6 +28,7 @@ conductor/
 
 # Experimental 3D POCs
 src/components/ThreeDModal/Experimental/
+src/workers/voxelMesher.worker.ts
 
 # local env files
 .agent_tools/
@@ -51,6 +52,7 @@ public/assets/ez-tree-lab/
 
 # Aralia Uplink (local-only coordination files)
 .uplink/
+deprecated/uplink/
 .agent/roadmap/
 .agent/roadmap-local/
 
@@ -93,6 +95,8 @@ pnpm-lock.yaml
 # Design Preview Tool (local-only developer tool)
 src/components/DesignPreview/
 src/design-preview.tsx
+src/components/SpellPipelineAtlas/
+src/spell-pipeline-atlas.tsx
 misc/*
 !misc/dev_hub.html
 !misc/spell_data_validation.html
@@ -132,5 +136,9 @@ scripts/workflows/gemini/
 scripts/tooling/
 .agent/workflows/
 .playwright-cli/
+.playwright-mcp/
 docs/tasks/documentation-cleanup/
 docs/archive/
+
+# External vendor code/data
+vendor/
