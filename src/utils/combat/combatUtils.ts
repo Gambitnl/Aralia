@@ -670,7 +670,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       cost: { type: 'action' },
       targeting: 'single_enemy',
       range: 1,
-      effects: [{ type: 'damage', value: 0, dice: `1d1+${getAbilityModifierValue(stats.strength)}`, damageType: 'physical' }],
+      effects: [{ type: 'damage', value: 1 + getAbilityModifierValue(stats.strength), damageType: 'physical' }],
       icon: '✊'
     });
   }

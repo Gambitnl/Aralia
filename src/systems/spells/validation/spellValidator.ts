@@ -877,4 +877,15 @@ export const SpellValidator = z.object({
       });
     }
   }
+
+  // Subclass verification status must match content: a non-empty subClasses
+  // list cannot still carry the "unverified" marker — once the lane has
+  // entries, the lane has been examined.
+  if (spell.subClasses.length > 0 && spell.subClassesVerification === 'unverified') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `subClassesVerification cannot be "unverified" when subClasses contains entries.`,
+      path: ['subClassesVerification'],
+    });
+  }
 });

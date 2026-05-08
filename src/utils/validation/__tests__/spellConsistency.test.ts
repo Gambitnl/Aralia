@@ -23,23 +23,14 @@ describe('Enchantment Spell Consistency', () => {
   const enchantmentSpells = spells.filter(s => s.school === 'Enchantment');
 
   it('should identify targeting gaps in known problematic spells', () => {
-    // We expect specific warnings for spells we analyzed
+    // Smoke test: confirm the validator catches at least one issue on Sleep.
+    // Originally this asserted an "Undead" exclusion warning, but the 2024
+    // ruleset removed Undead/Construct immunity from Sleep, so the validator
+    // now flags it for a different reason (missing break-on-damage logic).
     const results = enchantmentSpells.flatMap(validateEnchantmentConsistency);
-
-    // Check for "Undead" warning in Sleep or Command if they lack exclusion
     const sleepIssues = results.filter(r => r.spellId === 'sleep');
-    // Sleep description: "Undead... aren't affected"
-    // Sleep targeting: currently empty filter
 
-    // This assertion confirms our validator "catches" the issue
-    // If the data is fixed later, this test might fail (expecting an error but getting none).
-    // So we should structure it to report rather than fail strict logic,
-    // OR we use this test to PROVE the validator works.
-
-    if (sleepIssues.length > 0) {
-        console.log("Sleep Issues Found:", sleepIssues);
-        expect(sleepIssues.some(i => i.message.includes('Undead'))).toBe(true);
-    }
+    expect(sleepIssues.length).toBeGreaterThan(0);
   });
 
   it('should flag Charm Person for missing break conditions', () => {

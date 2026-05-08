@@ -17,6 +17,8 @@ describe('spellAuditor', () => {
       rarity: 'common', // Added missing required field
       attackType: 'none', // Added missing required field
       classes: ['Wizard'],
+      subClasses: [],
+      subClassesVerification: 'unverified',
       castingTime: { value: 1, unit: 'action', combatCost: { type: 'action', condition: '' }, explorationCost: { value: 0, unit: 'minute' } },
       range: { type: 'ranged', distance: 60 },
       components: { verbal: true, somatic: true, material: false, isConsumed: false, materialDescription: '', materialCost: 0 },
@@ -60,6 +62,8 @@ describe('spellAuditor', () => {
       rarity: 'common', // Added missing required field
       attackType: 'none', // Added missing required field
       classes: ['Wizard'],
+      subClasses: [],
+      subClassesVerification: 'unverified',
       castingTime: { value: 1, unit: 'action', combatCost: { type: 'action', condition: '' }, explorationCost: { value: 0, unit: 'minute' } },
       range: { type: 'ranged', distance: 60 },
       components: { verbal: true, somatic: true, material: false, isConsumed: false, materialDescription: '', materialCost: 0 },
@@ -104,6 +108,8 @@ describe('spellAuditor', () => {
       rarity: 'common', // Added missing required field
       attackType: 'none', // Added missing required field
       classes: ['Wizard'],
+      subClasses: [],
+      subClassesVerification: 'unverified',
       castingTime: { value: 1, unit: 'action', combatCost: { type: 'action', condition: '' }, explorationCost: { value: 0, unit: 'minute' } },
       range: { type: 'ranged', distance: 60 },
       components: { verbal: true, somatic: true, material: false, isConsumed: false, materialDescription: '', materialCost: 0 },
