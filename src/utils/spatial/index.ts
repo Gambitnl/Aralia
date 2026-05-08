@@ -36,3 +36,4 @@ export {
 } from './walkabilityUtils';
 export { heuristic as battleHeuristic, findPath as findBattlePath } from './pathfinding';
 export { simpleHash as submapHash, createSeededRandom as createSubmapSeededRandom } from './submapUtils';
+export * from './magicPenetration.js';

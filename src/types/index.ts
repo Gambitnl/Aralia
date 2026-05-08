@@ -105,3 +105,4 @@
  // @ts-ignore
  export type { AppAction } from '../state/actionTypes';
  
+export * from './materials';
