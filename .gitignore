@@ -29,6 +29,8 @@ conductor/
 # Experimental 3D POCs
 src/components/ThreeDModal/Experimental/
 src/workers/voxelMesher.worker.ts
+tests/VoxelTerrainImport.test.tsx
+tests/VoxelLogic.test.ts
 
 # local env files
 .agent_tools/
