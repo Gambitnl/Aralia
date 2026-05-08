@@ -23,6 +23,11 @@ jobs:
           fetch-depth: 0  # Need full history for diff
 
       - name: Check for forbidden files
+        # Dependabot PRs intentionally update package-lock.json — that's the
+        # whole point of the bot. The poison gate exists to stop humans from
+        # sneaking lockfile changes into feature PRs, not to block automated
+        # dependency hygiene. Skip the check when the bot is the actor.
+        if: github.actor != 'dependabot[bot]'
         run: |
           echo "🔍 Checking for forbidden files in PR..."
           
