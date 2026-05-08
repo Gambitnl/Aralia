@@ -89,7 +89,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                         <span className="text-sky-300 font-medium">Level {ability.cost.spellSlotLevel}</span>
                     </div>
                 ) : null}
-                {isOnCooldown && (
+                {isOnCooldown ? (
                     <div className="flex justify-between text-[10px]">
                         <span className="text-gray-400">Cooldown:</span>
                         <span className="text-red-400 font-medium">{ability.currentCooldown} turns</span>
