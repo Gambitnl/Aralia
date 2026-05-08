@@ -97,6 +97,7 @@ src/components/DesignPreview/
 src/design-preview.tsx
 src/components/SpellPipelineAtlas/
 src/spell-pipeline-atlas.tsx
+src/agent-docs-entry.tsx
 misc/*
 !misc/dev_hub.html
 !misc/spell_data_validation.html
