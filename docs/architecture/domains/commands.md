@@ -1,4 +1,4 @@
-﻿# Commands Domain
+# Commands Domain
 
 ## Purpose
 

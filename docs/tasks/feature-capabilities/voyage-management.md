@@ -1,4 +1,4 @@
-﻿# Voyage Management
+# Voyage Management
 
 This capability note tracks the current naval and voyage-management foundations. The repo already contains a naval state model, voyage-related action types, a naval reducer, and travel-event generation, but the broader player-facing naval loop still looks less mature than the underlying scaffolding.
 

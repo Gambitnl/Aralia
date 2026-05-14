@@ -1,0 +1,146 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "00-identity-and-access",
+  "fieldCount": 6,
+  "fields": [
+    {
+      "label": "Level",
+      "required": true,
+      "valueType": "integer",
+      "jsonPath": "level",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Spell level is a universal spell identity field."
+        }
+      ],
+      "comment": "Spell level is a universal spell identity field. It maps to `level`. Purpose: Level exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `level`. The value type is `integer`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "label": "School",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Abjuration",
+        "Conjuration",
+        "Divination",
+        "Enchantment",
+        "Evocation",
+        "Illusion",
+        "Necromancy",
+        "Transmutation"
+      ],
+      "jsonPath": "school",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "School values must align across canonical, structured markdown, and JSON."
+        }
+      ],
+      "comment": "School values must align across canonical, structured markdown, and JSON. It maps to `school`. Purpose: School exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `school`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "Abjuration": "Allowed value for School; use only when the canonical spell text supports this exact mechanic.",
+        "Conjuration": "Allowed value for School; use only when the canonical spell text supports this exact mechanic.",
+        "Divination": "Allowed value for School; use only when the canonical spell text supports this exact mechanic.",
+        "Enchantment": "Allowed value for School; use only when the canonical spell text supports this exact mechanic.",
+        "Evocation": "Allowed value for School; use only when the canonical spell text supports this exact mechanic.",
+        "Illusion": "Allowed value for School; use only when the canonical spell text supports this exact mechanic.",
+        "Necromancy": "Allowed value for School; use only when the canonical spell text supports this exact mechanic.",
+        "Transmutation": "Allowed value for School; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Ritual",
+      "required": true,
+      "valueType": "boolean",
+      "jsonPath": "ritual",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Ritual capability is separate from casting-time display text."
+        }
+      ],
+      "comment": "Ritual capability is separate from casting-time display text. It maps to `ritual`. Purpose: Ritual exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `ritual`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "label": "Classes",
+      "required": true,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "Artificer",
+        "Barbarian",
+        "Bard",
+        "Cleric",
+        "Druid",
+        "Fighter",
+        "Monk",
+        "Paladin",
+        "Ranger",
+        "Rogue",
+        "Sorcerer",
+        "Warlock",
+        "Wizard"
+      ],
+      "jsonPath": "classes[]",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Base spell-list access must not be mixed with subclass or feature-granted access."
+        }
+      ],
+      "comment": "Base spell-list access must not be mixed with subclass or feature-granted access. It maps to `classes[]`. Purpose: Classes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `classes[]`. The value type is `csv-enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "Artificer": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Barbarian": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Bard": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Cleric": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Druid": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Fighter": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Monk": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Paladin": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Ranger": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Rogue": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Sorcerer": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Warlock": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic.",
+        "Wizard": "Allowed value for Classes; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Sub-Classes",
+      "required": false,
+      "valueType": "csv-string-or-none",
+      "jsonPath": "subClasses[]",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Subclass/domain access is a separate access surface from base classes."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "Subclasses are conditional access rows; many spells have no subclass-specific access and should not need placeholder rows."
+        }
+      ],
+      "comment": "Subclasses are conditional access rows; many spells have no subclass-specific access and should not need placeholder rows. It maps to `subClasses[]`. Purpose: Sub-Classes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `subClasses[]`. The value type is `csv-string-or-none`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Access Grants",
+      "required": false,
+      "valueType": "summary",
+      "jsonPath": "accessGrants[]",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mending showed that feature-granted access, such as Artificer Tinker's Magic, must not pollute base spell-list classes."
+        }
+      ],
+      "comment": "Mending showed that feature-granted access, such as Artificer Tinker's Magic, must not pollute base spell-list classes. It maps to `accessGrants[]`. Purpose: Access Grants exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[]`. The value type is `summary`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

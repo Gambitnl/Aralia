@@ -1,4 +1,4 @@
-﻿# Guide: Living NPC Gossip And Witness System
+# Guide: Living NPC Gossip And Witness System
 
 Last Updated: 2026-03-11
 Purpose: Preserve the implementation shape of the NPC gossip and witness system while grounding it in the current repo instead of leaving it as a generic all-phases-complete checklist.

@@ -1,0 +1,144 @@
+{
+  "templateKind": "runtime-json",
+  "part": "00-identity-access-and-ai",
+  "fieldCount": 8,
+  "fields": [
+    {
+      "path": "id",
+      "required": true,
+      "valueType": "string",
+      "structuredLabel": null,
+      "runtimeOnly": true,
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Spell ids are runtime file identity, derived from file names rather than canonical spell prose."
+        }
+      ],
+      "comment": "Spell ids are runtime file identity, derived from file names rather than canonical spell prose. It maps to `id`. Purpose: id exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. It is runtime metadata derived from file organization or local engine needs rather than a direct canonical prose mechanic. It maps to runtime JSON path `id`. The value type is `string`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "name",
+      "required": true,
+      "valueType": "string",
+      "structuredLabel": null,
+      "runtimeOnly": true,
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Runtime display name is derived from the markdown heading."
+        }
+      ],
+      "comment": "Runtime display name is derived from the markdown heading. It maps to `name`. Purpose: name exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. It is runtime metadata derived from file organization or local engine needs rather than a direct canonical prose mechanic. It maps to runtime JSON path `name`. The value type is `string`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "aliases[]",
+      "required": true,
+      "valueType": "string-array",
+      "structuredLabel": null,
+      "runtimeOnly": true,
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Aliases are runtime lookup helpers, not canonical spell facts."
+        }
+      ],
+      "comment": "Aliases are runtime lookup helpers, not canonical spell facts. It maps to `aliases[]`. Purpose: aliases[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. It is runtime metadata derived from file organization or local engine needs rather than a direct canonical prose mechanic. It maps to runtime JSON path `aliases[]`. The value type is `string-array`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "level",
+      "required": true,
+      "valueType": "integer",
+      "structuredLabel": "Level",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Level."
+        }
+      ],
+      "comment": "Mapped from structured Level. It maps to `level`. It is populated from the structured markdown label `Level`. Purpose: level exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Level`, after that field has been checked against canonical prose. It maps to runtime JSON path `level`. The value type is `integer`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "school",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Abjuration",
+        "Conjuration",
+        "Divination",
+        "Enchantment",
+        "Evocation",
+        "Illusion",
+        "Necromancy",
+        "Transmutation"
+      ],
+      "structuredLabel": "School",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured School."
+        }
+      ],
+      "comment": "Mapped from structured School. It maps to `school`. It is populated from the structured markdown label `School`. Purpose: school exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `School`, after that field has been checked against canonical prose. It maps to runtime JSON path `school`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "Abjuration": "Allowed value for school; use only when the canonical spell text supports this exact mechanic.",
+        "Conjuration": "Allowed value for school; use only when the canonical spell text supports this exact mechanic.",
+        "Divination": "Allowed value for school; use only when the canonical spell text supports this exact mechanic.",
+        "Enchantment": "Allowed value for school; use only when the canonical spell text supports this exact mechanic.",
+        "Evocation": "Allowed value for school; use only when the canonical spell text supports this exact mechanic.",
+        "Illusion": "Allowed value for school; use only when the canonical spell text supports this exact mechanic.",
+        "Necromancy": "Allowed value for school; use only when the canonical spell text supports this exact mechanic.",
+        "Transmutation": "Allowed value for school; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "legacy",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": null,
+      "runtimeOnly": true,
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Legacy status is corpus metadata, not a canonical spell field."
+        }
+      ],
+      "comment": "Legacy status is corpus metadata, not a canonical spell field. It maps to `legacy`. Purpose: legacy exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. It is runtime metadata derived from file organization or local engine needs rather than a direct canonical prose mechanic. It maps to runtime JSON path `legacy`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "classes[]",
+      "required": true,
+      "valueType": "enum-array",
+      "acceptedValuesFrom": "Classes",
+      "structuredLabel": "Classes",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Base class spell-list access maps from structured Classes."
+        }
+      ],
+      "comment": "Base class spell-list access maps from structured Classes. It maps to `classes[]`. It is populated from the structured markdown label `Classes`. Purpose: classes[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Classes`, after that field has been checked against canonical prose. It maps to runtime JSON path `classes[]`. The value type is `enum-array`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "subClasses[]",
+      "required": true,
+      "valueType": "string-array",
+      "structuredLabel": "Sub-Classes",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Subclass access maps from structured Sub-Classes."
+        }
+      ],
+      "comment": "Subclass access maps from structured Sub-Classes. It maps to `subClasses[]`. It is populated from the structured markdown label `Sub-Classes`. Purpose: subClasses[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Sub-Classes`, after that field has been checked against canonical prose. It maps to runtime JSON path `subClasses[]`. The value type is `string-array`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    }
+  ]
+}

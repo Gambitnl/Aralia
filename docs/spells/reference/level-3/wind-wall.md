@@ -3,7 +3,7 @@
 - **School**: Evocation
 - **Ritual**: false
 - **Classes**: Druid, Ranger
-- **Sub-Classes**: Cleric - Nature Domain (PHB), Warlock - The Genie (TCoE)
+- **Sub-Classes**: Unsupported Entries
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
@@ -22,6 +22,20 @@
 - **Area Thickness**: 1
 - **Area Thickness Unit**: feet
 - **Valid Targets**: point
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 - **Verbal**: true
 - **Somatic**: true
@@ -33,13 +47,42 @@
 - **Duration Value**: 1
 - **Duration Unit**: minute
 - **Concentration**: true
-- **Effect Type**: DAMAGE
+- **Effect Type**: DAMAGE, UTILITY
+- **Utility Type**: control
+- **Utility Options**: Gas Barrier, Small Flying Block, Lightweight Updraft, Ordinary Projectile Deflection, Gaseous Form Block
+- **Utility Option 1 Name**: Gas Barrier
+- **Utility Option 1 Effect**: Keeps fog, smoke, and other gases at bay.
+- **Utility Option 2 Name**: Small Flying Block
+- **Utility Option 2 Effect**: Small or smaller flying creatures or objects cannot pass through the wall.
+- **Utility Option 3 Name**: Lightweight Updraft
+- **Utility Option 3 Effect**: Loose, lightweight materials brought into the wall fly upward.
+- **Utility Option 4 Name**: Ordinary Projectile Deflection
+- **Utility Option 4 Effect**: Ordinary arrows, bolts, and similar projectiles launched at targets behind the wall are deflected upward and miss automatically.
+- **Utility Option 4 Details**: Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected.
+- **Utility Option 5 Name**: Gaseous Form Block
+- **Utility Option 5 Effect**: Creatures in gaseous form cannot pass through the wall.
 - **Save Stat**: Strength
 - **Save Outcome**: half
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Damage Dice**: 4d8
 - **Damage Type**: Bludgeoning
 - **Description**: A wall of strong wind rises from the ground at a point you choose within range. You can make the wall up to 50 feet long, 15 feet high, and 1 foot thick. You can shape the wall in any way you choose so long as it makes one continuous path along the ground. The wall lasts for the duration. When the wall appears, each creature in its area makes a Strength saving throw, taking 4d8 Bludgeoning damage on a failed save or half as much damage on a successful one. The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can't pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and miss automatically. Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected. Creatures in gaseous form can't pass through it.
-- **Higher Levels**: None
+- **Higher Levels**: not_applicable
 - **Spatial Form 1 Label**: Wind Wall
 - **Spatial Form 1 Shape**: Wall
 - **Spatial Form 1 Size Value**: 50
@@ -68,7 +111,7 @@ Damage/Effect: Bludgeoning
 Rules Text:
 A wall of strong wind rises from the ground at a point you choose within range. You can make the wall up to 50 feet long, 15 feet high, and 1 foot thick. You can shape the wall in any way you choose so long as it makes one continuous path along the ground. The wall lasts for the duration.
 When the wall appears, each creature in its area makes a Strength saving throw, taking 4d8 Bludgeoning damage on a failed save or half as much damage on a successful one.
-The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can’t pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and miss automatically. Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected. Creatures in gaseous form can’t pass through it.
+The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can't pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and miss automatically. Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected. Creatures in gaseous form can't pass through it.
 
 Material Component:
 * - (a fan and a feather)

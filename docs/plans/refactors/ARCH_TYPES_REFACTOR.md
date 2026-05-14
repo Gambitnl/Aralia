@@ -1,4 +1,4 @@
-﻿# Architectural Task: Consolidate Type Definitions
+# Architectural Task: Consolidate Type Definitions
 
 Last Reviewed: 2026-03-12
 Status: Preserved refactor note / partially superseded by later type modularization

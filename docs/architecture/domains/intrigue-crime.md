@@ -1,4 +1,4 @@
-﻿# Intrigue & Crime
+# Intrigue & Crime
 
 ## Purpose
 

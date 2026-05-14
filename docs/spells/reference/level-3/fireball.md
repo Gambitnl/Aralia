@@ -3,7 +3,7 @@
 - **School**: Evocation
 - **Ritual**: false
 - **Classes**: Sorcerer, Wizard
-- **Sub-Classes**: Cleric - Light Domain, Warlock - The Genie (TCoE), Warlock - Fiend Patron
+- **Sub-Classes**: Cleric - Light Domain, Warlock - Fiend Patron
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -14,7 +14,21 @@
 - **Targeting Type**: area
 - **Area Shape**: sphere
 - **Area Size**: 20
-- **Valid Targets**: creatures
+- **Valid Targets**: creatures, objects
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -30,11 +44,30 @@
 - **Effect Type**: DAMAGE
 - **Save Stat**: Dexterity
 - **Save Outcome**: half
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Damage Dice**: 8d6
 - **Damage Type**: Fire
 
 - **Description**: A bright streak flashes from you to a point you choose within range and then blossoms with a low roar into a fiery explosion. Each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw, taking 8d6 Fire damage on a failed save or half as much damage on a successful one. Flammable objects in the area that aren't being worn or carried start burning .
 - **Higher Levels**: Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 3.
+- **Scaling Rule 1 Type**: slot_level_bonus
+- **Scaling Rule 1 Applies To**: damage | Fire damage | dice 8d6 | trigger immediate
+- **Scaling Rule 1 Bonus Per Level**: +1d6
 
 ## Canonical D&D Beyond Snapshot
 
@@ -53,7 +86,7 @@ Damage/Effect: Fire
 
 Rules Text:
 A bright streak flashes from you to a point you choose within range and then blossoms with a low roar into a fiery explosion. Each creature in a 20-foot-radius Sphere centered on that point makes a Dexterity saving throw, taking 8d6 Fire damage on a failed save or half as much damage on a successful one.
-Flammable objects in the area that aren’t being worn or carried start burning .
+Flammable objects in the area that aren't being worn or carried start burning .
 Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 3.
 
 Material Component:

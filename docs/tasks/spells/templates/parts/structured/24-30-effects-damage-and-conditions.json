@@ -1,0 +1,331 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 13,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Bright Radius",
+      "valueType": "integer",
+      "jsonPath": "effects[].light.brightRadius",
+      "why": "Light-producing spells need explicit bright-light radii.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Light-producing spells need explicit bright-light radii."
+        }
+      ],
+      "comment": "Light-producing spells need explicit bright-light radii. It maps to `effects[].light.brightRadius`. Purpose: Light Bright Radius exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.brightRadius`. The value type is `integer`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Dim Radius",
+      "valueType": "integer",
+      "jsonPath": "effects[].light.dimRadius",
+      "why": "Light-producing spells need explicit dim-light radii.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Light-producing spells need explicit dim-light radii."
+        }
+      ],
+      "comment": "Light-producing spells need explicit dim-light radii. It maps to `effects[].light.dimRadius`. Purpose: Light Dim Radius exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.dimRadius`. The value type is `integer`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Color Choice",
+      "valueType": "enum",
+      "jsonPath": "effects[].light.colorChoice",
+      "why": "Some light spells let the caster choose the light color while others have a fixed or unspecified color.",
+      "comment": "Records whether the light color is chosen by the caster, fixed by the spell, or not mechanically specified. Purpose: Light Color Choice exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.colorChoice`. The value type is `enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "caster_choice",
+        "fixed",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "caster_choice": "Use `caster_choice` for Light Color Choice only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "fixed": "Use when Light Color Choice has one fixed canonical value and the caster does not choose from multiple values.",
+        "not_applicable": "Use for Light Color Choice only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "created",
+          "why": "Light explicitly says the light can be colored as the caster likes."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Opaque Cover Blocks",
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].light.opaqueCoverBlocks",
+      "why": "Some object-originated light can be blocked by covering the source with something opaque.",
+      "comment": "Records whether opaque cover blocks the emitted light from the affected source. Purpose: Light Opaque Cover Blocks exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.opaqueCoverBlocks`. The value type is `boolean-or-not-applicable`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "true": "Use when the canonical prose explicitly says the Light Opaque Cover Blocks mechanic is present or active for this spell.",
+        "false": "Use when the canonical prose explicitly rules out the Light Opaque Cover Blocks mechanic or the absence matters mechanically.",
+        "not_applicable": "Use for Light Opaque Cover Blocks only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "created",
+          "why": "Light and Daylight-style object lights can state how opaque cover interacts with the source."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Emits Heat",
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].light.emitsHeat",
+      "why": "Some flame-like light explicitly creates no heat despite looking like fire.",
+      "comment": "Records whether the light source emits heat as a mechanical fact. Purpose: Light Emits Heat exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.emitsHeat`. The value type is `boolean-or-not-applicable`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "true": "Use when the canonical prose explicitly says the Light Emits Heat mechanic is present or active for this spell.",
+        "false": "Use when the canonical prose explicitly rules out the Light Emits Heat mechanic or the absence matters mechanically.",
+        "not_applicable": "Use for Light Emits Heat only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "created",
+          "why": "Produce Flame and Continual Flame explicitly say the flame creates no heat."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Ignites Objects",
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].light.ignitesObjects",
+      "why": "Some light or flame spells explicitly say whether they ignite objects.",
+      "comment": "Records whether the light source can ignite objects as part of its light-producing state. Purpose: Light Ignites Objects exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.ignitesObjects`. The value type is `boolean-or-not-applicable`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "true": "Use when the canonical prose explicitly says the Light Ignites Objects mechanic is present or active for this spell.",
+        "false": "Use when the canonical prose explicitly rules out the Light Ignites Objects mechanic or the absence matters mechanically.",
+        "not_applicable": "Use for Light Ignites Objects only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "created",
+          "why": "Produce Flame explicitly says the held flame ignites nothing."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Consumes Fuel",
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].light.consumesFuel",
+      "why": "Some flame-like light explicitly consumes no fuel.",
+      "comment": "Records whether the light source consumes fuel to keep producing light. Purpose: Light Consumes Fuel exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.consumesFuel`. The value type is `boolean-or-not-applicable`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "true": "Use when the canonical prose explicitly says the Light Consumes Fuel mechanic is present or active for this spell.",
+        "false": "Use when the canonical prose explicitly rules out the Light Consumes Fuel mechanic or the absence matters mechanically.",
+        "not_applicable": "Use for Light Consumes Fuel only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "created",
+          "why": "Continual Flame explicitly says the flame consumes no fuel."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Can Be Covered Or Hidden",
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].light.canBeCoveredOrHidden",
+      "why": "Some light sources can be covered or hidden without being extinguished.",
+      "comment": "Records whether the source can be covered or hidden while the spell continues. Purpose: Light Can Be Covered Or Hidden exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.canBeCoveredOrHidden`. The value type is `boolean-or-not-applicable`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "true": "Use when the canonical prose explicitly says the Light Can Be Covered Or Hidden mechanic is present or active for this spell.",
+        "false": "Use when the canonical prose explicitly rules out the Light Can Be Covered Or Hidden mechanic or the absence matters mechanically.",
+        "not_applicable": "Use for Light Can Be Covered Or Hidden only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "created",
+          "why": "Continual Flame explicitly says the flame can be covered or hidden."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Light Can Be Smothered Or Quenched",
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].light.canBeSmotheredOrQuenched",
+      "why": "Some flame-like light explicitly cannot be smothered or quenched.",
+      "comment": "Records whether ordinary smothering or quenching can end the light. Purpose: Light Can Be Smothered Or Quenched exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].light.canBeSmotheredOrQuenched`. The value type is `boolean-or-not-applicable`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "true": "Use when the canonical prose explicitly says the Light Can Be Smothered Or Quenched mechanic is present or active for this spell.",
+        "false": "Use when the canonical prose explicitly rules out the Light Can Be Smothered Or Quenched mechanic or the absence matters mechanically.",
+        "not_applicable": "Use for Light Can Be Smothered Or Quenched only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "created",
+          "why": "Continual Flame explicitly says the flame is not smothered or quenched."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sound Audible Radius",
+      "valueType": "integer-or-not-applicable",
+      "jsonPath": "effects[].soundEmission.audibleRadius",
+      "why": "Sound-producing spells with a gameplay-facing audible distance need an explicit radius instead of prose-only handling.",
+      "comment": "Records how far the spell's sound can be heard. Use `not_applicable` when the spell does not create a discrete audible event with a rules-facing distance. Purpose: Sound Audible Radius exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].soundEmission.audibleRadius`. The value type is `integer-or-not-applicable`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "not_applicable": "Use for Sound Audible Radius only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:20:00+02:00",
+          "action": "created",
+          "why": "Thunderous Smite, Thunderwave, Knock, and Thunder Step all specify sounds audible at 300 feet."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sound Audible Radius Unit",
+      "valueType": "enum",
+      "jsonPath": "effects[].soundEmission.radiusUnit",
+      "why": "Audible radii need units so feet, miles, and absence do not share one string field.",
+      "comment": "Names the unit used by Sound Audible Radius. Use `not_applicable` when no sound radius is present. Purpose: Sound Audible Radius Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].soundEmission.radiusUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "feet": "Use when Sound Audible Radius Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Sound Audible Radius Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "not_applicable": "Use for Sound Audible Radius Unit only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:20:00+02:00",
+          "action": "created",
+          "why": "Sound radius values need explicit distance units."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sound Source",
+      "valueType": "enum",
+      "jsonPath": "effects[].soundEmission.source",
+      "why": "Sound can originate from the caster, a target object, a teleport origin, or an area, and the runtime needs that source.",
+      "comment": "Records where the audible event comes from so the runtime can measure the radius from the right origin. Purpose: Sound Source exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].soundEmission.source`. The value type is `enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "caster",
+        "target",
+        "target_object",
+        "origin_space",
+        "spell_area",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "caster": "Use when the canonical prose makes the Sound Source originate from the caster.",
+        "target": "Use when the canonical prose makes the Sound Source originate from the target.",
+        "target_object": "Use `target_object` for Sound Source only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "origin_space": "Use `origin_space` for Sound Source only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "spell_area": "Use `spell_area` for Sound Source only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for Sound Source only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:20:00+02:00",
+          "action": "created",
+          "why": "Knock's sound comes from the target object, Thunder Step's boom comes from the departure space, and Thunderwave's boom comes from the spell area."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sound Trigger",
+      "valueType": "enum",
+      "jsonPath": "effects[].soundEmission.trigger",
+      "why": "Sound timing matters because some sounds happen on cast, after a teleport, when a hit lands, or when a delayed trigger fires.",
+      "comment": "Records when the audible event happens relative to the spell or effect. Purpose: Sound Trigger exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].soundEmission.trigger`. The value type is `enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "on_cast",
+        "on_hit",
+        "after_teleport",
+        "on_trigger",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "on_cast": "Use `on_cast` for Sound Trigger only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "on_hit": "Use `on_hit` for Sound Trigger only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "after_teleport": "Use `after_teleport` for Sound Trigger only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "on_trigger": "Use `on_trigger` for Sound Trigger only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for Sound Trigger only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:20:00+02:00",
+          "action": "created",
+          "why": "The first sound-radius packet needs to distinguish on-cast booms, hit-triggered thunder, and post-teleport thunder."
+        }
+      ]
+    }
+  ]
+}

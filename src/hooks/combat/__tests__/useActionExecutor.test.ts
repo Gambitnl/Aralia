@@ -60,7 +60,8 @@ describe('useActionExecutor', () => {
             bonusAction: { used: false, remaining: 1 },
             reaction: { used: false, remaining: 1 },
             movement: { used: 0, total: 30 },
-            freeActions: 1
+            freeActions: 1,
+            legendary: { used: 0, total: 0 }
         }
     };
 

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 17:11:04
+ * Last Sync: 07/05/2026, 00:02:34
  * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx
  * Imports: 10 files
  *
@@ -162,7 +162,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
         TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
         TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
       */}
-      <div className="battle-map-container bg-gray-800 p-2 rounded-lg shadow-lg"
+      <div className={`battle-map-container bg-gray-800 p-2 rounded-lg shadow-lg ${abilitySystem.targetingMode ? 'cursor-crosshair' : ''}`}
           style={{
               width: `${mapData.dimensions.width * TILE_SIZE_PX + 2}px`,
               height: `${mapData.dimensions.height * TILE_SIZE_PX + 2}px`,
@@ -196,6 +196,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
                 isInPath={isInPath}
                 isTargetable={isTargetable}
                 isAoePreview={isAoePreview}
+                targetingMode={abilitySystem.targetingMode}
                 onTileClick={handleTileClick}
                 onTileHover={handleTileHover}
               />
@@ -217,6 +218,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
                 position={character.position}
                 isSelected={selectedCharacterId === character.id}
                 isTargetable={isTargetable}
+                targetingMode={abilitySystem.targetingMode}
                 isTurn={turnState.currentCharacterId === character.id}
                 onCharacterClick={handleCharacterClick}
               />

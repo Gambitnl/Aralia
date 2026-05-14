@@ -3,7 +3,7 @@
 - **School**: Abjuration
 - **Ritual**: false
 - **Classes**: Cleric, Paladin, Sorcerer, Warlock, Wizard
-- **Sub-Classes**: Paladin - Oath of the Crown (SCAG), Paladin - Oath of the Watchers (TCoE), Paladin - Oath of Vengeance, Cleric - Community Domain (HCS)
+- **Sub-Classes**: Folded into Classes
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -13,6 +13,20 @@
 - **Range Distance**: 30
 - **Targeting Type**: single
 - **Valid Targets**: creatures
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -30,10 +44,29 @@
 - **Effect Type**: STATUS
 - **Save Stat**: Charisma
 - **Save Outcome**: negates
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Conditions Applied**: Incapacitated, Banished
 
 - **Description**: One creature that you can see within range must succeed on a Charisma saving throw or be transported to a harmless demiplane for the duration. While there, the target has the Incapacitated condition. When the spell ends, the target reappears in the space it left or in the nearest unoccupied space if that space is occupied. If the target is an Aberration, a Celestial, an Elemental, a Fey, or a Fiend, the target doesn't return if the spell lasts for 1 minute. The target is instead transported to a random location on a plane (DM's choice) associated with its creature type.
 - **Higher Levels**: Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 4.
+- **Scaling Rule 1 Type**: special_text
+- **Scaling Rule 1 Applies To**: canonical higher-level prose
+- **Scaling Rule 1 Notes**: You can target one additional creature for each spell slot level above 4.
 
 ## Canonical D&D Beyond Snapshot
 
@@ -52,7 +85,7 @@ Damage/Effect: Banishment (...)
 
 Rules Text:
 One creature that you can see within range must succeed on a Charisma saving throw or be transported to a harmless demiplane for the duration. While there, the target has the Incapacitated condition. When the spell ends, the target reappears in the space it left or in the nearest unoccupied space if that space is occupied.
-If the target is an Aberration, a Celestial, an Elemental, a Fey, or a Fiend, the target doesn’t return if the spell lasts for 1 minute. The target is instead transported to a random location on a plane (DM’s choice) associated with its creature type.
+If the target is an Aberration, a Celestial, an Elemental, a Fey, or a Fiend, the target doesn't return if the spell lasts for 1 minute. The target is instead transported to a random location on a plane (DM's choice) associated with its creature type.
 Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 4.
 
 Material Component:
@@ -76,3 +109,4 @@ Cleric - Community Domain (HCS)
 Capture Method: http
 Legacy Page: false
 -->
+

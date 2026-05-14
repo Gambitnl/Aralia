@@ -110,10 +110,10 @@
 
 | Line | Snippet |
 |---|---|
-| 465 | `incapacitated: { id: 'incapacitated', label: 'Incapacitated', icon: '🤕', color: '#DC2626', description: 'Can’t take actions or reactions.' }, // red-...` |
-| 467 | `paralyzed: { id: 'paralyzed', label: 'Paralyzed', icon: '⚡', color: '#FBBF24', description: 'Incapacitated and can’t move or speak. Attacks against th...` |
-| 472 | `stunned: { id: 'stunned', label: 'Stunned', icon: '💫', color: '#FCD34D', description: 'Incapacitated, can’t move, and can speak only falteringly.' },...` |
-| 473 | `unconscious: { id: 'unconscious', label: 'Unconscious', icon: '💤', color: '#1F2937', description: 'Incapacitated, can’t move or speak, and is unaware...` |
+| 465 | `incapacitated: { id: 'incapacitated', label: 'Incapacitated', icon: '🤕', color: '#DC2626', description: 'Can't take actions or reactions.' }, // red-...` |
+| 467 | `paralyzed: { id: 'paralyzed', label: 'Paralyzed', icon: '⚡', color: '#FBBF24', description: 'Incapacitated and can't move or speak. Attacks against th...` |
+| 472 | `stunned: { id: 'stunned', label: 'Stunned', icon: '💫', color: '#FCD34D', description: 'Incapacitated, can't move, and can speak only falteringly.' },...` |
+| 473 | `unconscious: { id: 'unconscious', label: 'Unconscious', icon: '💤', color: '#1F2937', description: 'Incapacitated, can't move or speak, and is unaware...` |
 
 ### `src/utils/combat/combatUtils.ts`
 
@@ -219,7 +219,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ### `docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md`
 

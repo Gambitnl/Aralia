@@ -38,9 +38,10 @@ import { PlayerCharacter, Monster, Item } from '../../types';
 // 1. Implementing condition-based combat mechanics that utilize ConditionName type
 // 2. Removing the import to reduce module surface area and potential confusion
 // 3. Creating a dedicated conditions module that handles status effect processing
-import { Spell, DamageType, ConditionName as _ConditionName } from '../../types/spells'; // Explicit import to avoid conflicts
+import { Spell, DamageType, ConditionName } from '../../types/spells';
+import { CreatureType, CreatureTypeTraits } from '../../types/creatures';
 import { CLASSES_DATA } from '../../data/classes';
-import { MONSTERS_DATA } from '../../data/monsters';
+import { getMonster } from '../../data/adapters/runtimeMonsterRegistry';
 import { createAbilityFromSpell } from '../character/spellAbilityFactory';
 import { isWeaponProficient } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
@@ -378,6 +379,67 @@ export function getDistance(pos1: Position, pos2: Position): number {
 }
 
 /**
+ * Returns the width/height of a creature in tiles based on its size category.
+ * - Tiny/Small/Medium: 1x1 (1 tile)
+ * - Large: 2x2 (2 tiles)
+ * - Huge: 3x3 (3 tiles)
+ * - Gargantuan: 4x4+ (4 tiles)
+ */
+export function getCharacterSizeMultiplier(size?: string): number {
+  switch (size) {
+    case 'Large': return 2;
+    case 'Huge': return 3;
+    case 'Gargantuan': return 4;
+    default: return 1;
+  }
+}
+
+/**
+ * Calculates all tiles occupied by a character based on their size.
+ * Large creatures occupy 2x2, Huge 3x3, etc.
+ * The 'position' field always represents the top-left corner tile.
+ *
+ * @param character - The character to check.
+ * @returns An array of positions occupied by the character.
+ */
+export function getOccupiedTiles(character: CombatCharacter): Position[] {
+  const size = character.stats.size;
+  const multiplier = getCharacterSizeMultiplier(size);
+  
+  if (multiplier === 1) return [character.position];
+
+  const tiles: Position[] = [];
+  for (let dx = 0; dx < multiplier; dx++) {
+    for (let dy = 0; dy < multiplier; dy++) {
+      tiles.push({
+        x: character.position.x + dx,
+        y: character.position.y + dy
+      });
+    }
+  }
+  return tiles;
+}
+
+/**
+ * Calculates the shortest distance between two characters, accounting for their sizes.
+ * Distance is measured from the closest pair of occupied tiles.
+ */
+export function getCharacterDistance(char1: CombatCharacter, char2: CombatCharacter): number {
+  const tiles1 = getOccupiedTiles(char1);
+  const tiles2 = getOccupiedTiles(char2);
+  
+  let minDist = Infinity;
+  for (const t1 of tiles1) {
+    for (const t2 of tiles2) {
+      const d = getDistance(t1, t2);
+      if (d < minDist) minDist = d;
+      if (minDist === 0) return 0; // Optimized: adjacent or overlapping
+    }
+  }
+  return minDist;
+}
+
+/**
  * Normalizes AoE information on an ability into a concrete AreaOfEffect object.
  * This keeps older abilities that only set areaOfEffect working while supporting
  * the newer areaShape/areaSize fields described in the combat types.
@@ -670,7 +732,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       cost: { type: 'action' },
       targeting: 'single_enemy',
       range: 1,
-      effects: [{ type: 'damage', value: 1 + getAbilityModifierValue(stats.strength), damageType: 'physical' }],
+      effects: [{ type: 'damage', value: 1 + getAbilityModifierValue(stats.strength), damageType: 'bludgeoning' }],
       icon: '✊'
     });
   }
@@ -679,10 +741,24 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     abilities.push(createWeaponAbility(offHand, 'off', true));
   }
 
-  // Universal Actions
+  // ------------------------------------------------------------------
+  // Universal Actions — available to all player characters
+  // ------------------------------------------------------------------
+  // These are standard D&D actions that every character can take regardless
+  // of class or equipment. They're added after weapon abilities so they
+  // appear at the end of the ability palette in the combat UI.
+  //
+  // - Dash: Doubles your movement for the turn (costs your Action).
+  // - Disengage: Prevents opportunity attacks when you move away (costs Action).
+  // - Stand Up: Rights yourself from the Prone condition. Per the 2024 PHB,
+  //   this costs half your total Speed (not an Action). The 'movement-only'
+  //   cost type deducts from remaining movement without consuming any action.
+  //   The actual Prone removal happens in useActionExecutor.ts.
+  // ------------------------------------------------------------------
   abilities.push(
     { id: 'dash', name: 'Dash', description: 'Gain extra movement for the turn.', type: 'movement', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [{ type: 'movement', value: stats.speed }], icon: '🏃' },
-    { id: 'disengage', name: 'Disengage', description: 'Prevent opportunity attacks.', type: 'utility', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [], icon: '🛡️' }
+    { id: 'disengage', name: 'Disengage', description: 'Prevent opportunity attacks.', type: 'utility', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [], icon: '🛡️' },
+    { id: 'stand_up', name: 'Stand Up', description: 'Right yourself from a Prone position. Costs half your Speed.', type: 'movement', cost: { type: 'movement-only', movementCost: Math.floor(stats.speed / 2) }, targeting: 'self', range: 0, effects: [], icon: '⬆️' }
   );
 
   if (player.class.id === 'rogue') {
@@ -739,6 +815,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       action: { used: false, remaining: 1 },
       bonusAction: { used: false, remaining: 1 },
       reaction: { used: false, remaining: 1 },
+      legendary: { used: 0, total: 0 },
       movement: { used: 0, total: stats.speed },
       freeActions: 1,
     },
@@ -808,21 +885,37 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
  * @param index - Unique index for this instance (0-based).
  * @returns A CombatCharacter object representing an enemy.
  */
+
+function computeConditionImmunities(tags: string[]): ConditionName[] {
+  const immunities = new Set<ConditionName>();
+  for (const tag of tags) {
+    const type = (tag.charAt(0).toUpperCase() + tag.slice(1)) as CreatureType;
+    const traits = CreatureTypeTraits[type];
+    if (traits?.conditionImmunities) {
+      traits.conditionImmunities.forEach(c => immunities.add(c));
+    }
+  }
+  return Array.from(immunities);
+}
+
 export function createEnemyFromMonster(monster: Monster, index: number): CombatCharacter {
-  const monsterId = monster.name.toLowerCase().replace(/\s+/g, '_');
-  const monsterData = MONSTERS_DATA[monsterId];
+  const monsterData = getMonster(monster.name);
 
   if (!monsterData) {
     console.warn(`No data found for monster: ${monster.name}. Creating a generic enemy.`);
     const fallbackStats: CharacterStats = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: monster.cr || '1/4', senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 } };
+    const fallbackId = monster.name.toLowerCase().replace(/\s+/g, '_');
     return {
-      id: `enemy_${monsterId}_${index}`,
+      id: `enemy_${fallbackId}_${index}`,
       name: `${monster.name} ${index + 1}`,
       level: parseFloat(monster.cr) || 1,
       class: CLASSES_DATA['fighter'],
       position: { x: 0, y: 0 },
       stats: fallbackStats,
-      abilities: [{ id: 'basic_attack', name: 'Attack', description: 'A basic attack.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 4, damageType: 'physical' }], icon: '⚔️', isProficient: true }],
+      abilities: [
+        { id: 'basic_attack', name: 'Attack', description: 'A basic attack.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 4, damageType: 'bludgeoning' }], icon: '⚔️', isProficient: true },
+        { id: 'stand_up', name: 'Stand Up', description: 'Right yourself from a Prone position. Costs half your Speed.', type: 'movement', cost: { type: 'movement-only', movementCost: Math.floor(fallbackStats.speed / 2) }, targeting: 'self', range: 0, effects: [], icon: '⬆️' }
+      ],
       team: 'enemy',
       maxHP: 10,
       currentHP: 10,
@@ -832,11 +925,19 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
         action: { used: false, remaining: 1 },
         bonusAction: { used: false, remaining: 1 },
         reaction: { used: false, remaining: 1 },
+        legendary: { used: 0, total: 0 },
         movement: { used: 0, total: 30 },
         freeActions: 1,
       },
     };
   }
+
+  // Merge type-inferred immunities (e.g. Undead → Poisoned) with explicit 5eTools
+  // conditionImmune entries (e.g. Zombie → Exhaustion, Poisoned). Deduplication is
+  // handled by Set so there are no duplicate entries on the spawned CombatCharacter.
+  const typeInferred = computeConditionImmunities(monsterData.tags);
+  const explicit: ConditionName[] = (monsterData.conditionImmunities || []) as ConditionName[];
+  const conditionImmunities = Array.from(new Set([...typeInferred, ...explicit]));
 
   // Parse CR to number for level
   let level = 1;
@@ -850,13 +951,20 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
   }
 
   return {
-    id: `enemy_${monsterId}_${index}`,
+    id: `enemy_${monsterData.id}_${index}`,
     name: `${monsterData.name} ${index + 1}`,
     level: level || 1,
     class: CLASSES_DATA['fighter'], // Needs a class for structure
     position: { x: 0, y: 0 },
     stats: monsterData.baseStats,
-    abilities: monsterData.abilities,
+    abilities: [
+      // Start with all abilities from the monster's data definition
+      ...(monsterData.abilities || []),
+      // Inject the Stand Up universal action for enemies too — any creature
+      // that gets knocked Prone needs a way to right itself on its turn.
+      // Cost is half the creature's base speed, same rule as players.
+      { id: 'stand_up', name: 'Stand Up', description: 'Right yourself from a Prone position. Costs half your Speed.', type: 'movement', cost: { type: 'movement-only', movementCost: Math.floor(monsterData.baseStats.speed / 2) }, targeting: 'self', range: 0, effects: [], icon: '⬆️' }
+    ],
     team: 'enemy',
     maxHP: monsterData.maxHP,
     currentHP: monsterData.maxHP,
@@ -866,12 +974,19 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
       action: { used: false, remaining: 1 },
       bonusAction: { used: false, remaining: 1 },
       reaction: { used: false, remaining: 1 },
+      legendary: { 
+        used: 0, 
+        total: monsterData.baseStats.legendaryActionsPerRound || 0 
+      },
       movement: { used: 0, total: monsterData.baseStats.speed },
       freeActions: 1,
     },
     resistances: monsterData.resistances,
     vulnerabilities: monsterData.vulnerabilities,
     immunities: monsterData.immunities,
+    ...(monsterData.nonMagicalResistances && { nonMagicalResistances: monsterData.nonMagicalResistances }),
+    ...(monsterData.nonMagicalImmunities && { nonMagicalImmunities: monsterData.nonMagicalImmunities }),
+    ...(conditionImmunities.length > 0 && { conditionImmunities }),
   };
 }
 

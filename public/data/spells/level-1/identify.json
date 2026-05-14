@@ -1,182 +1,186 @@
 {
-    "id":  "identify",
-    "name":  "Identify",
-    "aliases":  [
-
-                ],
-    "level":  1,
-    "school":  "Divination",
-    "legacy":  false,
-    "classes":  [
-                    "Artificer",
-                    "Bard",
-                    "Wizard"
-                ],
-    "subClasses":  [
-                       "Cleric - Forge Domain (XGtE)",
-                       "Warlock - Lantern Patron (OTTG)"
-                   ],
-    "subClassesVerification":  "verified",
-    "ritual":  true,
-    "rarity":  "common",
-    "attackType":  "",
-    "castingTime":  {
-                        "value":  1,
-                        "unit":  "minute",
-                        "combatCost":  {
-                                           "type":  "action",
-                                           "condition":  ""
-                                       },
-                        "explorationCost":  {
-                                                "value":  1,
-                                                "unit":  "minute"
-                                            }
-                    },
-    "range":  {
-                  "type":  "touch",
-                  "distance":  0
-              },
-    "components":  {
-                       "verbal":  true,
-                       "somatic":  true,
-                       "material":  true,
-                       "materialDescription":  "a pearl worth 100+ GP",
-                       "materialCost":  100,
-                       "isConsumed":  false
-                   },
-    "duration":  {
-                     "type":  "instantaneous",
-                     "concentration":  false,
-                     "value":  0,
-                     "unit":  "round"
-                 },
-    "targeting":  {
-                      "type":  "single",
-                      "range":  0,
-                      "validTargets":  [
-                                           "objects"
-                                       ],
-                      "lineOfSight":  true,
-                      "maxTargets":  1,
-                      "areaOfEffect":  {
-                                           "shape":  "Sphere",
-                                           "size":  0,
-                                           "height":  0
-                                       },
-                      "filter":  {
-                                     "creatureTypes":  [
-
-                                                       ],
-                                     "excludeCreatureTypes":  [
-
-                                                              ],
-                                     "sizes":  [
-
-                                               ],
-                                     "alignments":  [
-
-                                                    ],
-                                     "hasCondition":  [
-
-                                                      ],
-                                     "isNativeToPlane":  false
-                                 }
-                  },
-    "effects":  [
-                    {
-                        "type":  "UTILITY",
-                        "trigger":  {
-                                        "type":  "immediate",
-                                        "frequency":  "every_time",
-                                        "consumption":  "unlimited",
-                                        "attackFilter":  {
-                                                             "weaponType":  "any",
-                                                             "attackType":  "any"
-                                                         },
-                                        "movementType":  "any",
-                                        "sustainCost":  {
-                                                            "actionType":  "action",
-                                                            "optional":  false
-                                                        }
-                                    },
-                        "condition":  {
-                                          "type":  "always",
-                                          "saveType":  "Strength",
-                                          "saveEffect":  "none",
-                                          "targetFilter":  {
-                                                               "creatureTypes":  [
-
-                                                                                 ],
-                                                               "excludeCreatureTypes":  [
-
-                                                                                        ],
-                                                               "sizes":  [
-
-                                                                         ],
-                                                               "alignments":  [
-
-                                                                              ],
-                                                               "hasCondition":  [
-
-                                                                                ],
-                                                               "isNativeToPlane":  false
-                                                           },
-                                          "requiresStatus":  [
-
-                                                             ],
-                                          "saveModifiers":  [
-
-                                                            ]
-                                      },
-                        "utilityType":  "information",
-                        "description":  "Learn magical properties, charges, attunement requirements, active spells, and the spell that created the item if applicable.",
-                        "scaling":  {
-                                        "type":  "slot_level",
-                                        "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
-                        "grantedActions":  [
-
-                                           ],
-                        "attackAugments":  [
-
-                                           ],
-                        "controlOptions":  [
-
-                                           ],
-                        "taunt":  {
-                                      "disadvantageAgainstOthers":  false,
-                                      "leashRangeFeet":  0,
-                                      "breakConditions":  [
-
-                                                          ]
-                                  },
-                        "savePenalty":  {
-                                            "dice":  "",
-                                            "flat":  0,
-                                            "applies":  "next_save",
-                                            "duration":  {
-                                                             "type":  "rounds",
-                                                             "value":  0
-                                                         }
-                                        },
-                        "light":  {
-                                      "brightRadius":  0,
-                                      "dimRadius":  0,
-                                      "attachedTo":  "caster",
-                                      "color":  ""
-                                  }
-                    }
-                ],
-    "arbitrationType":  "mechanical",
-    "aiContext":  {
-                      "prompt":  "",
-                      "playerInputRequired":  false
-                  },
-    "description":  "You touch an object throughout the spell\u0027s casting. If the object is a magic item or some other magical object, you learn its properties and how to use them, whether it requires Attunement , and how many charges it has, if any. You learn whether any ongoing spells are affecting the item and what they are. If the item was created by a spell, you learn that spell\u0027s name. If you instead touch a creature throughout the casting, you learn which ongoing spells, if any, are currently affecting it.",
-    "higherLevels":  "",
-    "tags":  [
-                 "ritual",
-                 "information"
-             ]
+  "id": "identify",
+  "name": "Identify",
+  "aliases": [],
+  "level": 1,
+  "school": "Divination",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Wizard"
+  ],
+  "subClasses": [],
+  "ritual": true,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "minute",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 1,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pearl worth 100+ GP",
+    "materialCost": 100,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "objects"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "information",
+      "description": "Learn magical properties, charges, attunement requirements, active spells, and the spell that created the item if applicable.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch an object throughout the spell's casting. If the object is a magic item or some other magical object, you learn its properties and how to use them, whether it requires Attunement , and how many charges it has, if any. You learn whether any ongoing spells are affecting the item and what they are. If the item was created by a spell, you learn that spell's name. If you instead touch a creature throughout the casting, you learn which ongoing spells, if any, are currently affecting it.",
+  "higherLevels": "",
+  "tags": [
+    "ritual",
+    "information"
+  ]
 }

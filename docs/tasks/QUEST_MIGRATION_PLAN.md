@@ -68,12 +68,12 @@ The `QuestDefinition` interface in `src/types/quests.ts` provides the foundation
 
 1. **Data Analysis**
    - Audit existing quest data in `public/data/quests/`
-   - Identify transformation patterns for legacy → QuestDefinition
+   - Identify transformation patterns for legacy -> QuestDefinition
    - Document edge cases (multi-objective quests, deadlines)
 
 2. **Type Safety Setup**
    - Create migration utility functions in `src/utils/questMigration.ts`
-   - Implement legacy Quest → QuestDefinition converter
+   - Implement legacy Quest -> QuestDefinition converter
    - Add type guards for gradual migration
 
 3. **Testing Infrastructure**
@@ -214,21 +214,21 @@ The `QuestDefinition` interface in `src/types/quests.ts` provides the foundation
 ## Success Criteria
 
 ### Functional Requirements
-- ✅ All existing quests load and function correctly
-- ✅ New QuestDefinition quests support full feature set
-- ✅ UI displays stages, prerequisites, and branching options
-- ✅ State persistence works across migrations
+- PASSED All existing quests load and function correctly
+- PASSED New QuestDefinition quests support full feature set
+- PASSED UI displays stages, prerequisites, and branching options
+- PASSED State persistence works across migrations
 
 ### Quality Requirements
-- ✅ 95%+ test coverage for new functionality
-- ✅ No performance regression >10%
-- ✅ Zero critical bugs in quest progression
-- ✅ Backward compatibility for 6+ months
+- PASSED 95%+ test coverage for new functionality
+- PASSED No performance regression >10%
+- PASSED Zero critical bugs in quest progression
+- PASSED Backward compatibility for 6+ months
 
 ### User Experience
-- ✅ Intuitive stage progression indicators
-- ✅ Clear prerequisite feedback
-- ✅ Seamless quest acceptance flow
+- PASSED Intuitive stage progression indicators
+- PASSED Clear prerequisite feedback
+- PASSED Seamless quest acceptance flow
 
 ## Timeline and Milestones
 
@@ -241,7 +241,7 @@ The `QuestDefinition` interface in `src/types/quests.ts` provides the foundation
 | Cleanup | Week 7 | Legacy code removed, docs updated | [Dev] |
 
 **Total Timeline:** 7 weeks
-**Critical Path:** Phase 2 (state management) → Phase 3 (UI) → Phase 4 (testing)
+**Critical Path:** Phase 2 (state management) -> Phase 3 (UI) -> Phase 4 (testing)
 
 ## Resources Required
 

@@ -1,81 +1,46 @@
+// @dependencies-start
 /**
- * @file src/data/monsters.ts
- * Defines the base data for monsters that can be used in combat encounters.
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 07/05/2026, 00:03:13
+ * Dependents: constants.ts, systems/crime/BountyHunterSystem.ts, utils/combat/combatUtils.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
+// @dependencies-end
+
+// ============================================================================
+// Monster Data Registry
+// ============================================================================
+// This file is the single source of truth for all monsters available in the
+// game. The combat encounter generator (combatUtils.ts), the AI fallback
+// encounter system (geminiServiceFallback.ts), and the bounty hunter crime
+// system all pull from MONSTERS_DATA when they need to spawn a creature.
+//
+// Previously, every monster was hand-written inline in this file with
+// hardcoded stats and abilities. Now the data comes from 5etools bestiary
+// JSON files via an automated ingestion pipeline:
+//
+//   vendor/5etools-src/  →  scripts/ingestMonsters.ts  →  monsters.generated.ts
+//
+// This file re-exports that generated data. If you need to add a manual
+// override or a custom monster that doesn't exist in 5etools, you can spread
+// additional entries into the MONSTERS_DATA object below.
+//
+// Called by: constants.ts (re-export), combatUtils.ts, BountyHunterSystem.ts
+// Depends on: monsters.generated.ts (auto-generated from 5etools)
+// ============================================================================
+
 import { MonsterData } from '../types';
-import { CharacterStats, Ability } from '../types/combat';
-// TODO(lint-intent): 'CLASSES_DATA' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { CLASSES_DATA as _CLASSES_DATA } from './classes';
+import { INGESTED_MONSTERS } from './monsters.generated';
 
-const GOBLIN_ABILITIES: Ability[] = [
-    { id: 'scimitar', name: 'Scimitar', description: 'A slash with a rusty scimitar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 0, dice: '1d6+2', damageType: 'physical' }], icon: '🗡️', isProficient: true },
-    { id: 'shortbow', name: 'Shortbow', description: 'Fires a crude arrow.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 10, effects: [{ type: 'damage', value: 0, dice: '1d6+2', damageType: 'physical' }], icon: '🏹', isProficient: true },
-];
-
-const GOBLIN_STATS: Omit<CharacterStats, 'cr'> = {
-    strength: 8,
-    dexterity: 14,
-    constitution: 10,
-    intelligence: 10,
-    wisdom: 8,
-    charisma: 8,
-    baseInitiative: 2,
-    speed: 30,
-    senses: { darkvision: 60, blindsight: 0, tremorsense: 0, truesight: 0 },
-};
-
-const ORC_ABILITIES: Ability[] = [
-    { id: 'greataxe', name: 'Greataxe', description: 'A furious swing with a heavy greataxe.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 0, dice: '1d12+3', damageType: 'physical' }], icon: '🪓', isProficient: true },
-    { id: 'javelin', name: 'Javelin', description: 'Hurls a javelin.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 6, effects: [{ type: 'damage', value: 0, dice: '1d6+3', damageType: 'physical' }], icon: '🎯', isProficient: true },
-];
-
-const ORC_STATS: Omit<CharacterStats, 'cr'> = {
-    strength: 16,
-    dexterity: 12,
-    constitution: 16,
-    intelligence: 7,
-    wisdom: 11,
-    charisma: 10,
-    baseInitiative: 1,
-    speed: 30,
-    senses: { darkvision: 60, blindsight: 0, tremorsense: 0, truesight: 0 },
-};
-
+// The main monster registry. Spread the auto-generated monsters from 5etools.
+// Additional manual monsters can be added below the spread if needed.
 export const MONSTERS_DATA: Record<string, MonsterData> = {
-    'goblin': {
-        id: 'goblin',
-        name: 'Goblin',
-        baseStats: { ...GOBLIN_STATS, cr: '1/4', creatureTypes: ['Humanoid', 'Goblinoid'], alignment: 'Neutral Evil' },
-        // [REVIEW QUESTION]: Is mixing "Type" (Humanoid) and "Tag" (Goblinoid) in a single string array robust enough?
-        // 5e rules distinguish them (e.g. "Hold Person" targets Humanoids, "Ranger Favored Enemy" might pick "Humanoids (Goblinoids)").
-        // Currently `matchesFilter` checks `includes(t)`, so it works for both.
-        // But if we ever need "Humanoid AND NOT Goblinoid", we might need structured types.
-        // For now, this flattening seems acceptable but worth tracking as tech debt.
-        maxHP: 7,
-        abilities: GOBLIN_ABILITIES,
-        tags: ['goblinoid', 'forest', 'cave', 'hills', 'ruins'],
-    },
-    'orc': {
-        id: 'orc',
-        name: 'Orc',
-        baseStats: { ...ORC_STATS, cr: '1/2', creatureTypes: ['Humanoid', 'Orc'], alignment: 'Chaotic Evil' },
-        maxHP: 15,
-        abilities: ORC_ABILITIES,
-        tags: ['goblinoid', 'forest', 'hills', 'mountain', 'cave'],
-    },
-    'bugbear': {
-        id: 'bugbear',
-        name: 'Bugbear',
-
-        baseStats: { ...ORC_STATS, strength: 17, cr: '1', creatureTypes: ['Humanoid', 'Goblinoid'], alignment: 'Chaotic Evil' },
-        maxHP: 27,
-        abilities: [
-            { id: 'morningstar', name: 'Morningstar', description: 'A brutal swing with a spiked morningstar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 0, dice: '2d8+3', damageType: 'physical' }], icon: '⭐', isProficient: true },
-            { id: 'javelin_bugbear', name: 'Javelin', description: 'Hurls a javelin.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 6, effects: [{ type: 'damage', value: 0, dice: '1d6+3', damageType: 'physical' }], icon: '🎯', isProficient: true },
-        ],
-        tags: ['goblinoid', 'forest', 'cave'],
-    }
-    // Add more monsters here
+    ...INGESTED_MONSTERS
 };

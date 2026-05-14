@@ -1,0 +1,43 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "label": "Recurring Mechanics",
+      "required": false,
+      "valueType": "summary-or-sentinel",
+      "jsonPath": "effects[].recurringMechanics[]",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some recurring rules are not status repeat saves and need their own structured summary."
+        }
+      ],
+      "comment": "Some recurring rules are not status repeat saves and need their own structured summary. It maps to `effects[].recurringMechanics[]`. Purpose: Recurring Mechanics exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].recurringMechanics[]`. The value type is `summary-or-sentinel`. Use `not_applicable` when no recurring non-save mechanic applies."
+    },
+    {
+      "label": "Recurring Mechanic Timing",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "turn_start",
+        "turn_end",
+        "on_damage",
+        "on_entity_proximity",
+        "on_target_cast",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].recurringMechanics[].timing",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Recurring mechanics need explicit timing so start-turn, end-turn, first-per-turn, and casting-gate rules stay machine-actionable."
+        }
+      ],
+      "comment": "Recurring mechanics need explicit timing so start-turn, end-turn, first-per-turn, and casting-gate rules stay machine-actionable. It maps to `effects[].recurringMechanics[].timing`. Purpose: Recurring Mechanic Timing exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].recurringMechanics[].timing`. The value type is `csv-enum`. Use `not_applicable` when no recurring non-save mechanic applies."
+    }
+  ]
+}

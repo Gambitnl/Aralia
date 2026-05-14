@@ -10,10 +10,7 @@
     "Warlock",
     "Wizard"
   ],
-  "subClasses": [
-    "Druid - Circle of Spores (TCoE)"
-  ],
-  "subClassesVerification": "verified",
+  "subClasses": [],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -48,17 +45,26 @@
     "concentration": true
   },
   "targeting": {
-    "type": "single",
+    "type": "multi",
     "range": 0,
     "validTargets": [
       "allies"
     ],
     "lineOfSight": true,
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+    "maxTargets": {
+      "base": 1,
+      "scaling": {
+        "type": "slot_level",
+        "thresholds": {
+          "3": 1,
+          "4": 2,
+          "5": 3,
+          "6": 4,
+          "7": 5,
+          "8": 6,
+          "9": 7
+        }
+      }
     },
     "filter": {
       "creatureTypes": [],
@@ -66,10 +72,121 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "required",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "resistance",
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "description": "While in misty cloud form, the target has Resistance to Bludgeoning, Piercing, and Slashing damage.",
+      "damageType": [
+        "Bludgeoning",
+        "Piercing",
+        "Slashing"
+      ],
+      "conditionalEndings": [
+        {
+          "trigger": "target_drops_to_0_hp",
+          "scope": "effect",
+          "description": "The spell ends on an affected target if that target drops to 0 Hit Points."
+        },
+        {
+          "trigger": "target_uses_magic_action_to_end_effect",
+          "scope": "effect",
+          "description": "The affected target can take a Magic action to end the spell on itself."
+        }
+      ]
+    },
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "immunity",
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "description": "While in misty cloud form, the target has Immunity to the Prone condition.",
+      "damageType": [],
+      "conditionImmunity": [
+        "Prone"
+      ],
+      "conditionalEndings": [
+        {
+          "trigger": "target_drops_to_0_hp",
+          "scope": "effect",
+          "description": "The spell ends on an affected target if that target drops to 0 Hit Points."
+        },
+        {
+          "trigger": "target_uses_magic_action_to_end_effect",
+          "scope": "effect",
+          "description": "The affected target can take a Magic action to end the spell on itself."
+        }
+      ]
+    },
     {
       "type": "UTILITY",
       "trigger": {
@@ -88,18 +205,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
       "description": "A willing creature you touch shape-shifts, along with everything it's wearing and carrying, into a misty cloud for the duration. The spell ends on the target if it drops to 0 Hit Points or if it takes a Magic action to end the spell on itself. While in this form, the target's only method of movement is a Fly Speed of 10 feet, and it can hover. The target can enter and occupy the space of another creature. The target has Resistance to Bludgeoning, Piercing, and Slashing damage; it has Immunity to the Prone condition; and it has Advantage on Strength, Dexterity, and Constitution saving throws. The target can pass through narrow openings, but it treats liquids as though they were solid surfaces. The target can't talk or manipulate objects, and any objects it was carrying or holding can't be dropped, used, or otherwise interacted with. Finally, the target can't attack or cast spells.",
@@ -129,8 +265,27 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "target_drops_to_0_hp",
+          "scope": "effect",
+          "description": "The spell ends on an affected target if that target drops to 0 Hit Points."
+        },
+        {
+          "trigger": "target_uses_magic_action_to_end_effect",
+          "scope": "effect",
+          "description": "The affected target can take a Magic action to end the spell on itself."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",

@@ -23,6 +23,86 @@
             "className": "Bard",
             "level": 1,
             "description": "A cheerful Halfling entertainer whose songs bolster allies and beguile foes."
+        },
+        {
+            "filename": "brynna_ashward.json",
+            "name": "Brynna Ashward",
+            "race": "Human",
+            "className": "Barbarian",
+            "level": 1,
+            "description": "A direct human outlander whose rage makes her the front line for encounter testing."
+        },
+        {
+            "filename": "sera_dawnmantle.json",
+            "name": "Sera Dawnmantle",
+            "race": "Human",
+            "className": "Cleric",
+            "level": 1,
+            "description": "A steady human field-priest built to test healing, blessings, and shielded support play."
+        },
+        {
+            "filename": "merrit_greenbough.json",
+            "name": "Merrit Greenbough",
+            "race": "Human",
+            "className": "Druid",
+            "level": 1,
+            "description": "A watchful human hermit who tests nature magic, control spells, and wilderness utility."
+        },
+        {
+            "filename": "oren_pathmark.json",
+            "name": "Oren Pathmark",
+            "race": "Human",
+            "className": "Ranger",
+            "level": 1,
+            "description": "A quiet human guide built around ranged pressure, tracking skills, and light healing."
+        },
+        {
+            "filename": "nyx_velorin.json",
+            "name": "Nyx Velorin",
+            "race": "Human",
+            "className": "Rogue",
+            "level": 1,
+            "description": "A nimble human infiltrator for testing stealth, scouting, and precision attacks."
+        },
+        {
+            "filename": "tavian_oathsteel.json",
+            "name": "Tavian Oathsteel",
+            "race": "Human",
+            "className": "Paladin",
+            "level": 1,
+            "description": "A sworn human defender who tests high armor, weapon pressure, and early divine magic."
+        },
+        {
+            "filename": "ivel_sparkvein.json",
+            "name": "Ivel Sparkvein",
+            "race": "Human",
+            "className": "Sorcerer",
+            "level": 1,
+            "description": "A volatile human innate caster for testing cantrips, Shield, and simple arcane damage."
+        },
+        {
+            "filename": "cassian_blackreed.json",
+            "name": "Cassian Blackreed",
+            "race": "Human",
+            "className": "Warlock",
+            "level": 1,
+            "description": "A pact-bound human caster for testing Eldritch Blast, Hex, and short-rest spell slots."
+        },
+        {
+            "filename": "maelis_quill.json",
+            "name": "Maelis Quill",
+            "race": "Human",
+            "className": "Wizard",
+            "level": 1,
+            "description": "A prepared human scholar for testing broad first-level arcane spell coverage."
+        },
+        {
+            "filename": "pip_coppercoil.json",
+            "name": "Pip Coppercoil",
+            "race": "Human",
+            "className": "Artificer",
+            "level": 1,
+            "description": "A practical human inventor for testing tool-flavored magic and support casting."
         }
     ]
 }

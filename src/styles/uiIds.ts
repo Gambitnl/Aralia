@@ -130,6 +130,11 @@ export const WINDOW_KEYS = {
   THIEVES_GUILD_SAFEHOUSE: 'thieves-guild-window',
   CHARACTER_CREATOR: 'character-creator-window',
   ALCHEMY_BENCH: 'alchemy-bench-panel',
+  COMBAT_INSPECTOR: 'combat-inspector-window',
+  ABILITY_PALETTE: 'ability-palette-window',
+  PARTY_DISPLAY: 'party-display-window',
+  INITIATIVE_TRACKER: 'initiative-tracker-window',
+  BATTLE_MAP_WINDOW: 'battle-map-window',
 } as const;
 
 // =============================================================================

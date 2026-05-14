@@ -239,6 +239,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
+            onCharacterInspect={() => {}}
             currentTurnCharacterId={turnManager.turnState.currentCharacterId}
             autoCharacters={autoCharacters}
             onToggleAuto={handleToggleAuto}

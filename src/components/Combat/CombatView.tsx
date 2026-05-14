@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 01:35:37
+ * Last Sync: 07/05/2026, 00:03:24
  * Dependents: components/Combat/index.ts
- * Imports: 32 files
+ * Imports: 33 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -38,7 +38,8 @@ import { useCombatLog } from '../../hooks/combat/useCombatLog';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
 import { Z_INDEX } from '../../styles/zIndex';
-import { UI_ID } from '../../styles/uiIds';
+import { UI_ID, WINDOW_KEYS } from '../../styles/uiIds';
+import { WindowFrame } from '../ui/WindowFrame';
 import { useSummons } from '../../hooks/combat/useSummons';
 import { useCombatAI } from '../../hooks/combat/useCombatAI';
 import InitiativeTracker from '../BattleMap/InitiativeTracker';
@@ -47,6 +48,7 @@ import CombatLog from '../BattleMap/CombatLog';
 import ActionEconomyBar from '../BattleMap/ActionEconomyBar';
 import PartyDisplay from '../BattleMap/PartyDisplay';
 import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
+import { CombatCharacterInspector } from '../BattleMap/CombatCharacterInspector';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
@@ -128,6 +130,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
   const [_selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [inspectedCharId, setInspectedCharId] = useState<string | null>(null);
+  const [isBattleMapExpanded, setIsBattleMapExpanded] = useState(false);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
 
   // Battle State managed by hook
@@ -268,6 +272,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     // bridge used by the turn manager. This preserves one visible log path
     // for attacks, spell commands, and invalid-target warnings.
     onLogEntry: handleLogEntry,
+    onNotification: (message, type) => dispatch({ type: 'ADD_NOTIFICATION', payload: { id: Date.now().toString(), message, type, duration: 4000 } }),
     onRequestInput: handleRequestInput,
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
@@ -298,6 +303,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     setSelectedCharacterId(charId);
   }
 
+  const handleCharacterInspect = (charId: string) => {
+    setInspectedCharId(prev => prev === charId ? null : charId);
+  };
+
   const handleSheetOpen = (charId: string) => {
     const playerToShow = party.find(p => p.id === charId);
     if (playerToShow) {
@@ -323,7 +332,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   });
 
   return (
-    <div id={UI_ID.COMBAT_VIEW} data-testid={UI_ID.COMBAT_VIEW} className="bg-gray-900 text-white min-h-screen flex flex-col p-4 relative">
+    <div id={UI_ID.COMBAT_VIEW} data-testid={UI_ID.COMBAT_VIEW} className="bg-gray-900 text-white h-screen flex flex-col p-4 relative overflow-hidden">
       {/* Victory / Defeat Modal */}
       {battleState !== 'active' && (
         <div className="absolute inset-0 bg-black/80 z-[var(--z-index-modal-background)] flex items-center justify-center">
@@ -418,6 +427,39 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         />
       )}
 
+      {inspectedCharId && (() => {
+        const inspected = characters.find(c => c.id === inspectedCharId);
+        return inspected ? (
+          <CombatCharacterInspector
+            character={inspected}
+            onClose={() => setInspectedCharId(null)}
+          />
+        ) : null;
+      })()}
+
+      {isBattleMapExpanded && characters.length > 0 && mapData && (
+        <WindowFrame
+          title="Battle Map"
+          onClose={() => setIsBattleMapExpanded(false)}
+          storageKey={WINDOW_KEYS.BATTLE_MAP_WINDOW}
+          initialMaximized={false}
+        >
+          <div className="h-full overflow-auto bg-gray-900 flex items-center justify-center p-2">
+            <BattleMap
+              mapData={mapData}
+              characters={characters}
+              combatState={{
+                turnManager: turnManager,
+                turnState: turnManager.turnState,
+                abilitySystem: abilitySystem,
+                isCharacterTurn: turnManager.isCharacterTurn,
+                onCharacterUpdate: handleCharacterUpdate
+              }}
+            />
+          </div>
+        </WindowFrame>
+      )}
+
       {sheetCharacter && (
         <CharacterSheetModal
           isOpen={!!sheetCharacter}
@@ -443,12 +485,13 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         </button>
       </div>
 
-      <div className="flex-grow grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
+      <div className="flex-grow grid grid-cols-1 xl:grid-cols-[200px_1fr_200px] gap-4 overflow-hidden">
         {/* Left Pane */}
-        <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
+        <div className="flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
           <PartyDisplay
             characters={characters}
             onCharacterSelect={handleCharacterSelect}
+            onCharacterInspect={handleCharacterInspect}
             currentTurnCharacterId={turnManager.turnState.currentCharacterId}
             autoCharacters={autoCharacters}
             onToggleAuto={handleToggleAuto}
@@ -456,44 +499,57 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         </div>
 
         {/* Center Pane */}
-        <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2">
-          <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
-            {characters.length > 0 && mapData ? (
-              <BattleMap
-                mapData={mapData}
-                characters={characters}
-                combatState={{
-                  turnManager: turnManager,
-                  turnState: turnManager.turnState,
-                  abilitySystem: abilitySystem,
-                  isCharacterTurn: turnManager.isCharacterTurn,
-                  onCharacterUpdate: handleCharacterUpdate
-                }}
-              />
-            ) : (
-              <div className="text-gray-400">Preparing battlefield...</div>
-            )}
-          </ErrorBoundary>
-        </div>
-
-        {/* Right Pane */}
-        <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
+        <div className="flex flex-col gap-2 overflow-hidden p-1">
           <InitiativeTracker
             characters={characters}
             turnState={turnManager.turnState}
             onCharacterSelect={handleSheetOpen}
+            onSkipToCharacter={turnManager.skipToCharacter}
           />
-          {currentCharacter && (
-            <ActionEconomyBar
+          <div className="flex-1 flex items-center justify-center overflow-auto relative">
+            {/* Pop-out button */}
+            {!isBattleMapExpanded && (
+              <button
+                onClick={() => setIsBattleMapExpanded(true)}
+                className="absolute top-2 right-2 z-10 text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors"
+                title="Pop out battle map into resizable window"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              </button>
+            )}
+            <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
+              {isBattleMapExpanded ? (
+                <div className="text-gray-400 text-sm italic">Battle map is popped out.</div>
+              ) : characters.length > 0 && mapData ? (
+                <BattleMap
+                  mapData={mapData}
+                  characters={characters}
+                  combatState={{
+                    turnManager: turnManager,
+                    turnState: turnManager.turnState,
+                    abilitySystem: abilitySystem,
+                    isCharacterTurn: turnManager.isCharacterTurn,
+                    onCharacterUpdate: handleCharacterUpdate
+                  }}
+                />
+              ) : (
+                <div className="text-gray-400">Preparing battlefield...</div>
+              )}
+            </ErrorBoundary>
+          </div>
+        </div>
+
+        {/* Right Pane */}
+        <div className="flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
+          {currentCharacter && currentCharacter.team === 'player' && (
+            <AbilityPalette
               character={currentCharacter}
-              onExecuteAction={turnManager.executeAction}
+              onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter)}
+              canAffordAction={(cost) => turnManager.canAffordAction(currentCharacter, cost)}
             />
           )}
-          <AbilityPalette
-            character={currentCharacter ?? null}
-            onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter!)}
-            canAffordAction={(cost) => currentCharacter ? turnManager.canAffordAction(currentCharacter, cost) : false}
-          />
           {/* [2026-02-10] CombatLog now receives both the legacy log entries and rich messages.
               - logEntries: Simple CombatLogEntry[] from useCombatLog (fallback display).
               - richMessages: CombatMessage[] from useCombatMessaging (enhanced display).

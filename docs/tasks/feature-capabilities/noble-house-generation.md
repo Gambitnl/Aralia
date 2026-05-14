@@ -1,4 +1,4 @@
-﻿# Noble House Generation
+# Noble House Generation
 
 This capability note tracks the current noble-house generation and intrigue foundations. The repo already contains seeded house generation, identity composition, and intrigue-event generation against noble-house factions.
 

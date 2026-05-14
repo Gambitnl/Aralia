@@ -1,0 +1,215 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 9 packet 10-14 reviewed manually against canonical prose, structured markdown, and runtime JSON.",
+    "Prismatic Wall remains open for layer-table extraction because the local canonical capture references the Prismatic Layers table but does not contain the table rows."
+  ],
+  "findings": {
+    "power-word-kill::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The visible creature requirement is represented by lineOfSight true and single targeting within 60 feet.",
+      "recommendedTemplateChange": "No template change required.",
+      "recommendedJsonChange": "Runtime JSON keeps lineOfSight true and targeting range 60."
+    },
+    "power-word-kill::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: The hit point threshold death branch needs a threshold/instant-death schema; current DAMAGE can only preserve the high-HP damage branch.",
+      "recommendedTemplateChange": "Add a threshold outcome bucket for hit-point-threshold instant death versus fallback damage.",
+      "recommendedJsonChange": "Runtime JSON records 12d12 Psychic damage and Death threshold Utility Option."
+    },
+    "power-word-kill::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The 100 Hit Point branch is now explicitly split from the damage branch in Utility Options.",
+      "recommendedTemplateChange": "No new field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Death threshold and Psychic damage branch."
+    },
+    "prismatic-wall::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Layer-specific Dexterity saves and effects require the Prismatic Layers table, which is referenced but not captured in the local canonical prose.",
+      "recommendedTemplateChange": "Add/capture a prismatic layer table bucket with per-layer save and effect rows.",
+      "recommendedJsonChange": "Runtime JSON currently records near-wall Constitution Blinded save and flags layer table need in prompt/options."
+    },
+    "prismatic-wall::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Wall/globe geometry, occupied-space failure, pass-through safety, and blocking wall behavior are now represented by spatial details, Terrain wall, and Utility Options.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON includes TERRAIN wall and controlOptions."
+    },
+    "prismatic-wall::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Bright Light, Dim Light, opacity, and near-wall visibility trigger are now separated into Utility Options and light fields.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON utility.light records 100-foot bright and additional 100-foot dim light."
+    },
+    "prismatic-wall::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Seven separately destructible layers need a layered object schema with AC, order, and destruction methods.",
+      "recommendedTemplateChange": "Add a layered object/barrier bucket for ordered layer destruction.",
+      "recommendedJsonChange": "Runtime JSON records wall AC and layer facts in Utility Options but not layer objects."
+    },
+    "prismatic-wall::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Safe passage through/near the wall for designated creatures is now a Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Designated safe creatures."
+    },
+    "prismatic-wall::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: AC 10 is stored, but hp is unknown and layer-specific destruction methods are missing from canonical capture.",
+      "recommendedTemplateChange": "Add complete layer stat/destruction rows once the table is captured.",
+      "recommendedJsonChange": "Runtime JSON uses wallProperties AC 10 with hp 0 sentinel plus Utility Options."
+    },
+    "prismatic-wall::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The near-wall Blinded condition is now represented by structured Conditions Applied and a STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes Blinded status effect with Constitution save."
+    },
+    "prismatic-wall::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Occupied-space instant ending, per-layer destruction, and Dispel Magic only affecting violet are now separated in Utility Options.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the conditional ending/removal rules."
+    },
+    "psychic-scream::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Up to ten chosen visible creatures is now represented by Targeting Max 10 and Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON maxTargets is 10."
+    },
+    "psychic-scream::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The Intelligence save for half damage is represented on DAMAGE and the save-negated Stunned effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes Intelligence save DAMAGE and STATUS_CONDITION effects."
+    },
+    "psychic-scream::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The end-turn repeat Intelligence save is now represented on the Stunned statusCondition repeatSave.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON statusCondition.repeatSave captures the recurring check."
+    },
+    "psychic-scream::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The visible target requirement is represented by lineOfSight true and Targeting Max 10.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps lineOfSight true."
+    },
+    "psychic-scream::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Stunned is now represented by structured Conditions Applied and a STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes Stunned status effect."
+    },
+    "psychic-scream::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The Stunned ending condition is the end-turn repeat save, now captured on the status effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON repeatSave successEnds true."
+    },
+    "shapechange::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Form eligibility, repeat Magic-action shape-shift, and equipment choice are now split into Utility Options and a player prompt.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions and granted action preserve choices."
+    },
+    "shapechange::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Equipment dropping to the ground is now captured as part of the Equipment choice option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve equipment drop/fit choice."
+    },
+    "shapechange::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Seen-form eligibility is now captured in the Eligible form Utility Option and prompt.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON prompt asks for eligible seen form."
+    },
+    "shapechange::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Retained ability to communicate is now explicitly included in the Stat replacement Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve communication retention."
+    },
+    "shapechange::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Temporary hit points from first-form HP can be marked, but the runtime cannot calculate form-derived THP or model vanish-on-end directly.",
+      "recommendedTemplateChange": "Add a form-derived temporary hit point bucket.",
+      "recommendedJsonChange": "Runtime JSON uses DEFENSIVE temporary_hp and Utility Options."
+    },
+    "shapechange::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Replacing the caster statistics while retaining selected traits needs a transformation/stat-replacement schema.",
+      "recommendedTemplateChange": "Add a transformation bucket for replacement and retained-stat lists.",
+      "recommendedJsonChange": "Runtime JSON records replacement/retention in Utility Options only."
+    },
+    "shapechange::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Shape-shifted form is a form/state transformation, not a simple status; current STATUS_CONDITION would misrepresent it.",
+      "recommendedTemplateChange": "Add a form transformation state bucket.",
+      "recommendedJsonChange": "Runtime JSON records Shapechange as Utility Options and temporary_hp effect."
+    },
+    "shapechange::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Duration/concentration ending and repeat Magic-action reshaping are now represented by duration, Utility Options, and granted action.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes granted action for repeat shape-shift."
+    },
+    "shapechange::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The equipment and temporary-hit-point aftermath are now captured in Equipment choice and Temporary hit points options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the aftermath facts."
+    },
+    "storm-of-vengeance::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Constitution and Dexterity saves are now represented on the relevant damage/status effects.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes save conditions for initial Thunder/Deafened and Turn 3 Lightning."
+    },
+    "storm-of-vengeance::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by adding a reusable Effect Schedule field family and runtime effectSchedule object. Storm of Vengeance now records later caster-turn stages for Turn 2 acid rain, Turn 3 six distinct lightning targets, Turn 4 hailstones, and Turns 5-10 freezing rain/control while keeping the existing effect packets as the mechanical payloads.",
+      "issue": "Closed: Turn-numbered staged effects are now represented by Effect Schedule fields; the schedule also records the Turn 3 six-different-target lightning stage.",
+      "recommendedTemplateChange": "Effect Schedule Timing, Entry Count, numbered Effect Schedule Entry fields, and Effect Schedule Notes now cover turn ranges and per-turn effects.",
+      "recommendedJsonChange": "Runtime JSON includes effectSchedule entries with turn ranges, effect indices, effect types, target count, target eligibility, and distinct-target rule."
+    },
+    "storm-of-vengeance::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Difficult Terrain and Heavily Obscured are now represented by TERRAIN effects and Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes difficult and obscuring terrain effects."
+    },
+    "storm-of-vengeance::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Heavily Obscured, strong wind, and ranged weapon impossibility are now captured in Area control Utility Option and terrain effect.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the visibility and ranged-attack restrictions."
+    },
+    "storm-of-vengeance::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: This was a false-positive bucket from “freezing rain”; no healing or restoration mechanic exists in canonical prose.",
+      "recommendedTemplateChange": "No template change required.",
+      "recommendedJsonChange": "No JSON healing effect added."
+    },
+    "storm-of-vengeance::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Deafened is now represented by structured Conditions Applied and STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes Deafened status effect."
+    },
+    "storm-of-vengeance::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Storm cloud, acid rain, lightning, hail, freezing rain, strong wind, difficult terrain, and heavy obscurement are now split into effects and Utility Options.",
+      "recommendedTemplateChange": "No new template field required in this pass.",
+      "recommendedJsonChange": "Runtime JSON includes multiple damage, terrain, and utility option entries."
+    },
+    "storm-of-vengeance::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The staged effects all occur within the existing concentration 1 minute duration; the schedule gap is tracked separately as actionable_open.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON keeps concentration duration and staged utility options."
+    }
+  },
+  "manualFindings": {}
+}

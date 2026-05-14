@@ -23,6 +23,7 @@
 
 import type { PlayerCharacter } from '../types';
 import { FEATURES } from '../config/features';
+import { normalizeCharacterRaceData } from '../utils/character/characterUtils';
 
 // ============================================================================
 // Types
@@ -106,7 +107,7 @@ export async function loadPremadeCharacter(filename: string): Promise<PlayerChar
             return null;
         }
         const character: PlayerCharacter = await response.json();
-        return character;
+        return normalizeCharacterRaceData(character);
     } catch (error) {
         console.error(`[PremadeCharacters] Error parsing character file ${filename}:`, error);
         return null;

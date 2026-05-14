@@ -1,0 +1,135 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 6,
+  "fields": [
+    {
+      "label": "Attack Roll Modifier",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "advantage",
+        "disadvantage",
+        "bonus",
+        "penalty"
+      ],
+      "jsonPath": "effects[].attackRollModifier.modifier",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Attack-roll riders are not conditions and need their own mechanic."
+        }
+      ],
+      "comment": "Attack-roll riders are not conditions and need their own mechanic. It maps to `effects[].attackRollModifier.modifier`. Purpose: Attack Roll Modifier exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].attackRollModifier.modifier`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "advantage": "Allowed value for Attack Roll Modifier; use only when the canonical spell text supports this exact mechanic.",
+        "disadvantage": "Allowed value for Attack Roll Modifier; use only when the canonical spell text supports this exact mechanic.",
+        "bonus": "Allowed value for Attack Roll Modifier; use only when the canonical spell text supports this exact mechanic.",
+        "penalty": "Allowed value for Attack Roll Modifier; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Attack Roll Direction",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "incoming",
+        "outgoing"
+      ],
+      "jsonPath": "effects[].attackRollModifier.direction",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Attack modifiers must say whether they affect attacks made by or against the target."
+        }
+      ],
+      "comment": "Attack modifiers must say whether they affect attacks made by or against the target. It maps to `effects[].attackRollModifier.direction`. Purpose: Attack Roll Direction exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].attackRollModifier.direction`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "incoming": "Allowed value for Attack Roll Direction; use only when the canonical spell text supports this exact mechanic.",
+        "outgoing": "Allowed value for Attack Roll Direction; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Attack Roll Kind",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "any",
+        "weapon",
+        "melee_weapon",
+        "ranged_weapon",
+        "spell"
+      ],
+      "jsonPath": "effects[].attackRollModifier.attackKind",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Some riders apply only to weapon or spell attacks."
+        }
+      ],
+      "comment": "Some riders apply only to weapon or spell attacks. It maps to `effects[].attackRollModifier.attackKind`. Purpose: Attack Roll Kind exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].attackRollModifier.attackKind`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "any": "Allowed value for Attack Roll Kind; use only when the canonical spell text supports this exact mechanic.",
+        "weapon": "Allowed value for Attack Roll Kind; use only when the canonical spell text supports this exact mechanic.",
+        "melee_weapon": "Allowed value for Attack Roll Kind; use only when the canonical spell text supports this exact mechanic.",
+        "ranged_weapon": "Allowed value for Attack Roll Kind; use only when the canonical spell text supports this exact mechanic.",
+        "spell": "Allowed value for Attack Roll Kind; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Attack Roll Consumption",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "next_attack",
+        "first_attack",
+        "while_active"
+      ],
+      "jsonPath": "effects[].attackRollModifier.consumption",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Some attack-roll riders are consumed while others last for the whole duration."
+        }
+      ],
+      "comment": "Some attack-roll riders are consumed while others last for the whole duration. It maps to `effects[].attackRollModifier.consumption`. Purpose: Attack Roll Consumption exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].attackRollModifier.consumption`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "next_attack": "Allowed value for Attack Roll Consumption; use only when the canonical spell text supports this exact mechanic.",
+        "first_attack": "Allowed value for Attack Roll Consumption; use only when the canonical spell text supports this exact mechanic.",
+        "while_active": "Allowed value for Attack Roll Consumption; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Attack Roll Duration",
+      "required": false,
+      "valueType": "duration-display",
+      "jsonPath": "effects[].attackRollModifier.duration",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Attack-roll riders need their own duration when it differs from spell duration."
+        }
+      ],
+      "comment": "Attack-roll riders need their own duration when it differs from spell duration. It maps to `effects[].attackRollModifier.duration`. Purpose: Attack Roll Duration exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].attackRollModifier.duration`. The value type is `duration-display`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Attack Roll Notes",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "effects[].attackRollModifier.notes",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Notes preserve rider caveats while structured fields mature."
+        }
+      ],
+      "comment": "Notes preserve rider caveats while structured fields mature. It maps to `effects[].attackRollModifier.notes`. Purpose: Attack Roll Notes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].attackRollModifier.notes`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

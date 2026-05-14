@@ -1,0 +1,122 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "incite-greed": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "incite-greed::choice_or_mode",
+        "canonicalEvidence": "Choose any number of creatures within range that can see you.",
+        "structuredState": "Targeting Type: single; Valid Targets: creatures_visual.",
+        "jsonState": "Runtime targeting is single, maxTargets 1, creatures.",
+        "issue": "Incite Greed can target any number of visible creatures, but structured and runtime targeting are still single-target.",
+        "recommendedTemplateChange": "Add unlimited selected-target count support and visible-target requirement fields.",
+        "recommendedJsonChange": "Add runtime targeting support for any-number selected targets that can see the caster/gem.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "incite-greed::attack_or_save_modifier",
+        "canonicalEvidence": "Each target must succeed on a Wisdom saving throw or be charmed by you ... At the end of each of its turns, an affected target can make a Wisdom saving throw. If it succeeds, this effect ends for that target.",
+        "structuredState": "Save Stat: Wisdom; Save Outcome: negates.",
+        "jsonState": "Runtime Charmed effect uses a Wisdom save gate and keeps the real turn_end Wisdom repeat save.",
+        "issue": "The initial and repeat Wisdom saves are represented; non-save break and behavior restrictions are tracked separately.",
+        "recommendedTemplateChange": "No save-field change required for this row.",
+        "recommendedJsonChange": "Closed by preserving the turn_end repeat save and removing only the noncanonical escapeCheck.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "repeat_save_or_recurring_check",
+        "findingId": "incite-greed::repeat_save_or_recurring_check",
+        "canonicalEvidence": "At the end of each of its turns, an affected target can make a Wisdom saving throw. If it succeeds, this effect ends for that target.",
+        "structuredState": "No explicit repeat-save field, but Save Stat/Outcome preserve the save family.",
+        "jsonState": "Runtime statusCondition.repeatSave records turn_end Wisdom successEnds true.",
+        "issue": "The end-turn repeat save is represented in runtime JSON.",
+        "recommendedTemplateChange": "Optional future structured repeat-save field would make this visible in markdown, but no runtime correction is needed.",
+        "recommendedJsonChange": "No runtime repeat-save change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "incite-greed::vision_light_sound",
+        "canonicalEvidence": "You present the gem used as the material component and choose any number of creatures within range that can see you.",
+        "structuredState": "Line of Sight: true; Valid Targets: creatures_visual.",
+        "jsonState": "Runtime lineOfSight is true, but does not encode targets seeing the caster/gem presentation.",
+        "issue": "Incite Greed depends on target visibility of the caster and presented gem, not just caster line of sight.",
+        "recommendedTemplateChange": "Add targetCanSeeCaster/source visibility fields.",
+        "recommendedJsonChange": "Add runtime condition requiring targets to see the caster/presented gem.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "incite-greed::social_or_knowledge_effect",
+        "canonicalEvidence": "While charmed in this way, a creature can do nothing but use its movement to approach you in a safe manner.",
+        "structuredState": "Conditions Applied: Charmed; no compelled-behavior fields.",
+        "jsonState": "Runtime JSON applies Charmed but has no forced behavior or safe-approach movement rule.",
+        "issue": "Incite Greed's charm imposes a specific compelled behavior that is not represented by the generic Charmed condition.",
+        "recommendedTemplateChange": "Add compelledBehavior fields for allowed actions and safe approach target.",
+        "recommendedJsonChange": "Add runtime compelledBehavior data: only movement toward caster by safe route.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "incite-greed::status_or_state_change",
+        "canonicalEvidence": "While an affected creature is within 5 feet of you, it cannot move, but simply stares greedily at the gem you present.",
+        "structuredState": "No proximity-gated movement lock field.",
+        "jsonState": "Runtime JSON has Charmed but no within-5-feet cannot-move rider.",
+        "issue": "Incite Greed applies a proximity-gated movement lock that is not represented.",
+        "recommendedTemplateChange": "Add proximity-gated movement restriction fields.",
+        "recommendedJsonChange": "Add runtime movementRestriction data for cannot move while within 5 feet of caster.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "incite-greed::conditional_ending",
+        "canonicalEvidence": "The creature is charmed until the spell ends, or until you or your companions do anything harmful to it. If the end-turn save succeeds, this effect ends for that target.",
+        "structuredState": "Conditional Ending Triggers records caster_or_companion_harms_target and repeat_save_success with effect scope.",
+        "jsonState": "Runtime JSON records conditionalEndings for caster_or_companion_harms_target and repeat_save_success on the Charmed status effect.",
+        "issue": "Closed: Incite Greed's harmful-action break condition and repeat-save effect ending are now represented.",
+        "recommendedTemplateChange": "Closed by adding caster_or_companion_harms_target to the conditional-ending trigger vocabulary and using it with repeat_save_success on Incite Greed.",
+        "recommendedJsonChange": "Closed by runtime conditionalEndings on the status effect for both harmful action by the caster/companions and the successful repeat save.",
+        "resolutionStatus": "closed",
+        "closedReason": "Incite Greed now records its per-target Charmed effect endings in structured markdown and runtime JSON. A new caster_or_companion_harms_target trigger preserves the broader canonical harmful-action wording instead of flattening it into damage-only."
+      }
+    ],
+    "intellect-fortress": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "intellect-fortress::attack_or_save_modifier",
+        "canonicalEvidence": "For the duration, you or one willing creature you can see within range has resistance to psychic damage, as well as advantage on Intelligence, Wisdom, and Charisma saving throws.",
+        "structuredState": "Effect Type: BUFF; no saving-throw advantage fields.",
+        "jsonState": "Runtime JSON has a prose UTILITY effect with no typed save modifier.",
+        "issue": "Intellect Fortress grants Intelligence, Wisdom, and Charisma saving throw advantage, but this is prose-only.",
+        "recommendedTemplateChange": "Add savingThrowAdvantage fields for ability lists.",
+        "recommendedJsonChange": "Add runtime saveModifier data for Intelligence, Wisdom, and Charisma advantage.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "intellect-fortress::vision_light_sound",
+        "canonicalEvidence": "You or one willing creature you can see within range.",
+        "structuredState": "Line of Sight: true.",
+        "jsonState": "Runtime targeting lineOfSight is true.",
+        "issue": "The caster sight requirement is represented; willingness and self-or-creature targeting are tracked separately.",
+        "recommendedTemplateChange": "No line-of-sight change required for this row.",
+        "recommendedJsonChange": "No line-of-sight runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "damage_reduction_or_prevention",
+        "findingId": "intellect-fortress::damage_reduction_or_prevention",
+        "canonicalEvidence": "You or one willing creature you can see within range has resistance to psychic damage.",
+        "structuredState": "Effect Type: BUFF; no resistance fields.",
+        "jsonState": "Runtime JSON has no DEFENSIVE resistance effect.",
+        "issue": "Intellect Fortress's psychic resistance is not represented.",
+        "recommendedTemplateChange": "Use DEFENSIVE resistance fields for Psychic damage.",
+        "recommendedJsonChange": "Add runtime DEFENSIVE resistance for Psychic damage.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding DEFENSIVE resistance in structured markdown and runtime JSON with Damage Type Psychic. Save advantage and targeting/scaling gaps remain tracked in their separate buckets."
+      }
+    ]
+  }
+}

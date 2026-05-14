@@ -1,0 +1,160 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 9 packet 05-09 reviewed manually against canonical prose, structured markdown, and runtime JSON.",
+    "Open findings in this packet are schema gaps for unlimited target counts, condition removal, form replacement, and object ignition rather than unresolved spell readings."
+  ],
+  "findings": {
+    "invulnerability::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The only ending condition is normal concentration/duration ending, already represented by timed concentration duration; damage immunity is now a DEFENSIVE effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON now includes DEFENSIVE immunity to all damage."
+    },
+    "mass-heal::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: The current schema cannot honestly encode “any number of creatures” or a player-divided healing pool except with maxTargets 999 and an AI prompt.",
+      "recommendedTemplateChange": "Add a healing-pool distribution bucket with unlimited target count and player allocation rules.",
+      "recommendedJsonChange": "Runtime JSON uses maxTargets 999, HEALING dice 700, Utility Options, and playerInputRequired prompt."
+    },
+    "mass-heal::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The visible-within-range target constraint is already represented by lineOfSight true and targeting range 60.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps lineOfSight true and range 60 feet."
+    },
+    "mass-heal::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Healing is represented, but condition removal is still utility-only because the runtime has no remove-condition effect type.",
+      "recommendedTemplateChange": "Add a condition-removal/restoration bucket for ending named conditions without applying a new condition.",
+      "recommendedJsonChange": "Runtime JSON includes HEALING 700 and a Condition removal Utility Option."
+    },
+    "mass-heal::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The Hit Point restoration pool is now represented as a HEALING effect with dice 700 plus explicit distribution options.",
+      "recommendedTemplateChange": "No new template field required in this packet.",
+      "recommendedJsonChange": "Runtime JSON now has a HEALING effect for the 700 Hit Point pool."
+    },
+    "mass-heal::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Removing Blinded, Deafened, and Poisoned needs a remove-condition effect type; using STATUS_CONDITION would invert the mechanic.",
+      "recommendedTemplateChange": "Add a condition-removal/restoration bucket for named condition endings.",
+      "recommendedJsonChange": "Runtime JSON records the removal list in Utility Options only."
+    },
+    "mass-polymorph::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Target count, beast-form choice, same/different forms, and per-target form choice are now split into Utility Options and an AI prompt.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON maxTargets is 10 and controlOptions/prompt capture target and form choices."
+    },
+    "mass-polymorph::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Unwilling shapechanger automatic success is not a normal advantage/disadvantage modifier and needs an auto-success save rule.",
+      "recommendedTemplateChange": "Add a save auto-success/auto-failure bucket keyed by target filter.",
+      "recommendedJsonChange": "Runtime JSON records the shapechanger auto-success in Utility Options and prompt."
+    },
+    "mass-polymorph::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The up-to-ten creature limit and visible target requirements are now represented by targeting maxTargets 10, lineOfSight true, and Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON uses multi targeting with maxTargets 10."
+    },
+    "mass-polymorph::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The caster-seen target requirement is already represented by lineOfSight true.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps lineOfSight true."
+    },
+    "mass-polymorph::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The inability to speak and action limits are now split into the Action and communication limits Utility Option.",
+      "recommendedTemplateChange": "No new template field required in this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve speech, spellcasting, hands, and speech restrictions."
+    },
+    "mass-polymorph::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Temporary hit points based on chosen form HP can be flagged as defensive temporary_hp, but the schema cannot calculate form-derived HP or mark it as non-replaceable.",
+      "recommendedTemplateChange": "Add a form-derived temporary hit point bucket with replacement restrictions.",
+      "recommendedJsonChange": "Runtime JSON includes DEFENSIVE temporary_hp and Utility Options for form HP and non-replacement."
+    },
+    "mass-polymorph::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Replacing game statistics while retaining hit points, alignment, and personality needs a transformation/stat-replacement schema.",
+      "recommendedTemplateChange": "Add a transformation bucket for stat replacement, retained traits, form eligibility, and equipment melding.",
+      "recommendedJsonChange": "Runtime JSON records these facts in Utility Options and temporary_hp effect."
+    },
+    "mass-polymorph::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reversion on no temporary hit points, death, or spell end is now split into a Reversion Utility Option.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include the reversion rule."
+    },
+    "meteor-swarm::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Dexterity save for half damage is already represented on both damage effects.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps saveType Dexterity and saveEffect half for Fire and Bludgeoning damage."
+    },
+    "meteor-swarm::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Four visible points, creatures, non-worn/non-carried objects, and once-only overlap are now represented by Targeting Max 4, validTargets, Utility Options, and prompt.",
+      "recommendedTemplateChange": "No new template field required in this pass.",
+      "recommendedJsonChange": "Runtime JSON maxTargets is 4, validTargets includes objects, and controlOptions/prompt capture overlap."
+    },
+    "meteor-swarm::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The ground-impact/four-point area behavior is now represented by Utility Options; there is no lasting terrain created.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include four impact points."
+    },
+    "meteor-swarm::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The visible-point requirement is already represented by lineOfSight true and now reinforced in the prompt.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps lineOfSight true and asks for visible points."
+    },
+    "meteor-swarm::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Flammable object ignition is preserved, but the runtime lacks a burning/ignition effect for objects.",
+      "recommendedTemplateChange": "Add an object ignition/burning bucket for flammable objects and ongoing burn state.",
+      "recommendedJsonChange": "Runtime JSON records Flammable ignition in Utility Options only."
+    },
+    "power-word-heal::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The Prone target reaction stand-up is now represented by a granted Reaction and Utility Option.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON utility grantedActions includes the conditional Reaction."
+    },
+    "power-word-heal::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The visible creature within 60 feet requirement is already represented by lineOfSight true and targeting range.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps single targeting, range 60, and lineOfSight true."
+    },
+    "power-word-heal::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The “power word” presentation has no separate social/knowledge mechanic beyond verbal casting and healing/restoration.",
+      "recommendedTemplateChange": "No template change required.",
+      "recommendedJsonChange": "No JSON change needed beyond healing and restoration extraction."
+    },
+    "power-word-heal::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Full healing is represented with a HEALING effect, but named condition removal still needs a remove-condition effect type.",
+      "recommendedTemplateChange": "Add a condition-removal/restoration bucket for named condition endings.",
+      "recommendedJsonChange": "Runtime JSON includes HEALING all_hit_points and Utility Options for condition removal."
+    },
+    "power-word-heal::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Full Hit Point restoration is now represented as a HEALING effect with all_hit_points.",
+      "recommendedTemplateChange": "No new template field required in this packet.",
+      "recommendedJsonChange": "Runtime JSON includes a HEALING effect for full hit point restoration."
+    },
+    "power-word-heal::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Ending Charmed, Frightened, Paralyzed, Poisoned, Stunned, and optionally Prone needs condition-removal support; applying status effects would be wrong.",
+      "recommendedTemplateChange": "Add a condition-removal/restoration bucket for named conditions and optional reaction-based state ending.",
+      "recommendedJsonChange": "Runtime JSON records condition removal in Utility Options and granted Reaction for Prone stand-up."
+    }
+  },
+  "manualFindings": {}
+}

@@ -1,0 +1,171 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 5-9 in generated discovery row order."
+  ],
+  "findings": {
+    "conjure-fey::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The Fey appearance choice is now represented as a summoning form option.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by SUMMONING summon.formOptions."
+    },
+    "conjure-fey::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The spirit melee spell attack, hit condition, 3d12 plus spellcasting ability modifier Psychic damage, and +1d12 slot scaling are represented.",
+      "recommendedTemplateChange": "No additional attack branch required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE hit effect and summon special action."
+    },
+    "conjure-fey::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now targets a point and summons a Medium Fey spirit, but the initial and later teleport destinations still need first-class unoccupied-visible-space eligibility.",
+      "recommendedTemplateChange": "Add summoned-entity placement eligibility fields.",
+      "recommendedJsonChange": "Add runtime summonedEntityPlacement data."
+    },
+    "conjure-fey::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The later-turn Bonus Action to teleport the spirit and make its attack is now represented as a granted action.",
+      "recommendedTemplateChange": "No additional sustain field required for this pass.",
+      "recommendedJsonChange": "Closed by grantedActions and MOVEMENT teleport effect."
+    },
+    "conjure-fey::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible placement and visible teleport destination, already represented by lineOfSight targeting and the open placement-eligibility bucket.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "conjure-fey::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "The Medium Fey spirit, duration, appearance choice, shared initiative/control surface, attack action, and non-persistent summon lifecycle are now represented.",
+      "recommendedTemplateChange": "No additional summon field required for this pass.",
+      "recommendedJsonChange": "Closed by SUMMONING effect and associated attack/status/movement effects."
+    },
+    "conjure-fey::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The spirit's 30-foot later-turn teleport is now represented as a MOVEMENT teleport effect.",
+      "recommendedTemplateChange": "No additional travel field required.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport effect."
+    },
+    "conjure-fey::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Frightened condition until the start of the caster's next turn is now represented with hit-triggered status data and source details in the description.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Frightened."
+    },
+    "contingency::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The contingent spell must be chosen from spells level 5 or lower that the caster can cast, that take an action, and that can target the caster; runtime lacks contingent spell eligibility fields.",
+      "recommendedTemplateChange": "Add contingent-spell choice and eligibility fields.",
+      "recommendedJsonChange": "Add runtime contingentSpellSelection data."
+    },
+    "contingency::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Water Breathing example trigger; this is illustrative trigger prose, not a created object or structure mechanic.",
+      "recommendedTemplateChange": "No created-object field required.",
+      "recommendedJsonChange": "No created-object runtime data required."
+    },
+    "contingency::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The user-defined trigger, first trigger firing, forced activation whether desired or not, self-only contingent spell target, one-contingency limit, recast replacement, and component-possession ending are all prose-only.",
+      "recommendedTemplateChange": "Add contingent trigger, firing, replacement, self-targeting, and component-dependency fields.",
+      "recommendedJsonChange": "Add runtime contingencyTrigger data."
+    },
+    "contingency::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster expends spell slots for both Contingency and the contingent spell, but runtime lacks secondary spell-slot expenditure data.",
+      "recommendedTemplateChange": "Add linked spell resource cost fields.",
+      "recommendedJsonChange": "Add runtime contingentSpellResourceCost data."
+    },
+    "contingency::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Water Breathing example trigger involving water; this is an example trigger condition, not an environmental change caused by Contingency.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "create-homunculus::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the spoken incantation casting component; this is verbal spellcasting, not a message or communication mechanic.",
+      "recommendedTemplateChange": "No message/communication field required.",
+      "recommendedJsonChange": "Closed by verbal component."
+    },
+    "create-homunculus::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The long-rest Hit Dice transfer requires the homunculus to be on the same plane of existence; runtime lacks same-plane eligibility for that later resource transfer.",
+      "recommendedTemplateChange": "Add same-plane linked-entity eligibility fields.",
+      "recommendedJsonChange": "Add runtime homunculusPlaneEligibility data."
+    },
+    "create-homunculus::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The self-damage, unreducible damage, Hit Dice spending, caster hit point maximum reduction, homunculus hit point maximum/current hit point increase, 1 HP floor, long-rest ending, death ending, one-homunculus limit, and spell-failure condition remain prose-only.",
+      "recommendedTemplateChange": "Add linked-created-creature stat transfer and singleton summon fields.",
+      "recommendedJsonChange": "Add runtime homunculusBond data."
+    },
+    "create-undead::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now records three targets and command options, but animate-vs-reassert-control mode and higher-slot corpse/undead-form choices remain prose-only.",
+      "recommendedTemplateChange": "Add animate/reassert mode and slot-scaled undead form choice fields.",
+      "recommendedJsonChange": "Add runtime undeadAnimationModes data."
+    },
+    "create-undead::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Bonus Action command text; this is command economy, not an attack or save modifier.",
+      "recommendedTemplateChange": "Track under sustain_or_recast_action and summon_or_controlled_entity.",
+      "recommendedJsonChange": "No attack/save runtime data required."
+    },
+    "create-undead::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now allows three object targets, but Medium or Small Humanoid corpse eligibility and night-only casting are not typed.",
+      "recommendedTemplateChange": "Add corpse size/type and time-of-day casting eligibility fields.",
+      "recommendedJsonChange": "Add runtime undeadCorpseEligibility data."
+    },
+    "create-undead::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The each-turn Bonus Action command within 120 feet is now represented as a granted action and control option.",
+      "recommendedTemplateChange": "No additional sustain field required for this pass.",
+      "recommendedJsonChange": "Closed by grantedActions and controlOptions."
+    },
+    "create-undead::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Monster Manual stat-block references; this is external stat-block lookup, not a vision/light/sound mechanic.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "create-undead::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Command action economy is represented, but animated undead stat-block identities, 24-hour control expiry, reassert-control window, default Dodge/move behavior, and slot-scaled Ghoul/Ghast/Wight/Mummy options remain under-modeled.",
+      "recommendedTemplateChange": "Add animated-undead entity and control-duration fields.",
+      "recommendedJsonChange": "Add runtime animatedUndeadControl data."
+    },
+    "disintegrate::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The creature Dexterity save, negating save outcome, 10d6+40 Force damage, and +3d6 scaling are represented.",
+      "recommendedTemplateChange": "No additional attack/save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE save effect."
+    },
+    "disintegrate::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Wall of Force as an example magical-force creation target; this is object/structure targeting, not terrain or surface behavior.",
+      "recommendedTemplateChange": "Track under created_object_or_structure and object_stats_or_damageability.",
+      "recommendedJsonChange": "No terrain/surface runtime data required."
+    },
+    "disintegrate::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "disintegrate::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell can target creations of magical force and automatically disintegrate a Large-or-smaller nonmagical object or magical-force creation, but runtime lacks an object/force-creation destruction branch.",
+      "recommendedTemplateChange": "Add object and magical-force creation disintegration fields.",
+      "recommendedJsonChange": "Add runtime disintegrateObjectBranch data."
+    },
+    "disintegrate::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Disintegration at 0 hit points, nonmagical worn/carried item destruction, True Resurrection/Wish revival restriction, automatic Large-or-smaller object destruction, and Huge-or-larger 10-foot Cube partial destruction remain prose-only beyond the damage description.",
+      "recommendedTemplateChange": "Add disintegration aftermath and partial-object destruction fields.",
+      "recommendedJsonChange": "Add runtime disintegrationAftermath data."
+    }
+  },
+  "manualFindings": {}
+}

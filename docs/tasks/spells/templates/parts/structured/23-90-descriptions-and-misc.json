@@ -1,0 +1,154 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 13,
+  "fields": [
+    {
+      "label": "Description",
+      "required": true,
+      "valueType": "prose",
+      "jsonPath": "description",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Description should match canonical rules prose, not summarize already structured fields."
+        }
+      ],
+      "comment": "Description should match canonical rules prose, not summarize already structured fields. It maps to `description`. Purpose: Description exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `description`. The value type is `prose`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "label": "Higher Levels",
+      "required": false,
+      "valueType": "prose-or-none",
+      "jsonPath": "higherLevels",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Higher-level prose remains the display fallback while structured scaling migrates."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "Higher-level prose exists only when the source spell has scaling or explicit no-scaling text; missing rows are not universal defects."
+        }
+      ],
+      "comment": "Higher-level prose exists only when the source spell has scaling or explicit no-scaling text; missing rows are not universal defects. It maps to `higherLevels`. Purpose: Higher Levels exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `higherLevels`. The value type is `prose-or-none`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "pattern": "^Scaling Rule \\d+ (Type|Applies To|Base|Levels|Bonus Per Level|Slot Level|Area Size|Target Count|Notes)$",
+      "required": false,
+      "status": "proposed",
+      "valueType": "string",
+      "jsonPath": "higherLevelScaling.rules[]",
+      "acceptedValuesBySuffix": {
+        "Type": [
+          "character_level_tiers",
+          "slot_level_bonus",
+          "slot_level_table",
+          "target_count_bonus",
+          "area_size_bonus",
+          "special_text"
+        ]
+      },
+      "log": [
+        {
+          "at": "2026-05-08T00:00:00+02:00",
+          "action": "created",
+          "why": "Higher Levels prose is not enough for spells like Booming Blade that have multiple scaling channels. Numbered scaling rules give the structured layer a place to state what scales before runtime JSON is trusted."
+        }
+      ],
+      "comment": "Higher Levels prose is not enough for spells like Booming Blade that have multiple scaling channels. It maps to `higherLevelScaling.rules[]`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `higherLevelScaling.rules[]`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Duration Progression Trigger",
+      "required": false,
+      "status": "proposed",
+      "valueType": "csv-enum",
+      "jsonPath": "durationProgression[].trigger",
+      "acceptedValues": ["repeated_casts", "recast_while_active", "full_duration_concentration", "not_applicable"],
+      "acceptedValueNotes": {
+        "repeated_casts": "Use when repeated casts over days or another cadence change the spell's final duration.",
+        "recast_while_active": "Use when recasting the spell while its current effect is active extends that effect.",
+        "full_duration_concentration": "Use when maintaining concentration for the full printed duration changes the spell-created effect's permanence.",
+        "not_applicable": "Use when the spell has no duration-progression mechanic."
+      },
+      "comment": "Names the later play pattern that changes a spell's duration. Purpose: Duration Progression Trigger keeps repeated-cast permanence and full-concentration permanence out of prose-only descriptions. It maps to runtime JSON path `durationProgression[].trigger`. Use `not_applicable` when the spell has no duration-progression mechanic."
+    },
+    {
+      "label": "Duration Progression Required Casts",
+      "required": false,
+      "status": "proposed",
+      "valueType": "number-or-sentinel",
+      "jsonPath": "durationProgression[].requiredCasts",
+      "comment": "Records how many repeated casts are required before the duration changes. It maps to `durationProgression[].requiredCasts`. Use `not_applicable` when the progression does not depend on a cast count."
+    },
+    {
+      "label": "Duration Progression Cadence",
+      "required": false,
+      "status": "proposed",
+      "valueType": "enum",
+      "jsonPath": "durationProgression[].cadence",
+      "acceptedValues": ["daily", "not_applicable"],
+      "comment": "Records the required cadence for repeated-cast progression. It maps to `durationProgression[].cadence`. Use `not_applicable` when no repeated-cast cadence applies."
+    },
+    {
+      "label": "Duration Progression Same Target Required",
+      "required": false,
+      "status": "proposed",
+      "valueType": "boolean-or-sentinel",
+      "jsonPath": "durationProgression[].sameTargetRequired",
+      "comment": "Records whether repeated casts must affect the same target. It maps to `durationProgression[].sameTargetRequired`. Use `not_applicable` when target sameness is not part of the rule."
+    },
+    {
+      "label": "Duration Progression Same Location Required",
+      "required": false,
+      "status": "proposed",
+      "valueType": "boolean-or-sentinel",
+      "jsonPath": "durationProgression[].sameLocationRequired",
+      "comment": "Records whether repeated casts must happen on the same location or spot. It maps to `durationProgression[].sameLocationRequired`. Use `not_applicable` when location sameness is not part of the rule."
+    },
+    {
+      "label": "Duration Progression Same Configuration Required",
+      "required": false,
+      "status": "proposed",
+      "valueType": "boolean-or-sentinel",
+      "jsonPath": "durationProgression[].sameConfigurationRequired",
+      "comment": "Records whether repeated casts must use the same configuration, layout, or selected options. It maps to `durationProgression[].sameConfigurationRequired`. Use `not_applicable` when configuration sameness is not part of the rule."
+    },
+    {
+      "label": "Duration Progression Requires Full Concentration",
+      "required": false,
+      "status": "proposed",
+      "valueType": "boolean-or-sentinel",
+      "jsonPath": "durationProgression[].requiresFullConcentration",
+      "comment": "Records whether the caster must maintain concentration for the spell's full printed duration to change the outcome. It maps to `durationProgression[].requiresFullConcentration`. Use `not_applicable` when full-duration concentration is not part of the rule."
+    },
+    {
+      "label": "Duration Progression Extension",
+      "required": false,
+      "status": "proposed",
+      "valueType": "duration-or-sentinel",
+      "jsonPath": "durationProgression[].extension",
+      "comment": "Records the amount of duration added by a recast-maintenance rule, such as another 24 hours. It maps to `durationProgression[].extension`. Use `not_applicable` when the rule does not extend the current duration."
+    },
+    {
+      "label": "Duration Progression Outcome",
+      "required": false,
+      "status": "proposed",
+      "valueType": "enum",
+      "jsonPath": "durationProgression[].outcomeDuration",
+      "acceptedValues": ["extend_current_duration", "until_dispelled", "permanent", "non_dispellable_permanent", "not_applicable"],
+      "comment": "Records the duration state produced when the progression condition is satisfied. It maps to `durationProgression[].outcomeDuration`. Use `not_applicable` when no duration outcome applies."
+    },
+    {
+      "label": "Duration Progression Dispellable",
+      "required": false,
+      "status": "proposed",
+      "valueType": "boolean-or-sentinel",
+      "jsonPath": "durationProgression[].dispellable",
+      "comment": "Records whether the resulting progressed duration state can still be dispelled. It maps to `durationProgression[].dispellable`. Use `not_applicable` when dispellability is not specified or no duration progression applies."
+    }
+  ]
+}

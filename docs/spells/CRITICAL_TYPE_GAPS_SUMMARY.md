@@ -1,4 +1,4 @@
-﻿# Critical Type Definition Gaps - Summary
+# Critical Type Definition Gaps - Summary
 
 Last Updated: 2026-03-11
 Purpose: Preserve the historical record of an earlier spell-schema blocking phase without leaving the file looking like a current blocker report.

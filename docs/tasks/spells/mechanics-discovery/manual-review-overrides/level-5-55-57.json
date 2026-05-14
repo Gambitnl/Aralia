@@ -1,0 +1,174 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 55-57 in generated discovery row order.",
+    "Formatting drift observed in wall-of-stone and wrath-of-nature JSON is intentionally kept as a review-surface issue, not a mechanics defect in this shard."
+  ],
+  "findings": {
+    "wall-of-light::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The wall orientation choices are represented by spatial form notes; no separate choice bucket is required for this pass.",
+      "recommendedTemplateChange": "No new choice field required.",
+      "recommendedJsonChange": "Closed by spatialDetails.forms notes."
+    },
+    "wall-of-light::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial Constitution save and Blinded save branch are represented, but the end-turn damage branch and action-launched ranged spell attack branch remain flattened into prose.",
+      "recommendedTemplateChange": "Add separate recurring area-damage and wall-beam attack branches.",
+      "recommendedJsonChange": "Add on-end-turn wall damage and caster-action beam attack effects with shared scaling."
+    },
+    "wall-of-light::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Wall of Light now records end-turn wall damage as structured Recurring Mechanics and runtime recurringMechanics data; the Blinded repeat save remains typed.",
+      "issue": "The Blinded repeat save is represented, but the recurring end-turn wall damage is not represented as its own repeat trigger.",
+      "recommendedTemplateChange": "Add repeat trigger fields for end-turn area damage that is independent of the initial save.",
+      "recommendedJsonChange": "Add a recurring damage effect triggered when a creature ends its turn in the wall."
+    },
+    "wall-of-light::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The wall size, thickness, orientation, and free-floating/resting placement are represented by areaOfEffect and spatialDetails.",
+      "recommendedTemplateChange": "No new terrain/surface field required for this pass.",
+      "recommendedJsonChange": "Closed by areaOfEffect and spatialDetails."
+    },
+    "wall-of-light::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Bright and dim light radii are measured in spatial details, but the light emission and line-of-sight blocking are not represented as utility/runtime light or vision-blocking behavior.",
+      "recommendedTemplateChange": "Add emitted-light and line-of-sight-blocking fields for created areas.",
+      "recommendedJsonChange": "Add utility light data and a typed vision-blocking flag for the wall."
+    },
+    "wall-of-light::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The created wall's pass-through rule, line-of-sight blocking, and shrinking length are not represented as typed structure properties.",
+      "recommendedTemplateChange": "Add structure pass-through, sight-blocking, and mutable-dimension fields.",
+      "recommendedJsonChange": "Add runtime wallStructureProperties data."
+    },
+    "wall-of-light::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Blinded condition now uses a Constitution save, 1-minute duration, and Constitution repeat save at turn end.",
+      "recommendedTemplateChange": "No additional status field required for Blinded in this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Blinded."
+    },
+    "wall-of-light::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Beam use reduces the wall length by 10 feet whether the attack hits or misses, and the spell ends when the length reaches 0 feet; runtime lacks this ending condition.",
+      "recommendedTemplateChange": "Add mutable dimension and zero-length ending fields.",
+      "recommendedJsonChange": "Add runtime wallLengthReduction and zeroLengthEnds data."
+    },
+    "wall-of-stone::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The standard and tall panel forms are represented as spatial forms; finer wall-shaping consequences remain tracked in structure/surface buckets.",
+      "recommendedTemplateChange": "No new panel-choice field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails.forms."
+    },
+    "wall-of-stone::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The enclosure Dexterity save is present in structured prose but not modeled as a distinct runtime save branch with reaction movement on success.",
+      "recommendedTemplateChange": "Add enclosure save branch fields for created barriers.",
+      "recommendedJsonChange": "Add runtime wallEnclosureSave data."
+    },
+    "wall-of-stone::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A successful enclosure save lets the creature use its Reaction to move up to its Speed out of the enclosure; runtime lacks that reaction movement grant.",
+      "recommendedTemplateChange": "Add reaction-granted movement fields.",
+      "recommendedJsonChange": "Add runtime reactionEscapeMovement data."
+    },
+    "wall-of-stone::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Reaction movement out of enclosure is not represented as a movement outcome.",
+      "recommendedTemplateChange": "Add movement outcome fields linked to enclosure saves.",
+      "recommendedJsonChange": "Add runtime enclosureEscapeMovement data."
+    },
+    "wall-of-stone::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the wall cuts through a creature's space, the creature is pushed to a caster-chosen side; runtime lacks this displacement effect.",
+      "recommendedTemplateChange": "Add wall-creation displacement fields.",
+      "recommendedJsonChange": "Add runtime wallDisplacement data."
+    },
+    "wall-of-stone::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Panel dimensions and unsupported-span threshold are represented, but merge-with-existing-stone, bridge/ramp support, no-occupied-space placement, and crude shaping remain prose-only.",
+      "recommendedTemplateChange": "Add wall support, merge-surface, occupied-space exclusion, and shaping fields.",
+      "recommendedJsonChange": "Add runtime stoneWallSurfaceRules data."
+    },
+    "wall-of-stone::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall is created and partially sized, but nonmagical object status, permanence, dispel immunity after permanence, and collapse relationships are not typed.",
+      "recommendedTemplateChange": "Add created-structure object lifecycle fields.",
+      "recommendedJsonChange": "Add runtime stoneWallStructureProperties data."
+    },
+    "wall-of-stone::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each panel's AC 15, 30 hit points per inch of thickness, poison/psychic immunity, breach behavior, and possible connected-panel collapse remain prose-only.",
+      "recommendedTemplateChange": "Add per-panel object stat and collapse fields.",
+      "recommendedJsonChange": "Add runtime wallPanelStats data."
+    },
+    "wall-of-stone::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Wall of Stone now records full-duration concentration making the wall permanent and non-dispellable.",
+      "recommendedTemplateChange": "Closed by Duration Progression fields for full_duration_concentration and non_dispellable_permanent outcome.",
+      "recommendedJsonChange": "Closed by runtime durationProgression data.",
+      "closedReason": "Wall of Stone now records its full-concentration permanence rule in structured markdown and runtime JSON. The panel object stats, breach behavior, disappearance fallback, and possible connected-panel collapse remain open under object_stats_or_damageability and aftermath_or_memory."
+    },
+    "wall-of-stone::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The post-duration permanent wall, non-dispellable state, disappearance fallback, and possible panel-collapse aftermath are not typed.",
+      "recommendedTemplateChange": "Add structure aftermath fields.",
+      "recommendedJsonChange": "Add runtime wallAftermath data."
+    },
+    "wrath-of-nature::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell has grass/undergrowth, tree, root/vine, and rock submodes with separate target and timing rules; runtime only stores partial damage/status effects.",
+      "recommendedTemplateChange": "Add environmental submode fields.",
+      "recommendedJsonChange": "Add runtime wrathOfNatureModes data."
+    },
+    "wrath-of-nature::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Tree and root saves have been corrected, but the bonus-action rock ranged spell attack, 3d8 bludgeoning damage, and follow-up Strength save against prone remain under-modeled.",
+      "recommendedTemplateChange": "Add per-submode attack/save branches.",
+      "recommendedJsonChange": "Add runtime rockAttackBranch and treeSaveBranch data."
+    },
+    "wrath-of-nature::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can use a bonus action each turn to launch a loose rock; runtime lacks the granted bonus action and its target restrictions.",
+      "recommendedTemplateChange": "Add sustained bonus-action branch fields.",
+      "recommendedJsonChange": "Add grantedActions entry for the rock launch action."
+    },
+    "wrath-of-nature::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Grass or undergrowth in the cube becomes difficult terrain for enemies, but runtime lacks enemy-only difficult terrain tied to those surfaces.",
+      "recommendedTemplateChange": "Add enemy-only terrain modification fields.",
+      "recommendedJsonChange": "Add runtime enemyDifficultTerrain data."
+    },
+    "wrath-of-nature::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible point and visible rock-target selection, which are already represented by lineOfSight targeting or belong under the rock action branch.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting and the open rock action branch."
+    },
+    "wrath-of-nature::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell animates trees, rocks, grasses, and undergrowth as hostile environmental actors, but runtime does not model animated terrain/entities as controlled sources.",
+      "recommendedTemplateChange": "Add animated-environment source fields.",
+      "recommendedJsonChange": "Add runtime animatedEnvironmentSources data."
+    },
+    "wrath-of-nature::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Restrained and Prone are partially represented after save corrections, but root target choice, spell-save-DC Athletics escape, and the rock branch's prone follow-up still need first-class data.",
+      "recommendedTemplateChange": "Add submode-linked status and escape fields.",
+      "recommendedJsonChange": "Add runtime rootRestraint and rockProneBranch data."
+    },
+    "wrath-of-nature::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The cube's trees, rocks, grasses, and undergrowth become animated until the spell ends, but runtime lacks typed environmental animation state.",
+      "recommendedTemplateChange": "Add environmental animation fields.",
+      "recommendedJsonChange": "Add runtime animatedNatureArea data."
+    },
+    "wrath-of-nature::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The animated terrain and root restraint use the normal concentration duration; no special nonstandard ending condition is present beyond the open submode details.",
+      "recommendedTemplateChange": "No new conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration, with submode details tracked in other buckets."
+    }
+  },
+  "manualFindings": {}
+}

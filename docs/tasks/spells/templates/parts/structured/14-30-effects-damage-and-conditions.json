@@ -1,0 +1,80 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "label": "Utility Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "light",
+        "communication",
+        "creation",
+        "information",
+        "control",
+        "sensory",
+        "other",
+        "scouting",
+        "environmental_control",
+        "defensive",
+        "movement",
+        "summoning",
+        "illusion",
+        "storage",
+        "warding",
+        "transformation",
+        "teleportation",
+        "healing"
+      ],
+      "jsonPath": "effects[].utilityType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Utility spell families need a coarse subtype for runtime and UI behavior."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Utility spell families need to preserve current subtype labels while final runtime translator values are still being defined."
+        }
+      ],
+      "comment": "Utility spell families need to preserve current subtype labels while final runtime translator values are still being defined. It maps to `effects[].utilityType`. Purpose: Utility Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].utilityType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "light": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "communication": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "creation": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "information": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "control": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "sensory": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "other": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "scouting": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "environmental_control": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "defensive": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "movement": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "summoning": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "illusion": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "storage": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "warding": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "transformation": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "teleportation": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic.",
+        "healing": "Allowed value for Utility Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Utility Options",
+      "required": false,
+      "valueType": "summary",
+      "jsonPath": "effects[].controlOptions[]",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Elementalism showed that utility spells can expose multiple concrete modes."
+        }
+      ],
+      "comment": "Elementalism showed that utility spells can expose multiple concrete modes. It maps to `effects[].controlOptions[]`. Purpose: Utility Options exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].controlOptions[]`. The value type is `summary`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

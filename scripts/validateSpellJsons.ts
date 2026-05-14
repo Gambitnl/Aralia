@@ -47,11 +47,12 @@ interface ValidationResult {
 // The Zod schema proves that the spell JSON has the right structure, but some
 // trust-system problems still exist even when the file is formally valid.
 //
-// One example is redundant subclass/domain access. If a spell already grants the
-// full base class in `classes`, then a `subClasses` entry for that same base
-// class does not add new access information; it only repeats the base lane in a
-// more specific form. The owner asked for this pattern to be flagged as
-// problematic so it can be arbitrated instead of silently normalized.
+// Earlier passes treated subclass/domain rows as invalid when their parent class
+// already had base access. The canonical-first migration changed that policy:
+// those rows can still be useful because they preserve the source's complete
+// access surface and may later map to always-prepared or feature-specific access.
+// This validation lane therefore no longer rejects canonical subclass rows just
+// because the parent class also appears in `classes`.
 // ============================================================================
 const NON_CASTER_BASE_CLASSES = new Set([
     'Barbarian',
@@ -65,29 +66,6 @@ function collectSemanticSpellErrors(json: Record<string, unknown>): string[] {
     const classes = Array.isArray(json.classes)
         ? json.classes.map((entry) => String(entry))
         : [];
-    const subClasses = Array.isArray(json.subClasses)
-        ? json.subClasses.map((entry) => String(entry))
-        : [];
-
-    for (const subClassEntry of subClasses) {
-        // The current subclass/domain convention is "Base Class - Subclass Name".
-        // Only entries that match that shape can be checked for base-class
-        // redundancy; everything else should remain visible for separate review.
-        const match = subClassEntry.match(/^(.+?)\s*-\s+(.+)$/);
-        if (!match) {
-            continue;
-        }
-
-        const baseClass = match[1].trim();
-        if (!classes.includes(baseClass)) {
-            continue;
-        }
-
-        errors.push(
-            `subClasses: redundant access entry "${subClassEntry}" repeats base class "${baseClass}" that is already present in classes`,
-        );
-    }
-
     for (const classEntry of classes) {
         // These base classes are not full spellcasting classes in the project's
         // current class model. If a spell lists one of them in `classes`, the

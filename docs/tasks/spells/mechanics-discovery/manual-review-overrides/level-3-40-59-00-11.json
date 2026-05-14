@@ -1,0 +1,87 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "tiny-servant": [
+      {
+        "bucketId": "sustain_or_recast_action",
+        "findingId": "tiny-servant::sustain_or_recast_action",
+        "canonicalEvidence": "As a bonus action, you can mentally command the creature if it is within 120 feet of you.",
+        "structuredState": "No sustain/command action fields.",
+        "jsonState": "Runtime JSON has no typed command action.",
+        "issue": "Tiny Servant uses a recurring bonus action to command one or multiple servants.",
+        "recommendedTemplateChange": "Add summon command action fields including multi-servant same-command rule.",
+        "recommendedJsonChange": "Add runtime controlledSummon command data for bonus action, any/all controlled servants, same command.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "tiny-servant::terrain_or_surface",
+        "canonicalEvidence": "One Tiny, nonmagical object that is not attached to another object or a surface and is not being carried by another creature.",
+        "structuredState": "Valid Targets: object; no Tiny/nonmagical/unattached/not-carried filters.",
+        "jsonState": "Runtime validTargets objects but lacks object filters.",
+        "issue": "Tiny Servant target eligibility is much narrower than generic object.",
+        "recommendedTemplateChange": "Add object size, magical state, attached, surface-attached, and carried filters.",
+        "recommendedJsonChange": "Add runtime objectFilter size Tiny, nonmagical true, notAttached true, notCarried true.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "tiny-servant::vision_light_sound",
+        "canonicalEvidence": "See Tiny Servant for its statistics.",
+        "structuredState": "No stat block reference field.",
+        "jsonState": "Runtime JSON has no stat block reference.",
+        "issue": "This is not a vision/light/sound mechanic; the real issue is a missing summoned creature stat-block reference.",
+        "recommendedTemplateChange": "Add summon statBlock reference fields.",
+        "recommendedJsonChange": "Add runtime summon statBlock Tiny Servant.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "tiny-servant::summon_or_controlled_entity",
+        "canonicalEvidence": "The target animates and sprouts little arms and legs, becoming a creature under your control. You decide what action it will take and where it will move, or issue a simple general command. If you issue no commands, it defends itself. Once given an order, it follows that order until complete.",
+        "structuredState": "Effect Type: SUMMON; no animated-object creature/stat/control behavior fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Tiny Servant transforms an object into a controlled creature with command/default behavior, but runtime does not type the summon.",
+        "recommendedTemplateChange": "Add animated object summon fields for stat block, control, command behavior, default defend behavior, and persistent order.",
+        "recommendedJsonChange": "Add runtime SUMMON/animatedObject data with Tiny Servant stats and command behavior.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "tiny-servant::object_stats_or_damageability",
+        "canonicalEvidence": "When the creature drops to 0 hit points, it reverts to its original form, and any remaining damage carries over to that form.",
+        "structuredState": "No HP zero reversion or damage carryover fields.",
+        "jsonState": "Runtime JSON has no object/creature lifecycle data.",
+        "issue": "Tiny Servant has a 0 HP reversion with excess damage carryover to the original object.",
+        "recommendedTemplateChange": "Add animated object lifecycle and damage carryover fields.",
+        "recommendedJsonChange": "Add runtime lifecycle revertsAt0Hp and carryoverDamageToOriginalObject.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "tiny-servant::conditional_ending",
+        "canonicalEvidence": "Until the spell ends or the creature drops to 0 hit points.",
+        "structuredState": "No controlled creature 0 HP ending fields.",
+        "jsonState": "Runtime JSON has no conditional ending data.",
+        "issue": "The servant form ends when the creature drops to 0 HP as well as when the spell ends.",
+        "recommendedTemplateChange": "Add controlled summon 0 HP ending fields.",
+        "recommendedJsonChange": "Add runtime conditionalEnding for servant drops to 0 HP and spell ends.",
+        "resolutionStatus": "closed",
+        "closedReason": "Reused the existing created_entity_drops_to_0_hp conditional-ending trigger, recorded it in the structured spell fields, and mapped it to the runtime utility effect with effect scope for the animated servant form ending."
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "tiny-servant::manual_slot_additional_objects",
+        "canonicalEvidence": "When cast using a spell slot of 4th level or higher, you can animate two additional objects for each slot level above 3rd.",
+        "structuredState": "Scaling Rule 1 records special_text target/object scaling.",
+        "jsonState": "Runtime targeting maxTargets 1 and has no target scaling.",
+        "issue": "Higher slots animate additional objects, but runtime has no target-count scaling.",
+        "recommendedTemplateChange": "Add target/object count scaling fields.",
+        "recommendedJsonChange": "Add runtime targetScaling +2 objects per slot above 3.",
+        "resolutionStatus": "closed",
+        "closedReason": "Closed by reusing existing scalable targeting.maxTargets: Tiny Servant now records a multi-object target count with slot-level thresholds from 1 object at slot 3 to +2 additional objects per slot level above 3, and its structured markdown points Scaling Rule 1 at targeting.maxTargets."
+      }
+    ]
+  }
+}

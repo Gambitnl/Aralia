@@ -1,0 +1,120 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "sending": [
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "sending::social_or_knowledge_effect",
+        "canonicalEvidence": "The target recognizes you as the sender if it knows you. You know if the delivery fails. If you try another message while blocked, you learn that you are blocked.",
+        "structuredState": "No sender recognition, delivery failure knowledge, or blocked knowledge fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Sending creates knowledge states for sender recognition, delivery failure, and blocked status.",
+        "recommendedTemplateChange": "Add communication knowledge-result fields.",
+        "recommendedJsonChange": "Add runtime knowledgePayload for sender recognition if known, deliveryFailureKnown, and blockedKnown.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "sending::conditional_ending",
+        "canonicalEvidence": "If the target is on a different plane than you, there is a 5 percent chance that the message does not arrive. Upon receiving your message, a creature can block your ability to reach it again with this spell for 8 hours. If you try to send another message during that time, you learn that you are blocked, and the spell fails.",
+        "structuredState": "No delivery failure or recipient block fields.",
+        "jsonState": "Runtime JSON has no failure/block state.",
+        "issue": "Sending has delivery failure and recipient-created block conditions that can cause later casts to fail.",
+        "recommendedTemplateChange": "Add delivery failure and recipient block/cooldown fields.",
+        "recommendedJsonChange": "Add runtime deliveryFailure and recipientBlock duration 8 hours with failure result on blocked recast.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "sending::manual_met_or_described_target",
+        "canonicalEvidence": "A creature you have met or a creature described to you by someone who has met it.",
+        "structuredState": "Valid Targets: creature; no known/described target qualification fields.",
+        "jsonState": "Runtime targeting allows creatures without met/described qualification.",
+        "issue": "Sending target eligibility depends on having met the target or receiving a description from someone who has met it.",
+        "recommendedTemplateChange": "Add target familiarity/description eligibility fields.",
+        "recommendedJsonChange": "Add runtime targetQualification metByCaster or describedBySomeoneWhoMetTarget.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "sleet-storm": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "sleet-storm::choice_or_mode",
+        "canonicalEvidence": "A 40-foot-tall, 20-foot-radius Cylinder centered on a point you choose within range.",
+        "structuredState": "Area Size and Area Height now preserve radius 20 and height 40.",
+        "jsonState": "Runtime areaOfEffect now has Cylinder size 20 and height 40 feet.",
+        "issue": "The chosen point and cylinder geometry are represented.",
+        "recommendedTemplateChange": "No geometry change required for this row.",
+        "recommendedJsonChange": "Closed by correcting the cylinder radius/height in structured markdown and runtime JSON.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "sleet-storm::attack_or_save_modifier",
+        "canonicalEvidence": "When a creature enters the Cylinder for the first time on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the Prone condition and lose Concentration.",
+        "structuredState": "Save Stat: Dexterity; Conditions Applied: Prone; no entry/start timing or concentration-loss fields.",
+        "jsonState": "Runtime has Dexterity save to Prone but trigger is immediate and concentration loss is not typed.",
+        "issue": "The save/Prone part is partially represented, but trigger timing and Concentration loss are not.",
+        "recommendedTemplateChange": "Add area entry/start-turn trigger and concentration-loss fields.",
+        "recommendedJsonChange": "Add runtime trigger for enters first time on turn or starts turn there, plus concentrationLoss on failed save.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "sleet-storm::terrain_or_surface",
+        "canonicalEvidence": "Ground in the Cylinder is Difficult Terrain.",
+        "structuredState": "No TERRAIN effect field beyond prose.",
+        "jsonState": "Runtime JSON has no TERRAIN effect.",
+        "issue": "Sleet Storm creates Difficult Terrain on the ground in the cylinder, but runtime has no terrain effect.",
+        "recommendedTemplateChange": "Add terrain effect fields for ground in area.",
+        "recommendedJsonChange": "Add runtime TERRAIN difficult effect for cylinder ground.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "ward_alarm_or_trigger",
+        "findingId": "sleet-storm::ward_alarm_or_trigger",
+        "canonicalEvidence": "When a creature enters the Cylinder for the first time on a turn or starts its turn there...",
+        "structuredState": "No recurring area trigger fields.",
+        "jsonState": "Runtime trigger is immediate.",
+        "issue": "The recurring area entry/start trigger is not represented.",
+        "recommendedTemplateChange": "Add recurring area trigger fields with once-per-turn entry handling.",
+        "recommendedJsonChange": "Add runtime areaTrigger enters_first_time_on_turn or turn_start.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "healing_or_restoration",
+        "findingId": "sleet-storm::healing_or_restoration",
+        "canonicalEvidence": "Exposed flames in the area are doused.",
+        "structuredState": "No flame dousing or extinguish fields.",
+        "jsonState": "Runtime JSON has no extinguish effect.",
+        "issue": "This detector row is not healing; it is an environmental extinguish effect.",
+        "recommendedTemplateChange": "Add exposed flame extinguish fields under environmental effects.",
+        "recommendedJsonChange": "Add runtime environmentalChange extinguishExposedFlamesInArea.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "sleet-storm::status_or_state_change",
+        "canonicalEvidence": "On a failed Dexterity save the creature has the Prone condition and loses Concentration.",
+        "structuredState": "Conditions Applied: Prone; no Concentration loss field.",
+        "jsonState": "Runtime Prone effect exists without fake escape/repeat defaults, but no Concentration loss.",
+        "issue": "Prone is represented; Concentration loss on failed save is not.",
+        "recommendedTemplateChange": "Add concentrationLoss status/effect fields.",
+        "recommendedJsonChange": "Add runtime failedSaveConcentrationLoss alongside Prone.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "sleet-storm::environmental_change",
+        "canonicalEvidence": "The area is Heavily Obscured, and exposed flames in the area are doused.",
+        "structuredState": "No heavily obscured or flame dousing fields.",
+        "jsonState": "Runtime JSON has no environmental visibility/extinguish effects.",
+        "issue": "Sleet Storm creates heavily obscured weather and douses exposed flames, but both are prose-only.",
+        "recommendedTemplateChange": "Add heavilyObscured and extinguishFlames environmental fields.",
+        "recommendedJsonChange": "Add runtime environmentalChange for heavily obscured area and exposed flame dousing.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

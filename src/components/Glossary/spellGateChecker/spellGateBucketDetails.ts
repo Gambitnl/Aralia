@@ -260,7 +260,10 @@ export function buildGateResultForSpell({
   }
 
   if (artifactEntry) {
-    checklist.classAccessVerified = artifactEntry.localData.subClassesVerification === "verified";
+    // subClassesVerification retired 2026-05-11 with Sub-Classes bucket closure.
+    // Treat absent or "verified" as verified; only an explicit "unverified" on
+    // legacy data still gates the checklist.
+    checklist.classAccessVerified = artifactEntry.localData.subClassesVerification !== "unverified";
     checklist.canonicalTopLevelAligned = artifactEntry.canonicalReview.state === "clean";
     checklist.structuredJsonAligned = artifactEntry.structuredJsonReview.state === "clean";
 
@@ -3142,9 +3145,9 @@ function classifyRangeAreaMismatch(
     rangeType: range.type,
     rangeDistance: range.distance,
     targetingType: targeting.type,
-    areaShape: area.shape,
-    areaSize: area.size,
-    followsCaster: area.followsCaster,
+    areaShape: area?.shape,
+    areaSize: area?.size,
+    followsCaster: area?.followsCaster,
   };
 
   // This is the strongest concrete bug this bucket can expose: self-centered
@@ -3165,11 +3168,14 @@ function classifyRangeAreaMismatch(
   // When the live JSON already stores explicit geometry, most mismatches are
   // just the canonical page using a terse display string.
   if (
-    area.shape === "Emanation"
-    || area.shape === "Wall"
-    || area.shape === "Hemisphere"
-    || area.shape === "Ring"
-    || area.size > 0
+    area
+    && (
+      area.shape === "Emanation"
+      || area.shape === "Wall"
+      || area.shape === "Hemisphere"
+      || area.shape === "Ring"
+      || area.size > 0
+    )
   ) {
     return {
       structuredValue,
@@ -3185,7 +3191,7 @@ function classifyRangeAreaMismatch(
 
   // Some spells are only about cast reach and do not carry meaningful area
   // geometry. Those should still be separated from true shape/size drift.
-  if (range.type !== "self" && area.size === 0) {
+  if (range.type !== "self" && (!area || area.size === 0)) {
     return {
       structuredValue,
       canonicalValue,
@@ -3380,10 +3386,10 @@ function getCurrentJsonRangeAreaDisplay(spell: unknown): {
     rangeDistance: range.distance,
     rangeDistanceUnit: range.distanceUnit,
     targetingType: targeting.type,
-    areaShape: area.shape,
-    areaSize: area.size,
-    areaSizeUnit: area.sizeUnit,
-    followsCaster: area.followsCaster,
+    areaShape: area?.shape,
+    areaSize: area?.size,
+    areaSizeUnit: area?.sizeUnit,
+    followsCaster: area?.followsCaster,
   };
 
   if (!area || !area.size) {

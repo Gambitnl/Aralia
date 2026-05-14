@@ -1,4 +1,4 @@
-﻿# Intrigue Domain Architecture
+# Intrigue Domain Architecture
 
 ## Purpose
 

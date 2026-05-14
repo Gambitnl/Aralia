@@ -1,0 +1,23 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Target Filter Creature Types",
+      "valueType": "csv-string",
+      "jsonPath": "targeting.filter.creatureTypes[]",
+      "why": "Creature-type eligibility should be structured rather than buried in prose.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Creature-type eligibility should be structured rather than buried in prose."
+        }
+      ],
+      "comment": "Creature-type eligibility should be structured rather than buried in prose. It maps to `targeting.filter.creatureTypes[]`. Purpose: Target Filter Creature Types exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.filter.creatureTypes[]`. The value type is `csv-string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

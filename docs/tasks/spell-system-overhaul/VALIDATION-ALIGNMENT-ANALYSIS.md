@@ -115,8 +115,8 @@ Create a report document: `VALIDATION-VS-CRITERIA-REPORT.md`
 
 | Requirement | Zod Checks? | Jules Requires? | Gap? |
 |-------------|-------------|-----------------|------|
-| Field `id` exists | ✅ | ✅ | No |
-| Damage dice format | ✅ (string) | ✅ (valid dice) | ⚠️ Partial |
+| Field `id` exists | PASSED | PASSED | No |
+| Damage dice format | PASSED (string) | PASSED (valid dice) | ⚠️ Partial |
 | ... | ... | ... | ... |
 
 ## Critical Gaps
@@ -134,15 +134,15 @@ Create a report document: `VALIDATION-VS-CRITERIA-REPORT.md`
 ## Example: Valid But Wrong
 
 Show an example spell JSON that:
-- ✅ Passes Zod validation
-- ❌ Fails Jules' acceptance criteria
+- PASSED Passes Zod validation
+- FAILED Fails Jules' acceptance criteria
 - Explain why
 
 ## Example: Invalid But Acceptable
 
 Show an example spell JSON that:
-- ❌ Fails Zod validation
-- ✅ Would meet Jules' quality bar
+- FAILED Fails Zod validation
+- PASSED Would meet Jules' quality bar
 - Explain why (if such cases exist)
 ```
 
@@ -151,11 +151,11 @@ Show an example spell JSON that:
 ## Success Criteria
 
 This analysis is complete when:
-1. ✅ All Zod validation rules are documented
-2. ✅ All Jules acceptance criteria are documented
-3. ✅ A clear gap analysis identifies misalignments
-4. ✅ Concrete examples demonstrate the gaps
-5. ✅ Recommendations are provided for alignment
+1. PASSED All Zod validation rules are documented
+2. PASSED All Jules acceptance criteria are documented
+3. PASSED A clear gap analysis identifies misalignments
+4. PASSED Concrete examples demonstrate the gaps
+5. PASSED Recommendations are provided for alignment
 
 ---
 

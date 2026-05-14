@@ -1,0 +1,499 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 28,
+  "fields": [
+    {
+      "path": "effects[].type",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "DAMAGE",
+        "HEALING",
+        "STATUS_CONDITION",
+        "ATTACK_ROLL_MODIFIER",
+        "MOVEMENT",
+        "SUMMONING",
+        "TERRAIN",
+        "UTILITY",
+        "DEFENSIVE"
+      ],
+      "structuredLabel": "Effect Type",
+      "acceptedValueParity": "runtime_subset_ok",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Effect Type."
+        }
+      ],
+      "comment": "Mapped from structured Effect Type. It maps to `effects[].type`. It is populated from the structured markdown label `Effect Type`. Purpose: effects[].type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Effect Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "DAMAGE": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "HEALING": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "STATUS_CONDITION": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "ATTACK_ROLL_MODIFIER": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "MOVEMENT": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "SUMMONING": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "TERRAIN": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "UTILITY": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic.",
+        "DEFENSIVE": "Allowed value for effects[].type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].condition.saveType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma"
+      ],
+      "structuredLabel": "Save Stat",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Save Stat."
+        }
+      ],
+      "comment": "Mapped from structured Save Stat. It maps to `effects[].condition.saveType`. It is populated from the structured markdown label `Save Stat`. Purpose: effects[].condition.saveType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Save Stat`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].condition.saveType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "Strength": "Allowed value for effects[].condition.saveType; use only when the canonical spell text supports this exact mechanic.",
+        "Dexterity": "Allowed value for effects[].condition.saveType; use only when the canonical spell text supports this exact mechanic.",
+        "Constitution": "Allowed value for effects[].condition.saveType; use only when the canonical spell text supports this exact mechanic.",
+        "Intelligence": "Allowed value for effects[].condition.saveType; use only when the canonical spell text supports this exact mechanic.",
+        "Wisdom": "Allowed value for effects[].condition.saveType; use only when the canonical spell text supports this exact mechanic.",
+        "Charisma": "Allowed value for effects[].condition.saveType; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].condition.saveEffect",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "none",
+        "half",
+        "negates_condition"
+      ],
+      "structuredLabel": "Save Outcome",
+      "acceptedValueParity": "runtime_subset_ok",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Save Outcome."
+        }
+      ],
+      "comment": "Mapped from structured Save Outcome. It maps to `effects[].condition.saveEffect`. It is populated from the structured markdown label `Save Outcome`. Purpose: effects[].condition.saveEffect exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Save Outcome`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].condition.saveEffect`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "none": "Use `none` for effects[].condition.saveEffect only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "half": "Use `half` for effects[].condition.saveEffect only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "negates_condition": "Use `negates_condition` for effects[].condition.saveEffect only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available."
+      }
+    },
+    {
+      "path": "effects[].damage.dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "structuredLabel": "Damage Dice",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Damage Dice for simple damage spells."
+        }
+      ],
+      "comment": "Mapped from structured Damage Dice for simple damage spells. It maps to `effects[].damage.dice`. It is populated from the structured markdown label `Damage Dice`. Purpose: effects[].damage.dice exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Damage Dice`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].damage.dice`. The value type is `dice-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].damage.type",
+      "required": false,
+      "valueType": "string-or-chooser",
+      "structuredLabel": "Damage Type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Damage Type for simple damage spells."
+        }
+      ],
+      "comment": "Mapped from structured Damage Type for simple damage spells. It maps to `effects[].damage.type`. It is populated from the structured markdown label `Damage Type`. Purpose: effects[].damage.type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Damage Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].damage.type`. The value type is `string-or-chooser`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].damage.mitigationBypass[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Damage Mitigation Bypass",
+      "acceptedValues": [
+        "resistance",
+        "immunity",
+        "damage_reduction",
+        "damage_prevention"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:40:00+02:00",
+          "action": "registered",
+          "why": "Runtime damage needs an explicit bypass list for damage that cannot be reduced or prevented."
+        }
+      ],
+      "comment": "Stores mitigation families that this damage packet ignores during damage resolution. It maps from the structured markdown label `Damage Mitigation Bypass` after that label has been checked against canonical prose. Purpose: effects[].damage.mitigationBypass[] preserves irreducible and unpreventable damage such as Wish stress without hiding it in prose. Omit or use an empty array only when the damage can be mitigated normally."
+    },
+    {
+      "path": "effects[].damageInstances[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredLabels": [
+        "Primary Damage Dice",
+        "Primary Damage Type",
+        "Secondary Damage Dice",
+        "Secondary Damage Type"
+      ],
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Proposed runtime shape for Ice Knife-style separate damage events."
+        }
+      ],
+      "comment": "Proposed runtime shape for Ice Knife-style separate damage events. It maps to `effects[].damageInstances[]`. It is populated from structured markdown labels: `Primary Damage Dice`, `Primary Damage Type`, `Secondary Damage Dice`, `Secondary Damage Type`. Purpose: effects[].damageInstances[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].damageInstances[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].secondaryTargeting",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": null,
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Follow-up damage can target a creature related to the first target instead of using the spell's initial targeting block."
+        }
+      ],
+      "comment": "effects[].secondaryTargeting records leap, chain, or other follow-up target relationships on the effect that uses them. It is populated from the Secondary Target structured fields. Omit it only when the effect has no secondary or chained target mechanic."
+    },
+    {
+      "path": "effects[].secondaryTargeting.trigger",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "primary_hit",
+        "duplicate_damage_die",
+        "not_applicable"
+      ],
+      "structuredLabel": "Secondary Target Trigger",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know what event unlocks the secondary target."
+        }
+      ],
+      "comment": "Secondary Target Trigger maps to effects[].secondaryTargeting.trigger. Use `primary_hit` for Green-Flame Blade-style hit riders, `duplicate_damage_die` for Chromatic Orb-style dice-match chains, and `not_applicable` only as a structured/template sentinel."
+    },
+    {
+      "path": "effects[].secondaryTargeting.origin",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "primary_target",
+        "previous_target",
+        "not_applicable"
+      ],
+      "structuredLabel": "Secondary Target Origin",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Secondary target distance is measured from an existing target, not from the caster."
+        }
+      ],
+      "comment": "Secondary Target Origin maps to effects[].secondaryTargeting.origin. Use `primary_target` when the follow-up is measured from the initial hit target, and `previous_target` when each chain step is measured from the last target."
+    },
+    {
+      "path": "effects[].secondaryTargeting.range",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "structuredLabel": "Secondary Target Range",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "The secondary target relationship needs its own measured range."
+        }
+      ],
+      "comment": "Secondary Target Range maps to effects[].secondaryTargeting.range. Store the numeric range from the secondary target origin, or `not_applicable` in structured/template review when there is no secondary target mechanic."
+    },
+    {
+      "path": "effects[].secondaryTargeting.rangeUnit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches",
+        "not_applicable"
+      ],
+      "structuredLabel": "Secondary Target Range Unit",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "The secondary target range needs an explicit unit."
+        }
+      ],
+      "comment": "Secondary Target Range Unit maps to effects[].secondaryTargeting.rangeUnit. Use `feet` for the current leap/chain spells."
+    },
+    {
+      "path": "effects[].secondaryTargeting.validTargets",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "creature",
+        "creature_or_object",
+        "not_applicable"
+      ],
+      "structuredLabel": "Secondary Target Valid Targets",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "The follow-up target can have a different eligibility rule than the primary spell target."
+        }
+      ],
+      "comment": "Secondary Target Valid Targets maps to effects[].secondaryTargeting.validTargets. Use `creature` for Green-Flame Blade and Chromatic Orb unless canonical prose permits objects too."
+    },
+    {
+      "path": "effects[].secondaryTargeting.selection",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "caster_choice",
+        "not_applicable"
+      ],
+      "structuredLabel": "Secondary Target Selection",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Secondary targets need to say who chooses the follow-up target."
+        }
+      ],
+      "comment": "Secondary Target Selection maps to effects[].secondaryTargeting.selection. Use `caster_choice` for current leap/chain spells."
+    },
+    {
+      "path": "effects[].secondaryTargeting.mustBeDifferent",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "structuredLabel": "Secondary Target Must Be Different",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Several follow-up mechanics require a different target from the origin target."
+        }
+      ],
+      "comment": "Secondary Target Must Be Different maps to effects[].secondaryTargeting.mustBeDifferent. Use true when canonical prose says a different target or creature."
+    },
+    {
+      "path": "effects[].secondaryTargeting.requiresLineOfSight",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "structuredLabel": "Secondary Target Requires Line Of Sight",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some follow-up targets require the caster to see the secondary creature."
+        }
+      ],
+      "comment": "Secondary Target Requires Line Of Sight maps to effects[].secondaryTargeting.requiresLineOfSight. Use true only when the secondary target selection itself has a sight requirement."
+    },
+    {
+      "path": "effects[].secondaryTargeting.requiresAttackRoll",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "structuredLabel": "Secondary Target Requires Attack Roll",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some chained targets require a fresh attack roll."
+        }
+      ],
+      "comment": "Secondary Target Requires Attack Roll maps to effects[].secondaryTargeting.requiresAttackRoll. Use true for Chromatic Orb chain steps; use false for automatic rider damage such as Green-Flame Blade."
+    },
+    {
+      "path": "effects[].secondaryTargeting.requiresDamageRoll",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "structuredLabel": "Secondary Target Requires Damage Roll",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some chained targets require a fresh damage roll."
+        }
+      ],
+      "comment": "Secondary Target Requires Damage Roll maps to effects[].secondaryTargeting.requiresDamageRoll. Use true when canonical prose tells the caster to make a new damage roll."
+    },
+    {
+      "path": "effects[].secondaryTargeting.repeatRule",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "none",
+        "slot_level_max_leaps",
+        "not_applicable"
+      ],
+      "structuredLabel": "Secondary Target Repeat Rule",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Chromatic Orb-style chains can repeat based on slot level, while many secondary targets cannot repeat."
+        }
+      ],
+      "comment": "Secondary Target Repeat Rule maps to effects[].secondaryTargeting.repeatRule. Use `none` for one-time secondary targets and `slot_level_max_leaps` when the maximum number of chains equals the slot level expended."
+    },
+    {
+      "path": "effects[].secondaryTargeting.maxLeaps",
+      "required": false,
+      "valueType": "number-or-enum",
+      "acceptedValues": [
+        "slot_level",
+        "not_applicable"
+      ],
+      "structuredLabel": "Secondary Target Max Leaps",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Repeating secondary target chains need an explicit maximum."
+        }
+      ],
+      "comment": "Secondary Target Max Leaps maps to effects[].secondaryTargeting.maxLeaps. Use `slot_level` when the maximum equals the slot level expended, or `not_applicable` when the secondary target cannot repeat."
+    },
+    {
+      "path": "effects[].secondaryTargeting.uniquePerCasting",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "structuredLabel": "Secondary Target Unique Per Casting",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some chains prohibit targeting the same creature more than once per casting."
+        }
+      ],
+      "comment": "Secondary Target Unique Per Casting maps to effects[].secondaryTargeting.uniquePerCasting. Use true when canonical prose says each creature can be targeted only once by the casting."
+    },
+    {
+      "path": "effects[].secondaryTargeting.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Secondary Target Notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Short notes preserve exact local wording while typed secondary target fields carry runtime behavior."
+        }
+      ],
+      "comment": "Secondary Target Notes maps to effects[].secondaryTargeting.notes. Keep this short and do not use it as a replacement for the typed secondary target fields."
+    },
+    {
+      "path": "effectSchedule",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": null,
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "Some spells have different effects on different later turns, which cannot be recovered from repeated turn_start triggers alone."
+        }
+      ],
+      "comment": "effectSchedule records turn- or phase-numbered spell stages. The actual damage, terrain, status, or utility payloads remain in `effects[]`; the schedule says when those payloads are active and points to them by index when possible. Omit it only when a spell has no staged effect schedule."
+    },
+    {
+      "path": "effectSchedule.timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "caster_later_turn_start",
+        "not_applicable"
+      ],
+      "structuredLabel": "Effect Schedule Timing",
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "The runtime needs the schedule's overall timing family."
+        }
+      ],
+      "comment": "Effect Schedule Timing maps to `effectSchedule.timing`. Use `caster_later_turn_start` for schedules that advance at the start of the caster's later turns. `not_applicable` is a structured/template sentinel; omit the runtime object when no schedule applies."
+    },
+    {
+      "path": "effectSchedule.entries[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredPattern": "^Effect Schedule Entry \\d+",
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "Each staged turn window needs its own label, turn range, effect links, and target rule."
+        }
+      ],
+      "comment": "effectSchedule.entries[] maps from numbered Effect Schedule Entry structured fields. Each entry names a turn window and the effects active in that window, including target-count rules such as six different targets."
+    },
+    {
+      "path": "effectSchedule.entries.length",
+      "required": false,
+      "valueType": "number",
+      "structuredLabel": "Effect Schedule Entry Count",
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "The template contract needs an explicit runtime path for the declared number of scheduled stages."
+        }
+      ],
+      "comment": "Effect Schedule Entry Count maps to the number of objects in `effectSchedule.entries[]`. It is used for review parity; the runtime stores the entries themselves rather than a separate count field."
+    },
+    {
+      "path": "effectSchedule.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Effect Schedule Notes",
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "Schedule notes clarify what is handled by the schedule versus normal immediate effects."
+        }
+      ],
+      "comment": "Effect Schedule Notes maps to `effectSchedule.notes`. Use it to state, for example, that initial on-cast damage is not part of a later-turn schedule."
+    },
+    {
+      "path": "effects[].healing.dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "structuredLabel": "Healing Dice",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Healing Dice."
+        }
+      ],
+      "comment": "Mapped from structured Healing Dice. It maps to `effects[].healing.dice`. It is populated from the structured markdown label `Healing Dice`. Purpose: effects[].healing.dice exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Healing Dice`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].healing.dice`. The value type is `dice-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 10-14 in generated discovery row order."
+  ],
+  "findings": {
+    "conjure-elemental::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses air, earth, fire, or water, which determines Lightning, Thunder, Fire, or Cold damage; runtime has variable damage but no typed element-to-damage option map.",
+      "recommendedTemplateChange": "Add linked summon mode fields for element choice and resulting damage type.",
+      "recommendedJsonChange": "Add runtime elementalSpiritOptions data."
+    },
+    "conjure-elemental::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spirit forces Dexterity saves when a visible creature enters its space or starts its turn within 5 feet, only if the spirit has no creature Restrained; runtime lacks these trigger filters and occupancy restriction.",
+      "recommendedTemplateChange": "Add created-hazard save trigger fields for enter-space, start-turn-nearby, visible target, and no-current-restrained-target gating.",
+      "recommendedJsonChange": "Add runtime elementalSpiritTrigger data."
+    },
+    "conjure-elemental::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Large intangible spirit appears in an unoccupied space within range; runtime targets a point but lacks unoccupied-space placement, Large size, and intangible entity fields.",
+      "recommendedTemplateChange": "Add created-entity placement fields for unoccupied space, size, and physicality.",
+      "recommendedJsonChange": "Add runtime spiritPlacement and spiritPhysicality data."
+    },
+    "conjure-elemental::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Conjure Elemental now records the Restrained target's start-turn Dexterity repeat save, failed-repeat damage, and success ending as structured Recurring Mechanics and runtime recurringMechanics data.",
+      "issue": "A Restrained target repeats the save at the start of each of its turns, taking 4d8 damage on a failed repeat and ending Restrained on success; runtime only has initial 8d8 damage.",
+      "recommendedTemplateChange": "Add repeat-save fields that can carry failed-repeat damage and success ending.",
+      "recommendedJsonChange": "Add runtime repeatSaveWithDamage data."
+    },
+    "conjure-elemental::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the requirement that the caster can see the creature being forced to save; this is a target/trigger visibility filter, not a light, vision, or sound effect.",
+      "recommendedTemplateChange": "Track under trigger target filters.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "conjure-elemental::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The created thing is a summoned elemental spirit rather than an object or structure.",
+      "recommendedTemplateChange": "Track under summon/created-entity fields.",
+      "recommendedJsonChange": "No created-object runtime data required."
+    },
+    "conjure-elemental::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a Large intangible elemental spirit with element modes, duration, placement, save-triggered damage, one-restrained-creature capacity, and repeat-save behavior; runtime has only a generic damage effect.",
+      "recommendedTemplateChange": "Add created spirit/hazard fields for identity, element choice, placement, trigger rules, capacity, and lifecycle.",
+      "recommendedJsonChange": "Add runtime elementalSpirit data."
+    },
+    "conjure-elemental::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The spirit comes from the Elemental Planes as source flavor for the summon; no creature or target is transported between planes by the spell.",
+      "recommendedTemplateChange": "Track the source under summoned-entity origin if needed, not travel movement.",
+      "recommendedJsonChange": "No travel/planar movement runtime data required."
+    },
+    "conjure-elemental::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched elemental damage type choice, but the spell does not create or consume a resource.",
+      "recommendedTemplateChange": "Track under choice/mode and damage type fields.",
+      "recommendedJsonChange": "No resource/consumption runtime data required."
+    },
+    "conjure-elemental::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Failed saves apply Restrained until the spell ends, with start-turn repeat saves and one-creature capacity; runtime lacks the Restrained status and linked repeat-save damage branch.",
+      "recommendedTemplateChange": "Add linked status/rider fields for restrained-by-created-spirit, capacity, repeat saves, and failed-repeat damage.",
+      "recommendedJsonChange": "Add runtime Restrained effect linked to elementalSpiritTrigger."
+    },
+    "conjure-elemental::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The elemental mode changes damage type and the spirit creates a localized hazard, but it does not otherwise alter terrain or environment.",
+      "recommendedTemplateChange": "Track under summon/hazard and damage-type choice fields.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "conjure-elemental::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Restrained lasts until the spell ends or until the repeat save succeeds; this is status repeat-save behavior rather than a separate spell-ending condition.",
+      "recommendedTemplateChange": "Track under status and repeat-save fields.",
+      "recommendedJsonChange": "No separate conditional-ending runtime data required."
+    },
+    "conjure-volley::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster uses either ranged ammunition or a thrown weapon, and the damage type matches that item; runtime now has variable damage but no typed source-item damage-type inheritance.",
+      "recommendedTemplateChange": "Add damage-type inheritance fields from material/source weapon or ammunition.",
+      "recommendedJsonChange": "Add runtime sourceDamageType data."
+    },
+    "conjure-volley::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save, half-damage outcome, 8d8 variable damage, area targeting, and 20-foot cylinder height are now represented.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a DAMAGE effect and correcting the targeting to area."
+    },
+    "conjure-volley::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The duplicated ammunition or weapon falls and then disappears as instantaneous attack presentation; no persistent environmental change remains.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "contact-other-plane::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Intelligence save, failed-save Psychic damage, and Incapacitated condition are now represented, but runtime lacks the fixed DC 15 override and success-gated access to questions.",
+      "recommendedTemplateChange": "Add fixed save DC override fields and success-gated utility branch fields.",
+      "recommendedJsonChange": "Add runtime fixedDc 15 and successBranch data."
+    },
+    "contact-other-plane::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "The spell contacts an otherworldly intelligence but does not summon or control an entity into the scene.",
+      "recommendedTemplateChange": "Track under information/contact fields.",
+      "recommendedJsonChange": "No summon/control runtime data required."
+    },
+    "contact-other-plane::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The mental contact reaches another plane but does not move a creature or object between planes.",
+      "recommendedTemplateChange": "Track under information/contact fields.",
+      "recommendedJsonChange": "No travel/planar movement runtime data required."
+    },
+    "contact-other-plane::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "On a successful DC 15 Intelligence save, the caster can ask up to five questions before the spell ends and receives one-word or short-phrase answers; runtime lacks typed planar information query fields.",
+      "recommendedTemplateChange": "Add planar information query fields for contacted entity type, save gate, question count, answer forms, unknown-answer handling, and misleading-answer phrase override.",
+      "recommendedJsonChange": "Add runtime planarQuery data."
+    },
+    "contact-other-plane::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Greater Restoration can end the failed-save Incapacitated effect; runtime lacks spell-specific external removal fields.",
+      "recommendedTemplateChange": "Add condition removal override fields keyed to ending spells.",
+      "recommendedJsonChange": "Add runtime removableBySpell data for Greater Restoration."
+    },
+    "contact-other-plane::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Incapacitated is now typed with special duration, but the until-Long-Rest duration and Greater Restoration ending are not first-class.",
+      "recommendedTemplateChange": "Add duration-until-rest and removable-by-spell fields for status effects.",
+      "recommendedJsonChange": "Add runtime status duration until_long_rest and removableBySpell data."
+    },
+    "contact-other-plane::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The caster must ask questions before the one-minute spell duration ends; this is the normal query window, not a separate conditional ending.",
+      "recommendedTemplateChange": "Track under information-query timing fields.",
+      "recommendedJsonChange": "No conditional-ending runtime data required."
+    },
+    "contagion::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses one ability, and while Poisoned the target has Disadvantage on saves with that chosen ability; runtime preserves this only in utility prose.",
+      "recommendedTemplateChange": "Add ability-choice fields linked to save-disadvantage riders.",
+      "recommendedJsonChange": "Add runtime chosenAbilitySaveDisadvantage data."
+    },
+    "contagion::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial Constitution save, damage, and Poisoned condition are typed, but runtime lacks the chosen-ability save disadvantage, three-success/three-failure progression, and save-to-resist condition removal.",
+      "recommendedTemplateChange": "Add linked save-disadvantage rider fields, counted repeat-save tracks, and condition-removal resistance checks.",
+      "recommendedJsonChange": "Add runtime contagionProgression data."
+    },
+    "contagion::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Contagion now records the three-success/three-failure repeat-save track in structured Repeat Save Progression and runtime repeatSave.progression data.",
+      "issue": "A turn-end Constitution repeat save is now present, but runtime cannot represent the canonical track of three successes ending the spell or three failures making the Poisoned duration last 7 days.",
+      "recommendedTemplateChange": "Add counted repeat-save success/failure threshold fields.",
+      "recommendedJsonChange": "Add runtime repeatSaveTrack with successThreshold 3 and failureThreshold 3."
+    },
+    "contagion::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell can end on the target after three repeat-save successes, last 7 days after three failures, and resist later Poisoned-ending effects unless another Constitution save succeeds; runtime lacks those ending branches.",
+      "recommendedTemplateChange": "Add conditional status/spell ending fields for counted saves and condition-removal resistance.",
+      "recommendedJsonChange": "Add runtime conditionalEnding and conditionRemovalResistance data."
+    },
+    "control-winds::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses Gusts, Downdraft, or Updraft, can later switch/halt/restart with an action, and Gusts also chooses calm/moderate/strong intensity and direction; runtime lacks typed wind mode controls.",
+      "recommendedTemplateChange": "Add environmental mode fields with action-based switch, halt, restart, direction, and intensity choices.",
+      "recommendedJsonChange": "Add runtime windControlModes data."
+    },
+    "control-winds::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Moderate/strong Gusts and Downdraft impose disadvantage on ranged weapon attacks through or inside the cube, and Downdraft forces Strength saves on flying creatures; runtime lacks these attack modifier and flying-save fields.",
+      "recommendedTemplateChange": "Add area attack-roll modifier fields and flying-only save trigger fields.",
+      "recommendedJsonChange": "Add runtime windAttackDisadvantage and downdraftFlyingSave data."
+    },
+    "control-winds::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Downdraft knocks flying creatures Prone on a failed Strength save; runtime lacks this status/forced-state branch.",
+      "recommendedTemplateChange": "Add flying-target failed-save Prone fields.",
+      "recommendedJsonChange": "Add runtime downdraftProne data."
+    },
+    "control-winds::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible area selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "control-winds::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched sustained wind effects, but this spell does not create a ward or alarm.",
+      "recommendedTemplateChange": "Track under environmental mode and attack/movement fields.",
+      "recommendedJsonChange": "No ward/alarm runtime data required."
+    },
+    "control-winds::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched a Strength save trigger for flying creatures; this is a movement/status mechanic, not social or knowledge behavior.",
+      "recommendedTemplateChange": "Track under attack/save, forced movement, and status fields.",
+      "recommendedJsonChange": "No social/knowledge runtime data required."
+    },
+    "control-winds::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Downdraft applies Prone on failed Strength saves for flying creatures; runtime lacks typed mode-specific Prone application.",
+      "recommendedTemplateChange": "Add mode-specific status application fields.",
+      "recommendedJsonChange": "Add runtime downdraftProne status effect."
+    },
+    "control-winds::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell controls air in a 100-foot cube with Gusts, Downdraft, and Updraft modes affecting ranged attacks, movement cost, falling damage, vertical jumps, and flying creatures; runtime is still generic utility prose.",
+      "recommendedTemplateChange": "Add controlled-air environmental fields for wind modes, intensity, direction, movement cost, fall damage reduction, jump bonus, and flying-creature interactions.",
+      "recommendedJsonChange": "Add runtime controlledWindArea data."
+    }
+  },
+  "manualFindings": {}
+}

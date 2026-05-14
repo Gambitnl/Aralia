@@ -1,0 +1,189 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 30-34 in generated discovery row order.",
+    "This packet covers Otto's Irresistible Dance, Planar Ally, Primordial Ward, Programmed Illusion, and Scatter."
+  ],
+  "findings": {
+    "ottos-irresistible-dance::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial Wisdom save, repeat save, attack-roll disadvantage, and Dexterity-save disadvantage are represented, but runtime lacks first-class saving-throw disadvantage and attacker-advantage-against-target fields.",
+      "recommendedTemplateChange": "Add disadvantage-on-save and advantage-to-attackers fields.",
+      "recommendedJsonChange": "Add runtime saveDisadvantage and attackerAdvantageAgainstTarget data."
+    },
+    "ottos-irresistible-dance::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The visible target requirement is already represented by targeting.lineOfSight.",
+      "recommendedTemplateChange": "No additional vision/light/sound field required.",
+      "recommendedJsonChange": "Closed by targeting.lineOfSight."
+    },
+    "ottos-irresistible-dance::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The Charmed condition, dancing in place, attack-roll disadvantage, Dexterity-save disadvantage, attacker advantage, and repeat-save action are represented in runtime effects/options.",
+      "recommendedTemplateChange": "No additional social/knowledge field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION, MOVEMENT, DEFENSIVE, and UTILITY effects."
+    },
+    "ottos-irresistible-dance::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Charmed condition is represented as a STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No additional status field required.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Charmed."
+    },
+    "planar-ally::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Requesting a named creature is represented as a utility option, but runtime lacks a first-class named-creature request field and DM-choice substitution outcome.",
+      "recommendedTemplateChange": "Add requested creature/name and substitution outcome fields.",
+      "recommendedJsonChange": "Add runtime requestedSummonIdentity data."
+    },
+    "planar-ally::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched requesting a specific creature, but the spell sends one planar ally; no multi-instance targeting is required.",
+      "recommendedTemplateChange": "Track requested identity under choice_or_mode instead.",
+      "recommendedJsonChange": "No multi-instance runtime data required."
+    },
+    "planar-ally::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ally must be a Celestial, Elemental, or Fiend loyal to the known entity and appear in an unoccupied space; runtime records form options but lacks loyalty/source and unoccupied-placement fields.",
+      "recommendedTemplateChange": "Add summon source/loyalty and unoccupied placement fields.",
+      "recommendedJsonChange": "Add runtime summonSourceEntity and summonPlacement data."
+    },
+    "planar-ally::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched hazardous/nonhazardous task payment language; that is a bargaining/payment rule, not terrain.",
+      "recommendedTemplateChange": "Track under resource_or_consumption/social_or_knowledge_effect.",
+      "recommendedJsonChange": "No terrain runtime data required."
+    },
+    "planar-ally::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The matched prose is beseeching/communication flavor around a bargaining mechanic, not a light/sound targeting mechanic.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "No runtime vision/light/sound data required."
+    },
+    "planar-ally::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can speak a specific creature's name and must communicate to bargain; runtime records these as utility options but lacks first-class negotiation/communication requirements.",
+      "recommendedTemplateChange": "Add negotiation communication and named request fields.",
+      "recommendedJsonChange": "Add runtime bargainCommunication data."
+    },
+    "planar-ally::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The creature appears but is not compelled to behave; runtime records SUMMONING and utility prose, but lacks first-class uncontrolled summoned ally/negotiated service state.",
+      "recommendedTemplateChange": "Add controlled/uncontrolled summon and negotiated-service fields.",
+      "recommendedJsonChange": "Add runtime negotiatedSummonService data."
+    },
+    "planar-ally::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ally returns to its home plane after task completion, service expiration, or failed negotiation; runtime records this in utility options but lacks first-class return-home-plane triggers.",
+      "recommendedTemplateChange": "Add summoned entity return-home-plane triggers.",
+      "recommendedJsonChange": "Add runtime summonReturnTriggers data."
+    },
+    "planar-ally::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Minute/hour/day payment rates, discounts, greater gifts, sacrifices, quests, and waivers are represented as utility options but lack first-class payment/resource fields.",
+      "recommendedTemplateChange": "Add service payment schedule, discount, and alternate payment fields.",
+      "recommendedJsonChange": "Add runtime negotiatedPayment data."
+    },
+    "planar-ally::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Known cosmic power, named request, bargain terms, ethos alignment, suicidal task refusal, and DM-adjusted payment are social/knowledge mechanics represented as utility options but not first-class data.",
+      "recommendedTemplateChange": "Add bargain/social constraint fields for service spells.",
+      "recommendedJsonChange": "Add runtime bargainConstraints data."
+    },
+    "primordial-ward::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "closed",
+      "issue": "The reaction to gain immunity to the triggering damage type is represented as a DEFENSIVE immunity effect with reaction sustain cost.",
+      "recommendedTemplateChange": "No additional reaction field required for this pass.",
+      "recommendedJsonChange": "Closed by DEFENSIVE immunity trigger/sustainCost."
+    },
+    "primordial-ward::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The trigger is taking one of the listed damage types; runtime records reaction immunity but lacks a first-class damage-type-trigger filter tied to the triggering damage packet.",
+      "recommendedTemplateChange": "Add damage-trigger filters for reaction defenses.",
+      "recommendedJsonChange": "Add runtime damageTriggerFilter data."
+    },
+    "primordial-ward::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "The listed resistances and reaction immunity are represented as DEFENSIVE effects.",
+      "recommendedTemplateChange": "No additional damage-prevention field required for this pass.",
+      "recommendedJsonChange": "Closed by DEFENSIVE resistance and immunity effects."
+    },
+    "primordial-ward::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched elemental damage types; this is damage prevention, not an environmental change.",
+      "recommendedTemplateChange": "Track under damage_reduction_or_prevention.",
+      "recommendedJsonChange": "No environmental runtime data required."
+    },
+    "primordial-ward::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Using the reaction ends the resistances and then ends the spell at the end of the caster's next turn; runtime records this as utility options but lacks first-class conditional replacement/ending fields.",
+      "recommendedTemplateChange": "Add defense replacement and delayed conditional spell-end fields.",
+      "recommendedJsonChange": "Add runtime defenseReplacement and conditionalSpellEnd data."
+    },
+    "programmed-illusion::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The illusion's visual/audible trigger, sounds, hollow noise, and see-through discernment are represented as sensory utility options.",
+      "recommendedTemplateChange": "No separate vision/light/sound field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY sensory controlOptions."
+    },
+    "programmed-illusion::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The illusion size, scripted behavior/sounds, imperceptible dormant state, trigger activation, 5-minute performance, 10-minute dormancy, repeat activation, physical interaction reveal, Study action reveal, and hollow sound are represented as utility options but lack first-class illusion lifecycle fields.",
+      "recommendedTemplateChange": "Add programmed illusion trigger, performance duration, dormancy, reactivation, and reveal fields.",
+      "recommendedJsonChange": "Add runtime programmedIllusion data."
+    },
+    "programmed-illusion::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "Seeing through the image and hollow sounds after discernment are represented as sensory utility options.",
+      "recommendedTemplateChange": "No separate sensor field required.",
+      "recommendedJsonChange": "Closed by UTILITY sensory controlOptions."
+    },
+    "programmed-illusion::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The activation trigger can be general or detailed but must be visual or audible within 30 feet of the area; runtime records this as utility options but lacks first-class trigger condition fields.",
+      "recommendedTemplateChange": "Add visual/audible proximity trigger fields.",
+      "recommendedJsonChange": "Add runtime illusionTrigger data."
+    },
+    "scatter::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing up to five creatures is represented by multi-target targeting and utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by maxTargets=5 and UTILITY controlOptions."
+    },
+    "scatter::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save for unwilling targets is represented by the MOVEMENT condition.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by MOVEMENT condition.saveType/saveEffect."
+    },
+    "scatter::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The destination must be an unoccupied visible space within 120 feet; runtime records teleport distance and utility options but lacks first-class destination occupancy/visibility filters.",
+      "recommendedTemplateChange": "Add teleport destination visibility and occupancy fields.",
+      "recommendedJsonChange": "Add runtime teleportDestinationFilter data."
+    },
+    "scatter::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The destination must be on the ground or on a floor; runtime records this as a utility option but lacks first-class destination surface fields.",
+      "recommendedTemplateChange": "Add teleport destination surface fields.",
+      "recommendedJsonChange": "Add runtime teleportDestinationSurface data."
+    },
+    "scatter::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The caster-visible source targets and destination are represented by lineOfSight plus utility destination options.",
+      "recommendedTemplateChange": "No additional vision/light/sound field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.lineOfSight and UTILITY controlOptions."
+    },
+    "scatter::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Teleportation up to 120 feet is represented as a MOVEMENT teleport effect.",
+      "recommendedTemplateChange": "No additional travel field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport."
+    },
+    "scatter::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched air quivering around targets; this is visual spell presentation, while the teleport mechanic is tracked separately.",
+      "recommendedTemplateChange": "No environmental field required.",
+      "recommendedJsonChange": "No runtime environmental data required."
+    }
+  }
+}

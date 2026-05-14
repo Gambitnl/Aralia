@@ -1,0 +1,368 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "disguise-self::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Disguise Self can change apparent height by up to 1 foot and apparent weight, but these appearance constraints are only prose in a generic utility effect.",
+      "recommendedTemplateChange": "Add disguise appearance fields for included worn/carried gear, apparent height delta, apparent weight change, and same-limb-arrangement requirement.",
+      "recommendedJsonChange": "Add runtime disguiseAppearance data instead of relying on description text."
+    },
+    "disguise-self::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Disguise Self has physical-inspection failure and Study action Intelligence (Investigation) reveal rules, but these reveal mechanics are only prose.",
+      "recommendedTemplateChange": "Add illusion/disguise reveal fields for physical interaction, Study action, Intelligence (Investigation), spell save DC, and same-limb arrangement.",
+      "recommendedJsonChange": "Add runtime disguise/illusion reveal data."
+    },
+    "disguise-self::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping, not a special early-ending mechanic.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond the one-hour duration.",
+      "recommendedJsonChange": "No runtime conditional-ending field needed beyond duration."
+    },
+    "dissonant-whispers::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'creature of your choice' is ordinary single-target selection.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond normal targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed beyond normal targeting."
+    },
+    "dissonant-whispers::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Dissonant Whispers' Wisdom save, half damage on success, and movement negation on success are represented across the damage and movement effects.",
+      "recommendedTemplateChange": "No attack/save modifier field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for the save-gated damage and movement."
+    },
+    "dissonant-whispers::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Dissonant Whispers represents reaction-using forced movement away from the caster, but 'if available' and 'safest route' are only stored in prose/custom formula.",
+      "recommendedTemplateChange": "Add reaction availability and safest-route forced movement fields.",
+      "recommendedJsonChange": "Add runtime forcedMovement routeConstraint=safest_route and reactionRequiredIfAvailable data."
+    },
+    "dissonant-whispers::vision_light_sound": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The discordant melody in the target's mind is presentation for the psychic damage and forced movement; it does not create an audible area sound mechanic.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed for this descriptive wording.",
+      "recommendedJsonChange": "No runtime light/sound field needed for this descriptive wording."
+    },
+    "divine-favor::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Divine Favor's extra 1d4 Radiant damage on weapon attack hits is represented as an on_attack_hit weapon DAMAGE rider.",
+      "recommendedTemplateChange": "No attack/save modifier field needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "divine-favor::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping, not a special early-ending mechanic.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond duration.",
+      "recommendedJsonChange": "No runtime conditional-ending field needed beyond duration."
+    },
+    "divine-smite::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Fiend/Undead creature types as states; the actual mechanic is conditional extra damage, and runtime target filtering now uses creatureTypes for Fiend and Undead.",
+      "recommendedTemplateChange": "No status/state field needed.",
+      "recommendedJsonChange": "Closed by correcting the secondary damage target filter from creatureType to creatureTypes."
+    },
+    "divine-smite::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The Fiend/Undead clause is a conditional damage bonus, not an ending condition, and the secondary damage effect now filters those creature types.",
+      "recommendedTemplateChange": "Track through conditional damage fields rather than conditional ending.",
+      "recommendedJsonChange": "No conditional-ending JSON field needed."
+    },
+    "ensnaring-strike::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Ensnaring Strike's Strength save and Large-or-larger advantage are represented; the save modifier key was corrected to use sizes.",
+      "recommendedTemplateChange": "No attack/save modifier change needed after the size-filter correction.",
+      "recommendedJsonChange": "Closed by correcting the save modifier appliesTo key from size to sizes."
+    },
+    "ensnaring-strike::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "Recurring start-of-turn piercing damage while Restrained and action-based escape checks are represented in runtime damage/status data.",
+      "recommendedTemplateChange": "No recurring-check field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for the existing turn_start damage and escape check data."
+    },
+    "ensnaring-strike::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Restrained condition is represented as a STATUS_CONDITION with a Strength save gate and escape check.",
+      "recommendedTemplateChange": "No status/state field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for the Restrained state."
+    },
+    "ensnaring-strike::environmental_change": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The grasping vines are presentation for the Restrained condition and recurring piercing damage rather than a separately modeled terrain or environmental state.",
+      "recommendedTemplateChange": "No environmental field needed for this descriptive vine wording in this goal.",
+      "recommendedJsonChange": "No runtime environmental field needed for this descriptive vine wording in this goal."
+    },
+    "ensnaring-strike::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Successful initial save and successful action check ending are represented through negates_condition and escape check data.",
+      "recommendedTemplateChange": "No conditional-ending field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for the represented save/escape ending behavior."
+    },
+    "entangle::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Entangle's Strength save is represented, but the canonical exclusion for the caster ('other than you') is not explicit in targeting or status target filters.",
+      "recommendedTemplateChange": "Add caster-exclusion fields for area save/status applications.",
+      "recommendedJsonChange": "Add runtime target exclusion for caster on the Restrained save application."
+    },
+    "entangle::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Entangle's 20-foot-square difficult terrain is represented as a TERRAIN effect.",
+      "recommendedTemplateChange": "No terrain field change needed for the difficult terrain surface.",
+      "recommendedJsonChange": "No terrain JSON change needed for the represented difficult terrain."
+    },
+    "entangle::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Entangle's Restrained condition and Strength (Athletics) action escape are represented in the status condition and escape check data.",
+      "recommendedTemplateChange": "No status/state field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for the represented Restrained state and escape check."
+    },
+    "entangle::environmental_change": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The sprouting grasping plants are presentation for difficult terrain and Restrained mechanics, not a separate plant-growth world-state mechanic for this goal.",
+      "recommendedTemplateChange": "No environmental field needed beyond terrain/status fields.",
+      "recommendedJsonChange": "No runtime environmental field needed beyond terrain/status data."
+    },
+    "entangle::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Plant disappearance at spell end is ordinary duration cleanup, and escape ending for Restrained is represented through escape check data.",
+      "recommendedTemplateChange": "No conditional-ending field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for the represented duration/escape cleanup."
+    },
+    "entangle::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Plants disappearing when the spell ends is cleanup, not aftermath, awareness, or memory.",
+      "recommendedTemplateChange": "No aftermath field needed.",
+      "recommendedJsonChange": "No aftermath JSON field needed."
+    },
+    "expeditious-retreat::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the word 'action', but Expeditious Retreat does not modify attack rolls, saves, or checks.",
+      "recommendedTemplateChange": "Track through granted/sustain action fields.",
+      "recommendedJsonChange": "Track through runtime granted action data."
+    },
+    "expeditious-retreat::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Expeditious Retreat immediately grants Dash and then grants Dash again as a Bonus Action until the spell ends, but runtime JSON keeps this in a generic utility description with grantedActions empty.",
+      "recommendedTemplateChange": "Add granted action fields for immediate Dash and recurring bonus-action Dash while active.",
+      "recommendedJsonChange": "Add runtime grantedActions data for immediate Dash and bonus-action Dash."
+    },
+    "expeditious-retreat::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for the bonus-action Dash permission.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond duration/concentration.",
+      "recommendedJsonChange": "No runtime conditional-ending field needed beyond duration/concentration."
+    },
+    "faerie-fire::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Faerie Fire's blue/green/violet outline color choice is now represented by Light Color Choice caster_choice and runtime light.color.",
+      "recommendedTemplateChange": "No new choice/mode field needed for this color-only choice; existing Light Color Choice covers it.",
+      "recommendedJsonChange": "Runtime light data now records caster_choice and the available outline colors."
+    },
+    "faerie-fire::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Faerie Fire grants Advantage on attacks against affected creatures or objects if the attacker can see the target, but runtime JSON only stores this in description text.",
+      "recommendedTemplateChange": "Add attack advantage fields with visible-to-attacker prerequisite and affected creature/object scope.",
+      "recommendedJsonChange": "Add runtime attackRollModifier data for incoming advantage while visible."
+    },
+    "faerie-fire::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Faerie Fire's 10-foot Dim Light rider and caster-chosen outline color are now represented by light radius/color fields; attack Advantage remains open under attack_or_save_modifier.",
+      "recommendedTemplateChange": "No new sensory template field needed; existing light radius and color-choice fields cover this portion.",
+      "recommendedJsonChange": "Runtime utility light data now carries dimRadius 10, brightRadius 0, attachedTo target, and caster_choice color."
+    },
+    "false-life::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "False Life's temporary hit points and slot scaling are represented as temporary healing data.",
+      "recommendedTemplateChange": "No object/stat field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for the represented temporary HP."
+    },
+    "feather-fall::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing up to five falling creatures is ordinary multi-target selection and the max target count is represented.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed beyond targeting."
+    },
+    "feather-fall::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Feather Fall now records 60 feet per round descent, fall-damage prevention on landing, and target_lands per-target effect ending in structured markdown and runtime fallControl/conditionalEndings data.",
+      "issue": "Feather Fall sets falling descent to 60 feet per round, prevents fall damage on landing, and ends per creature on landing; runtime JSON keeps these as prose-only utility.",
+      "recommendedTemplateChange": "Add fall-state fields for descent rate, fall damage prevention, landing behavior, and per-target end-on-landing.",
+      "recommendedJsonChange": "Add runtime fallControl data instead of prose-only utility."
+    },
+    "cure-wounds::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Cure Wounds' hit point restoration and slot scaling are represented as HEALING runtime data.",
+      "recommendedTemplateChange": "No new template field needed for this reviewed row; existing healing fields cover the mechanic.",
+      "recommendedJsonChange": "No JSON change needed for the represented healing amount and scaling."
+    },
+    "false-life::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "False Life grants temporary hit points, and the runtime JSON represents them as HEALING with isTemporaryHp true.",
+      "recommendedTemplateChange": "No new template field needed for this reviewed row; existing temporary healing fields cover the mechanic.",
+      "recommendedJsonChange": "No JSON change needed for the represented temporary HP and slot scaling."
+    },
+    "find-familiar::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Find Familiar requires choosing a familiar form and creature type, and recasting changes the existing familiar's eligible form instead of creating another familiar.",
+      "recommendedTemplateChange": "Add summon choice fields for form choice, creature type choice, and recast form replacement.",
+      "recommendedJsonChange": "Add runtime summon choice data for eligible forms, Celestial/Fey/Fiend type selection, and one-familiar recast replacement."
+    },
+    "find-familiar::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched special senses, but Find Familiar does not directly modify an attack roll or saving throw.",
+      "recommendedTemplateChange": "Track shared senses under sensor/remote perception instead of attack/save modifier fields.",
+      "recommendedJsonChange": "Track shared senses under summon/sensor data instead of attack/save modifier data."
+    },
+    "find-familiar::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A familiar can deliver a touch spell only by taking its Reaction while within 100 feet, but this is only partly represented as a named special action.",
+      "recommendedTemplateChange": "Add reaction delivery fields for touch spell delivery, familiar distance limit, and reaction consumption.",
+      "recommendedJsonChange": "Add structured touchSpellDelivery data instead of relying on specialActions description text."
+    },
+    "find-familiar::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The familiar appears and reappears only in unoccupied spaces, eligible forms are Beast CR 0 forms, and one familiar is allowed at a time.",
+      "recommendedTemplateChange": "Add summon placement and eligibility fields for unoccupied space, CR 0 Beast form eligibility, and one-active-familiar limit.",
+      "recommendedJsonChange": "Add runtime summon placement constraints, eligible form filters, and active-instance limit."
+    },
+    "find-familiar::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Find Familiar uses a Bonus Action for shared senses, Magic actions for dismiss/reappear, and recasting changes the familiar's form.",
+      "recommendedTemplateChange": "Add follow-up action fields for shared senses, temporary dismissal, reappearance, permanent dismissal, and recast reshaping.",
+      "recommendedJsonChange": "Closed one narrow mismatch by changing sharedSensesCost to bonus_action; add runtime follow-up action data for dismiss/reappear/recast behavior."
+    },
+    "find-familiar::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Shared senses let the caster see and hear through the familiar and gain any special senses until the start of the caster's next turn.",
+      "recommendedTemplateChange": "Add sensory sharing fields for sight, hearing, special senses, duration, range, and action cost.",
+      "recommendedJsonChange": "Extend sharedSenses data beyond a boolean so the runtime knows the senses, bonus-action cost, 100-foot limit, and until-start-next-turn duration."
+    },
+    "find-familiar::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the familiar's disappearance/reappearance wording, but the spell does not create an illusion or disguise.",
+      "recommendedTemplateChange": "Track disappearance and pocket-dimension behavior under summon/conditional-ending fields.",
+      "recommendedJsonChange": "Track disappearance and pocket-dimension behavior under summon/conditional-ending runtime data."
+    },
+    "find-familiar::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can remotely see and hear through the familiar and gains its special senses, but the runtime only stores sharedSenses as a coarse boolean.",
+      "recommendedTemplateChange": "Add remote perception fields for shared sight/hearing, special-sense inheritance, range, action cost, and end timing.",
+      "recommendedJsonChange": "Add runtime shared-sense details instead of a boolean-only sharedSenses flag."
+    },
+    "find-familiar::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Find Familiar grants telepathic communication with the familiar within 100 feet, but telepathy is only a summon subfield and not connected to communication mechanics.",
+      "recommendedTemplateChange": "Add communication fields for telepathic link target and range.",
+      "recommendedJsonChange": "Add runtime communication/telepathy data or standardize summon telepathy fields across the template."
+    },
+    "find-familiar::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The summon is represented, but independent initiative, ally status, no-attack restriction, allowed normal actions, chosen-form statistics, disappearance at 0 HP, item drop, pocket dimension, and active-instance limit are not first-class data.",
+      "recommendedTemplateChange": "Extend summon fields for initiative, ally relationship, prohibited attacks, allowed actions, form statistics, 0-HP disappearance, item drop behavior, dismissal modes, and one-active-instance limit.",
+      "recommendedJsonChange": "Extend runtime summon data beyond formOptions/sharedSenses/specialActions to encode the familiar's combat and lifecycle rules."
+    },
+    "find-familiar::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The familiar is explicitly an ally to the caster and the caster's allies, but ally relationship is not represented as runtime relationship data.",
+      "recommendedTemplateChange": "Add summon relationship fields for ally-to-caster and ally-to-caster-allies.",
+      "recommendedJsonChange": "Add runtime relationship data for familiar ally status."
+    },
+    "find-familiar::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The familiar uses the chosen form's statistics, disappears at 0 Hit Points, and leaves worn or carried objects behind when it disappears.",
+      "recommendedTemplateChange": "Add summon stat source, zero-HP behavior, and worn/carried item drop fields.",
+      "recommendedJsonChange": "Add runtime stat source and disappearance/drop behavior for the familiar."
+    },
+    "fog-cloud::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fog Cloud's fog sphere, strong-wind dispersal, and slot scaling are represented, but the Heavily Obscured visibility state is still flattened into terrainType obscuring.",
+      "recommendedTemplateChange": "Add explicit obscurity-level fields for terrain/environmental effects.",
+      "recommendedJsonChange": "Add runtime obscurityLevel: heavily_obscured or equivalent instead of relying only on terrainType obscuring."
+    },
+    "goodberry::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Bonus Action wording, but Goodberry does not alter attack rolls or saving throws.",
+      "recommendedTemplateChange": "Track berry eating under resource/consumption and healing fields.",
+      "recommendedJsonChange": "Track berry eating under consumable object and healing data."
+    },
+    "goodberry::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Goodberry creates ten consumable berries; each can be eaten as a Bonus Action and provides nourishment for one day, but runtime JSON stores only a creation description.",
+      "recommendedTemplateChange": "Add consumable-created-resource fields for count, consume action, per-item use, nourishment duration, and remaining-item cleanup.",
+      "recommendedJsonChange": "Add runtime consumableResource data for ten berries, bonus-action eating, one berry per use, and one-day nourishment."
+    },
+    "goodberry::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each Goodberry restores 1 Hit Point when eaten, but the runtime JSON has no healing effect tied to berry consumption.",
+      "recommendedTemplateChange": "Add consumable healing fields for fixed HP restoration triggered by eating a created item.",
+      "recommendedJsonChange": "Add runtime healing data for each berry restoring 1 HP on bonus-action consumption."
+    },
+    "goodberry::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "The uneaten-berries disappearance is normal duration cleanup at the 24-hour spell end, not a special early-ending trigger. Goodberry's created berries, healing, nourishment, and cleanup data remain open under resource/healing created-consumable buckets.",
+      "issue": "Uneaten berries disappear when the spell ends, but created-item cleanup is only prose.",
+      "recommendedTemplateChange": "Add created-resource cleanup fields for disappear_on_spell_end.",
+      "recommendedJsonChange": "Add runtime cleanup data for uneaten berries disappearing at duration end."
+    },
+    "goodberry::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched spell-end disappearance, but Goodberry has no aftermath, awareness, or memory mechanic.",
+      "recommendedTemplateChange": "Track uneaten berry disappearance under conditional ending/resource cleanup.",
+      "recommendedJsonChange": "Track uneaten berry disappearance under consumable resource cleanup."
+    },
+    "grease::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Grease's Dexterity saves are represented for immediate appearance, first entry on a turn, and end-of-turn checks.",
+      "recommendedTemplateChange": "No attack/save modifier field needed beyond represented save-gated Prone effects.",
+      "recommendedJsonChange": "No attack/save JSON change needed for this reviewed row."
+    },
+    "grease::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Grease covers a 10-foot square and creates Difficult Terrain; the terrain effect shape has been corrected from Cube to Square.",
+      "recommendedTemplateChange": "No new terrain field needed for this reviewed row.",
+      "recommendedJsonChange": "Closed by aligning the TERRAIN area shape with the canonical 10-foot square."
+    },
+    "grease::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Grease applies the Prone condition on failed Dexterity saves, and runtime JSON represents Prone for appearance, entry, and end-of-turn cases.",
+      "recommendedTemplateChange": "No new status field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented Prone outcomes."
+    },
+    "grease::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Grease explicitly creates nonflammable grease, but runtime terrain has no flammability or fire-interaction field.",
+      "recommendedTemplateChange": "Add environmental surface material fields for flammable/nonflammable state where spell prose makes it mechanical.",
+      "recommendedJsonChange": "Add runtime terrain flammability data for nonflammable grease."
+    },
+    "guiding-bolt::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Guiding Bolt grants Advantage to the next attack roll against the target before the end of the caster's next turn, but the runtime stores this as a generic utility description.",
+      "recommendedTemplateChange": "Add attack-roll modifier fields for incoming next-attack advantage, hit-gated application, target scope, and duration until end of caster's next turn.",
+      "recommendedJsonChange": "Closed one narrow mismatch by hit-gating the utility rider; add runtime ATTACK_ROLL_MODIFIER or equivalent incoming next-attack advantage data."
+    },
+    "guiding-bolt::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the phrase 'next attack roll', but Guiding Bolt has no ward, alarm, or delayed trigger object.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field needed.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON change needed."
+    },
+    "hail-of-thorns::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Hail of Thorns' Dexterity save for both the attack target and nearby creatures is now represented in runtime JSON.",
+      "recommendedTemplateChange": "No new attack/save field needed for this reviewed row.",
+      "recommendedJsonChange": "Closed by changing the direct target damage leg from always-on damage to Dexterity save for half, and by removing a stale singular creatureType typo from the AoE target filter."
+    },
+    "hail-of-thorns::environmental_change": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The rain of thorns sprouting from the weapon or ammunition is descriptive presentation for the save-gated piercing damage, not a persistent environmental change.",
+      "recommendedTemplateChange": "No environmental field needed for this descriptive visual wording in this goal.",
+      "recommendedJsonChange": "No environmental runtime field needed for this descriptive visual wording in this goal."
+    },
+    "healing-word::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'of your choice' is ordinary single-target selection, and the runtime targeting already captures one visible creature within range.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond ordinary targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed beyond ordinary targeting."
+    }
+  },
+  "manualFindings": {}
+}

@@ -1,0 +1,240 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 0-4 in generated discovery row order."
+  ],
+  "findings": {
+    "animate-objects::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses a variable number of eligible objects, with Medium-or-smaller objects counting as one, Large as two, Huge as three, and the total budget equal to spellcasting ability modifier; runtime lacks object-count budget and size-weighting fields.",
+      "recommendedTemplateChange": "Add multi-object choice fields for count budget source, size weights, and maximum object size.",
+      "recommendedJsonChange": "Add runtime animatedObjectSelection data."
+    },
+    "animate-objects::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animated Object Slam uses the caster's spell attack modifier, size-based damage formulas, and higher-slot damage increases by size; runtime stores these stat-block attack details only in prose.",
+      "recommendedTemplateChange": "Add animated/summoned stat-block action fields for attack bonus source, damage formulas by size, and size-specific scaling dice.",
+      "recommendedJsonChange": "Add runtime animatedObject.actions and scaling data."
+    },
+    "animate-objects::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Targets must be nonmagical objects within range that are not worn, carried, fixed to a surface, or Gargantuan, with size-weighted target counting; runtime only says validTargets objects.",
+      "recommendedTemplateChange": "Add object eligibility fields for nonmagical, not worn/carried, not fixed, maximum size, and weighted target counting.",
+      "recommendedJsonChange": "Add runtime objectEligibility and weightedTargetBudget data."
+    },
+    "animate-objects::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the phrase fixed to a surface, but this is object target eligibility rather than terrain creation or terrain modification.",
+      "recommendedTemplateChange": "Track under object eligibility fields.",
+      "recommendedJsonChange": "No TERRAIN runtime data required."
+    },
+    "animate-objects::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animated objects understand the languages the caster knows and receive mental commands within 500 feet; runtime lacks typed summoned-language and command-channel fields.",
+      "recommendedTemplateChange": "Add created-entity language inheritance and mental command fields.",
+      "recommendedJsonChange": "Add runtime animatedObject.languages and commandChannel data."
+    },
+    "animate-objects::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates controlled Construct creatures with shared initiative, ally status, bonus-action mental commands, multi-target same-command control, default Dodge/harm-avoidance behavior, stat block details, and object reversion; runtime is still generic utility prose.",
+      "recommendedTemplateChange": "Add animated controlled-entity fields for entity type, control, initiative, command economy, default behavior, stat block, allegiance, and lifecycle.",
+      "recommendedJsonChange": "Add runtime animatedEntity data."
+    },
+    "animate-objects::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each animated creature is allied to the caster and allies and understands the caster's languages; runtime lacks typed allegiance and language inheritance.",
+      "recommendedTemplateChange": "Add created-entity allegiance and language fields.",
+      "recommendedJsonChange": "Add runtime allegiance and languages data."
+    },
+    "animate-objects::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animated objects have AC 15, size-based HP, speed, immunities, senses, language understanding, proficiency-bonus relationship, Slam attacks, 0-HP reversion, and damage carryover; runtime lacks typed durability/stat-block/object-reversion data.",
+      "recommendedTemplateChange": "Add animated object stat-block, durability, and reversion fields.",
+      "recommendedJsonChange": "Add runtime animatedObject.statBlock, hp, damageCarryover, and reversion data."
+    },
+    "animate-objects::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animated objects are immune to Poison and Psychic damage and to Charmed, Exhaustion, Frightened, Paralyzed, and Poisoned; runtime lacks typed summoned-condition and damage immunities.",
+      "recommendedTemplateChange": "Add created-entity immunity fields for damage types and conditions.",
+      "recommendedJsonChange": "Add runtime animatedObject.immunities data."
+    },
+    "animate-objects::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Control lasts until the spell ends or the creature is reduced to 0 Hit Points, at which point it reverts to object form and remaining damage carries over; runtime lacks entity-specific ending and reversion rules.",
+      "recommendedTemplateChange": "Add created-entity ending fields for spell-end, 0-HP, object reversion, and damage carryover.",
+      "recommendedJsonChange": "Add runtime animatedObject.lifecycle data.",
+      "closedReason": "Reused the existing created_entity_drops_to_0_hp conditional-ending trigger, recorded it in the structured spell fields, and mapped it to the runtime utility effect with effect scope, including object reversion and damage carryover in the ending description."
+    },
+    "antilife-shell::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The aura prevents living creatures other than Constructs and Undead from passing or reaching through it while still allowing spells and Ranged or Reach weapon attacks; runtime lacks typed barrier pass/reach restrictions and exception filters.",
+      "recommendedTemplateChange": "Add creature-barrier fields for pass-through prevention, reach-through prevention, excluded creature types, and allowed ranged/reach/spell interactions.",
+      "recommendedJsonChange": "Add runtime barrierRestriction data."
+    },
+    "antilife-shell::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If caster movement would force an affected creature through the barrier, the spell ends; runtime lacks movement-forced early-ending fields.",
+      "recommendedTemplateChange": "Add aura early-ending fields tied to caster movement forcing blocked creatures through the barrier.",
+      "recommendedJsonChange": "Add runtime conditionalEnding data for forced barrier crossing."
+    },
+    "awaken::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The DM chooses awakened Plant statistics, and when Charmed ends the awakened creature chooses its attitude toward the caster; runtime lacks DM stat-choice and post-charm attitude-choice fields.",
+      "recommendedTemplateChange": "Add transformation/stat-choice fields and post-condition attitude choice fields.",
+      "recommendedJsonChange": "Add runtime awakenedPlantStats and postCharmAttitude data."
+    },
+    "awaken::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target gains the ability to speak one language the caster knows; runtime preserves this only in utility prose.",
+      "recommendedTemplateChange": "Add language-grant fields with source language set.",
+      "recommendedJsonChange": "Add runtime languageGrant data."
+    },
+    "awaken::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched when the Charmed condition ends, but this is a condition lifecycle and social attitude mechanic, not a ward or alarm trigger.",
+      "recommendedTemplateChange": "Track under status/social fields.",
+      "recommendedJsonChange": "No ward/alarm runtime data required."
+    },
+    "awaken::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target gains Intelligence 10, language, Charmed for 30 days, and later chooses its attitude; Charmed is now typed, but intelligence, language, attitude, and break-on-damage remain prose-only.",
+      "recommendedTemplateChange": "Add intelligence-set, language-grant, charm-break, and attitude-choice fields.",
+      "recommendedJsonChange": "Add runtime intelligenceChange, languageGrant, breakOnDamage, and postCharmAttitude data."
+    },
+    "awaken::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Charmed is now typed for 30 days, but the early ending when the caster or allies deal damage and the attitude choice after the condition ends are not first-class.",
+      "recommendedTemplateChange": "Add status break-on-damage source filters and post-condition rider fields.",
+      "recommendedJsonChange": "Add runtime statusCondition.breakOnDamageFrom and postConditionChoice data."
+    },
+    "awaken::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A natural plant that is not a creature becomes a Plant creature with movement, humanlike senses, and DM-chosen statistics; runtime now permits object targets but lacks typed natural-plant transformation fields.",
+      "recommendedTemplateChange": "Add object-to-creature transformation fields for natural plants, creature type, movement/senses grants, and stat-block choice.",
+      "recommendedJsonChange": "Add runtime plantAwakening transformation data."
+    },
+    "awaken::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Awaken's Charmed condition now records its early ending when the caster or allies damage the awakened target.",
+      "recommendedTemplateChange": "Closed by Conditional Ending Triggers caster_or_ally_damages_target with effect scope.",
+      "recommendedJsonChange": "Closed by runtime conditionalEndings on the Charmed status effect.",
+      "closedReason": "Awaken now records the 30-day Charmed effect's damage break in structured markdown and runtime JSON. Intelligence, language, plant transformation, and post-Charmed attitude choice remain open in their dedicated buckets."
+    },
+    "banishing-smite::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The hit-triggered Force damage, Charisma save, Banished status, and Incapacitated status are now represented, but the banishment save only occurs if the attack reduces the target to 50 Hit Points or fewer; runtime lacks a typed HP-threshold gate for the save/status branch.",
+      "recommendedTemplateChange": "Add hit-result HP-threshold gating fields for riders.",
+      "recommendedJsonChange": "Add runtime riderCondition hpAtOrBelow 50 for the banishment branch."
+    },
+    "banishing-smite::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the reappearance location sentence, but that is return placement after banishment rather than target eligibility.",
+      "recommendedTemplateChange": "Track under travel/aftermath placement fields.",
+      "recommendedJsonChange": "No target-filter data required for this finding."
+    },
+    "banishing-smite::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target can be transported to a harmless demiplane and later return to its original or nearest unoccupied space; runtime has Banished/Incapacitated but no typed demiplane transport or return placement data.",
+      "recommendedTemplateChange": "Add planar/demiplane transport and return placement fields.",
+      "recommendedJsonChange": "Add runtime banishmentTransport and returnPlacement data."
+    },
+    "banishing-smite::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The banishment branch depends on reducing the target to 50 Hit Points or fewer, but runtime lacks typed current-HP threshold gating.",
+      "recommendedTemplateChange": "Add HP-threshold rider condition fields.",
+      "recommendedJsonChange": "Add runtime hpThreshold condition for the banishment rider."
+    },
+    "banishing-smite::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Banished and Incapacitated are now typed as save-gated status effects, with the remaining HP-threshold and travel placement details tracked in other buckets.",
+      "recommendedTemplateChange": "No new status field required for this pass.",
+      "recommendedJsonChange": "Closed by adding Banished and Incapacitated STATUS_CONDITION effects."
+    },
+    "banishing-smite::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When the spell ends, the target reappears in its original space or nearest unoccupied fallback; runtime lacks typed spell-end return placement.",
+      "recommendedTemplateChange": "Add spell-end return placement fields for banishment effects.",
+      "recommendedJsonChange": "Add runtime returnPlacement data."
+    },
+    "banishing-smite::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell-end return leaves the target in its original or nearest unoccupied space, but runtime lacks typed post-effect placement state.",
+      "recommendedTemplateChange": "Add aftermath placement fields for post-banishment return.",
+      "recommendedJsonChange": "Add runtime spellEndAftermath return placement data."
+    },
+    "bigbys-hand::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses among Clenched Fist, Forceful Hand, Grasping Hand, and Interposing Hand, plus direction/target choices inside modes; runtime has no typed mode options.",
+      "recommendedTemplateChange": "Add created-entity mode/action option fields with mode-specific targeting, damage, movement, grapple, and cover rules.",
+      "recommendedJsonChange": "Add runtime handActionOptions data."
+    },
+    "bigbys-hand::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The hand can make melee spell attacks, contested Strength checks, and Medium-or-smaller advantage checks; runtime lacks typed hand attack/check mechanics.",
+      "recommendedTemplateChange": "Add created-object attack and contested-check fields with size-based advantage.",
+      "recommendedJsonChange": "Add runtime handAttack and handContestedCheck data."
+    },
+    "bigbys-hand::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The hand is created in an unoccupied visible space within range; runtime targets creatures, objects, and points but lacks unoccupied-space placement semantics.",
+      "recommendedTemplateChange": "Add created-object placement fields for unoccupied visible space.",
+      "recommendedJsonChange": "Add runtime handPlacement data."
+    },
+    "bigbys-hand::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "On cast and as a bonus action later, the caster can move the hand up to 60 feet and choose an effect; while grappling, a bonus action can crush the target. Runtime lacks this sustained action economy.",
+      "recommendedTemplateChange": "Add sustained created-entity action fields for move-plus-mode and grapple-crush action.",
+      "recommendedJsonChange": "Add runtime handCommandActions data."
+    },
+    "bigbys-hand::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Forceful Hand can push a creature in a chosen direction by 5 feet plus five times the caster's spellcasting ability modifier, and the hand moves with the target; runtime lacks formula-based forced movement.",
+      "recommendedTemplateChange": "Add forced-movement formulas and follow-target fields.",
+      "recommendedJsonChange": "Add runtime forcefulHand movement data."
+    },
+    "bigbys-hand::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Interposing Hand makes its space Difficult Terrain for stronger targets moving through it toward the caster; runtime lacks conditional difficult-terrain fields tied to the hand's space and target Strength.",
+      "recommendedTemplateChange": "Add conditional created-object terrain fields.",
+      "recommendedJsonChange": "Add runtime interposingHand terrain data."
+    },
+    "bigbys-hand::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible placement and shimmering/translucent appearance; the visual appearance is deferred flavor and line-of-sight placement is already targeting, not a vision/light/sound mechanic.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "bigbys-hand::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a commanded Large force hand with movement, modes, object stats, grapple, cover, blocking, and conditional terrain; runtime is generic utility prose.",
+      "recommendedTemplateChange": "Add created controlled-object/entity fields for the hand.",
+      "recommendedJsonChange": "Add runtime createdHand data."
+    },
+    "bigbys-hand::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Interposing Hand's blocking and terrain behavior, but the spell is not a ward or alarm.",
+      "recommendedTemplateChange": "Track under created-object, terrain, cover, and movement fields.",
+      "recommendedJsonChange": "No ward/alarm runtime data required."
+    },
+    "bigbys-hand::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The hand has AC 20, HP equal to the caster's hit point maximum, Strength 26, Dexterity 10, does not fill its space, and the spell ends at 0 HP; runtime lacks typed object stats and damageability.",
+      "recommendedTemplateChange": "Add created-object stat and durability fields with formulas.",
+      "recommendedJsonChange": "Add runtime handStats and handDurability data."
+    },
+    "bigbys-hand::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The environmental signal is Interposing Hand's conditional difficult terrain, tracked under terrain_or_surface rather than a broader environmental-change bucket.",
+      "recommendedTemplateChange": "No separate environmental-change field required.",
+      "recommendedJsonChange": "No separate environmental-change runtime data required."
+    },
+    "bigbys-hand::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "If the hand drops to 0 Hit Points, the spell ends; runtime lacks created-object HP ending fields.",
+      "recommendedTemplateChange": "Add created-object 0-HP spell-ending fields.",
+      "recommendedJsonChange": "Add runtime handLifecycle ending data.",
+      "closedReason": "Reused the existing created_entity_drops_to_0_hp conditional-ending trigger, recorded it in the structured spell fields, and mapped it to the runtime utility effect with spell scope."
+    }
+  },
+  "manualFindings": {}
+}

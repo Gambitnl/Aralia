@@ -1,0 +1,772 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 4 manual review override shard for spell indexes 20-39 in generated discovery row order."
+  ],
+  "findings": {
+    "freedom-of-movement::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target ignores Difficult Terrain for movement, gains a Swim Speed equal to its Speed, and can spend 5 feet of movement to escape nonmagical restraints; runtime stores these movement rules only in prose.",
+      "recommendedTemplateChange": "Add movement immunity/adaptation fields for difficult-terrain immunity, swim speed equal to walking speed, and movement-cost escape from restraints.",
+      "recommendedJsonChange": "Add runtime movementFreedom data."
+    },
+    "freedom-of-movement::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Magical effects cannot reduce the target's Speed or inflict Paralyzed or Restrained, and the target can automatically escape nonmagical restraints including Grappled for 5 feet of movement; runtime lacks typed prevention and escape mechanics.",
+      "recommendedTemplateChange": "Add condition/speed prevention fields and nonmagical restraint auto-escape fields.",
+      "recommendedJsonChange": "Add runtime prevention and restraintEscape data."
+    },
+    "freedom-of-movement::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Difficult Terrain, but the spell changes the target's movement interaction rather than changing the environment.",
+      "recommendedTemplateChange": "Track under movement/adaptation fields.",
+      "recommendedJsonChange": "No environmental-change data required."
+    },
+    "giant-insect::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses centipede, spider, or wasp, and the form changes stat-block details; runtime lacks typed form options.",
+      "recommendedTemplateChange": "Add summon form option fields with form-specific abilities.",
+      "recommendedJsonChange": "Add runtime summon.formOptions data for centipede/spider/wasp."
+    },
+    "giant-insect::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The stat block includes spell-attack-based attacks, a spell-save-DC Constitution save, Spider Climb with no ability check, and level-derived multiattack; runtime only has prose.",
+      "recommendedTemplateChange": "Add summoned stat-block action fields for attack bonus source, save DC source, form-specific actions, and level-derived multiattack.",
+      "recommendedJsonChange": "Add runtime summon statBlock actions and scaling."
+    },
+    "giant-insect::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The insect manifests in an unoccupied space the caster can see within range; runtime has point targeting but no typed unoccupied-space placement rule.",
+      "recommendedTemplateChange": "Add summon placement eligibility fields for unoccupied visible space.",
+      "recommendedJsonChange": "Add runtime summonPlacement data."
+    },
+    "giant-insect::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Spider Climb lets the insect climb difficult surfaces and ceilings without an ability check; runtime lacks form-specific movement traits.",
+      "recommendedTemplateChange": "Add summoned creature movement trait fields for spider climb and form-specific speeds.",
+      "recommendedJsonChange": "Add runtime summon movementTraits data."
+    },
+    "giant-insect::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible placement and a target the insect can see for an action; these are targeting/placement filters, not light, vision, or sound effects.",
+      "recommendedTemplateChange": "Track under summon placement and action target filters.",
+      "recommendedJsonChange": "No vision-light-sound data required."
+    },
+    "giant-insect::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The insect understands the languages the caster knows; runtime lacks typed summoned-language fields.",
+      "recommendedTemplateChange": "Add summoned language inheritance fields.",
+      "recommendedJsonChange": "Add runtime summon.languages data."
+    },
+    "giant-insect::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell summons an allied creature with initiative timing, no-action verbal commands, default Dodge and danger avoidance, form options, scaled stats, and form-specific actions; runtime is still a generic utility effect.",
+      "recommendedTemplateChange": "Add full summoned entity fields for allegiance, initiative, command economy, default behavior, form options, stats, and actions.",
+      "recommendedJsonChange": "Add runtime SUMMONING or summonEntity data for Giant Insect."
+    },
+    "giant-insect::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The insect is allied to the caster and allies and understands the caster's languages; runtime lacks typed allegiance and language inheritance.",
+      "recommendedTemplateChange": "Add summoned allegiance and language fields.",
+      "recommendedJsonChange": "Add runtime summon.allegiance and summon.languages data."
+    },
+    "giant-insect::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The stat block has AC, HP, speed, senses, attacks, save actions, and spell-level scaling; runtime lacks typed summon stats.",
+      "recommendedTemplateChange": "Add summoned stat-block fields with spell-level formulas.",
+      "recommendedJsonChange": "Add runtime summon.statBlock data."
+    },
+    "giant-insect::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The creature disappears at 0 Hit Points or when the spell ends; runtime lacks summon disappearance conditions.",
+      "recommendedTemplateChange": "Add summoned entity disappearance fields for at-zero-HP and spell-end.",
+      "recommendedJsonChange": "Add runtime summon.disappearance data.",
+      "closedReason": "Reused the existing created_entity_drops_to_0_hp conditional-ending trigger, recorded it in the structured spell fields, and mapped it to the runtime utility effect with effect scope for the summoned creature disappearance."
+    },
+    "giant-insect::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The creature disappearing at 0 HP or spell end leaves no persistent aftermath or memory state in the canonical prose.",
+      "recommendedTemplateChange": "Track under summon disappearance rather than aftermath.",
+      "recommendedJsonChange": "No aftermath data required."
+    },
+    "grasping-vine::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can repeat the vine's melee spell attack as a Bonus Action on later turns against a creature within 30 feet of the vine; runtime has the initial attack but no granted repeat-attack action.",
+      "recommendedTemplateChange": "Add repeat spell-attack action fields for created-object attacks using a secondary origin.",
+      "recommendedJsonChange": "Add runtime granted/repeatAttack data for the vine."
+    },
+    "grasping-vine::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The vine sprouts from a surface in an unoccupied visible space; runtime targets a point but lacks surface and unoccupied-space placement rules.",
+      "recommendedTemplateChange": "Add created hazard/object placement fields for surface requirement and unoccupied visible space.",
+      "recommendedJsonChange": "Add runtime vine placement data."
+    },
+    "grasping-vine::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Bonus Action repeat attack is a sustained spell action from the vine's position; runtime lacks repeat action semantics.",
+      "recommendedTemplateChange": "Add sustained/repeat attack fields for bonus-action repeats from created entities.",
+      "recommendedJsonChange": "Add runtime repeatAttack data."
+    },
+    "grasping-vine::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "On a hit, the target is pulled up to 30 feet toward the vine; runtime now has a MOVEMENT pull effect.",
+      "recommendedTemplateChange": "No new forced-movement field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a MOVEMENT pull effect."
+    },
+    "grasping-vine::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The vine must sprout from a surface in an unoccupied visible space, but runtime lacks surface placement semantics.",
+      "recommendedTemplateChange": "Add surface placement fields for created vines/objects.",
+      "recommendedJsonChange": "Add runtime surfacePlacement data."
+    },
+    "grasping-vine::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible placement, which is line-of-sight targeting rather than a light, vision, or sound mechanic.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "grasping-vine::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched hit-triggered pull and Grappled effects; these are attack result mechanics rather than ward/alarm triggers.",
+      "recommendedTemplateChange": "Track under attack result, movement, and status fields.",
+      "recommendedJsonChange": "Closed by DAMAGE, MOVEMENT, and STATUS_CONDITION effects."
+    },
+    "grasping-vine::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Grappled is typed with the correct spell-save escape DC, but the Huge-or-smaller eligibility, one-creature grapple limit, free release, and higher-level grapple capacity are not first-class.",
+      "recommendedTemplateChange": "Add grapple rider fields for size limit, capacity, free release, and capacity scaling.",
+      "recommendedJsonChange": "Add runtime grapple rider data."
+    },
+    "grasping-vine::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The Grappled condition has the canonical escape DC and otherwise follows duration/concentration; no separate conditional ending is needed.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by corrected escapeCheck and duration."
+    },
+    "greater-invisibility::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell grants the Invisible condition, which is typed as status but also affects visibility/being seen; runtime has no explicit visibility-state semantics beyond the condition name.",
+      "recommendedTemplateChange": "Add condition semantics mapping for Invisible or a visibility-state field if runtime needs it outside status name lookup.",
+      "recommendedJsonChange": "Add/confirm runtime condition semantics for Invisible."
+    },
+    "greater-invisibility::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Invisible is typed, and fake escape/repeat save data was removed.",
+      "recommendedTemplateChange": "No new status field required for this pass.",
+      "recommendedJsonChange": "Closed by existing STATUS_CONDITION effect after removing fake escape/repeat fields."
+    },
+    "greater-invisibility::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The Invisible condition lasts until the normal spell duration ends; there is no special conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    },
+    "guardian-of-faith::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save and half-damage outcome are represented, and runtime now splits the canonical movement-entry and turn-start damage triggers.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by using on_enter_area and turn_start DAMAGE effects."
+    },
+    "guardian-of-faith::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The guardian appears in an unoccupied visible space, occupies that space, only damages enemies within 10 feet, is invulnerable, and vanishes after dealing 60 total damage; runtime still lacks typed created-guardian placement, enemy-only aura filtering, invulnerability, and total damage pool semantics.",
+      "recommendedTemplateChange": "Add created guardian/hazard placement, enemy-only trigger filter, invulnerability, occupied-space, and total damage budget fields.",
+      "recommendedJsonChange": "Add runtime createdGuardian or auraHazard data for placement, enemy filtering, invulnerability, occupied space, and 60-damage depletion."
+    },
+    "guardian-of-faith::movement_or_repositioning": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched hover in the appearance sentence, but the guardian does not move or reposition after placement.",
+      "recommendedTemplateChange": "Track initial placement under created guardian/hazard placement fields rather than movement.",
+      "recommendedJsonChange": "No movement effect required."
+    },
+    "guardian-of-faith::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible placement and deity-appropriate appearance; there is no light, vision, or sound mechanic.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "guardian-of-faith::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The deity-appropriate spectral form is descriptive flavor; placement, invulnerability, enemy aura damage, and depletion are tracked in mechanical buckets instead.",
+      "recommendedTemplateChange": "Keep appearance prose deferred unless visual display fields are later desired.",
+      "recommendedJsonChange": "No runtime data required for the deity-appropriate visual form."
+    },
+    "guardian-of-nature::choice_or_mode": {
+      "resolutionStatus": "special_question",
+      "issue": "The canonical snapshot names Primal Beast and Great Tree but omits the actual bullet benefits, so the mode mechanic cannot be safely encoded from this source.",
+      "recommendedTemplateChange": "Backfill trustworthy canonical prose for this spell before closing mode fields.",
+      "recommendedJsonChange": "Do not infer Primal Beast or Great Tree mechanics until the missing prose is restored."
+    },
+    "guardian-of-nature::terrain_or_surface": {
+      "resolutionStatus": "special_question",
+      "issue": "The only terrain signal is a referenced Difficult Terrain tooltip without the omitted Great Tree benefit text, so the actual terrain rule is unavailable in the canonical snapshot.",
+      "recommendedTemplateChange": "Backfill trustworthy canonical prose before adding terrain fields.",
+      "recommendedJsonChange": "Do not add terrain runtime data from tooltip remnants alone."
+    },
+    "guardian-of-nature::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "The nature spirit wording describes the transformation source and does not create or control a separate summoned entity.",
+      "recommendedTemplateChange": "Track the real mechanics under transformation/mode fields once the missing benefits are backfilled.",
+      "recommendedJsonChange": "No summon runtime data required."
+    },
+    "guardian-of-nature::healing_or_restoration": {
+      "resolutionStatus": "special_question",
+      "issue": "The referenced temporary hit points tooltip suggests an omitted benefit, but the canonical snapshot lacks the amount and mode relationship.",
+      "recommendedTemplateChange": "Backfill the missing benefits before adding temporary-hit-point fields.",
+      "recommendedJsonChange": "Do not add temporary-hit-point runtime data from tooltip remnants alone."
+    },
+    "guardian-of-nature::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the words Hit Points in the temporary hit points tooltip; this is not object durability or damageability.",
+      "recommendedTemplateChange": "No object-stat field required for this finding.",
+      "recommendedJsonChange": "No object-stat runtime data required."
+    },
+    "guardian-of-nature::environmental_change": {
+      "resolutionStatus": "special_question",
+      "issue": "The canonical snapshot omits the Great Tree benefits, so any environmental or enemy-terrain mechanic cannot be safely separated from flavor.",
+      "recommendedTemplateChange": "Backfill trustworthy canonical prose before adding environmental fields.",
+      "recommendedJsonChange": "Do not add environmental runtime data until the benefit text is restored."
+    },
+    "guardian-of-nature::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The transformation lasts until the spell ends and has no separate conditional ending beyond duration and concentration.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    },
+    "hallucinatory-terrain::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The spell changes how natural terrain looks, sounds, and smells but does not change the real tactile terrain or movement rules.",
+      "recommendedTemplateChange": "Track under illusion/disbelief rather than real terrain.",
+      "recommendedJsonChange": "No TERRAIN effect required."
+    },
+    "hallucinatory-terrain::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The sensory illusion is preserved in the UTILITY description and runtime utilityType sensory; the missing mechanical part is disbelief, tracked under illusion/disguise.",
+      "recommendedTemplateChange": "No separate vision-light-sound field required for this pass.",
+      "recommendedJsonChange": "No separate vision-light-sound runtime data required."
+    },
+    "hallucinatory-terrain::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The illusion has tactile unchanged, likely-notice-on-entry, Study action, Intelligence (Investigation) check against spell save DC, and vague-superimposed-image-on-success rules; runtime preserves them only as prose and flattens structured Utility Type illusion into sensory.",
+      "recommendedTemplateChange": "Add illusion/disbelief fields for affected senses, unchanged senses, examination action, check ability/skill/DC, and success perception.",
+      "recommendedJsonChange": "Add runtime illusion/disbelief data; keep utilityType sensory only as a temporary enum-compatible value until illusion is supported."
+    },
+    "hallucinatory-terrain::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The prose says manufactured structures, equipment, and creatures are not changed; it does not create objects or structures.",
+      "recommendedTemplateChange": "No created-object field required.",
+      "recommendedJsonChange": "No created-object runtime data required."
+    },
+    "hallucinatory-terrain::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The Intelligence (Investigation) Study action is a disbelief mechanic for the illusion, not a separate social or knowledge effect.",
+      "recommendedTemplateChange": "Track under illusion/disbelief fields.",
+      "recommendedJsonChange": "No separate social/knowledge runtime data required."
+    },
+    "hallucinatory-terrain::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The real environment is unchanged; only sensory appearance, sound, and smell are altered.",
+      "recommendedTemplateChange": "Track under illusion/disbelief rather than environmental change.",
+      "recommendedJsonChange": "No environmental runtime data required."
+    },
+    "ice-storm::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save and half-damage outcome are represented for both damage components.",
+      "recommendedTemplateChange": "No attack/save field change required.",
+      "recommendedJsonChange": "Closed by existing DAMAGE effects."
+    },
+    "ice-storm::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The ground in the Cylinder becoming Difficult Terrain until the end of the caster's next turn is now represented.",
+      "recommendedTemplateChange": "Closed by adding TERRAIN to structured Effect Type.",
+      "recommendedJsonChange": "Closed by adding a TERRAIN difficult effect with Cylinder area and one-round duration."
+    },
+    "ice-storm::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The environmental consequence is specifically difficult terrain on the ground and is now tracked under TERRAIN.",
+      "recommendedTemplateChange": "No separate environmental-change field required.",
+      "recommendedJsonChange": "Closed by the TERRAIN effect."
+    },
+    "leomunds-secret-chest::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The recalled chest appears in an unoccupied space on the ground within 5 feet of the caster; runtime preserves this only in prose.",
+      "recommendedTemplateChange": "Add object recall/placement fields for unoccupied ground space and distance from caster.",
+      "recommendedJsonChange": "Add runtime objectPlacement or recallPlacement data."
+    },
+    "leomunds-secret-chest::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The recalled chest must appear on the ground, but runtime lacks a typed ground-surface placement rule.",
+      "recommendedTemplateChange": "Add placement surface fields for returned objects.",
+      "recommendedJsonChange": "Add runtime placement.surface = ground for the recall action."
+    },
+    "leomunds-secret-chest::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The chest and contents move to the Ethereal Plane, can be recalled to the caster, can be sent back, and may remain findable there if the spell ends; runtime stores this planar object movement only in prose.",
+      "recommendedTemplateChange": "Add object planar-storage fields for destination plane, recall action, send-back action, return placement, and end-state.",
+      "recommendedJsonChange": "Add runtime planarObjectStorage data."
+    },
+    "leomunds-secret-chest::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The possibility that someone else can find the chest is an aftermath/end-state consequence of planar storage, not a social or knowledge effect.",
+      "recommendedTemplateChange": "Track under planar storage and conditional ending.",
+      "recommendedJsonChange": "No separate social/knowledge runtime data required."
+    },
+    "leomunds-secret-chest::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Destroying the Tiny replica chest ends the spell, but runtime lacks typed dependency/destruction semantics for the material replica.",
+      "recommendedTemplateChange": "Add component-dependency fields for destroyable linked objects that end a spell.",
+      "recommendedJsonChange": "Add runtime linkedComponentDependency data for the replica chest."
+    },
+    "leomunds-secret-chest::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell has a cumulative 5 percent daily ending chance after 60 days, ends if cast again, and ends if the Tiny replica is destroyed; runtime preserves these only in prose.",
+      "recommendedTemplateChange": "Add conditional ending fields for delayed cumulative chance, recast ending, and linked-object destruction.",
+      "recommendedJsonChange": "Add runtime conditionalEnding data for the 60-day cumulative chance, recast ending, and replica destruction."
+    },
+    "leomunds-secret-chest::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed as a deferred-flavor misbucket only. The same planar object-storage mechanics remain actionable under leomunds-secret-chest::travel_or_planar_movement, with placement and ending details tracked by the adjacent target_filter_or_eligibility, terrain_or_surface, object_stats_or_damageability, and conditional_ending findings.",
+      "issue": "The detector put Ethereal Plane storage and recall prose into the flavor bucket, but these are mechanical planar object-storage rules rather than purely descriptive flavor.",
+      "recommendedTemplateChange": "Treat planar storage/recall as a mechanical bucket, not deferred flavor.",
+      "recommendedJsonChange": "Move this behavior into typed planar object-storage runtime data when that field family exists."
+    },
+    "locate-creature::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the prerequisite that the caster has seen a kind of creature up close; this is familiarity/targeting history, not a vision, light, or sound effect.",
+      "recommendedTemplateChange": "Track under locate-query and target eligibility fields.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "locate-creature::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell has a typed information query: specific familiar creature or nearest creature of a seen-up-close kind, 1,000-foot sensing range, direction to location and movement, different-form failure, and lead-path blocking; runtime stores all of this only in prose.",
+      "recommendedTemplateChange": "Add locate/detection fields for query mode, familiarity prerequisite, sensing range, returned information, blocker materials, and form-change failure.",
+      "recommendedJsonChange": "Add runtime locateCreature data."
+    },
+    "mordenkainens-faithful-hound::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The hound's Dexterity save now triggers at the start of each caster turn and deals no damage on a successful save.",
+      "recommendedTemplateChange": "No attack/save field change required for this pass.",
+      "recommendedJsonChange": "Closed by changing the DAMAGE trigger to turn_start and saveEffect to negates_condition."
+    },
+    "mordenkainens-faithful-hound::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The hound is created in an unoccupied visible space, bites one enemy within 5 feet, and barks when a Small-or-larger creature comes within 30 feet without speaking the password; runtime lacks typed placement, enemy-only bite target, size filter, proximity trigger, and password exception fields.",
+      "recommendedTemplateChange": "Add created hound/ward fields for placement, enemy bite target, creature size trigger, proximity radius, and password exception.",
+      "recommendedJsonChange": "Add runtime createdHound or wardGuardian data."
+    },
+    "mordenkainens-faithful-hound::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Only the caster can see the hound, and the hound has Truesight 30 feet; runtime preserves these visibility and sense mechanics only in prose.",
+      "recommendedTemplateChange": "Add created-entity visibility and senses fields.",
+      "recommendedJsonChange": "Add runtime hound visibility and senses data."
+    },
+    "mordenkainens-faithful-hound::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster specifies a password, and the hound barks loudly when a qualifying creature approaches without speaking it; runtime lacks typed password and audible alarm data.",
+      "recommendedTemplateChange": "Add ward/alarm password and audible alert fields.",
+      "recommendedJsonChange": "Add runtime alarmTrigger data for password-gated barking."
+    },
+    "mordenkainens-private-sanctum::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the word secure; this spell does not heal or restore anything.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration runtime data required."
+    },
+    "otilukes-resilient-sphere::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Only an unwilling creature makes a Dexterity save to avoid enclosure; runtime has a generic UTILITY effect with no unwilling-target save gate.",
+      "recommendedTemplateChange": "Add enclosure save fields for unwilling creatures while allowing willing creatures and objects without a save.",
+      "recommendedJsonChange": "Add runtime enclosure save data or split effects for willing/object and unwilling-creature targets."
+    },
+    "otilukes-resilient-sphere::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "An enclosed creature can spend an action to roll the sphere at up to half its Speed, and other creatures can pick up and move the globe; runtime stores this movement only in prose.",
+      "recommendedTemplateChange": "Add enclosed-object movement fields for internal push action, half-speed cap, and external pickup/move.",
+      "recommendedJsonChange": "Add runtime sphereMovement data."
+    },
+    "otilukes-resilient-sphere::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched sphere walls, but these are barrier/object mechanics rather than terrain or surface changes.",
+      "recommendedTemplateChange": "Track under barrier/enclosure fields.",
+      "recommendedJsonChange": "No TERRAIN effect required."
+    },
+    "otilukes-resilient-sphere::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a damage-immune enclosing barrier that blocks physical objects, energy, and spell effects in both directions while allowing breathing; runtime preserves barrier rules only in prose.",
+      "recommendedTemplateChange": "Add barrier/enclosure fields for pass-through blocking, damage immunity, breathing exception, inside/outside damage prevention, and object/creature containment.",
+      "recommendedJsonChange": "Add runtime barrierEnclosure data."
+    },
+    "otilukes-resilient-sphere::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed as a deferred-flavor misbucket only. The same enclosure mechanics remain actionable under otilukes-resilient-sphere::created_object_or_structure, attack_or_save_modifier, forced_movement, target_filter_or_eligibility, and conditional_ending; the damage-prevention slice is already handled by the damage_reduction_or_prevention bucket.",
+      "issue": "The detector put the enclosing sphere into flavor, but the sphere is a mechanical barrier/enclosure with targeting, save, movement, damage immunity, and Disintegrate destruction rules.",
+      "recommendedTemplateChange": "Split shimmering visual flavor from barrier/enclosure mechanics.",
+      "recommendedJsonChange": "Move the mechanical barrier/enclosure behavior into typed runtime data."
+    },
+    "phantasmal-killer::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now represents initial and recurring Psychic damage saves, but the failed-save Disadvantage on ability checks and attack rolls is not fully modeled; attack-roll disadvantage can be represented, but ability-check disadvantage and tying both riders to the same initial half-damage save need a better shared-save rider model.",
+      "recommendedTemplateChange": "Add disadvantage-on-ability-check fields and shared-save rider fields.",
+      "recommendedJsonChange": "Add runtime abilityCheckModifier data and avoid duplicate-save attack modifier effects until shared-save riders are supported."
+    },
+    "phantasmal-killer::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The end-of-turn Wisdom save for recurring Psychic damage is now represented as a turn_end DAMAGE effect with save success negating the recurring damage.",
+      "recommendedTemplateChange": "Closed by adding a second scaling rule for the turn_end damage.",
+      "recommendedJsonChange": "Closed by adding a turn_end DAMAGE effect."
+    },
+    "phantasmal-killer::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The fear illusion is visible only to the target; runtime preserves this visibility scope only in prose.",
+      "recommendedTemplateChange": "Add illusion visibility-scope fields.",
+      "recommendedJsonChange": "Add runtime illusion visibilityScope data."
+    },
+    "phantasmal-killer::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a target-only fear illusion that drives damage and disadvantage, but runtime has no typed illusion payload beyond prose.",
+      "recommendedTemplateChange": "Add hostile illusion fields for visible-to-target-only, fear manifestation, and linked damage/rider effects.",
+      "recommendedJsonChange": "Add runtime hostileIllusion data."
+    },
+    "phantasmal-killer::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "A successful initial save deals half damage and ends the spell, and a successful recurring save ends the spell; runtime can negate recurring damage but lacks typed spell-ending-on-save-success semantics.",
+      "recommendedTemplateChange": "Closed by adding Conditional Ending Trigger values for initial_save_success and repeat_save_success.",
+      "recommendedJsonChange": "Closed by adding runtime conditionalEndings to the initial and recurring damage effects.",
+      "reviewerNote": "Closed for save-success spell-ending semantics. The failed-save disadvantage rider and hostile illusion payload remain open in their separate Phantasmal Killer rows."
+    },
+    "polymorph::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses a Beast form constrained by CR or target level, and that choice replaces most statistics while preserving alignment, personality, creature type, Hit Points, and Hit Point Dice; runtime keeps this transformation payload only in prose.",
+      "recommendedTemplateChange": "Add transformation form-choice fields for allowed creature type, CR/level cap, replaced stats, retained stats, and action restrictions.",
+      "recommendedJsonChange": "Add runtime transformation data for Beast form selection and retained/replaced statistics."
+    },
+    "polymorph::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save gate is now represented on the transformation utility effect.",
+      "recommendedTemplateChange": "No attack/save field change required for this pass.",
+      "recommendedJsonChange": "Closed by changing the UTILITY condition to a Wisdom save with negates_condition."
+    },
+    "polymorph::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting; the spell has no light, vision, or sound effect.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "polymorph::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target cannot speak or cast spells in the new form, but runtime lacks typed speech and spellcasting restriction fields.",
+      "recommendedTemplateChange": "Add transformation restriction fields for speech, spellcasting, and anatomy-limited actions.",
+      "recommendedJsonChange": "Add runtime transformation.restrictions data."
+    },
+    "polymorph::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target gains Temporary Hit Points equal to the Beast form's Hit Points, and those points vanish at spell end; runtime lacks typed temporary-hit-point data tied to chosen form HP.",
+      "recommendedTemplateChange": "Add temporary-hit-point formula fields that can reference chosen form statistics.",
+      "recommendedJsonChange": "Add runtime temporaryHpFormula = beast_form_hit_points."
+    },
+    "polymorph::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The chosen Beast stat block replaces most game statistics while preserving listed identity/HP fields; runtime has no typed stat replacement map.",
+      "recommendedTemplateChange": "Add transformation stat replacement/retention fields.",
+      "recommendedJsonChange": "Add runtime statReplacement data."
+    },
+    "polymorph::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Polymorph's early ending when the transformation Temporary Hit Points are depleted is now represented in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "Closed by Conditional Ending Triggers temporary_hit_points_depleted with effect scope.",
+      "recommendedJsonChange": "Closed by runtime conditionalEndings on the transformation utility effect.",
+      "closedReason": "Polymorph now records the early ending trigger separately from the still-open temporary-hit-point formula/stat-replacement work. The Beast-form Temporary Hit Point amount remains tracked under healing_or_restoration and transformation buckets."
+    },
+    "polymorph::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Temporary hit points vanishing at spell end is part of the transformation's normal cleanup, not a persistent aftermath or memory effect.",
+      "recommendedTemplateChange": "Track under transformation temporary-hit-point cleanup.",
+      "recommendedJsonChange": "No aftermath runtime data required."
+    },
+    "shadow-of-moil::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now stores the heavy-obscurement and light-shift prose as a sensory utility effect, but there is no typed obscurement state, 10-foot light-level transform, or self-attached darkness/dim-light area.",
+      "recommendedTemplateChange": "Add sensory/obscurement fields for self heavily obscured, light-level conversion radius, and affected light levels.",
+      "recommendedJsonChange": "Add runtime obscurement/lightTransform data."
+    },
+    "shadow-of-moil::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched heavily obscured; this spell does not heal or restore anything.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration runtime data required."
+    },
+    "shadow-of-moil::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Radiant resistance is now represented as a DEFENSIVE resistance effect.",
+      "recommendedTemplateChange": "Closed by adding Defense Type resistance.",
+      "recommendedJsonChange": "Closed by adding a DEFENSIVE Radiant resistance effect."
+    },
+    "shadow-of-moil::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The matched wording only says the effects last until the normal spell duration ends; there is no separate conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    },
+    "sickening-radiance::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched choosing the center point of the area; this is ordinary area targeting, not a choice/mode mechanic.",
+      "recommendedTemplateChange": "No choice/mode field required.",
+      "recommendedJsonChange": "Closed by area targeting."
+    },
+    "sickening-radiance::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Constitution save and Radiant damage are now represented for enter-area and turn-start triggers, but the same failed save also causes Exhaustion and a target light rider; runtime lacks shared-save rider semantics for those linked consequences.",
+      "recommendedTemplateChange": "Add shared-save rider fields for damage plus exhaustion plus light emission.",
+      "recommendedJsonChange": "Add runtime sharedSaveRiders for Exhaustion and emitted light."
+    },
+    "sickening-radiance::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The area Dim Light is partly represented, but failed-save targets emit Dim Light in a 5-foot radius and cannot benefit from Invisible; runtime lacks typed target light rider and anti-invisibility semantics.",
+      "recommendedTemplateChange": "Add target-emitted-light and no-benefit-from-invisible fields.",
+      "recommendedJsonChange": "Add runtime targetLight and invisibleBenefitSuppression data."
+    },
+    "sickening-radiance::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched enter-area and turn-start hazard triggers, which are now represented as DAMAGE triggers rather than ward/alarm mechanics.",
+      "recommendedTemplateChange": "No ward/alarm field required.",
+      "recommendedJsonChange": "Closed by on_enter_area and turn_start DAMAGE effects."
+    },
+    "sickening-radiance::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Failed-save creatures suffer one level of Exhaustion and cannot benefit from Invisible because of emitted light; runtime lacks typed Exhaustion application and invisible-benefit suppression.",
+      "recommendedTemplateChange": "Add Exhaustion level application fields and invisible-benefit suppression fields.",
+      "recommendedJsonChange": "Add runtime status/rider data for Exhaustion level 1 and no Invisible benefit."
+    },
+    "sickening-radiance::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell explicitly removes the emitted light and any Exhaustion levels it caused when the spell ends, but runtime lacks typed cleanup of caused conditions/riders.",
+      "recommendedTemplateChange": "Add spell-end cleanup fields for caused conditions and light riders.",
+      "recommendedJsonChange": "Add runtime cleanupOnEnd data."
+    },
+    "sickening-radiance::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The spell removes its light and Exhaustion at spell end, leaving no persistent aftermath.",
+      "recommendedTemplateChange": "Track cleanup under conditional ending/status fields.",
+      "recommendedJsonChange": "No aftermath runtime data required."
+    },
+    "staggering-smite::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The hit damage and attack-roll disadvantage rider are now represented, but ability-check disadvantage and the shared save that gates both non-damage riders are not fully expressible.",
+      "recommendedTemplateChange": "Add ability-check disadvantage and shared-save rider fields.",
+      "recommendedJsonChange": "Add runtime abilityCheckModifier and sharedSaveRiders; current attack-roll modifier is a partial schema-safe encoding."
+    },
+    "staggering-smite::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "On a failed Wisdom save the target can't take reactions until the end of its next turn; runtime lacks a typed reaction-lockout effect.",
+      "recommendedTemplateChange": "Add reaction suppression fields with duration.",
+      "recommendedJsonChange": "Add runtime reactionRestriction data."
+    },
+    "stone-shape::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched passage-through-wall examples, but the spell reshapes stone objects or stone wall sections rather than creating terrain.",
+      "recommendedTemplateChange": "Track under created object/structure and object manipulation fields.",
+      "recommendedJsonChange": "No TERRAIN effect required."
+    },
+    "stone-shape::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell reshapes a Medium-or-smaller stone object or a stone section no more than 5 feet in any dimension, can make passages or seal doors, and allows up to two hinges and a latch but no finer mechanical detail; runtime stores these manipulation limits only in prose.",
+      "recommendedTemplateChange": "Add object/structure manipulation fields for material, object size, section dimensions, allowed output examples, door sealing, hinge/latch limit, and fine-detail prohibition.",
+      "recommendedJsonChange": "Add runtime stoneShape manipulation data."
+    }
+  },
+  "manualFindings": {
+    "galders-speedy-courier::special_question": {
+      "resolutionStatus": "special_question",
+      "issue": "Canonical prose is not_applicable for this 5etools-partial spell, so there is no trustworthy prose source for manual mechanics extraction in this pass.",
+      "recommendedTemplateChange": "Decide whether partial-source spells need a canonical import/backfill bucket before schema closure.",
+      "recommendedJsonChange": "Do not infer mechanics without canonical prose; runtime remains placeholder until a source is available."
+    },
+    "freedom-of-movement::utility_type_runtime_gap": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Structured markdown uses Utility Type movement, but runtime utilityType enum does not allow movement; using it caused JSON validation failure.",
+      "recommendedTemplateChange": "Align structured Utility Type values with runtime utilityType enum or add movement to the runtime enum/schema.",
+      "recommendedJsonChange": "Keep runtime utilityType as other until movement is schema-supported."
+    },
+    "giant-insect::utility_type_runtime_gap": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Structured markdown uses Utility Type summoning, but runtime utilityType enum does not allow summoning; using it caused JSON validation failure.",
+      "recommendedTemplateChange": "Align structured Utility Type values with runtime utilityType enum or add summoning to the runtime enum/schema.",
+      "recommendedJsonChange": "Keep runtime utilityType as other until summoning is schema-supported."
+    },
+    "mordenkainens-faithful-hound": [
+      {
+        "bucketId": "sustain_or_recast_action",
+        "findingId": "mordenkainens-faithful-hound::sustain_or_recast_action",
+        "canonicalEvidence": "On your later turns, you can take a Magic action to move the hound up to 30 feet.",
+        "structuredState": "Description contains Magic action movement.",
+        "jsonState": "Runtime JSON has no granted action or created-entity movement action.",
+        "issue": "The caster can spend a Magic action on later turns to move the hound up to 30 feet, but runtime lacks this follow-up action.",
+        "recommendedTemplateChange": "Add created-entity move action fields for action cost, distance, and controller.",
+        "recommendedJsonChange": "Add runtime grantedActions or createdEntityMovement data.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding Barrier Damage Block Directions and Barrier Damage Block Source Categories to structured markdown and effects[].barrierDamagePrevention in runtime JSON. The sphere's own all-damage immunity is also represented as a DEFENSIVE immunity effect. Disintegrate destruction remains open under the separate conditional_ending row."
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "mordenkainens-faithful-hound::conditional_ending",
+        "canonicalEvidence": "The hound remains for the duration or until the two of you are more than 300 feet apart from each other.",
+        "structuredState": "Duration fields capture 8 hours, but no distance-ending field.",
+        "jsonState": "Runtime JSON has duration only.",
+        "issue": "Closed: The hound's early ending when caster and hound are more than 300 feet apart is now structured and runtime-mapped.",
+        "recommendedTemplateChange": "Closed by Conditional Ending Triggers beyond_max_distance plus Conditional Ending Distance Feet 300.",
+        "recommendedJsonChange": "Closed by runtime conditionalEndings data with trigger beyond_max_distance, spell scope, and distanceFeet 300.",
+        "resolutionStatus": "closed",
+        "closedReason": "Mordenkainen's Faithful Hound now records the 300-foot caster/hound separation ending in structured markdown and runtime JSON. The hound's Magic action movement, invisibility/sound/truesight alarm behavior, and intangible/invulnerable created-entity semantics remain open in their own buckets."
+      },
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "mordenkainens-faithful-hound::object_stats_or_damageability",
+        "canonicalEvidence": "No one but you can see the hound, and it is intangible and invulnerable.",
+        "structuredState": "Description contains intangible and invulnerable.",
+        "jsonState": "Runtime JSON has no created-entity durability fields.",
+        "issue": "The hound is intangible and invulnerable, but runtime lacks typed durability and physicality semantics.",
+        "recommendedTemplateChange": "Add created-entity physicality and invulnerability fields.",
+        "recommendedJsonChange": "Add runtime createdEntity.physicality and invulnerable data.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "mordenkainens-private-sanctum": [
+      {
+        "bucketId": "special_question",
+        "findingId": "mordenkainens-private-sanctum::special_question",
+        "canonicalEvidence": "Canonical snapshot says the caster chooses security properties, but the properties themselves are omitted from the canonical comment while the structured description lists them.",
+        "structuredState": "Structured Description includes sound blocking, vision blocking, divination sensor blocking, divination targeting blocking, teleport blocking, planar travel blocking, and 365-day permanence.",
+        "jsonState": "Runtime JSON only keeps the lead-in sentence and omits the option list.",
+        "issue": "The source layers disagree: the canonical snapshot is incomplete, but the structured markdown contains the missing ward options. This needs a backfill or source-trust decision before schema closure.",
+        "recommendedTemplateChange": "Backfill the canonical snapshot or explicitly bless the structured property list as trusted source data for this spell.",
+        "recommendedJsonChange": "After source backfill/approval, add typed warding options for sound, vision, divination, teleportation, planar travel, and permanence.",
+        "resolutionStatus": "special_question"
+      },
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "mordenkainens-private-sanctum::choice_or_mode",
+        "canonicalEvidence": "When you cast the spell, you decide what sort of security the spell provides, choosing any of the following properties.",
+        "structuredState": "Structured description lists six ward properties.",
+        "jsonState": "Runtime controlOptions is empty.",
+        "issue": "The spell is a choice-of-ward-properties spell, but runtime has no typed property options.",
+        "recommendedTemplateChange": "Add ward property option fields.",
+        "recommendedJsonChange": "Add runtime controlOptions or wardOptions after source backfill.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "mordenkainens-private-sanctum::conditional_ending",
+        "canonicalEvidence": "Casting this spell on the same spot every day for 365 days makes the spell last until dispelled.",
+        "structuredState": "Description includes 365-day permanence.",
+        "jsonState": "Runtime duration stays 24 hours with no permanence condition.",
+        "issue": "Closed: Mordenkainen's Private Sanctum now records its 365 daily same-spot casts to until-dispelled progression.",
+        "recommendedTemplateChange": "Closed by Duration Progression fields for repeated_casts, 365 daily same-location casts, and until_dispelled outcome.",
+        "recommendedJsonChange": "Closed by runtime durationProgression data.",
+        "resolutionStatus": "closed",
+        "closedReason": "Mordenkainen's Private Sanctum now records the repeated daily same-spot casting rule in structured markdown and runtime JSON."
+      }
+    ],
+    "otilukes-resilient-sphere": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "otilukes-resilient-sphere::target_filter_or_eligibility",
+        "canonicalEvidence": "A shimmering sphere encloses a Large or smaller creature or object within range.",
+        "structuredState": "Valid Targets includes creatures and objects, but no size limit.",
+        "jsonState": "Runtime validTargets includes creatures and objects, but no size limit.",
+        "issue": "The target must be Large or smaller, and runtime lacks this size filter.",
+        "recommendedTemplateChange": "Add target size eligibility fields for creature/object targets.",
+        "recommendedJsonChange": "Add runtime target size filter for Large or smaller.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "damage_reduction_or_prevention",
+        "findingId": "otilukes-resilient-sphere::damage_reduction_or_prevention",
+        "canonicalEvidence": "A creature or object inside can't be damaged by attacks or effects originating from outside, nor can a creature inside the sphere damage anything outside it.",
+        "structuredState": "Utility Type defensive.",
+        "jsonState": "Runtime JSON stores damage prevention only in prose.",
+        "issue": "The sphere prevents inside/outside damage across the barrier, but runtime lacks typed damage-origin blocking.",
+        "recommendedTemplateChange": "Add barrier damage-prevention fields with origin side.",
+        "recommendedJsonChange": "Add runtime barrier damage prevention data.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding Barrier Damage Block Directions and Barrier Damage Block Source Categories to structured markdown and effects[].barrierDamagePrevention in runtime JSON. The sphere's own all-damage immunity is also represented as a DEFENSIVE immunity effect. Disintegrate destruction remains open under the separate conditional_ending row."
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "otilukes-resilient-sphere::conditional_ending",
+        "canonicalEvidence": "A Disintegrate spell targeting the globe destroys it without harming anything inside.",
+        "structuredState": "Description includes Disintegrate destruction.",
+        "jsonState": "Runtime JSON has no spell-specific destruction condition.",
+        "issue": "Closed: Disintegrate targeting the globe now has a spell-scoped conditional ending without harming occupants.",
+        "recommendedTemplateChange": "Closed by Conditional Ending Triggers disintegrate_targets_effect with spell scope.",
+        "recommendedJsonChange": "Closed by runtime conditionalEndings data on the sphere utility and defensive effects.",
+        "resolutionStatus": "closed",
+        "closedReason": "Otiluke's Resilient Sphere now records the Disintegrate-targets-globe destruction rule in structured markdown and runtime JSON. The already closed barrier damage-prevention row continues to own the inside/outside damage blocking semantics."
+      }
+    ],
+    "phantasmal-killer": [
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "phantasmal-killer::status_or_state_change",
+        "canonicalEvidence": "On a failed save, the target takes 4d10 Psychic damage and has Disadvantage on ability checks and attack rolls for the duration.",
+        "structuredState": "No structured field for disadvantage on ability checks or attack rolls.",
+        "jsonState": "Runtime JSON has no ability check modifier and no attack roll modifier for this spell.",
+        "issue": "The failed-save rider is a nonstandard debuff, not a named condition, and runtime does not model it.",
+        "recommendedTemplateChange": "Add generic d20-test disadvantage rider fields.",
+        "recommendedJsonChange": "Add runtime abilityCheckModifier/attackRollModifier shared-save rider data.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "polymorph": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "polymorph::utility_type_runtime_gap",
+        "canonicalEvidence": "You attempt to transform a creature that you can see within range into a Beast.",
+        "structuredState": "Utility Type: transformation.",
+        "jsonState": "Runtime utilityType remains other because transformation is not accepted by the current enum.",
+        "issue": "Structured markdown uses Utility Type transformation, but runtime utilityType enum does not allow transformation.",
+        "recommendedTemplateChange": "Align structured Utility Type values with runtime utilityType enum or add transformation to the runtime enum/schema.",
+        "recommendedJsonChange": "Keep runtime utilityType as other until transformation is schema-supported.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "shadow-of-moil": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "shadow-of-moil::attack_or_save_modifier",
+        "canonicalEvidence": "Whenever a creature within 10 feet of you hits you with an attack, the shadows lash out at that creature, dealing it 2d8 necrotic damage.",
+        "structuredState": "Effect Type now includes DAMAGE; Damage Dice: 2d8; Damage Type: Necrotic.",
+        "jsonState": "Runtime now has an on_attack_hit DAMAGE effect.",
+        "issue": "Retaliatory hit-trigger damage was hidden in prose and is now represented, though the 10-foot attacker range remains prose in the effect description.",
+        "recommendedTemplateChange": "No new damage field required for this pass; later attacker-range filters would improve precision.",
+        "recommendedJsonChange": "Closed by adding an on_attack_hit DAMAGE effect.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "sickening-radiance": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "sickening-radiance::target_filter_or_eligibility",
+        "canonicalEvidence": "Dim, greenish light spreads within a 30-foot-radius sphere centered on a point you choose within range.",
+        "structuredState": "Targeting Type: area; Area Shape: sphere; Area Size: 30.",
+        "jsonState": "Runtime targeting now uses area with a 30-foot Sphere.",
+        "issue": "Runtime targeting previously used single despite carrying an areaOfEffect; this shape drift is now corrected.",
+        "recommendedTemplateChange": "No targeting template change required.",
+        "recommendedJsonChange": "Closed by changing targeting.type to area.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "staggering-smite": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "staggering-smite::damage_rider",
+        "canonicalEvidence": "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra 4d6 psychic damage to the target.",
+        "structuredState": "Effect Type now includes DAMAGE; Damage Dice: 4d6; Damage Type: Psychic.",
+        "jsonState": "Runtime now has an on_attack_hit DAMAGE effect with first_hit consumption and melee weapon filter.",
+        "issue": "The smite damage rider was hidden in prose and is now represented as first-hit melee weapon damage.",
+        "recommendedTemplateChange": "No new damage-rider field required for this pass.",
+        "recommendedJsonChange": "Closed by adding the on_attack_hit DAMAGE effect.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}

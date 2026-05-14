@@ -467,7 +467,7 @@ export const STATUS_VISUALS: Record<string, StatusVisualSpec> = {
   paralyzed: { id: 'paralyzed', label: 'Paralyzed', icon: '⚡', color: '#FBBF24', description: 'Incapacitated and can’t move or speak. Attacks against the creature have advantage.' }, // amber-400
   petrified: { id: 'petrified', label: 'Petrified', icon: '🗿', color: '#4B5563', description: 'Transformed into a solid inanimate substance (usually stone).' }, // gray-600
   poisoned: { id: 'poisoned', label: 'Poisoned', icon: '🤢', color: '#10B981', description: 'Has disadvantage on attack rolls and ability checks.' }, // emerald-500
-  prone: { id: 'prone', label: 'Prone', icon: '🛌', color: '#6B7280', description: 'Only movement option is to crawl. Attack rolls have disadvantage.' }, // gray-500
+  prone: { id: 'prone', label: 'Prone', icon: '🛌', color: '#6B7280', description: 'Only movement options are to crawl or spend half Speed to right yourself. Attack rolls have disadvantage.' }, // gray-500
   restrained: { id: 'restrained', label: 'Restrained', icon: '⛓️', color: '#B91C1C', description: 'Speed becomes 0. Attack rolls against the creature have advantage, and the creature’s attack rolls have disadvantage.' }, // red-700
   stunned: { id: 'stunned', label: 'Stunned', icon: '💫', color: '#FCD34D', description: 'Incapacitated, can’t move, and can speak only falteringly.' }, // amber-300
   unconscious: { id: 'unconscious', label: 'Unconscious', icon: '💤', color: '#1F2937', description: 'Incapacitated, can’t move or speak, and is unaware of its surroundings.' }, // gray-800

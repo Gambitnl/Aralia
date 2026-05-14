@@ -1,4 +1,4 @@
-# Spell Branch Navigator Node Cleanup — Implementation Plan
+# Spell Branch Navigator Node Cleanup - Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Remove infrastructure nodes from `generate.ts` — paths list
+### Task 1: Remove infrastructure nodes from `generate.ts` - paths list
 
 **Files:**
 - Modify: `devtools/roadmap/scripts/roadmap-engine/generate.ts:93`
@@ -34,7 +34,7 @@ To:
 'Roadmap Tool > Spell Branch Navigator > Axis Engine',
 ```
 
-**Step 2: Verify visually — no Spell List Source/Loader paths exist in this list**
+**Step 2: Verify visually - no Spell List Source/Loader paths exist in this list**
 
 Search the file for `Spell List Source` and `Spell List Loader` to confirm they were never added to the paths list (they were only in descriptions and milestones). If found, remove them here too.
 
@@ -43,7 +43,7 @@ Search the file for `Spell List Source` and `Spell List Loader` to confirm they 
 ### Task 2: Remove infrastructure node descriptions from `generate.ts`
 
 **Files:**
-- Modify: `devtools/roadmap/scripts/roadmap-engine/generate.ts:876–922`
+- Modify: `devtools/roadmap/scripts/roadmap-engine/generate.ts:876-922`
 
 **Step 1: Delete these 8 description entries entirely**
 
@@ -68,7 +68,7 @@ Also check for and remove any entry for:
 ### Task 3: Remove infrastructure node milestones from `generate.ts`
 
 **Files:**
-- Modify: `devtools/roadmap/scripts/roadmap-engine/generate.ts:1620–1627`
+- Modify: `devtools/roadmap/scripts/roadmap-engine/generate.ts:1620-1627`
 
 **Step 1: Delete these 8 milestone entries**
 
@@ -127,7 +127,7 @@ git commit -m "chore(media): delete stale spell_profile_data_feed capture"
 
 **Context:** The Spell Branch Navigator's raw node ID is `sub_pillar_dev_tools_roadmap_tool_spell_branch_navigator` (derived from: Dev Tools pillar ID `pillar_dev_tools`, full path `Roadmap Tool > Spell Branch Navigator` slugified). The output file must match this ID exactly.
 
-The GIF should show: the Spell Branch tab loading with all axes visible — a clean capability overview. User sees the navigator in its initial state, then a filter applied (e.g., click Wizard under Class).
+The GIF should show: the Spell Branch tab loading with all axes visible - a clean capability overview. User sees the navigator in its initial state, then a filter applied (e.g., click Wizard under Class).
 
 **Step 1: Add this function to `capture-gifs-screenshots.mjs` before the `main()` function**
 
@@ -239,7 +239,7 @@ git commit -m "feat(media): add top-level Spell Branch Navigator capability GIF"
 
 **Step 2: Confirm removed nodes are gone**
 
-In the canvas, expand Dev Tools → Roadmap Tool → Spell Branch Navigator. You should see only:
+In the canvas, expand Dev Tools -> Roadmap Tool -> Spell Branch Navigator. You should see only:
 - Axis Engine
 - VSM Drill-Down Navigator
 - Requirements Component Mapping
@@ -248,8 +248,8 @@ You should NOT see: Spell List Source, Spell List Loader, or any of their childr
 
 **Step 3: Confirm VIEW PREVIEW on parent node**
 
-Click "Spell Branch Navigator" in the canvas. The info panel should show a **VIEW PREVIEW** button. Click it — the lightbox should open with the new overview GIF.
+Click "Spell Branch Navigator" in the canvas. The info panel should show a **VIEW PREVIEW** button. Click it - the lightbox should open with the new overview GIF.
 
 **Step 4: Confirm existing previews still work**
 
-Click Axis Engine, VSM Drill-Down Navigator, and Requirements Component Mapping — each should still show VIEW PREVIEW and open their existing captures.
+Click Axis Engine, VSM Drill-Down Navigator, and Requirements Component Mapping - each should still show VIEW PREVIEW and open their existing captures.

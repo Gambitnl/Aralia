@@ -9,7 +9,7 @@ Current reality:
 
 This document outlines four key architectural improvements to the Aralia action and state system, derived from the Phase 1 Merchant Overhaul implementation.
 
-## ðŸ“ Proposal 2: Loading State Logic Centralization
+## ðŸ" Proposal 2: Loading State Logic Centralization
 
 **Goal**: Eliminate redundant `dispatch({ type: 'SET_LOADING', ... })` calls in every async handler.
 
@@ -22,7 +22,7 @@ This document outlines four key architectural improvements to the Aralia action 
 
 ---
 
-## ðŸ“ Proposal 3: Action Validation Layer
+## ðŸ" Proposal 3: Action Validation Layer
 
 **Goal**: Prevent "garbage in, garbage out" by validating action payloads before they trigger side effects.
 
@@ -34,7 +34,7 @@ This document outlines four key architectural improvements to the Aralia action 
 
 ---
 
-## ðŸ“ Proposal 4: JSDoc for Schema Extensions
+## ðŸ" Proposal 4: JSDoc for Schema Extensions
 
 **Goal**: Maintain clarity as the `GameState` and `Item` interfaces grow beyond standard D&D schemas.
 

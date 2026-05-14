@@ -19,7 +19,7 @@
  * Implements the A* pathfinding algorithm for grid-based movement.
  * Updated to support D&D 5e Variant 5-10-5 diagonal movement.
  */
-import { BattleMapTile, BattleMapData } from '../../types/combat';
+import { BattleMapTile, BattleMapData, Position } from '../../types/combat';
 import { calculateMovementCost, isDifficultMovementCost } from '../combat/movementUtils';
 import { applyMovementCostModifiers, MovementConfig } from '../combat/physicsUtils';
 
@@ -49,6 +49,7 @@ export function heuristic(a: BattleMapTile, b: BattleMapTile): number {
  * @param endTile - The destination tile.
  * @param mapData - The complete battle map data containing all tiles.
  * @param movementConfig - Optional configuration for movement physics (climbing, swimming, etc.).
+ * @param sizeMultiplier - The width/height of the creature in tiles (default 1).
  * @returns An array of tiles representing the path from start to end (inclusive of start).
  *          Returns an empty array if no path is found.
  */
@@ -56,14 +57,10 @@ export function findPath(
   startTile: BattleMapTile,
   endTile: BattleMapTile,
   mapData: BattleMapData,
-  movementConfig: Partial<MovementConfig> = {}
+  movementConfig: Partial<MovementConfig> = {},
+  sizeMultiplier: number = 1
 ): BattleMapTile[] {
   const openSet: PathNode[] = [];
-
-  // Stores lowest G score for a tile AND diagonal parity
-  // Key format: "x-y-parity" where parity is 0 (even) or 1 (odd)
-  // This ensures we explore paths that might be slightly more expensive locally
-  // but land on a "cheaper" diagonal step for the future.
   const closedSet = new Map<string, number>();
 
   const startNode: PathNode = {
@@ -77,7 +74,6 @@ export function findPath(
   openSet.push(startNode);
 
   while (openSet.length > 0) {
-    // Find the node with the lowest F score
     let lowestIndex = 0;
     for (let i = 1; i < openSet.length; i++) {
       if (openSet[i].f < openSet[lowestIndex].f) {
@@ -86,7 +82,6 @@ export function findPath(
     }
     const currentNode = openSet[lowestIndex];
 
-    // End condition
     if (currentNode.tile.id === endTile.id) {
       const path: BattleMapTile[] = [];
       let temp: PathNode | null = currentNode;
@@ -97,21 +92,17 @@ export function findPath(
       return path.reverse();
     }
 
-    // Move current from open
     openSet.splice(lowestIndex, 1);
 
-    // Key includes parity (0 or 1)
     const parity = currentNode.diagonalCount % 2;
     const closedKey = `${currentNode.tile.id}-${parity}`;
 
-    // Pruning: If we've found a better path to this tile WITH THE SAME PARITY, skip.
     const existingG = closedSet.get(closedKey);
     if (existingG !== undefined && existingG <= currentNode.g) {
       continue;
     }
     closedSet.set(closedKey, currentNode.g);
 
-    // Check neighbors
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) {
         if (dx === 0 && dy === 0) continue;
@@ -120,35 +111,40 @@ export function findPath(
         const neighborY = currentNode.tile.coordinates.y + dy;
         const neighborId = `${neighborX}-${neighborY}`;
         
-        const neighborTile = mapData.tiles.get(neighborId);
-        if (!neighborTile || neighborTile.blocksMovement) continue;
+        // Multi-tile collision check
+        let canPass = true;
+        let maxTerrainCost = 1; // Normalized base cost
         
-        // Calculate base cost (5 or 10 depending on diagonal parity)
+        for (let sx = 0; sx < sizeMultiplier; sx++) {
+          for (let sy = 0; sy < sizeMultiplier; sy++) {
+            const checkId = `${neighborX + sx}-${neighborY + sy}`;
+            const checkTile = mapData.tiles.get(checkId);
+            
+            if (!checkTile || checkTile.blocksMovement) {
+              canPass = false;
+              break;
+            }
+            
+            if (isDifficultMovementCost(checkTile.movementCost)) {
+              maxTerrainCost = 2;
+            }
+          }
+          if (!canPass) break;
+        }
+
+        if (!canPass) continue;
+
+        const neighborTile = mapData.tiles.get(neighborId)!;
         const { cost: baseStepCost, isDiagonal } = calculateMovementCost(dx, dy, currentNode.diagonalCount);
 
-        // Determine physics modifiers for this specific step
         const stepConfig: MovementConfig = {
           ...movementConfig,
-          // movementCost may be stored as 5/10 feet or 1/2 multipliers.
-          // Normalize it before deciding whether physics should add the
-          // difficult-terrain surcharge.
-          isDifficultTerrain: isDifficultMovementCost(neighborTile.movementCost),
-          // We assume crawling/climbing/swimming state persists from the passed config
-          // unless specific tile logic overrides it (future TODO)
+          isDifficultTerrain: maxTerrainCost === 2,
         };
 
-        // Apply physics-based cost modifiers (additive stacking)
-        // [Mechanist] Replaced simple multiplication with centralized physics calculation
         const stepCost = applyMovementCostModifiers(baseStepCost, stepConfig);
-
         const gScore = currentNode.g + stepCost;
         const newDiagonalCount = isDiagonal ? currentNode.diagonalCount + 1 : currentNode.diagonalCount;
-
-        // We need to check if we already have this node in OpenSet
-        // Finding strictly by ID is insufficient because we might need to add the same tile again if parity differs
-        // A* usually updates the node in OpenSet. Here, we can have multiple nodes for the same tile if parities differ.
-        // So we filter by tile ID AND parity match.
-
         const newParity = newDiagonalCount % 2;
 
         let neighborNode = openSet.find(node =>
@@ -166,7 +162,6 @@ export function findPath(
           };
           openSet.push(neighborNode);
         } else if (gScore < neighborNode.g) {
-          // Found a better path to this specific tile+parity state
           neighborNode.parent = currentNode;
           neighborNode.g = gScore;
           neighborNode.f = gScore + neighborNode.h;
@@ -176,6 +171,5 @@ export function findPath(
     }
   }
 
-  // No path found
   return [];
 }

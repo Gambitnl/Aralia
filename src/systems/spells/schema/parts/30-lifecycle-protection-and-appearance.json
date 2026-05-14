@@ -1,0 +1,831 @@
+{
+  "schemaKind": "spell-json-schema",
+  "part": "30-lifecycle-protection-and-appearance",
+  "definitionCount": 11,
+  "definitions": {
+    "GrantedAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "action",
+            "bonus_action",
+            "reaction"
+          ]
+        },
+        "action": {
+          "type": "string"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "once",
+            "each_turn",
+            "while_active"
+          ]
+        },
+        "actor": {
+          "type": "string",
+          "enum": [
+            "caster",
+            "target",
+            "summoned_entity",
+            "affected_creature"
+          ]
+        },
+        "actionKind": {
+          "type": "string",
+          "enum": [
+            "magic_action",
+            "standard_action",
+            "bonus_action",
+            "reaction",
+            "not_applicable"
+          ]
+        },
+        "areaShape": {
+          "type": "string",
+          "enum": [
+            "Cone",
+            "Line",
+            "Sphere",
+            "Cube",
+            "Cylinder",
+            "not_applicable"
+          ]
+        },
+        "areaSize": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "areaSizeUnit": {
+          "type": "string",
+          "enum": [
+            "feet",
+            "miles",
+            "not_applicable"
+          ]
+        },
+        "effectIndices": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "target_object_within_spell_range",
+              "target_within_spell_range",
+              "not_applicable"
+            ]
+          }
+        },
+        "rangeLimit": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "action",
+        "frequency"
+      ]
+    },
+    "DeathPrevention": {
+      "type": "object",
+      "properties": {
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "drop_to_0_hp",
+              "instant_death_no_damage"
+            ]
+          }
+        },
+        "dropToHitPoints": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "negatesInstantDeathWithoutDamage": {
+          "type": "boolean"
+        },
+        "consumption": {
+          "type": "string",
+          "enum": [
+            "first_trigger_ends_spell",
+            "not_applicable"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "target",
+            "not_applicable"
+          ]
+        }
+      },
+      "required": [
+        "triggers",
+        "dropToHitPoints",
+        "negatesInstantDeathWithoutDamage",
+        "consumption",
+        "scope"
+      ]
+    },
+    "EffectEndCleanup": {
+      "type": "object",
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "spell_ends",
+            "effect_ends",
+            "item_effect_ends",
+            "not_applicable"
+          ]
+        },
+        "removes": {
+          "type": "string",
+          "enum": [
+            "temporary_hit_points",
+            "spell_granted_flying_speed",
+            "extradimensional_space",
+            "created_ammunition",
+            "spell_material_container",
+            "not_applicable"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "this_spell",
+            "this_effect",
+            "not_applicable"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "target",
+            "caster",
+            "affected_creatures",
+            "contents",
+            "created_objects",
+            "spell_component",
+            "not_applicable"
+          ]
+        },
+        "amount": {
+          "type": "string",
+          "enum": [
+            "all_remaining",
+            "not_applicable"
+          ]
+        },
+        "consequence": {
+          "type": "string",
+          "enum": [
+            "fall_if_aloft",
+            "contents_drop_out",
+            "disintegrate",
+            "destroy",
+            "not_applicable"
+          ]
+        },
+        "destination": {
+          "type": "string",
+          "enum": [
+            "space_exit_anchor",
+            "not_applicable"
+          ]
+        },
+        "preventedBy": {
+          "type": "string",
+          "enum": [
+            "can_prevent_fall",
+            "not_applicable"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "trigger",
+        "removes",
+        "source",
+        "scope",
+        "amount"
+      ]
+    },
+    "SustainRequirement": {
+      "type": "object",
+      "properties": {
+        "timing": {
+          "type": "string",
+          "enum": [
+            "later_turns",
+            "not_applicable"
+          ]
+        },
+        "actor": {
+          "type": "string",
+          "enum": [
+            "caster",
+            "target",
+            "affected_creature",
+            "not_applicable"
+          ]
+        },
+        "actionKind": {
+          "type": "string",
+          "enum": [
+            "magic_action",
+            "standard_action",
+            "bonus_action",
+            "reaction",
+            "not_applicable"
+          ]
+        },
+        "actionCost": {
+          "type": "string",
+          "enum": [
+            "action",
+            "bonus_action",
+            "reaction",
+            "not_applicable"
+          ]
+        },
+        "failureOutcome": {
+          "type": "string",
+          "enum": [
+            "spell_ends",
+            "effect_ends",
+            "not_applicable"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "timing",
+        "actor",
+        "actionKind",
+        "actionCost",
+        "failureOutcome"
+      ]
+    },
+    "SensoryManifestation": {
+      "type": "object",
+      "properties": {
+        "modeSource": {
+          "type": "string",
+          "enum": [
+            "modeChoice.options",
+            "effect",
+            "not_applicable"
+          ]
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SensoryManifestationVariant"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "modeSource",
+        "variants"
+      ]
+    },
+    "SensoryManifestationVariant": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "allowedSenses": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sight",
+              "sound",
+              "light",
+              "smell",
+              "other_sensory_effect"
+            ]
+          }
+        },
+        "excludedSenses": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sight",
+              "sound",
+              "light",
+              "smell",
+              "other_sensory_effect"
+            ]
+          }
+        },
+        "volumeRange": {
+          "type": "string",
+          "enum": [
+            "whisper_to_scream",
+            "not_applicable"
+          ]
+        },
+        "timing": {
+          "type": "string",
+          "enum": [
+            "continuous",
+            "discrete_before_spell_end",
+            "continuous_or_discrete_before_spell_end",
+            "not_applicable"
+          ]
+        },
+        "maxSize": {
+          "$ref": "#/definitions/SensoryManifestationSize"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "allowedSenses",
+        "excludedSenses"
+      ]
+    },
+    "SensoryManifestationSize": {
+      "type": "object",
+      "properties": {
+        "shape": {
+          "type": "string",
+          "enum": [
+            "Cube",
+            "Sphere",
+            "Line",
+            "Cone",
+            "Cylinder",
+            "not_applicable"
+          ]
+        },
+        "size": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "not_applicable"
+              ]
+            }
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "feet",
+            "not_applicable"
+          ]
+        }
+      },
+      "required": [
+        "shape",
+        "size",
+        "unit"
+      ]
+    },
+    "IllusionMetadata": {
+      "type": "object",
+      "properties": {
+        "revealScope": {
+          "type": "string",
+          "enum": [
+            "per_creature",
+            "global",
+            "not_applicable"
+          ]
+        },
+        "revealRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IllusionRevealRule"
+          }
+        },
+        "discernedState": {
+          "type": "string",
+          "enum": [
+            "faint_to_discerning_creature",
+            "transparent_to_discerning_creature",
+            "not_applicable"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revealScope",
+        "revealRules",
+        "discernedState"
+      ]
+    },
+    "IllusionRevealRule": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "study_action",
+            "physical_interaction"
+          ]
+        },
+        "actionCost": {
+          "type": "string",
+          "enum": [
+            "action",
+            "not_applicable"
+          ]
+        },
+        "ability": {
+          "type": "string",
+          "enum": [
+            "Intelligence",
+            "not_applicable"
+          ]
+        },
+        "skill": {
+          "type": "string",
+          "enum": [
+            "Investigation",
+            "not_applicable"
+          ]
+        },
+        "dc": {
+          "type": "string",
+          "enum": [
+            "spell_save_dc",
+            "not_applicable"
+          ]
+        },
+        "appliesTo": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "method",
+        "appliesTo"
+      ]
+    },
+    "HigherLevelScaling": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "character_level_tiers"
+            },
+            "tiers": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "tiers"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level_bonus"
+            },
+            "baseSpellLevel": {
+              "type": "number"
+            },
+            "bonusPerLevel": {
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "baseSpellLevel",
+            "bonusPerLevel"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "slot_level_table"
+            },
+            "baseSpellLevel": {
+              "type": "number"
+            },
+            "entries": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "baseSpellLevel",
+            "entries"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "target_count_bonus"
+            },
+            "baseSpellLevel": {
+              "type": "number"
+            },
+            "additionalTargetsPerLevel": {
+              "type": "number"
+            },
+            "targetLabel": {
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "baseSpellLevel",
+            "additionalTargetsPerLevel"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "area_size_bonus"
+            },
+            "baseSpellLevel": {
+              "type": "number"
+            },
+            "increasePerLevel": {
+              "type": "number"
+            },
+            "unit": {
+              "const": "feet"
+            },
+            "dimension": {
+              "type": "string",
+              "enum": [
+                "radius",
+                "diameter",
+                "cube_size",
+                "line_length",
+                "wall_length",
+                "wall_height"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "baseSpellLevel",
+            "increasePerLevel",
+            "unit",
+            "dimension"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "multiple"
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/HigherLevelScaling"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "rules"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "special_text_only"
+            },
+            "referenceText": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "referenceText"
+          ]
+        }
+      ]
+    },
+    "DurationProgression": {
+      "type": "object",
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "repeated_casts",
+            "recast_while_active",
+            "full_duration_concentration",
+            "not_applicable"
+          ]
+        },
+        "requiredCasts": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "cadence": {
+          "type": "string",
+          "enum": [
+            "daily",
+            "not_applicable"
+          ]
+        },
+        "sameTargetRequired": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "sameLocationRequired": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "sameConfigurationRequired": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "requiresFullConcentration": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "extension": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "const": "not_applicable"
+                }
+              ]
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day",
+                "not_applicable"
+              ]
+            }
+          },
+          "required": [
+            "value",
+            "unit"
+          ]
+        },
+        "outcomeDuration": {
+          "type": "string",
+          "enum": [
+            "extend_current_duration",
+            "until_dispelled",
+            "permanent",
+            "non_dispellable_permanent",
+            "not_applicable"
+          ]
+        },
+        "dispellable": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "const": "not_applicable"
+            }
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "trigger",
+        "requiredCasts",
+        "cadence",
+        "sameTargetRequired",
+        "sameLocationRequired",
+        "sameConfigurationRequired",
+        "requiresFullConcentration",
+        "outcomeDuration",
+        "dispellable"
+      ]
+    }
+  }
+}

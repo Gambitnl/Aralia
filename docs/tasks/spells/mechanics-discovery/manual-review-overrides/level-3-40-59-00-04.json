@@ -1,0 +1,125 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "protection-from-energy": [
+      {
+        "bucketId": "environmental_change",
+        "findingId": "protection-from-energy::environmental_change",
+        "canonicalEvidence": "Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.",
+        "structuredState": "This is a defensive target effect, not an environmental change.",
+        "jsonState": "Runtime JSON has no environmental effect.",
+        "issue": "The detector matched elemental damage words, but this row is not an environmental mechanic.",
+        "recommendedTemplateChange": "No environmental field required for this row.",
+        "recommendedJsonChange": "No environmental runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "protection-from-energy::manual_willing_target",
+        "canonicalEvidence": "The willing creature you touch",
+        "structuredState": "Valid Targets: willing_creature.",
+        "jsonState": "Runtime targeting uses allies and has no first-class willing target filter.",
+        "issue": "The spell requires a willing creature target, but runtime flattens willingness into ally targeting.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      }
+    ],
+    "remove-curse": [
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "remove-curse::conditional_ending",
+        "canonicalEvidence": "At your touch, all curses affecting one creature or object end. If the object is a cursed magic item, its curse remains, but the spell breaks its owner Attunement to the object so it can be removed or discarded.",
+        "structuredState": "Valid Targets now list creatures and objects; no curse-ending or attunement-break fields.",
+        "jsonState": "Runtime targeting now allows creatures and objects, but the curse/attunement mechanics are prose-only.",
+        "issue": "Remove Curse ends ordinary curses and has a different cursed-magic-item branch that breaks attunement without ending the item curse.",
+        "recommendedTemplateChange": "Add curseRemoval and cursedMagicItem attunement-break fields.",
+        "recommendedJsonChange": "Add runtime curseEffect data for end curses on creature/object and break owner attunement for cursed magic items.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "remove-curse::manual_creature_or_object_target",
+        "canonicalEvidence": "One creature or object",
+        "structuredState": "Valid Targets now list creatures and objects.",
+        "jsonState": "Runtime validTargets now include creatures and objects.",
+        "issue": "The creature-or-object target eligibility is represented.",
+        "recommendedTemplateChange": "No target eligibility change required for this row.",
+        "recommendedJsonChange": "Closed by adding objects to runtime validTargets and normalizing structured Valid Targets to creatures, objects.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "revivify": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "revivify::manual_dead_creature_recent_not_old_age",
+        "canonicalEvidence": "You touch a creature that has died within the last minute. This spell cannot revive a creature that has died of old age.",
+        "structuredState": "Valid Targets: dead_creature; no death age/timing or old-age exclusion fields.",
+        "jsonState": "Runtime targeting only allows creatures and has no dead/recent-death filters.",
+        "issue": "Revivify requires a dead creature that died within the last minute and excludes old age deaths.",
+        "recommendedTemplateChange": "Add death-state target filters for max time since death and old-age exclusion.",
+        "recommendedJsonChange": "Add runtime targetFilter dead=true, diedWithin 1 minute, excludeDeathCause old_age.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "healing_or_restoration",
+        "findingId": "revivify::manual_revive_with_1_hp",
+        "canonicalEvidence": "That creature revives with 1 Hit Point.",
+        "structuredState": "Effect Type: HEALING but no revive/restoration field or fixed 1 HP value.",
+        "jsonState": "Runtime JSON is prose UTILITY with no HEALING/restoration effect.",
+        "issue": "Revivify restores a dead creature to life with exactly 1 HP, which is not ordinary healing data.",
+        "recommendedTemplateChange": "Add revive/restoration fields with fixed resulting HP.",
+        "recommendedJsonChange": "Add runtime REVIVE or restoration effect setting revived target HP to 1.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "revivify::manual_consumed_diamond_component",
+        "canonicalEvidence": "A diamond worth 300+ GP, which the spell consumes.",
+        "structuredState": "Material Cost GP: 300; Consumed: true.",
+        "jsonState": "Runtime components preserve materialCost 300 and isConsumed true.",
+        "issue": "The consumed 300 GP diamond component is represented.",
+        "recommendedTemplateChange": "No material component change required.",
+        "recommendedJsonChange": "No runtime component change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "revivify::manual_missing_body_parts_not_restored",
+        "canonicalEvidence": "Nor does it restore any missing body parts.",
+        "structuredState": "No body-part restoration exclusion field.",
+        "jsonState": "Runtime JSON has no body-part limitation data.",
+        "issue": "Revivify revives without restoring missing body parts; that limitation is not represented.",
+        "recommendedTemplateChange": "Add restoration limitation fields.",
+        "recommendedJsonChange": "Add runtime reviveLimitations doesNotRestoreMissingBodyParts.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "sending": [
+      {
+        "bucketId": "message_or_communication",
+        "findingId": "sending::message_or_communication",
+        "canonicalEvidence": "You send a short message of 25 words or fewer. The target hears the message in its mind and can answer in a like manner immediately. The spell enables targets to understand the meaning of your message.",
+        "structuredState": "Effect Type: UTILITY; no message length, mental delivery, reply, or comprehension fields.",
+        "jsonState": "Runtime JSON has one prose utility effect.",
+        "issue": "Sending has a rich communication payload that is not typed.",
+        "recommendedTemplateChange": "Add communication fields for word limit, target qualification, mental delivery, immediate reply, and meaning comprehension.",
+        "recommendedJsonChange": "Add runtime communication data for wordLimit 25, mentalMessage, immediateReply, and comprehendMeaning.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "travel_or_planar_movement",
+        "findingId": "sending::travel_or_planar_movement",
+        "canonicalEvidence": "You can send the message across any distance and even to other planes of existence, but if the target is on a different plane than you, there is a 5 percent chance that the message does not arrive.",
+        "structuredState": "Range Type: unlimited; no cross-plane failure chance field.",
+        "jsonState": "Runtime range is 0 and has no planar delivery data.",
+        "issue": "Sending supports unlimited/cross-planar messaging with a 5 percent cross-plane failure chance.",
+        "recommendedTemplateChange": "Add cross-planar communication and failure chance fields.",
+        "recommendedJsonChange": "Add runtime deliveryRange anyDistance, crossPlaneAllowed true, crossPlaneFailureChance 5 percent.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

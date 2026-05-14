@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { canEquipItem, performLevelUp, applyFeatToCharacter, buildHitPointDicePools } from '../characterUtils';
+import { canEquipItem, performLevelUp, applyFeatToCharacter, buildHitPointDicePools, normalizeCharacterRaceData } from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
 // TODO(lint-intent): 'ArmorCategory' is unused in this test; use it in the assertion path or remove it.
 import { Item, ArmorCategory as _ArmorCategory, Feat, AbilityScoreName, Class } from '../../../types';
@@ -536,6 +536,45 @@ describe('characterUtils', () => {
         { die: 6, current: 1, max: 1 },
         { die: 10, current: 2, max: 2 }
       ]);
+    });
+  });
+
+  describe('normalizeCharacterRaceData', () => {
+    it('reattaches serialized characters to canonical race data and derived race mechanics', () => {
+      const character = createMockPlayerCharacter({
+        race: {
+          id: 'half_orc',
+          name: 'Stale Half-Orc',
+          description: 'Old serialized data',
+          traits: ['Speed: 5 feet'],
+        },
+        speed: 5,
+        darkvisionRange: 0,
+        abilityScores: {
+          Strength: 15,
+          Dexterity: 10,
+          Constitution: 14,
+          Intelligence: 10,
+          Wisdom: 10,
+          Charisma: 10,
+        },
+        finalAbilityScores: {
+          Strength: 15,
+          Dexterity: 10,
+          Constitution: 14,
+          Intelligence: 10,
+          Wisdom: 10,
+          Charisma: 10,
+        },
+      });
+
+      const normalized = normalizeCharacterRaceData(character);
+
+      expect(normalized.race.name).toBe('Half-Orc');
+      expect(normalized.speed).toBe(30);
+      expect(normalized.darkvisionRange).toBe(60);
+      expect(normalized.finalAbilityScores.Strength).toBe(17);
+      expect(normalized.finalAbilityScores.Constitution).toBe(15);
     });
   });
 

@@ -1,4 +1,4 @@
-﻿# Companion Banter
+# Companion Banter
 
 This capability note tracks the current companion-banter system. The repo already supports both NPC-to-NPC banter and player-directed banter, and it has explicit escalation behavior when the player ignores a directed line.
 

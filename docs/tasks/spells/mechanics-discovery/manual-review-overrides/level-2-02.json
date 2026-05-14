@@ -1,0 +1,372 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "heat-metal::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Heat Metal targets a manufactured metal object, specifically including metal weapons and Heavy or Medium metal armor, but runtime only records generic objects.",
+      "recommendedTemplateChange": "Add manufactured metal object target fields with example categories weapon and Heavy/Medium metal armor.",
+      "recommendedJsonChange": "Add runtime objectFilter material metal, manufactured true, category weapon_or_heavy_medium_armor."
+    },
+    "heat-metal::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The damage is represented and repeat damage now has Bonus Action cost, but the post-damage Constitution save, forced drop if possible, and disadvantage on attacks/ability checks until start of caster's next turn are prose-only utility data.",
+      "recommendedTemplateChange": "Add post-damage rider fields for holder/wearer save, drop object if possible, and attack/ability-check disadvantage duration.",
+      "recommendedJsonChange": "Add runtime postDamageRider data for Constitution save, dropObject, and disadvantage if not dropped."
+    },
+    "heat-metal::vision_light_sound": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The object glowing red-hot is presentation for the heated-object damage unless future visual-state work decides to model it.",
+      "recommendedTemplateChange": "No light/vision field required for this descriptive glow in this pass.",
+      "recommendedJsonChange": "No runtime light/vision field required for this descriptive glow in this pass."
+    },
+    "heat-metal::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Any creature in physical contact with the heated object takes damage, but physical-contact targeting is not first-class.",
+      "recommendedTemplateChange": "Add contact-with-target-object condition fields.",
+      "recommendedJsonChange": "Add runtime contactCondition data for creatures in physical contact with the heated object."
+    },
+    "heat-metal::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closureReason": "Added a caster Bonus Action grantedAction linked to the repeat heat damage effect, added target_object_within_spell_range as a granted-action prerequisite, and changed the repeat damage trigger to on_granted_action. Conditional Ending remains not_applicable because this row was a repeat-action prerequisite gap, not an early-ending rule.",
+      "issue": "The repeat Bonus Action damage only works if the object is still within range, but range recheck is prose-only.",
+      "recommendedTemplateChange": "Add sustain/repeat action prerequisites for target object still within range.",
+      "recommendedJsonChange": "Add runtime repeatActionPrerequisite objectWithinRange."
+    },
+    "hold-person::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'Choose a Humanoid' is ordinary target selection, not a mode choice.",
+      "recommendedTemplateChange": "No choice/mode field required.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "hold-person::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save negating Paralyzed is represented, and structured Save Outcome is now normalized to negates_condition.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "No runtime save change required."
+    },
+    "hold-person::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hold Person's higher-level casting adds one Humanoid target per slot level above 2, but runtime target count remains fixed at 1 and target scaling is prose-like effect scaling.",
+      "recommendedTemplateChange": "Add target-count scaling fields for +1 target per slot level above base.",
+      "recommendedJsonChange": "Add runtime targetScaling data for +1 Humanoid target per slot above 2."
+    },
+    "hold-person::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The end-of-turn Wisdom repeat save ending the spell on success is represented.",
+      "recommendedTemplateChange": "No repeat-save field change required.",
+      "recommendedJsonChange": "No runtime repeat-save change required."
+    },
+    "hold-person::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched line-of-sight target selection, not a distinct vision/light/sound mechanic.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "No vision/light/sound JSON change required."
+    },
+    "hold-person::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Paralyzed condition is represented as a STATUS_CONDITION with duration and repeat save.",
+      "recommendedTemplateChange": "No status field change required for this reviewed row.",
+      "recommendedJsonChange": "Closed by preserving Paralyzed and removing the stale escape-check placeholder."
+    },
+    "invisibility::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "closedReason": "This row was a duplicate view of Invisibility's early-ending triggers, not an attack/save modifier. The target_makes_attack_roll, target_deals_damage, and target_casts_spell triggers are now typed under Conditional Ending fields and runtime conditionalEndings.",
+      "issue": "Invisibility ends after the target makes an attack roll, deals damage, or casts a spell; runtime description now includes all three triggers, but they are not typed conditional-ending events.",
+      "recommendedTemplateChange": "Add early-ending trigger fields for attack roll, damage dealt, and spell cast.",
+      "recommendedJsonChange": "Add runtime endTriggers data for attack_roll_made, damage_dealt, and spell_cast by the target."
+    },
+    "invisibility::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The Invisible condition itself is represented as a status condition; this bucket does not need separate light/vision emission data.",
+      "recommendedTemplateChange": "Track through status condition fields.",
+      "recommendedJsonChange": "Track through STATUS_CONDITION Invisible."
+    },
+    "invisibility::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The touched creature gaining Invisible is represented as a STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No status field change required for this reviewed row.",
+      "recommendedJsonChange": "No runtime status change required."
+    },
+    "invisibility::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Invisibility now records all three early-ending triggers in structured markdown and runtime conditionalEndings: target_makes_attack_roll, target_deals_damage, and target_casts_spell. Higher-slot target-count scaling was already closed in the separate manual_slot_scaled_targets row.",
+      "issue": "The early-ending triggers and higher-slot target count are still prose/scaling notes rather than first-class runtime fields.",
+      "recommendedTemplateChange": "Add conditional-ending event fields and target-count scaling fields.",
+      "recommendedJsonChange": "Add runtime endTriggers and targetScaling +1 creature per slot above 2."
+    },
+    "knock::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'Choose an object' is ordinary target selection, not a separate mode choice.",
+      "recommendedTemplateChange": "No choice/mode field required.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "knock::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the word 'emanates' in the sound text; Knock has no forced movement mechanic.",
+      "recommendedTemplateChange": "No forced-movement field required.",
+      "recommendedJsonChange": "No forced-movement JSON change required."
+    },
+    "knock::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Knock's loud target-object sound is now represented by structured sound fields and runtime soundEmission data.",
+      "recommendedTemplateChange": "Closed by Sound Audible Radius 300 feet, Sound Source target_object, and Sound Trigger on_cast.",
+      "recommendedJsonChange": "Closed by adding soundEmission with audibleRadius 300 feet to the runtime effect."
+    },
+    "knock::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Knock unlocks, unsticks, or unbars one access-preventing mechanism and suppresses Arcane Lock for 10 minutes, but these object/access state changes are prose-only.",
+      "recommendedTemplateChange": "Add lock/access state fields for mundane unlock/unstick/unbar, one-lock limit, and Arcane Lock suppression duration.",
+      "recommendedJsonChange": "Add runtime accessControl data for object categories, one mechanism affected, and Arcane Lock suppression 10 minutes."
+    },
+    "knock::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Arcane Lock suppression lasts 10 minutes while the spell itself is instantaneous; that temporary suppression duration is not modeled.",
+      "recommendedTemplateChange": "Add temporary suppression duration fields for other spell/effect suppression.",
+      "recommendedJsonChange": "Add runtime suppressesEffect data for Arcane Lock with duration 10 minutes."
+    },
+    "lesser-restoration::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Blinded/Deafened condition names; this is condition removal, not a standalone light/sound mechanic.",
+      "recommendedTemplateChange": "Track through condition-removal fields.",
+      "recommendedJsonChange": "Track through runtime condition-removal data once available."
+    },
+    "lesser-restoration::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Lesser Restoration ends one condition chosen from Blinded, Deafened, Paralyzed, or Poisoned, but runtime stores this as a generic utility description.",
+      "recommendedTemplateChange": "Add condition-removal fields for one-of listed removable conditions.",
+      "recommendedJsonChange": "Add runtime conditionRemoval data with maxRemoved 1 and options Blinded, Deafened, Paralyzed, Poisoned."
+    },
+    "levitate::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'of your choice' is standard target selection, not a separate mode choice.",
+      "recommendedTemplateChange": "No choice/mode field required.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "levitate::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Constitution save applies only to unwilling creatures, but runtime save data does not encode that target-state condition.",
+      "recommendedTemplateChange": "Add save-applies-to fields for unwilling creature targets.",
+      "recommendedJsonChange": "Add runtime saveAppliesTo unwilling_creature while objects and willing creatures are unaffected by the save."
+    },
+    "levitate::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Levitate raises and suspends a creature or loose object and later changes altitude by up to 20 feet, but the current movement model has no vertical suspension/altitude-change type and is forced to use teleport.",
+      "recommendedTemplateChange": "Add vertical levitation/suspension movement fields, altitude delta, actor-specific action cost, and max object weight.",
+      "recommendedJsonChange": "Add runtime levitation data for vertical rise 20 feet, suspended duration, altitude adjustment 20 feet, and 500-pound object limit."
+    },
+    "levitate::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target can move only by pushing or pulling against a fixed object or surface within reach, as if climbing; this movement restriction is prose-only.",
+      "recommendedTemplateChange": "Add movement restriction fields for requires fixed surface/object within reach and climb-like movement.",
+      "recommendedJsonChange": "Add runtime movementRestriction data for levitated targets."
+    },
+    "levitate::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fixed objects or surfaces within reach determine whether a levitated target can self-move, but terrain/surface dependency is not represented.",
+      "recommendedTemplateChange": "Add terrain/surface dependency fields for movement constraints.",
+      "recommendedJsonChange": "Add runtime surfaceDependency data for fixed object/surface within reach."
+    },
+    "levitate::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched line-of-sight target selection, not a vision/light/sound mechanic.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "No vision/light/sound JSON change required."
+    },
+    "levitate::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched object/surface prose, but Levitate does not create an object or structure.",
+      "recommendedTemplateChange": "No created-object field required.",
+      "recommendedJsonChange": "No created-object JSON change required."
+    },
+    "levitate::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "This is not an early-ending trigger. The target floating gently to the ground happens after normal spell end and remains open under levitate::aftermath_or_memory, so this duplicate conditional-ending bucket is closed without changing spell data.",
+      "issue": "When the spell ends, an aloft target floats gently to the ground; this end-of-spell descent is not modeled.",
+      "recommendedTemplateChange": "Add end-of-spell aftermath fields for gentle descent when aloft.",
+      "recommendedJsonChange": "Add runtime onEndBehavior gentle_descent_to_ground_if_aloft."
+    },
+    "levitate::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The gentle float to the ground after the spell ends is an aftermath behavior rather than ordinary duration text.",
+      "recommendedTemplateChange": "Add aftermath behavior fields for movement effects.",
+      "recommendedJsonChange": "Add runtime aftermath data matching the conditional-ending finding."
+    },
+    "locate-animals-or-plants::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Locate Animals or Plants returns direction and distance to the closest matching Beast, Plant creature, or nonmagical plant within 5 miles, but target category options, closest-match selection, and if-present result semantics are prose-only.",
+      "recommendedTemplateChange": "Add detection query fields for named/described kind, allowed categories, search radius, closest result, direction payload, distance payload, and absent-result behavior.",
+      "recommendedJsonChange": "Add runtime detectionQuery data for Beast, Plant creature, or nonmagical plant within 5 miles."
+    },
+    "locate-animals-or-plants::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched plant/nature wording, but the spell only provides location knowledge and changes no environment.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change JSON change required."
+    },
+    "locate-object::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the 'seen it up close' familiarity prerequisite, not a vision/light/sound effect.",
+      "recommendedTemplateChange": "Track this through detection prerequisite fields.",
+      "recommendedJsonChange": "Track this through runtime detectionQuery prerequisite data."
+    },
+    "locate-object::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Locate Object can locate a familiar specific object or nearest object of a kind, gives direction to location and movement direction if moving, and is blocked by any lead; runtime keeps this as prose.",
+      "recommendedTemplateChange": "Add object detection query fields for specific familiar object, kind/category search, 1000-foot radius, direction payload, movement direction payload, and lead blocker.",
+      "recommendedJsonChange": "Add runtime detectionQuery data for object search modes, output payloads, and lead-blocked direct path."
+    },
+    "magic-mouth::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Magic Mouth lets the caster choose whether the spell ends after one delivery or remains to repeat on future triggers; runtime currently says it ends after speaking.",
+      "recommendedTemplateChange": "Add delivery persistence mode fields for end_after_delivery versus repeat_on_trigger.",
+      "recommendedJsonChange": "Add runtime repeatMode data for one-shot or repeating trigger behavior."
+    },
+    "magic-mouth::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Magic Mouth targets an object that is not being worn or carried by another creature, but runtime target eligibility is generic objects.",
+      "recommendedTemplateChange": "Closed by object-eligibility propagation: structured markdown now records object worn/carried, magical status, fixed-to-surface, size, weight, and weight-scaling fields.",
+      "recommendedJsonChange": "Closed by object-eligibility propagation: targeting.filter.objectEligibility now carries the matching runtime facts.",
+      "reviewerNote": "Closed because this target-filter finding is fully represented by the new objectEligibility fields; mixed target-mode and environmental object-effect findings remain open."
+    },
+    "magic-mouth::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The trigger must be based on visual or audible conditions within 30 feet of the object, but runtime has a generic on_enter_area trigger.",
+      "recommendedTemplateChange": "Add trigger sense fields for visual/audible condition types and trigger sensing radius.",
+      "recommendedJsonChange": "Add runtime triggerCondition data with allowedSenses visual/audible and radius 30 feet."
+    },
+    "magic-mouth::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Magic Mouth stores a spoken message of up to 25 words, can deliver it over up to 10 minutes, uses the caster's voice and spoken volume, and may use an existing mouth-like feature; runtime only has summary prose.",
+      "recommendedTemplateChange": "Add stored message fields for max words, max delivery duration, voice/volume preservation, mouth appearance, and object-mouth anchoring.",
+      "recommendedJsonChange": "Add runtime storedMessage data for word limit, delivery duration, voice, volume, and mouth placement."
+    },
+    "magic-mouth::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Magic Mouth is a triggered object enchantment with freely specified visual/audible trigger conditions and repeat/one-shot behavior, but trigger details are flattened.",
+      "recommendedTemplateChange": "Add ward/trigger fields for arbitrary trigger condition text, sensory basis, radius, repeat behavior, and delivery action.",
+      "recommendedJsonChange": "Add runtime trigger data instead of a single on_enter_area trigger."
+    },
+    "magic-mouth::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Implanting the message is a triggered communication enchantment, not a broader environmental change.",
+      "recommendedTemplateChange": "No environmental-change field required beyond trigger/message fields.",
+      "recommendedJsonChange": "No environmental-change JSON change required."
+    },
+    "magic-weapon::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Magic Weapon gives a +1/+2/+3 bonus to weapon attack and damage rolls by slot tier, but runtime stores the attack/damage bonus as prose.",
+      "recommendedTemplateChange": "Add weapon attack/damage bonus fields with tiered slot scaling.",
+      "recommendedJsonChange": "Add runtime weaponEnhancement data for magic weapon state and attack/damage bonus: +1 base, +2 at slot 3-5, +3 at slot 6+."
+    },
+    "magic-weapon::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Magic Weapon's end-on-recast rule is now represented by Conditional Ending Triggers and runtime conditionalEndings.",
+      "recommendedTemplateChange": "Closed by Conditional Ending Triggers end_on_recast with scope spell.",
+      "recommendedJsonChange": "Closed by runtime conditionalEndings carrying end_on_recast for the spell."
+    },
+    "melfs-acid-arrow::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Melf's Acid Arrow has hit, miss, and delayed-hit-only damage branches; runtime has initial hit damage and delayed damage, but miss half-damage and the delayed damage's hit dependency are prose-only.",
+      "recommendedTemplateChange": "Add attack outcome branch fields for hit damage, miss half initial damage only, and delayed damage only if hit.",
+      "recommendedJsonChange": "Add runtime attackOutcome data with missHalfInitialNoDelayed and delayedDamage.requiresInitialHit."
+    },
+    "melfs-acid-arrow::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the arrow/burst prose, but the spell has no ward, alarm, or delayed trigger beyond its hit-gated damage branch.",
+      "recommendedTemplateChange": "Track under attack outcome branches.",
+      "recommendedJsonChange": "Track under attack outcome branches."
+    },
+    "melfs-acid-arrow::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The shimmering green arrow and spray of acid are visual presentation for the ranged spell attack and acid damage.",
+      "recommendedTemplateChange": "No descriptive visual field required in this goal.",
+      "recommendedJsonChange": "No descriptive visual runtime field required in this goal."
+    },
+    "mind-spike::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Mind Spike's Wisdom save for half Psychic damage and +1d8 slot scaling are represented; runtime range was corrected to 120 feet.",
+      "recommendedTemplateChange": "No damage/save field change required for this reviewed row.",
+      "recommendedJsonChange": "Closed by preserving the Wisdom save half damage and correcting targeting range to 120 feet."
+    },
+    "mind-spike::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "While the caster has location knowledge, the target cannot become hidden from the caster and gains no benefit from Invisible against the caster; these visibility/stealth overrides are prose-only.",
+      "recommendedTemplateChange": "Add visibility/stealth override fields for cannot hide from caster and Invisible condition grants no benefit against caster.",
+      "recommendedJsonChange": "Add runtime visibilityOverride data tied to the failed-save tracking rider."
+    },
+    "mind-spike::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The location tracking works only while caster and target are on the same plane of existence, but same-plane gating is not first-class.",
+      "recommendedTemplateChange": "Add planar prerequisite fields for ongoing detection/knowledge effects.",
+      "recommendedJsonChange": "Add runtime samePlaneRequired true for the location-tracking rider."
+    },
+    "mind-spike::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "On a failed save, the caster always knows the target's location until the spell ends, subject to same-plane gating; runtime has a utility rider but lacks typed tracking payload and visibility overrides.",
+      "recommendedTemplateChange": "Add location tracking knowledge fields for failed-save riders, duration, target identity, and same-plane requirement.",
+      "recommendedJsonChange": "Add runtime tracking data for alwaysKnowLocation plus samePlaneRequired and hidden/invisible overrides."
+    },
+    "mind-spike::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mind Spike does not apply a named condition, but it creates a caster-specific state where hidden/invisible benefits are suppressed against the caster.",
+      "recommendedTemplateChange": "Add caster-specific visibility state fields separate from named conditions.",
+      "recommendedJsonChange": "Add runtime casterSpecificState data for noHiddenFromCaster and invisibleNoBenefitAgainstCaster."
+    },
+    "mind-spike::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The tracking rider lasts until the spell ends but is only useful while both creatures are on the same plane; the same-plane limit is not modeled as an ongoing condition.",
+      "recommendedTemplateChange": "Add ongoing-condition fields for same-plane gating on duration-bound knowledge effects.",
+      "recommendedJsonChange": "Add runtime ongoingCondition samePlaneRequired for the tracking rider."
+    },
+    "mirror-image::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mirror Image redirects hits using a d6 roll for each remaining duplicate, but runtime still has only a corrected prose description and no interception model.",
+      "recommendedTemplateChange": "Add defensive duplicate interception fields for trigger on hit, dice per remaining duplicate, success threshold, redirect target, and duplicate destruction.",
+      "recommendedJsonChange": "Add runtime duplicateInterception data: base duplicates 3, roll d6 per duplicate, any 3+ redirects hit to one duplicate."
+    },
+    "mirror-image::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creatures with Blinded, Blindsight, or Truesight are unaffected, but these perception exceptions are only prose.",
+      "recommendedTemplateChange": "Add perception exception fields for defensive/illusion effects.",
+      "recommendedJsonChange": "Add runtime perceptionException data for Blinded, Blindsight, and Truesight."
+    },
+    "mirror-image::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates three duplicates in the caster's space that move with the caster and mimic actions, but duplicate count, following, mimicry, and indistinguishability are not structured.",
+      "recommendedTemplateChange": "Add illusion duplicate fields for count, location, follows caster, mimics actions, and indistinguishable behavior.",
+      "recommendedJsonChange": "Add runtime illusionDuplicates data."
+    },
+    "mirror-image::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Duplicates are destroyed only by redirected hits and ignore all other damage/effects; the spell ends when all three are destroyed. Runtime has no duplicate object state.",
+      "recommendedTemplateChange": "Add duplicate lifecycle fields for destruction trigger, immunity to other damage/effects, remaining count, and ends_when_all_destroyed.",
+      "recommendedJsonChange": "Add runtime duplicateLifecycle data."
+    },
+    "mirror-image::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Blinded is only an attacker exception to the illusion, not a status applied by Mirror Image.",
+      "recommendedTemplateChange": "Track under perception exception fields.",
+      "recommendedJsonChange": "Track under perceptionException data."
+    },
+    "mirror-image::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The spell ends when all three duplicates are destroyed, but that duplicate-count ending is prose-only.",
+      "recommendedTemplateChange": "Add conditional-ending fields based on duplicate/object count reaching zero.",
+      "recommendedJsonChange": "Add runtime endCondition allDuplicatesDestroyed.",
+      "closedReason": "Reused the all_target_instances_expended conditional-ending trigger added for limited spell instances, recorded it in the structured spell fields, and mapped it to the runtime utility effect with spell scope."
+    },
+    "misty-step::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Misty Step requires the destination to be an unoccupied space the caster can see, but runtime movement lacks destination occupancy and visibility fields.",
+      "recommendedTemplateChange": "Add teleport destination fields for unoccupied and visible requirements.",
+      "recommendedJsonChange": "Add runtime teleportDestination requiresUnoccupied true and requiresSight true."
+    },
+    "misty-step::vision_light_sound": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The brief silvery mist is descriptive presentation for the teleport and is intentionally deferred as flavor.",
+      "recommendedTemplateChange": "No visual effect field required for the mist in this pass.",
+      "recommendedJsonChange": "No runtime visual effect field required for the mist in this pass."
+    }
+  },
+  "manualFindings": {}
+}

@@ -1,4 +1,4 @@
-﻿# Town Map
+# Town Map
 
 ## Purpose
 

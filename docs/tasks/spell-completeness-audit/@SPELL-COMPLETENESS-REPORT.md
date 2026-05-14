@@ -10,7 +10,7 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ## Summary
 
-| Level | ✅ Present | ❌ Missing | ❓ Extra |
+| Level | PASSED Present | FAILED Missing | ❓ Extra |
 | --- | --- | --- | --- |
 | 1 | 62 | 2 | 3 |
 | 2 | 58 | 5 | 2 |
@@ -26,8 +26,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 1
 
-- ✅ Present: 62
-- ❌ Missing: 2
+- PASSED Present: 62
+- FAILED Missing: 2
 - ❓ Extra: 3
 
 **Missing (in PHB 2024, not in local):**
@@ -41,8 +41,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 2
 
-- ✅ Present: 58
-- ❌ Missing: 5
+- PASSED Present: 58
+- FAILED Missing: 5
 - ❓ Extra: 2
 
 **Missing (in PHB 2024, not in local):**
@@ -58,8 +58,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 3
 
-- ✅ Present: 47
-- ❌ Missing: 5
+- PASSED Present: 47
+- FAILED Missing: 5
 - ❓ Extra: 4
 
 **Missing (in PHB 2024, not in local):**
@@ -77,8 +77,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 4
 
-- ✅ Present: 34
-- ❌ Missing: 7
+- PASSED Present: 34
+- FAILED Missing: 7
 - ❓ Extra: 1
 
 **Missing (in PHB 2024, not in local):**
@@ -95,8 +95,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 5
 
-- ✅ Present: 43
-- ❌ Missing: 5
+- PASSED Present: 43
+- FAILED Missing: 5
 - ❓ Extra: 2
 
 **Missing (in PHB 2024, not in local):**
@@ -112,8 +112,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 6
 
-- ✅ Present: 30
-- ❌ Missing: 4
+- PASSED Present: 30
+- FAILED Missing: 4
 - ❓ Extra: 0
 
 **Missing (in PHB 2024, not in local):**
@@ -127,8 +127,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 7
 
-- ✅ Present: 20
-- ❌ Missing: 1
+- PASSED Present: 20
+- FAILED Missing: 1
 - ❓ Extra: 0
 
 **Missing (in PHB 2024, not in local):**
@@ -139,8 +139,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 8
 
-- ✅ Present: 16
-- ❌ Missing: 2
+- PASSED Present: 16
+- FAILED Missing: 2
 - ❓ Extra: 0
 
 **Missing (in PHB 2024, not in local):**
@@ -152,8 +152,8 @@ Last Updated: 2025-12-04 16:35 UTC
 
 ### Level 9
 
-- ✅ Present: 15
-- ❌ Missing: 1
+- PASSED Present: 15
+- FAILED Missing: 1
 - ❓ Extra: 0
 
 **Missing (in PHB 2024, not in local):**

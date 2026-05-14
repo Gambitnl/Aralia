@@ -138,6 +138,27 @@ artifacts/roadmap-playwright-audit-*/
 scripts/workflows/gemini/
 scripts/tooling/
 .agent/workflows/
+.agent/project-progress/
+
+# Local-only agent/runtime artifacts from external or desktop-side processes.
+.agent/rules/environment-learnings/codex-desktop-terminal.md
+.jules/runs/
+.jules/dashboard/
+.jules/orchestrator/
+jules-dashboard-*.png
+test-dc.js
+
+# Generated spell review reports. These are useful local review surfaces, but
+# the active sync sources are the spell files, schema/template parts, validators,
+# and manual-review override data that regenerate these reports.
+public/data/spell_template_contract_validation.json
+docs/reports/
+docs/tasks/spells/SPELL_HIGHER_LEVEL_SCALING_SPECIAL_TEXT_REPORT.md
+docs/tasks/spells/SPELL_HIGHER_LEVEL_SCALING_STRUCTURED_RULES_REPORT.md
+docs/tasks/spells/SPELL_MECHANICS_CONTRACT_AUDIT_REPORT.md
+docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.*
+docs/tasks/spells/mechanics-discovery/SPELL_MECHANICS_DISCOVERY_REPORT.md
+docs/tasks/spells/mechanics-discovery/buckets/
 .playwright-cli/
 .playwright-mcp/
 docs/tasks/documentation-cleanup/

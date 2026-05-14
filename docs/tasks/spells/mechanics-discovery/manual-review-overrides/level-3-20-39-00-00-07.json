@@ -1,0 +1,123 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "life-transference": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "life-transference::choice_or_mode",
+        "canonicalEvidence": "One creature of your choice that you can see within range regains a number of hit points equal to twice the necrotic damage you take.",
+        "structuredState": "Effect Type: HEALING; Damage Dice and Damage Type record the self-damage.",
+        "jsonState": "Runtime JSON has only the self Necrotic damage effect and no healing target/effect.",
+        "issue": "Life Transference links a chosen visible target's healing amount to twice the actual self-damage taken, but runtime only applies damage.",
+        "recommendedTemplateChange": "Add linked healing fields that can reference actual damage taken by another effect.",
+        "recommendedJsonChange": "Add runtime linked HEALING effect equal to 2x actual unreduced Necrotic damage taken by caster.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "life-transference::vision_light_sound",
+        "canonicalEvidence": "One creature of your choice that you can see within range",
+        "structuredState": "Line of Sight: true.",
+        "jsonState": "Runtime targeting lineOfSight is true.",
+        "issue": "The visible target requirement is represented as lineOfSight.",
+        "recommendedTemplateChange": "No line-of-sight change required.",
+        "recommendedJsonChange": "No line-of-sight runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "life-transference::object_stats_or_damageability",
+        "canonicalEvidence": "You take 4d8 necrotic damage, which can't be reduced in any way.",
+        "structuredState": "Damage Dice: 4d8; Damage Type: Necrotic.",
+        "jsonState": "Runtime JSON has the Necrotic damage dice, but no unreducible-damage flag and no caster self-target binding.",
+        "issue": "Life Transference's self-damage cannot be reduced and should be bound to the caster, but runtime does not type either constraint.",
+        "recommendedTemplateChange": "Add damageReductionBypass and effectTarget/selfCost fields.",
+        "recommendedJsonChange": "Add runtime damage flag cannotBeReduced and caster self-damage target binding.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "healing_or_restoration",
+        "findingId": "life-transference::manual_healing_twice_damage_taken",
+        "canonicalEvidence": "One creature of your choice that you can see within range regains a number of hit points equal to twice the necrotic damage you take.",
+        "structuredState": "Effect Type: HEALING, but no formula field connects healing to damage actually taken.",
+        "jsonState": "Runtime JSON has no HEALING effect.",
+        "issue": "Life Transference's healing effect and its twice-actual-damage formula are not represented.",
+        "recommendedTemplateChange": "Add healingFormula fields that can reference actual damage taken from a paired effect.",
+        "recommendedJsonChange": "Add runtime HEALING effect with formula twice actual self-damage taken.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "lightning-arrow": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "lightning-arrow::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature within 10 feet of the target then makes a Dexterity saving throw, taking 2d8 Lightning damage on a failed save or half as much damage on a successful one.",
+        "structuredState": "Structured fields only expose one Dexterity save/half row and one 4d8 Lightning damage row.",
+        "jsonState": "Runtime JSON has one immediate 4d8 Lightning DAMAGE effect with Dexterity save half, which conflates the direct attack replacement and secondary burst.",
+        "issue": "Lightning Arrow has two linked damage legs: primary target damage based on attack hit/miss and secondary creatures within 10 feet making Dexterity saves. Runtime flattens this into one save effect.",
+        "recommendedTemplateChange": "Add linked attack-replacement and secondary burst fields, including hit/miss primary damage, burst radius, secondary save, and separate damage dice.",
+        "recommendedJsonChange": "Add runtime attackReplacement damage for 4d8 hit/half-on-miss plus secondary AoE 10-foot Dexterity save 2d8 half.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "lightning-arrow::manual_weapon_ammunition_transforms_and_returns",
+        "canonicalEvidence": "As your attack hits or misses the target, the weapon or ammunition you're using transforms into a lightning bolt. The weapon or ammunition then returns to its normal form.",
+        "structuredState": "No temporary object transformation fields.",
+        "jsonState": "Runtime JSON has no weapon/ammunition transformation state.",
+        "issue": "Lightning Arrow temporarily transforms the used weapon or ammunition and then restores it.",
+        "recommendedTemplateChange": "Add temporaryObjectTransformation fields for weapon/ammunition form change and restoration.",
+        "recommendedJsonChange": "Add runtime temporaryObjectState data for transforms to lightning bolt and returns to normal form.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "reaction_or_opportunity_restriction",
+        "findingId": "lightning-arrow::manual_attack_hit_or_miss_trigger",
+        "canonicalEvidence": "As your attack hits or misses the target",
+        "structuredState": "Casting Time is bonus_action, but no later attack hit-or-miss trigger is represented.",
+        "jsonState": "Runtime trigger is immediate rather than next ranged attack hit-or-miss.",
+        "issue": "Lightning Arrow's payload triggers from a later attack hit or miss, not immediately when cast.",
+        "recommendedTemplateChange": "Add pending attack-trigger fields for next attack hit_or_miss.",
+        "recommendedJsonChange": "Add runtime trigger data for next ranged weapon/ammunition attack hit or miss.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "lightning-arrow::manual_both_damage_effects_scale",
+        "canonicalEvidence": "The damage for both effects of the spell increases by 1d8 for each spell slot level above 3.",
+        "structuredState": "Scaling Rule 1 records special_text for both effects.",
+        "jsonState": "Runtime has only one damage effect and no typed scaling for both primary and secondary damage legs.",
+        "issue": "Lightning Arrow's higher-slot scaling applies to both linked damage effects, but runtime has only one flattened effect.",
+        "recommendedTemplateChange": "Add multi-effect scaling references so one slot rule can apply to named linked effects.",
+        "recommendedJsonChange": "Add runtime scaling to both primary and secondary damage legs.",
+        "resolutionStatus": "closed",
+        "closedReason": "Closed by splitting Lightning Arrow into primary 4d8 Lightning and secondary 2d8 Lightning damage legs, adding Secondary Damage structured fields, and recording +1d8 slot-level scaling on both runtime damage effects. The separate pending-attack trigger finding remains open."
+      }
+    ],
+    "lightning-bolt": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "lightning-bolt::choice_or_mode",
+        "canonicalEvidence": "A stroke of lightning forming a 100-foot-long, 5-foot-wide Line blasts out from you in a direction you choose.",
+        "structuredState": "Area Shape and Area Size preserve the line length, but no line width or direction-choice field exists.",
+        "jsonState": "Runtime areaOfEffect preserves Line size 100 but no width or chosen direction field.",
+        "issue": "Lightning Bolt's 5-foot width and caster-chosen line direction are not represented.",
+        "recommendedTemplateChange": "Add lineWidth and areaDirectionChoice fields.",
+        "recommendedJsonChange": "Add runtime areaOfEffect.width 5 feet and directionChoice caster_chosen.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "lightning-bolt::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature in the Line makes a Dexterity saving throw, taking 8d6 Lightning damage on a failed save or half as much damage on a successful one.",
+        "structuredState": "Save Stat: Dexterity; Save Outcome: half; Damage Dice: 8d6.",
+        "jsonState": "Runtime DAMAGE effect has Dexterity saveEffect half and 8d6 Lightning.",
+        "issue": "The damage save mechanic is represented; line geometry gaps are tracked separately.",
+        "recommendedTemplateChange": "No save/damage field change required for this row.",
+        "recommendedJsonChange": "No save/damage runtime change required for this row.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}

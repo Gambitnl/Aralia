@@ -1,0 +1,151 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "40-world-state-and-entities",
+  "fieldCount": 9,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Flood",
+      "valueType": "string",
+      "jsonPath": "effects[].controlOptions[].details",
+      "why": "Control Water exposes named utility modes that need option-level text.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Control Water exposes named utility modes that need option-level text."
+        }
+      ],
+      "comment": "Control Water exposes named utility modes that need option-level text. It maps to `effects[].controlOptions[].details`. Purpose: Flood exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].controlOptions[].details`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Part Water",
+      "valueType": "string",
+      "jsonPath": "effects[].controlOptions[].details",
+      "why": "Control Water exposes named utility modes that need option-level text.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Control Water exposes named utility modes that need option-level text."
+        }
+      ],
+      "comment": "Control Water exposes named utility modes that need option-level text. It maps to `effects[].controlOptions[].details`. Purpose: Part Water exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].controlOptions[].details`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Redirect Flow",
+      "valueType": "string",
+      "jsonPath": "effects[].controlOptions[].details",
+      "why": "Control Water exposes named utility modes that need option-level text.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Control Water exposes named utility modes that need option-level text."
+        }
+      ],
+      "comment": "Control Water exposes named utility modes that need option-level text. It maps to `effects[].controlOptions[].details`. Purpose: Redirect Flow exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].controlOptions[].details`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Whirlpool",
+      "valueType": "string",
+      "jsonPath": "effects[].controlOptions[].details",
+      "why": "Control Water exposes named utility modes that need option-level text.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Control Water exposes named utility modes that need option-level text."
+        }
+      ],
+      "comment": "Control Water exposes named utility modes that need option-level text. It maps to `effects[].controlOptions[].details`. Purpose: Whirlpool exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].controlOptions[].details`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Armor Class",
+      "valueType": "string",
+      "jsonPath": "summons[].armorClass",
+      "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes."
+        }
+      ],
+      "comment": "Summoned entity stat blocks need explicit fields before the summon bucket closes. It maps to `summons[].armorClass`. Purpose: Armor Class exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `summons[].armorClass`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Hit Points",
+      "valueType": "string",
+      "jsonPath": "summons[].hitPoints",
+      "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes."
+        }
+      ],
+      "comment": "Summoned entity stat blocks need explicit fields before the summon bucket closes. It maps to `summons[].hitPoints`. Purpose: Hit Points exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `summons[].hitPoints`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Speed",
+      "valueType": "string",
+      "jsonPath": "summons[].speed",
+      "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes."
+        }
+      ],
+      "comment": "Summoned entity stat blocks need explicit fields before the summon bucket closes. It maps to `summons[].speed`. Purpose: Speed exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `summons[].speed`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Senses",
+      "valueType": "string",
+      "jsonPath": "summons[].senses",
+      "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes."
+        }
+      ],
+      "comment": "Summoned entity stat blocks need explicit fields before the summon bucket closes. It maps to `summons[].senses`. Purpose: Senses exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `summons[].senses`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Languages",
+      "valueType": "string",
+      "jsonPath": "summons[].languages",
+      "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Summoned entity stat blocks need explicit fields before the summon bucket closes."
+        }
+      ],
+      "comment": "Summoned entity stat blocks need explicit fields before the summon bucket closes. It maps to `summons[].languages`. Purpose: Languages exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `summons[].languages`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

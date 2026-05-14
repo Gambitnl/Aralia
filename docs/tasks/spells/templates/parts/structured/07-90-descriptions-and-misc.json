@@ -1,0 +1,21 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "label": "Concentration",
+      "required": true,
+      "valueType": "boolean",
+      "jsonPath": "duration.concentration",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Concentration drives runtime concentration start and break behavior."
+        }
+      ],
+      "comment": "Concentration drives runtime concentration start and break behavior. It maps to `duration.concentration`. Purpose: Concentration exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `duration.concentration`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    }
+  ]
+}

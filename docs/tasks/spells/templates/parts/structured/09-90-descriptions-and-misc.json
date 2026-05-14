@@ -1,0 +1,37 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "label": "Primary Damage Dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "jsonPath": "effects[].damageInstances[0].dice",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Ice Knife proved that multiple damage events should not be forced into a single damage field."
+        }
+      ],
+      "comment": "Ice Knife proved that multiple damage events should not be forced into a single damage field. It maps to `effects[].damageInstances[0].dice`. Purpose: Primary Damage Dice exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damageInstances[0].dice`. The value type is `dice-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Primary Damage Type",
+      "required": false,
+      "valueType": "string-or-chooser",
+      "jsonPath": "effects[].damageInstances[0].type",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Primary damage type preserves the first damage event separately from secondary damage."
+        }
+      ],
+      "comment": "Primary damage type preserves the first damage event separately from secondary damage. It maps to `effects[].damageInstances[0].type`. Purpose: Primary Damage Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damageInstances[0].type`. The value type is `string-or-chooser`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

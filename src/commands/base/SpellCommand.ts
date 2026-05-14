@@ -115,4 +115,6 @@ export interface CommandContext {
    * scaled bonus damage during command execution.
    */
   weaponProperties?: string[]
+  /** Whether the ability is magical; used to bypass nonmagical-attack resistances. */
+  isMagical?: boolean
 }

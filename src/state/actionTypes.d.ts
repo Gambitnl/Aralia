@@ -248,6 +248,8 @@ export type AppAction = {
 } | {
     type: 'GENERATE_ENCOUNTER';
 } | {
+    type: 'TRIGGER_AI_ENCOUNTER';
+} | {
     type: 'SHOW_ENCOUNTER_MODAL';
     payload: {
         encounterData: ShowEncounterModalPayload;

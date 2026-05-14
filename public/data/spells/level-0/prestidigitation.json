@@ -13,7 +13,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -58,19 +57,111 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 6,
+    "optionsSource": "controlOptions",
+    "maxActiveNonInstantaneous": 3,
+    "canDismissActive": "not_applicable",
+    "options": [
+      {
+        "label": "Sensory Effect",
+        "summary": "Create an instantaneous harmless sensory effect such as sparks, wind, music, or odor.",
+        "controlOptionIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "instantaneous"
+      },
+      {
+        "label": "Fire Play",
+        "summary": "Light or snuff out a candle, torch, or small campfire.",
+        "controlOptionIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "instantaneous"
+      },
+      {
+        "label": "Clean Or Soil",
+        "summary": "Clean or soil an object no larger than 1 cubic foot.",
+        "controlOptionIndices": [
+          2
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "instantaneous"
+      },
+      {
+        "label": "Minor Sensation",
+        "summary": "Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.",
+        "controlOptionIndices": [
+          3
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      },
+      {
+        "label": "Magic Mark",
+        "summary": "Make a color, mark, or symbol appear on an object or surface for 1 hour.",
+        "controlOptionIndices": [
+          4
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      },
+      {
+        "label": "Minor Creation",
+        "summary": "Create a nonmagical trinket or illusory image that fits in your hand until the end of your next turn.",
+        "controlOptionIndices": [
+          5
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "until end of next turn"
+      }
+    ],
+    "notes": "Up to three non-instantaneous Prestidigitation effects can be active at a time."
   },
   "effects": [
     {
@@ -91,18 +182,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
       "description": "You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).",
@@ -113,7 +223,35 @@
       },
       "grantedActions": [],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "name": "Sensory Effect",
+          "effect": "Create an instantaneous harmless sensory effect such as sparks, wind, music, or odor."
+        },
+        {
+          "name": "Fire Play",
+          "effect": "Light or snuff out a candle, torch, or small campfire."
+        },
+        {
+          "name": "Clean Or Soil",
+          "effect": "Clean or soil an object no larger than 1 cubic foot."
+        },
+        {
+          "name": "Minor Sensation",
+          "effect": "Chill, warm, or flavor up to 1 cubic foot of nonliving material.",
+          "details": "This effect lasts for 1 hour."
+        },
+        {
+          "name": "Magic Mark",
+          "effect": "Make a color, mark, or symbol appear on an object or surface.",
+          "details": "This effect lasts for 1 hour."
+        },
+        {
+          "name": "Minor Creation",
+          "effect": "Create a nonmagical trinket or illusory image that fits in your hand.",
+          "details": "It lasts until the end of your next turn, and a trinket can deal no damage and has no monetary worth."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -132,8 +270,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "ai_dm",
@@ -141,7 +287,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).",
+  "description": "You create a magical effect within range. Choose the effect from the options below. If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time. Sensory Effect. You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor. Fire Play. You instantaneously light or snuff out a candle, a torch, or a small campfire. Clean or Soil. You instantaneously clean or soil an object no larger than 1 cubic foot. Minor Sensation. You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. Magic Mark. You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour. Minor Creation. You create a nonmagical trinket or an illusory image that can fit in your hand. It lasts until the end of your next turn. A trinket can deal no damage and has no monetary worth.",
   "higherLevels": "",
   "tags": [
     "utility",

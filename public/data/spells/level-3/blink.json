@@ -1,185 +1,191 @@
 {
-    "id":  "blink",
-    "name":  "Blink",
-    "aliases":  [
-
-                ],
-    "level":  3,
-    "school":  "Transmutation",
-    "legacy":  false,
-    "classes":  [
-                    "Sorcerer",
-                    "Wizard",
-                    "Artificer"
-                ],
-    "subClasses":  [
-                       "Warlock - The Hexblade (XGtE)",
-                       "Warlock - Archfey Patron",
-                       "Warlock - The Predator (HWT)",
-                       "Cleric - Shadow Domain (BoET)",
-                       "Druid - Circle of Shadows (BoET)",
-                       "Warlock - The Many"
-                   ],
-    "subClassesVerification":  "verified",
-    "ritual":  false,
-    "rarity":  "common",
-    "attackType":  "",
-    "castingTime":  {
-                        "value":  1,
-                        "unit":  "action",
-                        "combatCost":  {
-                                           "type":  "action",
-                                           "condition":  ""
-                                       },
-                        "explorationCost":  {
-                                                "value":  0,
-                                                "unit":  "minute"
-                                            }
-                    },
-    "range":  {
-                  "type":  "self",
-                  "distance":  0
-              },
-    "components":  {
-                       "verbal":  true,
-                       "somatic":  true,
-                       "material":  false,
-                       "materialDescription":  "",
-                       "materialCost":  0,
-                       "isConsumed":  false
-                   },
-    "duration":  {
-                     "type":  "timed",
-                     "value":  1,
-                     "unit":  "minute",
-                     "concentration":  false
-                 },
-    "targeting":  {
-                      "type":  "self",
-                      "validTargets":  [
-                                           "self"
-                                       ],
-                      "lineOfSight":  false,
-                      "range":  0,
-                      "maxTargets":  1,
-                      "areaOfEffect":  {
-                                           "shape":  "Sphere",
-                                           "size":  0,
-                                           "height":  0
-                                       },
-                      "filter":  {
-                                     "creatureTypes":  [
-
-                                                       ],
-                                     "excludeCreatureTypes":  [
-
-                                                              ],
-                                     "sizes":  [
-
-                                               ],
-                                     "alignments":  [
-
-                                                    ],
-                                     "hasCondition":  [
-
-                                                      ],
-                                     "isNativeToPlane":  false
-                                 }
-                  },
-    "effects":  [
-                    {
-                        "type":  "UTILITY",
-                        "trigger":  {
-                                        "type":  "immediate",
-                                        "frequency":  "every_time",
-                                        "consumption":  "unlimited",
-                                        "attackFilter":  {
-                                                             "weaponType":  "any",
-                                                             "attackType":  "any"
-                                                         },
-                                        "movementType":  "any",
-                                        "sustainCost":  {
-                                                            "actionType":  "action",
-                                                            "optional":  false
-                                                        }
-                                    },
-                        "condition":  {
-                                          "type":  "always",
-                                          "saveType":  "Strength",
-                                          "saveEffect":  "none",
-                                          "targetFilter":  {
-                                                               "creatureTypes":  [
-
-                                                                                 ],
-                                                               "excludeCreatureTypes":  [
-
-                                                                                        ],
-                                                               "sizes":  [
-
-                                                                         ],
-                                                               "alignments":  [
-
-                                                                              ],
-                                                               "hasCondition":  [
-
-                                                                                ],
-                                                               "isNativeToPlane":  false
-                                                           },
-                                          "requiresStatus":  [
-
-                                                             ],
-                                          "saveModifiers":  [
-
-                                                            ]
-                                      },
-                        "utilityType":  "other",
-                        "description":  "Roll a d20 at the end of each of your turns for the duration of the spell. On a roll of 11 or higher, you vanish from your current plane of existence and appear in the Ethereal Plane (the spell fails and the casting is wasted if you were already on that plane). At the start of your next turn, and when the spell ends if you are on the Ethereal Plane, you return to an unoccupied space of your choice that you can see within 10 feet of the space you vanished from. If no unoccupied space is available within that range, you appear in the nearest unoccupied space (chosen at random if more than one space is equally near). You can dismiss this spell as an action. While on the Ethereal Plane, you can see and hear the plane you originated from, which is cast in shades of gray, and you can\u0027t see anything more than 60 feet away. You can only affect and be affected by other creatures on the Ethereal Plane. Creatures that aren\u0027t there can\u0027t perceive you or interact with you, unless they have the ability to do so.",
-                        "scaling":  {
-                                        "type":  "slot_level",
-                                        "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
-                        "grantedActions":  [
-
-                                           ],
-                        "attackAugments":  [
-
-                                           ],
-                        "controlOptions":  [
-
-                                           ],
-                        "taunt":  {
-                                      "disadvantageAgainstOthers":  false,
-                                      "leashRangeFeet":  0,
-                                      "breakConditions":  [
-
-                                                          ]
-                                  },
-                        "savePenalty":  {
-                                            "dice":  "",
-                                            "flat":  0,
-                                            "applies":  "next_save",
-                                            "duration":  {
-                                                             "type":  "rounds",
-                                                             "value":  0
-                                                         }
-                                        },
-                        "light":  {
-                                      "brightRadius":  0,
-                                      "dimRadius":  0,
-                                      "attachedTo":  "caster",
-                                      "color":  ""
-                                  }
-                    }
-                ],
-    "arbitrationType":  "mechanical",
-    "aiContext":  {
-                      "prompt":  "",
-                      "playerInputRequired":  false
-                  },
-    "description":  "Roll 1d6 at the end of each of your turns for the duration. On a roll of 4-6, you vanish from your current plane of existence and appear in the Ethereal Plane (the spell ends instantly if you are already on that plane). While on the Ethereal Plane, you can perceive the plane you left, which is cast in shades of gray, but you can\u0027t see anything there more than 60 feet away. You can affect and be affected only by other creatures on the Ethereal Plane, and creatures on the other plane can\u0027t perceive you unless they have a special ability that lets them perceive things on the Ethereal Plane. You return to the other plane at the start of your next turn and when the spell ends if you are on the Ethereal Plane. You return to an unoccupied space of your choice that you can see within 10 feet of the space you left. If no unoccupied space is available within that range, you appear in the nearest unoccupied space.",
-    "higherLevels":  "",
-    "tags":  [
-
-             ]
+  "id": "blink",
+  "name": "Blink",
+  "aliases": [],
+  "level": 3,
+  "school": "Transmutation",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard",
+    "Artificer"
+  ],
+  "subClasses": [
+    "Warlock - Archfey Patron"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "other",
+      "description": "Roll 1d6 at the end of each of your turns. On a roll of 4-6, you vanish from your current plane and appear in the Ethereal Plane; the spell ends instantly if you are already there. While there, you can perceive the plane you left in shades of gray out to 60 feet, can affect and be affected only by other Ethereal creatures, and creatures on the other plane can't perceive you unless they can perceive Ethereal things. You return at the start of your next turn, and when the spell ends if you are still Ethereal, to an unoccupied space of your choice that you can see within 10 feet of the space you left, or the nearest unoccupied space if none is available.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "already_on_destination_plane",
+          "scope": "spell",
+          "description": "When the end-of-turn Blink roll would send the caster to the Ethereal Plane, the spell ends instantly if the caster is already on that plane."
+        }
+      ]
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Roll 1d6 at the end of each of your turns for the duration. On a roll of 4-6, you vanish from your current plane of existence and appear in the Ethereal Plane (the spell ends instantly if you are already on that plane). While on the Ethereal Plane, you can perceive the plane you left, which is cast in shades of gray, but you can't see anything there more than 60 feet away. You can affect and be affected only by other creatures on the Ethereal Plane, and creatures on the other plane can't perceive you unless they have a special ability that lets them perceive things on the Ethereal Plane. You return to the other plane at the start of your next turn and when the spell ends if you are on the Ethereal Plane. You return to an unoccupied space of your choice that you can see within 10 feet of the space you left. If no unoccupied space is available within that range, you appear in the nearest unoccupied space.",
+  "higherLevels": "",
+  "tags": []
 }

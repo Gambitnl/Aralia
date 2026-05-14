@@ -92,7 +92,7 @@ canonical content can't proceed through the pipeline; without a
 structured block, the in-between normalization step has nothing to
 normalize, so runtime JSON can't be generated.
 
-Phase 1 (canonical → structured) had **47 spells originally missing
+Phase 1 (canonical -> structured) had **47 spells originally missing
 the structured block; all 47 have been patched.** The bucket is
 currently `closed`:
 

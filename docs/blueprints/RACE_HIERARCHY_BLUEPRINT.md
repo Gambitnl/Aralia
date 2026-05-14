@@ -1,4 +1,4 @@
-﻿# Race Hierarchy Blueprint
+# Race Hierarchy Blueprint
 
 ## Purpose
 

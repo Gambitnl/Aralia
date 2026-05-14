@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 14/05/2026, 03:25:09
+ * Dependents: commands/effects/ConcentrationCommands.ts, commands/effects/RegisterRiderCommand.ts, commands/factory/AbilityCommandFactory.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // TODO(lint-intent): 'CombatCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -85,9 +101,13 @@ export class AttackRiderSystem {
         const caster = state.characters.find(c => c.id === casterId);
         if (!caster || !caster.riders) return state;
 
-        // IDs of riders to remove (first_hit)
+        // IDs of riders to remove after they are spent.
+        // `per_instance_hit_or_miss` is removed on hit here; attack misses need
+        // a miss-resolution caller to remove the same rider before damage runs.
         const toRemoveIds = new Set(
-            activeRiders.filter(r => r.consumption === 'first_hit').map(r => r.id)
+            activeRiders
+                .filter(r => r.consumption === 'first_hit' || r.consumption === 'per_instance_hit_or_miss')
+                .map(r => r.id)
         );
 
         // IDs of riders to mark used (per_turn)

@@ -1,0 +1,156 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 6,
+  "fields": [
+    {
+      "label": "Effect Type",
+      "required": true,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "DAMAGE",
+        "HEALING",
+        "STATUS_CONDITION",
+        "ATTACK_ROLL_MODIFIER",
+        "MOVEMENT",
+        "SUMMONING",
+        "TERRAIN",
+        "UTILITY",
+        "DEFENSIVE",
+        "BUFF",
+        "DEBUFF",
+        "STATUS",
+        "SUMMON",
+        "CONTROL",
+        "TELEPORT",
+        "RESURRECTION",
+        "DEFENSE",
+        "BLINDNESS",
+        "WARD",
+        "PETRIFICATION",
+        "BANISHMENT",
+        "RESTRAINT"
+      ],
+      "jsonPath": "effects[].type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Effect type chooses the runtime command family."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "The current structured layer still uses legacy effect-family tokens; they remain accepted until the runtime translator maps them to final JSON effect families."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "The structured layer still carries legacy effect subfamilies that must remain visible until the effect bucket maps them to final runtime commands."
+        }
+      ],
+      "comment": "The structured layer still carries legacy effect subfamilies that must remain visible until the effect bucket maps them to final runtime commands. It maps to `effects[].type`. Purpose: Effect Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].type`. The value type is `csv-enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "DAMAGE": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "HEALING": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "STATUS_CONDITION": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "ATTACK_ROLL_MODIFIER": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "MOVEMENT": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "SUMMONING": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "TERRAIN": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "UTILITY": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "DEFENSIVE": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "BUFF": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "DEBUFF": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "STATUS": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "SUMMON": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "CONTROL": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "TELEPORT": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "RESURRECTION": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "DEFENSE": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "BLINDNESS": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "WARD": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "PETRIFICATION": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "BANISHMENT": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic.",
+        "RESTRAINT": "Allowed value for Effect Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Attack Roll",
+      "required": false,
+      "valueType": "boolean",
+      "jsonPath": "attackType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Attack-roll spells need to remain separate from saving-throw spells."
+        }
+      ],
+      "comment": "Attack-roll spells need to remain separate from saving-throw spells. It maps to `attackType`. Purpose: Attack Roll exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `attackType`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Damage Dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "jsonPath": "effects[].damage.dice",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Simple damage spells need one primary dice formula."
+        }
+      ],
+      "comment": "Simple damage spells need one primary dice formula. It maps to `effects[].damage.dice`. Purpose: Damage Dice exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damage.dice`. The value type is `dice-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Damage Flat",
+      "required": false,
+      "valueType": "number-or-formula",
+      "jsonPath": "effects[].damage.flat",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Some damage adds fixed or ability-modifier values outside dice."
+        }
+      ],
+      "comment": "Some damage adds fixed or ability-modifier values outside dice. It maps to `effects[].damage.flat`. Purpose: Damage Flat exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damage.flat`. The value type is `number-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Damage Type",
+      "required": false,
+      "valueType": "string-or-chooser",
+      "jsonPath": "effects[].damage.type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Damage type is simple for most spells but chooser spells require a richer follow-up model."
+        }
+      ],
+      "comment": "Damage type is simple for most spells but chooser spells require a richer follow-up model. It maps to `effects[].damage.type`. Purpose: Damage Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damage.type`. The value type is `string-or-chooser`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Damage Mitigation Bypass",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].damage.mitigationBypass[]",
+      "acceptedValues": [
+        "resistance",
+        "immunity",
+        "damage_reduction",
+        "damage_prevention",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:40:00+02:00",
+          "action": "registered",
+          "why": "Wish, Life Transference, and Create Homunculus include damage that cannot be reduced or prevented, which must not be hidden in prose."
+        }
+      ],
+      "comment": "Lists mitigation families that this damage packet explicitly ignores. Use `resistance` and `damage_reduction` for wording like `can't be reduced`; also use `immunity` and `damage_prevention` when the prose says the damage can't be prevented in any way. It maps to `effects[].damage.mitigationBypass[]`. Purpose: Damage Mitigation Bypass makes self-cost and stress damage resolve correctly without hard-coding spell names or flattening irreducible damage into descriptions. Use `not_applicable` when the spell's damage can be reduced and prevented normally."
+    }
+  ]
+}

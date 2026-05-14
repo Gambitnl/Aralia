@@ -1,4 +1,4 @@
-﻿# Guide: Living NPC System Implementation Reference
+# Guide: Living NPC System Implementation Reference
 
 Last Updated: 2026-03-11
 Purpose: Preserve the implementation shape of the Living NPC, plausibility, suspicion, goals, and gossip systems while anchoring the guide to the current repo.

@@ -24,7 +24,7 @@ describe('calculateDamage Logic Fixes', () => {
         maxHP: 10,
         initiative: 0,
         statusEffects: [],
-        actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, movement: { used: 0, total: 30 }, freeActions: 1 },
+        actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 },
         resistances: resistances,
         vulnerabilities: vulnerabilities,
         immunities: immunities,

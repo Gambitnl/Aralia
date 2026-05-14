@@ -59,8 +59,8 @@ For every (race, gender) listed in `docs/portraits/race_portrait_regen_backlog.j
   - Civilian attire (no armor, no weapons, no military regalia).
   - No arrows (Gemini often draws weird arrow artifacts).
 - Dataset hygiene:
-  - Each race/gender should have a unique slice-of-life activity (avoid reusing the same “chore” for everyone).
-  - Start a new Gemini chat between each generation to avoid “same environment pasted” and “re-download previous image” issues.
+  - Each race/gender should have a unique slice-of-life activity (avoid reusing the same "chore" for everyone).
+  - Start a new Gemini chat between each generation to avoid "same environment pasted" and "re-download previous image" issues.
 
 ## Where Progress Is Tracked
 
@@ -115,14 +115,14 @@ Post-run audits:
   - `duplicatedActivitiesAcrossRegeneratedPairs: 23`
   - `duplicatedRowsAcrossRegeneratedPairs: 53`
 
-Known “needs follow-up” from manual review:
+Known "needs follow-up" from manual review:
 
 - Aarakocra images tend to drift into dramatic wingspan / high-altitude scenes.
   - Overrides were added, but manual acceptance is still required.
 - Slice-of-life uniqueness is not fully clean yet:
   - 23 duplicate activity clusters remain across regenerated pairs (see `scripts/audits/slice-of-life-settings.md`).
 
-## Remaining Work (What’s Still Left)
+## Remaining Work (What's Still Left)
 
 Backlog generation is complete (all backlog pairs have status entries).
 
@@ -157,7 +157,7 @@ Behavior:
 
 - Reads `docs/portraits/race_portrait_regen_backlog.json`.
 - Resolves `raceName` to a `raceId` by parsing `src/data/races/*.ts`.
-- Builds a Gemini prompt with a structured `SPEC_JSON` and *positive* constraints (avoid heavy “negative prompting”).
+- Builds a Gemini prompt with a structured `SPEC_JSON` and *positive* constraints (avoid heavy "negative prompting").
 - Enforces new chat for each generation (via Gemini automation).
 - Downloads the newest generated image and saves it to the target asset path.
 - Quality gates:
@@ -233,13 +233,13 @@ Mitigations:
 
 ### Avoid arrows
 
-Gemini often renders arrows with “feathers on both ends”.
+Gemini often renders arrows with "feathers on both ends".
 
 We added a global constraint:
 
 - `Do not include arrows or arrow-like props.`
 
-But also avoid activities like “fletching arrows” entirely.
+But also avoid activities like "fletching arrows" entirely.
 
 ## Files Added/Modified In This Effort (Non-image)
 

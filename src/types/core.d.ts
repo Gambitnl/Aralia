@@ -32,6 +32,7 @@ export interface CharacterSenses {
     tremorsense: number;
     truesight: number;
 }
+export type ExtraMovementSpeeds = Partial<Record<'fly' | 'swim' | 'climb' | 'burrow', number>>;
 export interface CharacterStats {
     strength: number;
     dexterity: number;
@@ -41,7 +42,10 @@ export interface CharacterStats {
     charisma: number;
     baseInitiative: number;
     speed: number;
+    extraMovementSpeeds?: ExtraMovementSpeeds;
     cr: string;
+    crLair?: string;
+    xpLair?: number;
     size?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
     alignment?: string;
     creatureTypes?: string[];

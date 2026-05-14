@@ -1,4 +1,4 @@
-﻿# NPCs / Companions
+# NPCs / Companions
 
 ## Purpose
 

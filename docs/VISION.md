@@ -38,7 +38,7 @@ A sandbox D&D 5e experience where player agency is paramount. Not a linear story
 
 ### Emergent Narrative
 - Stories emerge from systems interacting, not from scripts
-- A drought affects crops → prices rise → bandits increase → faction war begins
+- A drought affects crops -> prices rise -> bandits increase -> faction war begins
 - The player can ignore, exploit, or solve any situation
 - Your story is what happened, not what was written
 
@@ -759,16 +759,16 @@ Instead, the game tracks what you **do**, and the world **reacts**:
 
 ### Things You Might Do (Not Paths - Just Actions)
 
-- Save a village from goblins → Villagers remember, offer shelter
-- Burn that same village later → Survivors become enemies, word spreads
-- Trade goods between cities → Merchants know your name, offer deals
-- Steal from a noble → Guards hunt you in that city, but thieves respect you
-- Join the church → Clergy trust you, heretics fear you
-- Betray the church → Former allies become enemies, new doors open
-- Command an army → Soldiers follow, enemies tremble
-- Sail the seas → Ports know your flag, pirates know your reputation
-- Build a stronghold → Your name becomes a place on the map
-- Die → Your legacy continues through what you built and who remembers
+- Save a village from goblins -> Villagers remember, offer shelter
+- Burn that same village later -> Survivors become enemies, word spreads
+- Trade goods between cities -> Merchants know your name, offer deals
+- Steal from a noble -> Guards hunt you in that city, but thieves respect you
+- Join the church -> Clergy trust you, heretics fear you
+- Betray the church -> Former allies become enemies, new doors open
+- Command an army -> Soldiers follow, enemies tremble
+- Sail the seas -> Ports know your flag, pirates know your reputation
+- Build a stronghold -> Your name becomes a place on the map
+- Die -> Your legacy continues through what you built and who remembers
 
 ### The Core Truth
 

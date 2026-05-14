@@ -1,4 +1,4 @@
-﻿# MCP Integration Guide
+# MCP Integration Guide
 
 Last Updated: 2026-03-11
 Purpose: Describe the current MCP tooling surface in this repo without overcommitting to older installation or server assumptions.

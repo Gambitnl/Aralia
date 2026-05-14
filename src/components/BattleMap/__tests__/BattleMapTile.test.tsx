@@ -29,6 +29,7 @@ describe('BattleMapTile', () => {
         isInPath={false}
         isTargetable={false}
         isAoePreview={false}
+        targetingMode={false}
         onTileClick={mockOnTileClick}
       />
     );
@@ -47,6 +48,7 @@ describe('BattleMapTile', () => {
         isInPath={false}
         isTargetable={false}
         isAoePreview={false}
+        targetingMode={false}
         onTileClick={mockOnTileClick}
       />
     );
@@ -66,6 +68,7 @@ describe('BattleMapTile', () => {
         isInPath={false}
         isTargetable={false}
         isAoePreview={false}
+        targetingMode={false}
         onTileClick={mockOnTileClick}
       />
     );

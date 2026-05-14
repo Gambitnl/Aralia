@@ -1,4 +1,4 @@
-﻿# Biome DNA API Reference
+# Biome DNA API Reference
 
 ## Purpose
 

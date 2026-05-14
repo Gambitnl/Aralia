@@ -1,4 +1,4 @@
-﻿# Spell Data Creation Guide
+# Spell Data Creation Guide
 
 This guide documents the current structured spell-data workflow.
 The important current-state correction is that the V2 schema direction is real, but some of the older migration wording still overstates which commands and status labels are active in the current repo.

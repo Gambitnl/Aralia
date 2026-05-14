@@ -1,0 +1,163 @@
+{
+  "templateKind": "runtime-json",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 7,
+  "fields": [
+    {
+      "path": "targeting.areaOfEffect.shape",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Cone",
+        "Cube",
+        "Cylinder",
+        "Line",
+        "Sphere",
+        "Square",
+        "Circle",
+        "Emanation",
+        "Wall",
+        "Hemisphere",
+        "Ring"
+      ],
+      "structuredLabel": "Area Shape",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Area Shape."
+        }
+      ],
+      "comment": "Mapped from structured Area Shape. It maps to `targeting.areaOfEffect.shape`. It is populated from the structured markdown label `Area Shape`. Purpose: targeting.areaOfEffect.shape exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Shape`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.shape`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "Cone": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Cube": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Cylinder": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Line": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Sphere": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Square": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Circle": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Emanation": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Wall": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Hemisphere": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic.",
+        "Ring": "Allowed value for targeting.areaOfEffect.shape; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "targeting.areaOfEffect.size",
+      "required": false,
+      "valueType": "number",
+      "structuredLabel": "Area Size",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Area Size."
+        }
+      ],
+      "comment": "Mapped from structured Area Size. It maps to `targeting.areaOfEffect.size`. It is populated from the structured markdown label `Area Size`. Purpose: targeting.areaOfEffect.size exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Size`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.size`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "targeting.areaOfEffect.sizeType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "radius",
+        "diameter",
+        "length",
+        "edge",
+        "side",
+        "square"
+      ],
+      "structuredLabel": "Area Size Type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Area Size Type."
+        },
+        {
+          "at": "2026-05-06T22:30:00+02:00",
+          "action": "accepted-value-added",
+          "why": "Canonical-first Range/Area migration found ward spells that define total square-foot coverage rather than radius, diameter, edge, or side length."
+        }
+      ],
+      "comment": "Canonical-first Range/Area migration found ward spells that define total square-foot coverage rather than radius, diameter, edge, or side length. It maps to `targeting.areaOfEffect.sizeType`. It is populated from the structured markdown label `Area Size Type`. Purpose: targeting.areaOfEffect.sizeType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Size Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.sizeType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "radius": "Allowed value for targeting.areaOfEffect.sizeType; use only when the canonical spell text supports this exact mechanic.",
+        "diameter": "Allowed value for targeting.areaOfEffect.sizeType; use only when the canonical spell text supports this exact mechanic.",
+        "length": "Allowed value for targeting.areaOfEffect.sizeType; use only when the canonical spell text supports this exact mechanic.",
+        "edge": "Allowed value for targeting.areaOfEffect.sizeType; use only when the canonical spell text supports this exact mechanic.",
+        "side": "Allowed value for targeting.areaOfEffect.sizeType; use only when the canonical spell text supports this exact mechanic.",
+        "square": "Allowed value for targeting.areaOfEffect.sizeType; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "targeting.areaOfEffect.sizeUnit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "structuredLabel": "Area Size Unit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Area Size Unit."
+        }
+      ],
+      "comment": "Mapped from structured Area Size Unit. It maps to `targeting.areaOfEffect.sizeUnit`. It is populated from the structured markdown label `Area Size Unit`. Purpose: targeting.areaOfEffect.sizeUnit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Size Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.sizeUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when targeting.areaOfEffect.sizeUnit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when targeting.areaOfEffect.sizeUnit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for targeting.areaOfEffect.sizeUnit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "targeting.spatialDetails.forms[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredPattern": "^Spatial Form \\d+",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Alternate spatial forms map from numbered Spatial Form fields."
+        }
+      ],
+      "comment": "Alternate spatial forms map from numbered Spatial Form fields. It maps to `targeting.spatialDetails.forms[]`. It is populated from structured markdown labels matching `^Spatial Form \\d+`. Purpose: targeting.spatialDetails.forms[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `targeting.spatialDetails.forms[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "targeting.spatialDetails.measuredDetails[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredPattern": "^Spatial Detail \\d+",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Measured details map from numbered Spatial Detail fields."
+        }
+      ],
+      "comment": "Measured details map from numbered Spatial Detail fields. It maps to `targeting.spatialDetails.measuredDetails[]`. It is populated from structured markdown labels matching `^Spatial Detail \\d+`. Purpose: targeting.spatialDetails.measuredDetails[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `targeting.spatialDetails.measuredDetails[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "targeting.filter",
+      "required": true,
+      "valueType": "object",
+      "structuredLabel": null,
+      "runtimeOnly": true,
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Runtime targeting filters currently exist in JSON but are not fully modeled in structured markdown yet."
+        }
+      ],
+      "comment": "Runtime targeting filters currently exist in JSON but are not fully modeled in structured markdown yet. It maps to `targeting.filter`. Purpose: targeting.filter exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. It is runtime metadata derived from file organization or local engine needs rather than a direct canonical prose mechanic. It maps to runtime JSON path `targeting.filter`. The value type is `object`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    }
+  ]
+}

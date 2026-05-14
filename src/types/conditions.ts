@@ -145,10 +145,11 @@ export const ConditionDefinitions: Record<ConditionType, ConditionTraits> = {
   [ConditionType.Prone]: {
     description: "You are lying on the ground.",
     mechanics: [
-      "Only movement option is to crawl (spend extra movement)",
-      "Disadvantage on attack rolls",
-      "Attack rolls against you have Advantage if attacker is within 5 feet",
-      "Attack rolls against you have Disadvantage if attacker is further than 5 feet",
+      "Your only movement options are to crawl or spend half your Speed to right yourself.",
+      "If your Speed is 0, you can't right yourself.",
+      "You have Disadvantage on attack rolls.",
+      "An attack roll against you has Advantage if the attacker is within 5 feet.",
+      "Otherwise, that attack roll has Disadvantage.",
     ],
   },
   [ConditionType.Restrained]: {

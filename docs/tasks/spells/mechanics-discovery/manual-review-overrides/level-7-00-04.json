@@ -1,0 +1,190 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 7 manual review override shard for spell indexes 00-04 in generated discovery row order.",
+    "Arcane Sword had stale structured/runtime values; this shard closes the correction to canonical 3d10 Force damage and 20-foot bonus-action sword movement."
+  ],
+  "findings": {
+    "arcane-sword::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing the attack target is represented by the DAMAGE effects and utility option.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE effects and UTILITY controlOptions."
+    },
+    "arcane-sword::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The melee spell attack and repeat bonus-action attack are now represented as DAMAGE effects with spell attack filters.",
+      "recommendedTemplateChange": "No additional attack field required.",
+      "recommendedJsonChange": "Closed by DAMAGE effects."
+    },
+    "arcane-sword::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The bonus-action repeat movement and attack are represented as on_caster_action effects with bonus_action sustain cost.",
+      "recommendedTemplateChange": "No additional sustain field required.",
+      "recommendedJsonChange": "Closed by DAMAGE, MOVEMENT, and UTILITY effects."
+    },
+    "arcane-sword::movement_or_repositioning": {
+      "resolutionStatus": "closed",
+      "issue": "The hovering sword and 20-foot visible reposition are represented as MOVEMENT and utility data.",
+      "recommendedTemplateChange": "No additional movement field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport placeholder and UTILITY options."
+    },
+    "arcane-sword::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The visible destination spot for sword movement is represented in the utility option and movement description.",
+      "recommendedTemplateChange": "No separate vision/light/sound field required.",
+      "recommendedJsonChange": "Closed by UTILITY/MOVEMENT descriptions."
+    },
+    "arcane-sword::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched hovering force-sword movement, not travel or planar movement.",
+      "recommendedTemplateChange": "Track under movement_or_repositioning.",
+      "recommendedJsonChange": "No travel runtime data required."
+    },
+    "arcane-sword::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'Until the spell ends' is the normal timed concentration duration for repeat sword actions.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration and repeat action effects."
+    },
+    "conjure-celestial::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Choosing Healing Light or Searing Light per visible creature is represented as utility options, but runtime lacks a first-class per-target mode choice field.",
+      "recommendedTemplateChange": "Add per-target mode choice fields.",
+      "recommendedJsonChange": "Add runtime perTargetModeChoice data."
+    },
+    "conjure-celestial::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save and half-damage outcome for Searing Light are represented by the DAMAGE effect.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE condition.saveType/saveEffect."
+    },
+    "conjure-celestial::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Bright Light in the Cylinder and visible-creature targeting are represented as utility light and targeting/option details.",
+      "recommendedTemplateChange": "No additional light field required.",
+      "recommendedJsonChange": "Closed by UTILITY light and controlOptions."
+    },
+    "conjure-celestial::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "The conjured Upper Planes spirit manifests as the pillar of light rather than a controlled creature; the mechanical manifestation is represented by area, light, healing, damage, and movement effects.",
+      "recommendedTemplateChange": "No SUMMONING effect required for this pass.",
+      "recommendedJsonChange": "No summoned creature runtime data required."
+    },
+    "conjure-celestial::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The Upper Planes origin is source flavor for the light manifestation, not travel/planar movement in play.",
+      "recommendedTemplateChange": "No travel field required.",
+      "recommendedJsonChange": "No runtime travel data required."
+    },
+    "conjure-celestial::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Healing Light is represented as a HEALING effect with slot-level scaling.",
+      "recommendedTemplateChange": "No additional healing field required.",
+      "recommendedJsonChange": "Closed by HEALING effect."
+    },
+    "conjure-celestial::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points restored; this is healing, not object stats.",
+      "recommendedTemplateChange": "Track under healing_or_restoration.",
+      "recommendedJsonChange": "No object-stats runtime data required."
+    },
+    "conjure-celestial::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Moving the Cylinder when the caster moves and applying effects when creatures enter/end turn/move into it are represented, but runtime lacks first-class moving area and once-per-turn affected tracking.",
+      "recommendedTemplateChange": "Add moving area and once-per-turn affected fields.",
+      "recommendedJsonChange": "Add runtime movingArea and oncePerTurnEffectLimit data."
+    },
+    "crown-of-stars::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The bonus-action ranged spell attack is represented by a DAMAGE effect with hit condition and granted action.",
+      "recommendedTemplateChange": "No additional attack field required.",
+      "recommendedJsonChange": "Closed by DAMAGE effect and UTILITY grantedActions."
+    },
+    "crown-of-stars::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The bonus-action mote attack is represented as an on_caster_action DAMAGE effect and granted action.",
+      "recommendedTemplateChange": "No additional sustain field required.",
+      "recommendedJsonChange": "Closed by DAMAGE trigger and UTILITY grantedActions."
+    },
+    "crown-of-stars::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mote-count-dependent bright/dim light is represented as utility light/options, but runtime lacks conditional light radius fields keyed to remaining resource count.",
+      "recommendedTemplateChange": "Add conditional light fields keyed to resource count.",
+      "recommendedJsonChange": "Add runtime conditionalLightByResource data."
+    },
+    "crown-of-stars::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the bonus-action mote attack; this is an attack/resource action, not a ward/alarm trigger.",
+      "recommendedTemplateChange": "Track under sustain_or_recast_action.",
+      "recommendedJsonChange": "No ward runtime data required."
+    },
+    "crown-of-stars::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The spell ends early when the last mote is expended; runtime records this as utility prose but lacks first-class resource-count ending fields.",
+      "recommendedTemplateChange": "Add resource-count ending fields.",
+      "recommendedJsonChange": "Add runtime resourceCountEndCondition data.",
+      "closedReason": "Reused the all_target_instances_expended conditional-ending trigger for the finite mote resource, recorded it in structured markdown, and mapped it to the runtime damage and utility effects with spell scope."
+    },
+    "delayed-blast-fireball::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The chosen point for the bead is represented by targeting and utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting and UTILITY controlOptions."
+    },
+    "delayed-blast-fireball::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The explosion Dexterity save and touch-bead Dexterity save are represented by DAMAGE and utility options.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE condition and UTILITY options."
+    },
+    "delayed-blast-fireball::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Flammable objects not worn or carried start burning; runtime records this as a utility option but lacks object flammability/worn-carried filters.",
+      "recommendedTemplateChange": "Add object flammability and worn/carried exclusion fields.",
+      "recommendedJsonChange": "Add runtime objectIgnitionFilter data."
+    },
+    "delayed-blast-fireball::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Accumulated damage and burning objects are represented in utility/scaling prose, but runtime lacks first-class per-turn damage accumulation and object ignition fields.",
+      "recommendedTemplateChange": "Add damage accumulation and object ignition fields.",
+      "recommendedJsonChange": "Add runtime accumulatedDamage and objectIgnition data."
+    },
+    "delayed-blast-fireball::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The bead explodes when the spell ends, when touch save fails, or when a thrown bead enters a creature space/collides with an object; runtime records this as options but lacks first-class object-triggered ending fields.",
+      "recommendedTemplateChange": "Add delayed projectile collision/touch/end triggers.",
+      "recommendedJsonChange": "Add runtime delayedProjectileTriggers data."
+    },
+    "delayed-blast-fireball::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The explosion on spell end is represented by the delayed DAMAGE trigger and utility options.",
+      "recommendedTemplateChange": "No separate aftermath field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE and UTILITY effects."
+    },
+    "divine-word::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing affected creatures in range is represented by multi-targeting and the spell's utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting and effects."
+    },
+    "divine-word::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Charisma save is represented by STATUS_CONDITION and MOVEMENT effects.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by condition.saveType/saveEffect."
+    },
+    "divine-word::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Planar return is represented as MOVEMENT teleport, but runtime lacks first-class plane-of-origin destination and 24-hour return prevention except by Wish.",
+      "recommendedTemplateChange": "Add planar return and return-prevention exception fields.",
+      "recommendedJsonChange": "Add runtime planarReturnBlock data."
+    },
+    "divine-word::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hit Point threshold effects are represented by separate status effects/options, but runtime lacks first-class HP-threshold branching.",
+      "recommendedTemplateChange": "Add HP-threshold branch fields for condition/death effects.",
+      "recommendedJsonChange": "Add runtime hpThresholdEffects data."
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "templateKind": "runtime-json",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 7,
+  "fields": [
+    {
+      "required": false,
+      "path": "targeting.areaOfEffect.height",
+      "structuredLabel": "Area Height",
+      "valueType": "number",
+      "why": "Area height is part of the stable area geometry model.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Area height is part of the stable area geometry model."
+        }
+      ],
+      "comment": "Area height is part of the stable area geometry model. It maps to `targeting.areaOfEffect.height`. It is populated from the structured markdown label `Area Height`. Purpose: targeting.areaOfEffect.height exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Height`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.height`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "path": "targeting.areaOfEffect.heightUnit",
+      "structuredLabel": "Area Height Unit",
+      "valueType": "enum",
+      "why": "Area height units are part of the stable area geometry model.",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Area height units are part of the stable area geometry model."
+        }
+      ],
+      "comment": "Area height units are part of the stable area geometry model. It maps to `targeting.areaOfEffect.heightUnit`. It is populated from the structured markdown label `Area Height Unit`. Purpose: targeting.areaOfEffect.heightUnit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Height Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.heightUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when targeting.areaOfEffect.heightUnit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when targeting.areaOfEffect.heightUnit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for targeting.areaOfEffect.heightUnit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "required": false,
+      "path": "targeting.areaOfEffect.width",
+      "structuredLabel": "Area Width",
+      "valueType": "number",
+      "why": "Area width is part of the stable area geometry model.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Area width is part of the stable area geometry model."
+        }
+      ],
+      "comment": "Area width is part of the stable area geometry model. It maps to `targeting.areaOfEffect.width`. It is populated from the structured markdown label `Area Width`. Purpose: targeting.areaOfEffect.width exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Width`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.width`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "path": "targeting.areaOfEffect.widthUnit",
+      "structuredLabel": "Area Width Unit",
+      "valueType": "enum",
+      "why": "Area width units are part of the stable area geometry model.",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Area width units are part of the stable area geometry model."
+        }
+      ],
+      "comment": "Area width units are part of the stable area geometry model. It maps to `targeting.areaOfEffect.widthUnit`. It is populated from the structured markdown label `Area Width Unit`. Purpose: targeting.areaOfEffect.widthUnit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Width Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.widthUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when targeting.areaOfEffect.widthUnit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when targeting.areaOfEffect.widthUnit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for targeting.areaOfEffect.widthUnit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "required": false,
+      "path": "targeting.areaOfEffect.thickness",
+      "structuredLabel": "Area Thickness",
+      "valueType": "number",
+      "why": "Area thickness is part of the stable area geometry model.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Area thickness is part of the stable area geometry model."
+        }
+      ],
+      "comment": "Area thickness is part of the stable area geometry model. It maps to `targeting.areaOfEffect.thickness`. It is populated from the structured markdown label `Area Thickness`. Purpose: targeting.areaOfEffect.thickness exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Thickness`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.thickness`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "path": "targeting.areaOfEffect.thicknessUnit",
+      "structuredLabel": "Area Thickness Unit",
+      "valueType": "enum",
+      "why": "Area thickness units are part of the stable area geometry model.",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Area thickness units are part of the stable area geometry model."
+        }
+      ],
+      "comment": "Area thickness units are part of the stable area geometry model. It maps to `targeting.areaOfEffect.thicknessUnit`. It is populated from the structured markdown label `Area Thickness Unit`. Purpose: targeting.areaOfEffect.thicknessUnit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Thickness Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.thicknessUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when targeting.areaOfEffect.thicknessUnit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when targeting.areaOfEffect.thicknessUnit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for targeting.areaOfEffect.thicknessUnit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "required": false,
+      "path": "targeting.areaOfEffect.followsCaster",
+      "structuredLabel": "Area Follows Caster",
+      "valueType": "boolean",
+      "why": "Moving self-centered areas need a runtime flag.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Moving self-centered areas need a runtime flag."
+        }
+      ],
+      "comment": "Moving self-centered areas need a runtime flag. It maps to `targeting.areaOfEffect.followsCaster`. It is populated from the structured markdown label `Area Follows Caster`. Purpose: targeting.areaOfEffect.followsCaster exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Area Follows Caster`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.areaOfEffect.followsCaster`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

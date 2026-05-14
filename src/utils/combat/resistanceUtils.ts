@@ -47,17 +47,18 @@ export class ResistanceCalculator {
     baseDamage: number,
     damageType: DamageType,
     target: CombatCharacter,
-    source?: CombatCharacter | null
+    source?: CombatCharacter | null,
+    isMagical?: boolean
   ): number {
     let finalDamage = Math.max(0, baseDamage);
 
     // 1. Immunity (Damage -> 0)
-    if (this.isImmune(target, damageType)) {
+    if (this.isImmune(target, damageType, isMagical)) {
       return 0;
     }
 
     // Determine effective resistance (accounting for feats like Elemental Adept)
-    const hasResistance = this.isResistant(target, damageType);
+    const hasResistance = this.isResistant(target, damageType, isMagical);
     const hasVulnerability = this.isVulnerable(target, damageType);
 
     // Check for Elemental Adept feat on the source
@@ -102,23 +103,34 @@ export class ResistanceCalculator {
   }
 
   /**
-   * Check if character is immune to damage type
+   * Check if character is immune to damage type.
+   * When isMagical is explicitly false, also checks nonMagicalImmunities
+   * (e.g. lycanthropes are immune to nonmagical bludgeoning/piercing/slashing).
    */
   private static isImmune(
     character: CombatCharacter,
-    damageType: DamageType
+    damageType: DamageType,
+    isMagical?: boolean
   ): boolean {
-    return character.immunities?.includes(damageType) ?? false;
+    const lowerType = damageType.toLowerCase();
+    if (character.immunities?.some(dt => dt.toLowerCase() === lowerType)) return true;
+    if (isMagical === false && character.nonMagicalImmunities?.some(dt => dt.toLowerCase() === lowerType)) return true;
+    return false;
   }
 
   /**
-   * Check if character is resistant to damage type
+   * Check if character is resistant to damage type.
+   * When isMagical is explicitly false, also checks nonMagicalResistances.
    */
   private static isResistant(
     character: CombatCharacter,
-    damageType: DamageType
+    damageType: DamageType,
+    isMagical?: boolean
   ): boolean {
-    return character.resistances?.includes(damageType) ?? false;
+    const lowerType = damageType.toLowerCase();
+    if (character.resistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
+    if (isMagical === false && character.nonMagicalResistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
+    return false;
   }
 
   /**
@@ -128,6 +140,8 @@ export class ResistanceCalculator {
     character: CombatCharacter,
     damageType: DamageType
   ): boolean {
-    return character.vulnerabilities?.includes(damageType) ?? false;
+    if (!character.vulnerabilities) return false;
+    const lowerType = damageType.toLowerCase();
+    return character.vulnerabilities.some(dt => dt.toLowerCase() === lowerType);
   }
 }

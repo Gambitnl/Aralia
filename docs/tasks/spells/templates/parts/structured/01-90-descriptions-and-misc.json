@@ -1,0 +1,136 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 7,
+  "fields": [
+    {
+      "pattern": "^Access Grant \\d+ Source Type$",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "class_feature",
+        "subclass_feature",
+        "species_trait",
+        "feat",
+        "item",
+        "background",
+        "other"
+      ],
+      "jsonPath": "accessGrants[].sourceType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Access grants need typed sources so downstream selection UIs can tell class features from feats or items."
+        }
+      ],
+      "comment": "Access grants need typed sources so downstream selection UIs can tell class features from feats or items. It maps to `accessGrants[].sourceType`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[].sourceType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "class_feature": "Allowed value for ^Access Grant \\d+ Source Type$; use only when the canonical spell text supports this exact mechanic.",
+        "subclass_feature": "Allowed value for ^Access Grant \\d+ Source Type$; use only when the canonical spell text supports this exact mechanic.",
+        "species_trait": "Allowed value for ^Access Grant \\d+ Source Type$; use only when the canonical spell text supports this exact mechanic.",
+        "feat": "Allowed value for ^Access Grant \\d+ Source Type$; use only when the canonical spell text supports this exact mechanic.",
+        "item": "Allowed value for ^Access Grant \\d+ Source Type$; use only when the canonical spell text supports this exact mechanic.",
+        "background": "Allowed value for ^Access Grant \\d+ Source Type$; use only when the canonical spell text supports this exact mechanic.",
+        "other": "Allowed value for ^Access Grant \\d+ Source Type$; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "pattern": "^Access Grant \\d+ Class$",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValuesFrom": "Classes",
+      "jsonPath": "accessGrants[].className",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Class feature grants need to name the class that grants access without adding that class to spell-list access."
+        }
+      ],
+      "comment": "Class feature grants need to name the class that grants access without adding that class to spell-list access. It maps to `accessGrants[].className`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[].className`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "pattern": "^Access Grant \\d+ Feature$",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "accessGrants[].sourceName",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "The granting feature name is needed for UI explanation and audit traceability."
+        }
+      ],
+      "comment": "The granting feature name is needed for UI explanation and audit traceability. It maps to `accessGrants[].sourceName`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[].sourceName`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "pattern": "^Access Grant \\d+ Access Type$",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "known",
+        "prepared",
+        "always_prepared",
+        "cast"
+      ],
+      "jsonPath": "accessGrants[].accessType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "A granted spell can be known, prepared, always prepared, or simply cast; those modes have different character-builder behavior."
+        }
+      ],
+      "comment": "A granted spell can be known, prepared, always prepared, or simply cast; those modes have different character-builder behavior. It maps to `accessGrants[].accessType`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[].accessType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "known": "Allowed value for ^Access Grant \\d+ Access Type$; use only when the canonical spell text supports this exact mechanic.",
+        "prepared": "Allowed value for ^Access Grant \\d+ Access Type$; use only when the canonical spell text supports this exact mechanic.",
+        "always_prepared": "Allowed value for ^Access Grant \\d+ Access Type$; use only when the canonical spell text supports this exact mechanic.",
+        "cast": "Allowed value for ^Access Grant \\d+ Access Type$; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "pattern": "^Access Grant \\d+ Automatic$",
+      "required": false,
+      "valueType": "boolean",
+      "jsonPath": "accessGrants[].automatic",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Automatic grants should not consume normal spell-selection choices."
+        }
+      ],
+      "comment": "Automatic grants should not consume normal spell-selection choices. It maps to `accessGrants[].automatic`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[].automatic`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "pattern": "^Access Grant \\d+ Consumes Selection$",
+      "required": false,
+      "valueType": "boolean",
+      "jsonPath": "accessGrants[].consumesSelection",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Selection-budget behavior must be explicit when a spell comes from a feature rather than a spell list."
+        }
+      ],
+      "comment": "Selection-budget behavior must be explicit when a spell comes from a feature rather than a spell list. It maps to `accessGrants[].consumesSelection`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[].consumesSelection`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "pattern": "^Access Grant \\d+ Notes$",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "accessGrants[].notes",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Notes preserve rule caveats without overloading the mechanical fields."
+        }
+      ],
+      "comment": "Notes preserve rule caveats without overloading the mechanical fields. It maps to `accessGrants[].notes`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `accessGrants[].notes`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

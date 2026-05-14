@@ -9,7 +9,6 @@
     "Druid"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -52,18 +51,33 @@
     "range": 5,
     "rangeUnit": "feet",
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -85,18 +99,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
       "description": "Imbues club/quarterstaff: use spellcasting ability for attack/damage, damage die becomes d8 (scales), option for Force damage.",
@@ -106,7 +139,58 @@
         "bonusPerLevel": ""
       },
       "grantedActions": [],
-      "attackAugments": [],
+      "attackAugments": [
+        {
+          "attackType": "melee_weapon",
+          "weaponRequirement": {
+            "weaponTypes": [
+              "club",
+              "quarterstaff"
+            ],
+            "heldByCaster": true,
+            "notes": "The affected club or quarterstaff is the object held by the caster when Shillelagh is cast."
+          },
+          "grantedAttack": {
+            "timing": "while_active",
+            "count": 1,
+            "usesCastingWeapon": true,
+            "notes": "The spell does not create a new attack action; it modifies melee attacks made with the imbued weapon while the spell lasts."
+          },
+          "abilitySubstitution": {
+            "attackRoll": "spellcasting_ability",
+            "damageRoll": "spellcasting_ability",
+            "replaces": [
+              "Strength"
+            ]
+          },
+          "damageDieOverride": {
+            "dice": "d8",
+            "scaling": {
+              "type": "character_level",
+              "customFormula": "d8 at levels 1-4; d10 at levels 5-10; d12 at levels 11-16; 2d6 at level 17+",
+              "bonusPerLevel": ""
+            }
+          },
+          "damageTypeChoice": {
+            "timing": "on_damage",
+            "chooser": "caster",
+            "appliesTo": "attack_damage",
+            "options": [
+              {
+                "type": "Force",
+                "label": "Force"
+              },
+              {
+                "type": "weapon_normal",
+                "label": "Weapon normal damage type"
+              }
+            ],
+            "notes": "If the attack deals damage, the caster chooses Force damage or the weapon's normal damage type."
+          },
+          "appliesOn": "hit",
+          "notes": "Captures Shillelagh's weapon attack modification without replacing the duration and ending-condition fields."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,
@@ -126,8 +210,27 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "end_on_recast",
+          "scope": "spell",
+          "description": "The weapon enchantment ends early if the caster casts this spell again."
+        },
+        {
+          "trigger": "holder_releases_item",
+          "scope": "spell",
+          "description": "The weapon enchantment ends early if the caster lets go of the weapon."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -136,7 +239,7 @@
     "playerInputRequired": false
   },
   "description": "A club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8. If the attack deals damage, it can be Force damage or the weapon's normal damage type (your choice). The spell ends early if you cast it again or if you let go of the weapon.",
-  "higherLevels": "The damage die changes when you reach 5th level (d10), 11th level (d12), and 17th level (2d6).",
+  "higherLevels": "The damage die changes when you reach levels 5 (d10), 11 (d12), and 17 (2d6).",
   "tags": [
     "transmutation",
     "buff",

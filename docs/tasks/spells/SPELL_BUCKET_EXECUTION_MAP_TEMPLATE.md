@@ -157,8 +157,8 @@ This is an orchestrator policy, enforced visually rather than mechanically:
 the execution-map view dims and badges Phase 2/3 with a rose
 `blocked: phase 1 incomplete` chip while any Phase 1 step is still
 `queued` or `active`. The rule is sequential by design - the
-canonical → structured → JSON migration can't meaningfully run a
-structured → JSON parity check while structured itself is still being
+canonical -> structured -> JSON migration can't meaningfully run a
+structured -> JSON parity check while structured itself is still being
 shaped from canonical. **Don't set Phase 2/3 steps to `status: 'active'`
 while their Phase 1 is incomplete.** Authoring queued Phase 2/3 steps
 is fine (you can plan ahead); flipping one to active before Phase 1

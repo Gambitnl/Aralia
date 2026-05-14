@@ -1,0 +1,73 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "tidal-wave::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Created structures, wards, huts, mounts, or servants need durable object/entity fields.",
+      "recommendedTemplateChange": "Add created object/structure/entity bucket fields.",
+      "recommendedJsonChange": "Use current summon/utility/terrain data as interim representation."
+    },
+    "tidal-wave::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Costs, spell storage, triggers, or resources need non-component resource fields.",
+      "recommendedTemplateChange": "Add resource/cost/spell-storage bucket fields.",
+      "recommendedJsonChange": "Use current component/utility fields as interim data."
+    },
+    "tidal-wave::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "tidal-wave::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Environmental changes need reusable world-state fields for weather, obscurement, growth, gas, liquids, and hazards.",
+      "recommendedTemplateChange": "Add environment/world-state bucket fields.",
+      "recommendedJsonChange": "Use current terrain/damage/utility fields as interim data."
+    },
+    "tiny-servant::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "tiny-servant::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Repeat actions, recasts, and sustain behavior need stronger action-economy fields.",
+      "recommendedTemplateChange": "Add sustain/recast action bucket fields.",
+      "recommendedJsonChange": "Use Utility Options/grantedActions as interim representation."
+    },
+    "tiny-servant::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Terrain/surface rules need stronger terrain, surface, passability, and environmental-state fields when not already covered by TERRAIN.",
+      "recommendedTemplateChange": "Add terrain/surface bucket fields.",
+      "recommendedJsonChange": "Use current terrain/utility representation as interim data."
+    },
+    "tiny-servant::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "tiny-servant::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Summoned/controlled entities need command, initiative, stat, duration, and ownership fields.",
+      "recommendedTemplateChange": "Add summon/controlled-entity bucket fields.",
+      "recommendedJsonChange": "Use existing SUMMONING/Utility Options as interim data."
+    },
+    "tiny-servant::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object stats, structure durability, or object transformations need explicit AC/HP/passability/damageability fields.",
+      "recommendedTemplateChange": "Add object stat/damageability bucket fields.",
+      "recommendedJsonChange": "Use current spatial/utility fields until propagation."
+    },
+    "tiny-servant::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Some ending conditions are represented in prose/options but need reusable break-condition fields.",
+      "recommendedTemplateChange": "Add conditional-ending bucket fields.",
+      "recommendedJsonChange": "Use existing duration/utility/status break fields as interim data.",
+      "closedReason": "Closed by the detailed Tiny Servant conditional-ending row: the servant's 0-HP ending is represented with created_entity_drops_to_0_hp in structured markdown and runtime conditionalEndings."
+    }
+  },
+  "manualFindings": {}
+}

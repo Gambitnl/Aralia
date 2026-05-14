@@ -85,7 +85,8 @@ describe('useGridMovement', () => {
         action: { used: false, remaining: 1 },
         bonusAction: { used: false, remaining: 1 },
         reaction: { used: false, remaining: 1 },
-        freeActions: 1
+        freeActions: 1,
+        legendary: { used: 0, total: 0 }
     },
     position: { x: 0, y: 0 },
     stats: {

@@ -1,4 +1,4 @@
-﻿# Feature Design: The Companion Factory & Emergent Party System
+# Feature Design: The Companion Factory & Emergent Party System
 
 ## Purpose
 

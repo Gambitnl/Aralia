@@ -1,4 +1,4 @@
-﻿# Spell Integration Status
+# Spell Integration Status
 
 Last Updated: 2026-03-12
 

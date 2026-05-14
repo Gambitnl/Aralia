@@ -1,4 +1,4 @@
-﻿# Spell System Archive Support Packet
+# Spell System Archive Support Packet
 
 **Status:** Historical local archive lane
 **Last Reviewed:** 2026-03-12

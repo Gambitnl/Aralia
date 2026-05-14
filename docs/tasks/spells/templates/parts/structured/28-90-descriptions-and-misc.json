@@ -1,0 +1,23 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Additional Damage",
+      "valueType": "string",
+      "jsonPath": "effects[].damage.additional[]",
+      "why": "Conditional extra damage needs a richer damage-instance model.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Conditional extra damage needs a richer damage-instance model."
+        }
+      ],
+      "comment": "Conditional extra damage needs a richer damage-instance model. It maps to `effects[].damage.additional[]`. Purpose: Additional Damage exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damage.additional[]`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

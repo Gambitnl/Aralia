@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:30:40
- * Dependents: PartyMemberCard.tsx, SpellbookTab.tsx, character/index.ts, characterUtils.ts, combatUtils.ts, quickCharacterGenerator.ts, spellAbilityFactory.ts
+ * Last Sync: 08/05/2026, 21:40:47
+ * Dependents: components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/characterUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
@@ -585,6 +585,12 @@ const getHpBonusPerLevelFromFeats = (featIds: string[]): number => featIds.reduc
   return bonus + perLevel;
 }, 0);
 
+const getSpeedBonusFromFeats = (featIds: string[]): number => featIds.reduce((bonus, featId) => {
+  const feat = FEATS_DATA.find(f => f.id === featId);
+  const speedIncrease = feat?.benefits?.speedIncrease ?? 0;
+  return bonus + speedIncrease;
+}, 0);
+
 /**
  * Applies spell benefits from a feat to the character.
  * Handles granted spells, chosen cantrips/spells, and creates limited use entries.
@@ -909,6 +915,42 @@ const buildAutomaticAbilityScoreChoice = (character: PlayerCharacter, budget: nu
   return increases;
 };
 
+export function calculateCharacterSpeedFromRace(race: PlayerCharacter['race'], racialSelections: PlayerCharacter['racialSelections'] = {}): number {
+  let speed = 30;
+  const speedTrait = race.traits.find(t => t.toLowerCase().startsWith('speed:'));
+  if (speedTrait) {
+    const match = speedTrait.match(/(\d+)/);
+    if (match) speed = parseInt(match[1], 10);
+  }
+
+  if (race.id === 'elf' && racialSelections?.elf?.choiceId === 'wood_elf') {
+    speed += 5;
+  }
+
+  return speed;
+}
+
+export function calculateCharacterDarkvisionFromRace(race: PlayerCharacter['race'], racialSelections: PlayerCharacter['racialSelections'] = {}): number {
+  let range = 0;
+  const darkvisionTrait = race.traits.find(t => t.toLowerCase().includes('darkvision') || t.toLowerCase().includes('vision:'));
+  if (darkvisionTrait) {
+    const match = darkvisionTrait.match(/(\d+)/);
+    if (match) range = parseInt(match[1], 10);
+  }
+
+  if (
+    (race.id === 'elf' && racialSelections?.elf?.choiceId === 'drow') ||
+    race.id === 'deep_gnome' ||
+    race.id === 'duergar' ||
+    race.id === 'dwarf' ||
+    race.id === 'orc'
+  ) {
+    range = Math.max(range, 120);
+  }
+
+  return range;
+}
+
 /**
  * Fully recalculates all derived properties for a character based on their
  * current base ability scores, equipment, and level.
@@ -950,6 +992,37 @@ export const updateDerivedStats = (character: PlayerCharacter): PlayerCharacter 
 
   // 5. Hit Dice Pools
   updated.hitPointDice = buildHitPointDicePools(updated);
+
+  return updated;
+};
+
+export const normalizeCharacterRaceData = (character: PlayerCharacter): PlayerCharacter => {
+  const canonicalRace = RACES_DATA[character.race?.id] ?? character.race;
+  const normalized: PlayerCharacter = {
+    ...character,
+    // WHAT CHANGED: Premade/saved characters are reattached to canonical race data.
+    // WHY IT CHANGED: A serialized character may carry stale traits if race files
+    // change. Keeping the ID but replacing the embedded object makes the character
+    // obey the current race definition without inventing a parallel race system.
+    // DEFERRED: Choice-heavy races still need their racialSelections supplied by
+    // the character; missing choices continue to be detected by validation tools.
+    race: canonicalRace,
+    racialSelections: character.racialSelections ?? {},
+    equippedItems: character.equippedItems ?? {},
+    activeEffects: character.activeEffects ?? [],
+    statusEffects: character.statusEffects ?? [],
+  };
+
+  const updated = updateDerivedStats(normalized);
+
+  // WHAT CHANGED: Race-owned movement and senses refresh from canonical race data
+  // when a serialized character is rehydrated.
+  // WHY IT CHANGED: Premade JSON should not become a stale shadow copy of race
+  // mechanics. If a race definition changes, loaded premades should inherit it.
+  // PRESERVED: Non-race rebuilds still use updateDerivedStats without touching
+  // movement, so temporary/manual speed changes are not broadly overwritten.
+  updated.speed = calculateCharacterSpeedFromRace(updated.race, updated.racialSelections) + getSpeedBonusFromFeats(updated.feats || []);
+  updated.darkvisionRange = calculateCharacterDarkvisionFromRace(updated.race, updated.racialSelections);
 
   return updated;
 };

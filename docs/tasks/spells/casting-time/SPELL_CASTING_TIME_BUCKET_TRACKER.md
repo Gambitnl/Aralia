@@ -219,7 +219,7 @@ Remaining work:
 - confirmed the canonical-side live count is `52`
 - confirmed the runtime-side live count is `7`
 - confirmed the gate checker originally covered canonical -> structured only
-- added a separate `Structured -> JSON` subsection inside the gate checker’s
+- added a separate `Structured -> JSON` subsection inside the gate checker's
   `Casting Time Review`
 - strengthened the casting-time review language so the bucket now says what is
   wrong in plain terms rather than only naming a residue class

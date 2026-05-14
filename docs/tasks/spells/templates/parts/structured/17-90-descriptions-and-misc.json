@@ -1,0 +1,43 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "label": "Condition Immunities",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].conditionImmunity[]",
+      "log": [
+        {
+          "at": "2026-05-13T23:15:00+02:00",
+          "action": "registered",
+          "why": "Heroism showed that condition immunity is a defensive mechanic distinct from damage immunity and should not remain utility prose."
+        }
+      ],
+      "comment": "Lists named status conditions the spell prevents or makes the target immune to while the defensive effect is active. Use this for condition immunity such as Frightened; use damageType only for resistance or immunity to damage types. It maps to `effects[].conditionImmunity[]`. Purpose: Condition Immunities exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. The value type is `csv-string`. Use `not_applicable` when the spell has no condition-immunity mechanic."
+    },
+    {
+      "label": "Prevention Immunities",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].preventionImmunity[]",
+      "acceptedValues": [
+        "hit_point_maximum_reduction",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:50:00+02:00",
+          "action": "registered",
+          "why": "Aura of Life prevents hit point maximum reduction, which is neither a condition immunity nor damage resistance."
+        }
+      ],
+      "comment": "Lists non-condition mechanics the spell prevents while a defensive effect is active. Use this for prevention wording such as `hit point maximum can't be reduced`; use Condition Immunities for named conditions and Damage Type for damage resistance or immunity. It maps to `effects[].preventionImmunity[]`. Purpose: Prevention Immunities keeps non-condition prevention mechanics from being hidden in utility prose. Use `not_applicable` when the spell has no such prevention mechanic.",
+      "acceptedValueNotes": {
+        "hit_point_maximum_reduction": "The protected target's hit point maximum cannot be reduced.",
+        "not_applicable": "The spell has no non-condition prevention-immunity mechanic."
+      }
+    }
+  ]
+}

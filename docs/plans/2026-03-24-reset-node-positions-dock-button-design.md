@@ -9,7 +9,7 @@ Move the "Reset Node Positions" button out of the collapsible toolbar menu and i
 ## Current State
 
 - "Reset Node Positions" lives at line ~2039 of `RoadmapVisualizer.tsx` inside the collapsible toolbar menu (`showToolbarMenu` gate).
-- Bottom dock (lines ~3501–3571) contains: a zoom pill with `[-]` and `[+]` buttons, and a standalone "Reset View" button.
+- Bottom dock (lines ~3501-3571) contains: a zoom pill with `[-]` and `[+]` buttons, and a standalone "Reset View" button.
 
 ## Target Layout
 
@@ -32,4 +32,4 @@ A `h-5 w-px` divider (matching the existing one between `-` and `+`) separates t
    - Compact label (`isCompactViewport`): `Node Pos`
    - `onClick`: calls existing `resetNodePositions` function
 
-No new state, no new props, no new functions — only DOM restructuring.
+No new state, no new props, no new functions - only DOM restructuring.

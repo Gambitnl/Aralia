@@ -1,0 +1,121 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "hunger-of-hadar": [
+      {
+        "bucketId": "message_or_communication",
+        "findingId": "hunger-of-hadar::message_or_communication",
+        "canonicalEvidence": "You open a gateway to the Far Realm, a region infested with unspeakable horrors.",
+        "structuredState": "No communication effect is present.",
+        "jsonState": "Runtime JSON does not encode a message or communication mechanic.",
+        "issue": "The Far Realm gateway flavor is descriptive presentation, not a communication runtime mechanic.",
+        "recommendedTemplateChange": "No message/communication field required for this row.",
+        "recommendedJsonChange": "No runtime communication change required.",
+        "resolutionStatus": "deferred_flavor"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "hunger-of-hadar::status_or_state_change",
+        "canonicalEvidence": "Creatures fully within it have the Blinded condition.",
+        "structuredState": "Effect Type includes STATUS_CONDITION.",
+        "jsonState": "Runtime JSON now has a Blinded status effect, but cannot express fully-within-only area membership.",
+        "issue": "The Blinded condition is represented, but its precise fully-within gating is not.",
+        "recommendedTemplateChange": "Add areaMembership condition fields such as fully_within_area.",
+        "recommendedJsonChange": "Add runtime condition areaMembership=fully_within for Blinded.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "hunger-of-hadar::environmental_change",
+        "canonicalEvidence": "A 20-foot-radius Sphere of Darkness appears ... No light, magical or otherwise, can illuminate the area.",
+        "structuredState": "No darkness or illumination-suppression fields.",
+        "jsonState": "Runtime JSON does not encode darkness/no-light environmental state.",
+        "issue": "The area creates a darkness environment that suppresses all light, but runtime only represents terrain, blind, and damage.",
+        "recommendedTemplateChange": "Add environmental darkness and illumination suppression fields.",
+        "recommendedJsonChange": "Add runtime environmentalChange data for darkness and no magical/nonmagical illumination.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "repeat_save_or_recurring_check",
+        "findingId": "hunger-of-hadar::manual_start_turn_cold_end_turn_acid_split",
+        "canonicalEvidence": "Any creature that starts its turn in the area takes 2d6 Cold damage. Any creature that ends its turn there must succeed on a Dexterity saving throw or take 2d6 Acid damage.",
+        "structuredState": "Effect Type includes DAMAGE; Save Outcome now records none for the save-gated Acid leg.",
+        "jsonState": "Runtime JSON now splits start-turn Cold damage from end-turn Dexterity-save Acid damage.",
+        "issue": "The start-turn and end-turn damage sequencing is now represented as separate runtime effects.",
+        "recommendedTemplateChange": "No additional recurring timing field required for this row.",
+        "recommendedJsonChange": "Closed by splitting the flattened immediate Cold/Acid damage into turn_start Cold and turn_end Acid effects.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "hypnotic-pattern": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "hypnotic-pattern::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature in the area who can see the pattern must succeed on a Wisdom saving throw or have the Charmed condition for the duration.",
+        "structuredState": "Save Stat: Wisdom; Save Outcome: negates.",
+        "jsonState": "Runtime status effects use a Wisdom save with saveEffect negates_condition.",
+        "issue": "The initial Wisdom save gate is represented; visibility and break conditions are tracked separately.",
+        "recommendedTemplateChange": "No save-field change required for this row.",
+        "recommendedJsonChange": "No save-condition runtime change required for this row.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "hypnotic-pattern::vision_light_sound",
+        "canonicalEvidence": "Each creature in the area who can see the pattern must succeed on a Wisdom saving throw.",
+        "structuredState": "Line of Sight: true only covers caster targeting, not target visibility to the pattern.",
+        "jsonState": "Runtime targeting lineOfSight is true, but no per-target can-see-pattern condition exists.",
+        "issue": "Hypnotic Pattern requires affected creatures to see the pattern, which is different from caster line of sight.",
+        "recommendedTemplateChange": "Add visibility condition fields for targets seeing an effect/source.",
+        "recommendedJsonChange": "Add runtime condition requiresCanSeeEffect for the pattern.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "hypnotic-pattern::social_or_knowledge_effect",
+        "canonicalEvidence": "Each creature in the area who can see the pattern must succeed on a Wisdom saving throw or have the Charmed condition for the duration.",
+        "structuredState": "Conditions Applied include Charmed.",
+        "jsonState": "Runtime JSON applies Charmed on failed Wisdom save.",
+        "issue": "The social-condition part of this row is represented as Charmed; movement/status riders are tracked separately.",
+        "recommendedTemplateChange": "No social-condition field change required for this row.",
+        "recommendedJsonChange": "Closed by preserving the Charmed status effect and removing noncanonical repeat/escape defaults.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "hypnotic-pattern::status_or_state_change",
+        "canonicalEvidence": "While Charmed, the creature has the Incapacitated condition and a Speed of 0.",
+        "structuredState": "Conditions Applied include Charmed and Incapacitated; no speed-0 condition field.",
+        "jsonState": "Runtime JSON applies Charmed and Incapacitated, but does not encode Speed 0 or the dependency of Incapacitated/Speed 0 on Charmed.",
+        "issue": "Hypnotic Pattern's Charmed and Incapacitated statuses are represented, but Speed 0 and dependent rider semantics are not.",
+        "recommendedTemplateChange": "Add status-rider movement override fields and dependent-status relationship fields.",
+        "recommendedJsonChange": "Add runtime movementOverride speed 0 while Charmed and requiresStatus Charmed for Incapacitated.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "hypnotic-pattern::conditional_ending",
+        "canonicalEvidence": "The spell ends for an affected creature if it takes any damage or if someone else uses an action to shake the creature out of its stupor.",
+        "structuredState": "Condition Break Triggers records target_takes_damage and adjacent_creature_action_shakes_awake.",
+        "jsonState": "Runtime JSON records target_takes_damage and adjacent_creature_action_shakes_awake in statusCondition.breakTriggers on the affected status payloads.",
+        "issue": "Closed: Hypnotic Pattern's per-target break conditions are now represented as condition break triggers rather than spell-wide conditional endings.",
+        "recommendedTemplateChange": "No new template field is required; the existing Condition Break Triggers field is the correct home for these per-target status break rules.",
+        "recommendedJsonChange": "No JSON shape change is required; runtime statusCondition.breakTriggers already carries the damage and shake-awake break rules.",
+        "resolutionStatus": "closed",
+        "closedReason": "Hypnotic Pattern now records the canonical damage and external-action shake-awake endings in both structured markdown and runtime JSON. The mechanics are per-target status break triggers, not spell-wide conditionalEndings."
+      },
+      {
+        "bucketId": "deferred_descriptive_flavor",
+        "findingId": "hypnotic-pattern::deferred_descriptive_flavor",
+        "canonicalEvidence": "You create a twisting pattern of colors in a 30-foot Cube within range.",
+        "structuredState": "Area Shape and Area Size preserve the cube; color presentation is only prose.",
+        "jsonState": "Runtime targeting preserves the 30-foot cube.",
+        "issue": "The twisting colors are descriptive presentation; the mechanical area is represented.",
+        "recommendedTemplateChange": "No descriptive color field required for this goal.",
+        "recommendedJsonChange": "No runtime change required for descriptive color presentation.",
+        "resolutionStatus": "deferred_flavor"
+      }
+    ]
+  }
+}

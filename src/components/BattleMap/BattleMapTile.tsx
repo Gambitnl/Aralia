@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 07/05/2026, 00:02:41
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file BattleMapTile.tsx
  * A memoized component for rendering a single tile on the battle map.
@@ -11,11 +27,12 @@ interface BattleMapTileProps {
   isInPath: boolean;
   isTargetable: boolean;
   isAoePreview: boolean;
+  targetingMode: boolean;
   onTileClick: (tile: BattleMapTileData) => void;
   onTileHover?: (tile: BattleMapTileData) => void;
 }
 
-const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, onTileClick, onTileHover }) => {
+const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, targetingMode, onTileClick, onTileHover }) => {
   const getTerrainColor = (terrain: string) => {
     switch (terrain) {
       case 'grass': return 'bg-green-800';
@@ -80,7 +97,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
       tabIndex={isInteractive ? 0 : -1}
       aria-disabled={!isInteractive}
       aria-label={`Tile ${tile.terrain} at ${tile.coordinates.x}, ${tile.coordinates.y}`}
-      style={{ cursor: isInteractive ? 'pointer' : 'default' }}
+      style={{ cursor: targetingMode ? 'crosshair' : (isInteractive ? 'pointer' : 'default') }}
       title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain} - Elev: ${tile.elevation}`}
     >
       {tile.elevation > 0 && (

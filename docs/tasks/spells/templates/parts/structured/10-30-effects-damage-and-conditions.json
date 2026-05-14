@@ -1,0 +1,571 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 29,
+  "fields": [
+    {
+      "label": "Secondary Damage Dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "jsonPath": "effects[].damageInstances[1].dice",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Secondary damage events need independent dice for spells like Ice Knife."
+        }
+      ],
+      "comment": "Secondary damage events need independent dice for spells like Ice Knife. It maps to `effects[].damageInstances[1].dice`. Purpose: Secondary Damage Dice exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damageInstances[1].dice`. The value type is `dice-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Secondary Damage Type",
+      "required": false,
+      "valueType": "string-or-chooser",
+      "jsonPath": "effects[].damageInstances[1].type",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Secondary damage type cannot be slash-glued to primary damage type."
+        }
+      ],
+      "comment": "Secondary damage type cannot be slash-glued to primary damage type. It maps to `effects[].damageInstances[1].type`. Purpose: Secondary Damage Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damageInstances[1].type`. The value type is `string-or-chooser`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Healing Dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "jsonPath": "effects[].healing.dice",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Healing spells need structured dice just like damage spells."
+        }
+      ],
+      "comment": "Healing spells need structured dice just like damage spells. It maps to `effects[].healing.dice`. Purpose: Healing Dice exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].healing.dice`. The value type is `dice-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Save Stat",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma"
+      ],
+      "jsonPath": "effects[].condition.saveType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Saving throw ability must be structured for the command layer."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Some spells can call for different saving throw abilities by option; Save Stat must allow a comma-separated chooser until those options are modeled separately."
+        }
+      ],
+      "comment": "Some spells can call for different saving throw abilities by option; Save Stat must allow a comma-separated chooser until those options are modeled separately. It maps to `effects[].condition.saveType`. Purpose: Save Stat exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].condition.saveType`. The value type is `csv-enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "Strength": "Allowed value for Save Stat; use only when the canonical spell text supports this exact mechanic.",
+        "Dexterity": "Allowed value for Save Stat; use only when the canonical spell text supports this exact mechanic.",
+        "Constitution": "Allowed value for Save Stat; use only when the canonical spell text supports this exact mechanic.",
+        "Intelligence": "Allowed value for Save Stat; use only when the canonical spell text supports this exact mechanic.",
+        "Wisdom": "Allowed value for Save Stat; use only when the canonical spell text supports this exact mechanic.",
+        "Charisma": "Allowed value for Save Stat; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Save Outcome",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "none",
+        "half",
+        "negates_condition",
+        "negates",
+        "half damage; negates movement",
+        "negates_repeat",
+        "negates_effect"
+      ],
+      "jsonPath": "effects[].condition.saveEffect",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Save outcomes decide whether damage is halved, negated, or conditions are avoided."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "Save outcomes preserve the source/rules behavior until the save bucket translates them into final runtime conditionals."
+        },
+        {
+          "at": "2026-05-06T15:52:00+02:00",
+          "action": "changed",
+          "why": "Counterspell uses negates_effect to mean the interrupted spell has no effect while still preserving the caster action/slot behavior for the save bucket."
+        }
+      ],
+      "comment": "Counterspell uses negates_effect to mean the interrupted spell has no effect while still preserving the caster action/slot behavior for the save bucket. It maps to `effects[].condition.saveEffect`. Purpose: Save Outcome exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].condition.saveEffect`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "none": "Use `none` for Save Outcome only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "half": "Use `half` for Save Outcome only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "negates_condition": "Use `negates_condition` for Save Outcome only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "negates": "Use `negates` for Save Outcome only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "half damage; negates movement": "Allowed value for Save Outcome; use only when the canonical spell text supports this exact mechanic.",
+        "negates_repeat": "Allowed value for Save Outcome; use only when the canonical spell text supports this exact mechanic.",
+        "negates_effect": "Use `negates_effect` for Save Outcome only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available."
+      }
+    },
+    {
+      "label": "Save Cover Ignored",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "half",
+        "three_quarters",
+        "total",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].condition.saveModifiers[].ignoredCover",
+      "log": [
+        {
+          "at": "2026-05-13T22:00:00+02:00",
+          "action": "created",
+          "why": "Some saving throws explicitly deny cover bonuses. Sacred Flame ignores Half Cover and Three-Quarters Cover for its save, which needs a structured field instead of prose-only handling."
+        }
+      ],
+      "comment": "Some saving throws explicitly deny cover bonuses. It maps to `effects[].condition.saveModifiers[].ignoredCover`. Purpose: Save Cover Ignored exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].condition.saveModifiers[].ignoredCover`. The value type is `csv-enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "half": "Use `half` for Save Cover Ignored only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "three_quarters": "Use when the canonical save/cover rule explicitly bypasses three-quarters cover for this spell.",
+        "total": "Use when the canonical save/cover rule explicitly bypasses total cover for this spell.",
+        "not_applicable": "Use for Save Cover Ignored only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "label": "Save Auto Outcome",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "auto_success",
+        "auto_failure",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].condition.saveOutcomeOverrides[].outcome",
+      "log": [
+        {
+          "at": "2026-05-13T22:10:00+02:00",
+          "action": "created",
+          "why": "Several spells force a saving throw to automatically succeed or fail for specific target states, which is different from advantage, disadvantage, or a normal target filter."
+        }
+      ],
+      "comment": "Several spells force a saving throw to automatically succeed or fail for specific target states, which is different from advantage, disadvantage, or a normal target filter. It maps to `effects[].condition.saveOutcomeOverrides[].outcome`. Purpose: Save Auto Outcome exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].condition.saveOutcomeOverrides[].outcome`. The value type is `csv-enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "auto_success": "Use `auto_success` for Save Auto Outcome only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "auto_failure": "Use `auto_failure` for Save Auto Outcome only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for Save Auto Outcome only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "label": "Save Auto Outcome Condition",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "challenge_rating_not_zero",
+        "fighting_caster_or_allies",
+        "cannot_understand_caster",
+        "immune_to_charmed",
+        "immune_to_frightened",
+        "is_shapechanger",
+        "is_plant_creature",
+        "not_humanoid",
+        "recently_affected_by_spell",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].condition.saveOutcomeOverrides[].condition",
+      "log": [
+        {
+          "at": "2026-05-13T22:10:00+02:00",
+          "action": "created",
+          "why": "Automatic save outcomes are only useful when the target state that triggers them is named explicitly."
+        }
+      ],
+      "comment": "Automatic save outcomes are only useful when the target state that triggers them is named explicitly. It maps to `effects[].condition.saveOutcomeOverrides[].condition`. Purpose: Save Auto Outcome Condition exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].condition.saveOutcomeOverrides[].condition`. The value type is `csv-enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "challenge_rating_not_zero": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "fighting_caster_or_allies": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "cannot_understand_caster": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "immune_to_charmed": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "immune_to_frightened": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "is_shapechanger": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "is_plant_creature": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "not_humanoid": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "recently_affected_by_spell": "Allowed value for Save Auto Outcome Condition; use only when the canonical spell text supports this exact mechanic.",
+        "not_applicable": "Use for Save Auto Outcome Condition only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "label": "Secondary Save Stat",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValuesFrom": "Save Stat",
+      "jsonPath": "effects[].secondaryCondition.saveType",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Some spells have more than one save gate and need a second structured slot."
+        }
+      ],
+      "comment": "Some spells have more than one save gate and need a second structured slot. It maps to `effects[].secondaryCondition.saveType`. Purpose: Secondary Save Stat exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].secondaryCondition.saveType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Secondary Save Outcome",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValuesFrom": "Save Outcome",
+      "jsonPath": "effects[].secondaryCondition.saveEffect",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "A second save can have a different result from the primary save."
+        }
+      ],
+      "comment": "A second save can have a different result from the primary save. It maps to `effects[].secondaryCondition.saveEffect`. Purpose: Secondary Save Outcome exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].secondaryCondition.saveEffect`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Secondary Target Trigger",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "primary_hit",
+        "duplicate_damage_die",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].secondaryTargeting.trigger",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Follow-up target mechanics need the event that unlocks the secondary target."
+        }
+      ],
+      "comment": "Secondary Target Trigger records what event allows a secondary or chained target to be chosen. Use `primary_hit` when the follow-up only happens after the first target is hit, `duplicate_damage_die` when a damage roll with matching dice causes the chain, and `not_applicable` when the spell has no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Origin",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "primary_target",
+        "previous_target",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].secondaryTargeting.origin",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Secondary target range is usually measured from another target rather than from the caster."
+        }
+      ],
+      "comment": "Secondary Target Origin records the point the secondary range is measured from. Use `primary_target` for Green-Flame Blade-style one-step leaps, `previous_target` for chains that keep jumping from the latest target, and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Range",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "jsonPath": "effects[].secondaryTargeting.range",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Secondary target relationships need their own range separate from the initial spell range."
+        }
+      ],
+      "comment": "Secondary Target Range stores the maximum distance from the secondary target origin to the follow-up target. Use the numeric canonical distance, or `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Range Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].secondaryTargeting.rangeUnit",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Secondary target range needs an explicit unit."
+        }
+      ],
+      "comment": "Secondary Target Range Unit stores the unit for Secondary Target Range. Use `feet` for current leap and chain mechanics, and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Valid Targets",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "creature",
+        "creature_or_object",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].secondaryTargeting.validTargets",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Follow-up target eligibility can differ from the spell's initial target eligibility."
+        }
+      ],
+      "comment": "Secondary Target Valid Targets records what the follow-up target may be. Use `creature` when the prose says creature, `creature_or_object` only when the prose permits either, and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Selection",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "caster_choice",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].secondaryTargeting.selection",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know who chooses the secondary target."
+        }
+      ],
+      "comment": "Secondary Target Selection records who chooses the follow-up target. Use `caster_choice` for current leap/chain spells and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Must Be Different",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].secondaryTargeting.mustBeDifferent",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some follow-up targets must be different from the origin target."
+        }
+      ],
+      "comment": "Secondary Target Must Be Different is true when canonical prose requires a different target or creature from the origin. Use `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Requires Line Of Sight",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].secondaryTargeting.requiresLineOfSight",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some secondary target choices require the caster to see the follow-up creature."
+        }
+      ],
+      "comment": "Secondary Target Requires Line Of Sight is true when the secondary target selection itself has a sight requirement. Use false when the prose has no sight gate, and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Requires Attack Roll",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].secondaryTargeting.requiresAttackRoll",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some chained targets require a new attack roll rather than automatic damage."
+        }
+      ],
+      "comment": "Secondary Target Requires Attack Roll is true when the follow-up target needs a fresh attack roll. Use false for automatic rider damage and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Requires Damage Roll",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].secondaryTargeting.requiresDamageRoll",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some chained targets require a new damage roll."
+        }
+      ],
+      "comment": "Secondary Target Requires Damage Roll is true when canonical prose says to make a new damage roll. Use false for fixed rider damage and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Repeat Rule",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "none",
+        "slot_level_max_leaps",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].secondaryTargeting.repeatRule",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some chains repeat based on the slot level expended."
+        }
+      ],
+      "comment": "Secondary Target Repeat Rule records whether the follow-up can chain again. Use `none` for one-time secondary targets, `slot_level_max_leaps` when the slot level sets the maximum number of leaps, and `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Max Leaps",
+      "required": false,
+      "valueType": "number-or-enum",
+      "acceptedValues": [
+        "slot_level",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].secondaryTargeting.maxLeaps",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Repeating chains need a machine-readable maximum."
+        }
+      ],
+      "comment": "Secondary Target Max Leaps records the maximum number of follow-up leaps. Use `slot_level` when the maximum equals the spell slot level expended, or `not_applicable` when the secondary target cannot repeat."
+    },
+    {
+      "label": "Secondary Target Unique Per Casting",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].secondaryTargeting.uniquePerCasting",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Some chains prohibit selecting the same creature more than once in the same casting."
+        }
+      ],
+      "comment": "Secondary Target Unique Per Casting is true when each creature can be targeted only once by the casting. Use `not_applicable` when there is no secondary target mechanic."
+    },
+    {
+      "label": "Secondary Target Notes",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "effects[].secondaryTargeting.notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "created",
+          "why": "Short notes preserve the exact local wording beside the typed secondary target fields."
+        }
+      ],
+      "comment": "Secondary Target Notes preserves a short clarification for the secondary target relationship. It should not replace the typed trigger, origin, range, eligibility, and repeat fields."
+    },
+    {
+      "label": "Effect Schedule Timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "caster_later_turn_start",
+        "not_applicable"
+      ],
+      "jsonPath": "effectSchedule.timing",
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "Turn-numbered spells need an explicit schedule instead of relying on identical turn_start triggers."
+        }
+      ],
+      "comment": "Effect Schedule Timing records the overall timing family for spells whose effects change by numbered turn or phase. Use `caster_later_turn_start` for schedules that begin on later caster turns, and `not_applicable` when the spell has no staged effect schedule. Runtime mapping: `effectSchedule.timing`."
+    },
+    {
+      "label": "Effect Schedule Entry Count",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "jsonPath": "effectSchedule.entries.length",
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "The structured layer needs to declare how many scheduled stages the spell has."
+        }
+      ],
+      "comment": "Effect Schedule Entry Count records how many numbered schedule entries the spell has. Use a number when the canonical prose has staged turn/phase effects, and `not_applicable` when no schedule applies. Runtime mapping: `effectSchedule.entries.length`."
+    },
+    {
+      "label": "Effect Schedule Notes",
+      "required": false,
+      "valueType": "string-or-not-applicable",
+      "jsonPath": "effectSchedule.notes",
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "Schedule notes preserve what the schedule covers when some effects still resolve normally."
+        }
+      ],
+      "comment": "Effect Schedule Notes explains what the schedule covers and what remains outside it, such as an initial on-cast effect that is not part of later turn stages. Use `not_applicable` when no schedule applies. Runtime mapping: `effectSchedule.notes`."
+    },
+    {
+      "pattern": "^Effect Schedule Entry \\d+ (Label|Timing|Turn Start|Turn End|Effect Indices|Effect Types|Target Count|Target Valid Targets|Target Selection|Target Must Be Different|Summary|Notes)$",
+      "required": false,
+      "valueType": "numbered-field-family",
+      "jsonPath": "effectSchedule.entries[]",
+      "acceptedValuesBySuffix": {
+        "Timing": [
+          "caster_turn_start"
+        ],
+        "Target Valid Targets": [
+          "creatures",
+          "objects",
+          "creature_or_object"
+        ],
+        "Target Selection": [
+          "caster_choice",
+          "all_valid_targets"
+        ],
+        "Target Must Be Different": [
+          "true",
+          "false",
+          "not_applicable"
+        ]
+      },
+      "log": [
+        {
+          "at": "2026-05-14T03:20:00+02:00",
+          "action": "created",
+          "why": "Each scheduled stage needs a repeated set of turn, effect-link, and target-rule fields."
+        }
+      ],
+      "comment": "Numbered Effect Schedule Entry fields record each staged turn window. Use Label for the canonical stage name, Timing for when it fires, Turn Start/Turn End for the inclusive caster-turn range, Effect Indices to point at runtime effects, Effect Types for broad review categories, Target Count/Valid Targets/Selection/Must Be Different for target rules, and Summary/Notes for short canonical context. Runtime mapping: `effectSchedule.entries[]`."
+    },
+    {
+      "label": "Conditions Applied",
+      "required": false,
+      "valueType": "csv-string-or-none",
+      "jsonPath": "effects[].statusCondition.name",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Condition application must be visible as data, not inferred from prose."
+        }
+      ],
+      "comment": "Condition application must be visible as data, not inferred from prose. It maps to `effects[].statusCondition.name`. Purpose: Conditions Applied exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.name`. The value type is `csv-string-or-none`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

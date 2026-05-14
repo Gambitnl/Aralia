@@ -1,0 +1,88 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "major-image": [
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "major-image::manual_slot_duration_concentration_override",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. The spell lasts until dispelled, without requiring Concentration, if cast with a level 4+ spell slot.",
+        "structuredState": "Scaling Rule 1 records special_text duration/concentration override.",
+        "jsonState": "Runtime scaling has no typed duration or concentration override.",
+        "issue": "Closed: Major Image's level 4+ duration and concentration override is now structured and runtime-mapped.",
+        "recommendedTemplateChange": "Closed by changing Scaling Rule 1 to slot_level_table for duration.concentration.",
+        "recommendedJsonChange": "Closed by runtime higherLevelScaling slot_level_table entry for level 4+ until dispelled without concentration.",
+        "resolutionStatus": "closed",
+        "closedReason": "Major Image now records its level 4+ until-dispelled, no-concentration scaling in structured markdown and runtime JSON."
+      }
+    ],
+    "mass-healing-word": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "mass-healing-word::choice_or_mode",
+        "canonicalEvidence": "Up to six creatures of your choice that you can see within range regain Hit Points equal to 2d4 plus your spellcasting ability modifier.",
+        "structuredState": "Targeting Type: multi; Targeting Max: 6.",
+        "jsonState": "Runtime targeting is multi with maxTargets 6.",
+        "issue": "The up-to-six target choice is represented.",
+        "recommendedTemplateChange": "No target-count change required for this row.",
+        "recommendedJsonChange": "No target-count runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "mass-healing-word::attack_or_save_modifier",
+        "canonicalEvidence": "The healing increases by 1d4 for each spell slot level above 3.",
+        "structuredState": "Scaling Rule 1 records special_text healing scaling.",
+        "jsonState": "Runtime HEALING effect now has bonusPerLevel +1d4.",
+        "issue": "The higher-slot healing increase is represented in runtime scaling.",
+        "recommendedTemplateChange": "No scaling change required for this row.",
+        "recommendedJsonChange": "Closed by changing runtime scaling bonusPerLevel to +1d4.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "mass-healing-word::vision_light_sound",
+        "canonicalEvidence": "Up to six creatures of your choice that you can see within range",
+        "structuredState": "Line of Sight: true.",
+        "jsonState": "Runtime targeting lineOfSight is true.",
+        "issue": "The visible target requirement is represented.",
+        "recommendedTemplateChange": "No line-of-sight change required.",
+        "recommendedJsonChange": "No line-of-sight runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "mass-healing-word::resource_or_consumption",
+        "canonicalEvidence": "Regain Hit Points equal to 2d4 plus your spellcasting ability modifier.",
+        "structuredState": "Damage Dice now records 2d4 with Healing type; no ability-modifier healing addend field exists.",
+        "jsonState": "Runtime HEALING effect now records 2d4 and +1d4 scaling, but no spellcasting ability modifier addend.",
+        "issue": "Mass Healing Word's spellcasting ability modifier addend is not typed.",
+        "recommendedTemplateChange": "Add healing ability modifier addend fields.",
+        "recommendedJsonChange": "Add runtime healing.addAbilityModifier=spellcasting.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "healing_or_restoration",
+        "findingId": "mass-healing-word::healing_or_restoration",
+        "canonicalEvidence": "Up to six creatures of your choice that you can see within range regain Hit Points equal to 2d4 plus your spellcasting ability modifier. The healing increases by 1d4 for each spell slot level above 3.",
+        "structuredState": "Effect Type: HEALING; Damage Dice now 2d4; Scaling Rule 1 records healing scaling.",
+        "jsonState": "Runtime JSON now has a HEALING effect with 2d4 and +1d4 scaling, but no ability modifier addend.",
+        "issue": "Mass Healing Word's base dice and scaling are represented; the spellcasting ability modifier addend remains unmodeled.",
+        "recommendedTemplateChange": "Add healing formula/addend fields for ability modifiers.",
+        "recommendedJsonChange": "Closed the stale utility/1d4 mismatch by adding HEALING 2d4 +1d4 scaling; add ability modifier addend in a formula field.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "mass-healing-word::object_stats_or_damageability",
+        "canonicalEvidence": "Creatures regain Hit Points.",
+        "structuredState": "Valid Targets: creatures.",
+        "jsonState": "Runtime validTargets: creatures.",
+        "issue": "This is a creature healing mechanic, not an object stat/damageability mechanic; the healing row tracks the remaining formula gap.",
+        "recommendedTemplateChange": "No object-stat field required for this row.",
+        "recommendedJsonChange": "No object-stat runtime change required.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 7 manual review override shard for spell indexes 15-19 in generated discovery row order.",
+    "This packet added structured/runtime mechanics for Prismatic Spray's ray table, Project Image's illusion controls, Regenerate's recurring healing, Resurrection's revive/ordeal rules, and Reverse Gravity's forced movement."
+  ],
+  "findings": {
+    "prismatic-spray::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The primary Dexterity save, damage rays, status rays, and teleport ray are represented as effects/options, but runtime lacks first-class random per-target ray resolution and tracked secondary save counters for Indigo/Violet.",
+      "recommendedTemplateChange": "Add random effect table and secondary save progression fields.",
+      "recommendedJsonChange": "Add runtime randomEffectTable plus secondarySaveTrack data for three-success/three-failure and next-turn save outcomes."
+    },
+    "project-image::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Placement, movement, speaking/gesturing, behavior, and examination outcomes are represented as utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "project-image::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Look/sound mimicry and hollow/noise transparency after discovery are preserved in utility options, but runtime lacks first-class illusion sight/sound channel and altered-audio-after-discovery fields.",
+      "recommendedTemplateChange": "Add illusion sensory channel and discovered-audio-state fields.",
+      "recommendedJsonChange": "Add runtime illusionSensoryChannels and discoveredIllusionAudio data."
+    },
+    "project-image::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Intangibility, physical-interaction reveal, Study action Investigation reveal, and see-through-on-discovery are preserved in utility options, but runtime lacks typed illusion reveal/pass-through/discernment fields.",
+      "recommendedTemplateChange": "Add illusion interaction and reveal-test fields.",
+      "recommendedJsonChange": "Add runtime illusionRevealTest and illusionPassThrough data."
+    },
+    "project-image::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Seeing through the illusion's eyes and hearing through its ears is preserved in utility options, but runtime lacks first-class remote-sensor perception fields.",
+      "recommendedTemplateChange": "Add remote perception origin fields.",
+      "recommendedJsonChange": "Add runtime remotePerception data."
+    },
+    "project-image::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The image can speak and behave as the caster chooses, but runtime lacks first-class remote speech/gesture communication fields.",
+      "recommendedTemplateChange": "Add projected speech and gesture control fields.",
+      "recommendedJsonChange": "Add runtime projectedCommunication data."
+    },
+    "project-image::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The image disappears and the spell ends if it takes any damage; runtime preserves this in utility options but lacks a typed damage-to-illusion end trigger.",
+      "recommendedTemplateChange": "Add created illusion damage/end trigger fields.",
+      "recommendedJsonChange": "Add runtime illusionDamageEndTrigger data."
+    },
+    "regenerate::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The recurring 1 Hit Point at the start of each target turn is represented by a HEALING effect with turn_start trigger.",
+      "recommendedTemplateChange": "No additional recurring field required for this pass.",
+      "recommendedJsonChange": "Closed by HEALING trigger turn_start."
+    },
+    "regenerate::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Initial healing, recurring healing, and severed body-part regrowth are represented by HEALING effects and utility options.",
+      "recommendedTemplateChange": "No additional healing field required for this pass.",
+      "recommendedJsonChange": "Closed by HEALING effects and UTILITY controlOptions."
+    },
+    "regenerate::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The detector matched severed body parts; runtime preserves regrowth in utility options but lacks first-class body-part restoration fields.",
+      "recommendedTemplateChange": "Add body-part restoration fields.",
+      "recommendedJsonChange": "Add runtime bodyPartRestoration data."
+    },
+    "resurrection::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target's -4 D20 Test penalty and the caster's Disadvantage on D20 Tests for long-dead revivals are preserved in utility/status text, but runtime lacks typed D20-test penalty/disadvantage fields outside attack rolls.",
+      "recommendedTemplateChange": "Add D20 Test penalty and caster-tax disadvantage fields.",
+      "recommendedJsonChange": "Add runtime d20TestModifier and casterTaxModifier data."
+    },
+    "resurrection::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points and restored body parts; return with all Hit Points is represented by HEALING and body restoration is preserved in utility options.",
+      "recommendedTemplateChange": "Track body restoration under healing/restoration.",
+      "recommendedJsonChange": "Closed by HEALING effect and UTILITY controlOptions."
+    },
+    "resurrection::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Revival, poison neutralization, wound closure, missing part restoration, target ordeal, and caster tax are represented in HEALING/STATUS_CONDITION/UTILITY, but runtime lacks first-class revive eligibility, poison neutralization, and caster spellcasting lockout fields.",
+      "recommendedTemplateChange": "Add revive eligibility/restoration and caster tax fields.",
+      "recommendedJsonChange": "Add runtime reviveEligibility, deathStateRestoration, and casterSpellcastingLockout data."
+    },
+    "reverse-gravity::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save to grab a reachable fixed object and avoid the upward fall is represented by the MOVEMENT effect condition and utility option.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT condition.saveType/saveEffect and UTILITY controlOptions."
+    },
+    "reverse-gravity::movement_or_repositioning": {
+      "resolutionStatus": "closed",
+      "issue": "Upward fall, hover at the cylinder top, and downward fall when the spell ends are represented by MOVEMENT effects and utility options.",
+      "recommendedTemplateChange": "No additional movement field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT effects and UTILITY controlOptions."
+    },
+    "reverse-gravity::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Anchored objects, reachable fixed objects, and ceilings affect the upward fall; runtime preserves this in utility options but lacks first-class anchored/fixed-object collision and grab-surface fields.",
+      "recommendedTemplateChange": "Add anchored/fixed-object interaction fields for gravity and fall effects.",
+      "recommendedJsonChange": "Add runtime anchoredObjectInteraction and grabSurfaceEligibility data."
+    },
+    "reverse-gravity::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the area-triggered gravity reversal; this is forced movement/environmental control, not a ward or alarm.",
+      "recommendedTemplateChange": "Track under movement_or_repositioning and environmental_change.",
+      "recommendedJsonChange": "No ward runtime data required."
+    },
+    "reverse-gravity::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Gravity reversal is represented by MOVEMENT/UTILITY effects, but runtime lacks a first-class gravity direction/environmental force field.",
+      "recommendedTemplateChange": "Add gravity direction/environmental force fields.",
+      "recommendedJsonChange": "Add runtime gravityOverride data."
+    },
+    "reverse-gravity::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The downward fall when the spell ends is represented by a MOVEMENT effect with on_exit_area trigger and utility option.",
+      "recommendedTemplateChange": "No additional conditional-ending field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT effect and UTILITY controlOptions."
+    },
+    "reverse-gravity::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched end-of-spell downward fall, which is represented as movement rather than an aftermath or memory mechanic.",
+      "recommendedTemplateChange": "Track under conditional_ending/movement_or_repositioning.",
+      "recommendedJsonChange": "No aftermath runtime data required."
+    }
+  }
+}

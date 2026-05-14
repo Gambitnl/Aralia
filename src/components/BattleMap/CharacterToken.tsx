@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 07/05/2026, 00:03:59
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file CharacterToken.tsx
  * Component to display a character's token on the battle map.
@@ -16,11 +32,11 @@
  * - CSS transforms recalculated even for static positions
  * - Tooltip creation overhead for every token
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CombatCharacter } from '../../types/combat';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import Tooltip from '../Tooltip';
-import { getStatusEffectIcon } from '../../utils/combatUtils';
+import { getStatusEffectIcon, getCharacterSizeMultiplier } from '../../utils/combatUtils';
 import { Z_INDEX } from '../../styles/zIndex';
 
 interface CharacterTokenProps {
@@ -28,6 +44,7 @@ interface CharacterTokenProps {
   position: { x: number; y: number };
   isSelected: boolean;
   isTargetable: boolean;
+  targetingMode: boolean;
   isTurn: boolean;
   onCharacterClick: (char: CombatCharacter) => void;
 }
@@ -41,48 +58,45 @@ const getClassIcon = (classId: string) => {
   }
 };
 
-const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, position, isSelected, isTargetable, isTurn, onCharacterClick }) => {
-  // Position styling calculated for every render
-  // IMPROVEMENT OPPORTUNITY: Could pre-calculate and cache position styles
-  // or use CSS variables for better performance
-  const style: React.CSSProperties = {
+const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, position, isSelected, isTargetable, targetingMode, isTurn, onCharacterClick }) => {
+  const multiplier = getCharacterSizeMultiplier(character.stats.size);
+
+  // Memoized container style: only recalculates when position, size, or interaction
+  // state changes — prevents redundant style-object allocation on unrelated renders.
+  const style = useMemo((): React.CSSProperties => ({
     position: 'absolute',
     left: `${position.x * TILE_SIZE_PX}px`,
     top: `${position.y * TILE_SIZE_PX}px`,
-    width: `${TILE_SIZE_PX}px`,
-    height: `${TILE_SIZE_PX}px`,
+    width: `${TILE_SIZE_PX * multiplier}px`,
+    height: `${TILE_SIZE_PX * multiplier}px`,
     transition: 'all 0.2s ease-in-out',
     zIndex: Z_INDEX.CONTENT_OVERLAY_LOW,
-    cursor: 'pointer',
-  };
+    cursor: targetingMode ? 'crosshair' : 'pointer',
+  }), [position.x, position.y, multiplier, targetingMode]);
 
-  // Border color determination with multiple conditional checks
-  // IMPROVEMENT OPPORTUNITY: Could simplify with lookup table or precomputed values
-  let borderColor = '#6B7280'; // gray-500 default
-  if (character.team === 'player') borderColor = '#3B82F6'; // blue-500 for player team
-  else borderColor = '#991B1B'; // red-800 for enemy team
+  // Memoized token circle style: only recalculates when visual state changes.
+  const tokenStyle = useMemo((): React.CSSProperties => {
+    let borderColor = '#6B7280'; // gray-500 default
+    if (character.team === 'player') borderColor = '#3B82F6';
+    else borderColor = '#991B1B'; // red-800 for enemy team
+    if (isTargetable) borderColor = '#EF4444';
+    if (isSelected)   borderColor = '#FBBF24';
 
-  if (isTargetable) {
-    borderColor = '#EF4444'; // red-500 for targetable
-  }
-  if (isSelected) {
-    borderColor = '#FBBF24'; // amber-400 for selected
-  }
-
-
-  // Token styling with dynamic properties
-  // IMPROVEMENT OPPORTUNITY: Box-shadow and transform calculations could be
-  // precomputed or use CSS classes for better browser optimization
-  const tokenStyle: React.CSSProperties = {
-    width: '80%',
-    height: '80%',
-    borderRadius: '50%',
-    border: `3px solid ${borderColor}`,
-    backgroundColor: '#1F2937', // gray-800
-    boxShadow: isSelected ? '0 0 10px #FBBF24, 0 0 20px #FBBF24' : (isTargetable ? '0 0 10px #EF4444' : '0 2px 4px rgba(0,0,0,0.5)'),
-    transform: isSelected ? 'scale(1.1)' : 'scale(1.0)',
-    animation: isTurn ? 'pulseTurn 2s infinite' : 'none',
-  };
+    return {
+      width: '80%',
+      height: '80%',
+      borderRadius: '50%',
+      border: `3px solid ${borderColor}`,
+      backgroundColor: '#1F2937',
+      boxShadow: isSelected
+        ? '0 0 10px #FBBF24, 0 0 20px #FBBF24'
+        : isTargetable
+          ? '0 0 10px #EF4444'
+          : '0 2px 4px rgba(0,0,0,0.5)',
+      transform: isSelected ? 'scale(1.1)' : 'scale(1.0)',
+      animation: isTurn ? 'pulseTurn 2s infinite' : 'none',
+    };
+  }, [character.team, isSelected, isTargetable, isTurn]);
 
   const icon = getClassIcon(character.class.id);
   const handleActivate = () => onCharacterClick(character);

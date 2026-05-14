@@ -1,4 +1,4 @@
-﻿# Spells
+# Spells
 
 ## Purpose
 

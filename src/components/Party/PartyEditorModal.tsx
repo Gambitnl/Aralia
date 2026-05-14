@@ -82,6 +82,14 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
   // (as opposed to template-generated ones). Keyed by party member ID.
   const loadedPremadeCharactersRef = useRef<Map<string, PlayerCharacter>>(new Map());
 
+  // Tracks the catalog file for party rows that came from the premade roster.
+  // WHAT CHANGED: The picker now hides premades already present in the editable party.
+  // WHY IT CHANGED: Loading the same premade twice creates duplicate combat testers
+  // with identical names/builds, which is usually accidental when assembling a party.
+  // PRESERVED: The manifest remains the authoritative catalog; removing the party row
+  // makes the premade available again because availability is derived from editableParty.
+  const loadedPremadeFilenamesRef = useRef<Map<string, string>>(new Map());
+
   // Status message shown briefly after actions like saving
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -107,6 +115,7 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
       // Store references to the real PlayerCharacter objects from the initial party
       // so we can export them as premade characters later
       loadedPremadeCharactersRef.current = new Map();
+      loadedPremadeFilenamesRef.current = new Map();
       initialParty.forEach(p => {
         if (p.id) loadedPremadeCharactersRef.current.set(p.id, p);
       });
@@ -175,6 +184,7 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
 
       // Store the full character data for potential export
       loadedPremadeCharactersRef.current.set(newId, character);
+      loadedPremadeFilenamesRef.current.set(newId, summary.filename);
 
       // Add to the editable party list
       setEditableParty(prev => [...prev, {
@@ -190,8 +200,20 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
     }
 
     setIsLoadingPremade(false);
-    setShowPremadePicker(false);
+    // Keep the picker open after an add so a developer can assemble a full test
+    // party from the premade roster without reopening the menu for each member.
+    // The selected premade still disappears immediately via availablePremadeCharacters.
   };
+
+  const activePremadeFilenames = new Set(
+    editableParty
+      .map(member => loadedPremadeFilenamesRef.current.get(member.id))
+      .filter((filename): filename is string => Boolean(filename))
+  );
+
+  const availablePremadeCharacters = premadeCharacters.filter(
+    character => !activePremadeFilenames.has(character.filename)
+  );
 
   // ============================================================================
   // Premade Character Saving (Dev Mode Only)
@@ -248,17 +270,17 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
             </h3>
             <button
               onClick={() => setShowPremadePicker(!showPremadePicker)}
-              disabled={premadeCharacters.length === 0 || isLoadingPremade}
+              disabled={availablePremadeCharacters.length === 0 || isLoadingPremade}
               className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
             >
-              {isLoadingPremade ? 'Loading...' : showPremadePicker ? 'Hide Roster' : `Browse (${premadeCharacters.length})`}
+              {isLoadingPremade ? 'Loading...' : showPremadePicker ? 'Hide Roster' : `Browse (${availablePremadeCharacters.length})`}
             </button>
           </div>
 
           {/* The premade character picker — shows cards for each available character */}
-          {showPremadePicker && premadeCharacters.length > 0 && (
+          {showPremadePicker && availablePremadeCharacters.length > 0 && (
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1 mb-3">
-              {premadeCharacters.map((pc) => (
+              {availablePremadeCharacters.map((pc) => (
                 <button
                   key={pc.filename}
                   onClick={() => handleLoadPremade(pc)}
@@ -290,6 +312,11 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
           {premadeCharacters.length === 0 && (
             <p className="text-gray-500 text-xs italic">
               No premade characters found. Add JSON files to public/premade-characters/ and update manifest.json.
+            </p>
+          )}
+          {premadeCharacters.length > 0 && availablePremadeCharacters.length === 0 && (
+            <p className="text-gray-500 text-xs italic">
+              All premade characters are already in the editable party. Remove one from the party list to make it available again.
             </p>
           )}
         </div>

@@ -1,4 +1,4 @@
-﻿# Proposed Time System Refactor
+# Proposed Time System Refactor
 
 Last Reviewed: 2026-03-12
 Status: Preserved refactor proposal / partially landed utility direction

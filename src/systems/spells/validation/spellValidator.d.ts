@@ -1462,6 +1462,7 @@ export declare const SpellValidator: z.ZodObject<{
             immunity: "immunity";
             temporary_hp: "temporary_hp";
             advantage_on_saves: "advantage_on_saves";
+            disadvantage_on_attacks: "disadvantage_on_attacks";
         }>;
         value: z.ZodOptional<z.ZodNumber>;
         baseACFormula: z.ZodOptional<z.ZodString>;

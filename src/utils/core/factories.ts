@@ -782,6 +782,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
         action: { used: false, remaining: 1 },
         bonusAction: { used: false, remaining: 1 },
         reaction: { used: false, remaining: 1 },
+        legendary: { used: 0, total: 0 },
         movement: { used: 0, total: 30 },
         freeActions: 1
       },
@@ -813,6 +814,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
         action: { used: true, remaining: 0 },
         bonusAction: { used: true, remaining: 0 },
         reaction: { used: true, remaining: 0 },
+        legendary: { used: 0, total: 0 },
         movement: { used: 0, total: 0 },
         freeActions: 0
       },

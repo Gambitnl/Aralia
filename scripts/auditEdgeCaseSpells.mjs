@@ -17,13 +17,16 @@ const text = readFileSync(SRC, 'utf8');
 // --- Find each EXECUTION constant body ------------------------------------
 
 function findExecutionBody(constName) {
-  const start = text.indexOf(`const ${constName}: PhaseBlock[] = [`);
-  if (start < 0) return null;
-  let depth = 0, i = start;
+  const decl = `const ${constName}: PhaseBlock[] = [`;
+  const declAt = text.indexOf(decl);
+  if (declAt < 0) return null;
+  // Start AFTER the type annotation's `[]` - the literal array opens at the trailing `[`.
+  const arrStart = declAt + decl.length - 1; // points at the literal `[`
+  let depth = 0, i = arrStart;
   while (i < text.length) {
     const c = text[i];
     if (c === '[') depth++;
-    else if (c === ']') { depth--; if (depth === 0) return text.slice(start, i + 1); }
+    else if (c === ']') { depth--; if (depth === 0) return text.slice(arrStart, i + 1); }
     i++;
   }
   return null;

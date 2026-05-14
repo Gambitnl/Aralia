@@ -100,6 +100,8 @@ export type AppAction =
   | { type: 'CLOSE_TEMPLE' }
   // Encounter Actions
   | { type: 'GENERATE_ENCOUNTER'; }
+  /** Fired from within the modal when the user first opens the AI tab. Keeps modal open, starts loading. */
+  | { type: 'TRIGGER_AI_ENCOUNTER'; }
   | { type: 'SHOW_ENCOUNTER_MODAL'; payload: { encounterData: ShowEncounterModalPayload } }
   | { type: 'HIDE_ENCOUNTER_MODAL'; }
   // Battle Map Actions

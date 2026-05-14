@@ -1,0 +1,75 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 7 manual review override shard for final spell index 25 in generated discovery row order.",
+    "This packet added structured/runtime mechanics for Whirlwind's moving area, object suction, restraint, forced vertical movement, falling, and escape hurl."
+  ],
+  "findings": {
+    "whirlwind::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Dexterity damage save and Strength restraint save are represented by effects, but runtime lacks a first-class two-step save chain where the second save only occurs for Large-or-smaller creatures that failed the first save.",
+      "recommendedTemplateChange": "Add chained save and size-gated secondary save fields.",
+      "recommendedJsonChange": "Add runtime chainedSave data keyed to failed primary save and target size."
+    },
+    "whirlwind::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Medium-or-smaller unsecured unworn/un-carried object suction and Large-or-smaller creature restraint are preserved in utility/effects, but runtime lacks typed object security/worn-carried and size-gated rider fields.",
+      "recommendedTemplateChange": "Add object security/worn-carried and size-gated rider fields.",
+      "recommendedJsonChange": "Add runtime objectSuctionFilter and sizeGatedRider data."
+    },
+    "whirlwind::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The caster action to move the whirlwind up to 30 feet is represented as a MOVEMENT effect with on_caster_action trigger and utility option.",
+      "recommendedTemplateChange": "No additional sustain field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT trigger and UTILITY controlOptions."
+    },
+    "whirlwind::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Upward pull, carried movement with the whirlwind, fall on end, and escape hurl are represented by MOVEMENT effects and utility options.",
+      "recommendedTemplateChange": "No additional forced movement field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT effects and UTILITY controlOptions."
+    },
+    "whirlwind::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The visible ground point and cylinder area are represented by targeting.areaOfEffect and utility options.",
+      "recommendedTemplateChange": "No additional terrain field required.",
+      "recommendedJsonChange": "Closed by targeting.areaOfEffect."
+    },
+    "whirlwind::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible point targeting and howling flavor; the targeting visibility is represented and the sound is descriptive flavor with no runtime rule beyond spell presence.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "Closed by targeting.lineOfSight; no sound runtime data required."
+    },
+    "whirlwind::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'successful' save text, not healing or restoration.",
+      "recommendedTemplateChange": "Track under attack_or_save_modifier.",
+      "recommendedJsonChange": "No healing runtime data required."
+    },
+    "whirlwind::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Restrained is represented as a STATUS_CONDITION effect with break/end context.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION effect."
+    },
+    "whirlwind::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Whirlwind object suction and moving cylinder control are represented by movement/utility data, but runtime lacks first-class mobile hazard/object pickup fields.",
+      "recommendedTemplateChange": "Add mobile hazard and object pickup fields.",
+      "recommendedJsonChange": "Add runtime mobileHazard and objectPickup data."
+    },
+    "whirlwind::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Falls when the spell ends and restraint ending on successful escape are represented by MOVEMENT, STATUS_CONDITION, and utility options.",
+      "recommendedTemplateChange": "No additional conditional-ending field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT/STATUS_CONDITION effects."
+    },
+    "whirlwind::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the fall-on-end aftermath; this is represented as movement rather than a memory/aftermath mechanic.",
+      "recommendedTemplateChange": "Track under forced_movement/conditional_ending.",
+      "recommendedJsonChange": "No aftermath runtime data required."
+    }
+  }
+}

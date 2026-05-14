@@ -1,10 +1,10 @@
-# Spells Dynamic Graph Overlay — Implementation Plan
+# Spells Dynamic Graph Overlay - Implementation Plan
 
-> **IMPLEMENTED** — 2026-03-20. All tasks below were completed. Key deviation from the original plan: the `virtualNodes` derivation was originally structured as a hardcoded 5-tier loop. It was refactored to a **recursive `buildChildren(parentId, choices, depth)` inner function** (guarded by `MAX_DEPTH = 14`), enabling arbitrary drill depth rather than a fixed cap. The `SpellBranchNavigator` additionally gained an `initialChoices?: AxisChoice[]` prop so the graph overlay can seed its filter state when "Open in Spell Branch →" is clicked.
+> **IMPLEMENTED** - 2026-03-20. All tasks below were completed. Key deviation from the original plan: the `virtualNodes` derivation was originally structured as a hardcoded 5-tier loop. It was refactored to a **recursive `buildChildren(parentId, choices, depth)` inner function** (guarded by `MAX_DEPTH = 14`), enabling arbitrary drill depth rather than a fixed cap. The `SpellBranchNavigator` additionally gained an `initialChoices?: AxisChoice[]` prop so the graph overlay can seed its filter state when "Open in Spell Branch ->" is clicked.
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add a live axis-engine-powered Spells navigation tree to the roadmap graph canvas that lets users drill through spell axes, pick values, and expand to see matching spell entries — all as native graph nodes.
+**Goal:** Add a live axis-engine-powered Spells navigation tree to the roadmap graph canvas that lets users drill through spell axes, pick values, and expand to see matching spell entries - all as native graph nodes.
 
 **Architecture:** A `SpellGraphOverlay` component mounts inside the existing canvas pan/zoom wrapper and renders virtual nodes/edges as absolutely-positioned elements that share the same coordinate system. A `virtual-node-id.ts` module encodes the full axis-choice path in each node's ID, so the overlay derives all children from the axis engine at render time with zero separate selection state. The Spells project node is injected into the roadmap data by `generateRoadmapData()`.
 
@@ -32,7 +32,7 @@ After the `data.nodes = data.nodes.map(...)` block (line ~193) and before `retur
 
 ```typescript
 // Technical: inject the live Spells navigator node if not already present.
-// Layman: this is the "Spells" circle on the roadmap — clicking it opens the live spell tree.
+// Layman: this is the "Spells" circle on the roadmap - clicking it opens the live spell tree.
 if (!data.nodes.some((n: RoadmapNode) => n.id === 'pillar_spells')) {
   data.nodes.push({
     id: 'pillar_spells',
@@ -41,7 +41,7 @@ if (!data.nodes.some((n: RoadmapNode) => n.id === 'pillar_spells')) {
     status: 'active',
     initialX: 1380,
     initialY: 400,
-    description: 'Live spell navigator — drill through axes to explore all 469 spell profiles.',
+    description: 'Live spell navigator - drill through axes to explore all 469 spell profiles.',
     spellTree: true,
     testFileExists: false,
     testFileDeclared: false,
@@ -68,7 +68,7 @@ git commit -m "feat(roadmap): inject pillar_spells project node into roadmap dat
 
 ---
 
-## Task 2: virtual-node-id.ts — encode/decode path helpers
+## Task 2: virtual-node-id.ts - encode/decode path helpers
 
 **Files:**
 - Create: `devtools/roadmap/src/spell-branch/virtual-node-id.ts`
@@ -221,7 +221,7 @@ export function axisNodeId(axisId: AxisId, choices: AxisChoice[] = []): string {
 }
 
 /**
- * ID for a value node — encodes the full set of choices that led here.
+ * ID for a value node - encodes the full set of choices that led here.
  */
 export function valueNodeId(choices: AxisChoice[]): string {
   return `$spell:v:${encodeChoices(choices)}`;
@@ -484,7 +484,7 @@ export interface VirtualLayoutNode extends VirtualLayoutInputNode {
 
 /**
  * Technical: pure function that assigns x/y to each virtual node using a
- * depth-column × leaf-cursor layout. Leaf nodes advance the cursor, parents
+ * depth-column x leaf-cursor layout. Leaf nodes advance the cursor, parents
  * center on their children.
  * Layman: positions each virtual card in a column grid without overlapping.
  */
@@ -782,7 +782,7 @@ export function SpellGraphOverlay({
 }
 ```
 
-**Note on depth limit:** The implementation above handles 2 levels of axis picking (choices → remaining axis → remaining values → show spells). To support arbitrary depth, the `virtualNodes` useMemo would need to recurse. For the initial implementation, 2 levels of axis selection covers the majority of use cases. Deeper recursion can be added in a follow-up.
+**Note on depth limit:** The implementation above handles 2 levels of axis picking (choices -> remaining axis -> remaining values -> show spells). To support arbitrary depth, the `virtualNodes` useMemo would need to recurse. For the initial implementation, 2 levels of axis selection covers the majority of use cases. Deeper recursion can be added in a follow-up.
 
 ### Step 4.3: Run layout tests
 
@@ -849,7 +849,7 @@ const handleVirtualNodeSelect = useCallback((id: string, detail: VirtualNodeDeta
 }, []);
 ```
 
-Also update `onNodeClick` to clear virtual selection when a real node is clicked — add at the start of `onNodeClick`:
+Also update `onNodeClick` to clear virtual selection when a real node is clicked - add at the start of `onNodeClick`:
 ```typescript
 setSelectedVirtualId(null);
 setSelectedVirtualDetail(null);
@@ -860,7 +860,7 @@ setSelectedVirtualDetail(null);
 Find the section after `{graph.nodes.map(...)}` (around line 3128) and add the overlay immediately after the closing `}` of the nodes map:
 
 ```typescript
-{/* Spell Graph Overlay — virtual axis-engine-powered subtree for pillar_spells */}
+{/* Spell Graph Overlay - virtual axis-engine-powered subtree for pillar_spells */}
 {(() => {
   const spellsNode = graph.nodes.find((n) => n.id === 'pillar_spells');
   if (!spellsNode) return null;
@@ -904,7 +904,7 @@ Find where `selectedDetail` is rendered in the info panel JSX (search for `selec
         onClick={() => onOpenSpellBranch(selectedVirtualDetail.choices)}
         className="mt-2 text-xs px-2 py-1 rounded border border-violet-400 text-violet-300 hover:bg-violet-900/40"
       >
-        Open in Spell Branch →
+        Open in Spell Branch ->
       </button>
     )}
     {selectedVirtualDetail.kind === 'entry' && selectedVirtualDetail.spellProfile && (
@@ -927,12 +927,12 @@ The exact JSX placement depends on the current panel structure. Find the `{selec
 1. Open `http://localhost:3010`
 2. Click the root node to expand
 3. Find the "Spells" project node in the graph
-4. Click it — verify it toggles expansion in `expandedNodeIds`
+4. Click it - verify it toggles expansion in `expandedNodeIds`
 5. Confirm `SpellGraphOverlay` mounts and spell profiles load
 6. Confirm axis nodes appear as virtual branch cards
-7. Click "Class" — value nodes appear
-8. Click "Wizard" — remaining axes + Show Spells appear
-9. Click "Show Spells" — spell entry nodes appear
+7. Click "Class" - value nodes appear
+8. Click "Wizard" - remaining axes + Show Spells appear
+9. Click "Show Spells" - spell entry nodes appear
 
 ### Step 5.8: Commit
 
@@ -943,7 +943,7 @@ git commit -m "feat(spell-graph): mount SpellGraphOverlay in RoadmapVisualizer"
 
 ---
 
-## Task 6: Wire "Open in Spell Branch →" through roadmap-entry.tsx
+## Task 6: Wire "Open in Spell Branch ->" through roadmap-entry.tsx
 
 **Files:**
 - Modify: `devtools/roadmap/src/spell-branch/SpellBranchNavigator.tsx`
@@ -1001,8 +1001,8 @@ function RoadmapApp() {
 
 ### Step 6.3: Verify end-to-end
 
-1. In the roadmap graph, navigate to Spells → Class → Wizard → Show Spells
-2. Click "Open in Spell Branch →" in the info panel
+1. In the roadmap graph, navigate to Spells -> Class -> Wizard -> Show Spells
+2. Click "Open in Spell Branch ->" in the info panel
 3. Confirm the Spell Branch tab opens with Class=Wizard already applied
 
 ### Step 6.4: Commit
@@ -1016,7 +1016,7 @@ git commit -m "feat(spell-graph): wire Open in Spell Branch from graph overlay t
 
 ## Known Limitations / Follow-ups
 
-- The overlay renders virtual nodes at depths 1–6 (2 levels of axis selection). Arbitrary depth requires a fully recursive `virtualNodes` computation — deferred to follow-up.
-- Spell entry nodes at depth 4+ may be numerous. Consider a "Show N more…" stub node if performance degrades.
+- The overlay renders virtual nodes at depths 1-6 (2 levels of axis selection). Arbitrary depth requires a fully recursive `virtualNodes` computation - deferred to follow-up.
+- Spell entry nodes at depth 4+ may be numerous. Consider a "Show N more..." stub node if performance degrades.
 - Drag-to-reposition is not supported for virtual nodes (by design).
 - Health signals and test badges are suppressed for virtual nodes (no source data).

@@ -1,0 +1,64 @@
+{
+  "templateKind": "runtime-json",
+  "part": "00-identity-access-and-ai",
+  "fieldCount": 3,
+  "fields": [
+    {
+      "path": "ritual",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": "Ritual",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Ritual."
+        }
+      ],
+      "comment": "Mapped from structured Ritual. It maps to `ritual`. It is populated from the structured markdown label `Ritual`. Purpose: ritual exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Ritual`, after that field has been checked against canonical prose. It maps to runtime JSON path `ritual`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "rarity",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "common",
+        "uncommon",
+        "rare",
+        "very_rare",
+        "legendary"
+      ],
+      "structuredLabel": null,
+      "runtimeOnly": true,
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Runtime rarity is local metadata; most spells currently use common."
+        }
+      ],
+      "comment": "Runtime rarity is local metadata; most spells currently use common. It maps to `rarity`. Purpose: rarity exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. It is runtime metadata derived from file organization or local engine needs rather than a direct canonical prose mechanic. It maps to runtime JSON path `rarity`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "common": "Allowed value for rarity; use only when the canonical spell text supports this exact mechanic.",
+        "uncommon": "Allowed value for rarity; use only when the canonical spell text supports this exact mechanic.",
+        "rare": "Allowed value for rarity; use only when the canonical spell text supports this exact mechanic.",
+        "very_rare": "Allowed value for rarity; use only when the canonical spell text supports this exact mechanic.",
+        "legendary": "Allowed value for rarity; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "attackType",
+      "required": true,
+      "valueType": "string",
+      "structuredLabel": "Attack Roll",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Attack-roll status maps from structured Attack Roll plus effect data."
+        }
+      ],
+      "comment": "Attack-roll status maps from structured Attack Roll plus effect data. It maps to `attackType`. It is populated from the structured markdown label `Attack Roll`. Purpose: attackType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Attack Roll`, after that field has been checked against canonical prose. It maps to runtime JSON path `attackType`. The value type is `string`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    }
+  ]
+}

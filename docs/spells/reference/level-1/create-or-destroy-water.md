@@ -3,7 +3,7 @@
 - **School**: Transmutation
 - **Ritual**: false
 - **Classes**: Cleric, Druid
-- **Sub-Classes**: Warlock - The Fathomless (TCoE), Paladin - Oath of the Open Sea (TCSR)
+- **Sub-Classes**: Unsupported Entries
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
@@ -19,6 +19,20 @@
 - **Area Size Unit**: feet
 - **Area Height**: 0
 - **Valid Targets**: point
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: false
 - **Verbal**: true
 - **Somatic**: true
@@ -30,10 +44,29 @@
 - **Concentration**: false
 - **Effect Type**: UTILITY
 - **Utility Type**: creation
-- **Save Stat**: None
-- **Save Outcome**: none
+- **Save Stat**: not_applicable
+- **Save Outcome**: not_applicable
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Description**: You do one of the following: Create Water. You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot Cube within range, extinguishing exposed flames there. Destroy Water. You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot Cube within range.
 - **Higher Levels**: Using a Higher-Level Spell Slot. You create or destroy 10 additional gallons of water, or the size of the Cube increases by 5 feet, for each spell slot level above 1.
+- **Scaling Rule 1 Type**: slot_level_bonus
+- **Scaling Rule 1 Applies To**: utility | trigger immediate | utility creation | Choose to create clean water (in containers or as rain that can extinguish expos
+- **Scaling Rule 1 Notes**: +10 gallons created or destroyed, or +5-foot Cube size per slot level above 1 (choose when casting).
 - **Spatial Form 1 Label**: Rain Cube
 - **Spatial Form 1 Shape**: Cube
 - **Spatial Form 1 Size Value**: 30
@@ -99,3 +132,4 @@ Cube -> /rules-glossary/38-tooltip
 Capture Method: http
 Legacy Page: false
 -->
+

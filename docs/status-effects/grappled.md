@@ -106,7 +106,7 @@
 
 | Line | Snippet |
 |---|---|
-| 464 | `grappled: { id: 'grappled', label: 'Grappled', icon: '✊', color: '#D97706', description: 'Speed becomes 0, and it can’t benefit from any bonus to its ...` |
+| 464 | `grappled: { id: 'grappled', label: 'Grappled', icon: '✊', color: '#D97706', description: 'Speed becomes 0, and it can't benefit from any bonus to its ...` |
 
 ## Documentation & Markdown (.md)
 
@@ -139,7 +139,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ## JSON Data Files (.json)
 

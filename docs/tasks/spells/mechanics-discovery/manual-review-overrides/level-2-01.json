@@ -1,0 +1,367 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "darkness::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Darkness has two placement modes: point in range or object that is not worn or carried. Runtime targeting only models the point/Sphere mode.",
+      "recommendedTemplateChange": "Add alternate target mode fields for point versus unattended object, including not-worn-or-carried object eligibility.",
+      "recommendedJsonChange": "Add runtime target modes for point-origin Sphere and object-origin Emanation."
+    },
+    "darkness::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Darkness blocks Darkvision and nonmagical light, can be blocked by opaque cover when object-originated, and dispels spell-created Bright/Dim Light of level 2 or lower; these are mostly prose-only.",
+      "recommendedTemplateChange": "Add magical darkness fields for vision blockers, nonmagical-light immunity, object-origin opaque cover blocker, and lower/equal spell-light dispel.",
+      "recommendedJsonChange": "Add runtime magicalDarkness data for Darkvision blocking, nonmagical light blocking, opaque cover blocking, and dispel-overlapping-light spell level <= 2."
+    },
+    "darkness::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The specific Darkvision cannot see through it rule is only described, not represented as a sense-specific blocker.",
+      "recommendedTemplateChange": "Add sense-blocker fields for named senses or perception modes.",
+      "recommendedJsonChange": "Add runtime senseBlocker data for Darkvision."
+    },
+    "detect-thoughts::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Detect Thoughts has Sense Thoughts and Read Thoughts modes, and later turns can activate either mode with a Magic action; runtime stores two utility effects but no explicit mode/action selection model.",
+      "recommendedTemplateChange": "Add repeatable mode activation fields for later-turn Magic action choices.",
+      "recommendedJsonChange": "Add runtime utilityModes for Sense Thoughts and Read Thoughts with later-turn Magic action activation."
+    },
+    "detect-thoughts::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The deeper probe Wisdom save has different outcomes: failed save reveals deeper information, successful save ends the spell. Runtime has a save but lacks a typed success-ending outcome tied to the probe.",
+      "recommendedTemplateChange": "Add save outcome fields for success_ends_spell and failed-save knowledge payloads.",
+      "recommendedJsonChange": "Add runtime probeSave data with Wisdom save, fail reveals reasoning/emotions/looming concern, success ends spell."
+    },
+    "detect-thoughts::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched line-of-sight target selection for Read Thoughts, not a standalone vision/light/sound effect.",
+      "recommendedTemplateChange": "Track this through read-thought target eligibility, not vision/light/sound fields.",
+      "recommendedJsonChange": "Track this through read-thought target eligibility, not vision/light/sound data."
+    },
+    "detect-thoughts::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell's targets must know languages or be telepathic for thought sensing/reading to work, but language/telepathy eligibility is not first-class.",
+      "recommendedTemplateChange": "Add mental communication/thought eligibility fields for knows-language or telepathic.",
+      "recommendedJsonChange": "Add runtime thoughtEligibility data requiring languagesKnown or telepathy."
+    },
+    "detect-thoughts::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Detect Thoughts has distinct knowledge payloads: presence of thinking creature, surface thought, deeper reasoning/emotions/looming concern, and target awareness of probing; runtime descriptions do not model those payloads.",
+      "recommendedTemplateChange": "Add knowledge payload fields for thought presence, surface thought, deeper probe details, and target-awareness side effect.",
+      "recommendedJsonChange": "Add runtime thoughtSense/readThoughts/probeDeeper data with payload and awareness fields."
+    },
+    "detect-thoughts::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Detect Thoughts can end on successful Wisdom save against deeper probe or on a target's action Intelligence (Arcana) check while attention remains shifted; only prose carries the Arcana escape and attention condition.",
+      "recommendedTemplateChange": "Add conditional-ending and escape-check fields for successful probe save, target Arcana action, and shift-attention-away condition.",
+      "recommendedJsonChange": "Add runtime endConditions for successful probe save and target action Intelligence (Arcana) check against spell save DC."
+    },
+    "dragons-breath::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Dragon's Breath requires choosing one damage type from Acid, Cold, Fire, Lightning, or Poison, but runtime stores the choice as a slash-delimited damage type string.",
+      "recommendedTemplateChange": "Add chosen damage type fields with allowed damage type options.",
+      "recommendedJsonChange": "Replace slash-delimited damage type with runtime damageTypeChoice options and selected damage type."
+    },
+    "dragons-breath::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The granted breath damage is represented as 3d6 with Dexterity save for half and +1d6 slot scaling.",
+      "recommendedTemplateChange": "No save/damage field change required for the basic breath damage mechanic.",
+      "recommendedJsonChange": "No runtime save/damage change required beyond future choice modeling for damage type."
+    },
+    "dragons-breath::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched chosen elemental damage wording, but the spell does not create a persistent environmental change.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change JSON change required."
+    },
+    "dragons-breath::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closureReason": "Added target-granted Magic action fields and runtime grantedActions data linked to the breath damage effect; changed the damage trigger from caster action to granted action. Conditional Ending remains not_applicable because the row was a granted-action misbucket, not an early-ending rule.",
+      "issue": "The target can use a later-turn Magic action to exhale the cone for the duration; runtime uses on_caster_action, which flattens the granted target action and actor identity.",
+      "recommendedTemplateChange": "Add granted action fields with actor target, action type Magic action, area shape, and duration.",
+      "recommendedJsonChange": "Add runtime grantedAction data for target-activated breath cone rather than using on_caster_action."
+    },
+    "enhance-ability::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Enhance Ability requires choosing one ability per target, and higher-level casting can choose a different ability for each additional target; runtime only has a corrected prose description.",
+      "recommendedTemplateChange": "Add per-target ability choice fields with allowed abilities Strength, Dexterity, Intelligence, Wisdom, and Charisma.",
+      "recommendedJsonChange": "Add runtime abilityChoice data and allow one selected ability per target."
+    },
+    "enhance-ability::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell grants Advantage on ability checks using the chosen ability, but there is no ability-check modifier effect model.",
+      "recommendedTemplateChange": "Add ability-check modifier fields for advantage/disadvantage/bonus, chosen ability filter, and duration.",
+      "recommendedJsonChange": "Add runtime abilityCheckModifier data: type advantage, applies to chosen ability, duration while active."
+    },
+    "enlarge-reduce::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Enlarge/Reduce has two mutually exclusive modes with different size, check/save, and damage modifiers, but runtime still stores the modes as utility prose.",
+      "recommendedTemplateChange": "Add mode fields for Enlarge and Reduce with per-mode size-category delta, Strength check/save modifier, and weapon/unarmed damage adjustment.",
+      "recommendedJsonChange": "Add runtime mode data instead of relying on one utility description."
+    },
+    "enlarge-reduce::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial Constitution save applies only to unwilling creature targets, and the Strength check/save advantage/disadvantage plus +/-1d4 hit damage are not represented as typed modifiers.",
+      "recommendedTemplateChange": "Add conditional save eligibility for unwilling creature targets, ability-check/save modifier fields, and hit-damage modifier fields with minimum damage floor.",
+      "recommendedJsonChange": "Add runtime unwillingTargetSave plus mode-specific strengthModifier and hitDamageModifier data."
+    },
+    "enlarge-reduce::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting wording, not a distinct vision/light/sound mechanic.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "No vision/light/sound JSON change required."
+    },
+    "enlarge-reduce::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save is an initial no-effect save for unwilling creatures, not a repeat or early-ending mechanic; stale repeat-save prose was removed from runtime description.",
+      "recommendedTemplateChange": "Track under conditional save eligibility, not conditional ending.",
+      "recommendedJsonChange": "No conditional-ending JSON change required for this reviewed row."
+    },
+    "enthrall::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'creatures of your choice' is target selection, not a separate modal mechanic.",
+      "recommendedTemplateChange": "No choice/mode field required beyond target selection.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "enthrall::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Enthrall applies a -10 penalty to Wisdom (Perception) checks and Passive Perception, but runtime has only a generic utility description and the existing savePenalty shape only covers saving throws.",
+      "recommendedTemplateChange": "Add ability/skill/passive-score penalty fields for Wisdom (Perception) checks and Passive Perception.",
+      "recommendedJsonChange": "Add runtime perceptionPenalty data with flat -10 for Wisdom (Perception) checks and Passive Perception."
+    },
+    "enthrall::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Enthrall's fighting-caster-or-allies automatic success rule is now encoded as a save auto-outcome override.",
+      "recommendedTemplateChange": "Closed by Save Auto Outcome auto_success with condition fighting_caster_or_allies.",
+      "recommendedJsonChange": "Closed by runtime condition.saveOutcomeOverrides carrying fighting_caster_or_allies -> auto_success."
+    },
+    "enthrall::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'you can see' target selection, not a vision/light/sound effect.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "No vision/light/sound JSON change required."
+    },
+    "enthrall::message_or_communication": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The distracting string of words is presentation for the Wisdom save and perception penalty, not a separate communication mechanic in this pass.",
+      "recommendedTemplateChange": "No message/communication field required for the descriptive wording.",
+      "recommendedJsonChange": "No runtime communication field required for the descriptive wording."
+    },
+    "enthrall::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for the perception penalty.",
+      "recommendedTemplateChange": "No conditional-ending field required beyond existing one-minute concentration duration.",
+      "recommendedJsonChange": "No conditional-ending JSON change required."
+    },
+    "find-steed::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Find Steed has steed appearance choice, Celestial/Fey/Fiend type choice, disappeared-steed versus different-steed recast choice, and type-specific traits/actions; runtime only stores shallow form/type prose.",
+      "recommendedTemplateChange": "Add summon choice fields for appearance, creature type, recast return/new choice, and type-gated traits/actions.",
+      "recommendedJsonChange": "Add runtime summonChoices and typeSpecificFeatures data for Celestial, Fey, and Fiend."
+    },
+    "find-steed::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The steed uses the caster's spell attack modifier for Otherworldly Slam and spell save DC for Fell Glare, but these attack/save formulas are only in higher-level prose.",
+      "recommendedTemplateChange": "Add summon action attack/save formula fields that can reference caster spell attack modifier and spell save DC.",
+      "recommendedJsonChange": "Add runtime summonActions for Otherworldly Slam and Fell Glare with caster-derived attack bonus/save DC."
+    },
+    "find-steed::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The summon appears in an unoccupied space, and Fey Step teleports steed and rider to an unoccupied space; unoccupied-space requirements are not first-class.",
+      "recommendedTemplateChange": "Add unoccupied-space placement fields for summons and teleport destinations.",
+      "recommendedJsonChange": "Add runtime placement.requiresUnoccupied and Fey Step destination requirements."
+    },
+    "find-steed::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched line-of-sight wording for Fell Glare, which belongs to the summon action targeting model.",
+      "recommendedTemplateChange": "Track through summon action targeting.",
+      "recommendedJsonChange": "Track through runtime summonActions targeting."
+    },
+    "find-steed::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the heading 'Disappearance of the Steed'; this is summon persistence/ending, not illusion or disguise.",
+      "recommendedTemplateChange": "Track through summon lifecycle fields.",
+      "recommendedJsonChange": "Track through runtime summon lifecycle fields."
+    },
+    "find-steed::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The steed has Telepathy 1 mile that works only with the caster; runtime telepathy range has been corrected numerically but no communication restriction field exists.",
+      "recommendedTemplateChange": "Add summon communication fields for telepathy range and allowed participants.",
+      "recommendedJsonChange": "Add runtime communication data for caster-only telepathy range 1 mile."
+    },
+    "find-steed::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Find Steed has persistent summon lifecycle, replacement on recast, controlled mount behavior while ridden, independent behavior if caster is Incapacitated, and leave-behind carried gear; runtime summon data is too shallow.",
+      "recommendedTemplateChange": "Add summon lifecycle/control fields for replacement, initiative sharing, controlled mount, incapacitated fallback behavior, disappearance causes, and carried-gear handling.",
+      "recommendedJsonChange": "Add runtime summon lifecycle/control data for the Otherworldly Steed."
+    },
+    "find-steed::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fey Step teleports the steed and rider up to 60 feet to an unoccupied space and recharges after Long Rest, but type-gated teleport action data is not represented.",
+      "recommendedTemplateChange": "Add summon action fields for type-gated teleport, rider inclusion, distance, destination, and recharge.",
+      "recommendedJsonChange": "Add runtime Fey Step action data."
+    },
+    "find-steed::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fell Glare, Fey Step, and Healing Touch each recharge after Long Rest, and Life Bond triggers from the caster regaining HP from level 1+ spells; these recharge/trigger resources are prose-only.",
+      "recommendedTemplateChange": "Add summon action recharge fields and linked healing trigger fields.",
+      "recommendedJsonChange": "Add runtime recharge after Long Rest for type-gated actions and Life Bond trigger data."
+    },
+    "find-steed::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The steed being an ally is summon ownership/allegiance, not a social or knowledge payload.",
+      "recommendedTemplateChange": "Track allegiance under summon fields.",
+      "recommendedJsonChange": "Track allegiance under runtime summon data."
+    },
+    "find-steed::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Life Bond mirrors qualifying healing to the steed, and Celestial Healing Touch restores 2d8 plus spell level; neither healing mechanic is typed.",
+      "recommendedTemplateChange": "Add linked healing trigger fields and summon action healing fields.",
+      "recommendedJsonChange": "Add runtime Life Bond healing mirror and Healing Touch action data."
+    },
+    "find-steed::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime stat block now has level-2 AC/HP corrected, but the formulas AC 10 + spell level, HP 5 + 10 per spell level, Hit Dice count, fly speed at spell level 4+, and disappearance at 0 HP/caster death are not formulaic data.",
+      "recommendedTemplateChange": "Add summon stat formula fields and lifecycle disappearance fields.",
+      "recommendedJsonChange": "Add runtime stat formulas and disappearance conditions instead of fixed AC/HP only."
+    },
+    "find-steed::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the caster is Incapacitated, the steed changes turn behavior; Fiend Fell Glare can Frighten a target until the end of the caster's next turn. Both are prose-only.",
+      "recommendedTemplateChange": "Add condition-gated summon behavior and type-gated status action fields.",
+      "recommendedJsonChange": "Add runtime incapacitatedBehavior and Fell Glare Frightened status data."
+    },
+    "find-traps::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Natural floor/ceiling/sinkhole examples define what is not a trap for this spell, not a terrain modification mechanic.",
+      "recommendedTemplateChange": "Track under trap detection eligibility, not terrain/surface.",
+      "recommendedJsonChange": "Track under trap detection eligibility, not terrain data."
+    },
+    "find-traps::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Find Traps detects objects/mechanisms and spells such as Alarm or Glyph of Warding that were created to cause damage or danger, but trap eligibility is prose-only.",
+      "recommendedTemplateChange": "Add trap detection fields for qualifying created danger sources, included spell traps, mechanical traps, and excluded natural hazards.",
+      "recommendedJsonChange": "Add runtime trapDetection data for qualifying trap categories and exclusions."
+    },
+    "find-traps::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell reveals trap presence and general nature of the danger, but not exact location; this knowledge payload is not first-class.",
+      "recommendedTemplateChange": "Add detection payload fields for presence_only, no_location, and general_danger_nature.",
+      "recommendedJsonChange": "Add runtime knowledge payload data for trap presence and general danger nature without location."
+    },
+    "find-traps::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the word 'weakness'; Find Traps has no healing or restoration mechanic.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration JSON change required."
+    },
+    "find-traps::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched natural hazard examples, but Find Traps applies no status or state change.",
+      "recommendedTemplateChange": "No status/state field required.",
+      "recommendedJsonChange": "No status/state JSON change required."
+    },
+    "flame-blade::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Flame Blade's melee spell attack and 3d6 plus spellcasting ability modifier damage are represented in prose/damage dice, but the spellcasting ability modifier addition is not first-class.",
+      "recommendedTemplateChange": "Add damage formula fields for spellcasting ability modifier additions.",
+      "recommendedJsonChange": "Add runtime damage.abilityModifier or formula data for 3d6 plus spellcasting ability modifier."
+    },
+    "flame-blade::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the caster lets go of the blade it disappears, and the caster can evoke it again as a Bonus Action; this object persistence/re-evoke action is prose-only.",
+      "recommendedTemplateChange": "Add conjured-object persistence fields for disappears_on_release and reevoke action cost.",
+      "recommendedJsonChange": "Add runtime conjuredWeapon lifecycle data for release disappearance and bonus-action re-evocation."
+    },
+    "flame-blade::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The blade's 10-foot bright and 10-foot dim light radii are now represented in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "Closed by adding Light Bright Radius and Light Dim Radius fields.",
+      "recommendedJsonChange": "Closed by adding a UTILITY light effect with brightRadius 10 and dimRadius 10."
+    },
+    "flame-blade::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Fire damage wording, but Flame Blade does not create a separate environmental change.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change JSON change required."
+    },
+    "flaming-sphere::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Flaming Sphere's end-turn and movement-collision damage now both carry Dexterity save for half damage with +1d6 slot scaling.",
+      "recommendedTemplateChange": "No save/damage field change required for this reviewed row.",
+      "recommendedJsonChange": "Closed by adding the missing Dexterity save half condition to the end-turn damage effect."
+    },
+    "flaming-sphere::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The sphere must be created in an unoccupied space on the ground, and flammable objects must be not worn or carried to ignite; those placement/eligibility constraints are not first-class.",
+      "recommendedTemplateChange": "Add unoccupied ground placement and object not-worn-or-carried ignition eligibility fields.",
+      "recommendedJsonChange": "Add runtime placement.requiresUnoccupied, placement.surface ground, and ignition object eligibility data."
+    },
+    "flaming-sphere::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can move the sphere up to 30 feet as a Bonus Action, but runtime still uses on_caster_action without a typed movable-area action model.",
+      "recommendedTemplateChange": "Add movable hazard fields for action cost, move distance, movement mode, and stop-on-creature behavior.",
+      "recommendedJsonChange": "Add runtime movableArea action data for bonus-action roll up to 30 feet."
+    },
+    "flaming-sphere::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The sphere rolls along the ground, can cross barriers up to 5 feet and pits up to 10 feet, but those traversal rules are only spatial notes.",
+      "recommendedTemplateChange": "Add movable terrain traversal fields for ground-only rolling, barrier height, and pit width limits.",
+      "recommendedJsonChange": "Add runtime movableArea traversal data."
+    },
+    "flaming-sphere::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The 20-foot bright and additional 20-foot dim light radii are represented in spatial measured details.",
+      "recommendedTemplateChange": "A future light-field normalization may move these into explicit Light Bright/Dim fields, but the numeric values are preserved.",
+      "recommendedJsonChange": "No immediate runtime correction required; light radii are present as spatial measured details."
+    },
+    "flaming-sphere::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Flammable unattended objects start burning when touched by the sphere, but ignition/world-state change is prose-only.",
+      "recommendedTemplateChange": "Add ignition fields for flammable unattended objects touched by an effect.",
+      "recommendedJsonChange": "Add runtime environmentalChange ignition data for flammable objects not worn or carried."
+    },
+    "gentle-repose::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The raise-dead time-limit extension is not a social or knowledge payload; it is tracked under status/state timing mechanics.",
+      "recommendedTemplateChange": "No social/knowledge field required.",
+      "recommendedJsonChange": "No social/knowledge JSON change required."
+    },
+    "gentle-repose::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Gentle Repose prevents decay, prevents becoming Undead, and pauses days counting against resurrection time limits; runtime stores all of this in utility prose.",
+      "recommendedTemplateChange": "Add corpse/remains preservation fields for no decay, cannot become Undead, and resurrection time-limit pause.",
+      "recommendedJsonChange": "Add runtime preservation data for decay prevention, undead prevention, and raise-dead time-limit suspension."
+    },
+    "gust-of-wind::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses the Line direction and can change it later as a Bonus Action, but line direction state is not represented.",
+      "recommendedTemplateChange": "Add directional area fields for chosen direction and later direction changes.",
+      "recommendedJsonChange": "Add runtime directionalArea data for chosen line direction."
+    },
+    "gust-of-wind::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Strength save applies when the Line affects a creature initially and again when a creature ends its turn in the Line; runtime has only one movement effect with coarse trigger modeling.",
+      "recommendedTemplateChange": "Add recurring area save fields for initial and end-turn forced movement saves.",
+      "recommendedJsonChange": "Add runtime forcedMovement triggers for initial-in-area and end-turn-in-area saves."
+    },
+    "gust-of-wind::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Changing the Line direction as a later-turn Bonus Action is prose-only.",
+      "recommendedTemplateChange": "Add later-turn action fields for changing an active area direction.",
+      "recommendedJsonChange": "Add runtime activeAreaUpdate action cost bonus_action for direction change."
+    },
+    "gust-of-wind::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 15-foot push away following the Line is partially represented, but trigger timing and line-following direction need more precise data.",
+      "recommendedTemplateChange": "Add forced movement direction qualifiers for along_line/away_from_caster and trigger timing.",
+      "recommendedJsonChange": "Refine runtime forcedMovement with line-following direction and initial/end-turn triggers."
+    },
+    "gust-of-wind::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Gust of Wind imposes 2-for-1 movement cost toward the caster, disperses gas/vapor, extinguishes unprotected flames, makes protected flames dance, and gives protected flames a 50 percent extinguish chance; runtime only has a generic utility description.",
+      "recommendedTemplateChange": "Add environmental wind fields for movement cost, gas/vapor dispersal, unprotected flame extinguish, protected flame disturbance, and percent chance extinguish.",
+      "recommendedJsonChange": "Add runtime windArea data for movement cost and environmental flame/gas effects."
+    }
+  },
+  "manualFindings": {}
+}

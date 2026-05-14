@@ -106,23 +106,37 @@ export function rollSavingThrow(
     const score = (target.stats[abilityKey] ?? 10) as number;
     let mod = getAbilityModifierValue(score);
 
-    // Step 3: Add proficiency bonus if the character is proficient in this save
-    // Proficiency can come from class (e.g., Fighters are proficient in Str/Con)
-    // or from the character directly (e.g., Resilient feat grants proficiency)
-    // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability as any) || target.class?.savingThrowProficiencies?.includes(ability as any);
-    // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    const charHasProficiency = target.savingThrowProficiencies?.includes(ability as any) || target.savingThrowProficiencies?.includes(ability as any);
+    // Step 3: Check for explicit save bonus override (populated for monsters from 5eTools `save` field).
+    // When present, these replace the computed abilityMod so the total matches the published stat block.
+    // Map full ability name to abbreviated key ("Dexterity" → "dex").
+    const ABILITY_ABBREV: Record<string, string> = {
+      strength: 'str', dexterity: 'dex', constitution: 'con',
+      intelligence: 'int', wisdom: 'wis', charisma: 'cha',
+    };
+    const saveKey = ABILITY_ABBREV[abilityKey] ?? abilityKey.slice(0, 3);
+    const explicitSaveBonus = target.stats.saveBonuses?.[saveKey];
+    if (explicitSaveBonus !== undefined) {
+      // Explicit override wins — matches published monster stat block exactly.
+      mod = explicitSaveBonus;
+    } else {
+      // Add proficiency bonus if the character is proficient in this save
+      // Proficiency can come from class (e.g., Fighters are proficient in Str/Con)
+      // or from the character directly (e.g., Resilient feat grants proficiency)
+      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability as any) || target.class?.savingThrowProficiencies?.includes(ability as any);
+      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      const charHasProficiency = target.savingThrowProficiencies?.includes(ability as any) || target.savingThrowProficiencies?.includes(ability as any);
 
-    // Note: SavingThrowAbility is "Strength", "Dexterity", etc.
-    // Class.savingThrowProficiencies and target.savingThrowProficiencies are AbilityScoreName ("Strength", etc.)
-    // So direct comparison should work.
-    if (classHasProficiency || charHasProficiency) {
-        mod += calculateProficiencyBonus(target.level || 1);
+      // Note: SavingThrowAbility is "Strength", "Dexterity", etc.
+      // Class.savingThrowProficiencies and target.savingThrowProficiencies are AbilityScoreName ("Strength", etc.)
+      // So direct comparison should work.
+      if (classHasProficiency || charHasProficiency) {
+          mod += calculateProficiencyBonus(target.level || 1);
+      }
     }
 
     // Step 4: Apply external modifiers from active effects

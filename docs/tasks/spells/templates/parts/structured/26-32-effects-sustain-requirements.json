@@ -1,0 +1,143 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "32-effects-sustain-requirements",
+  "fieldCount": 5,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sustain Requirement Timing",
+      "valueType": "enum",
+      "jsonPath": "effects[].sustainRequirement.timing",
+      "why": "Some spells require a later upkeep action after the initial casting; that timing is mechanically different from an immediate trigger.",
+      "comment": "Records when a spell's upkeep action must be paid. Purpose: Sustain Requirement Timing keeps later-turn maintenance costs out of prose-only descriptions. Populate it from canonical text that says the caster, target, or another actor must spend a later action to maintain a spell or effect. It maps to runtime JSON path `effects[].sustainRequirement.timing`. Use `not_applicable` when the spell has no sustain requirement.",
+      "acceptedValues": [
+        "later_turns",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "later_turns": "Use when the upkeep action applies on turns after the initial casting turn.",
+        "not_applicable": "Use when canonical prose has no action-based sustain requirement."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Added for Crown of Madness requiring later Magic actions to maintain control."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sustain Requirement Actor",
+      "valueType": "enum",
+      "jsonPath": "effects[].sustainRequirement.actor",
+      "why": "The runtime needs to know who must pay the upkeep cost.",
+      "comment": "Names the actor who must pay a spell's upkeep action. Purpose: Sustain Requirement Actor keeps upkeep responsibility explicit instead of hiding it in the description. Populate it from canonical prose. It maps to runtime JSON path `effects[].sustainRequirement.actor`. Use `not_applicable` when the spell has no sustain requirement.",
+      "acceptedValues": [
+        "caster",
+        "target",
+        "affected_creature",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "caster": "Use when the spellcaster must spend the sustain action.",
+        "target": "Use when the original spell target must spend the sustain action.",
+        "affected_creature": "Use when any currently affected creature may be the sustain actor.",
+        "not_applicable": "Use when no sustain actor applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Added for Crown of Madness requiring the caster to maintain control."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sustain Requirement Action Type",
+      "valueType": "enum",
+      "jsonPath": "effects[].sustainRequirement.actionKind",
+      "why": "Canonical prose can name a rules-facing action category, such as Magic action, that is more specific than the action-economy slot.",
+      "comment": "Records the rules-facing action category required for upkeep. Purpose: Sustain Requirement Action Type preserves wording such as Magic action instead of flattening it to only `action`. It maps to runtime JSON path `effects[].sustainRequirement.actionKind`. Use `not_applicable` when the spell has no sustain requirement or the prose gives no special action category.",
+      "acceptedValues": [
+        "magic_action",
+        "standard_action",
+        "bonus_action",
+        "reaction",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "magic_action": "Use when canonical prose specifically requires the Magic action.",
+        "standard_action": "Use when canonical prose requires an ordinary action without the Magic-action tag.",
+        "bonus_action": "Use when canonical prose requires a Bonus Action.",
+        "reaction": "Use when canonical prose requires a Reaction.",
+        "not_applicable": "Use when no sustain action category applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Added so Crown of Madness can preserve Magic action rather than only generic action cost."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sustain Requirement Action Cost",
+      "valueType": "enum",
+      "jsonPath": "effects[].sustainRequirement.actionCost",
+      "why": "The action-economy cost must be available separately from the rules-facing action category.",
+      "comment": "Records the action-economy slot consumed by the upkeep action. Purpose: Sustain Requirement Action Cost lets runtime action-budget checks read the cost directly while Action Type preserves the canonical category. It maps to runtime JSON path `effects[].sustainRequirement.actionCost`. Use `not_applicable` when the spell has no sustain requirement.",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "reaction",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "action": "Use when the sustain requirement consumes the actor's action.",
+        "bonus_action": "Use when the sustain requirement consumes the actor's Bonus Action.",
+        "reaction": "Use when the sustain requirement consumes the actor's Reaction.",
+        "not_applicable": "Use when no action-economy sustain cost applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Added for Crown of Madness's action-costed maintenance."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sustain Requirement Failure Outcome",
+      "valueType": "enum",
+      "jsonPath": "effects[].sustainRequirement.failureOutcome",
+      "why": "The runtime needs the consequence when the required upkeep action is not paid.",
+      "comment": "Records what happens when a sustain requirement is missed. Purpose: Sustain Requirement Failure Outcome keeps upkeep failure explicit and pairs with Conditional Ending Triggers when failure ends the spell or effect. It maps to runtime JSON path `effects[].sustainRequirement.failureOutcome`. Use `not_applicable` when the spell has no sustain requirement.",
+      "acceptedValues": [
+        "spell_ends",
+        "effect_ends",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "spell_ends": "Use when failure to pay the upkeep action ends the whole spell.",
+        "effect_ends": "Use when failure to pay the upkeep action ends only one effect packet.",
+        "not_applicable": "Use when no sustain failure consequence applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Added for Crown of Madness ending when the caster does not maintain control."
+        }
+      ]
+    }
+  ]
+}

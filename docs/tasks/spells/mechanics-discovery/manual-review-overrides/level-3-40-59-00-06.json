@@ -1,0 +1,123 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "sleet-storm": [
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "sleet-storm::conditional_ending",
+        "canonicalEvidence": "Until the spell ends, sleet falls...",
+        "structuredState": "Duration and Concentration are represented.",
+        "jsonState": "Runtime duration and concentration are represented.",
+        "issue": "The ordinary spell duration is represented; the missing mechanics are area triggers and environmental effects.",
+        "recommendedTemplateChange": "No conditional ending field required for this row.",
+        "recommendedJsonChange": "No duration runtime change required for this row.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "slow": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "slow::choice_or_mode",
+        "canonicalEvidence": "Up to six creatures of your choice in a 40-foot Cube within range.",
+        "structuredState": "Targeting Type: multi; Targeting Max: 6; Area Shape: cube.",
+        "jsonState": "Runtime targeting is multi, maxTargets 6, area Cube 40.",
+        "issue": "The up-to-six choice and cube targeting are represented.",
+        "recommendedTemplateChange": "No target-count change required for this row.",
+        "recommendedJsonChange": "No target-count runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "slow::attack_or_save_modifier",
+        "canonicalEvidence": "The target Speed is halved, it takes a -2 penalty to AC and Dexterity saving throws, and it can make only one attack if it takes the Attack action.",
+        "structuredState": "Effect Type: DEBUFF; Save Stat: Wisdom; no typed speed, AC, Dexterity-save, or attack limit fields.",
+        "jsonState": "Runtime JSON has prose utility only.",
+        "issue": "Slow has multiple debuffs that are not typed: speed halving, AC penalty, Dexterity save penalty, and one-attack limit.",
+        "recommendedTemplateChange": "Add movement multiplier, AC penalty, save penalty, and action/attack limit fields.",
+        "recommendedJsonChange": "Add runtime slowDebuff data for speed x0.5, AC -2, Dexterity saves -2, one attack only.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "reaction_or_opportunity_restriction",
+        "findingId": "slow::reaction_or_opportunity_restriction",
+        "canonicalEvidence": "It cannot take Reactions.",
+        "structuredState": "No reaction restriction field.",
+        "jsonState": "Runtime JSON has no reaction restriction.",
+        "issue": "Slow blocks all reactions, but this is prose-only.",
+        "recommendedTemplateChange": "Add reactionsBlocked field.",
+        "recommendedJsonChange": "Add runtime reactionRestriction cannotTakeReactions.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "repeat_save_or_recurring_check",
+        "findingId": "slow::repeat_save_or_recurring_check",
+        "canonicalEvidence": "An affected target repeats the save at the end of each of its turns, ending the spell on itself on a success.",
+        "structuredState": "No repeat-save field.",
+        "jsonState": "Runtime JSON has no repeat save.",
+        "issue": "Slow has an end-turn repeat Wisdom save ending the effect per target.",
+        "recommendedTemplateChange": "Add repeat save fields.",
+        "recommendedJsonChange": "Add runtime repeatSave turn_end Wisdom successEnds true.",
+        "resolutionStatus": "closed",
+        "closedReason": "Slow now records the end-turn Wisdom repeat save as structured Recurring Mechanics and runtime recurringMechanics data."
+      },
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "slow::object_stats_or_damageability",
+        "canonicalEvidence": "It takes a -2 penalty to AC.",
+        "structuredState": "No AC penalty field.",
+        "jsonState": "Runtime JSON has no AC penalty data.",
+        "issue": "The detector matched AC, but the real mechanic is a creature defensive-stat penalty, not object damageability.",
+        "recommendedTemplateChange": "Add AC penalty under defensive/stat modifier fields, not object stats.",
+        "recommendedJsonChange": "Add runtime AC penalty -2 in a debuff/stat modifier model.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "slow::manual_somatic_spell_failure_chance",
+        "canonicalEvidence": "If it casts a spell with a Somatic component, there is a 25 percent chance the spell fails.",
+        "structuredState": "No component-gated spell failure field.",
+        "jsonState": "Runtime JSON has no spell failure chance.",
+        "issue": "Slow imposes a 25 percent failure chance on spells with Somatic components.",
+        "recommendedTemplateChange": "Add component-gated spell failure chance fields.",
+        "recommendedJsonChange": "Add runtime spellcastFailureChance 25 percent when spell has Somatic component.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "speak-with-dead": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "speak-with-dead::choice_or_mode",
+        "canonicalEvidence": "You grant the semblance of life to a corpse of your choice within range, allowing it to answer questions you pose.",
+        "structuredState": "Valid Targets: corpse; no question count fields.",
+        "jsonState": "Runtime targeting allows creatures and has only prose utility.",
+        "issue": "The corpse target and up-to-five questions are not represented as runtime data.",
+        "recommendedTemplateChange": "Add corpse target and question-count fields.",
+        "recommendedJsonChange": "Add runtime corpse target filter and maxQuestions 5.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "message_or_communication",
+        "findingId": "speak-with-dead::message_or_communication",
+        "canonicalEvidence": "Until the spell ends, you can ask the corpse up to five questions. The corpse knows only what it knew in life, including the languages it knew.",
+        "structuredState": "No communication/question answer fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Speak with Dead enables limited Q&A with language/knowledge constraints, but none are typed.",
+        "recommendedTemplateChange": "Add corpse communication fields for max questions, answer constraints, and known languages.",
+        "recommendedJsonChange": "Add runtime communication data maxQuestions 5, answersFromLifeKnowledgeOnly, languagesKnownInLife.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "speak-with-dead::summon_or_controlled_entity",
+        "canonicalEvidence": "This spell does not return the creature soul to its body, only its animating spirit.",
+        "structuredState": "No animating spirit field.",
+        "jsonState": "Runtime JSON has no typed state for animating spirit without soul.",
+        "issue": "The animating-spirit distinction limits what the corpse can know and do, but is prose-only.",
+        "recommendedTemplateChange": "Add corpseAnimation state fields.",
+        "recommendedJsonChange": "Add runtime corpseState animatingSpiritOnly and soulNotReturned.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

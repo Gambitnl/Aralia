@@ -1,4 +1,4 @@
-﻿# Guide: Adding or Updating Spells (Development Process)
+# Guide: Adding or Updating Spells (Development Process)
 
 This guide documents the current developer workflow for adding or updating spell data in Aralia.
 The important current-state correction is that spell work should be validated through the repo's real validation and manifest scripts, not through the older nonexistent validate:spells command.

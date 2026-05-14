@@ -1,0 +1,232 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 30-34 in generated discovery row order."
+  ],
+  "findings": {
+    "immolation::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Dexterity save, half-damage result, failed-save Burning state, and end-of-turn repeat save are now represented.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by immediate DAMAGE plus Burning repeatSave."
+    },
+    "immolation::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The burning target's end-of-turn Dexterity repeat save is now represented in runtime repeatSave data.",
+      "recommendedTemplateChange": "No new repeat-save field required.",
+      "recommendedJsonChange": "Closed by statusCondition.repeatSave."
+    },
+    "immolation::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Visible target selection is represented by lineOfSight, and the burning target's bright and dim light are now represented as a typed light utility effect.",
+      "recommendedTemplateChange": "No new vision/light/sound field required for this pass.",
+      "recommendedJsonChange": "Closed by lineOfSight and utilityType light."
+    },
+    "immolation::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched damage and repeated damage prose, but the spell affects the target rather than creating independent terrain or environmental state.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "immolation::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime represents successful repeat save ending, but it still lacks typed data for the flames being impossible to extinguish by nonmagical means.",
+      "recommendedTemplateChange": "Add extinguishability or ending-prevention fields for magical ongoing effects.",
+      "recommendedJsonChange": "Add runtime endingRestrictions data for nonmagical extinguishing immunity."
+    },
+    "infernal-calling::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses a devil type by CR, and talisman possession changes the allowed CR and obedience behavior; runtime preserves these mode choices only in prose.",
+      "recommendedTemplateChange": "Add summon choice fields for creature type, CR cap, talisman-specific summon, and altered obedience.",
+      "recommendedJsonChange": "Add runtime infernalSummonOptions data."
+    },
+    "infernal-calling::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Using the devil's true name grants advantage on contested command checks; runtime lacks contested-check and conditional advantage fields.",
+      "recommendedTemplateChange": "Add contested command-check fields with conditional advantage sources.",
+      "recommendedJsonChange": "Add runtime commandCheck data."
+    },
+    "infernal-calling::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The devil must appear in an unoccupied visible space within range; runtime has lineOfSight but lacks unoccupied-space eligibility.",
+      "recommendedTemplateChange": "Add summon destination eligibility fields for visible and unoccupied spaces.",
+      "recommendedJsonChange": "Add runtime summonDestination data."
+    },
+    "infernal-calling::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can issue a no-action command on each turn; runtime lacks repeat command economy for summoned entities.",
+      "recommendedTemplateChange": "Add summon command cadence fields, including no-action each-turn commands.",
+      "recommendedJsonChange": "Add runtime summonCommandEconomy data."
+    },
+    "infernal-calling::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible summon placement; that is represented by lineOfSight and the remaining unoccupied-space requirement is tracked under target_filter_or_eligibility.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "infernal-calling::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Successful commands can include message-bearing and the devil returns to report completion; runtime lacks typed command/report communication fields.",
+      "recommendedTemplateChange": "Add summoned-entity command communication and completion report fields.",
+      "recommendedJsonChange": "Add runtime summonCommandCommunication data."
+    },
+    "infernal-calling::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The devil has its own initiative, DM control, hostile/default behavior, contested command obedience, failure immunity to commands, talisman override, and concentration-break aftermath; runtime keeps the whole summon/control model in prose.",
+      "recommendedTemplateChange": "Add robust summoned-devil/control fields for initiative, controller, hostility, command checks, command immunity, talisman override, and post-concentration behavior.",
+      "recommendedJsonChange": "Add runtime infernalCallingSummon data."
+    },
+    "infernal-calling::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched hostile behavior and obedience criteria, but this is summoned-entity control behavior rather than a ward/alarm trigger.",
+      "recommendedTemplateChange": "Track under summon/control fields.",
+      "recommendedJsonChange": "No ward/alarm runtime data required."
+    },
+    "infernal-calling::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The devil disappears at 0 hit points, but runtime lacks typed summoned-entity hit-point/despawn behavior.",
+      "recommendedTemplateChange": "Add summoned-entity despawn conditions for 0 hit points and normal spell ending.",
+      "recommendedJsonChange": "Add runtime summonDespawn data."
+    },
+    "infernal-calling::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The devil disappears at 0 hit points or spell end, but if concentration ends after command immunity it remains for 3d6 minutes; runtime lacks those branch endings.",
+      "recommendedTemplateChange": "Add summoned-entity conditional ending/aftermath fields.",
+      "recommendedJsonChange": "Add runtime infernalCallingEnding data."
+    },
+    "infernal-calling::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If concentration ends after command immunity, the devil acts freely for 3d6 minutes before disappearing; runtime lacks post-concentration aftermath behavior.",
+      "recommendedTemplateChange": "Add summon aftermath fields for post-control independent behavior and delayed disappearance.",
+      "recommendedJsonChange": "Add runtime summonAftermath data."
+    },
+    "insect-plague::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary point selection for the area spell, already represented by area targeting.",
+      "recommendedTemplateChange": "No choice-or-mode field required.",
+      "recommendedJsonChange": "Closed by targeting area point."
+    },
+    "insect-plague::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save, half-damage result, immediate damage, enter-area damage, end-turn damage, and scaling are now represented.",
+      "recommendedTemplateChange": "No new attack/save field required.",
+      "recommendedJsonChange": "Closed by three DAMAGE effects with saveEffect half."
+    },
+    "insect-plague::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The Lightly Obscured and Difficult Terrain area mechanics are now represented by typed TERRAIN effects.",
+      "recommendedTemplateChange": "No new terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by TERRAIN difficult and TERRAIN obscuring effects."
+    },
+    "insect-plague::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Lightly Obscured glossary reference; no healing or restoration mechanic is present.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration runtime data required."
+    },
+    "insect-plague::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The persistent locust swarm's damage, obscuring, and difficult-terrain effects are now represented as runtime effects.",
+      "recommendedTemplateChange": "No additional environmental-change field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE, TERRAIN, and sensory UTILITY effects."
+    },
+    "legend-lore::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the wording of information delivery, but the spell does not send a message to another creature; it is an information/knowledge utility.",
+      "recommendedTemplateChange": "Track under social_or_knowledge_effect.",
+      "recommendedJsonChange": "No message/communication runtime data required."
+    },
+    "legend-lore::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Utility type is now information, but runtime still lacks typed fields for famous person/place/object input, already-known precision scaling, accurate-but-figurative output, and failure if the subject is not famous.",
+      "recommendedTemplateChange": "Add knowledge-query fields for subject type, fame requirement, precision based on prior knowledge, and failure mode.",
+      "recommendedJsonChange": "Add runtime loreQuery data."
+    },
+    "maelstrom::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The start-of-turn Strength save, fail-only damage, and save-gated pull are now represented.",
+      "recommendedTemplateChange": "No new attack/save field required.",
+      "recommendedJsonChange": "Closed by turn_start DAMAGE and MOVEMENT effects."
+    },
+    "maelstrom::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The failed-save 10-foot pull toward the center is now represented as a MOVEMENT pull effect.",
+      "recommendedTemplateChange": "No new forced-movement field required.",
+      "recommendedJsonChange": "Closed by MOVEMENT pull distance 10."
+    },
+    "maelstrom::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now represents Difficult Terrain and water creation, but the target point's eligibility as ground or a body of water remains prose-only.",
+      "recommendedTemplateChange": "Add area placement surface eligibility fields.",
+      "recommendedJsonChange": "Add runtime placementSurface data."
+    },
+    "maelstrom::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible point selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "maelstrom::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The 5-foot-deep water mass is now represented as a creation utility and the terrain area carries the depth.",
+      "recommendedTemplateChange": "No additional created-structure field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY creation plus TERRAIN area height."
+    },
+    "maelstrom::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the start-of-turn trigger for damage and movement; it is now represented directly as turn_start runtime effects, not a ward/alarm.",
+      "recommendedTemplateChange": "No ward/alarm field required.",
+      "recommendedJsonChange": "Closed by turn_start DAMAGE and MOVEMENT effects."
+    },
+    "maelstrom::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched water creation and placement surface text, but the spell does not consume a resource beyond its material component.",
+      "recommendedTemplateChange": "No resource/consumption field required.",
+      "recommendedJsonChange": "No resource/consumption runtime data required."
+    },
+    "maelstrom::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The water area, difficult terrain, start-of-turn damage, and forced movement are now represented in runtime.",
+      "recommendedTemplateChange": "No additional environmental-change field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY creation, TERRAIN, DAMAGE, and MOVEMENT effects."
+    },
+    "maelstrom::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The area lasts for the normal concentration duration and has no special conditional ending beyond duration/concentration.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    }
+  },
+  "manualFindings": {
+    "immolation": [
+      {
+        "bucketId": "aftermath_or_memory",
+        "title": "Aftermath And Memory Effects",
+        "spellId": "immolation",
+        "findingId": "immolation::aftermath_or_memory",
+        "canonicalEvidence": "If damage from this spell kills a target, the target is turned to ash.",
+        "structuredState": "Description only.",
+        "jsonState": "Runtime has damage and Burning effects but no typed death aftermath transformation.",
+        "issue": "The target-to-ash death aftermath is mechanically relevant for corpse/object state but remains prose-only.",
+        "recommendedTemplateChange": "Add death aftermath transformation fields for spell-kill outcomes.",
+        "recommendedJsonChange": "Add runtime deathAftermath data for ash transformation.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "maelstrom": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "title": "Target Filters And Eligibility",
+        "spellId": "maelstrom",
+        "findingId": "maelstrom::target_filter_or_eligibility",
+        "canonicalEvidence": "The point must be on the ground or in a body of water.",
+        "structuredState": "Valid Targets: point",
+        "jsonState": "targeting.validTargets is point with no surface eligibility.",
+        "issue": "The area placement point must be on ground or in a body of water, but runtime targeting has no surface eligibility data.",
+        "recommendedTemplateChange": "Add placement surface eligibility fields for area points.",
+        "recommendedJsonChange": "Add runtime placementSurface data with ground and body_of_water values.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

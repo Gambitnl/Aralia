@@ -119,9 +119,9 @@ Use this as the local template order for migration work in this subtree.
 ## 2024 PHB ACCURACY
 
 For each spell, verify against 2024 PHB:
-- **School** (e.g., Acid Splash changed from Conjuration → Evocation)
-- **Range** (e.g., Chill Touch changed 120ft → Touch)
-- **Damage dice** (e.g., Vicious Mockery changed 1d4 → 1d6)
+- **School** (e.g., Acid Splash changed from Conjuration -> Evocation)
+- **Range** (e.g., Chill Touch changed 120ft -> Touch)
+- **Damage dice** (e.g., Vicious Mockery changed 1d4 -> 1d6)
 - **Mechanics** (e.g., Blade Ward now gives -1d4 to attacks, not resistance)
 
 If 2024 PHB data unavailable, use best authorized source and log in gaps file.
@@ -133,7 +133,7 @@ If 2024 PHB data unavailable, use best authorized source and log in gaps file.
 If `public/data/spells/{id}.json` exists:
 1. Read old file first
 2. Copy: `ritual`, `castingTime.combatCost`, `tags`, `arbitrationType`
-3. Fix: `validTargets` → plural, `damage.type` → Title Case
+3. Fix: `validTargets` -> plural, `damage.type` -> Title Case
 4. Delete old file ONLY AFTER copying
 
 ---

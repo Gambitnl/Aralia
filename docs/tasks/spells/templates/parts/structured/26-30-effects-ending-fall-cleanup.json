@@ -1,0 +1,618 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 24,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Conditional Ending Triggers",
+      "valueType": "csv-enum",
+      "jsonPath": "effects[].conditionalEndings[].trigger",
+      "why": "Early-ending rules such as ending on recast, leaving an area, or releasing an item need explicit data separate from ordinary duration.",
+      "comment": "Lists the events that end this spell or effect before its normal duration expires. Use `not_applicable` when the spell has no special early-ending trigger. Purpose: Conditional Ending Triggers exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].conditionalEndings[].trigger`. The value type is `csv-enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "end_on_recast",
+        "caster_leaves_area",
+        "holder_releases_item",
+        "caster_or_ally_damages_target",
+        "caster_or_companion_harms_target",
+        "target_takes_damage_or_witnesses_allies_damaged",
+        "all_target_instances_expended",
+        "temporary_hit_points_depleted",
+        "target_drops_to_0_hp",
+        "target_uses_magic_action_to_end_effect",
+        "target_dons_armor",
+        "target_lands",
+        "target_makes_attack_roll",
+        "target_casts_spell",
+        "target_deals_damage",
+        "carried_weight_exceeds_limit",
+        "created_entity_drops_to_0_hp",
+        "created_entity_takes_damage",
+        "caster_drops_to_0_hp",
+        "linked_creatures_separated_beyond_distance",
+        "spell_cast_again_on_connected_creature",
+        "target_outside_spell_range",
+        "target_has_total_cover_from_caster",
+        "strong_wind_disperses_effect",
+        "initial_save_success",
+        "repeat_save_success",
+        "sustain_action_not_taken",
+        "suggested_activity_completed",
+        "already_on_destination_plane",
+        "unsupported_area_collapses_next_turn",
+        "certain_death_activity_requested",
+        "drop_to_0_hp_prevented",
+        "instant_death_no_damage_prevented",
+        "on_attack_hit",
+        "on_attack_hit_or_miss",
+        "beyond_max_distance",
+        "inscribed_ward_moved_beyond_distance",
+        "ward_triggered",
+        "triggered_duration_expires",
+        "disintegrate_targets_effect",
+        "no_creature_restrained_by_spell_after_trigger",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "end_on_recast": "Use `end_on_recast` for Conditional Ending Triggers only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "caster_leaves_area": "Use `caster_leaves_area` for Conditional Ending Triggers only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "holder_releases_item": "Use `holder_releases_item` for Conditional Ending Triggers only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "caster_or_ally_damages_target": "Use when the spell or affected status ends if the caster or one of the caster's allies damages the affected target.",
+        "caster_or_companion_harms_target": "Use when the spell or affected status ends if the caster or the caster's companions do anything harmful to the affected target, including harmful non-damage actions.",
+        "target_takes_damage_or_witnesses_allies_damaged": "Use when a social, attitude, or indifference effect ends because the affected target takes damage or sees its allies take damage.",
+        "all_target_instances_expended": "Use when a spell ends because all limited target instances, charges, planted objects, or created attack payloads have been consumed, destroyed, or otherwise spent.",
+        "temporary_hit_points_depleted": "Use when the spell ends because its granted Temporary Hit Points have been reduced to zero or otherwise removed.",
+        "target_drops_to_0_hp": "Use when the spell or effect ends on an affected target because that target drops to 0 Hit Points.",
+        "target_uses_magic_action_to_end_effect": "Use when the affected target can spend a Magic action to end the spell or effect on itself.",
+        "target_dons_armor": "Use when a defensive spell ends because its affected target puts on armor.",
+        "target_lands": "Use when a falling target's effect ends for that target because the target lands before the full spell duration expires.",
+        "target_makes_attack_roll": "Use when the spell ends because the affected or warded target makes an attack roll.",
+        "target_casts_spell": "Use when the spell ends because the affected or warded target casts any spell.",
+        "target_deals_damage": "Use when the spell ends because the affected or warded target deals damage.",
+        "carried_weight_exceeds_limit": "Use when a spell-created carrier or platform ends because it is loaded beyond its stated carrying limit.",
+        "created_entity_drops_to_0_hp": "Use when a created or summoned entity reaches 0 Hit Points and that event ends the spell, ends the summon effect, or makes the entity disappear.",
+        "created_entity_takes_damage": "Use when a spell-created or summoned entity taking any damage ends the spell or makes the entity disappear before its normal duration.",
+        "caster_drops_to_0_hp": "Use when a spell link or ward ends because the caster drops to 0 Hit Points.",
+        "linked_creatures_separated_beyond_distance": "Use when a spell link ends because the linked creatures become separated by more than the stated maximum distance.",
+        "spell_cast_again_on_connected_creature": "Use when a link spell ends because the same spell is cast again on either connected creature.",
+        "target_outside_spell_range": "Use when a sustained spell ends because the linked or affected target is ever outside the spell's range.",
+        "target_has_total_cover_from_caster": "Use when a sustained spell ends because the linked or affected target has Total Cover from the caster.",
+        "strong_wind_disperses_effect": "Use when a cloud, fog, gas, or similar spell effect can be dispersed by strong wind and that dispersal ends the spell or effect early.",
+        "initial_save_success": "Use when an initial saving throw success still allows part of the effect, such as half damage, but ends the ongoing spell afterward.",
+        "repeat_save_success": "Use when a recurring saving throw success ends the spell or effect after resolving the save branch.",
+        "sustain_action_not_taken": "Use when a required later upkeep action is not paid and that failure ends the spell or effect.",
+        "suggested_activity_completed": "Use when a magically compelled or suggested activity is completed before the full duration and that completion ends the spell or effect for the target.",
+        "already_on_destination_plane": "Use when a planar shift, travel, or phasing effect ends because the affected creature is already on the destination plane when the transfer would occur.",
+        "unsupported_area_collapses_next_turn": "Use when a spell-created area collapses because it lacks required support and that collapse ends the spell at the start of the caster's next turn.",
+        "certain_death_activity_requested": "Use when a compelled, charmed, or magically influenced activity would result in certain death for the affected creature and that request ends the spell.",
+        "on_attack_hit": "Use `on_attack_hit` when stored spell energy ends only after the relevant attack hits.",
+        "on_attack_hit_or_miss": "Use `on_attack_hit_or_miss` when an empowered item, stored charge, or similar spell payload is consumed whether its attack hits or misses.",
+        "beyond_max_distance": "Use `beyond_max_distance` when a spell-created object, entity, or effect ends because it exceeds a stated distance from the caster or anchor.",
+        "inscribed_ward_moved_beyond_distance": "Use when an inscribed ward, glyph, symbol, or its carrier object moves beyond the stated distance from the casting location and that movement breaks the ward before it triggers.",
+        "ward_triggered": "Use when a one-shot ward, glyph, symbol, trap, or stored payload triggers and that trigger consumes or ends the spell immediately after delivering its payload.",
+        "triggered_duration_expires": "Use when a ward, glyph, symbol, trap, or stored payload has triggered and the spell ends only after the stated post-trigger active duration expires.",
+        "disintegrate_targets_effect": "Use when Disintegrate specifically targeting a spell-created barrier, globe, or similar effect destroys that effect without harming occupants or protected contents.",
+        "no_creature_restrained_by_spell_after_trigger": "Use when a trap spell has triggered and then ends once no creature is restrained by that spell.",
+        "not_applicable": "Use for Conditional Ending Triggers only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value.",
+        "drop_to_0_hp_prevented": "Use when a death-prevention ward stops the target from dropping to 0 Hit Points and that prevention ends the spell or effect.",
+        "instant_death_no_damage_prevented": "Use when a death-prevention ward negates an instant-kill effect that deals no damage and that prevention ends the spell or effect."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:30:00+02:00",
+          "action": "created",
+          "why": "Light, Produce Flame, Magic Weapon, Shillelagh, and Leomund's Tiny Hut all have clear early-ending triggers that should not stay prose-only."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Conditional Ending Scope",
+      "valueType": "csv-enum",
+      "jsonPath": "effects[].conditionalEndings[].scope",
+      "why": "The runtime needs to know whether a trigger ends the whole spell, a single effect, an item enchantment, or an area.",
+      "comment": "Names what ends when a Conditional Ending Trigger fires. Purpose: Conditional Ending Scope exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].conditionalEndings[].scope`. The value type is `enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValues": [
+        "spell",
+        "effect",
+        "item",
+        "area",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "spell": "Use `spell` for Conditional Ending Scope only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "effect": "Use `effect` for Conditional Ending Scope only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "item": "Use `item` for Conditional Ending Scope only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "area": "Use `area` for Conditional Ending Scope only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for Conditional Ending Scope only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      },
+      "log": [
+        {
+          "at": "2026-05-13T22:30:00+02:00",
+          "action": "created",
+          "why": "A recast can end the whole spell, while item-release wording can end only an affected item enchantment."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Conditional Ending Distance Feet",
+      "valueType": "number-or-sentinel",
+      "jsonPath": "effects[].conditionalEndings[].distanceFeet",
+      "why": "Distance-based early endings need their numeric threshold as data instead of relying on prose-only descriptions.",
+      "comment": "Records the distance threshold, in feet, that causes a conditional ending such as a spell-created entity moving too far from its caster. Purpose: Conditional Ending Distance Feet exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about range or leash limits. Populate it from canonical prose when a Conditional Ending Trigger depends on a stated distance. It maps to runtime JSON path `effects[].conditionalEndings[].distanceFeet`. Use `not_applicable` when the conditional ending has no distance threshold."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Conditional Ending Duration Value",
+      "valueType": "number-or-sentinel",
+      "jsonPath": "effects[].conditionalEndings[].durationValue",
+      "why": "Some triggered wards do not end immediately; they run for a stated active duration after triggering and then end.",
+      "comment": "Records the numeric duration that runs after a conditional-ending trigger before the spell or effect ends. Purpose: Conditional Ending Duration Value keeps post-trigger lifetime rules, such as a triggered symbol glowing for 10 minutes before ending, out of prose-only descriptions. It maps to runtime JSON path `effects[].conditionalEndings[].durationValue`. Use `not_applicable` when the conditional ending is immediate or has no post-trigger duration."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Conditional Ending Duration Unit",
+      "valueType": "enum",
+      "jsonPath": "effects[].conditionalEndings[].durationUnit",
+      "why": "The runtime needs the unit for any post-trigger duration value before it can schedule the ending.",
+      "acceptedValues": [
+        "round",
+        "minute",
+        "hour",
+        "day",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "round": "Use when the canonical post-trigger conditional-ending duration is measured in rounds.",
+        "minute": "Use when the canonical post-trigger conditional-ending duration is measured in minutes.",
+        "hour": "Use when the canonical post-trigger conditional-ending duration is measured in hours.",
+        "day": "Use when the canonical post-trigger conditional-ending duration is measured in days.",
+        "not_applicable": "Use when the conditional ending is immediate or has no post-trigger duration."
+      },
+      "comment": "Names the unit for Conditional Ending Duration Value. Purpose: Conditional Ending Duration Unit makes post-trigger spell lifetimes schedulable instead of leaving them inside description prose. It maps to runtime JSON path `effects[].conditionalEndings[].durationUnit`. Use `not_applicable` when Conditional Ending Duration Value is not applicable."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Fall Descent Rate",
+      "valueType": "number-or-sentinel",
+      "jsonPath": "effects[].fallControl.descentRate",
+      "why": "Falling-control spells can change descent speed without using ordinary walking or flying speed.",
+      "comment": "Stores the numeric falling descent rate imposed by the spell. Purpose: Fall Descent Rate exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about falling mechanics. Populate it from canonical spell prose. It maps to runtime JSON path `effects[].fallControl.descentRate`. Use `not_applicable` when the spell does not set a falling descent rate."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Fall Descent Rate Unit",
+      "valueType": "enum",
+      "jsonPath": "effects[].fallControl.descentRateUnit",
+      "why": "The runtime needs the falling rate unit because falling rates are not ordinary speed bonuses.",
+      "acceptedValues": [
+        "feet_per_round",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "feet_per_round": "Use when the canonical prose gives a fall descent rate in feet per round.",
+        "not_applicable": "Use when the spell does not set a falling descent rate."
+      },
+      "comment": "Names the unit for Fall Descent Rate. Purpose: Fall Descent Rate Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about falling mechanics. It maps to runtime JSON path `effects[].fallControl.descentRateUnit`. Use `not_applicable` when Fall Descent Rate is not applicable."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Fall Damage On Landing",
+      "valueType": "enum",
+      "jsonPath": "effects[].fallControl.fallDamageOnLanding",
+      "why": "Some falling-control spells prevent fall damage when the affected creature lands.",
+      "acceptedValues": [
+        "prevented",
+        "normal",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "prevented": "Use when the canonical prose says the affected target takes no fall damage on landing.",
+        "normal": "Use when the spell changes falling behavior but does not prevent normal fall damage.",
+        "not_applicable": "Use when the spell has no falling or landing damage rule."
+      },
+      "comment": "Records what happens to fall damage when the affected target lands. Purpose: Fall Damage On Landing exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about fall-damage prevention. It maps to runtime JSON path `effects[].fallControl.fallDamageOnLanding`. Use `not_applicable` when the spell has no landing-damage rule."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Fall Control Ends On Landing",
+      "valueType": "enum",
+      "jsonPath": "effects[].fallControl.endingTrigger",
+      "why": "Feather Fall ends for a creature that lands before the full duration, which is a per-target ending rule rather than whole-spell expiry.",
+      "acceptedValues": [
+        "target_lands",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "target_lands": "Use when the falling-control effect ends for a target because that target lands.",
+        "not_applicable": "Use when landing does not end a falling-control effect."
+      },
+      "comment": "Records whether landing ends the falling-control effect. Purpose: Fall Control Ends On Landing exists so per-target landing endings do not remain hidden in prose. It maps to runtime JSON path `effects[].fallControl.endingTrigger`. Use `not_applicable` when the spell has no landing ending rule."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Damage Trigger",
+      "valueType": "string",
+      "jsonPath": "effects[].trigger.type",
+      "why": "Damage timing/rider triggers need a structured home before bucket closure.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Damage timing/rider triggers need a structured home before bucket closure."
+        }
+      ],
+      "comment": "Damage timing/rider triggers need a structured home before bucket closure. It maps to `effects[].trigger.type`. Purpose: Damage Trigger exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].trigger.type`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Control Options",
+      "valueType": "csv-string",
+      "jsonPath": "effects[].controlOptions[]",
+      "why": "Legacy control option lists are preserved while numbered Utility Option rows carry details.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Legacy control option lists are preserved while numbered Utility Option rows carry details."
+        }
+      ],
+      "comment": "Legacy control option lists are preserved while numbered Utility Option rows carry details. It maps to `effects[].controlOptions[]`. Purpose: Control Options exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].controlOptions[]`. The value type is `csv-string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Death Prevention Triggers",
+      "valueType": "csv-enum",
+      "jsonPath": "effects[].deathPrevention.triggers[]",
+      "why": "Some protective spells intercept death events directly instead of reducing damage or applying healing.",
+      "comment": "Lists the death events this spell can intercept. Purpose: Death Prevention Triggers keeps last-moment death safeguards out of prose-only descriptions. Populate it from canonical text that says a target would drop to 0 Hit Points, die instantly without damage, or similar. It maps to runtime JSON path `effects[].deathPrevention.triggers[]`. Use `not_applicable` when the spell has no death-prevention mechanic.",
+      "acceptedValues": [
+        "drop_to_0_hp",
+        "instant_death_no_damage",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "drop_to_0_hp": "Use when the spell changes a would-drop-to-0-HP event into a different result, such as dropping to 1 HP instead.",
+        "instant_death_no_damage": "Use when the spell negates an effect that would kill the target instantly without dealing damage.",
+        "not_applicable": "Use only when canonical prose has no death-prevention mechanic."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "Added for Death Ward's two consumable death-prevention triggers."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Death Prevention Drop To Hit Points",
+      "valueType": "number-or-sentinel",
+      "jsonPath": "effects[].deathPrevention.dropToHitPoints",
+      "why": "A 0-HP prevention rule needs the replacement hit point total instead of hiding it in description text.",
+      "comment": "Records the hit point total used when a death-prevention spell stops a target from dropping to 0 Hit Points. It maps to `effects[].deathPrevention.dropToHitPoints`. Use `not_applicable` when the spell only prevents another death event or has no death-prevention mechanic.",
+      "acceptedValueNotes": {
+        "number": "Use the exact replacement hit point total from canonical prose.",
+        "not_applicable": "Use when no replacement hit point total applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "Added so Death Ward can store the replacement 1 HP result."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Death Prevention Negates Instant Death Without Damage",
+      "valueType": "boolean-or-sentinel",
+      "jsonPath": "effects[].deathPrevention.negatesInstantDeathWithoutDamage",
+      "why": "Instant-kill prevention is not the same as damage resistance, immunity, or healing.",
+      "comment": "States whether the spell negates an instant-death effect that deals no damage. It maps to `effects[].deathPrevention.negatesInstantDeathWithoutDamage`. Use `not_applicable` when the spell has no death-prevention mechanic.",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "true": "Use when canonical prose explicitly negates instant death without damage.",
+        "false": "Use when a death-prevention mechanic exists but does not negate instant death without damage.",
+        "not_applicable": "Use when the spell has no death-prevention mechanic."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "Added for Death Ward's no-damage instant-death negation."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Death Prevention Consumption",
+      "valueType": "enum",
+      "jsonPath": "effects[].deathPrevention.consumption",
+      "why": "The runtime needs to know whether a death-prevention ward remains active after it fires.",
+      "comment": "Records what happens to the spell after a death-prevention trigger fires. It maps to `effects[].deathPrevention.consumption`. Use `not_applicable` when the spell has no death-prevention mechanic.",
+      "acceptedValues": [
+        "first_trigger_ends_spell",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "first_trigger_ends_spell": "Use when the first qualifying death-prevention event consumes or ends the spell.",
+        "not_applicable": "Use when the spell has no death-prevention mechanic."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "Added for Death Ward's first-trigger spell-ending rule."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Death Prevention Scope",
+      "valueType": "enum",
+      "jsonPath": "effects[].deathPrevention.scope",
+      "why": "The runtime needs to know who receives the death-prevention benefit.",
+      "comment": "Names the subject protected by the death-prevention rule. It maps to `effects[].deathPrevention.scope`. Use `not_applicable` when the spell has no death-prevention mechanic.",
+      "acceptedValues": [
+        "target",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "target": "Use when the spell's target receives the death-prevention benefit.",
+        "not_applicable": "Use when the spell has no death-prevention mechanic."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "Added for Death Ward's target-scoped protection."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Trigger",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].trigger",
+      "why": "Some spells remove spell-created state when the spell or effect ends without creating a separate early-ending trigger.",
+      "comment": "Names the end event that runs cleanup for spell-created state. Purpose: End Cleanup Trigger keeps normal end-of-spell cleanup separate from early-ending mechanics. Populate it from canonical prose that says a state is lost, removed, vanishes, or expires when the spell/effect ends. It maps to runtime JSON path `effects[].endCleanup[].trigger`. Use `not_applicable` when the spell has no explicit cleanup mechanic.",
+      "acceptedValues": [
+        "spell_ends",
+        "effect_ends",
+        "item_effect_ends",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "spell_ends": "Use when cleanup runs because the whole spell ends.",
+        "effect_ends": "Use when cleanup runs because one effect ends while other spell parts may remain.",
+        "item_effect_ends": "Use when cleanup belongs to a spell-created or spell-empowered item effect ending.",
+        "not_applicable": "Use only when canonical prose has no explicit end-cleanup mechanic."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Added for Heroism's end-of-spell Temporary Hit Point cleanup."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Removes",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].removes",
+      "why": "The runtime needs to know which spell-created state is removed at cleanup time.",
+      "comment": "Names the spell-created state removed by an end cleanup rule. It maps to `effects[].endCleanup[].removes`. Use `not_applicable` when the spell has no explicit cleanup mechanic.",
+      "acceptedValues": [
+        "temporary_hit_points",
+        "spell_granted_flying_speed",
+        "extradimensional_space",
+        "created_ammunition",
+        "spell_material_container",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "temporary_hit_points": "Use when cleanup removes Temporary Hit Points created by the spell or effect.",
+        "spell_granted_flying_speed": "Use when cleanup removes a flying speed granted by this spell or one of its effects.",
+        "extradimensional_space": "Use when cleanup removes a spell-created extradimensional space or pocket.",
+        "created_ammunition": "Use when cleanup removes or destroys ammunition created by this spell.",
+        "spell_material_container": "Use when cleanup destroys or removes a material container that the spell uses as an ongoing anchor.",
+        "not_applicable": "Use when no end-cleanup state is removed."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Added so Heroism can identify Temporary Hit Points as the cleanup target."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Source",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].source",
+      "why": "Temporary Hit Points and other states can come from several sources, so cleanup must name the source it owns.",
+      "comment": "Names which source's state is eligible for cleanup. It maps to `effects[].endCleanup[].source`. Use `not_applicable` when the spell has no explicit cleanup mechanic.",
+      "acceptedValues": [
+        "this_spell",
+        "this_effect",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "this_spell": "Use when cleanup removes state granted by this spell as a whole.",
+        "this_effect": "Use when cleanup removes state granted only by the same effect packet.",
+        "not_applicable": "Use when no end-cleanup source applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Added to prevent Heroism cleanup from removing unrelated Temporary Hit Points."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Scope",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].scope",
+      "why": "The runtime needs to know who loses the spell-created state during cleanup.",
+      "comment": "Names who is affected by an end cleanup rule. It maps to `effects[].endCleanup[].scope`. Use `not_applicable` when the spell has no explicit cleanup mechanic.",
+      "acceptedValues": [
+        "target",
+        "caster",
+        "affected_creatures",
+        "contents",
+        "created_objects",
+        "spell_component",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "target": "Use when the spell target loses the spell-created state.",
+        "caster": "Use when the caster loses the spell-created state.",
+        "affected_creatures": "Use when all currently affected creatures lose the spell-created state.",
+        "contents": "Use when cleanup affects the creatures, objects, or other contents inside a spell-created space, container, or passage.",
+        "created_objects": "Use when cleanup affects objects created by the spell rather than creatures or contents.",
+        "spell_component": "Use when cleanup affects the material component or container that anchors the spell.",
+        "not_applicable": "Use when no end-cleanup scope applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Added for Heroism's target-scoped Temporary Hit Point cleanup."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Amount",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].amount",
+      "why": "Cleanup can remove all remaining spell-created state or a narrower amount in future spells.",
+      "comment": "Records how much of the cleanup state is removed. It maps to `effects[].endCleanup[].amount`. Use `not_applicable` when the spell has no explicit cleanup mechanic.",
+      "acceptedValues": [
+        "all_remaining",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "all_remaining": "Use when all remaining matching state from the named source is removed.",
+        "not_applicable": "Use when no end-cleanup amount applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Added for Heroism removing any remaining Temporary Hit Points from the spell."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Consequence",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].consequence",
+      "why": "Some cleanup rules immediately create a follow-up runtime consequence instead of only removing state.",
+      "comment": "Records an immediate consequence caused by cleanup after a spell or effect ends. Purpose: End Cleanup Consequence keeps rules like falling after spell-granted flight ends out of prose-only descriptions. It maps to runtime JSON path `effects[].endCleanup[].consequence`. Use `not_applicable` when cleanup has no follow-up consequence.",
+      "acceptedValues": [
+        "fall_if_aloft",
+        "contents_drop_out",
+        "disintegrate",
+        "destroy",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "fall_if_aloft": "Use when the affected creature falls after losing spell-granted flight if it is still aloft.",
+        "contents_drop_out": "Use when contents inside a spell-created space or container drop out when that space or container ends.",
+        "disintegrate": "Use when cleanup causes spell-created objects or ammunition to disintegrate.",
+        "destroy": "Use when cleanup destroys a spell-owned object or material container.",
+        "not_applicable": "Use when no cleanup consequence applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T11:15:00+02:00",
+          "action": "created",
+          "why": "Fly and Investiture of Wind both make the affected creature fall if spell-granted flight ends while it is aloft."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Prevented By",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].preventedBy",
+      "why": "The runtime needs to know when a cleanup consequence is conditional rather than automatic.",
+      "comment": "Records what can prevent an End Cleanup Consequence. Purpose: End Cleanup Prevented By captures exception wording like `unless it can stop the fall`. It maps to runtime JSON path `effects[].endCleanup[].preventedBy`. Use `not_applicable` when the consequence has no prevention clause.",
+      "acceptedValues": [
+        "can_prevent_fall",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "can_prevent_fall": "Use when another ability, spell, trait, or other runtime state can stop the fall after spell-granted flight ends.",
+        "not_applicable": "Use when no prevention clause applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T11:15:00+02:00",
+          "action": "created",
+          "why": "Fly and Investiture of Wind both include an exception for a creature that can prevent the fall."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "End Cleanup Destination",
+      "valueType": "enum",
+      "jsonPath": "effects[].endCleanup[].destination",
+      "why": "Some cleanup consequences move contents out of a spell-created space and need a destination that is narrower than a full forced-placement system.",
+      "comment": "Records where an End Cleanup Consequence places moved contents. Purpose: End Cleanup Destination captures simple wording such as contents dropping out at a spell-created space's exit or anchor. It maps to runtime JSON path `effects[].endCleanup[].destination`. Use `not_applicable` when cleanup does not move or place contents.",
+      "acceptedValues": [
+        "space_exit_anchor",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "space_exit_anchor": "Use when contents leave through, or drop out at, the spell-created space's entrance, exit, or anchor point.",
+        "not_applicable": "Use when no cleanup destination applies."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T11:35:00+02:00",
+          "action": "created",
+          "why": "Rope Trick drops anything inside the extradimensional space out when the spell ends."
+        }
+      ]
+    }
+  ]
+}

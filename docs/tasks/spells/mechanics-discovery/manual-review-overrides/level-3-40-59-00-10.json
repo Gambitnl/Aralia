@@ -1,0 +1,122 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "thunder-step": [
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "thunder-step::vision_light_sound",
+        "canonicalEvidence": "The thunder can be heard from up to 300 feet away.",
+        "structuredState": "No audible radius field.",
+        "jsonState": "Runtime JSON has no sound radius.",
+        "issue": "Thunder Step's post-teleport 300-foot thunder is now represented by structured sound fields and runtime soundEmission data.",
+        "recommendedTemplateChange": "Closed by Sound Audible Radius 300 feet, Sound Source origin_space, and Sound Trigger after_teleport.",
+        "recommendedJsonChange": "Closed by adding soundEmission with audibleRadius 300 feet to the runtime effect.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "travel_or_planar_movement",
+        "findingId": "thunder-step::travel_or_planar_movement",
+        "canonicalEvidence": "You teleport yourself to an unoccupied space you can see within range. You can bring along objects within carrying capacity and one willing creature of your size or smaller.",
+        "structuredState": "Effect Type: UTILITY; no teleport movement or carried object/passenger fields.",
+        "jsonState": "Runtime JSON has damage only and no teleport effect.",
+        "issue": "Thunder Step teleport movement and carried object/passenger rules are not represented.",
+        "recommendedTemplateChange": "Add teleport movement, carried object, and passenger fields.",
+        "recommendedJsonChange": "Add runtime TELEPORT/UTILITY movement effect with self, carried objects within capacity, and optional passenger.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "tidal-wave": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "tidal-wave::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature in that area must make a Dexterity saving throw.",
+        "structuredState": "Save Stat: Dexterity; Save Outcome: half.",
+        "jsonState": "Runtime damage effect uses Dexterity save half and Prone uses Dexterity save negates_condition.",
+        "issue": "The save gates are represented; exact area dimensions and environmental water effects are tracked separately.",
+        "recommendedTemplateChange": "No save-field change required for this row.",
+        "recommendedJsonChange": "No save-condition runtime change required for this row.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "forced_movement",
+        "findingId": "tidal-wave::forced_movement",
+        "canonicalEvidence": "On a failed save, a creature takes 4d8 bludgeoning damage and is knocked prone. On a successful save it is not knocked prone.",
+        "structuredState": "Conditions Applied: Prone.",
+        "jsonState": "Runtime STATUS_CONDITION Prone exists without fake escape/repeat defaults.",
+        "issue": "The knock-prone rider is represented as Prone, though it is categorized as status rather than forced movement.",
+        "recommendedTemplateChange": "No separate forced movement field required for this row.",
+        "recommendedJsonChange": "Closed by preserving the failed-save Prone rider and removing stale escape/repeat defaults.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "tidal-wave::terrain_or_surface",
+        "canonicalEvidence": "The water then spreads out across the ground in all directions, extinguishing unprotected flames in its area and within 30 feet of it, and then it vanishes.",
+        "structuredState": "No water spread or flame extinguish fields.",
+        "jsonState": "Runtime JSON has no environmental extinguish effect.",
+        "issue": "Tidal Wave spreads water over ground and extinguishes unprotected flames in and near the area, but this is not represented.",
+        "recommendedTemplateChange": "Add water spread and flame extinguish radius fields.",
+        "recommendedJsonChange": "Add runtime environmentalChange extinguishUnprotectedFlames in area and within 30 feet, then vanish.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "tidal-wave::created_object_or_structure",
+        "canonicalEvidence": "You conjure up a wave of water that crashes down on an area within range.",
+        "structuredState": "Area Shape: line; Area Size: 30; no width/height fields.",
+        "jsonState": "Runtime area is Line size 30 height 0; width and height are missing.",
+        "issue": "Tidal Wave creates a configurable water volume up to 30 x 10 x 10 feet, but runtime only has a line length.",
+        "recommendedTemplateChange": "Add area width and height fields for cuboid/volume effects.",
+        "recommendedJsonChange": "Add runtime area dimensions length 30, width 10, height 10.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "tidal-wave::resource_or_consumption",
+        "canonicalEvidence": "You conjure up a wave of water ... the water then spreads out ... and then it vanishes.",
+        "structuredState": "No created water lifecycle fields.",
+        "jsonState": "Runtime JSON has no water lifecycle data.",
+        "issue": "The conjured water exists briefly, spreads, extinguishes flames, and vanishes; that lifecycle is not represented.",
+        "recommendedTemplateChange": "Add temporary created substance lifecycle fields.",
+        "recommendedJsonChange": "Add runtime createdWater lifecycle crash/spread/extinguish/vanish.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "tidal-wave::status_or_state_change",
+        "canonicalEvidence": "On a failed save, a creature is knocked prone; on a successful save, it is not knocked prone.",
+        "structuredState": "Conditions Applied: Prone.",
+        "jsonState": "Runtime STATUS_CONDITION Prone is Dexterity-save gated.",
+        "issue": "The failed-save Prone state is represented.",
+        "recommendedTemplateChange": "No status field change required for this row.",
+        "recommendedJsonChange": "No status runtime change required after stale default removal.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "tidal-wave::environmental_change",
+        "canonicalEvidence": "The water then spreads out across the ground in all directions, extinguishing unprotected flames in its area and within 30 feet of it, and then it vanishes.",
+        "structuredState": "No extinguish/spread/vanish fields.",
+        "jsonState": "Runtime JSON has no environmental effect.",
+        "issue": "The flame-extinguishing water spread is not represented.",
+        "recommendedTemplateChange": "Add environmental water spread and extinguish fields.",
+        "recommendedJsonChange": "Add runtime environmentalChange for spread, extinguish unprotected flames, and vanish.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "tiny-servant": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "tiny-servant::attack_or_save_modifier",
+        "canonicalEvidence": "As a bonus action, you can mentally command the creature if it is within 120 feet of you.",
+        "structuredState": "No command range/action fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "The detector matched action language; the actual mechanic is a bonus-action command channel for the servant.",
+        "recommendedTemplateChange": "Add controlled summon command action/range fields.",
+        "recommendedJsonChange": "Add runtime commandAction bonus_action range 120 feet mental.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

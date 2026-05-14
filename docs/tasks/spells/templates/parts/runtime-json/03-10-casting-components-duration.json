@@ -1,0 +1,364 @@
+{
+  "templateKind": "runtime-json",
+  "part": "10-casting-components-duration",
+  "fieldCount": 19,
+  "fields": [
+    {
+      "path": "castingTime.value",
+      "required": true,
+      "valueType": "number",
+      "structuredLabel": "Casting Time Value",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Casting Time Value."
+        }
+      ],
+      "comment": "Mapped from structured Casting Time Value. It maps to `castingTime.value`. It is populated from the structured markdown label `Casting Time Value`. Purpose: castingTime.value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Casting Time Value`, after that field has been checked against canonical prose. It maps to runtime JSON path `castingTime.value`. The value type is `number`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "castingTime.unit",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "reaction",
+        "minute",
+        "hour",
+        "special"
+      ],
+      "structuredLabel": "Casting Time Unit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Casting Time Unit."
+        }
+      ],
+      "comment": "Mapped from structured Casting Time Unit. It maps to `castingTime.unit`. It is populated from the structured markdown label `Casting Time Unit`. Purpose: castingTime.unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Casting Time Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `castingTime.unit`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "action": "Use `action` for castingTime.unit only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "bonus_action": "Use `bonus_action` for castingTime.unit only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "reaction": "Use `reaction` for castingTime.unit only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "minute": "Use when castingTime.unit is measured in minutes; keep the numeric duration or casting amount in the paired value field.",
+        "hour": "Use when castingTime.unit is measured in hours; keep the numeric duration or casting amount in the paired value field.",
+        "special": "Allowed value for castingTime.unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "castingTime.combatCost.type",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "reaction"
+      ],
+      "structuredLabel": "Combat Cost",
+      "normalization": {
+        "long_cast": "action"
+      },
+      "acceptedValueParity": "runtime_subset_ok",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Runtime combat cost accepts action economy costs; structured long_cast is normalized through exploration cost."
+        }
+      ],
+      "comment": "Runtime combat cost accepts action economy costs; structured long_cast is normalized through exploration cost. It maps to `castingTime.combatCost.type`. It is populated from the structured markdown label `Combat Cost`. Purpose: castingTime.combatCost.type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Combat Cost`, after that field has been checked against canonical prose. It maps to runtime JSON path `castingTime.combatCost.type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "action": "Use `action` for castingTime.combatCost.type only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "bonus_action": "Use `bonus_action` for castingTime.combatCost.type only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "reaction": "Use `reaction` for castingTime.combatCost.type only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available."
+      }
+    },
+    {
+      "path": "castingTime.combatCost.condition",
+      "required": true,
+      "valueType": "string",
+      "structuredLabel": "Reaction Trigger",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Reaction trigger maps to combatCost.condition."
+        }
+      ],
+      "comment": "Reaction trigger maps to combatCost.condition. It maps to `castingTime.combatCost.condition`. It is populated from the structured markdown label `Reaction Trigger`. Purpose: castingTime.combatCost.condition exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Reaction Trigger`, after that field has been checked against canonical prose. It maps to runtime JSON path `castingTime.combatCost.condition`. The value type is `string`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "castingTime.explorationCost.value",
+      "required": true,
+      "valueType": "number",
+      "structuredLabel": "Casting Time Value",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Exploration cost reuses casting time for non-combat casting."
+        }
+      ],
+      "comment": "Exploration cost reuses casting time for non-combat casting. It maps to `castingTime.explorationCost.value`. It is populated from the structured markdown label `Casting Time Value`. Purpose: castingTime.explorationCost.value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Casting Time Value`, after that field has been checked against canonical prose. It maps to runtime JSON path `castingTime.explorationCost.value`. The value type is `number`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "castingTime.explorationCost.unit",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "minute",
+        "hour"
+      ],
+      "structuredLabel": "Casting Time Unit",
+      "acceptedValueParity": "runtime_subset_ok",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Exploration cost unit reuses casting time when applicable."
+        }
+      ],
+      "comment": "Exploration cost unit reuses casting time when applicable. It maps to `castingTime.explorationCost.unit`. It is populated from the structured markdown label `Casting Time Unit`. Purpose: castingTime.explorationCost.unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Casting Time Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `castingTime.explorationCost.unit`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "minute": "Use when castingTime.explorationCost.unit is measured in minutes; keep the numeric duration or casting amount in the paired value field.",
+        "hour": "Use when castingTime.explorationCost.unit is measured in hours; keep the numeric duration or casting amount in the paired value field."
+      }
+    },
+    {
+      "path": "range.type",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "self",
+        "touch",
+        "ranged",
+        "special",
+        "sight",
+        "unlimited"
+      ],
+      "structuredLabel": "Range Type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Range Type."
+        }
+      ],
+      "comment": "Mapped from structured Range Type. It maps to `range.type`. It is populated from the structured markdown label `Range Type`. Purpose: range.type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Range Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `range.type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "self": "Use when the canonical spell centers this range.type mechanic on the caster rather than a separate target.",
+        "touch": "Allowed value for range.type; use only when the canonical spell text supports this exact mechanic.",
+        "ranged": "Allowed value for range.type; use only when the canonical spell text supports this exact mechanic.",
+        "special": "Allowed value for range.type; use only when the canonical spell text supports this exact mechanic.",
+        "sight": "Allowed value for range.type; use only when the canonical spell text supports this exact mechanic.",
+        "unlimited": "Allowed value for range.type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "range.distance",
+      "required": true,
+      "valueType": "number",
+      "structuredLabel": "Range Distance",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Range Distance."
+        }
+      ],
+      "comment": "Mapped from structured Range Distance. It maps to `range.distance`. It is populated from the structured markdown label `Range Distance`. Purpose: range.distance exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Range Distance`, after that field has been checked against canonical prose. It maps to runtime JSON path `range.distance`. The value type is `number`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "range.distanceUnit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "structuredLabel": "Range Distance Unit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Range Distance Unit."
+        }
+      ],
+      "comment": "Mapped from structured Range Distance Unit. It maps to `range.distanceUnit`. It is populated from the structured markdown label `Range Distance Unit`. Purpose: range.distanceUnit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Range Distance Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `range.distanceUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when range.distanceUnit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when range.distanceUnit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for range.distanceUnit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "components.verbal",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": "Verbal",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Verbal."
+        }
+      ],
+      "comment": "Mapped from structured Verbal. It maps to `components.verbal`. It is populated from the structured markdown label `Verbal`. Purpose: components.verbal exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Verbal`, after that field has been checked against canonical prose. It maps to runtime JSON path `components.verbal`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "components.somatic",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": "Somatic",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Somatic."
+        }
+      ],
+      "comment": "Mapped from structured Somatic. It maps to `components.somatic`. It is populated from the structured markdown label `Somatic`. Purpose: components.somatic exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Somatic`, after that field has been checked against canonical prose. It maps to runtime JSON path `components.somatic`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "components.material",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": "Material",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Material."
+        }
+      ],
+      "comment": "Mapped from structured Material. It maps to `components.material`. It is populated from the structured markdown label `Material`. Purpose: components.material exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Material`, after that field has been checked against canonical prose. It maps to runtime JSON path `components.material`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "components.materialDescription",
+      "required": true,
+      "valueType": "string",
+      "structuredLabel": "Material Description",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Material Description."
+        }
+      ],
+      "comment": "Mapped from structured Material Description. It maps to `components.materialDescription`. It is populated from the structured markdown label `Material Description`. Purpose: components.materialDescription exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Material Description`, after that field has been checked against canonical prose. It maps to runtime JSON path `components.materialDescription`. The value type is `string`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "components.materialCost",
+      "required": true,
+      "valueType": "number",
+      "structuredLabel": "Material Cost GP",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Material Cost GP."
+        }
+      ],
+      "comment": "Mapped from structured Material Cost GP. It maps to `components.materialCost`. It is populated from the structured markdown label `Material Cost GP`. Purpose: components.materialCost exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Material Cost GP`, after that field has been checked against canonical prose. It maps to runtime JSON path `components.materialCost`. The value type is `number`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "components.isConsumed",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": "Consumed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Consumed."
+        }
+      ],
+      "comment": "Mapped from structured Consumed. It maps to `components.isConsumed`. It is populated from the structured markdown label `Consumed`. Purpose: components.isConsumed exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Consumed`, after that field has been checked against canonical prose. It maps to runtime JSON path `components.isConsumed`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "duration.type",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "instantaneous",
+        "timed",
+        "special",
+        "until_dispelled",
+        "until_dispelled_or_triggered"
+      ],
+      "structuredLabel": "Duration Type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Duration Type."
+        }
+      ],
+      "comment": "Mapped from structured Duration Type. It maps to `duration.type`. It is populated from the structured markdown label `Duration Type`. Purpose: duration.type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Duration Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `duration.type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "instantaneous": "Allowed value for duration.type; use only when the canonical spell text supports this exact mechanic.",
+        "timed": "Allowed value for duration.type; use only when the canonical spell text supports this exact mechanic.",
+        "special": "Allowed value for duration.type; use only when the canonical spell text supports this exact mechanic.",
+        "until_dispelled": "Allowed value for duration.type; use only when the canonical spell text supports this exact mechanic.",
+        "until_dispelled_or_triggered": "Allowed value for duration.type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "duration.value",
+      "required": true,
+      "valueType": "number",
+      "structuredLabel": "Duration Value",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Duration Value."
+        }
+      ],
+      "comment": "Mapped from structured Duration Value. It maps to `duration.value`. It is populated from the structured markdown label `Duration Value`. Purpose: duration.value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Duration Value`, after that field has been checked against canonical prose. It maps to runtime JSON path `duration.value`. The value type is `number`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "duration.unit",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "round",
+        "minute",
+        "hour",
+        "day"
+      ],
+      "structuredLabel": "Duration Unit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Duration Unit."
+        }
+      ],
+      "comment": "Mapped from structured Duration Unit. It maps to `duration.unit`. It is populated from the structured markdown label `Duration Unit`. Purpose: duration.unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Duration Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `duration.unit`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "round": "Use when duration.unit is measured in rounds; keep the numeric duration or casting amount in the paired value field.",
+        "minute": "Use when duration.unit is measured in minutes; keep the numeric duration or casting amount in the paired value field.",
+        "hour": "Use when duration.unit is measured in hours; keep the numeric duration or casting amount in the paired value field.",
+        "day": "Allowed value for duration.unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "duration.concentration",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": "Concentration",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Concentration."
+        }
+      ],
+      "comment": "Mapped from structured Concentration. It maps to `duration.concentration`. It is populated from the structured markdown label `Concentration`. Purpose: duration.concentration exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Concentration`, after that field has been checked against canonical prose. It maps to runtime JSON path `duration.concentration`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    }
+  ]
+}

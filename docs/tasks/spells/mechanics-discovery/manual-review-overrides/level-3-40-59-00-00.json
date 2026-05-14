@@ -1,0 +1,121 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "meld-into-stone": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "meld-into-stone::attack_or_save_modifier",
+        "canonicalEvidence": "While merged with the stone, you cannot see what occurs outside it, and Wisdom (Perception) checks to hear sounds outside it are made with Disadvantage.",
+        "structuredState": "Effect Type: UTILITY; no check disadvantage or outside-senses fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Meld into Stone imposes a Wisdom (Perception) hearing disadvantage while merged, but that modifier is not typed.",
+        "recommendedTemplateChange": "Add sense/check modifier fields for hearing outside the merged stone.",
+        "recommendedJsonChange": "Add runtime checkModifier data for Wisdom (Perception) hearing outside at disadvantage.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding DEFENSIVE resistance with eligible Damage Type values and Defense Damage Type Source chosen_damage_type in structured markdown and runtime JSON."
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "meld-into-stone::target_filter_or_eligibility",
+        "canonicalEvidence": "If expelled, you move into an unoccupied space closest to where you first entered.",
+        "structuredState": "Valid Targets: stone_surface; no expulsion destination fields.",
+        "jsonState": "Runtime validTargets are ground only and has no expulsion destination rule.",
+        "issue": "The spell requires a stone object or surface large enough to contain the caster and later expels to the nearest unoccupied entry-adjacent space.",
+        "recommendedTemplateChange": "Add stone object/surface capacity targeting and expulsion destination fields.",
+        "recommendedJsonChange": "Add runtime target filter for stone object/surface large enough for caster and expelToNearestUnoccupiedEntrySpace.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "meld-into-stone::terrain_or_surface",
+        "canonicalEvidence": "You step into a stone object or surface large enough to fully contain your body, merging yourself and your equipment with the stone for the duration.",
+        "structuredState": "Valid Targets: stone_surface.",
+        "jsonState": "Runtime targeting uses ground and does not encode stone object/surface or capacity.",
+        "issue": "The stone surface/object requirement is only partially represented and lacks the body-capacity constraint.",
+        "recommendedTemplateChange": "Add surface/object material and capacity fields.",
+        "recommendedJsonChange": "Add runtime surfaceFilter material=stone and mustContainCasterBody.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "meld-into-stone::vision_light_sound",
+        "canonicalEvidence": "Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you cannot see what occurs outside it.",
+        "structuredState": "No invisibility/undetectable or blocked vision fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Meld into Stone hides the caster from nonmagical senses and blocks outside sight, but those sensory states are not typed.",
+        "recommendedTemplateChange": "Add nonmagical undetectability and blocked outside vision fields.",
+        "recommendedJsonChange": "Add runtime sensoryState data for nonmagical undetectable presence and cannotSeeOutside.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "meld-into-stone::social_or_knowledge_effect",
+        "canonicalEvidence": "You remain aware of the passage of time and can cast spells on yourself while merged in the stone.",
+        "structuredState": "No awareness or self-only spellcasting allowance fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "The caster retains time awareness and self-spellcasting permission while otherwise constrained, but those permissions are not represented.",
+        "recommendedTemplateChange": "Add awareness and self-only casting permission fields for merged states.",
+        "recommendedJsonChange": "Add runtime mergedState data for awareOfTime and canCastSelfSpells.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "meld-into-stone::status_or_state_change",
+        "canonicalEvidence": "If expelled, you move into an unoccupied space closest to where you first entered and have the Prone condition.",
+        "structuredState": "No expulsion Prone field.",
+        "jsonState": "Runtime JSON has no Prone status effect for expulsion.",
+        "issue": "The expulsion Prone condition is not represented.",
+        "recommendedTemplateChange": "Add conditional status fields tied to expulsion.",
+        "recommendedJsonChange": "Add runtime expulsionEffect applying Prone.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "meld-into-stone::manual_leave_or_stone_damage_endings",
+        "canonicalEvidence": "You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. Partial destruction or shape change expels you and deals 6d6 Force damage; complete destruction or transmutation expels you and deals 50 Force damage.",
+        "structuredState": "No movement-to-leave ending or stone destruction/transmutation trigger fields.",
+        "jsonState": "Runtime JSON has no conditional ending, expulsion, or force damage data.",
+        "issue": "Meld into Stone has several conditional endings and expulsion damage branches that are prose-only.",
+        "recommendedTemplateChange": "Add leaveCost, expulsion trigger, and branch damage fields.",
+        "recommendedJsonChange": "Add runtime conditionalEnding data for leave movement, partial destruction/shape change 6d6 Force, and complete destruction/transmutation 50 Force.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "movement_or_repositioning",
+        "findingId": "meld-into-stone::manual_movement_limits",
+        "canonicalEvidence": "You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. You otherwise cannot move.",
+        "structuredState": "No movement restriction or leave-cost fields.",
+        "jsonState": "Runtime JSON has no movement restriction.",
+        "issue": "Meld into Stone restricts movement except for a 5-foot movement exit.",
+        "recommendedTemplateChange": "Add movementRestriction and exitCost fields.",
+        "recommendedJsonChange": "Add runtime movementRestriction cannotMoveExceptExit with exitCost 5 feet.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "melfs-minute-meteors": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "melfs-minute-meteors::choice_or_mode",
+        "canonicalEvidence": "You can expend one or two of the meteors, sending them toward a point or points you choose within 120 feet.",
+        "structuredState": "No one-or-two meteor spend or selected point fields.",
+        "jsonState": "Runtime JSON has one immediate damage effect.",
+        "issue": "The caster chooses to spend one or two meteors and can choose one or two destination points, but runtime has no charge/spend model.",
+        "recommendedTemplateChange": "Add expendable instance count and destination point choice fields.",
+        "recommendedJsonChange": "Add runtime orbitingMeteorCharges=6 and spend 1-2 charges to selected point(s) within 120 feet.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "melfs-minute-meteors::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature within 5 feet of the point where the meteor explodes must make a Dexterity saving throw. A creature takes 2d6 fire damage on a failed save, or half as much damage on a successful one.",
+        "structuredState": "Save Stat: Dexterity; Save Outcome: half; Damage Dice: 2d6.",
+        "jsonState": "Runtime has 2d6 Fire Dexterity save half, but not the 5-foot point explosion or one/two meteor sequencing.",
+        "issue": "The save and damage are represented, but the point explosion radius and per-meteor sequencing are flattened.",
+        "recommendedTemplateChange": "Add per-instance explosion area fields.",
+        "recommendedJsonChange": "Add runtime perMeteorExplosion area radius 5 feet tied to each spent meteor.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

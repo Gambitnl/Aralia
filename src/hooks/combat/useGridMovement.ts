@@ -14,15 +14,36 @@
  */
 // @dependencies-end
 
-/**
- * @file src/hooks/combat/useGridMovement.ts
- * Custom hook to manage the state and logic of grid-based movement.
- * Extracts pathfinding logic from the UI interaction layer.
- */
+// ============================================================================
+// Grid Movement Hook
+// ============================================================================
+// This hook figures out which tiles a selected character can reach on the
+// battle map, given their remaining movement speed. It also computes the
+// actual path the character would walk when the player clicks a destination.
+//
+// The core algorithm is a Breadth-First Search (BFS) that fans out from the
+// character's current tile, spending movement budget on each step using D&D's
+// 5-10-5 diagonal movement rule (first diagonal costs 5 ft, second costs
+// 10 ft, alternating). The BFS stops expanding once movement is exhausted.
+//
+// 2024 PHB Prone/Crawling Integration:
+// When a character has the Prone condition, all movement while prone costs
+// double ("crawling" in D&D terms). This hook checks for Prone on both the
+// BFS reachability calculation and the A* pathfinding call, so the highlighted
+// tiles and computed paths both reflect the correct reduced movement range.
+//
+// Called by: useBattleMap.ts (the main battle map controller hook)
+// Depends on: pathfinding.ts (A* path computation), movementUtils.ts (cost math)
+// ============================================================================
+
 import { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
 import { findPath } from '../../utils/pathfinding';
-import { calculateStepMovementCost } from '../../utils/movementUtils';
+import { getCharacterSizeMultiplier } from '../../utils/combatUtils';
+// calculateMovementCost: base cost of a single step (5 or 10 ft depending on diagonal parity)
+// getTileMovementMultiplier: normalizes tile terrain cost to a multiplier (1 = normal, 2 = difficult)
+// calculateStepMovementCost: combines the above two (kept imported for potential future use)
+import { calculateMovementCost, getTileMovementMultiplier, calculateStepMovementCost } from '../../utils/movementUtils';
 
 interface UseGridMovementProps {
   mapData: BattleMapData | null;
@@ -40,9 +61,13 @@ interface UseGridMovementReturn {
 export function useGridMovement({ mapData, characterPositions, selectedCharacter }: UseGridMovementProps): UseGridMovementReturn {
   const [activePath, setActivePath] = useState<BattleMapTile[]>([]);
 
-  // Derived state: Valid moves for the selected character.
-  // We use useMemo to avoid recalculating on every render, but ensure it updates when
-  // the map, character position, or selected character changes.
+  // ------------------------------------------------------------------
+  // BFS Reachability — which tiles can this character reach?
+  // ------------------------------------------------------------------
+  // We fan out from the character's current tile, spending movement budget
+  // on each step. Tiles within budget get added to the "valid moves" set
+  // and are highlighted on the battle map.
+  // ------------------------------------------------------------------
   const validMoves = useMemo(() => {
     if (!selectedCharacter || !mapData) {
       return new Set<string>();
@@ -63,41 +88,67 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
     const visited = new Map<string, number>();
     visited.set(`${startNode.id}-0`, 0);
 
-    // Calculate remaining movement
+    // Figure out how many feet of movement the character has left this turn.
     const movement = selectedCharacter.actionEconomy?.movement;
     const movementRemaining = movement ? (movement.total - movement.used) : 0;
+
+    const isProne = selectedCharacter.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
+    
+    // Multi-tile movement: Large creatures occupy 2x2, Huge 3x3, etc.
+    const multiplier = getCharacterSizeMultiplier(selectedCharacter.stats.size);
 
     while (queue.length > 0) {
       const { tile, cost, diagonalCount } = queue.shift()!;
       reachableTiles.add(tile.id);
 
+      // Try all 8 neighboring tiles (cardinal + diagonal directions)
       for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
           if (dx === 0 && dy === 0) continue;
 
           const newX = tile.coordinates.x + dx;
           const newY = tile.coordinates.y + dy;
-          const neighborId = `${newX}-${newY}`;
-          const neighbor = mapData.tiles.get(neighborId);
+          
+          // Check if all tiles in the multiplier square are passable
+          let canPass = true;
+          let maxTerrainMultiplier = 1;
+          
+          for (let sx = 0; sx < multiplier; sx++) {
+            for (let sy = 0; sy < multiplier; sy++) {
+              const checkId = `${newX + sx}-${newY + sy}`;
+              const checkTile = mapData.tiles.get(checkId);
+              
+              if (!checkTile || checkTile.blocksMovement) {
+                canPass = false;
+                break;
+              }
+              
+              // If any part of the creature is in difficult terrain, the whole movement is hampered
+              const terrainMult = getTileMovementMultiplier(checkTile.movementCost);
+              if (terrainMult > maxTerrainMultiplier) {
+                maxTerrainMultiplier = terrainMult;
+              }
+            }
+            if (!canPass) break;
+          }
 
-          if (neighbor && !neighbor.blocksMovement) {
-            // Calculate the step in feet, not raw tile units. This matters
-            // because generated battle maps store normal terrain as 5 ft per
-            // square, while some older tests/data store normal terrain as a
-            // 1x multiplier.
-            const { cost: stepCost, isDiagonal } = calculateStepMovementCost(dx, dy, diagonalCount, neighbor.movementCost);
+          if (canPass) {
+            const { cost: baseCost, isDiagonal } = calculateMovementCost(dx, dy, diagonalCount);
+            const crawlCost = isProne ? 1 : 0;
+            const stepCost = baseCost * (maxTerrainMultiplier + crawlCost);
 
             const newCost = cost + stepCost;
             const newDiagonalCount = isDiagonal ? diagonalCount + 1 : diagonalCount;
             const newParity = newDiagonalCount % 2;
+            const neighborId = `${newX}-${newY}`;
             const visitedKey = `${neighborId}-${newParity}`;
 
             if (newCost <= movementRemaining) {
-              // Only process if we found a cheaper way to this state (tile + parity)
               const previousCost = visited.get(visitedKey);
               if (previousCost === undefined || newCost < previousCost) {
                 visited.set(visitedKey, newCost);
-                queue.push({ tile: neighbor, cost: newCost, diagonalCount: newDiagonalCount });
+                const neighborTile = mapData.tiles.get(neighborId)!;
+                queue.push({ tile: neighborTile, cost: newCost, diagonalCount: newDiagonalCount });
               }
             }
           }
@@ -107,6 +158,15 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
     return reachableTiles;
   }, [selectedCharacter, mapData, characterPositions]);
 
+  // ------------------------------------------------------------------
+  // Path Calculation (A* with Prone crawling cost)
+  // ------------------------------------------------------------------
+  // When the player hovers over a reachable tile, this function computes
+  // the actual path the character would walk using A* pathfinding.
+  // If the character is Prone, we pass { isCrawling: true } to the
+  // pathfinder so it applies the doubled movement cost to every step.
+  // This ensures the drawn path line matches the real cost.
+  // ------------------------------------------------------------------
   const calculatePath = useCallback((character: CombatCharacter, targetTile: BattleMapTile) => {
     if (!mapData || !validMoves.has(targetTile.id)) {
         setActivePath([]);
@@ -116,7 +176,14 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
     const startTile = startPos ? mapData.tiles.get(`${startPos.x}-${startPos.y}`) : null;
 
     if (startTile) {
-      const path = findPath(startTile, targetTile, mapData);
+      // Check Prone status for the character whose path we're computing.
+      // This is a separate check from the BFS above because calculatePath
+      // receives a character parameter that might differ from selectedCharacter.
+      const isProne = character.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
+      // Pass crawling state to the A* pathfinder in physicsUtils, which adds
+      // +1 foot per foot to every step's cost when isCrawling is true.
+      const multiplier = getCharacterSizeMultiplier(character.stats.size);
+      const path = findPath(startTile, targetTile, mapData, { isCrawling: isProne }, multiplier);
       setActivePath(path);
     }
   }, [mapData, characterPositions, validMoves]);

@@ -1,0 +1,236 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 9,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Actor",
+      "valueType": "enum",
+      "jsonPath": "effects[].grantedActions[].actor",
+      "why": "Some spells give the target or another subject a new action instead of giving the caster a repeat action.",
+      "comment": "Stores granted action actor for spell-granted actions. Purpose: Granted Action Actor exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].actor`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "caster": "Use when the caster can use the granted action.",
+        "target": "Use when the spell target can use the granted action.",
+        "summoned_entity": "Use when a summoned or created entity can use the granted action.",
+        "affected_creature": "Use when any currently affected creature can use the granted action.",
+        "not_applicable": "Use when the spell does not grant an action."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ],
+      "acceptedValues": [
+        "caster",
+        "target",
+        "summoned_entity",
+        "affected_creature",
+        "not_applicable"
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Name",
+      "valueType": "slug-or-sentinel",
+      "jsonPath": "effects[].grantedActions[].action",
+      "why": "The runtime needs a stable action identifier rather than relying only on prose.",
+      "comment": "Stores granted action name for spell-granted actions. Purpose: Granted Action Name exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].action`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "not_applicable": "Use when the spell does not grant an action."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Type",
+      "valueType": "enum",
+      "jsonPath": "effects[].grantedActions[].actionKind",
+      "why": "A spell-granted Magic action is mechanically different from a generic action label.",
+      "comment": "Stores granted action type for spell-granted actions. Purpose: Granted Action Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].actionKind`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "magic_action": "Use when canonical prose says the granted action is a Magic action.",
+        "standard_action": "Use when the granted action is an ordinary action without the Magic-action tag.",
+        "bonus_action": "Use when the granted action costs a Bonus Action.",
+        "reaction": "Use when the granted action costs a Reaction.",
+        "not_applicable": "Use when the spell does not grant an action."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ],
+      "acceptedValues": [
+        "magic_action",
+        "standard_action",
+        "bonus_action",
+        "reaction",
+        "not_applicable"
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Frequency",
+      "valueType": "enum",
+      "jsonPath": "effects[].grantedActions[].frequency",
+      "why": "The runtime needs to know whether the granted action is repeatable while the spell remains active.",
+      "comment": "Stores granted action frequency for spell-granted actions. Purpose: Granted Action Frequency exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].frequency`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "once": "Use when the granted action can be used one time.",
+        "each_turn": "Use when the granted action can be used on each eligible turn.",
+        "while_active": "Use when the action remains generally available while the spell is active.",
+        "not_applicable": "Use when the spell does not grant an action."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ],
+      "acceptedValues": [
+        "once",
+        "each_turn",
+        "while_active",
+        "not_applicable"
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Area Shape",
+      "valueType": "enum",
+      "jsonPath": "effects[].grantedActions[].areaShape",
+      "why": "Some granted actions emit a shaped area, such as Dragon's Breath creating a cone.",
+      "comment": "Stores granted action area shape for spell-granted actions. Purpose: Granted Action Area Shape exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].areaShape`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "Cone": "Use when the granted action creates a cone.",
+        "Line": "Use when the granted action creates a line.",
+        "Sphere": "Use when the granted action creates a sphere.",
+        "Cube": "Use when the granted action creates a cube.",
+        "Cylinder": "Use when the granted action creates a cylinder.",
+        "not_applicable": "Use when the granted action has no area shape."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ],
+      "acceptedValues": [
+        "Cone",
+        "Line",
+        "Sphere",
+        "Cube",
+        "Cylinder",
+        "not_applicable"
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Area Size",
+      "valueType": "number-or-sentinel",
+      "jsonPath": "effects[].grantedActions[].areaSize",
+      "why": "A granted area action needs its numeric area size outside prose.",
+      "comment": "Stores granted action area size for spell-granted actions. Purpose: Granted Action Area Size exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].areaSize`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "not_applicable": "Use when the granted action has no area size."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Area Size Unit",
+      "valueType": "enum",
+      "jsonPath": "effects[].grantedActions[].areaSizeUnit",
+      "why": "Area size needs an explicit unit for runtime use.",
+      "comment": "Stores granted action area size unit for spell-granted actions. Purpose: Granted Action Area Size Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].areaSizeUnit`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "feet": "Use when the granted action area is measured in feet.",
+        "miles": "Use when the granted action area is measured in miles.",
+        "not_applicable": "Use when the granted action has no area size unit."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ],
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "not_applicable"
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Effect Indices",
+      "valueType": "csv-number",
+      "jsonPath": "effects[].grantedActions[].effectIndices[]",
+      "why": "The granted action should point to the runtime effect packets it activates.",
+      "comment": "Stores granted action effect indices for spell-granted actions. Purpose: Granted Action Effect Indices exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who can use a granted action and what it activates. Populate it from canonical prose. It maps to runtime JSON path `effects[].grantedActions[].effectIndices[]`. Use `not_applicable` when the spell has no granted action or this property does not apply.",
+      "acceptedValueNotes": {
+        "not_applicable": "Use when there are no linked effect indexes."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Added for Dragon's Breath target-activated Magic action."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Granted Action Prerequisites",
+      "valueType": "csv-enum",
+      "jsonPath": "effects[].grantedActions[].prerequisites[]",
+      "why": "Some granted actions can only be used while a stated condition remains true, such as the target object still being within range.",
+      "comment": "Lists extra prerequisites that must be true before a spell-granted action can be used. Purpose: Granted Action Prerequisites keeps repeat-action restrictions out of prose-only descriptions. Populate it from canonical text that gates a later action on range, position, target state, or a similar condition. It maps to runtime JSON path `effects[].grantedActions[].prerequisites[]`. Use `not_applicable` when the spell has no granted action prerequisite.",
+      "acceptedValues": [
+        "target_object_within_spell_range",
+        "target_within_spell_range",
+        "not_applicable"
+      ],
+      "acceptedValueNotes": {
+        "target_object_within_spell_range": "Use when the granted action can only be used while the original target object remains within the spell's range.",
+        "target_within_spell_range": "Use when the granted action can only be used while the original creature or target remains within the spell's range.",
+        "not_applicable": "Use when the granted action has no extra prerequisite or the spell grants no action."
+      },
+      "log": [
+        {
+          "at": "2026-05-14T07:30:00+02:00",
+          "action": "created",
+          "why": "Added for Heat Metal's repeat Bonus Action range recheck."
+        }
+      ]
+    }
+  ]
+}

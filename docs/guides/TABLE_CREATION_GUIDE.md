@@ -1,4 +1,4 @@
-﻿# Guide: Creating Tables in Glossary Entries
+# Guide: Creating Tables in Glossary Entries
 
 Last Updated: 2026-03-11
 Purpose: Describe the current table-authoring rules for glossary content without relying on stale renderer-path or styling assumptions.

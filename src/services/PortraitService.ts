@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 07/05/2026, 00:03:45
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file PortraitService.ts
@@ -9,13 +24,6 @@
  */
 
 import { safeJSONParse } from '../utils/securityUtils';
-
-export interface PortraitRequest {
-  name: string;
-  description: string;
-  race: string;
-  className: string;
-}
 
 export interface PortraitGenerateRequest {
   description: string;
@@ -54,67 +62,3 @@ export async function generatePortraitUrl(request: PortraitGenerateRequest): Pro
   return payload.url.trim();
 }
 
-/**
- * @deprecated Prefer {@link generatePortraitUrl} (Stitch-backed dev API).
- * Sends a portrait request to the Agent Uplink local chat server (localhost:8000).
- */
-export async function requestPortrait(request: PortraitRequest): Promise<void> {
-  const payload = {
-    name: request.name,
-    description: request.description,
-    race: request.race,
-    class: request.className,
-  };
-  // Build JSON with JSON.stringify to avoid broken payloads when inputs contain quotes/newlines.
-  const message = `#Human #portrait_request ${JSON.stringify(payload)}`;
-
-  try {
-    const response = await fetch('http://localhost:8000/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message })
-    });
-    if (!response.ok) {
-      throw new Error(`Agent Uplink responded with ${response.status}`);
-    }
-  } catch (error) {
-    console.error('Failed to send portrait request to agent:', error);
-    throw new Error('Agent Uplink not responding. Ensure local_chat.py is running.');
-  }
-}
-
-/**
- * Polls for a portrait URL from the agent.
- * The agent will reply with a message containing the generated image URL.
- */
-// TODO(agent-uplink): This polling path is kept for backwards-compatibility. Prefer generatePortraitUrl().
-export async function pollForPortrait(characterName: string): Promise<string | null> {
-  try {
-    const response = await fetch('http://localhost:8000/api/messages');
-    if (!response.ok) {
-      throw new Error(`Agent Uplink responded with ${response.status}`);
-    }
-    const messages = await response.json();
-    if (!Array.isArray(messages)) return null;
-
-    // Find the latest reply from the agent for this character's portrait
-    // The agent should reply with something like "#Gemini #portrait_ready { "name": "...", "url": "..." }"
-    const reply = [...messages].reverse().find((msg: any) =>
-      msg?.agent === 'Gemini' &&
-      typeof msg?.message === 'string' &&
-      msg.message.includes('#portrait_ready') &&
-      msg.message.includes(characterName)
-    );
-
-    if (reply) {
-      const jsonMatch = reply.message.match(/\{[\s\S]*?\}/);
-      if (jsonMatch) {
-        const data = safeJSONParse<{ url: string }>(jsonMatch[0]);
-        return data ? data.url : null;
-      }
-    }
-  } catch (error) {
-    console.error('Error polling for portrait:', error);
-  }
-  return null;
-}

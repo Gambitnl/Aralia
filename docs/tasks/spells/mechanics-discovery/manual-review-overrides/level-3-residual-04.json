@@ -1,0 +1,128 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "melfs-minute-meteors::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Repeat actions, recasts, and sustain behavior need stronger action-economy fields.",
+      "recommendedTemplateChange": "Add sustain/recast action bucket fields.",
+      "recommendedJsonChange": "Use Utility Options/grantedActions as interim representation."
+    },
+    "melfs-minute-meteors::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Terrain/surface rules need stronger terrain, surface, passability, and environmental-state fields when not already covered by TERRAIN.",
+      "recommendedTemplateChange": "Add terrain/surface bucket fields.",
+      "recommendedJsonChange": "Use current terrain/utility representation as interim data."
+    },
+    "melfs-minute-meteors::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Wards, glyph triggers, and delayed triggered effects need trigger-condition and stored-effect fields.",
+      "recommendedTemplateChange": "Add ward/trigger bucket fields.",
+      "recommendedJsonChange": "Use current Utility Options as interim data."
+    },
+    "melfs-minute-meteors::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "motivational-speech::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "motivational-speech::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "motivational-speech::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Vision, sound, obscurement, or sensory fields need a stronger sensory schema when not just line of sight.",
+      "recommendedTemplateChange": "Add sensory/vision/light/sound bucket fields.",
+      "recommendedJsonChange": "Use current light/terrain/utility representation as interim data."
+    },
+    "motivational-speech::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Knowledge, attitude, speech, or memory effects need explicit social/knowledge fields.",
+      "recommendedTemplateChange": "Add social/knowledge bucket fields.",
+      "recommendedJsonChange": "Use current status/utility text as interim representation."
+    },
+    "motivational-speech::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Healing, restoration, transfer, or condition removal needs specific restoration/prevention fields beyond generic utility.",
+      "recommendedTemplateChange": "Add restoration/condition-removal/healing-transfer bucket fields.",
+      "recommendedJsonChange": "Use current HEALING/UTILITY effects until propagation."
+    },
+    "motivational-speech::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object stats, structure durability, or object transformations need explicit AC/HP/passability/damageability fields.",
+      "recommendedTemplateChange": "Add object stat/damageability bucket fields.",
+      "recommendedJsonChange": "Use current spatial/utility fields until propagation."
+    },
+    "motivational-speech::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Some ending conditions are represented in prose/options but need reusable break-condition fields.",
+      "recommendedTemplateChange": "Add conditional-ending bucket fields.",
+      "recommendedJsonChange": "Use existing duration/utility/status break fields as interim data.",
+      "closedReason": "Closed by the detailed Motivational Speech conditional-ending row: the per-target granted Temporary Hit Points depletion ending is represented with temporary_hit_points_depleted in structured markdown and runtime conditionalEndings."
+    },
+    "nondetection::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Remote perception or sensing needs source, range, medium, and information fields.",
+      "recommendedTemplateChange": "Add sensor/remote perception bucket fields.",
+      "recommendedJsonChange": "Use existing Utility Options as interim data."
+    },
+    "phantom-steed::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "phantom-steed::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; target_filter_or_eligibility is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "phantom-steed::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "phantom-steed::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; illusion_or_disguise is either already represented or covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "phantom-steed::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Summoned/controlled entities need command, initiative, stat, duration, and ownership fields.",
+      "recommendedTemplateChange": "Add summon/controlled-entity bucket fields.",
+      "recommendedJsonChange": "Use existing SUMMONING/Utility Options as interim data."
+    },
+    "phantom-steed::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; travel_or_planar_movement is either already represented or covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "phantom-steed::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: the detailed Phantom Steed row now records early ending when the created steed takes damage.",
+      "recommendedTemplateChange": "No additional template change required from this residual duplicate.",
+      "recommendedJsonChange": "No additional JSON change required from this residual duplicate.",
+      "closedReason": "The detailed manual row closes the conditional-ending part with created_entity_takes_damage. The one-minute dismount grace remains open under phantom-steed::aftermath_or_memory."
+    },
+    "phantom-steed::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Aftermath and memory effects need post-effect state fields.",
+      "recommendedTemplateChange": "Add aftermath/memory bucket fields.",
+      "recommendedJsonChange": "Use Utility Options/description as interim representation."
+    }
+  },
+  "manualFindings": {}
+}

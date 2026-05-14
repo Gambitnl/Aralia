@@ -1,0 +1,304 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 8 packet 05-09 manual review decisions.",
+    "Closed entries include a reason in issue. Actionable-open entries identify schema families that need a later propagation pass."
+  ],
+  "findings": {
+    "control-weather::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector false positive from changing weather stages by one; no attack roll or saving throw modifier exists.",
+      "recommendedTemplateChange": "No attack/save template change needed.",
+      "recommendedJsonChange": "No attack/save JSON change needed."
+    },
+    "control-weather::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: DM-determined current conditions are now represented by aiContext and weather-control utility options, not a social/knowledge effect.",
+      "recommendedTemplateChange": "Added weather utility options and DM-stage prompt.",
+      "recommendedJsonChange": "Added aiContext prompt and controlOptions."
+    },
+    "control-weather::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: precipitation, temperature, wind, delay, stage shifts, and wind direction are now explicit structured/runtime utility options.",
+      "recommendedTemplateChange": "Added environmental_control utility options.",
+      "recommendedJsonChange": "Added controlOptions for weather families and delay."
+    },
+    "control-weather::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: outdoor casting requirement and indoors early ending are now explicit utility options.",
+      "recommendedTemplateChange": "Added Indoors ending option.",
+      "recommendedJsonChange": "Added Indoors ending controlOption."
+    },
+    "control-weather::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: weather gradually returning to normal is environmental aftermath, now preserved in the Indoors ending option detail.",
+      "recommendedTemplateChange": "No separate aftermath field needed.",
+      "recommendedJsonChange": "No separate aftermath JSON field needed."
+    },
+    "demiplane::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: new demiplane, previous demiplane, and known other demiplane choices are now utility options and runtime prompt/control options.",
+      "recommendedTemplateChange": "Added Demiplane utility option rows.",
+      "recommendedJsonChange": "Added aiContext prompt and controlOptions."
+    },
+    "demiplane::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: flat solid surface targeting is now captured in Target Filter Notes and runtime validTargets uses objects/point.",
+      "recommendedTemplateChange": "Added Target Filter Notes and object_or_surface target category.",
+      "recommendedJsonChange": "Changed validTargets to objects and point."
+    },
+    "demiplane::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: surface requirement is target eligibility, not terrain; it is now captured in Target Filter Notes.",
+      "recommendedTemplateChange": "No terrain field needed.",
+      "recommendedJsonChange": "No terrain JSON needed."
+    },
+    "demiplane::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: \"can see within range\" is ordinary line-of-sight targeting already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "demiplane::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: demiplane connection modes and vanishing-door shunt are now explicit utility/control options.",
+      "recommendedTemplateChange": "Added travel/storage utility options.",
+      "recommendedJsonChange": "Added controlOptions for door connection and shunt."
+    },
+    "demiplane::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: knowing another demiplane nature and contents is now captured in the Known other demiplane option.",
+      "recommendedTemplateChange": "Added Known other demiplane option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "demiplane::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: optional shunting through the vanishing door now has an explicit Prone structured condition and runtime STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "Added Conditions Applied: Prone.",
+      "recommendedJsonChange": "Added STATUS_CONDITION Prone effect."
+    },
+    "demiplane::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: door vanishing and creature/object persistence at spell end are preserved in utility options and canonical description.",
+      "recommendedTemplateChange": "Added Vanishing door shunt option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "demiplane::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: objects and creatures remaining in the demiplane after the spell ends are now represented by the vanishing-door option and description.",
+      "recommendedTemplateChange": "No separate aftermath field needed.",
+      "recommendedJsonChange": "No separate aftermath JSON field needed."
+    },
+    "dominate-monster::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: initial Wisdom save, fighting-advantage modifier, and damage-triggered repeat save are now machine-readable.",
+      "recommendedTemplateChange": "Added Save Modifier rows and Save Outcome negates_condition.",
+      "recommendedJsonChange": "Added Charmed STATUS_CONDITION with saveModifier and on_damage repeatSave."
+    },
+    "dominate-monster::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: commanding the target Reaction at the caster Reaction cost is now a structured utility option and granted runtime reaction action.",
+      "recommendedTemplateChange": "Added Reaction command utility option.",
+      "recommendedJsonChange": "Added grantedActions reaction command."
+    },
+    "dominate-monster::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: sight is ordinary targeting and already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "dominate-monster::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: telepathic link and no-action command messaging are now structured/runtime utility options.",
+      "recommendedTemplateChange": "Added Telepathic link and No-action command options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "dominate-monster::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched command/control language; this spell controls an existing target rather than summoning a new entity, now represented by Charmed plus command options.",
+      "recommendedTemplateChange": "No summon template change needed.",
+      "recommendedJsonChange": "No summon JSON change needed."
+    },
+    "dominate-monster::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: same-plane limit belongs to the telepathic command link and is now recorded in the Telepathic link option.",
+      "recommendedTemplateChange": "Added same-plane utility option text.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "dominate-monster::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Charmed control, command behavior, and self-directed behavior are now structured/runtime effects.",
+      "recommendedTemplateChange": "Added Conditions Applied and control options.",
+      "recommendedJsonChange": "Added Charmed STATUS_CONDITION and controlOptions."
+    },
+    "dominate-monster::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Charmed is now an explicit structured condition and runtime STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "Added Conditions Applied: Charmed.",
+      "recommendedJsonChange": "Added STATUS_CONDITION Charmed effect."
+    },
+    "earthquake::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: fissure placement choice and optional fissure/structure effects are now structured/runtime utility options.",
+      "recommendedTemplateChange": "Added Fissures and Structures utility options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "earthquake::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Dexterity saves for tremor/fissures/collapse and half-damage collapse save are now represented by status/damage effects where supported.",
+      "recommendedTemplateChange": "Changed Save Outcome to negates_condition and added effect rows.",
+      "recommendedJsonChange": "Added Prone/Buried status effects and collapse damage save effect."
+    },
+    "earthquake::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: recurring cast/end-of-caster-turn applications are now represented by Triggered Applications and runtime effect trigger details where supported.",
+      "recommendedTemplateChange": "Added Triggered Applications.",
+      "recommendedJsonChange": "Added turn_end trigger to structure damage and utility option text for recurring timing."
+    },
+    "earthquake::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Difficult Terrain and fissure surface rules are now structured/runtime utility options with Terrain Type difficult.",
+      "recommendedTemplateChange": "Added Terrain Type difficult and Tremor/Fissures options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "earthquake::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: sight is ordinary point targeting and already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "earthquake::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: fissures and structure-collapse interactions are now explicit utility options instead of prose-only text.",
+      "recommendedTemplateChange": "Added Fissures and Structures options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "earthquake::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: 50 Bludgeoning structure damage and collapse consequences are now represented by structured Damage Trigger and runtime DAMAGE effects.",
+      "recommendedTemplateChange": "Added Damage Trigger and structure utility options.",
+      "recommendedJsonChange": "Added 50 Bludgeoning and 12d6 Bludgeoning damage effects."
+    },
+    "earthquake::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Prone and Buried are now explicit structured conditions and runtime STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "Added Conditions Applied: Prone, Buried.",
+      "recommendedJsonChange": "Added STATUS_CONDITION Prone and Buried effects."
+    },
+    "earthquake::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: tremor, difficult terrain, fissures, and structure collapse are now split into explicit utility options.",
+      "recommendedTemplateChange": "Added environmental_control options.",
+      "recommendedJsonChange": "Added controlOptions."
+    },
+    "earthquake::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched duration wording; no unusual early-ending mechanic exists beyond concentration/duration already represented.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "feeblemind::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: damage was corrected from 10d12 to canonical 4d6, and Intelligence save/status consequences are now modeled.",
+      "recommendedTemplateChange": "Damage Dice remains 4d6 and utility options added.",
+      "recommendedJsonChange": "Corrected damage.dice to 4d6 and added Feebleminded status/utility effects."
+    },
+    "feeblemind::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector false positive from \"can see\"; line-of-sight targeting already represents this.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "feeblemind::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: language understanding and intelligible communication lockout are now explicit structured/runtime utility options.",
+      "recommendedTemplateChange": "Added Language and communication lockout option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "feeblemind::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: personality/intellect shattering, friend recognition, language lockout, and communication lockout are now recorded under Feeblemind utility/status effects.",
+      "recommendedTemplateChange": "Added Feebleminded condition and utility options.",
+      "recommendedJsonChange": "Added Feebleminded STATUS_CONDITION and controlOptions."
+    },
+    "feeblemind::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: greater restoration, heal, and wish ending the spell is now represented by Restoration ending utility option.",
+      "recommendedTemplateChange": "Added Restoration ending option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "feeblemind::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: 30-day repeat save and restoration spell ending are now utility options while the long-interval repeat-save schema gap remains tracked separately.",
+      "recommendedTemplateChange": "Added Long interval repeat save and Restoration ending options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    }
+  },
+  "manualFindings": {
+    "control-weather": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Control Weather relies on omitted precipitation, temperature, and wind stage tables plus a random 1d4 x 10 minute delay; current schema can only preserve this as options/prompt text.",
+        "recommendedTemplateChange": "Add weather-stage table fields and delayed-effect formula fields.",
+        "recommendedJsonChange": "Add runtime weatherControl object with precipitation/temperature/wind stages, direction, delay formula, and return-to-normal behavior.",
+        "bucketId": "environmental_change",
+        "findingId": "control-weather::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "demiplane": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Demiplane creates persistent extradimensional storage and can reconnect to prior/known demiplanes; current schema preserves this as options but has no persistent-place identity model.",
+        "recommendedTemplateChange": "Add persistent extradimensional location fields with ownership/knowledge/connect rules.",
+        "recommendedJsonChange": "Add runtime demiplane/location object with id/owner/known-contents/connect mode and contents persistence.",
+        "bucketId": "travel_or_planar_movement",
+        "findingId": "demiplane::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "dominate-monster": [
+      {
+        "bucketId": "repeat_save_or_recurring_check",
+        "findingId": "dominate-monster::repeat_save_or_recurring_check",
+        "canonicalEvidence": "Whenever the target takes damage, it repeats the save, ending the spell on itself on a success.",
+        "structuredState": "Save Modifier and Charmed condition rows now exist.",
+        "jsonState": "STATUS_CONDITION Charmed includes repeatSave timing on_damage.",
+        "issue": "Closed: damage-triggered repeat save is now encoded in runtime repeatSave metadata.",
+        "recommendedTemplateChange": "No additional template change needed for this spell.",
+        "recommendedJsonChange": "No additional JSON change needed for this spell.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "earthquake": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Earthquake needs random fissure counts, variable fissure dimensions, structure height-derived collapse radius, and escape checks; current schema preserves these in options but not fully as data.",
+        "recommendedTemplateChange": "Add random-count/random-dimension, structure-collapse radius, and escape-check fields for environmental hazards.",
+        "recommendedJsonChange": "Add runtime environmentalHazards/fissures/structureCollapse objects with random formulas, derived radius, and escape DC/action data.",
+        "bucketId": "terrain_or_surface",
+        "findingId": "earthquake::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "feeblemind": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Feeblemind needs ability-score set-to-1 fields, spellcasting/magic-item/language/communication lockout fields, 30-day repeat saves, and explicit ending spells; current schema preserves these as utility/status text.",
+        "recommendedTemplateChange": "Add ability-score override, capability lockout, long-interval repeat save, and ending-spell-list fields.",
+        "recommendedJsonChange": "Add runtime debuff/capabilityLockout/repeatSaveInterval/endingSpells objects.",
+        "bucketId": "status_or_state_change",
+        "findingId": "feeblemind::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ]
+  }
+}

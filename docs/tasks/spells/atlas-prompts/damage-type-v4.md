@@ -11,8 +11,8 @@
 
 - **Bucket name**: `Damage Type`
 - **Kind**: `parity`
-- **Phase 1 gate**: `todo` (canonical → structured parity script not yet authored)
-- **Phase 2 gate**: `todo` (structured → runtime JSON parity script not yet authored)
+- **Phase 1 gate**: `todo` (canonical -> structured parity script not yet authored)
+- **Phase 2 gate**: `todo` (structured -> runtime JSON parity script not yet authored)
 - **Tracker**: `docs/tasks/spells/damage-type/SPELL_DAMAGE_TYPE_BUCKET_TRACKER.md`
 - **Live `lastUpdated`**: `2026-05-01T12:00Z` (orchestrator-seeded)
 - **Atlas deep link**: `/Aralia/misc/spell_pipeline_atlas.html?bucket=Damage%20Type`
@@ -75,7 +75,7 @@ is a developer dashboard surfacing every bucket. Data is **fully
 hand-authored TypeScript** - no database. The author IS the source
 of truth.
 
-The dispatch loop ran V1 → V2 → V3 from 2026-04-25 to 2026-04-29
+The dispatch loop ran V1 -> V2 -> V3 from 2026-04-25 to 2026-04-29
 across the 13 original buckets, then School joined as V4 first-time
 on 2026-05-01. **Gaps 01-08, 10-16 are all resolved.** Only Gap 09
 (no automated drift check) and Gap 17 (coverage scanner false-

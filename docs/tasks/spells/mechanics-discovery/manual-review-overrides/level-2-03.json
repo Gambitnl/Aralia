@@ -1,0 +1,372 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "misty-step::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The 30-foot teleport movement is represented as a MOVEMENT effect with teleport type and max distance 30 ft.",
+      "recommendedTemplateChange": "No travel movement field change required beyond future destination eligibility fields.",
+      "recommendedJsonChange": "No runtime movement distance/type change required."
+    },
+    "moonbeam::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Moonbeam damage/save data is present and height was corrected, but shape-shifted creatures revert and cannot shape-shift until leaving the Cylinder on a failed save; that failed-save rider is prose-only.",
+      "recommendedTemplateChange": "Add failed-save rider fields for shape-shift reversion and cannot-shape-shift-until-leaves-area.",
+      "recommendedJsonChange": "Add runtime shapeShiftRider data tied to failed Constitution save."
+    },
+    "moonbeam::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Moonbeam's Dim Light filling the 5-foot-radius, 40-foot-high Cylinder is now represented by structured light fields and a runtime light utility effect; the shapeshift reversion/suppression mechanic remains open separately.",
+      "recommendedTemplateChange": "No new light field needed; existing light radius/color fields cover the area light portion.",
+      "recommendedJsonChange": "Runtime now includes a light utility effect with brightRadius 0, dimRadius 5, attachedTo point, and fixed silvery pale light."
+    },
+    "moonbeam::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' scopes the dim-light duration and is not an early-ending trigger for Moonbeam.",
+      "recommendedTemplateChange": "No conditional-ending field needed for this duration-scoping row.",
+      "recommendedJsonChange": "No conditionalEndings JSON entry needed."
+    },
+    "nystuls-magic-aura::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Nystul's Magic Aura has target-dependent modes: Mask for creatures and False Aura for objects, with creature type choice and object aura/magic-state choices.",
+      "recommendedTemplateChange": "Add target-dependent utility mode fields and choice fields for creature type and aura school/magical appearance.",
+      "recommendedJsonChange": "Add runtime modes Mask and FalseAura with allowed target types and choices."
+    },
+    "nystuls-magic-aura::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "The spell targets a willing creature or an object not worn or carried. Runtime now allows creatures and objects, but willingness and not-worn/carried eligibility are not first-class.",
+      "recommendedTemplateChange": "Closed by object-eligibility propagation: structured markdown now records object worn/carried, magical status, fixed-to-surface, size, weight, and weight-scaling fields.",
+      "recommendedJsonChange": "Closed by object-eligibility propagation: targeting.filter.objectEligibility now carries the matching runtime facts.",
+      "reviewerNote": "Closed because this target-filter finding is fully represented by the new objectEligibility fields; mixed target-mode and environmental object-effect findings remain open."
+    },
+    "nystuls-magic-aura::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The aura/mask illusion changes how spells and magical effects treat or detect the target, and repeated daily casting for 30 days makes it last until dispelled; runtime stores only prose.",
+      "recommendedTemplateChange": "Add magical-detection illusion fields and repeated-cast permanence fields.",
+      "recommendedJsonChange": "Add runtime magicAuraIllusion data plus permanenceProgression dailyFor30Days -> until_dispelled."
+    },
+    "nystuls-magic-aura::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "False Aura changes the knowledge returned by Detect Magic-like effects, but there is no first-class magical-aura spoofing payload.",
+      "recommendedTemplateChange": "Add magical detection spoof fields for appearsMagical, appearsNonmagical, and school override.",
+      "recommendedJsonChange": "Add runtime auraSpoof data for object detection results."
+    },
+    "pass-without-trace::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Pass without Trace affects the caster and each creature the caster chooses while in the aura, but runtime applies the prose generically and target choice inside the aura is not first-class.",
+      "recommendedTemplateChange": "Add aura participant selection fields for caster plus chosen creatures in emanation.",
+      "recommendedJsonChange": "Add runtime auraParticipants data for caster and chosen creatures while in the 30-foot Emanation."
+    },
+    "pass-without-trace::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The +10 Dexterity (Stealth) check bonus and no-tracks rider are prose-only; current savePenalty shape does not model skill checks.",
+      "recommendedTemplateChange": "Add ability/skill check bonus fields and track-suppression fields.",
+      "recommendedJsonChange": "Add runtime skillCheckModifier data for Dexterity (Stealth) +10 and environmentalTrace noTracks."
+    },
+    "phantasmal-force::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Intelligence save negating the phantasm is represented, and the hazardous phantasm damage dice are now corrected to 2d8 Psychic.",
+      "recommendedTemplateChange": "No basic save/damage dice field change required for this reviewed row.",
+      "recommendedJsonChange": "Closed by correcting the runtime damage dice from 1d6 to 2d8."
+    },
+    "phantasmal-force::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A dangerous phantasm can deal 2d8 Psychic damage on each of the caster's turns only if the target is in the phantasm's area or within 5 feet, but runtime lacks actor timing and distance/area gating.",
+      "recommendedTemplateChange": "Add recurring illusion damage fields for caster-turn timing and target-in-area-or-within-distance condition.",
+      "recommendedJsonChange": "Add runtime phantasmDamage data with timing caster_turn, dice 2d8, targetGate inAreaOrWithin5Feet."
+    },
+    "phantasmal-force::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The phantasm can represent dangerous terrain, creatures, objects, or hazards, but the represented hazard type and area are not first-class.",
+      "recommendedTemplateChange": "Add phantasm representation fields for object/creature/phenomenon/hazard and max 10-foot Cube.",
+      "recommendedJsonChange": "Add runtime phantasmRepresentation data."
+    },
+    "phantasmal-force::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The phantasm includes sound, temperature, and other stimuli and is perceivable only to the target, but sensory channels and audience are prose-only.",
+      "recommendedTemplateChange": "Add sensory illusion fields for sound, temperature, other stimuli, and perceivable-only-to-target audience.",
+      "recommendedJsonChange": "Add runtime sensoryIllusion data with targetOnly true."
+    },
+    "phantasmal-force::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Phantasmal Force creates a target-only mental illusion, lets the target Study it with Intelligence (Investigation) vs spell save DC, causes rationalization, and can end on successful study; these mechanics are mostly prose-only.",
+      "recommendedTemplateChange": "Add phantasm fields for target-only perception, Study action reveal check, rationalization behavior, and end-on-successful-study.",
+      "recommendedJsonChange": "Add runtime phantasm data with studyEscape and rationalization."
+    },
+    "phantasmal-force::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target perceives damage as a type appropriate to the illusion while actual damage is Psychic; perceived damage type is not modeled.",
+      "recommendedTemplateChange": "Add perceived damage type fields separate from mechanical damage type.",
+      "recommendedJsonChange": "Add runtime perceivedDamageType appropriate_to_illusion while damage.type remains Psychic."
+    },
+    "phantasmal-force::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The phantasm can appear as an object, creature, bridge, or other phenomenon but is target-only and mental rather than a physical object; this representational object is not modeled.",
+      "recommendedTemplateChange": "Add mental illusion representation fields without physical object stats.",
+      "recommendedJsonChange": "Add runtime phantasmRepresentation data."
+    },
+    "phantasmal-force::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target rationalizes illogical outcomes from interacting with the phantasm, a cognition/knowledge effect not represented structurally.",
+      "recommendedTemplateChange": "Add cognition/rationalization fields for mental illusions.",
+      "recommendedJsonChange": "Add runtime rationalizesContradictions true."
+    },
+    "phantasmal-force::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The sound/temperature/stimuli are sensory illusion qualities, not real environmental changes.",
+      "recommendedTemplateChange": "Track through sensory illusion fields.",
+      "recommendedJsonChange": "Track through sensoryIllusion data."
+    },
+    "phantasmal-force::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The spell ends if the target succeeds on a Study action Intelligence (Investigation) check against spell save DC; this escape check is prose-only.",
+      "recommendedTemplateChange": "Closed by reusing the existing Escape Check fields for the target's Study action, Intelligence ability, Investigation skill, and spell-save-DC check.",
+      "recommendedJsonChange": "Closed by adding runtime statusCondition.escapeCheck data to the Phantasmal Force utility/status payload.",
+      "reviewerNote": "Closed because the Study action escape path is now represented in structured markdown and runtime JSON. Broader Phantasmal Force mental-illusion representation, target-only perception, rationalization, perceived damage type, and recurring hazard-damage gating remain open in their separate rows."
+    },
+    "prayer-of-healing::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Prayer of Healing affects up to five chosen creatures that remain within range for the entire 10-minute casting, but remaining-in-range-through-cast is not modeled.",
+      "recommendedTemplateChange": "Closed by adding Target Participation Requires Full Casting Range and Target Participation Notes to the structured targeting template.",
+      "recommendedJsonChange": "Closed by adding runtime targeting.targetParticipation.requiresWithinRangeForFullCasting true and a note while retaining maxTargets 5.",
+      "reviewerNote": "Closed because the canonical long-casting participation rule is now represented in both structured markdown and runtime JSON; the Short Rest benefit and Long Rest lockout remain open separately under healing_or_restoration."
+    },
+    "prayer-of-healing::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 2d8 healing and +1d8 scaling are represented, but Short Rest benefits and once-per-creature-until-Long-Rest lockout are prose-only.",
+      "recommendedTemplateChange": "Add restoration fields for grants_short_rest_benefits and per-target lockout until Long Rest.",
+      "recommendedJsonChange": "Add runtime restBenefit short_rest and perCreatureCooldown until_long_rest."
+    },
+    "prayer-of-healing::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'Hit Points' in healing prose; Prayer of Healing does not change object stats or damageability.",
+      "recommendedTemplateChange": "No object stat field required.",
+      "recommendedJsonChange": "No object stat JSON change required."
+    },
+    "protection-from-poison::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target has Advantage on saving throws to avoid or end the Poisoned condition, but this save advantage is prose-only.",
+      "recommendedTemplateChange": "Add saving throw modifier fields scoped to avoiding/ending a named condition.",
+      "recommendedJsonChange": "Add runtime saveAdvantage data for Poisoned avoidance/end saves."
+    },
+    "protection-from-poison::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "The spell ends Poisoned and grants Poison resistance, but runtime only has a utility description.",
+      "recommendedTemplateChange": "Add condition removal and damage resistance fields for this spell.",
+      "recommendedJsonChange": "Add runtime conditionRemoval Poisoned and resistance Poison damage.",
+      "reviewerNote": "Closed by adding Conditions Removed -> effects[].conditionRemoval[] for Poisoned and a DEFENSIVE resistance effect for Poison damage. The save-advantage rider to avoid/end Poisoned remains open under attack_or_save_modifier."
+    },
+    "pyrotechnics::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Pyrotechnics requires choosing Fireworks or Smoke after extinguishing a qualifying flame, but runtime uses separate prose utility effects without a first-class mode choice.",
+      "recommendedTemplateChange": "Add utility mode fields for Fireworks and Smoke tied to the same extinguished flame target.",
+      "recommendedJsonChange": "Add runtime modeChoice Fireworks|Smoke."
+    },
+    "pyrotechnics::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Fireworks mode applies a Constitution save to creatures within 10 feet or Blinded until end of caster's next turn, but mode-scoped save/status data is not first-class.",
+      "recommendedTemplateChange": "Add mode-scoped save/status fields with radius and duration until_end_of_caster_next_turn.",
+      "recommendedJsonChange": "Add runtime Fireworks mode status data for Con save negates Blinded within 10 feet."
+    },
+    "pyrotechnics::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fireworks produces a dazzling display causing Blinded, while Smoke creates heavy obscurement; the actual visual obstruction mechanics are flattened.",
+      "recommendedTemplateChange": "Add mode-specific visual effect fields for dazzling blind burst and heavy obscurement smoke.",
+      "recommendedJsonChange": "Add runtime visionEffect data for Blinded burst and heavilyObscured smoke area."
+    },
+    "pyrotechnics::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'obscured'; Pyrotechnics has no healing or restoration mechanic.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration JSON change required."
+    },
+    "pyrotechnics::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fireworks applies Blinded until the end of the caster's next turn on a failed Constitution save, but runtime does not expose this as STATUS_CONDITION data.",
+      "recommendedTemplateChange": "Add status condition fields with relative duration until_end_of_caster_next_turn.",
+      "recommendedJsonChange": "Add runtime STATUS_CONDITION Blinded mode rider."
+    },
+    "pyrotechnics::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell extinguishes nonmagical flame in a 5-foot cube, creates smoke in a 20-foot radius moving around corners, and smoke persists 1 minute or until strong wind disperses it; these world-state changes are prose-only.",
+      "recommendedTemplateChange": "Add flame target/extinguish fields and smoke cloud fields for radius, corner movement, duration, and wind dispersal.",
+      "recommendedJsonChange": "Add runtime environmentalChange data for extinguishFlame and Smoke cloud."
+    },
+    "pyrotechnics::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The dazzling display of colors is descriptive presentation beyond the Blinded mechanic and remains deferred flavor.",
+      "recommendedTemplateChange": "No extra color-display field required in this pass.",
+      "recommendedJsonChange": "No extra color-display runtime field required in this pass."
+    },
+    "ray-of-enfeeblement::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Ray of Enfeeblement has different branches on successful and failed Constitution saves: success causes next-attack disadvantage until start of caster's next turn, failure causes disadvantage on Strength-based D20 Tests plus -1d8 to all damage rolls for duration. Runtime has only a generic utility/status description.",
+      "recommendedTemplateChange": "Add branch-specific save outcome fields for success riders and failed-save ongoing modifiers, including D20 Test disadvantage and damage-roll penalty.",
+      "recommendedJsonChange": "Add runtime saveOutcomeBranches for success and failure effects."
+    },
+    "ray-of-enfeeblement::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The failed-save branch's end-of-turn Constitution repeat save ending the spell on success is represented on the Enfeebled status payload.",
+      "recommendedTemplateChange": "No repeat-save field change required for this reviewed row.",
+      "recommendedJsonChange": "No runtime repeat-save change required."
+    },
+    "ray-of-enfeeblement::ward_alarm_or_trigger": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The enervating beam wording is presentation for the Constitution save effect and is deferred flavor.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field required.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON change required."
+    },
+    "rope-trick::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The rope's upper end hovers until it hangs perpendicular or reaches a ceiling; this object repositioning and orientation rule is prose-only.",
+      "recommendedTemplateChange": "Add object movement/orientation fields for touched objects that hover or reposition without creature movement.",
+      "recommendedJsonChange": "Add runtime objectMotion data for the rope end rising, perpendicular hanging, and ceiling stop condition."
+    },
+    "rope-trick::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The rope can be pulled into or dropped from the space, but the spell does not forcibly move a creature.",
+      "recommendedTemplateChange": "No forced-movement field required; track rope state and extradimensional access through object/portal fields.",
+      "recommendedJsonChange": "No forced-movement JSON change required."
+    },
+    "rope-trick::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The rope must hang perpendicular or stop at a ceiling, making ceiling collision and hanging orientation mechanically relevant.",
+      "recommendedTemplateChange": "Add object placement constraint fields for ceiling stop and vertical hanging orientation.",
+      "recommendedJsonChange": "Add runtime placement constraints for rope orientation and ceiling interaction."
+    },
+    "rope-trick::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Rope Trick creates an Invisible portal and gives creatures inside one-way sight through it while blocking attacks, spells, and effects.",
+      "recommendedTemplateChange": "Add portal visibility and one-way perception fields.",
+      "recommendedJsonChange": "Add runtime portal data for Invisible entrance, 3-by-5-foot aperture, one-way sight, and effect barrier."
+    },
+    "rope-trick::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creatures inside the extradimensional space can see through the portal, but external visibility through the portal is not reciprocal.",
+      "recommendedTemplateChange": "Add one-way portal perception fields for inside-to-outside sight.",
+      "recommendedJsonChange": "Add runtime portalPerception data for occupants seeing out through the entrance."
+    },
+    "rope-trick::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the rope's upward movement, but Rope Trick has no ward, alarm, or delayed trigger.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field required.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON change required."
+    },
+    "rope-trick::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell opens an Invisible portal to an extradimensional space reached by climbing the rope, with capacity and effect-barrier rules.",
+      "recommendedTemplateChange": "Add extradimensional portal fields for access method, portal size, capacity, occupant size limit, and pass-through restrictions.",
+      "recommendedJsonChange": "Add runtime extradimensionalSpace data for access, capacity, and attacks/spells/effects blocked across the portal."
+    },
+    "rope-trick::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Invisible text describes the portal's visibility, not a creature or object gaining the Invisible condition.",
+      "recommendedTemplateChange": "Track this under portal visibility, not status condition fields.",
+      "recommendedJsonChange": "Track this under portal data, not STATUS_CONDITION."
+    },
+    "rope-trick::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by end-cleanup contents ejection batch 01: Rope Trick now has structured End Cleanup fields and runtime effects[].endCleanup[] data for removing the extradimensional space, affecting its contents, and dropping them out at the space exit/anchor when the spell ends.",
+      "issue": "The extradimensional space lasts until the spell ends and ejects anything inside at that moment.",
+      "recommendedTemplateChange": "Add end-of-duration ejection/dropout fields for spaces and containers.",
+      "recommendedJsonChange": "Add runtime ending data that drops occupants and contents out when the spell ends."
+    },
+    "rope-trick::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by end-cleanup contents ejection batch 01: the spell-end aftermath is represented as effects[].endCleanup[].consequence = contents_drop_out with destination = space_exit_anchor.",
+      "issue": "Anything inside the space drops out when the spell ends; this aftermath is mechanically relevant and not modeled.",
+      "recommendedTemplateChange": "Add aftermath fields for forced ejection/dropout at spell end.",
+      "recommendedJsonChange": "Add runtime aftermath data for contents leaving the extradimensional space."
+    },
+    "scorching-ray::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Fire damage wording, but Scorching Ray does not create a persistent environmental change.",
+      "recommendedTemplateChange": "No environmental-change field required for ordinary Fire damage.",
+      "recommendedJsonChange": "No environmental-change JSON change required."
+    },
+    "see-invisibility::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "See Invisibility lets the caster see Invisible creatures and objects as visible and see into the Ethereal Plane; both sensory permissions are prose-only.",
+      "recommendedTemplateChange": "Add sensory override fields for seeing Invisible targets and planar sight into the Ethereal Plane.",
+      "recommendedJsonChange": "Add runtime sensoryOverride data for Invisible visibility and Ethereal Plane sight."
+    },
+    "see-invisibility::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell does not grant travel, but it does grant planar perception into the Ethereal Plane, which current runtime data only stores in prose.",
+      "recommendedTemplateChange": "Add planar perception fields distinct from planar travel fields.",
+      "recommendedJsonChange": "Add runtime planarPerception data for Ethereal Plane visibility."
+    },
+    "see-invisibility::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The spell does not remove or alter the Invisible condition; it changes what the caster can perceive.",
+      "recommendedTemplateChange": "Track this through sensory override fields, not status condition fields.",
+      "recommendedJsonChange": "Track this through sensoryOverride data, not condition removal."
+    },
+    "see-invisibility::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "The ghostly appearance of Ethereal creatures and objects is part of the planar sight presentation and should stay attached to the sensory payload rather than deferred as pure flavor.",
+      "recommendedTemplateChange": "Include ghostly appearance as optional display text on planar perception if that field family is added.",
+      "recommendedJsonChange": "Include ghostly appearance as display metadata on planarPerception rather than deferred flavor."
+    },
+    "shatter::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The point of choice is ordinary area-origin targeting, not a mode choice.",
+      "recommendedTemplateChange": "No choice/mode field required beyond existing area targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "shatter::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Shatter's Constitution save, half damage on success, and Construct-only save disadvantage are now represented in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "No new attack/save modifier field required for this reviewed row.",
+      "recommendedJsonChange": "Closed by correcting the runtime save modifier to apply only to Constructs."
+    },
+    "shatter::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Shatter also damages nonmagical objects that are not worn or carried in the area; validTargets now includes objects, but nonmagical/unattended object eligibility is not first-class.",
+      "recommendedTemplateChange": "Add object eligibility fields for nonmagical and not-worn-or-carried area objects.",
+      "recommendedJsonChange": "Add runtime objectEligibility data for nonmagical unattended objects in the area."
+    },
+    "shining-smite::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Attack rolls against the shining target have Advantage until the spell ends, but runtime JSON only models hit-gated damage and light.",
+      "recommendedTemplateChange": "Add defensive/offensive exposure fields for advantage on attacks against a target.",
+      "recommendedJsonChange": "Add runtime attackRollModifier data granting advantage to attacks against the affected target."
+    },
+    "shining-smite::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The Bright Light radius is now represented as a light utility effect; the remaining Invisible-benefit suppression is tracked under status/state.",
+      "recommendedTemplateChange": "No additional light field required for this reviewed row after adding bright radius 5.",
+      "recommendedJsonChange": "Closed for the light mechanic by adding a target-attached Bright Light utility effect."
+    },
+    "shining-smite::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target can't benefit from the Invisible condition, but runtime JSON has no field for suppressing benefits from a condition without removing it.",
+      "recommendedTemplateChange": "Add condition-benefit suppression fields distinct from condition removal.",
+      "recommendedJsonChange": "Add runtime conditionBenefitSuppression data for Invisible while the spell lasts."
+    },
+    "shining-smite::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for the light, advantage, and Invisible-benefit suppression.",
+      "recommendedTemplateChange": "No special conditional-ending field required.",
+      "recommendedJsonChange": "No special conditional-ending JSON change required."
+    },
+    "silence::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The point of choice is ordinary area-origin targeting, not a spell mode choice.",
+      "recommendedTemplateChange": "No choice/mode field required beyond existing point-centered area targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "silence::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Silence blocks sound creation and sound passage through the sphere and makes verbal-component spellcasting impossible there; runtime keeps those as prose in a utility description.",
+      "recommendedTemplateChange": "Add sound-zone fields for no sound created, no sound passing through, and verbal component casting blocked in the area.",
+      "recommendedJsonChange": "Add runtime soundSuppression and verbalCastingBlocked data for the sphere."
+    },
+    "silence::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Deafened condition and Thunder damage immunity for creatures or objects entirely inside the sphere are now represented as STATUS_CONDITION and DEFENSIVE immunity effects.",
+      "recommendedTemplateChange": "Closed by marking structured Effect Type as UTILITY, STATUS_CONDITION, DEFENSIVE.",
+      "recommendedJsonChange": "Closed by retaining Deafened and adding a DEFENSIVE immunity effect for Thunder damage."
+    }
+  },
+  "manualFindings": {}
+}

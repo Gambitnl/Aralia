@@ -1,0 +1,219 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 13,
+  "fields": [
+    {
+      "label": "Mode Choice Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "choose_one",
+        "not_applicable"
+      ],
+      "jsonPath": "modeChoice.type",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Spells that say 'choose one of the following effects' need a first-class mode menu separate from target choice."
+        }
+      ],
+      "comment": "Mode Choice Type records whether the spell has a selectable menu of mutually exclusive operations. Use `choose_one` when the caster chooses one listed effect or operation, and `not_applicable` when the spell has no mode menu. Runtime mapping: `modeChoice.type`."
+    },
+    {
+      "label": "Mode Choice Timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "on_cast",
+        "on_cast_or_later_action",
+        "not_applicable"
+      ],
+      "jsonPath": "modeChoice.timing",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Mode menus need to say whether the choice is made only when cast or can be changed later."
+        }
+      ],
+      "comment": "Mode Choice Timing records when the mode is selected. Use `on_cast` for cantrip menus selected as the spell resolves, `on_cast_or_later_action` for spells that can switch options later, and `not_applicable` when no mode menu exists. Runtime mapping: `modeChoice.timing`."
+    },
+    {
+      "label": "Mode Choice Option Count",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "jsonPath": "modeChoice.optionCount",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Reviewers need a quick count of canonical options to catch missing or merged menu items."
+        }
+      ],
+      "comment": "Mode Choice Option Count records the number of choices in the canonical mode menu. Use a number when Mode Choice Type applies, and `not_applicable` otherwise. Runtime mapping: `modeChoice.optionCount`."
+    },
+    {
+      "label": "Mode Choice Options Source",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "modeChoice.options",
+        "effects",
+        "controlOptions",
+        "mixed",
+        "not_applicable"
+      ],
+      "jsonPath": "modeChoice.optionsSource",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Mode choices can point to split effects, utility control options, or both."
+        }
+      ],
+      "comment": "Mode Choice Options Source records where the option payloads live. Use `effects` when options point at separate runtime effects, `controlOptions` when they point at utility control option entries, `mixed` when both are used, and `modeChoice.options` when the modeChoice entries themselves carry the only option summaries. Runtime mapping: `modeChoice.optionsSource`."
+    },
+    {
+      "label": "Mode Choice Max Active Noninstantaneous",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "jsonPath": "modeChoice.maxActiveNonInstantaneous",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Some utility cantrips limit how many non-instantaneous mode effects can remain active at once."
+        }
+      ],
+      "comment": "Mode Choice Max Active Noninstantaneous records the active-effect cap for non-instantaneous options, such as two Mold Earth effects or three Prestidigitation effects. Use `not_applicable` when no such cap exists. Runtime mapping: `modeChoice.maxActiveNonInstantaneous`."
+    },
+    {
+      "label": "Mode Choice Can Dismiss Active",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "modeChoice.canDismissActive",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Some mode-menu spells let the caster dismiss an active non-instantaneous option as an action."
+        }
+      ],
+      "comment": "Mode Choice Can Dismiss Active is true when canonical prose lets the caster dismiss active non-instantaneous options, false when it explicitly cannot, and `not_applicable` when no active-option dismissal rule exists. Runtime mapping: `modeChoice.canDismissActive`."
+    },
+    {
+      "label": "Mode Choice Notes",
+      "required": false,
+      "valueType": "string-or-not-applicable",
+      "jsonPath": "modeChoice.notes",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Mode menus often need short notes for mixed instant and duration options."
+        }
+      ],
+      "comment": "Mode Choice Notes preserves short review context for the menu without replacing the typed fields and numbered option rows. Use `not_applicable` when no mode menu exists. Runtime mapping: `modeChoice.notes`."
+    },
+    {
+      "pattern": "^Mode Choice Option \\d+ (Label|Summary|Effect Indices|Control Option Indices|Effect Types|Duration|Notes)$",
+      "required": false,
+      "valueType": "numbered-field-family",
+      "jsonPath": "modeChoice.options[]",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Each mode option needs its own label, summary, and reference links to effect/control-option payloads."
+        }
+      ],
+      "comment": "Numbered Mode Choice Option fields record each selectable menu option. Use Label and Summary for canonical option text, Effect Indices and Control Option Indices to point at runtime payloads, Effect Types for review categories, Duration for option-specific timing, and Notes for short caveats. Runtime mapping: `modeChoice.options[]`."
+    },
+    {
+      "pattern": "^Attack Augment \\d+ (Attack Type|Weapon Types|Weapon Proficiency Required|Weapon Minimum Value CP|Weapon Held By Caster|Granted Attack Timing|Granted Attack Count|Uses Casting Weapon|Ability Attack Roll|Ability Damage Roll|Ability Replaces|Damage Die Override|Damage Die Scaling|Damage Type Choice Timing|Damage Type Choice Options|Additional Damage Dice|Additional Damage Type|Applies On|Notes)$",
+      "required": false,
+      "valueType": "numbered-field-family",
+      "jsonPath": "effects[].attackAugments[]",
+      "log": [
+        {
+          "at": "2026-05-14T04:05:00+02:00",
+          "action": "created",
+          "why": "Spell-modified weapon attacks need structured fields for weapon prerequisites, ability substitution, die changes, and damage-type choices."
+        }
+      ],
+      "comment": "Numbered Attack Augment fields record how a spell grants or modifies a weapon attack. Use Weapon fields for component/held/proficiency/value requirements, Ability fields when the spell replaces Strength or Dexterity with the spellcasting ability, Damage Die fields for Shillelagh-style replacement dice, Damage Type Choice fields for Force-or-normal and Radiant-or-normal choices, and Additional Damage fields for separate rider damage. Runtime mapping: `effects[].attackAugments[]`."
+    },
+    {
+      "pattern": "^Ability Check Modifier (Applies To|Bonus Dice|Flat Modifier|Skill Selection|Skill Chooser|Skill Pool|Frequency|Duration Scope|Notes)$",
+      "required": false,
+      "valueType": "field-family",
+      "jsonPath": "effects[].abilityCheckModifier",
+      "log": [
+        {
+          "at": "2026-05-14T04:15:00+02:00",
+          "action": "created",
+          "why": "Guidance-style check bonuses need structured fields for the chosen skill, bonus dice, frequency, and duration scope."
+        }
+      ],
+      "comment": "Ability Check Modifier fields record a spell-created modifier to ability checks. Use Skill Selection and Skill Pool when the spell chooses a skill, Bonus Dice or Flat Modifier for the modifier, Frequency for once versus every matching check, and Duration Scope for whether the modifier lasts while the spell is active or only until the next check. Runtime mapping: `effects[].abilityCheckModifier`."
+    },
+    {
+      "pattern": "^Controlled Entity (Type|Count|Appears At|Duration Scope|Control Action Type|Initial Use On Cast|Later Control Timing|Movement Distance|Movement Unit|Max Distance From Caster|Can Attack|Can Activate Magic Items|Carry Capacity Pounds|Allowed Interactions|Ending Triggers|Notes)$",
+      "required": false,
+      "valueType": "field-family",
+      "jsonPath": "effects[].controlledEntity",
+      "log": [
+        {
+          "at": "2026-05-14T04:35:00+02:00",
+          "action": "created",
+          "why": "Mage Hand-style helper entities need structured fields for control, movement, carry limits, prohibited actions, and vanish triggers."
+        }
+      ],
+      "comment": "Controlled Entity fields record a spell-created helper that can be controlled after casting. Use these fields for Mage Hand-like entities that have allowed interactions, movement distance, caster-distance leash, carry capacity, prohibited attacks/magic-item activation, and explicit ending triggers. Runtime mapping: `effects[].controlledEntity`."
+    },
+    {
+      "pattern": "^Utility Option \\d+ (Name|Effect|Details)$",
+      "required": false,
+      "valueType": "structured-numbered-group",
+      "jsonPath": "effects[].controlOptions[]",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Each selectable utility mode needs a name, effect, and optional details."
+        }
+      ],
+      "comment": "Each selectable utility mode needs a name, effect, and optional details. It maps to `effects[].controlOptions[]`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].controlOptions[]`. The value type is `structured-numbered-group`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Terrain Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "difficult",
+        "obscuring",
+        "damaging",
+        "blocking",
+        "wall"
+      ],
+      "jsonPath": "effects[].terrainType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Terrain effects need a runtime subtype separate from generic utility."
+        }
+      ],
+      "comment": "Terrain effects need a runtime subtype separate from generic utility. It maps to `effects[].terrainType`. Purpose: Terrain Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].terrainType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "difficult": "Allowed value for Terrain Type; use only when the canonical spell text supports this exact mechanic.",
+        "obscuring": "Allowed value for Terrain Type; use only when the canonical spell text supports this exact mechanic.",
+        "damaging": "Allowed value for Terrain Type; use only when the canonical spell text supports this exact mechanic.",
+        "blocking": "Allowed value for Terrain Type; use only when the canonical spell text supports this exact mechanic.",
+        "wall": "Allowed value for Terrain Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    }
+  ]
+}

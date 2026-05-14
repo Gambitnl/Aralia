@@ -1,0 +1,734 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "blade-ward::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Canonical Blade Ward applies an incoming 1d4 attack-roll penalty, and both structured markdown and runtime JSON now use the ATTACK_ROLL_MODIFIER model.",
+      "recommendedTemplateChange": "No new template field required for this spell; existing Attack Roll Modifier fields cover the mechanic.",
+      "recommendedJsonChange": "Closed by replacing the obsolete DEFENSIVE resistance JSON effect with ATTACK_ROLL_MODIFIER using penalty, incoming, any, while_active, and dice 1d4."
+    },
+    "blade-ward::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'before the spell ends' is duration scoping, not a special early-ending mechanic for this spell.",
+      "recommendedTemplateChange": "No conditional-ending field required beyond the existing timed one-minute concentration duration.",
+      "recommendedJsonChange": "No conditional-ending JSON change required beyond the corrected attack-roll modifier duration."
+    },
+    "frostbite::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Canonical Frostbite bundles cold damage and an outgoing next-weapon-attack disadvantage rider behind one failed Constitution save.",
+      "recommendedTemplateChange": "Closed by changing structured Effect Type from a fake STATUS_CONDITION to ATTACK_ROLL_MODIFIER with the existing attack-roll rider fields.",
+      "recommendedJsonChange": "Closed by replacing the fake Frostbitten STATUS_CONDITION with a bundled ATTACK_ROLL_MODIFIER effect carrying damage, save, and outgoing next weapon attack disadvantage."
+    },
+    "frostbite::vision_light_sound": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The numbing frost image is descriptive presentation for the cold damage and rider, not a separate vision, light, or sound mechanic.",
+      "recommendedTemplateChange": "No structured mechanics field needed for this descriptive visual wording in this goal.",
+      "recommendedJsonChange": "No runtime field needed for this descriptive visual wording in this goal."
+    },
+    "guidance::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Guidance's chosen-skill ability-check bonus is now represented by ability check modifier metadata.",
+      "recommendedTemplateChange": "Ability Check Modifier structured fields now record the affected check family, 1d4 bonus, chosen-skill gate, caster skill choice, frequency, and duration scope.",
+      "recommendedJsonChange": "Runtime JSON now includes effects[0].abilityCheckModifier and no longer says the bonus applies only once.",
+      "closedReason": "Guidance now has structured Ability Check Modifier fields and runtime abilityCheckModifier data for the caster-chosen skill, 1d4 bonus, every matching ability check frequency, and while-active duration scope."
+    },
+    "guidance::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Guidance adds 1d4 to ability checks for the chosen skill, but runtime JSON only records a generic utility description.",
+      "recommendedTemplateChange": "Add ability-check modifier fields parallel to attack-roll and save-penalty fields.",
+      "recommendedJsonChange": "Add runtime effect data for ability-check bonus: dice 1d4, applies while active, restricted to the chosen skill."
+    },
+    "guidance::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for Guidance, not a separate early-ending rule.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond the existing one-minute concentration duration.",
+      "recommendedJsonChange": "No conditional-ending JSON change needed."
+    },
+    "light::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Light targets only one Large-or-smaller object that is not worn or carried by someone else; current structured and JSON target filters only say objects.",
+      "recommendedTemplateChange": "Closed by object-eligibility propagation: structured markdown now records object worn/carried, magical status, fixed-to-surface, size, weight, and weight-scaling fields.",
+      "recommendedJsonChange": "Closed by object-eligibility propagation: targeting.filter.objectEligibility now carries the matching runtime facts.",
+      "reviewerNote": "Closed because this target-filter finding is fully represented by the new objectEligibility fields; mixed target-mode and environmental object-effect findings remain open."
+    },
+    "light::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Light's bright/dim radii, caster-chosen color, opaque-cover blocking, and end-on-recast rule are now represented by structured and runtime fields.",
+      "recommendedTemplateChange": "Closed by Light Color Choice caster_choice, Light Opaque Cover Blocks true, existing light radii, and Conditional Ending Triggers end_on_recast.",
+      "recommendedJsonChange": "Closed by runtime light colorChoice/opaqueCoverBlocks and conditionalEndings data."
+    },
+    "light::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Light's end-on-recast rule is now represented by Conditional Ending Triggers and runtime conditionalEndings.",
+      "recommendedTemplateChange": "Closed by Conditional Ending Triggers end_on_recast with scope spell.",
+      "recommendedJsonChange": "Closed by runtime conditionalEndings carrying end_on_recast for the spell."
+    },
+    "light::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "The detector placed color in the flavor bucket, but the actionable work is tracked under light::vision_light_sound so the deferred-flavor bucket remains reserved for intentionally unresolved prose.",
+      "recommendedTemplateChange": "Track color choice through the vision/light/sound bucket, not as deferred flavor.",
+      "recommendedJsonChange": "Track color choice through the vision/light/sound bucket, not as deferred flavor."
+    },
+    "lightning-lure::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'creature of your choice' is standard target selection and does not require a separate mode mechanic.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond normal targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed."
+    },
+    "lightning-lure::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Lightning Lure's Strength save is already represented in the movement and damage effects.",
+      "recommendedTemplateChange": "No attack/save modifier field needed.",
+      "recommendedJsonChange": "No attack/save modifier JSON change needed."
+    },
+    "lightning-lure::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The pull is represented, but the damage only applies if the target is within 5 feet after the pull; that post-movement gate is prose-only.",
+      "recommendedTemplateChange": "Add a post-movement damage gate field for distance-from-caster checks.",
+      "recommendedJsonChange": "Add runtime condition data that gates the damage effect on target distance after forced movement."
+    },
+    "lightning-lure::vision_light_sound": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The lash of lightning is presentation for the forced movement and lightning damage.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed for this descriptive visual wording.",
+      "recommendedJsonChange": "No separate runtime light/sound field needed for this descriptive visual wording."
+    },
+    "lightning-lure::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched generic conditional wording, but Lightning Lure has no ward, alarm, or delayed trigger.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field needed.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON change needed."
+    },
+    "mage-hand::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Mage Hand's controllable spectral hand is now represented by controlled-entity metadata rather than prose-only utility text.",
+      "recommendedTemplateChange": "Controlled Entity structured fields now record the hand type, count, chosen-point appearance, control action, later-turn control, movement, leash distance, carry limit, prohibited actions, allowed interactions, and ending triggers.",
+      "recommendedJsonChange": "Runtime JSON now includes effects[0].controlledEntity and conditionalEndings for recast and distance-vanish behavior.",
+      "closedReason": "Mage Hand now has structured Controlled Entity fields and runtime controlledEntity data for the spectral hand, including Magic action control, 30-foot movement, 30-foot caster-distance leash, 10-pound carry limit, allowed interactions, attack/magic-item prohibitions, and vanish triggers."
+    },
+    "mage-hand::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The word 'spectral' describes the hand's appearance and is not a separate mechanic.",
+      "recommendedTemplateChange": "No field needed for the spectral appearance in this goal.",
+      "recommendedJsonChange": "No runtime field needed for the spectral appearance in this goal."
+    },
+    "magic-stone::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Magic Stone's borrowed caster spell attack and damage modifier are now represented by attack augment metadata.",
+      "recommendedTemplateChange": "Attack Augment structured fields now record the pebble/sling delivery, caster spellcasting ability attack and damage substitution, and Bludgeoning damage rider.",
+      "recommendedJsonChange": "Runtime JSON now includes effects[0].attackAugments[0] for empowered pebble attacks made by the caster or someone else.",
+      "closedReason": "Magic Stone now has structured Attack Augment fields and runtime attackAugments data showing that empowered pebbles use the caster's spellcasting ability for the attack roll and damage modifier, even when another creature makes the attack."
+    },
+    "magic-stone::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Magic Stone's per-pebble hit-or-miss ending and recast cleanup are now represented in structured fields and runtime JSON.",
+      "recommendedTemplateChange": "Conditional Ending fields now use on_attack_hit_or_miss and end_on_recast with item scope; Target Instance fields record the three empowered projectiles.",
+      "recommendedJsonChange": "Runtime JSON now records per-instance hit-or-miss consumption and item-scope conditional endings for the empowered pebble payload.",
+      "closedReason": "Magic Stone now has Conditional Ending fields and runtime conditionalEndings for on_attack_hit_or_miss and end_on_recast, plus trigger.consumption set to per_instance_hit_or_miss so the rider is no longer modeled as unlimited."
+    },
+    "mending::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mending repairs object damage with a one-foot size limit and a magic-item caveat, but structured and JSON only store a generic utility description.",
+      "recommendedTemplateChange": "Add repair utility fields for break/tear repair, max damaged dimension, and magic-item-magic-not-restored caveat.",
+      "recommendedJsonChange": "Add runtime utility repair data instead of relying on description text."
+    },
+    "message::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Message is blocked by magical silence and by specific barrier materials/thicknesses, which are not represented structurally.",
+      "recommendedTemplateChange": "Add communication blocker fields for silence and material barriers.",
+      "recommendedJsonChange": "Add runtime communication blocker data for silence, one foot of stone/metal/wood, and thin lead."
+    },
+    "message::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Message supports one-target private whisper plus target reply, but JSON only records a prose utility description.",
+      "recommendedTemplateChange": "Add communication fields for private target-only delivery and one-reply permission.",
+      "recommendedJsonChange": "Add runtime communication data for target-only hearing and target reply."
+    },
+    "message::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'point toward' wording, but Message has no ward, alarm, or delayed trigger.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field needed.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON change needed."
+    },
+    "message::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Message can pass through solid objects only if the caster is familiar with the target and knows it is beyond the barrier.",
+      "recommendedTemplateChange": "Add communication through-barrier prerequisite fields for familiarity and known target location.",
+      "recommendedJsonChange": "Add runtime prerequisite data for through-barrier casting."
+    },
+    "mind-sliver::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mind Sliver's damage and next-save 1d4 penalty share one failed Intelligence save, but runtime JSON stores them as separate effects that can drift.",
+      "recommendedTemplateChange": "Add or reuse a bundled save-penalty-with-damage field family, parallel to bundled attack-roll riders.",
+      "recommendedJsonChange": "Bundle damage and savePenalty under one save outcome so the target does not conceptually roll twice."
+    },
+    "mind-sliver::vision_light_sound": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The phrase 'sliver the mind' is presentation for psychic damage and save penalty.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed for this descriptive wording.",
+      "recommendedJsonChange": "No separate runtime field needed for this descriptive wording."
+    },
+    "minor-illusion::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Minor Illusion's sound-versus-image operation menu is now represented as mode-choice metadata.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one timing, option count, option summaries, and shared effect index for Sound and Image.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data for Sound and Image while leaving detailed sensory restrictions, reveal rules, and recast ending behavior to their separate open rows.",
+      "closedReason": "Minor Illusion now has structured Mode Choice fields and runtime modeChoice metadata for Sound and Image. The option-specific sensory restrictions, reveal rules, and recast ending have since been closed through sensoryManifestation, illusion, and conditionalEndings data."
+    },
+    "minor-illusion::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Minor Illusion's sound mode has volume and timing rules, while the image mode explicitly cannot create sound, light, smell, or other sensory effects.",
+      "recommendedTemplateChange": "Sensory Manifestation structured fields now record mode source, variant count, allowed senses, excluded senses, volume range, timing, and image size limits.",
+      "recommendedJsonChange": "Runtime JSON now has effects[0].sensoryManifestation with Sound and Image variants linked to modeChoice.options.",
+      "closedReason": "Minor Illusion now records Sound as sound-only with whisper-to-scream and continuous-or-discrete timing, and Image as sight-only with sound/light/smell/other-sensory exclusions and a 5-foot Cube maximum."
+    },
+    "minor-illusion::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Minor Illusion has investigation and physical-interaction reveal rules, plus the illusion becomes faint to creatures that discern it.",
+      "recommendedTemplateChange": "Illusion structured fields now record per-creature reveal scope, Study and physical-interaction methods, Intelligence (Investigation) against spell save DC, applies-to variants, and the faint post-discernment state.",
+      "recommendedJsonChange": "Runtime JSON now has effects[0].illusion with revealRules for Study action and physical interaction plus discernedState=faint_to_discerning_creature.",
+      "closedReason": "Minor Illusion now distinguishes illusion reveal from escape checks: Study action applies to Sound and Image, physical interaction applies to Image, and a successful reveal makes the illusion faint only to the discerning creature."
+    },
+    "minor-illusion::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched sensory restriction prose, but this is an illusion-mode restriction tracked under minor-illusion::vision_light_sound.",
+      "recommendedTemplateChange": "No sensor/remote perception field needed for this spell.",
+      "recommendedJsonChange": "No sensor/remote perception JSON change needed for this spell."
+    },
+    "minor-illusion::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The image size limit is an illusion mode geometry rule, not an environmental-change mechanic.",
+      "recommendedTemplateChange": "Track through illusion mode fields.",
+      "recommendedJsonChange": "Track through runtime illusion mode data."
+    },
+    "minor-illusion::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Minor Illusion ends if the caster casts it again and also supports discrete sounds at different times before the spell ends.",
+      "recommendedTemplateChange": "Conditional Ending fields now record end_on_recast, while Sensory Manifestation timing records continuous-or-discrete sound before spell end.",
+      "recommendedJsonChange": "Runtime JSON now has effects[0].conditionalEndings with end_on_recast and effects[0].sensoryManifestation Sound timing continuous_or_discrete_before_spell_end.",
+      "closedReason": "The actual ending condition is recasting the spell, now stored as conditionalEndings. The discrete sound clause is not an ending trigger; it is stored as the Sound variant timing."
+    },
+    "minor-illusion::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "The 'faint to the creature' text is not pure flavor; it is tracked under the illusion reveal finding.",
+      "recommendedTemplateChange": "No deferred-flavor follow-up; resolve through illusion reveal fields.",
+      "recommendedJsonChange": "No deferred-flavor runtime field; resolve through illusion reveal data."
+    },
+    "mold-earth::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Mold Earth's distinct earth-manipulation modes are now represented as a reusable mode-choice menu with active-effect behavior.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one menu, option count, option summaries, noninstantaneous active cap, and dismissal behavior.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data linking Excavation, Shapes And Colors, and Terrain Toggle to the relevant effects.",
+      "closedReason": "Mold Earth now has structured Mode Choice fields and runtime modeChoice metadata that identify the canonical excavation, shaping/coloring, and terrain-toggle branches, including the two-active-effect cap and dismissible noninstantaneous changes."
+    },
+    "mold-earth::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mold Earth limits non-instantaneous active effects to two and allows dismissing one as an action.",
+      "recommendedTemplateChange": "Add active effect cap and dismiss action fields.",
+      "recommendedJsonChange": "Add runtime activeEffectLimit and dismissAction data."
+    },
+    "mold-earth::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mold Earth can excavate/move/deposit loose earth, make difficult terrain, or restore normal terrain; JSON has terrain/manipulation but needs review against all modes.",
+      "recommendedTemplateChange": "Split terrain manipulation modes and durations explicitly.",
+      "recommendedJsonChange": "Ensure runtime terrain/manipulation data covers excavation, deposit distance, difficult terrain, normal terrain, and one-hour duration."
+    },
+    "mold-earth::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal line-of-sight wording, not a light/vision mechanic.",
+      "recommendedTemplateChange": "No vision/light/sound field needed.",
+      "recommendedJsonChange": "No vision/light/sound JSON change needed."
+    },
+    "mold-earth::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mold Earth can create shapes, colors, words, images, and patterns on dirt or stone for 1 hour.",
+      "recommendedTemplateChange": "Add surface-marking fields for text/image/pattern/color changes and duration.",
+      "recommendedJsonChange": "Add runtime surfaceMarking data."
+    },
+    "mold-earth::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mold Earth can spell out words on dirt or stone, which is a world-state communication/marking effect.",
+      "recommendedTemplateChange": "Represent as surface-marking text support rather than generic communication.",
+      "recommendedJsonChange": "Add runtime surfaceMarking text capability."
+    },
+    "mold-earth::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mold Earth changes terrain state and earth placement in the world.",
+      "recommendedTemplateChange": "Track world-state earth/terrain changes explicitly.",
+      "recommendedJsonChange": "Add runtime world-state terrain change data."
+    },
+    "mold-earth::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "Shapes, colors, words, images, and patterns are gray-zone utility mechanics, not deferred flavor for this goal.",
+      "recommendedTemplateChange": "Track through surface-marking fields.",
+      "recommendedJsonChange": "Track through surfaceMarking runtime data."
+    },
+    "prestidigitation::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Prestidigitation's six utility choices are now represented as a reusable mode-choice menu.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one menu, option count, option summaries, and three-active-noninstantaneous cap.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data plus matching controlOptions for all six canonical options.",
+      "closedReason": "Prestidigitation now has structured Mode Choice fields, Utility Option fields, runtime modeChoice metadata, and effect controlOptions for Sensory Effect, Fire Play, Clean Or Soil, Minor Sensation, Magic Mark, and Minor Creation."
+    },
+    "prestidigitation::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Magic Mark places color, mark, or symbol on an object or surface for 1 hour.",
+      "recommendedTemplateChange": "Use surface-marking fields shared with Mold Earth-like effects.",
+      "recommendedJsonChange": "Add runtime surfaceMarking data for Magic Mark."
+    },
+    "prestidigitation::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Minor Creation can create a nonmagical trinket or illusory image that fits in the caster's hand and lasts until the end of the next turn.",
+      "recommendedTemplateChange": "Add option-specific created-object/illusion fields.",
+      "recommendedJsonChange": "Add runtime utility option for hand-sized trinket or illusory image with no damage and no monetary worth."
+    },
+    "prestidigitation::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "The sensory effect is local harmless presentation, not a sensor or remote perception mechanic.",
+      "recommendedTemplateChange": "Track through utility option/sensory fields, not sensor fields.",
+      "recommendedJsonChange": "Track through utility option/sensory data, not sensor data."
+    },
+    "prestidigitation::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The created trinket can deal no damage and has no monetary worth, which is a created-object restriction.",
+      "recommendedTemplateChange": "Add created-object restriction fields for damage capability and monetary worth.",
+      "recommendedJsonChange": "Add runtime createdObject restrictions."
+    },
+    "prestidigitation::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Prestidigitation can light/snuff small fires, clean/soil an object, chill/warm/flavor nonliving material, and create harmless sensory effects.",
+      "recommendedTemplateChange": "Add utility option fields for fire play, clean/soil, temperature/flavor, and harmless sensory effects.",
+      "recommendedJsonChange": "Add runtime utilityOptions for these world-state changes."
+    },
+    "prestidigitation::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "The detector placed sensory and marking examples in deferred flavor, but this goal includes those gray-zone utility mechanics.",
+      "recommendedTemplateChange": "Resolve through utility option and surface-marking fields.",
+      "recommendedJsonChange": "Resolve through runtime utilityOptions."
+    },
+    "produce-flame::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Produce Flame's bright/dim radii, no-heat, no-ignition, and end-on-recast light-state rules are now represented by structured and runtime fields.",
+      "recommendedTemplateChange": "Closed by Light Emits Heat false, Light Ignites Objects false, existing light radii, and Conditional Ending Triggers end_on_recast.",
+      "recommendedJsonChange": "Closed by runtime light emitsHeat/ignitesObjects and conditionalEndings data."
+    },
+    "produce-flame::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched fire damage prose, but the actionable light/environment caveats are tracked under vision_light_sound.",
+      "recommendedTemplateChange": "No separate environmental-change field needed for the damage attack.",
+      "recommendedJsonChange": "No separate environmental-change JSON field needed for the damage attack."
+    },
+    "produce-flame::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Produce Flame's end-on-recast rule is now represented by Conditional Ending Triggers and runtime conditionalEndings; the granted hurl action remains tracked under its own action bucket.",
+      "recommendedTemplateChange": "Closed for the recast-ending mechanic by Conditional Ending Triggers end_on_recast with scope spell.",
+      "recommendedJsonChange": "Closed for the recast-ending mechanic by runtime conditionalEndings carrying end_on_recast for the spell."
+    },
+    "ray-of-frost::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched beam wording, but Ray of Frost has no ward, alarm, or trigger mechanic.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field needed.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON field needed."
+    },
+    "resistance::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance requires choosing one damage type from a fixed list.",
+      "recommendedTemplateChange": "Add choice fields for damage type selection.",
+      "recommendedJsonChange": "Add runtime choice data for chosen damage type.",
+      "reviewerNote": "Closed for this spell by adding Defense Damage Type Source -> chosen_damage_type and keeping the eligible damage-type list in Damage Type/effects[].damageType[]. Broader option-menu choice mechanics remain open for other spells."
+    },
+    "resistance::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance reduces damage, not attack rolls, saving throws, or ability checks.",
+      "recommendedTemplateChange": "Track through damage_reduction_or_prevention.",
+      "recommendedJsonChange": "Track through damage reduction data."
+    },
+    "resistance::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched damage type names, not an environmental change.",
+      "recommendedTemplateChange": "No environmental-change field needed.",
+      "recommendedJsonChange": "No environmental-change JSON needed."
+    },
+    "resistance::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'before the spell ends' is ordinary duration scoping, not a special early-ending rule.",
+      "recommendedTemplateChange": "No conditional-ending field needed.",
+      "recommendedJsonChange": "No conditional-ending JSON needed."
+    },
+    "primal-savagery::manual_target_creature_only": {
+      "resolutionStatus": "closed",
+      "issue": "Primal Savagery canonical target is one creature. Structured markdown and runtime JSON were corrected from creatures/objects/enemies to creatures only.",
+      "recommendedTemplateChange": "Closed by correcting Valid Targets to creatures.",
+      "recommendedJsonChange": "Closed by correcting runtime validTargets to creatures."
+    },
+    "sacred-flame::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Sacred Flame's Dexterity save ignores Half Cover and Three-Quarters Cover, and that cover exception is now first-class structured and runtime data.",
+      "recommendedTemplateChange": "Closed by adding Save Cover Ignored to the structured template and setting Sacred Flame to half, three_quarters.",
+      "recommendedJsonChange": "Closed by adding a cover_bypass save modifier with ignoredCover half and three_quarters to Sacred Flame's damage save condition."
+    },
+    "sacred-flame::vision_light_sound": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The flame-like radiance is presentation for Radiant damage and does not create persistent light or a separate sensory state.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed for this descriptive visual wording.",
+      "recommendedJsonChange": "No runtime light/sound field needed for this descriptive visual wording."
+    },
+    "shape-water::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Shape Water's four water-manipulation choices are now represented as a reusable mode-choice menu with active-effect behavior.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one menu, option count, option summaries, noninstantaneous active cap, and dismissal behavior.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data plus matching controlOptions for all four canonical options.",
+      "closedReason": "Shape Water now has structured Mode Choice fields, Utility Option fields, runtime modeChoice metadata, and effect controlOptions for Move Or Flow, Shape And Animate, Color Or Opacity, and Freeze, including the two-active-effect cap and dismissible noninstantaneous effects."
+    },
+    "shape-water::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Shape Water limits non-instantaneous effects to two active instances and lets the caster dismiss one as an action; this is not structured.",
+      "recommendedTemplateChange": "Use active effect cap and dismiss action fields shared with Mold Earth-like cantrips.",
+      "recommendedJsonChange": "Add runtime activeEffectLimit=2 for non-instantaneous modes and dismissAction=action."
+    },
+    "shape-water::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal line-of-sight targeting, not a separate light, vision, or sound mechanic.",
+      "recommendedTemplateChange": "No vision/light/sound field needed beyond existing line-of-sight targeting.",
+      "recommendedJsonChange": "No runtime vision/light/sound field needed beyond existing lineOfSight."
+    },
+    "shape-water::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Shape Water can form and animate simple water shapes for 1 hour, but the created/animated form is not represented structurally.",
+      "recommendedTemplateChange": "Add controlled or animated substance fields for simple shape creation, animation direction, and one-hour duration.",
+      "recommendedJsonChange": "Add runtime data for water shape/form animation instead of prose-only utility text."
+    },
+    "shape-water::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "Shape Water has active-effect caps, but it does not consume a resource or created object in the way this bucket is meant to track.",
+      "recommendedTemplateChange": "Track the active-effect cap under sustain_or_recast_action.",
+      "recommendedJsonChange": "Track the active-effect cap under runtime activeEffectLimit rather than resource consumption."
+    },
+    "shape-water::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Shape Water changes water flow, color, opacity, and frozen state in the world, including a no-creatures-in-water freeze prerequisite and no-damage movement caveat.",
+      "recommendedTemplateChange": "Add environmental substance-change fields for water movement distance, no-damage caveat, color/opacity, freeze, creature exclusion, and unfreeze timing.",
+      "recommendedJsonChange": "Add runtime world-state data for water movement, coloring/opacity, and freeze/unfreeze behavior."
+    },
+    "shape-water::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "Changing water color or opacity is a gray-zone utility mechanic for this goal, not pure flavor.",
+      "recommendedTemplateChange": "Resolve through environmental/substance-change option fields.",
+      "recommendedJsonChange": "Resolve through runtime utilityOptions/environmentalChange data."
+    },
+    "shillelagh::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Shillelagh's Force-or-normal weapon damage choice is now represented by attack augment metadata.",
+      "recommendedTemplateChange": "Attack Augment structured fields now record the affected weapon types, spellcasting ability substitution, replacement damage die/scaling, and damage-type choice.",
+      "recommendedJsonChange": "Runtime JSON now includes effects[0].attackAugments[0] with weaponRequirement, abilitySubstitution, damageDieOverride, and damageTypeChoice.",
+      "closedReason": "Shillelagh now has structured Attack Augment fields and runtime attackAugments data for the club/quarterstaff requirement, spellcasting ability attack/damage substitution, scaling replacement damage die, and caster choice between Force and the weapon's normal damage type."
+    },
+    "shillelagh::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Shillelagh's end-on-recast and let-go-of-weapon early endings are now represented by Conditional Ending Triggers and runtime conditionalEndings.",
+      "recommendedTemplateChange": "Closed by Conditional Ending Triggers end_on_recast and holder_releases_item with scope spell.",
+      "recommendedJsonChange": "Closed by runtime conditionalEndings carrying end_on_recast and holder_releases_item for the spell."
+    },
+    "spare-the-dying::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The word 'choose' is ordinary single-target selection, not a separate choice or mode mechanic.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond normal targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed."
+    },
+    "spare-the-dying::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Spare the Dying targets a creature with exactly 0 Hit Points that is not dead; current structured markdown and JSON only say creatures/allies.",
+      "recommendedTemplateChange": "Add target eligibility fields for current HP state and death-state exclusion.",
+      "recommendedJsonChange": "Add runtime target filter data requiring 0 HP and not dead."
+    },
+    "spare-the-dying::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Superseded by the manually added spare-the-dying::manual_stable_state finding so this reviewed mechanic is not counted twice.",
+      "recommendedTemplateChange": "Resolve through the manual stable-state finding.",
+      "recommendedJsonChange": "Resolve through the manual stable-state finding."
+    },
+    "starry-wisp::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Starry Wisp's on-hit 10-foot Dim Light rider is now represented by Light Bright/Dim Radius fields and runtime light data on the sensory utility effect; the anti-Invisible rider remains covered by the closed state bucket and utility description.",
+      "recommendedTemplateChange": "No new template field needed; existing light radius and light caveat fields cover the sensory light mechanic.",
+      "recommendedJsonChange": "Runtime sensory utility effect now carries light.brightRadius 0, light.dimRadius 10, and attachedTo target."
+    },
+    "sword-burst::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Sword Burst's Dexterity save and force damage are already represented as a save-gated area DAMAGE effect.",
+      "recommendedTemplateChange": "No additional attack/save modifier field needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "sword-burst::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The spectral blade circle is momentary presentation for the force damage and does not create a persistent object or hazard.",
+      "recommendedTemplateChange": "No field needed for this descriptive visual wording in this goal.",
+      "recommendedJsonChange": "No runtime field needed for this descriptive visual wording in this goal."
+    },
+    "shocking-grasp::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "closed",
+      "issue": "Superseded by the manually added shocking-grasp::manual_opportunity_attack_suppression finding so this reviewed mechanic is not counted twice.",
+      "recommendedTemplateChange": "Resolve through the manual opportunity-attack suppression finding.",
+      "recommendedJsonChange": "Resolve through the manual opportunity-attack suppression finding."
+    },
+    "thaumaturgy::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Thaumaturgy's six named options are now represented as a reusable mode-choice menu with active-effect behavior.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one menu, option count, option summaries, and three-active-noninstantaneous cap.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data plus matching controlOptions for all six canonical options.",
+      "closedReason": "Thaumaturgy now has structured Mode Choice fields, Utility Option fields, runtime modeChoice metadata, and effect controlOptions for Altered Eyes, Booming Voice, Fire Play, Invisible Hand, Phantom Sound, and Tremors, including the three-active-effect cap."
+    },
+    "thaumaturgy::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Booming Voice grants Advantage on Charisma (Intimidation) checks for 1 minute, but this ability-check modifier is prose-only.",
+      "recommendedTemplateChange": "Add ability-check modifier fields for advantage/disadvantage, ability, skill, duration, and source option.",
+      "recommendedJsonChange": "Add runtime abilityCheckModifier data for Charisma (Intimidation) advantage while Booming Voice is active."
+    },
+    "thaumaturgy::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Tremors causes harmless ground tremors for 1 minute; this gray-zone world-state effect is not structured.",
+      "recommendedTemplateChange": "Add harmless terrain/surface disturbance option fields.",
+      "recommendedJsonChange": "Add runtime utility option data for harmless ground tremors."
+    },
+    "thaumaturgy::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Thaumaturgy modifies voice volume, flames, and creates a point-originating sound, but these sensory mechanics are collapsed into one description.",
+      "recommendedTemplateChange": "Add sensory utility option fields for voice volume multiplier, flame brightness/color changes, and point-originating sounds.",
+      "recommendedJsonChange": "Add runtime sensory option data for Booming Voice, Fire Play, and Phantom Sound."
+    },
+    "thaumaturgy::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Altered Eyes changes the caster's eye appearance for 1 minute, which is a visible body/appearance change not represented structurally.",
+      "recommendedTemplateChange": "Add appearance-change utility fields for altered body feature, duration, and cosmetic-only scope.",
+      "recommendedJsonChange": "Add runtime appearanceChange data for Altered Eyes."
+    },
+    "thaumaturgy::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "Invisible Hand opens or shuts an existing unlocked door or window; it does not create a persistent object or structure.",
+      "recommendedTemplateChange": "Track this as environmental object manipulation rather than created object data.",
+      "recommendedJsonChange": "Track this as runtime objectManipulation data rather than createdObject data."
+    },
+    "thaumaturgy::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Thaumaturgy can change existing flames and open or shut unlocked doors/windows, but these world-state object changes are prose-only.",
+      "recommendedTemplateChange": "Add utility option fields for flame alteration and unlocked door/window open-or-shut movement.",
+      "recommendedJsonChange": "Add runtime environmentalChange/objectManipulation data for Fire Play and Invisible Hand."
+    },
+    "thaumaturgy::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "Flame brightness/color changes are gray-zone utility mechanics included in this goal, not deferred flavor.",
+      "recommendedTemplateChange": "Resolve through sensory/environmental utility option fields.",
+      "recommendedJsonChange": "Resolve through runtime utilityOptions."
+    },
+    "thorn-whip::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Thorn Whip's size-gated pull is partially represented, and the runtime direction was corrected to toward_caster, but the optional 'can pull' choice remains flattened.",
+      "recommendedTemplateChange": "Add forced-movement option fields for optional pull, pull-toward-caster direction, maximum distance, and Large-or-smaller size gate.",
+      "recommendedJsonChange": "Add runtime optional forcedMovement choice data; the existing direction defect was corrected from away_from_caster to toward_caster."
+    },
+    "thorn-whip::summon_or_controlled_entity": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The vine-like whip is momentary presentation for a melee spell attack and does not persist as a summon or controlled entity.",
+      "recommendedTemplateChange": "No summon/controlled-entity field needed for this wording.",
+      "recommendedJsonChange": "No runtime summon/controlled-entity field needed for this wording."
+    },
+    "thorn-whip::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched command wording, but Thorn Whip has no ward, alarm, or delayed trigger mechanic.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field needed.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON change needed."
+    },
+    "thunderclap::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Thunderclap's Constitution save and thunder damage are already represented as a save-gated area DAMAGE effect.",
+      "recommendedTemplateChange": "No additional attack/save modifier field needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "thunderclap::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Thunderclap's 100-foot audible sound is now represented by Sound Audible Radius/Unit/Source/Trigger and runtime soundEmission data.",
+      "recommendedTemplateChange": "No new template field needed; the existing sound-emission fields now cover this mechanic.",
+      "recommendedJsonChange": "Runtime soundEmission data added to the primary damage effect."
+    },
+    "toll-the-dead::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Toll the Dead's Wisdom save is already represented as a save-gated DAMAGE effect.",
+      "recommendedTemplateChange": "No attack/save modifier field needed beyond the existing save fields.",
+      "recommendedJsonChange": "No attack/save modifier JSON change needed."
+    },
+    "toll-the-dead::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Toll the Dead's target-originating 10-foot chime is now represented by Sound Audible Radius/Unit/Source/Trigger and runtime soundEmission data.",
+      "recommendedTemplateChange": "No new template field needed; the existing sound-emission fields now cover this mechanic.",
+      "recommendedJsonChange": "Runtime soundEmission data added to the primary damage effect."
+    },
+    "toll-the-dead::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Toll the Dead switches from d8 to d12 damage when the target is missing any Hit Points; JSON only preserves this in scaling prose while damage.dice remains 1d8.",
+      "recommendedTemplateChange": "Add conditional damage dice fields based on target missing HP.",
+      "recommendedJsonChange": "Add runtime conditionalDamage data for undamaged target d8 versus damaged target d12, including tier scaling for both dice."
+    },
+    "toll-the-dead::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The damaged-target clause changes damage dice; it is not an ending condition.",
+      "recommendedTemplateChange": "Track through conditional damage fields, not conditional ending.",
+      "recommendedJsonChange": "Track through runtime conditionalDamage data, not endingConditions."
+    },
+    "true-strike::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: True Strike's spell-granted weapon attack, spellcasting ability substitution, Radiant-or-normal damage choice, and Radiant rider are now represented by attack augment metadata.",
+      "recommendedTemplateChange": "Attack Augment structured fields now record the proficient weapon/value requirement, granted attack timing/count, spellcasting ability substitution, damage-type choice, and Radiant extra damage rider.",
+      "recommendedJsonChange": "Runtime JSON now includes effects[0].attackAugments[0] with weaponRequirement, grantedAttack, abilitySubstitution, damageTypeChoice, additionalDamage, and scaling notes.",
+      "closedReason": "True Strike now has structured Attack Augment fields and runtime attackAugments data for the casting weapon prerequisite, one granted attack during casting, spellcasting ability attack/damage substitution, caster choice between Radiant and normal weapon damage, and the Radiant rider that scales by character level."
+    },
+    "vicious-mockery::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Vicious Mockery's damage and next-attack Disadvantage rider share one failed Wisdom save, but JSON stores damage and a generic utility effect separately.",
+      "recommendedTemplateChange": "Use the ATTACK_ROLL_MODIFIER field family for outgoing next attack disadvantage bundled with damage behind one save.",
+      "recommendedJsonChange": "Replace or augment the generic utility rider with runtime attackRollModifier data: disadvantage, outgoing, any attack, next_attack, until end of target's next turn, bundled with damage/save."
+    },
+    "vicious-mockery::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Vicious Mockery can target a creature the caster can see or hear; current targeting only records lineOfSight=true and does not represent hearing as an alternate perception path.",
+      "recommendedTemplateChange": "Add target acquisition fields for visible_or_audible targets.",
+      "recommendedJsonChange": "Add runtime targeting perception data that permits sight or hearing within range."
+    },
+    "word-of-radiance::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "closedReason": "Word of Radiance now records caster-selected creatures inside the Emanation with structured Area Target Selection fields and runtime targeting.areaTargetSelection data.",
+      "issue": "Word of Radiance affects each creature of the caster's choice in the emanation, but runtime area targeting does not distinguish selected creatures from every valid creature.",
+      "recommendedTemplateChange": "Add selective area targeting fields for caster-chosen targets within an area.",
+      "recommendedJsonChange": "Add runtime selectiveAreaTargets or exclude-unselected-creatures data."
+    },
+    "word-of-radiance::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Word of Radiance's Constitution save and radiant damage are already represented as a save-gated area DAMAGE effect.",
+      "recommendedTemplateChange": "No additional attack/save modifier field needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "word-of-radiance::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched line-of-sight target eligibility inside the emanation, which is already represented by lineOfSight=true.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed.",
+      "recommendedJsonChange": "No separate runtime vision/light/sound field needed."
+    },
+    "primal-savagery::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Primal Savagery now targets creatures only in structured markdown and runtime JSON; objects/enemies are no longer listed as separate legal target categories.",
+      "recommendedTemplateChange": "No further template change needed for this spell; existing Valid Targets covers the canonical one-creature target.",
+      "recommendedJsonChange": "No further JSON change needed; targeting.validTargets is creatures only.",
+      "reviewerNote": "Closed after verifying docs/spells/reference/level-0/primal-savagery.md and public/data/spells/level-0/primal-savagery.json both use creatures only."
+    }
+  },
+  "manualFindings": {
+    "mage-hand": [
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "mage-hand::manual_controlled_hand_entity",
+        "canonicalEvidence": "A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration. As a Magic action on your later turns, you can control the hand thus again.",
+        "structuredState": "Effect Type: UTILITY; Utility Type: other",
+        "jsonState": "Runtime JSON stores a generic UTILITY effect with description only.",
+        "issue": "Mage Hand creates a persistent controllable entity, but the entity is not modeled with actions, movement, or limits.",
+        "recommendedTemplateChange": "Add controlled utility entity fields for entity type, allowed actions, later-turn control action, movement distance, range tether, carry limit, and prohibited actions.",
+        "recommendedJsonChange": "Add runtime controlledEntity data for the hand.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "mage-hand::manual_hand_vanish_conditions",
+        "canonicalEvidence": "The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.",
+        "structuredState": "Duration fields only.",
+        "jsonState": "Runtime JSON does not expose vanish-on-distance or end-on-recast conditions.",
+        "issue": "Mage Hand has explicit end conditions that are not represented structurally.",
+        "recommendedTemplateChange": "Conditional Ending and Controlled Entity fields now record max distance from caster and end_on_recast.",
+        "recommendedJsonChange": "Runtime JSON now includes conditionalEndings and controlledEntity endingTriggers for distance tether and recast cleanup.",
+        "resolutionStatus": "closed",
+        "closedReason": "Mage Hand now records both vanish conditions: end_on_recast and beyond_max_distance. The runtime controlledEntity.maxDistanceFromCaster value is 30 feet, and effects[0].conditionalEndings exposes both spell-ending triggers.",
+        "reviewerNote": "Closed by adding Controlled Entity fields plus itemized conditionalEndings for recast and 30-foot distance vanish."
+      }
+    ],
+    "magic-stone": [
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "magic-stone::manual_empowered_pebbles",
+        "canonicalEvidence": "You touch one to three pebbles and imbue them with magic.",
+        "structuredState": "Effect Type: UTILITY, DAMAGE; Utility Type: creation",
+        "jsonState": "Runtime JSON describes up to 3 pebbles in prose and uses a generic damage rider.",
+        "issue": "Closed: Magic Stone's one-to-three empowered pebbles are now represented with target-instance metadata.",
+        "recommendedTemplateChange": "Target Instance structured fields now record the three projectile instances, sequential resolution, and per-pebble consumption notes.",
+        "recommendedJsonChange": "Runtime JSON now includes targeting.instanceAllocation for three empowered projectile instances.",
+        "resolutionStatus": "closed",
+        "closedReason": "Magic Stone now records the one-to-three empowered pebbles with Target Instance fields and runtime targeting.instanceAllocation: projectile, baseCount 3, sequential resolution, and notes explaining that each pebble is consumed after one thrown or slung attack.",
+        "reviewerNote": "Closed by adding Target Instance fields and runtime targeting.instanceAllocation for the three empowered pebbles. This replaces the old prose-only count with explicit projectile instance data."
+      }
+    ],
+    "primal-savagery": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "primal-savagery::manual_target_creature_only",
+        "canonicalEvidence": "Make a melee spell attack against one creature within 5 feet of you.",
+        "structuredState": "Valid Targets: creatures, objects, enemies",
+        "jsonState": "Runtime validTargets includes creatures, objects, enemies.",
+        "issue": "Closed: Primal Savagery now targets creatures only in structured markdown and runtime JSON; objects/enemies are no longer listed as separate legal target categories.",
+        "recommendedTemplateChange": "No further template change needed for this spell; existing Valid Targets covers the canonical one-creature target.",
+        "recommendedJsonChange": "No further JSON change needed; targeting.validTargets is creatures only.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed after verifying docs/spells/reference/level-0/primal-savagery.md and public/data/spells/level-0/primal-savagery.json both use creatures only."
+      }
+    ],
+    "resistance": [
+      {
+        "bucketId": "damage_reduction_or_prevention",
+        "findingId": "resistance::manual_chosen_damage_reduction",
+        "canonicalEvidence": "When the creature takes damage of the chosen type before the spell ends, the creature reduces the total damage taken by 1d4. A creature can benefit from this spell only once per turn.",
+        "structuredState": "Effect Type: UTILITY; Utility Type: other",
+        "jsonState": "Runtime JSON stores a generic UTILITY description only.",
+        "issue": "Resistance's core mechanic is chosen-type damage reduction once per turn, but it is not represented as structured or runtime damage prevention data.",
+        "recommendedTemplateChange": "Add damage reduction fields for chosen damage type, dice 1d4, applies to damage taken, and once-per-turn limit.",
+        "recommendedJsonChange": "Add runtime damageReduction data with chosen damage type and once-per-turn consumption.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding Defense Type damage_reduction plus damageReduction.dice/appliesTo/frequency and damageTypeSource chosen_damage_type. This models the chosen-type 1d4 incoming damage reduction and once-per-turn limit."
+      }
+    ],
+    "shillelagh": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "shillelagh::manual_spellcasting_ability_weapon_attack",
+        "canonicalEvidence": "For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8.",
+        "structuredState": "Effect Type: UTILITY; Utility Type: other; prose notes mention ability substitution and damage die.",
+        "jsonState": "Runtime JSON stores the attack and damage substitution in a generic utility description.",
+        "issue": "Shillelagh changes weapon attack math and damage die, but the runtime has no attack augment data for spellcasting ability substitution or die replacement.",
+        "recommendedTemplateChange": "Add weapon attack augment fields for ability substitution, attack roll applies to melee attacks with the imbued weapon, damage roll ability substitution, base damage die replacement, and cantrip-tier die scaling.",
+        "recommendedJsonChange": "Add runtime attackAugment data for the imbued club/quarterstaff rather than prose-only utility.",
+        "resolutionStatus": "closed",
+        "closedReason": "Magic Stone now records the one-to-three empowered pebbles with Target Instance fields and runtime targeting.instanceAllocation: projectile, baseCount 3, sequential resolution, and notes explaining that each pebble is consumed after one thrown or slung attack."
+      }
+    ],
+    "shocking-grasp": [
+      {
+        "bucketId": "reaction_or_opportunity_restriction",
+        "findingId": "shocking-grasp::manual_opportunity_attack_suppression",
+        "canonicalEvidence": "On a hit, the target takes 1d8 Lightning damage, and it can't make Opportunity Attacks until the start of its next turn.",
+        "structuredState": "Effect Type: DAMAGE, STATUS_CONDITION; Conditions Applied: Reactions Suppressed.",
+        "jsonState": "Runtime JSON stores a STATUS_CONDITION named Reactions Suppressed with a generic 1-round duration and default escape/repeat-save sentinels.",
+        "issue": "The core mechanic is specifically Opportunity Attack suppression until the start of the target's next turn; the current status condition name is broader than the prose and carries inappropriate default escape/repeat-save data.",
+        "recommendedTemplateChange": "Add reaction/opportunity restriction fields for prohibited reaction subtype, hit condition, and until-start-of-target-next-turn duration, with not_applicable sentinels for escape and repeat saves.",
+        "recommendedJsonChange": "Add runtime opportunityAttackSuppression data or narrow status condition metadata; clear inappropriate repeatSave/escapeCheck defaults once not-applicable sentinels exist.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "spare-the-dying": [
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "spare-the-dying::manual_stable_state",
+        "canonicalEvidence": "The creature becomes Stable.",
+        "structuredState": "Effect Type: UTILITY, STATUS_CONDITION; Conditions Applied: Stable.",
+        "jsonState": "Runtime JSON now includes a STATUS_CONDITION effect named Stable.",
+        "issue": "Spare the Dying's Stable outcome is now represented as a STATUS_CONDITION effect named Stable.",
+        "recommendedTemplateChange": "No new state field needed for this row; existing Conditions Applied and STATUS_CONDITION effect data cover Stable.",
+        "recommendedJsonChange": "Runtime JSON now includes a Stable STATUS_CONDITION effect.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}
