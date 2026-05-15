@@ -422,6 +422,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             isLoading={gameState.isLoading}
                             onAction={onAction}
                             partyUsed={gameState.tempParty || undefined}
+                            onRequestAiGeneration={() => dispatch({ type: 'TRIGGER_AI_ENCOUNTER' })}
                         />
                     </ErrorBoundary>
                 </Suspense>

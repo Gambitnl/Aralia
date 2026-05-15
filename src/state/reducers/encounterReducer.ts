@@ -8,11 +8,22 @@ import { AppAction } from '../actionTypes';
 
 export function encounterReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
+    // Open the modal immediately (no AI call). The user can choose which tab they want.
     case 'GENERATE_ENCOUNTER':
+      return {
+        isLoading: false,
+        loadingMessage: null,
+        isEncounterModalVisible: true,
+        generatedEncounter: null,
+        encounterSources: null,
+        encounterError: null,
+      };
+
+    // Fired when the user explicitly opens the AI tab. Modal stays open; loading shown inside the tab.
+    case 'TRIGGER_AI_ENCOUNTER':
       return {
         isLoading: true,
         loadingMessage: "The DM is consulting ancient tomes...",
-        isEncounterModalVisible: false,
         generatedEncounter: null,
         encounterSources: null,
         encounterError: null,

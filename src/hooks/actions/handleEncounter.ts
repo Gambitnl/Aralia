@@ -14,8 +14,18 @@ interface HandleGenerateEncounterProps {
     dispatch: React.Dispatch<AppAction>;
 }
 
-export async function handleGenerateEncounter({ gameState, dispatch }: HandleGenerateEncounterProps): Promise<void> {
-    dispatch({ type: 'GENERATE_ENCOUNTER' }); 
+/** Opens the encounter modal immediately on the bestiary tab — no API call. */
+export function handleGenerateEncounter({ dispatch }: HandleGenerateEncounterProps): void {
+    dispatch({ type: 'GENERATE_ENCOUNTER' });
+}
+
+/**
+ * Performs the Gemini AI encounter generation.
+ * Called lazily when the user first opens the "AI Generated" tab inside the modal.
+ * The modal stays open throughout (TRIGGER_AI_ENCOUNTER does not close it).
+ */
+export async function handleTriggerAiEncounter({ gameState, dispatch }: HandleGenerateEncounterProps): Promise<void> {
+    dispatch({ type: 'TRIGGER_AI_ENCOUNTER' });
     try {
         const partyForEncounter: TempPartyMember[] = gameState.tempParty ?? gameState.party.map(p => ({
             id: p.id!,
@@ -29,9 +39,9 @@ export async function handleGenerateEncounter({ gameState, dispatch }: HandleGen
 
         const { xpBudget, themeTags } = calculateEncounterParameters(partyForEncounter, gameState.currentLocationId, gameState.messages.slice(-10));
         const result = await GeminiService.generateEncounter(xpBudget, themeTags, partyForEncounter, gameState.devModelOverride);
-        
+
         if (result.data?.rateLimitHit || result.metadata?.rateLimitHit) {
-          dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
+            dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
         }
 
         if (result.error || !result.data) {
@@ -39,7 +49,6 @@ export async function handleGenerateEncounter({ gameState, dispatch }: HandleGen
         }
 
         const finalEncounter = processAndValidateEncounter(result.data.encounter, themeTags);
-        
         const payload: ShowEncounterModalPayload = { encounter: finalEncounter, sources: result.data.sources, partyUsed: partyForEncounter };
         dispatch({ type: 'SHOW_ENCOUNTER_MODAL', payload: { encounterData: payload } });
 
