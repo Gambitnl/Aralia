@@ -1,0 +1,256 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 4 manual review override shard for spell indexes 40-45 in generated discovery row order.",
+    "Created as a separate shard so level-4-20-39.json does not continue to absorb later packets."
+  ],
+  "findings": {
+    "stoneskin::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Bludgeoning, Piercing, and Slashing resistance is now represented as a DEFENSIVE resistance effect with the three damage types.",
+      "recommendedTemplateChange": "No new defensive field required for this pass.",
+      "recommendedJsonChange": "Closed by changing Stoneskin from generic UTILITY to DEFENSIVE resistance."
+    },
+    "stoneskin::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase until the spell ends refers to the ordinary concentration duration; the canonical prose gives no special early ending or cleanup rule.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by the existing duration and concentration fields."
+    },
+    "storm-sphere::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses a creature within 60 feet of the sphere's center for the bonus-action lightning bolt each turn; runtime represents the bonus-action attack but lacks a typed secondary-origin target-choice field.",
+      "recommendedTemplateChange": "Add sustained secondary-origin target choice fields for effects emitted from created areas or objects.",
+      "recommendedJsonChange": "Add runtime secondaryOriginTargetChoice data for the lightning bolt."
+    },
+    "storm-sphere::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Strength saves, bludgeoning damage, and lightning attack damage are represented, but runtime still lacks typed advantage on the lightning attack when the target is in the sphere and typed disadvantage on Wisdom (Perception) checks made to listen within 30 feet.",
+      "recommendedTemplateChange": "Add attack-advantage and ability-check-disadvantage fields with spatial filters.",
+      "recommendedJsonChange": "Add runtime attack advantage and ability check modifier data; current JSON preserves those mechanics only in effect descriptions."
+    },
+    "storm-sphere::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The bonus-action lightning bolt is now represented as an on_caster_action damage effect, but the schema cannot fully express that the attack originates from the sphere center and targets within 60 feet of that secondary origin.",
+      "recommendedTemplateChange": "Add sustained action fields for secondary origin, per-turn action cost, target range from origin, and attack type.",
+      "recommendedJsonChange": "Extend the current on_caster_action effect with typed secondary-origin metadata when supported."
+    },
+    "storm-sphere::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The sphere's space is Difficult Terrain, and runtime now has a TERRAIN difficult effect for the 20-foot-radius sphere.",
+      "recommendedTemplateChange": "No terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a TERRAIN difficult effect."
+    },
+    "storm-sphere::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched triggered area damage and a bonus-action attack, but Storm Sphere does not create a ward or alarm.",
+      "recommendedTemplateChange": "Track the mechanics under damage triggers and sustained action fields instead.",
+      "recommendedJsonChange": "No ward/alarm runtime data required."
+    },
+    "storm-sphere::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The whirling-air area has concrete terrain, damage, and listening-check effects; those mechanics are tracked in their own buckets rather than as a separate environmental state.",
+      "recommendedTemplateChange": "No environmental-change field required beyond terrain and modifier fields for this pass.",
+      "recommendedJsonChange": "Closed by TERRAIN and DAMAGE effects, with remaining listening-check precision tracked under attack_or_save_modifier."
+    },
+    "storm-sphere::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The sphere remains for the spell's normal concentration duration and has no separate early ending or spell-end cleanup rule.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration and concentration."
+    },
+    "summon-greater-demon::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses a demon type of challenge rating 5 or lower, and higher-level casting raises that CR limit by 1 per slot level above 4th; runtime has no typed summon option or CR-scaling fields.",
+      "recommendedTemplateChange": "Add summon choice fields for creature type family, CR cap, examples, and slot-level CR scaling.",
+      "recommendedJsonChange": "Add runtime summon.formOptions or summonChoice data with CR cap and scaling."
+    },
+    "summon-greater-demon::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "At the end of each of the demon's turns it makes a Charisma save, with disadvantage if the caster says its true name; on success, control ends. Runtime has no typed recurring control save or true-name save modifier.",
+      "recommendedTemplateChange": "Add controlled-summon recurring save fields with timing, ability, success branch, and conditional disadvantage source.",
+      "recommendedJsonChange": "Add runtime summonControlSave data for the demon's end-turn Charisma save and true-name disadvantage."
+    },
+    "summon-greater-demon::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The demon appears in an unoccupied space the caster can see within range, but runtime targets generic creatures and lacks unoccupied-space placement eligibility.",
+      "recommendedTemplateChange": "Add summon placement fields for visible unoccupied space within spell range.",
+      "recommendedJsonChange": "Add runtime summonPlacement data and consider point/unoccupied-space targeting for summon spells."
+    },
+    "summon-greater-demon::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When summoned and on each later caster turn, the caster can issue a verbal command requiring no action; runtime lacks command-economy fields for controlled summons.",
+      "recommendedTemplateChange": "Add summon command fields for no-action verbal commands, command timing, command target turn, and default behavior when no command is issued.",
+      "recommendedJsonChange": "Add runtime summonCommand data."
+    },
+    "summon-greater-demon::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The optional blood circle is formed on the ground, encompasses the caster's space, and blocks the demon from crossing, harming, or targeting inside it; runtime lacks protective-circle terrain/barrier fields.",
+      "recommendedTemplateChange": "Add protective circle/barrier fields for ground placement, enclosed space, crossing restrictions, harm restrictions, targeting restrictions, and duration.",
+      "recommendedJsonChange": "Add runtime protectiveCircle data if the blood is used that way."
+    },
+    "summon-greater-demon::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible placement. The spell has no light, vision, sound, or sensory-perception effect beyond line-of-sight placement.",
+      "recommendedTemplateChange": "Track placement under summon placement fields.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "summon-greater-demon::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "The verbal command is a control-economy mechanic for a summoned creature, not a message-delivery or communication-channel spell.",
+      "recommendedTemplateChange": "Track under summon command fields.",
+      "recommendedJsonChange": "No separate message/communication runtime data required."
+    },
+    "summon-greater-demon::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell summons a demon with type choice, own initiative, no-action commands, default hostile behavior, recurring control saves, uncontrolled behavior, protective-circle interaction, 0-HP disappearance, and post-concentration linger; runtime is still a generic utility placeholder.",
+      "recommendedTemplateChange": "Add full controlled-summon fields for entity choice, initiative, allegiance/control state, command economy, default behavior, control saves, uncontrolled behavior, protective circle, and disappearance rules.",
+      "recommendedJsonChange": "Add runtime SUMMONING or summonEntity data for Summon Greater Demon."
+    },
+    "summon-greater-demon::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The material component is normally not consumed, but if used to form the protective circle it is consumed when the spell ends; runtime has only a single isConsumed false flag.",
+      "recommendedTemplateChange": "Add conditional material consumption fields tied to optional sub-effects.",
+      "recommendedJsonChange": "Add runtime conditionalConsumption data for using the blood to form the circle."
+    },
+    "summon-greater-demon::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The demon's stat block is selected by demon type and it disappears at 0 Hit Points, but runtime lacks typed summoned stat-block reference, HP state, and disappearance-on-0-HP semantics.",
+      "recommendedTemplateChange": "Add summoned stat-block reference and defeat/disappearance fields.",
+      "recommendedJsonChange": "Add runtime summon.statBlock and disappearance data."
+    },
+    "summon-greater-demon::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Control can end on a successful Charisma save while the summoned demon remains, and an uncontrolled demon can linger for 1d6 rounds after concentration ends if it still has Hit Points; runtime lacks these ending branches.",
+      "recommendedTemplateChange": "Add summon control-ending and post-concentration linger fields.",
+      "recommendedJsonChange": "Add runtime controlEnding and uncontrolledLinger data."
+    },
+    "summon-greater-demon::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The uncontrolled 1d6-round persistence is still part of the spell's ending/lifecycle mechanics and does not leave a separate persistent aftermath or memory state after the demon disappears.",
+      "recommendedTemplateChange": "Track under conditional ending and summon lifecycle fields.",
+      "recommendedJsonChange": "No aftermath runtime data required."
+    },
+    "vitriolic-sphere::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Dexterity save, half initial damage, initial 10d4 Acid damage, delayed 5d4 Acid damage, and +2d4 scaling are represented, but runtime cannot type that the delayed end-of-next-turn damage applies only to creatures that failed the initial save.",
+      "recommendedTemplateChange": "Add linked delayed-damage rider fields that depend on the result of an earlier save.",
+      "recommendedJsonChange": "Add runtime linkedSaveOutcomeRider data; current second DAMAGE effect preserves the dependency only in description."
+    },
+    "wall-of-fire::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Dexterity save for half damage and recurring wall damage are represented as DAMAGE effects with scaling.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by initial, enter-area, and end-turn DAMAGE effects."
+    },
+    "wall-of-fire::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall must be placed on a solid surface and can be a line wall or ringed wall with one damage side selected by the caster; runtime has damage effects but lacks typed solid-surface and chosen-side geometry fields.",
+      "recommendedTemplateChange": "Add wall-placement fields for solid surface, shape mode, dimensions, opacity, chosen damage side, and side-specific proximity.",
+      "recommendedJsonChange": "Add runtime wallGeometry and wallDamageSide data."
+    },
+    "wall-of-fire::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates an opaque wall of fire with selectable line/ring geometry and one damaging side; runtime lacks created-wall structure fields beyond area and damage prose.",
+      "recommendedTemplateChange": "Add created wall/hazard fields for geometry, opacity, side choice, and spatial damage zones.",
+      "recommendedJsonChange": "Add runtime createdWall data."
+    },
+    "wall-of-fire::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The environmental signal is the created wall/hazard itself, with concrete damage and wall-geometry mechanics tracked under damage, terrain/surface, and created-object buckets.",
+      "recommendedTemplateChange": "No separate environmental-change field required for this pass.",
+      "recommendedJsonChange": "No separate environmental-change runtime data required."
+    },
+    "watery-sphere::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A creature that succeeds on the initial save chooses the nearest unoccupied exit space, a Large or smaller creature can choose to fail, and overflow ejection randomly chooses an already restrained creature; runtime lacks these choice/random-selection branches.",
+      "recommendedTemplateChange": "Add save-result placement choice, voluntary failure, and random overflow ejection fields.",
+      "recommendedJsonChange": "Add runtime ejectionChoice and overflowSelection data."
+    },
+    "watery-sphere::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial and repeat Strength saves are typed, but Huge-or-larger automatic success, Large-or-smaller voluntary failure, and ram-forced saves are not first-class.",
+      "recommendedTemplateChange": "Add size-based save overrides, voluntary save failure, and ram-triggered save fields.",
+      "recommendedJsonChange": "Add runtime saveOverrides and ramSaveTrigger data."
+    },
+    "watery-sphere::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The sphere can restrain up to four Medium-or-smaller creatures or one Large creature, while Huge-or-larger creatures automatically succeed; runtime lacks capacity and size-filter fields.",
+      "recommendedTemplateChange": "Add area capacity fields by target size and auto-success size filters.",
+      "recommendedJsonChange": "Add runtime sphereCapacity and sizeEligibility data."
+    },
+    "watery-sphere::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The Restrained target now repeats the correct Strength saving throw at the end of each of its turns, and the bogus action escape check was removed.",
+      "recommendedTemplateChange": "No repeat-save field required for this pass.",
+      "recommendedJsonChange": "Closed by correcting repeatSave to Strength turn_end and removing the false escapeCheck artifact."
+    },
+    "watery-sphere::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "As an action, the caster can move the sphere up to 30 feet in a straight line and ram it into creatures to force saves; runtime lacks granted movement/ram action data.",
+      "recommendedTemplateChange": "Add sustained created-area movement fields for action cost, distance, straight-line restriction, carried restrained targets, and ram trigger.",
+      "recommendedJsonChange": "Add runtime createdAreaMovement and ramAction data."
+    },
+    "watery-sphere::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The sphere hovers no more than 10 feet above the ground, safely descends over drop-offs, moves restrained creatures with it, and falls when the spell ends; runtime lacks created-sphere movement and vertical constraint fields.",
+      "recommendedTemplateChange": "Add created-area movement/hover fields for height cap, drop-off descent, carried occupants, and spell-end fall.",
+      "recommendedJsonChange": "Add runtime sphereMovement data."
+    },
+    "watery-sphere::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creatures can be ejected to chosen nearby spaces, overflow creatures fall out and land prone within 5 feet, restrained creatures move with the sphere, and spell-end fall knocks restrained creatures prone; runtime lacks forced placement and prone ejection data.",
+      "recommendedTemplateChange": "Add forced placement/ejection fields for success ejection, overflow ejection, carried movement, and spell-end prone placement.",
+      "recommendedJsonChange": "Add runtime forcedPlacement and ejectionProne data."
+    },
+    "watery-sphere::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The sphere's hover height, safe descent over pits or cliffs, spell-end fall to ground, and flame extinguishing are terrain/environment interactions stored only in prose.",
+      "recommendedTemplateChange": "Add terrain interaction fields for hover height, drop-off descent, fall-to-ground, and normal-flame extinguishing radius.",
+      "recommendedJsonChange": "Add runtime terrainInteraction data."
+    },
+    "watery-sphere::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible placement at a point the caster can see; the spell has no vision, light, or sound effect.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "watery-sphere::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a movable 5-foot-radius sphere of water with capacity, hover, engulfing, movement, fall, extinguishing, and vanish rules; runtime only models Restrained.",
+      "recommendedTemplateChange": "Add created movable area/object fields for sphere identity, capacity, movement, occupant handling, and disappearance.",
+      "recommendedJsonChange": "Add runtime createdSphere data."
+    },
+    "watery-sphere::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The water is conjured and later vanishes; there is no consumable resource or material-spend mechanic beyond the non-consumed droplet component.",
+      "recommendedTemplateChange": "Track conjured water under created-object/structure lifecycle fields, not resource consumption.",
+      "recommendedJsonChange": "No resource/consumption runtime data required."
+    },
+    "watery-sphere::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Restrained is typed with the corrected repeat save, but engulfed state, Prone on overflow/spell-end, size capacity, and carried-with-sphere riders are not first-class.",
+      "recommendedTemplateChange": "Add status rider fields for engulfed, prone aftermath, size capacity, carried movement, and ejection behavior.",
+      "recommendedJsonChange": "Add runtime status riders and secondary Prone effects."
+    },
+    "watery-sphere::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When the spell ends, the sphere extinguishes all normal flames within 30 feet, and the created water then vanishes; runtime lacks typed flame-extinguishing and vanish cleanup fields.",
+      "recommendedTemplateChange": "Add environmental cleanup fields for normal-flame extinguishing radius and created-water disappearance.",
+      "recommendedJsonChange": "Add runtime extinguishFlames and vanishOnEnd data."
+    },
+    "watery-sphere::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell-end sequence makes the sphere fall, extinguishes normal flames within 30 feet, knocks restrained creatures prone where it falls, and then makes the water vanish; runtime lacks typed spell-end cleanup sequence fields.",
+      "recommendedTemplateChange": "Add ordered spell-end cleanup fields for created areas with occupant and environmental effects.",
+      "recommendedJsonChange": "Add runtime cleanupOnEnd sequence data."
+    },
+    "watery-sphere::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "After the spell ends, restrained creatures are left prone where the sphere falls and normal flames within 30 feet have been extinguished; runtime lacks typed post-end state outcomes.",
+      "recommendedTemplateChange": "Add aftermath fields for spell-end prone placement and extinguished normal flames.",
+      "recommendedJsonChange": "Add runtime spellEndAftermath data."
+    }
+  },
+  "manualFindings": {}
+}

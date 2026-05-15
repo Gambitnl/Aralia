@@ -1,0 +1,230 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 35-39 in generated discovery row order."
+  ],
+  "findings": {
+    "mass-cure-wounds::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The chosen point, 30-foot-radius sphere, and up-to-six creature target cap are represented in targeting.",
+      "recommendedTemplateChange": "No new choice field required for this pass.",
+      "recommendedJsonChange": "Closed by area targeting and maxTargets 6."
+    },
+    "mass-cure-wounds::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The healing amount, spellcasting ability modifier formula, +1d8 scaling, and Undead/Construct exclusion are now represented by a HEALING effect.",
+      "recommendedTemplateChange": "No new healing field required.",
+      "recommendedJsonChange": "Closed by HEALING effect with target filter and scaling."
+    },
+    "mass-cure-wounds::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched hit points, but the spell heals creature hit points and does not involve object stats or object damageability.",
+      "recommendedTemplateChange": "No object-stat field required.",
+      "recommendedJsonChange": "No object-stat runtime data required."
+    },
+    "mass-cure-wounds::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The no-effect rule for Undead and Constructs is now represented by the HEALING target filter.",
+      "recommendedTemplateChange": "No status/state field required.",
+      "recommendedJsonChange": "Closed by excluding Undead and Construct targets."
+    },
+    "mislead::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can choose the illusory double's gestures, speech, behavior, and sense source, but runtime has no typed illusion-control mode fields.",
+      "recommendedTemplateChange": "Add illusory-double command/mode fields.",
+      "recommendedJsonChange": "Add runtime misleadDoubleControl data."
+    },
+    "mislead::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched bonus-action sense switching; Mislead does not modify attacks, saves, or checks.",
+      "recommendedTemplateChange": "Track under sustain_or_recast_action and sensor_or_remote_perception.",
+      "recommendedJsonChange": "No attack/save runtime data required."
+    },
+    "mislead::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The action to move and animate the illusory double and the repeat bonus-action sense switch are prose-only in runtime.",
+      "recommendedTemplateChange": "Add illusion-control action and repeat sense-toggle fields.",
+      "recommendedJsonChange": "Add runtime grantedActions for double movement/animation and sense switching."
+    },
+    "mislead::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Invisible, remote sight/hearing, and self-Blinded/Deafened while using the double's senses are all prose-only.",
+      "recommendedTemplateChange": "Add fields for invisibility, remote visual/auditory perception, and local sensory suppression.",
+      "recommendedJsonChange": "Add runtime Invisible, Blinded, Deafened, and remoteSenses data."
+    },
+    "mislead::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The illusory double appears, moves up to twice caster speed, gestures, speaks, and behaves as chosen; runtime lacks typed illusion-double fields.",
+      "recommendedTemplateChange": "Add illusory double entity fields with movement and behavior controls.",
+      "recommendedJsonChange": "Add runtime illusoryDouble data."
+    },
+    "mislead::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can see and hear through the double and switch senses each turn; runtime lacks typed remote-sensor fields.",
+      "recommendedTemplateChange": "Add remote senses fields with action cost and local-sense tradeoff.",
+      "recommendedJsonChange": "Add runtime remoteSenses data."
+    },
+    "mislead::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The illusory double can speak and gesture as part of its behavior, but runtime lacks typed illusion speech/gesture fields.",
+      "recommendedTemplateChange": "Add illusion communication fields for speech and gestures.",
+      "recommendedJsonChange": "Add runtime illusoryDoubleCommunication data."
+    },
+    "mislead::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Remote perception through the double affects what the caster can know, but runtime lacks typed remote perception semantics.",
+      "recommendedTemplateChange": "Track under remote-sensor knowledge fields.",
+      "recommendedJsonChange": "Add runtime remoteSenses data."
+    },
+    "mislead::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Invisible, Blinded, and Deafened states are prose-only in runtime, including the condition that invisibility ends on attacking or casting a spell.",
+      "recommendedTemplateChange": "Add status fields and conditional ending fields for Mislead.",
+      "recommendedJsonChange": "Add runtime Invisible/Blinded/Deafened status data plus invisibility ending triggers."
+    },
+    "modify-memory::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save, fighting-target advantage, failed-save Charmed condition, and Incapacitated rider are now represented.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION effects with saveModifiers."
+    },
+    "modify-memory::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "modify-memory::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster must speak the memory description and the target must understand the caster's language; runtime lacks language/comprehension fields.",
+      "recommendedTemplateChange": "Add spoken-instruction and target-language-comprehension fields.",
+      "recommendedJsonChange": "Add runtime memoryInstructionCommunication data."
+    },
+    "modify-memory::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell's core memory modification options, event age/window limits, language requirement, plausibility caveats, and higher-level time windows remain prose-only.",
+      "recommendedTemplateChange": "Add memory modification fields for operation type, event age, event duration, language requirement, plausibility caveats, and slot scaling windows.",
+      "recommendedJsonChange": "Add runtime memoryModification data."
+    },
+    "modify-memory::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Remove Curse or Greater Restoration can restore the true memory; runtime lacks typed external-spell restoration fields.",
+      "recommendedTemplateChange": "Add removable/restorable-by-spell fields for altered memories.",
+      "recommendedJsonChange": "Add runtime restoredBySpells data."
+    },
+    "modify-memory::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The failed-save Charmed and Incapacitated states are now represented as runtime STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "No new status field required for this pass.",
+      "recommendedJsonChange": "Closed by Charmed and Incapacitated effects."
+    },
+    "modify-memory::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched an example memory involving acid; the spell does not create acid or alter the environment.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "modify-memory::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Damage, another spell targeting the creature, or ending before the memory description is complete prevents memory alteration; runtime lacks those ending and success-condition branches.",
+      "recommendedTemplateChange": "Add memory modification conditional-ending fields.",
+      "recommendedJsonChange": "Add runtime memoryModificationEnding data."
+    },
+    "modify-memory::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The modified memory takes hold when the spell ends only if the description is complete; runtime lacks typed memory aftermath/finalization data.",
+      "recommendedTemplateChange": "Add memory finalization fields.",
+      "recommendedJsonChange": "Add runtime memoryFinalization data."
+    },
+    "negative-energy-flood::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The non-Undead Constitution save branch and Undead no-save branch are now separated in runtime.",
+      "recommendedTemplateChange": "No new attack/save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE exclude Undead plus HEALING Undead branch."
+    },
+    "negative-energy-flood::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Visible target selection is represented, but the zombie's pursuit of the closest visible creature remains prose-only with the zombie aftermath.",
+      "recommendedTemplateChange": "Add zombie behavior fields for visible nearest-creature pursuit.",
+      "recommendedJsonChange": "Add runtime zombieAftermath behavior data."
+    },
+    "negative-energy-flood::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The Undead target's temporary hit points equal to half of 5d12 are now represented as a HEALING effect.",
+      "recommendedTemplateChange": "No new healing field required.",
+      "recommendedJsonChange": "Closed by HEALING temporary HP branch."
+    },
+    "negative-energy-flood::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched temporary hit points, but no object stats or object damageability are involved.",
+      "recommendedTemplateChange": "No object-stat field required.",
+      "recommendedJsonChange": "No object-stat runtime data required."
+    },
+    "negative-energy-flood::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell-killed target rising as a zombie at the start of the caster's next turn is not yet represented.",
+      "recommendedTemplateChange": "Add death-to-zombie transformation fields.",
+      "recommendedJsonChange": "Add runtime zombieRising aftermath data."
+    },
+    "passwall::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses opening dimensions up to 5 feet wide, 8 feet tall, and 20 feet deep; runtime has only a coarse cube size.",
+      "recommendedTemplateChange": "Add opening dimension fields for width, height, and depth maxima.",
+      "recommendedJsonChange": "Add runtime passageDimensions data."
+    },
+    "passwall::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target point must be on a wooden, plaster, or stone surface, and later ejection goes to the nearest unoccupied space; runtime lacks material/surface and ejection-destination fields.",
+      "recommendedTemplateChange": "Add surface material eligibility and ejection destination fields.",
+      "recommendedJsonChange": "Add runtime surfaceEligibility and ejectionDestination data."
+    },
+    "passwall::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wooden/plaster/stone wall, ceiling, or floor surface requirement remains prose-only.",
+      "recommendedTemplateChange": "Add passage surface fields for allowed materials and orientations.",
+      "recommendedJsonChange": "Add runtime passwallSurface data."
+    },
+    "passwall::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target point selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "passwall::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now marks the utility as creation, but the passwall opening's dimensions, no-instability rider, and safe ejection behavior are still prose-only.",
+      "recommendedTemplateChange": "Add passage-creation fields for dimensions, structural stability, and ejection on disappearance.",
+      "recommendedJsonChange": "Add runtime passwallOpening data."
+    }
+  },
+  "manualFindings": {
+    "negative-energy-flood": [
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "title": "Summons And Controlled Entities",
+        "spellId": "negative-energy-flood",
+        "findingId": "negative-energy-flood::summon_or_controlled_entity",
+        "canonicalEvidence": "A target killed by this damage rises up as a zombie at the start of your next turn. The zombie pursues whatever creature it can see that is closest to it. Statistics for the zombie are in the Monster Manual.",
+        "structuredState": "Effect Type: DAMAGE, HEALING",
+        "jsonState": "Runtime has damage and Undead temporary HP branches, but no zombie aftermath entity.",
+        "issue": "The death-triggered zombie is a created/controlled entity aftermath and remains prose-only.",
+        "recommendedTemplateChange": "Add death-triggered zombie creation fields with behavior and timing.",
+        "recommendedJsonChange": "Add runtime zombieAftermath summon/entity data.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "aftermath_or_memory",
+        "title": "Aftermath And Memory Effects",
+        "spellId": "negative-energy-flood",
+        "findingId": "negative-energy-flood::aftermath_or_memory",
+        "canonicalEvidence": "A target killed by this damage rises up as a zombie at the start of your next turn.",
+        "structuredState": "Description only.",
+        "jsonState": "Runtime has no death aftermath timing field.",
+        "issue": "The target's death aftermath happens at the start of the caster's next turn and needs a typed aftermath/timing surface.",
+        "recommendedTemplateChange": "Add start-of-next-turn death aftermath fields.",
+        "recommendedJsonChange": "Add runtime deathAftermath timing data.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

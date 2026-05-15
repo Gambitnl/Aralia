@@ -11,7 +11,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -55,18 +54,33 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -96,10 +110,31 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "3d10",
@@ -110,7 +145,15 @@
         "bonusPerLevel": "+1d10",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "soundEmission": {
+        "audibleRadius": 300,
+        "radiusUnit": "feet",
+        "source": "origin_space",
+        "trigger": "after_teleport",
+        "description": "The thunder caused by disappearing can be heard up to 300 feet from the origin space."
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
@@ -118,7 +161,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You teleport yourself to an unoccupied space you can see within range. Immediately after you disappear, a thunderous boom sounds, and each creature within 10 feet of the space you left must make a Constitution saving throw, taking 3d10 thunder damage on a failed save, or half as much damage on a successful one. The thunder can be heard from up to 300 feet away. You can bring along objects as long as their weight doesn't exceed what you can carry. You can also teleport one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell, and there must be an unoccupied space within 5 feet of your destination space for the creature to appear in; otherwise, the creature is left behind. At Higher Levels. When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d10 for each slot level above 3rd.",
-  "higherLevels": "",
+  "description": "You teleport yourself to an unoccupied space you can see within range. Immediately after you disappear, a thunderous boom sounds, and each creature within 10 feet of the space you left must make a Constitution saving throw, taking 3d10 thunder damage on a failed save, or half as much damage on a successful one. The thunder can be heard from up to 300 feet away. You can bring along objects as long as their weight doesn't exceed what you can carry. You can also teleport one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell, and there must be an unoccupied space within 5 feet of your destination space for the creature to appear in; otherwise, the creature is left behind.",
+  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d10 for each slot level above 3rd.",
   "tags": []
 }

@@ -1,4 +1,4 @@
-﻿# Puzzles, Quests & Rituals
+# Puzzles, Quests & Rituals
 
 ## Purpose
 

@@ -9,12 +9,7 @@
     "Warlock",
     "Wizard"
   ],
-  "subClasses": [
-    "Cleric - Grave Domain (XGtE)",
-    "Cleric - Death Domain (DMG)",
-    "Cleric - Blood Domain (TCSR)"
-  ],
-  "subClassesVerification": "unverified",
+  "subClasses": [],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -58,18 +53,33 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -90,19 +100,40 @@
         }
       },
       "condition": {
-        "type": "hit",
-        "saveType": "Strength",
-        "saveEffect": "none",
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_condition",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "control",
       "description": "A beam of enervating energy shoots from you toward a creature within range. The target must make a Constitution saving throw. On a successful save, the target has Disadvantage on the next attack roll it makes until the start of your next turn. On a failed save, the target has Disadvantage on Strength-based D20 Tests for the duration. During that time, it also subtracts 1d8 from all its damage rolls. The target repeats the save at the end of each of its turns, ending the spell on a success.",
@@ -145,8 +176,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

@@ -1,4 +1,4 @@
-﻿# Core Systems Domain
+# Core Systems Domain
 
 ## Purpose
 

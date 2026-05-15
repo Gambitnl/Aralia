@@ -1,0 +1,367 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Residual closure shard for levels 0-2 after the full level-9 pass showed older needs_manual_review rows still present.",
+    "Closed rows include an explicit reason. Actionable-open rows are schema gaps queued for the later propagation phase rather than unresolved manual review."
+  ],
+  "findings": {
+    "acid-splash::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; attack_or_save_modifier is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "booming-blade::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; conditional_ending is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "chill-touch::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: This row identifies resource-like prevention or component behavior that is not fully represented as a runtime resource rule.",
+      "recommendedTemplateChange": "Add resource/prevention fields where this is not ordinary spell components.",
+      "recommendedJsonChange": "Keep existing component fields or Utility Options as interim representation."
+    },
+    "chill-touch::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Healing prevention, stabilization, or condition/restoration removal needs explicit restoration/prevention schema beyond generic utility text.",
+      "recommendedTemplateChange": "Add restoration, condition-removal, and healing-prevention buckets.",
+      "recommendedJsonChange": "Use existing healing/status/utility effects until those buckets are propagated."
+    },
+    "chill-touch::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object or hit-point state needs object/stat fields that are not yet available on every affected low-level spell.",
+      "recommendedTemplateChange": "Add object stat/damageability fields for target objects and created objects.",
+      "recommendedJsonChange": "Keep object facts in description/Utility Options until schema propagation."
+    },
+    "create-bonfire::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; attack_or_save_modifier is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "create-bonfire::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; target_filter_or_eligibility is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "create-bonfire::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; terrain_or_surface is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "create-bonfire::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; vision_light_sound is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "create-bonfire::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket.",
+      "recommendedTemplateChange": "Add environment/world-state fields for ignition, weather, sensory phenomena, and lasting environmental facts.",
+      "recommendedJsonChange": "Keep current utility/terrain/damage representation as interim data."
+    },
+    "create-bonfire::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; conditional_ending is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "dancing-lights::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Dancing Lights now records the separate-lights versus combined-humanoid-form choice as mode metadata instead of relying on prose only.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one timing, option count, option summaries, and shared effect index for both forms.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data for Separate Lights and Humanoid Form while preserving the existing light effect and target-instance payload.",
+      "closedReason": "Dancing Lights now has structured Mode Choice fields and runtime modeChoice metadata for Separate Lights and Humanoid Form; both options point to the existing light effect because the canonical choice changes arrangement/form while sharing the dim-light mechanics."
+    },
+    "dancing-lights::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; attack_or_save_modifier is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "dancing-lights::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Multiple instances or split targets need count and per-instance placement fields beyond broad targeting.",
+      "recommendedTemplateChange": "Add a multi-instance targeting bucket for beams/lights/secondary targets.",
+      "recommendedJsonChange": "Keep existing broad targeting until the multi-instance schema lands.",
+      "closedReason": "Closed by extending the target-instance vocabulary for light instances and recording Dancing Lights as four persistent independently positioned light instances in structured markdown and runtime targeting.instanceAllocation. Separate mode-choice, movement, and sustain-action rows remain open."
+    },
+    "dancing-lights::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Repeat action and sustain behavior needs a stronger granted-action/sustain schema for low-level utility cantrips.",
+      "recommendedTemplateChange": "Add sustain/reposition action fields with action cost, range leash, and recurrence.",
+      "recommendedJsonChange": "Use Utility Options/grantedActions as interim runtime representation."
+    },
+    "dancing-lights::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Moving created lights/forms needs an owned movable effect schema rather than simple target movement.",
+      "recommendedTemplateChange": "Add movable created-effect fields for distance, leash, and action cost.",
+      "recommendedJsonChange": "Use Utility Options as interim runtime representation."
+    },
+    "dancing-lights::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; vision_light_sound is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "druidcraft::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Druidcraft's four casting options are now represented as a reusable mode-choice menu instead of prose-only utility text.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one timing, option count, option source, and all four option labels/summaries.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data and matching controlOptions for Weather Sensor, Bloom, Sensory Effect, and Fire Play.",
+      "closedReason": "Druidcraft now has structured Mode Choice fields, Utility Option fields, runtime modeChoice metadata, and effect controlOptions that expose all four canonical casting options for runtime use."
+    },
+    "druidcraft::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; vision_light_sound is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "druidcraft::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Sensory prediction/detection effects need a sensor/information schema when they are more than plain description.",
+      "recommendedTemplateChange": "Add sensor/information bucket fields.",
+      "recommendedJsonChange": "Use Utility Options as interim runtime representation."
+    },
+    "druidcraft::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Created sensory effects or minor entities need summon/created-entity fields if they become independently addressable.",
+      "recommendedTemplateChange": "Add created entity/effect bucket fields.",
+      "recommendedJsonChange": "Keep current Utility Options as interim runtime representation."
+    },
+    "druidcraft::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket.",
+      "recommendedTemplateChange": "Add environment/world-state fields for ignition, weather, sensory phenomena, and lasting environmental facts.",
+      "recommendedJsonChange": "Keep current utility/terrain/damage representation as interim data."
+    },
+    "druidcraft::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema.",
+      "recommendedTemplateChange": "Add aftermath/memory fields for post-spell knowledge and delayed consequences.",
+      "recommendedJsonChange": "Keep aftermath text in Utility Options/description until schema propagation."
+    },
+    "eldritch-blast::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Mode/menu choices need first-class mode-choice fields when the spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option count, option labels, and option-specific effects.",
+      "recommendedJsonChange": "Keep existing Utility Options where present; propagate a mode-choice schema in the next action phase.",
+      "closedReason": "Eldritch Blast's same-or-different beam targeting is now represented by structured Target Instance fields and runtime targeting.instanceAllocation data."
+    },
+    "eldritch-blast::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; attack_or_save_modifier is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "eldritch-blast::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Multiple instances or split targets need count and per-instance placement fields beyond broad targeting.",
+      "recommendedTemplateChange": "Add a multi-instance targeting bucket for beams/lights/secondary targets.",
+      "recommendedJsonChange": "Keep existing broad targeting until the multi-instance schema lands.",
+      "closedReason": "Eldritch Blast now records one base beam, character-level tier scaling to additional beams, same-or-different target assignment, and separate per-beam attack resolution with structured Target Instance fields and runtime targeting.instanceAllocation data."
+    },
+    "elementalism::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Elementalism's five elemental operation choices are now represented as a reusable mode-choice menu.",
+      "recommendedTemplateChange": "Mode Choice structured fields now record the choose-one timing, option count, option source, and all five option labels/summaries.",
+      "recommendedJsonChange": "Runtime JSON now includes top-level modeChoice data that points to the existing Elementalism controlOptions.",
+      "closedReason": "Elementalism now has structured Mode Choice fields and runtime modeChoice metadata for Beckon Air, Beckon Earth, Beckon Fire, Beckon Water, and Sculpt Element without replacing the existing utility option data."
+    },
+    "elementalism::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; terrain_or_surface is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "elementalism::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Created objects/forms need object-state fields for durability, placement, dimensions, and disappearance.",
+      "recommendedTemplateChange": "Add created object/structure bucket fields.",
+      "recommendedJsonChange": "Keep creation facts in Utility Options until object-state schema is propagated."
+    },
+    "elementalism::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: This row identifies resource-like prevention or component behavior that is not fully represented as a runtime resource rule.",
+      "recommendedTemplateChange": "Add resource/prevention fields where this is not ordinary spell components.",
+      "recommendedJsonChange": "Keep existing component fields or Utility Options as interim representation."
+    },
+    "elementalism::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket.",
+      "recommendedTemplateChange": "Add environment/world-state fields for ignition, weather, sensory phenomena, and lasting environmental facts.",
+      "recommendedJsonChange": "Keep current utility/terrain/damage representation as interim data."
+    },
+    "elementalism::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema.",
+      "recommendedTemplateChange": "Add aftermath/memory fields for post-spell knowledge and delayed consequences.",
+      "recommendedJsonChange": "Keep aftermath text in Utility Options/description until schema propagation."
+    },
+    "fire-bolt::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; target_filter_or_eligibility is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "fire-bolt::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket.",
+      "recommendedTemplateChange": "Add environment/world-state fields for ignition, weather, sensory phenomena, and lasting environmental facts.",
+      "recommendedJsonChange": "Keep current utility/terrain/damage representation as interim data."
+    },
+    "friends::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; attack_or_save_modifier is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "friends::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; target_filter_or_eligibility is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "friends::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; vision_light_sound is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "friends::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; ward_alarm_or_trigger is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "friends::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; social_or_knowledge_effect is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "friends::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "friends::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; conditional_ending is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "friends::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema.",
+      "recommendedTemplateChange": "Add aftermath/memory fields for post-spell knowledge and delayed consequences.",
+      "recommendedJsonChange": "Keep aftermath text in Utility Options/description until schema propagation."
+    },
+    "green-flame-blade::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Green-Flame Blade's 'can cause green fire to leap' wording is optional secondary-target selection, not a mode menu.",
+      "recommendedTemplateChange": "No Mode Choice fields needed; the spell already uses Secondary Target fields for the optional leap target.",
+      "recommendedJsonChange": "No modeChoice JSON needed; runtime JSON already carries effects[1].secondaryTargeting for the optional different visible creature within 5 feet of the hit target.",
+      "closedReason": "Green-Flame Blade already records the optional secondary fire jump with structured Secondary Target fields and runtime effects[1].secondaryTargeting. The residual choice_or_mode row was a duplicate/misbucket of that secondary-target mechanic."
+    },
+    "green-flame-blade::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Multiple instances or split targets need count and per-instance placement fields beyond broad targeting.",
+      "recommendedTemplateChange": "Add a multi-instance targeting bucket for beams/lights/secondary targets.",
+      "recommendedJsonChange": "Keep existing broad targeting until the multi-instance schema lands.",
+      "closedReason": "Closed by adding Secondary Target structured fields and runtime effects[].secondaryTargeting data. Green-Flame Blade now records the primary-hit trigger, primary-target origin, different visible creature within 5 feet, caster choice, no repeat chain, and no fresh attack or damage roll for the secondary fire damage effect."
+    },
+    "green-flame-blade::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; vision_light_sound is already represented by existing structured/runtime fields or is covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "green-flame-blade::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket.",
+      "recommendedTemplateChange": "Add environment/world-state fields for ignition, weather, sensory phenomena, and lasting environmental facts.",
+      "recommendedJsonChange": "Keep current utility/terrain/damage representation as interim data."
+    },
+    "resistance::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Damage or saving throw prevention needs prevention-bypass/reduction fields beyond current defensive values.",
+      "recommendedTemplateChange": "Add prevention/reduction bucket fields.",
+      "recommendedJsonChange": "Use current defensive/utility representation as interim data.",
+      "reviewerNote": "Closed by the Resistance-specific damage reduction schema: Defense Type damage_reduction, damageReduction dice/appliesTo/frequency, and damageTypeSource chosen_damage_type now represent the prevention/reduction mechanic directly."
+    },
+    "spare-the-dying::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Spare the Dying's restoration/stabilization result is now represented by the Stable STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No healing/restoration field needed for this row beyond the Stable status representation.",
+      "recommendedJsonChange": "Runtime JSON now includes a Stable STATUS_CONDITION effect."
+    },
+    "starry-wisp::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "thaumaturgy::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "animal-friendship::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "armor-of-agathys::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Healing prevention, stabilization, or condition/restoration removal needs explicit restoration/prevention schema beyond generic utility text.",
+      "recommendedTemplateChange": "Add restoration, condition-removal, and healing-prevention buckets.",
+      "recommendedJsonChange": "Use existing healing/status/utility effects until those buckets are propagated."
+    },
+    "charm-person::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "color-spray::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "command::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "faerie-fire::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; the relevant condition/state is already represented by existing status, utility, or description fields, or the row is a detector false positive for non-status prose.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "fog-cloud::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Healing prevention, stabilization, or condition/restoration removal needs explicit restoration/prevention schema beyond generic utility text.",
+      "recommendedTemplateChange": "Add restoration, condition-removal, and healing-prevention buckets.",
+      "recommendedJsonChange": "Use existing healing/status/utility effects until those buckets are propagated."
+    },
+    "blindness-deafness::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the residual levels 0-2 sweep; repeat-save behavior is already represented on the existing statusCondition.repeatSave runtime effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "No JSON change required."
+    }
+  },
+  "manualFindings": {}
+}

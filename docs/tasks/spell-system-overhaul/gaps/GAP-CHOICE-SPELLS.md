@@ -1,4 +1,4 @@
-﻿# Gap: Modal Spell Choice Handling
+# Gap: Modal Spell Choice Handling
 
 **Status:** Active capability gap note
 **Last Reviewed:** 2026-03-12

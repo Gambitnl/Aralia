@@ -174,7 +174,8 @@ export class DamageCommand extends BaseEffectCommand {
         damageRoll,
         this.effect.damage.type,
         target,
-        caster
+        caster,
+        this.context.isMagical
       );
 
       // --- HAM FEAT (2024): Reduce nonmagical physical damage by Proficiency Bonus ---

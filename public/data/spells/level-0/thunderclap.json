@@ -14,7 +14,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -68,7 +67,27 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -98,10 +117,31 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "1d6",
@@ -112,7 +152,15 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": [],
+      "soundEmission": {
+        "audibleRadius": 100,
+        "radiusUnit": "feet",
+        "source": "spell_area",
+        "trigger": "on_cast",
+        "description": "The thunderous sound can be heard up to 100 feet away when the spell is cast."
+      }
     }
   ],
   "arbitrationType": "mechanical",
@@ -120,7 +168,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create a burst of thunderous sound that can be heard up to 100 feet away. Each creature within range, other than you, must succeed on a Constitution saving throw or take 1d6 Thunder damage.",
+  "description": "Each creature in a 5-foot Emanation originating from you must succeed on a Constitution saving throw or take 1d6 Thunder damage. The spell's thunderous sound can be heard up to 100 feet away.",
   "higherLevels": "The spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
   "tags": [
     "damage",

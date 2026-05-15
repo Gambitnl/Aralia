@@ -11,7 +11,6 @@
     "Artificer"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -55,18 +54,33 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -88,21 +102,50 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Once before the spell ends, the target can add 1d4 to one ability check of its choice.",
+      "description": "The caster chooses one skill. Until the spell ends, the target adds 1d4 to ability checks using that chosen skill.",
+      "abilityCheckModifier": {
+        "appliesTo": "ability_check",
+        "bonusDice": "1d4",
+        "skillSelection": "chosen_skill",
+        "skillChooser": "caster",
+        "skillPool": "any_skill",
+        "frequency": "every_matching_check",
+        "durationScope": "while_active",
+        "notes": "The target receives the bonus only for ability checks using the skill chosen when the spell is cast."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -129,8 +172,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
@@ -138,7 +189,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You touch one willing creature and choose one skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill.",
+  "description": "You touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill.",
   "higherLevels": "",
   "tags": [
     "utility",

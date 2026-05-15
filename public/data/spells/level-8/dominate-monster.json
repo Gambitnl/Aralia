@@ -12,7 +12,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -56,18 +55,33 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -89,29 +103,72 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-      "description": "One creature you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
+      "description": "One creature you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+      "utilityType": "other",
+      "grantedActions": [
+        {
+          "type": "reaction",
+          "action": "Command the Charmed target to take a Reaction.",
+          "frequency": "while_active",
+          "notes": "The caster must spend their own Reaction to command the target Reaction."
+        }
+      ],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "name": "Telepathic link",
+          "effect": "The caster has a telepathic link with the Charmed target while both are on the same plane."
+        },
+        {
+          "name": "No-action command",
+          "effect": "On the caster turn, the caster can issue commands to the target with no action required."
+        },
+        {
+          "name": "Reaction command",
+          "effect": "The caster can command the target to take a Reaction, but must spend the caster own Reaction to do so."
+        },
+        {
+          "name": "Self-directed behavior",
+          "effect": "If the target completes an order and gets no new direction, it acts and moves as it likes while focusing on self-protection."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -130,8 +187,121 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [
+          {
+            "type": "advantage",
+            "appliesTo": {
+              "creatureTypes": [],
+              "excludeCreatureTypes": [],
+              "sizes": [],
+              "alignments": [],
+              "hasCondition": [],
+              "isNativeToPlane": false,
+              "willing": "not_applicable",
+              "objectEligibility": {
+                "wornOrCarried": "not_applicable",
+                "magicalStatus": "not_applicable",
+                "fixedToSurface": "not_applicable",
+                "maxSize": "not_applicable",
+                "maxWeightPounds": "not_applicable",
+                "maxWeightScaling": "not_applicable"
+              },
+              "communicationPrerequisites": {
+                "canHearCaster": "not_applicable",
+                "canUnderstandCaster": "not_applicable",
+                "canSeeCaster": "not_applicable"
+              },
+              "abilityThreshold": {
+                "ability": "not_applicable",
+                "operator": "not_applicable",
+                "value": "not_applicable"
+              },
+              "selfRelation": "not_applicable"
+            },
+            "reason": "The target has Advantage on the save if the caster or caster allies are fighting it."
+          }
+        ],
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "saveOutcomeOverrides": []
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "On a failed Wisdom save, the target has the Charmed condition for the duration.",
+      "statusCondition": {
+        "name": "Charmed",
+        "duration": {
+          "type": "special"
+        },
+        "repeatSave": {
+          "timing": "on_damage",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

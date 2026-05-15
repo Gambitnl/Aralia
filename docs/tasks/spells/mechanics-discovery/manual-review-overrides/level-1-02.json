@@ -1,0 +1,377 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "healing-word::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the requirement that the caster can see the target; this is already represented as lineOfSight true.",
+      "recommendedTemplateChange": "No vision/light/sound field needed beyond the existing line-of-sight targeting field.",
+      "recommendedJsonChange": "No JSON change needed; targeting.lineOfSight is true."
+    },
+    "healing-word::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Healing Word's hit point restoration and slot scaling are represented as HEALING runtime data.",
+      "recommendedTemplateChange": "No new healing field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented healing dice and scaling."
+    },
+    "healing-word::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points, but Healing Word restores creature HP and does not define object durability or damageability.",
+      "recommendedTemplateChange": "Track this spell under healing/restoration, not object stats.",
+      "recommendedJsonChange": "Track this spell under HEALING data, not object stats."
+    },
+    "hellish-rebuke::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Hellish Rebuke's Dexterity save for half damage is represented in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "No new attack/save field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented save-gated fire damage."
+    },
+    "hellish-rebuke::environmental_change": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The momentary green flames describe the fire damage presentation and do not create a persistent environmental fire or terrain state.",
+      "recommendedTemplateChange": "No environmental field needed for this descriptive visual wording in this goal.",
+      "recommendedJsonChange": "No environmental runtime field needed for this descriptive visual wording in this goal."
+    },
+    "heroism::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Heroism now records the start-of-turn Temporary Hit Point grant as structured Recurring Mechanics and runtime recurringMechanics data.",
+      "issue": "Heroism grants Temporary Hit Points at the start of each target turn, but runtime JSON stores the recurring start-turn effect only in utility prose.",
+      "recommendedTemplateChange": "Add recurring healing/temp-HP timing fields for start-of-target-turn grants.",
+      "recommendedJsonChange": "Add runtime recurringEffect data for temporary HP equal to spellcasting ability modifier at the start of each target turn."
+    },
+    "heroism::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Heroism grants recurring Temporary Hit Points, but runtime JSON does not represent them as healing or temporary HP data.",
+      "recommendedTemplateChange": "Add temporary-HP fields that support spellcasting ability modifier amounts and recurring timing.",
+      "recommendedJsonChange": "Add runtime temporaryHp data with amount spellcasting ability modifier and start-of-turn timing."
+    },
+    "heroism::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Temporary Hit Points, but this is a creature buff/healing mechanic rather than object durability.",
+      "recommendedTemplateChange": "Track under healing/restoration, not object stats.",
+      "recommendedJsonChange": "Track under temporary HP runtime data, not object stats."
+    },
+    "heroism::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Heroism makes the target immune to the Frightened condition, but runtime JSON stores that immunity only in utility prose.",
+      "recommendedTemplateChange": "Closed by adding the structured Condition Immunities field and mapping it to defensive condition-immunity runtime data.",
+      "recommendedJsonChange": "Closed by adding a DEFENSIVE immunity effect with conditionImmunity: [\"Frightened\"] while Heroism remains active.",
+      "reviewerNote": "Closed only for Frightened immunity. Heroism's recurring temporary hit points and end-of-spell temporary-HP cleanup remain open in their own findings."
+    },
+    "heroism::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closureReason": "Added explicit endCleanup template/runtime fields for spell-end removal of temporary hit points sourced from Heroism; kept Conditional Ending fields not_applicable because this cleanup does not end the spell early.",
+      "issue": "Heroism removes any remaining Temporary Hit Points from this spell when the spell ends, but runtime JSON keeps that cleanup in prose.",
+      "recommendedTemplateChange": "Add end-of-spell cleanup fields for removing temp HP granted by the spell.",
+      "recommendedJsonChange": "Add runtime cleanup data that removes remaining temporary HP sourced from Heroism when the spell ends."
+    },
+    "hex::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hex requires choosing one ability for the ability-check disadvantage rider; structured and JSON list options, but the choice is not represented as a typed ability-check modifier.",
+      "recommendedTemplateChange": "Add ability-check modifier fields for chosen ability and disadvantage.",
+      "recommendedJsonChange": "Add runtime abilityCheckModifier data tied to the chosen ability instead of relying on generic controlOptions text."
+    },
+    "hex::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hex's extra damage on attack hits is represented, but the chosen-ability disadvantage on ability checks is only generic utility/control text.",
+      "recommendedTemplateChange": "Add ability-check modifier fields parallel to attack-roll and save modifier fields.",
+      "recommendedJsonChange": "Add runtime abilityCheckModifier data for disadvantage on checks made with the chosen ability."
+    },
+    "hex::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the requirement that the caster can see the target; this is already represented as lineOfSight true.",
+      "recommendedTemplateChange": "No vision/light/sound field needed beyond targeting line of sight.",
+      "recommendedJsonChange": "No JSON change needed; targeting.lineOfSight is true."
+    },
+    "hex::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 0 Hit Points, but Hex uses that as a transfer trigger and does not define object or creature durability.",
+      "recommendedTemplateChange": "Track the 0-HP transfer rule under sustain/recast or conditional transfer fields, not object stats.",
+      "recommendedJsonChange": "Track the 0-HP transfer rule under curse transfer data, not object stats."
+    },
+    "hex::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the cursed target drops to 0 Hit Points before the spell ends, the caster can move the curse to a new creature with a later Bonus Action; this transfer rule is prose-only.",
+      "recommendedTemplateChange": "Add conditional transfer fields for trigger target_drops_to_0_hp, later bonus-action retargeting, and new creature target.",
+      "recommendedJsonChange": "Add runtime curseTransfer data for 0-HP trigger and later bonus-action retargeting."
+    },
+    "hunters-mark::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hunter's Mark's extra Force damage is represented, but Advantage on Wisdom (Perception or Survival) checks to find the marked target is only generic utility prose.",
+      "recommendedTemplateChange": "Add ability-check modifier fields for skill-specific Advantage against a marked target.",
+      "recommendedJsonChange": "Add runtime abilityCheckModifier data for Wisdom (Perception) and Wisdom (Survival) checks made to find the target."
+    },
+    "hunters-mark::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the requirement that the caster can see the marked creature; this is already represented as lineOfSight true.",
+      "recommendedTemplateChange": "No vision/light/sound field needed beyond targeting line of sight.",
+      "recommendedJsonChange": "No JSON change needed; targeting.lineOfSight is true."
+    },
+    "hunters-mark::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hunter's Mark improves finding the marked target with Perception or Survival checks, but the tracking knowledge/search benefit is prose-only.",
+      "recommendedTemplateChange": "Add tracking/search benefit fields for marked quarry effects.",
+      "recommendedJsonChange": "Add runtime trackingBenefit or abilityCheckModifier data scoped to finding the marked target."
+    },
+    "hunters-mark::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 0 Hit Points, but Hunter's Mark uses that as a mark-transfer trigger and does not define object or creature durability.",
+      "recommendedTemplateChange": "Track the 0-HP transfer rule under sustain/recast or conditional transfer fields, not object stats.",
+      "recommendedJsonChange": "Track the 0-HP transfer rule under mark transfer data, not object stats."
+    },
+    "hunters-mark::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the marked target drops to 0 Hit Points before the spell ends, the caster can move the mark to a new visible creature with a Bonus Action; duration also scales at higher slots.",
+      "recommendedTemplateChange": "Add conditional transfer fields and duration scaling fields for Hunter's Mark.",
+      "recommendedJsonChange": "Add runtime markTransfer data for 0-HP retargeting and durationScaling thresholds for slots 3-4 and 5+."
+    },
+    "ice-knife::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Ice Knife's primary ranged spell attack and secondary Dexterity save are represented; the secondary save now correctly negates the cold damage instead of halving it.",
+      "recommendedTemplateChange": "Closed by changing Secondary Save Outcome from half to none.",
+      "recommendedJsonChange": "Closed by changing the secondary cold damage saveEffect from half to none."
+    },
+    "identify::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the word charges, but Identify only reveals charge information and does not create or consume charges.",
+      "recommendedTemplateChange": "Track charge revelation under social/knowledge payload fields instead of resource consumption.",
+      "recommendedJsonChange": "Track charge revelation under information/knowledge data instead of resource consumption."
+    },
+    "identify::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Identify reveals item properties, usage, attunement requirement, charges, active spells, creator spell name, and creature-affecting spells, but runtime JSON stores this as one information description.",
+      "recommendedTemplateChange": "Add identify-style knowledge payload fields for properties, usage, attunement, charges, active spells, creator spell, and creature active-spell list.",
+      "recommendedJsonChange": "Add runtime knowledgePayload data for each information category instead of one prose description."
+    },
+    "illusory-script::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Illusory Script changes what different viewer groups can read or perceive, and Truesight bypasses the hidden message, but visibility/readability rules are prose-only.",
+      "recommendedTemplateChange": "Add viewer-specific readability and bypass-sense fields for written illusions.",
+      "recommendedJsonChange": "Add runtime viewerRules data for designated creatures, others, and Truesight."
+    },
+    "illusory-script::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Illusory Script creates an illusion over writing with designated viewers, alternate meaning/handwriting/language, dispel cleanup, and Truesight bypass rules, but JSON keeps all of that in description text.",
+      "recommendedTemplateChange": "Add written-illusion fields for substrate, designated viewers, normal-view payload, alternate script payload, allowed known language, dispel result, and Truesight bypass.",
+      "recommendedJsonChange": "Add runtime writtenIllusion data instead of a generic UTILITY description."
+    },
+    "illusory-script::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell conveys a hidden intended meaning to designated readers and can alter meaning, handwriting, and language for others.",
+      "recommendedTemplateChange": "Add written message fields for hidden message, altered message, viewer groups, and language restriction.",
+      "recommendedJsonChange": "Add runtime writtenCommunication data for hidden and altered text payloads."
+    },
+    "illusory-script::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Illusory Script controls which creatures know the true message and which see unintelligible or altered text, but those knowledge partitions are prose-only.",
+      "recommendedTemplateChange": "Add viewer knowledge partition fields for designated creatures, other creatures, and Truesight readers.",
+      "recommendedJsonChange": "Add runtime viewerKnowledge data for true, unintelligible, altered, and Truesight-readable states."
+    },
+    "inflict-wounds::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Inflict Wounds is a Constitution save for half damage in the canonical prose, and structured markdown plus runtime JSON have been corrected from melee-hit modeling to save-gated damage.",
+      "recommendedTemplateChange": "Closed by replacing Attack Roll melee with Save Stat Constitution and Save Outcome half.",
+      "recommendedJsonChange": "Closed by changing the damage condition from hit to Constitution save for half."
+    },
+    "jump::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Jump's 'until the spell ends' phrase is ordinary duration scoping, not an early-ending trigger. The actual once-per-turn 30-foot jump option with 10-foot movement spend remains open as jump::manual_fixed_jump_option under movement_or_repositioning.",
+      "issue": "Jump's 'until the spell ends' is ordinary duration, but the spell also grants a once-per-turn jump option with a movement spend that runtime JSON only stores in prose.",
+      "recommendedTemplateChange": "Add movement option fields for once-per-turn jump distance, movement cost, and while-active duration.",
+      "recommendedJsonChange": "Closed one stale prose mismatch by replacing the old tripled-jump description with the canonical 30-foot jump for 10 feet of movement; add runtime movementOption data for the actual mechanic."
+    },
+    "longstrider::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Longstrider increases the target's Speed by 10 feet, but runtime JSON stores this as generic utility prose instead of a movement/speed modifier.",
+      "recommendedTemplateChange": "Add speed modifier fields for amount, movement mode, target, and duration.",
+      "recommendedJsonChange": "Add runtime speedModifier data for +10 feet while active."
+    },
+    "longstrider::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for Longstrider's speed increase, not a special early-ending mechanic.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond the existing one-hour duration.",
+      "recommendedJsonChange": "No conditional-ending JSON change needed beyond duration."
+    },
+    "mage-armor::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Mage Armor's base AC formula, unarmored restriction, and duration are represented by the DEFENSIVE set_base_ac effect.",
+      "recommendedTemplateChange": "No object/stat field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented base AC data."
+    },
+    "mage-armor::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Mage Armor now records target_dons_armor in structured markdown and runtime conditionalEndings, so the no-armor requirement and early ending rule are no longer flattened together.",
+      "issue": "Mage Armor ends early if the target dons armor; runtime JSON has a noArmor restriction but no explicit end-on-don-armor condition.",
+      "recommendedTemplateChange": "Add conditional ending fields for end_on_target_dons_armor.",
+      "recommendedJsonChange": "Add runtime ending condition for target dons armor instead of relying only on a noArmor restriction."
+    },
+    "magic-missile::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Magic Missile lets the caster assign three darts among one or several visible creatures, but runtime targeting only stores maxTargets 3 and does not model dart allocation.",
+      "recommendedTemplateChange": "Add multi-instance allocation fields for dart count, same-or-different target assignment, and simultaneous resolution.",
+      "recommendedJsonChange": "Add runtime projectileAllocation data for three darts assigned among visible creatures.",
+      "closedReason": "Magic Missile now records its three base darts, slot-scaling extra darts, same-or-different target assignment, and simultaneous resolution with structured Target Instance fields and runtime targeting.instanceAllocation data."
+    },
+    "magic-missile::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Magic Missile has no attack roll or saving throw; its auto-hit force damage is represented as always-applied damage.",
+      "recommendedTemplateChange": "No attack/save modifier field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented auto-hit damage."
+    },
+    "magic-missile::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the requirement that the caster can see each target; this is already represented as lineOfSight true.",
+      "recommendedTemplateChange": "No vision/light/sound field needed beyond targeting line of sight.",
+      "recommendedJsonChange": "No JSON change needed; targeting.lineOfSight is true."
+    },
+    "protection-from-evil-and-good::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The specified creature types' attack disadvantage is now represented as disadvantage_on_attacks, but the target's conditional Advantage on new saves against existing possession, Charmed, or Frightened effects is not first-class data.",
+      "recommendedTemplateChange": "Add conditional save-advantage fields scoped to existing possessed/charmed/frightened effects from specified creature types.",
+      "recommendedJsonChange": "Closed one mismatch by changing defenseType from advantage_on_saves to disadvantage_on_attacks; add separate runtime conditionalSaveAdvantage data for already-active relevant effects."
+    },
+    "protection-from-evil-and-good::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The protection prevents possession by specified creature types, but possession immunity is not represented as structured or runtime data.",
+      "recommendedTemplateChange": "Add possession immunity fields scoped by source creature type.",
+      "recommendedJsonChange": "Add runtime possessionImmunity data for Aberration, Celestial, Elemental, Fey, Fiend, and Undead sources."
+    },
+    "protection-from-evil-and-good::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The target cannot gain Charmed or Frightened from specified creature types, but status immunity is prose-only.",
+      "recommendedTemplateChange": "Closed by Condition Immunities plus Condition Immunity Source Creature Types fields.",
+      "recommendedJsonChange": "Closed by adding a DEFENSIVE immunity effect with conditionImmunity for Charmed and Frightened and attackerFilter creature types for Aberration, Celestial, Elemental, Fey, Fiend, and Undead.",
+      "reviewerNote": "Closed only for source-limited Charmed/Frightened prevention. Possession immunity and advantage on new saves against existing relevant effects remain tracked in separate open findings."
+    },
+    "protection-from-evil-and-good::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration/concentration scoping for the protection, not a special early-ending rule.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond the existing ten-minute concentration duration.",
+      "recommendedJsonChange": "No conditional-ending JSON change needed beyond duration/concentration."
+    },
+    "purify-food-and-drink::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched food and drink objects, but Purify Food and Drink cleanses existing nonmagical food and drink rather than creating objects or structures.",
+      "recommendedTemplateChange": "Track the cleansing effect under restoration/environmental or food-and-drink utility fields, not created objects.",
+      "recommendedJsonChange": "Track the cleansing effect under purification utility data rather than createdObject data."
+    },
+    "purify-food-and-drink::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Purify Food and Drink removes poison and rot from nonmagical food and drink in an area, but runtime JSON only stores a generic creation utility description.",
+      "recommendedTemplateChange": "Add food/drink purification fields for contaminant types, nonmagical restriction, and area scope.",
+      "recommendedJsonChange": "Add runtime purification data for poison and rot removal from nonmagical food and drink."
+    },
+    "sanctuary::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A failed save against Sanctuary forces the attacker to choose a new target or lose the attack/spell, but runtime JSON keeps that branch in description text.",
+      "recommendedTemplateChange": "Add failed-save forced-choice fields for choose_new_target_or_lose_action.",
+      "recommendedJsonChange": "Add runtime failedSaveOptions data for choosing a new target or losing the attack/damaging spell."
+    },
+    "sanctuary::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Sanctuary's Wisdom save trigger for creatures targeting the warded creature is represented, but the trigger does not distinguish attack rolls from damaging spells or the area-of-effect bypass.",
+      "recommendedTemplateChange": "Add ward targeting-trigger fields for attack roll, damaging spell, and area-of-effect exclusion.",
+      "recommendedJsonChange": "Add runtime wardTrigger data that includes attack rolls and damaging spells but excludes area effects."
+    },
+    "sanctuary::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Sanctuary is a ward with incoming targeting triggers and area-effect bypass; current utility effects preserve some behavior but flatten trigger scope and failed-save options.",
+      "recommendedTemplateChange": "Add ward fields for protected target, incoming trigger kinds, save, failed-save options, area bypass, and end conditions.",
+      "recommendedJsonChange": "Add runtime ward data instead of splitting the mechanic across generic utility descriptions."
+    },
+    "sanctuary::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Sanctuary now records the three canonical spell-ending triggers in structured markdown and runtime conditionalEndings: target_makes_attack_roll, target_casts_spell, and target_deals_damage. The ward trigger/save/fail-choice/area-bypass mechanics remain open in their own buckets.",
+      "issue": "Sanctuary ends if the warded creature makes an attack roll, casts a spell, or deals damage, but runtime JSON only has a generic on_target_attack utility description.",
+      "recommendedTemplateChange": "Add conditional ending fields for warded target attack roll, spell cast, and damage dealt.",
+      "recommendedJsonChange": "Add runtime ending conditions for target attacks, casts a spell, or deals damage."
+    },
+    "searing-smite::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Searing Smite's recurring Constitution save occurs after start-of-turn fire damage and ends the spell on success; the initial hit now applies the Ignited state without an incorrect initial save, but recurring damage/save sequencing still lacks first-class fields.",
+      "recommendedTemplateChange": "Add recurring damage plus post-damage save fields with success_ends semantics.",
+      "recommendedJsonChange": "Closed one mismatch by removing the initial save gate and setting repeatSave to turn_start Constitution; add runtime recurring damage data and explicit damage-then-save sequencing."
+    },
+    "searing-smite::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Searing Smite now records turn-start Fire damage, Constitution repeat save timing, and damage-then-save sequencing in structured fields and runtime recurringMechanics data.",
+      "issue": "The target takes fire damage at the start of each of its turns and then makes a Constitution save; runtime JSON has repeatSave timing but recurring damage remains inside status prose.",
+      "recommendedTemplateChange": "Add recurring start-turn damage fields paired with repeat save timing.",
+      "recommendedJsonChange": "Add runtime recurringDamage data for 1d6 Fire at target turn start, followed by Constitution save to end."
+    },
+    "searing-smite::environmental_change": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The burning presentation is part of the Ignited damage condition and does not create separate terrain, environmental fire, or object ignition rules.",
+      "recommendedTemplateChange": "No environmental field needed for this descriptive fire presentation in this goal.",
+      "recommendedJsonChange": "No environmental runtime field needed beyond the Ignited recurring damage mechanic."
+    },
+    "searing-smite::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Searing Smite already exposes the repeat Constitution save ending in structured markdown and runtime JSON: Repeat Save Timing is turn_start, Repeat Save Type is Constitution, Repeat Save Success Ends is true, and recurringMechanics records that the start-turn Fire damage happens before the save that can end the spell.",
+      "issue": "Searing Smite ends on a successful Constitution save after the recurring start-turn fire damage, but runtime JSON does not make the damage-then-save ending order explicit.",
+      "recommendedTemplateChange": "Add conditional ending fields for successful repeat save after start-turn damage.",
+      "recommendedJsonChange": "Add runtime successEnds data tied to a post-damage turn_start Constitution save."
+    },
+    "shield-of-faith::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'of your choice' is ordinary single-target selection, and runtime targeting already captures one visible creature within range.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond ordinary targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed beyond ordinary targeting."
+    },
+    "shield-of-faith::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Shield of Faith grants +2 AC, which is represented as a DEFENSIVE ac_bonus effect rather than an attack or save modifier.",
+      "recommendedTemplateChange": "No attack/save modifier field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented AC bonus."
+    },
+    "shield-of-faith::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Shield of Faith changes a creature's AC bonus while active, and runtime JSON represents the AC bonus defensively.",
+      "recommendedTemplateChange": "No object/stat field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented ac_bonus."
+    },
+    "shield-of-faith::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The shimmering field is descriptive presentation for the AC bonus.",
+      "recommendedTemplateChange": "No field needed for this descriptive visual wording in this goal.",
+      "recommendedJsonChange": "No runtime field needed for this descriptive visual wording in this goal."
+    },
+    "shield::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Shield's +5 AC bonus and Magic Missile damage immunity are represented as DEFENSIVE effects with reaction-trigger metadata.",
+      "recommendedTemplateChange": "No new attack/save modifier field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented AC bonus and Magic Missile immunity."
+    },
+    "shield::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Shield's reaction trigger includes being hit by an attack or being targeted by Magic Missile; runtime represents both effects, but the +5 AC effect's reactionTrigger only records when_hit and does not explicitly model 'including against the triggering attack'.",
+      "recommendedTemplateChange": "Add defensive reaction fields for retroactive triggering-attack coverage and multiple trigger alternatives.",
+      "recommendedJsonChange": "Add runtime reactionTrigger data that can express hit-by-attack, targeted-by-specific-spell, and applies-to-triggering-attack."
+    },
+    "silent-image::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Silent Image is purely visual, explicitly excludes sound, smell, and other sensory effects, and becomes see-through to creatures that discern it; runtime JSON keeps those sensory rules in prose.",
+      "recommendedTemplateChange": "Add sensory illusion fields for included senses, excluded senses, and post-discernment visibility.",
+      "recommendedJsonChange": "Add runtime illusionSensory data for visual-only, no sound/smell/other senses, and see-through after discernment."
+    },
+    "silent-image::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Silent Image creates a movable image with size/form limits, natural movement appearance, physical-interaction reveal, Study action reveal, Investigation check against spell save DC, and see-through discerned state, but JSON stores this as one sensory utility description.",
+      "recommendedTemplateChange": "Add illusion fields for image kind, max cube size, movement action, appearance adjustment, physical interaction reveal, Study/Investigation reveal, and discerned-state behavior.",
+      "recommendedJsonChange": "Add runtime illusion data for creation, movement, reveal rules, and post-reveal transparency."
+    },
+    "silent-image::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched sensory illusion wording, but Silent Image does not create a sensor or remote perception channel.",
+      "recommendedTemplateChange": "Track the sensory restrictions under illusion/vision fields.",
+      "recommendedJsonChange": "Track the sensory restrictions under illusion runtime data."
+    },
+    "sleep::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "closedReason": "Sleep now records caster-selected creatures inside the 5-foot-radius Sphere with structured Area Target Selection fields and runtime targeting.areaTargetSelection data.",
+      "issue": "Sleep affects creatures of the caster's choice in the area, but runtime area targeting does not represent choose-within-area exclusions.",
+      "recommendedTemplateChange": "Add area target choice fields for selected creatures within an area.",
+      "recommendedJsonChange": "Add runtime areaTargetSelection data for caster-chosen creatures in the sphere."
+    }
+  },
+  "manualFindings": {}
+}

@@ -10,7 +10,6 @@
     "Druid"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -52,21 +51,97 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
+    {
+      "type": "HEALING",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "The dead creature is revived with all Hit Points.",
+      "healing": {
+        "dice": "all_hit_points"
+      },
+      "conditionalEndings": []
+    },
     {
       "type": "UTILITY",
       "trigger": {
@@ -85,18 +160,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
       "description": "You touch a creature that has been dead for no longer than 200 years and that died for any reason except old age. The creature is revived with all its Hit Points. This spell closes all wounds, neutralizes any poison, cures all magical contagions, and lifts any curses affecting the creature when it died. The spell replaces damaged or missing organs and limbs. If the creature was Undead, it is restored to its non-Undead form. The spell can provide a new body if the original no longer exists, in which case you must speak the creature's name. The creature then appears in an unoccupied space you choose within 10 feet of you.",
@@ -107,7 +201,32 @@
       },
       "grantedActions": [],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "name": "Death eligibility",
+          "effect": "The target must have been dead no longer than 200 years and must not have died of old age."
+        },
+        {
+          "name": "Full revival",
+          "effect": "The creature is revived with all Hit Points."
+        },
+        {
+          "name": "Condition and curse restoration",
+          "effect": "The spell closes wounds, neutralizes poison, cures magical contagions, and lifts curses present when the creature died."
+        },
+        {
+          "name": "Body restoration",
+          "effect": "The spell replaces damaged or missing organs and limbs and restores an Undead creature to non-Undead form."
+        },
+        {
+          "name": "New body by name",
+          "effect": "If the original body no longer exists, the spell can provide a new body after the caster speaks the creature name."
+        },
+        {
+          "name": "New body placement",
+          "effect": "With a new body, the creature appears in an unoccupied space chosen within 10 feet of the caster."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -126,14 +245,85 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    },
+    {
+      "type": "MOVEMENT",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "If a new body is provided, the creature appears in an unoccupied space chosen within 10 feet of the caster.",
+      "movementType": "teleport",
+      "distance": 10,
+      "duration": {
+        "type": "special"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Confirm the creature death was within 200 years, not old age, whether the original body exists, and if not, ask for the spoken name and chosen unoccupied space within 10 feet.",
+    "playerInputRequired": true
   },
   "description": "You touch a creature that has been dead for no longer than 200 years and that died for any reason except old age. The creature is revived with all its Hit Points. This spell closes all wounds, neutralizes any poison, cures all magical contagions, and lifts any curses affecting the creature when it died. The spell replaces damaged or missing organs and limbs. If the creature was Undead, it is restored to its non-Undead form. The spell can provide a new body if the original no longer exists, in which case you must speak the creature's name. The creature then appears in an unoccupied space you choose within 10 feet of you.",
   "higherLevels": "",

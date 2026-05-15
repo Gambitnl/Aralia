@@ -1,0 +1,124 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "phantom-steed": [
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "phantom-steed::conditional_ending",
+        "canonicalEvidence": "When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends early if the steed takes any damage.",
+        "structuredState": "Conditional Ending Triggers records created_entity_takes_damage with spell scope; the one-minute dismount grace remains tracked by the separate aftermath_or_memory row.",
+        "jsonState": "Runtime JSON records created_entity_takes_damage in conditionalEndings on the steed utility effect; description preserves the one-minute dismount grace for the still-open aftermath row.",
+        "issue": "Closed for conditional ending: Phantom Steed's early end on steed damage is now represented. The one-minute rider dismount grace is intentionally left open under phantom-steed::aftermath_or_memory.",
+        "recommendedTemplateChange": "Closed by adding created_entity_takes_damage to the conditional-ending trigger vocabulary and using it on Phantom Steed.",
+        "recommendedJsonChange": "Closed by runtime conditionalEndings on the steed effect for early spell end when the created steed takes damage.",
+        "resolutionStatus": "closed",
+        "closedReason": "Phantom Steed now records the early spell-ending damage trigger in structured markdown and runtime JSON. The post-end fade/dismount grace is not a conditional ending and remains open in the aftermath_or_memory bucket."
+      },
+      {
+        "bucketId": "aftermath_or_memory",
+        "findingId": "phantom-steed::aftermath_or_memory",
+        "canonicalEvidence": "When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount.",
+        "structuredState": "No spell-end aftermath/grace period fields.",
+        "jsonState": "Runtime JSON has no typed fade/dismount aftermath.",
+        "issue": "The one-minute dismount grace after the spell ends is not represented.",
+        "recommendedTemplateChange": "Add spell-end aftermath fields for summoned mount fade and dismount grace.",
+        "recommendedJsonChange": "Add runtime aftermath fadeOut with riderDismountWindow 1 minute.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "phantom-steed::manual_created_equipment_distance_vanish",
+        "canonicalEvidence": "It is equipped with a saddle, bit, and bridle. Any equipment created by the spell vanishes if carried more than 10 feet away from the steed.",
+        "structuredState": "No created equipment or distance-based vanish fields.",
+        "jsonState": "Runtime JSON has equipment vanish only in prose.",
+        "issue": "The created tack and its 10-foot separation vanish rule are not represented.",
+        "recommendedTemplateChange": "Add createdEquipment and distance-based disappearance fields.",
+        "recommendedJsonChange": "Add runtime createdEquipment saddle/bit/bridle with vanishDistanceFromSteed 10 feet.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "plant-growth": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "plant-growth::choice_or_mode",
+        "canonicalEvidence": "The casting time you use determines whether the spell has the Overgrowth or the Enrichment effect. You can exclude one or more areas of any size within the spell area from being affected.",
+        "structuredState": "Casting Time Unit is special and exploration cost is 8 hours, but no mode-specific effect fields exist.",
+        "jsonState": "Runtime JSON has one prose UTILITY effect and one 100-foot sphere.",
+        "issue": "Plant Growth has casting-time-selected modes and arbitrary excluded areas, but runtime has no mode or exclusion data.",
+        "recommendedTemplateChange": "Add casting-time mode fields and excluded sub-area fields.",
+        "recommendedJsonChange": "Add runtime modes for Overgrowth action and Enrichment 8-hour casting, with exclusionAreas for Overgrowth.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "plant-growth::created_object_or_structure",
+        "canonicalEvidence": "The plants yield twice the normal amount of food when harvested.",
+        "structuredState": "No food-yield or harvest fields.",
+        "jsonState": "Runtime JSON stores food yield only in prose.",
+        "issue": "Enrichment changes future harvest output, but that created-resource/world-state effect is not typed.",
+        "recommendedTemplateChange": "Add harvestYieldMultiplier fields for plant enrichment.",
+        "recommendedJsonChange": "Add runtime enrichment data yieldMultiplier 2 for 365 days.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "plant-growth::resource_or_consumption",
+        "canonicalEvidence": "The plants yield twice the normal amount of food when harvested. They can benefit from only one Plant Growth per year.",
+        "structuredState": "No food yield or once-per-year limit fields.",
+        "jsonState": "Runtime JSON has no typed resource yield or annual limit.",
+        "issue": "Plant Growth modifies food resources and imposes a one-Plant-Growth-per-year limit.",
+        "recommendedTemplateChange": "Add resourceYield and annualBenefitLimit fields.",
+        "recommendedJsonChange": "Add runtime plantYield data with multiplier 2 and benefitCooldown 365 days.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "plant-growth::environmental_change",
+        "canonicalEvidence": "All normal plants in a 100-foot-radius Sphere become thick and overgrown. A creature moving through that area must spend 4 feet of movement for every 1 foot it moves. All plants in a half-mile radius become enriched for 365 days.",
+        "structuredState": "Area Size captures only the 100-foot Overgrowth sphere; no half-mile Enrichment area or movement multiplier fields.",
+        "jsonState": "Runtime JSON has prose utility and targets Plant-filtered creatures rather than explicit plant/environment effects.",
+        "issue": "Plant Growth has two environmental world-state effects: overgrowth movement cost and long-term enrichment, both prose-only.",
+        "recommendedTemplateChange": "Add overgrowth movement cost and enrichment duration/radius fields.",
+        "recommendedJsonChange": "Add runtime environmentalChange data for overgrowth movementCostMultiplier 4 and enrichment radius half-mile for 365 days.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "plant-growth::manual_overgrowth_movement_cost",
+        "canonicalEvidence": "A creature moving through that area must spend 4 feet of movement for every 1 foot it moves.",
+        "structuredState": "No terrain movement multiplier field.",
+        "jsonState": "Runtime JSON has no TERRAIN effect.",
+        "issue": "The Overgrowth movement cost is more severe than ordinary difficult terrain and is not represented.",
+        "recommendedTemplateChange": "Add terrain movement cost ratio fields.",
+        "recommendedJsonChange": "Add runtime TERRAIN or environmental terrain data with movementCost 4-for-1.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "protection-from-energy": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "protection-from-energy::choice_or_mode",
+        "canonicalEvidence": "Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.",
+        "structuredState": "Effect Type: BUFF; no damage-type choice field.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Protection from Energy requires a selected damage type from five options.",
+        "recommendedTemplateChange": "Add selected damage type choice fields for defensive effects.",
+        "recommendedJsonChange": "Add runtime choice data for exactly one of Acid, Cold, Fire, Lightning, Thunder.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "damage_reduction_or_prevention",
+        "findingId": "protection-from-energy::damage_reduction_or_prevention",
+        "canonicalEvidence": "The willing creature you touch has Resistance to one damage type of your choice.",
+        "structuredState": "No DEFENSIVE resistance fields.",
+        "jsonState": "Runtime JSON has no typed DEFENSIVE resistance effect.",
+        "issue": "The spell grants resistance, but runtime cannot yet represent the chosen damage type without implying all five types.",
+        "recommendedTemplateChange": "Add DEFENSIVE resistance with choice binding.",
+        "recommendedJsonChange": "Add runtime DEFENSIVE resistance tied to the selected damage type.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding DEFENSIVE resistance with eligible Damage Type values and Defense Damage Type Source chosen_damage_type in structured markdown and runtime JSON."
+      }
+    ]
+  }
+}

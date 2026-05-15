@@ -1,4 +1,4 @@
-﻿# Character Creator
+# Character Creator
 
 This capability note tracks the current character creation flow as it exists in the repo today. The multi-step flow is implemented, the background step uses an explicit confirmation action, and per-step completion checks exist, but the sidebar still exposes broad navigation instead of acting as a hard sequential gate.
 

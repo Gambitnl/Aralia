@@ -1,4 +1,4 @@
-﻿# Items / Trade / Inventory
+# Items / Trade / Inventory
 
 ## Purpose
 

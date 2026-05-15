@@ -1,4 +1,4 @@
-﻿# Complete Spell Properties Reference
+# Complete Spell Properties Reference
 
 Last Updated: 2026-04-09
 Purpose: Provide a current-state orientation reference for spell properties without pretending this file is a mechanically complete dump of every validator branch.

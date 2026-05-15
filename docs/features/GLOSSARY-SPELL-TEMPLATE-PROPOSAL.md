@@ -1,4 +1,4 @@
-﻿# Feature Proposal: Template-Based Spell Rendering
+# Feature Proposal: Template-Based Spell Rendering
 
 ## Purpose
 

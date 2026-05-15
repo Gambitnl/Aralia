@@ -1,6 +1,80 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { classifyApplicabilityValue } from './spellTemplateApplicability';
+import {
+  AREA_TARGET_SELECTION_COUNTS,
+  AREA_TARGET_SELECTION_MODES,
+  AREA_TARGET_SELECTION_SCOPES,
+  AREA_SHAPES,
+  AREA_SIZE_TYPES,
+  BOOLEAN_SENTINEL,
+  CANONICAL_STRUCTURED_LABELS,
+  CASTING_TIME_UNITS,
+  CONDITIONAL_ENDING_SCOPES,
+  CONDITIONAL_ENDING_TRIGGERS,
+  DEPRECATED_LABEL_REPLACEMENTS,
+  DISTANCE_UNITS,
+  DURATION_TYPES,
+  DURATION_UNITS,
+  EFFECT_TYPES,
+  EFFECT_SCHEDULE_TIMINGS,
+  ESCAPE_CHECK_ABILITIES,
+  ESCAPE_CHECK_ACTION_COSTS,
+  ESCAPE_CHECK_ELIGIBLE_ACTORS,
+  ILLUSION_DISCERNED_STATES,
+  ILLUSION_REVEAL_ABILITIES,
+  ILLUSION_REVEAL_ACTION_COSTS,
+  ILLUSION_REVEAL_DCS,
+  ILLUSION_REVEAL_METHODS,
+  ILLUSION_REVEAL_SCOPES,
+  ILLUSION_REVEAL_SKILLS,
+  LIGHT_COLOR_CHOICES,
+  MODE_CHOICE_OPTIONS_SOURCES,
+  MODE_CHOICE_TIMINGS,
+  MODE_CHOICE_TYPES,
+  NUMBERED_STRUCTURED_LABEL_PATTERNS,
+  PER_TARGET_CHOICE_SCOPES,
+  PER_TARGET_CHOICE_TYPES,
+  RANGE_TYPES,
+  REPEAT_SAVE_TIMINGS,
+  REPEAT_SAVE_PREREQUISITES,
+  REPEAT_SAVE_TYPES,
+  SAVE_AUTO_OUTCOME_CONDITIONS,
+  SAVE_AUTO_OUTCOMES,
+  SAVE_COVER_IGNORED,
+  SAVE_OUTCOMES,
+  SECONDARY_TARGET_MAX_LEAPS,
+  SECONDARY_TARGET_ORIGINS,
+  SECONDARY_TARGET_REPEAT_RULES,
+  SECONDARY_TARGET_SELECTIONS,
+  SECONDARY_TARGET_TRIGGERS,
+  SECONDARY_TARGET_VALID_TARGETS,
+  SENSORY_CHANNELS,
+  SENSORY_MANIFESTATION_MODE_SOURCES,
+  SENSORY_MANIFESTATION_SHAPES,
+  SENSORY_MANIFESTATION_SIZE_UNITS,
+  SENSORY_MANIFESTATION_TIMINGS,
+  SENSORY_MANIFESTATION_VOLUME_RANGES,
+  SOUND_RADIUS_UNITS,
+  SOUND_SOURCES,
+  SOUND_TRIGGERS,
+  TARGET_ABILITY_THRESHOLD_ABILITIES,
+  TARGET_ABILITY_THRESHOLD_OPERATORS,
+  TARGET_COMMUNICATION_PREREQUISITE,
+  TARGET_OBJECT_FIXED_TO_SURFACE,
+  TARGET_OBJECT_MAGICAL_STATUS,
+  TARGET_OBJECT_WORN_OR_CARRIED,
+  TARGET_INSTANCE_ASSIGNMENTS,
+  TARGET_INSTANCE_RESOLUTIONS,
+  TARGET_INSTANCE_TYPES,
+  TARGET_CLUSTER_REQUIREMENTS,
+  TARGET_CLUSTER_SCOPES,
+  TARGET_SELF_RELATION,
+  TARGET_WILLINGNESS,
+  TARGETING_TYPES,
+  VALID_TARGETS,
+} from './spellRuntimeTemplateAudit/vocabulary';
 
 /**
  * This script checks whether the spell corpus follows one strict conversion template.
@@ -77,121 +151,6 @@ interface StructuredSpell {
   filePath: string;
   labels: Map<string, string>;
 }
-
-// ============================================================================
-// Strict Template Vocabulary
-// ============================================================================
-// This section is the canonical field vocabulary for the current strict audit.
-// If a future bucket needs a new field, it should be added here deliberately
-// instead of appearing as an unreviewed one-off label in a spell file.
-// ============================================================================
-
-const CANONICAL_STRUCTURED_LABELS = new Set([
-  'Level',
-  'School',
-  'Ritual',
-  'Classes',
-  'Sub-Classes',
-  'Casting Time Value',
-  'Casting Time Unit',
-  'Combat Cost',
-  'Reaction Trigger',
-  'Range Type',
-  'Range Distance',
-  'Range Distance Unit',
-  'Targeting Type',
-  'Targeting Range',
-  'Targeting Range Unit',
-  'Targeting Max',
-  'Valid Targets',
-  'Line of Sight',
-  'Area Shape',
-  'Area Size',
-  'Area Size Type',
-  'Area Size Unit',
-  'Area Height',
-  'Area Height Unit',
-  'Area Width',
-  'Area Width Unit',
-  'Area Thickness',
-  'Area Thickness Unit',
-  'Area Follows Caster',
-  'Verbal',
-  'Somatic',
-  'Material',
-  'Material Description',
-  'Material Cost GP',
-  'Consumed',
-  'Duration Type',
-  'Duration Value',
-  'Duration Unit',
-  'Concentration',
-  'Effect Type',
-  'Attack Roll',
-  'Damage Dice',
-  'Damage Flat',
-  'Damage Type',
-  'Secondary Damage Dice',
-  'Secondary Damage Type',
-  'Healing Dice',
-  'Save Stat',
-  'Save Outcome',
-  'Secondary Save Stat',
-  'Secondary Save Outcome',
-  'Conditions Applied',
-  'Utility Type',
-  'Terrain Type',
-  'Defense Type',
-  'Defense Value',
-  'Attack Roll Modifier',
-  'Attack Roll Direction',
-  'Attack Roll Kind',
-  'Attack Roll Consumption',
-  'Attack Roll Duration',
-  'Attack Roll Notes',
-  'Description',
-  'Higher Levels',
-]);
-
-const NUMBERED_STRUCTURED_LABEL_PATTERNS = [
-  /^Spatial Form \d+ (Label|Shape|Size Value|Size Type|Size Unit|Height Value|Height Unit|Width Value|Width Unit|Thickness Value|Thickness Unit|Segment Count|Segment Width Value|Segment Width Unit|Segment Height Value|Segment Height Unit|Notes)$/,
-  /^Spatial Detail \d+ (Label|Kind|Subject|Value|Unit|Qualifier|Notes)$/,
-];
-
-const DEPRECATED_LABEL_REPLACEMENTS = new Map([
-  ['Range Unit', 'Range Distance Unit'],
-  ['Effect Types', 'Effect Type'],
-  ['Condition', 'Conditions Applied'],
-  ['Primary Damage Dice', 'Damage Dice'],
-  ['Primary Damage Type', 'Damage Type'],
-  ['Additional Damage', 'Secondary Damage Dice / Secondary Damage Type'],
-  ['Exploration Time Value', 'Casting Time Value / Casting Time Unit'],
-  ['Exploration Time Unit', 'Casting Time Value / Casting Time Unit'],
-  ['Exploration Cost Value', 'Casting Time Value / Casting Time Unit'],
-  ['Exploration Cost Unit', 'Casting Time Value / Casting Time Unit'],
-]);
-
-const CASTING_TIME_UNITS = new Set(['action', 'bonus_action', 'reaction', 'minute', 'hour', 'special']);
-const RANGE_TYPES = new Set(['self', 'touch', 'ranged', 'sight', 'unlimited', 'special']);
-const DISTANCE_UNITS = new Set(['feet', 'miles', 'inches']);
-const DURATION_TYPES = new Set(['instantaneous', 'timed', 'special', 'until_dispelled', 'until_dispelled_or_triggered']);
-const DURATION_UNITS = new Set(['round', 'minute', 'hour', 'day']);
-const AREA_SHAPES = new Set(['Cone', 'Cube', 'Cylinder', 'Line', 'Sphere', 'Square', 'Circle', 'Emanation', 'Wall', 'Hemisphere', 'Ring', 'N/A']);
-const AREA_SIZE_TYPES = new Set(['radius', 'diameter', 'length', 'edge', 'side']);
-const TARGETING_TYPES = new Set(['self', 'single', 'multi', 'area', 'melee', 'ranged', 'point']);
-const VALID_TARGETS = new Set(['self', 'creatures', 'allies', 'enemies', 'objects', 'point', 'ground']);
-const SAVE_OUTCOMES = new Set(['none', 'half', 'negates_condition']);
-const EFFECT_TYPES = new Set([
-  'DAMAGE',
-  'HEALING',
-  'STATUS_CONDITION',
-  'ATTACK_ROLL_MODIFIER',
-  'MOVEMENT',
-  'SUMMONING',
-  'TERRAIN',
-  'UTILITY',
-  'DEFENSIVE',
-]);
 
 // ============================================================================
 // Generic Data Helpers
@@ -394,8 +353,10 @@ function checkStructuredEnum(
 ): void {
   const value = spell.labels.get(label);
   if (value == null || value === '') return;
+  if (classifyApplicabilityValue(value) === 'explicit_not_applicable') return;
 
-  if (!allowedValues.has(value)) {
+  const isAllowed = Array.from(allowedValues).some((allowedValue) => allowedValue.toLowerCase() === value.toLowerCase());
+  if (!isAllowed) {
     pushIssue(issues, {
       severity: 'error',
       code: 'structured-enum-drift',
@@ -419,9 +380,11 @@ function checkStructuredCsvEnum(
 ): void {
   const value = spell.labels.get(label);
   if (value == null || value === '') return;
+  if (classifyApplicabilityValue(value) === 'explicit_not_applicable') return;
 
   for (const entry of splitCsvLike(value)) {
-    if (allowedValues.has(entry)) continue;
+    const isAllowed = Array.from(allowedValues).some((allowedValue) => allowedValue.toLowerCase() === entry.toLowerCase());
+    if (isAllowed) continue;
 
     pushIssue(issues, {
       severity: 'error',
@@ -482,11 +445,95 @@ function checkStructuredValues(issues: TemplateIssue[], spell: StructuredSpell):
   checkStructuredEnum(issues, spell, 'Area Size Type', AREA_SIZE_TYPES);
   checkStructuredEnum(issues, spell, 'Area Size Unit', DISTANCE_UNITS);
   checkStructuredEnum(issues, spell, 'Targeting Type', TARGETING_TYPES);
+  checkStructuredEnum(issues, spell, 'Target Willingness', TARGET_WILLINGNESS);
+  checkStructuredEnum(issues, spell, 'Target Object Worn Or Carried', TARGET_OBJECT_WORN_OR_CARRIED);
+  checkStructuredEnum(issues, spell, 'Target Object Magical Status', TARGET_OBJECT_MAGICAL_STATUS);
+  checkStructuredEnum(issues, spell, 'Target Object Fixed To Surface', TARGET_OBJECT_FIXED_TO_SURFACE);
+  checkStructuredEnum(issues, spell, 'Target Can Hear Caster', TARGET_COMMUNICATION_PREREQUISITE);
+  checkStructuredEnum(issues, spell, 'Target Can Understand Caster', TARGET_COMMUNICATION_PREREQUISITE);
+  checkStructuredEnum(issues, spell, 'Target Can See Caster', TARGET_COMMUNICATION_PREREQUISITE);
+  checkStructuredEnum(issues, spell, 'Target Ability Threshold Ability', TARGET_ABILITY_THRESHOLD_ABILITIES);
+  checkStructuredEnum(issues, spell, 'Target Ability Threshold Operator', TARGET_ABILITY_THRESHOLD_OPERATORS);
+  checkStructuredEnum(issues, spell, 'Target Self Relation', TARGET_SELF_RELATION);
+  checkStructuredEnum(issues, spell, 'Area Target Selection Mode', AREA_TARGET_SELECTION_MODES);
+  checkStructuredEnum(issues, spell, 'Area Target Selection Scope', AREA_TARGET_SELECTION_SCOPES);
+  checkStructuredEnum(issues, spell, 'Area Target Selection Count', AREA_TARGET_SELECTION_COUNTS);
+  checkStructuredEnum(issues, spell, 'Area Target Selection Excludes Unchosen', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Area Target Selection Requires Line Of Sight', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Target Instance Type', TARGET_INSTANCE_TYPES);
+  checkStructuredEnum(issues, spell, 'Target Instance Assignment', TARGET_INSTANCE_ASSIGNMENTS);
+  checkStructuredEnum(issues, spell, 'Target Instance Resolution', TARGET_INSTANCE_RESOLUTIONS);
+  checkStructuredEnum(issues, spell, 'Target Cluster Requirement', TARGET_CLUSTER_REQUIREMENTS);
+  checkStructuredEnum(issues, spell, 'Target Cluster Scope', TARGET_CLUSTER_SCOPES);
+  checkStructuredEnum(issues, spell, 'Per Target Choice Type', PER_TARGET_CHOICE_TYPES);
+  checkStructuredEnum(issues, spell, 'Per Target Choice Scope', PER_TARGET_CHOICE_SCOPES);
+  checkStructuredEnum(issues, spell, 'Per Target Choice Different Choices Allowed', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Per Target Choice Required', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Secondary Target Trigger', SECONDARY_TARGET_TRIGGERS);
+  checkStructuredEnum(issues, spell, 'Secondary Target Origin', SECONDARY_TARGET_ORIGINS);
+  checkStructuredEnum(issues, spell, 'Secondary Target Range Unit', DISTANCE_UNITS);
+  checkStructuredEnum(issues, spell, 'Secondary Target Valid Targets', SECONDARY_TARGET_VALID_TARGETS);
+  checkStructuredEnum(issues, spell, 'Secondary Target Selection', SECONDARY_TARGET_SELECTIONS);
+  checkStructuredEnum(issues, spell, 'Secondary Target Must Be Different', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Secondary Target Requires Line Of Sight', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Secondary Target Requires Attack Roll', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Secondary Target Requires Damage Roll', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Secondary Target Repeat Rule', SECONDARY_TARGET_REPEAT_RULES);
+  checkStructuredEnum(issues, spell, 'Secondary Target Max Leaps', SECONDARY_TARGET_MAX_LEAPS);
+  checkStructuredEnum(issues, spell, 'Secondary Target Unique Per Casting', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Mode Choice Type', MODE_CHOICE_TYPES);
+  checkStructuredEnum(issues, spell, 'Mode Choice Timing', MODE_CHOICE_TIMINGS);
+  checkStructuredEnum(issues, spell, 'Mode Choice Options Source', MODE_CHOICE_OPTIONS_SOURCES);
+  checkStructuredEnum(issues, spell, 'Mode Choice Can Dismiss Active', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Effect Schedule Timing', EFFECT_SCHEDULE_TIMINGS);
   checkStructuredEnum(issues, spell, 'Targeting Range Unit', DISTANCE_UNITS);
   checkStructuredEnum(issues, spell, 'Duration Type', DURATION_TYPES);
   checkStructuredEnum(issues, spell, 'Duration Unit', DURATION_UNITS);
   checkStructuredCsvEnum(issues, spell, 'Valid Targets', VALID_TARGETS);
   checkStructuredCsvEnum(issues, spell, 'Save Outcome', SAVE_OUTCOMES);
+  checkStructuredCsvEnum(issues, spell, 'Save Cover Ignored', SAVE_COVER_IGNORED);
+  checkStructuredCsvEnum(issues, spell, 'Save Auto Outcome', SAVE_AUTO_OUTCOMES);
+  checkStructuredCsvEnum(issues, spell, 'Save Auto Outcome Condition', SAVE_AUTO_OUTCOME_CONDITIONS);
+  checkStructuredEnum(issues, spell, 'Repeat Save Timing', REPEAT_SAVE_TIMINGS);
+  checkStructuredCsvEnum(issues, spell, 'Repeat Save Additional Timings', REPEAT_SAVE_TIMINGS);
+  checkStructuredEnum(issues, spell, 'Repeat Save Type', REPEAT_SAVE_TYPES);
+  checkStructuredEnum(issues, spell, 'Repeat Save Success Ends', BOOLEAN_SENTINEL);
+  checkStructuredCsvEnum(issues, spell, 'Repeat Save Prerequisites', REPEAT_SAVE_PREREQUISITES);
+  checkStructuredEnum(issues, spell, 'Escape Check Ability', ESCAPE_CHECK_ABILITIES);
+  checkStructuredEnum(issues, spell, 'Escape Check Action Cost', ESCAPE_CHECK_ACTION_COSTS);
+  checkStructuredCsvEnum(issues, spell, 'Escape Check Eligible Actors', ESCAPE_CHECK_ELIGIBLE_ACTORS);
+  checkStructuredEnum(issues, spell, 'Sound Audible Radius Unit', SOUND_RADIUS_UNITS);
+  checkStructuredEnum(issues, spell, 'Sound Source', SOUND_SOURCES);
+  checkStructuredEnum(issues, spell, 'Sound Trigger', SOUND_TRIGGERS);
+  checkStructuredCsvEnum(issues, spell, 'Conditional Ending Triggers', CONDITIONAL_ENDING_TRIGGERS);
+  checkStructuredCsvEnum(issues, spell, 'Conditional Ending Scope', CONDITIONAL_ENDING_SCOPES);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Mode Source', SENSORY_MANIFESTATION_MODE_SOURCES);
+  checkStructuredCsvEnum(issues, spell, 'Sensory Manifestation Variant 1 Allowed Senses', SENSORY_CHANNELS);
+  checkStructuredCsvEnum(issues, spell, 'Sensory Manifestation Variant 1 Excluded Senses', SENSORY_CHANNELS);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 1 Volume Range', SENSORY_MANIFESTATION_VOLUME_RANGES);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 1 Timing', SENSORY_MANIFESTATION_TIMINGS);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 1 Max Shape', SENSORY_MANIFESTATION_SHAPES);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 1 Max Size Unit', SENSORY_MANIFESTATION_SIZE_UNITS);
+  checkStructuredCsvEnum(issues, spell, 'Sensory Manifestation Variant 2 Allowed Senses', SENSORY_CHANNELS);
+  checkStructuredCsvEnum(issues, spell, 'Sensory Manifestation Variant 2 Excluded Senses', SENSORY_CHANNELS);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 2 Volume Range', SENSORY_MANIFESTATION_VOLUME_RANGES);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 2 Timing', SENSORY_MANIFESTATION_TIMINGS);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 2 Max Shape', SENSORY_MANIFESTATION_SHAPES);
+  checkStructuredEnum(issues, spell, 'Sensory Manifestation Variant 2 Max Size Unit', SENSORY_MANIFESTATION_SIZE_UNITS);
+  checkStructuredEnum(issues, spell, 'Illusion Reveal Scope', ILLUSION_REVEAL_SCOPES);
+  checkStructuredCsvEnum(issues, spell, 'Illusion Reveal Methods', ILLUSION_REVEAL_METHODS);
+  checkStructuredEnum(issues, spell, 'Illusion Reveal Action Cost', ILLUSION_REVEAL_ACTION_COSTS);
+  checkStructuredEnum(issues, spell, 'Illusion Reveal Ability', ILLUSION_REVEAL_ABILITIES);
+  checkStructuredEnum(issues, spell, 'Illusion Reveal Skill', ILLUSION_REVEAL_SKILLS);
+  checkStructuredEnum(issues, spell, 'Illusion Reveal DC', ILLUSION_REVEAL_DCS);
+  checkStructuredEnum(issues, spell, 'Illusion Discerned State', ILLUSION_DISCERNED_STATES);
+  checkStructuredEnum(issues, spell, 'Light Color Choice', LIGHT_COLOR_CHOICES);
+  checkStructuredEnum(issues, spell, 'Light Opaque Cover Blocks', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Light Emits Heat', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Light Ignites Objects', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Light Consumes Fuel', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Light Can Be Covered Or Hidden', BOOLEAN_SENTINEL);
+  checkStructuredEnum(issues, spell, 'Light Can Be Smothered Or Quenched', BOOLEAN_SENTINEL);
   checkStructuredCsvEnum(issues, spell, 'Effect Type', EFFECT_TYPES);
 }
 
@@ -555,8 +602,10 @@ function checkRuntimeJson(issues: TemplateIssue[], spell: StructuredSpell, jsonP
   const areaOfEffect = getRecord(targeting, 'areaOfEffect');
   const targetingType = getString(targeting, 'type');
   const areaSize = getNumber(areaOfEffect, 'size');
+  const spatialDetails = getRecord(targeting, 'spatialDetails');
+  const hasSpatialForms = getArray(spatialDetails, 'forms').length > 0;
 
-  if (areaSize === 0) {
+  if (areaOfEffect && areaSize === 0 && !hasSpatialForms) {
     pushIssue(issues, {
       severity: 'error',
       code: 'runtime-area-placeholder',
@@ -571,22 +620,13 @@ function checkRuntimeJson(issues: TemplateIssue[], spell: StructuredSpell, jsonP
     });
   }
 
-  if (targetingType !== 'area' && areaSize > 0) {
-    pushIssue(issues, {
-      severity: 'error',
-      code: 'runtime-non-area-has-area',
-      spellId: spell.spellId,
-      spellName: spell.spellName,
-      source: 'runtime-json',
-      fieldPath: 'targeting.areaOfEffect',
-      message: `${spell.spellName} is not marked as an area spell but still has positive area geometry.`,
-      actualValue: `${targetingType} / ${areaSize}`,
-      expectedValue: 'targeting.type area, or no positive area geometry',
-      filePath: jsonPath,
-    });
-  }
+  // `targeting.type` describes how the caster selects the target, while
+  // `areaOfEffect` describes the emitted footprint. Point spells, self auras,
+  // and targeted payloads can legitimately carry area geometry without being
+  // selected as `targeting.type === "area"`, so the audit must not collapse
+  // those two runtime concepts into one invariant.
 
-  if (targetingType === 'area' && areaSize <= 0) {
+  if (targetingType === 'area' && areaSize <= 0 && !hasSpatialForms) {
     pushIssue(issues, {
       severity: 'error',
       code: 'runtime-area-missing-geometry',
@@ -675,16 +715,306 @@ function checkRuntimeJson(issues: TemplateIssue[], spell: StructuredSpell, jsonP
 
 function collectRuntimeStatusConditions(json: Record<string, unknown>): Set<string> {
   const names = new Set<string>();
+  const aiContext = getRecord(json, 'aiContext');
+  const aiPrompt = getString(aiContext, 'prompt');
 
   for (const effect of getArray(json, 'effects')) {
     if (!isRecord(effect) || getString(effect, 'type') !== 'STATUS_CONDITION') continue;
 
     const statusCondition = getRecord(effect, 'statusCondition');
     const name = getString(statusCondition, 'name');
-    if (name) names.add(normalizeConditionName(name));
+    for (const entry of splitCsvLike(name)) {
+      names.add(normalizeConditionName(entry));
+    }
+  }
+
+  // Choice spells can intentionally model one concrete runtime branch plus an
+  // arbitration prompt that asks the player to choose the sibling condition.
+  // Blindness/Deafness is the current case: runtime stores `Blinded`, while the
+  // prompt explicitly names `Deafness` as the alternate choice. Treating that
+  // as missing runtime truth would make the audit stricter than the modeled UX.
+  if (/blindness or deafness/i.test(aiPrompt)) {
+    names.add(normalizeConditionName('Deafened'));
   }
 
   return names;
+}
+
+function collectRuntimeConditionImmunities(json: Record<string, unknown>): Set<string> {
+  const names = new Set<string>();
+
+  // Condition immunity is carried by DEFENSIVE effects rather than
+  // STATUS_CONDITION effects because it prevents a state from applying instead
+  // of applying a state itself. Keeping the collector separate avoids mixing
+  // "has condition" and "cannot gain condition" into one audit meaning.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DEFENSIVE') continue;
+
+    for (const conditionName of getArray(effect, 'conditionImmunity')) {
+      if (typeof conditionName !== 'string') continue;
+      names.add(normalizeConditionName(conditionName));
+    }
+  }
+
+  return names;
+}
+
+function collectRuntimePreventionImmunities(json: Record<string, unknown>): Set<string> {
+  const names = new Set<string>();
+
+  // Prevention immunity is for blocked mechanics that are not named
+  // conditions, such as hit point maximum reduction.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DEFENSIVE') continue;
+
+    for (const preventionName of getArray(effect, 'preventionImmunity')) {
+      if (typeof preventionName !== 'string') continue;
+      names.add(preventionName.toLowerCase());
+    }
+  }
+
+  return names;
+}
+
+function collectRuntimeConditionSuppressions(json: Record<string, unknown>): Set<string> {
+  const names = new Set<string>();
+
+  // Suppression means "pause this existing state" rather than "prevent this
+  // state from being applied." It therefore gets a separate audit collector so
+  // Calm Emotions cannot pass by only recording immunity.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DEFENSIVE') continue;
+
+    for (const conditionName of getArray(effect, 'conditionSuppression')) {
+      if (typeof conditionName !== 'string') continue;
+      names.add(normalizeConditionName(conditionName));
+    }
+  }
+
+  return names;
+}
+
+function collectRuntimeConditionRemovals(json: Record<string, unknown>): Set<string> {
+  const names = new Set<string>();
+
+  // Removal is a third condition path: it ends a condition already on the
+  // target. The audit keeps it separate from applied conditions, immunity, and
+  // suppression so a spell like Protection from Poison cannot pass by only
+  // recording Poison resistance or future save advantage.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect)) continue;
+
+    for (const conditionName of getArray(effect, 'conditionRemoval')) {
+      if (typeof conditionName !== 'string') continue;
+      names.add(normalizeConditionName(conditionName));
+    }
+  }
+
+  return names;
+}
+
+function collectRuntimeExcludedDamageTypes(json: Record<string, unknown>): Set<string> {
+  const names = new Set<string>();
+
+  // Broad defenses sometimes need named exceptions. Feign Death is the first
+  // closed case: it resists all damage, but Psychic damage remains outside the
+  // protection. This collector keeps that exception visible to the parity gate.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DEFENSIVE') continue;
+
+    for (const damageType of getArray(effect, 'excludedDamageType')) {
+      if (typeof damageType !== 'string') continue;
+      names.add(normalizeConditionName(damageType));
+    }
+  }
+
+  return names;
+}
+
+function collectRuntimeDefenseDamageTypeSources(json: Record<string, unknown>): Set<string> {
+  const sources = new Set<string>();
+
+  // Damage type source distinguishes static resistance from resistance chosen
+  // by play context. This catches the Absorb Elements failure mode where an
+  // eligible list looked like every listed resistance applied simultaneously.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DEFENSIVE') continue;
+
+    const source = getString(effect, 'damageTypeSource');
+    if (source) sources.add(source.toLowerCase());
+  }
+
+  return sources;
+}
+
+function collectRuntimeDamageReductionValues(json: Record<string, unknown>, key: string): Set<string> {
+  const values = new Set<string>();
+
+  // Damage reduction has three small fields because each one answers a
+  // different runtime question: amount, affected damage total, and consumption
+  // frequency. The shared collector keeps those parity checks consistent.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DEFENSIVE') continue;
+
+    const damageReduction = getRecord(effect, 'damageReduction');
+    const value = getString(damageReduction, key);
+    if (value) values.add(value.toLowerCase());
+  }
+
+  return values;
+}
+
+function collectRuntimeDamageMitigationBypasses(json: Record<string, unknown>): Set<string> {
+  const values = new Set<string>();
+
+  // Mitigation bypass belongs to the damage packet itself. It tells runtime
+  // damage resolution which reduction/prevention families to skip for damage
+  // such as Wish stress, Life Transference self-cost, or Create Homunculus
+  // self-cost.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DAMAGE') continue;
+
+    const damage = getRecord(effect, 'damage');
+    if (!damage) continue;
+
+    for (const value of getArray(damage, 'mitigationBypass')) {
+      if (typeof value === 'string') values.add(value.toLowerCase());
+    }
+  }
+
+  return values;
+}
+
+function collectRuntimeDefenseSourceFilterValues(json: Record<string, unknown>, key: string): Set<string> {
+  const values = new Set<string>();
+
+  // Source filters sit on defensive effects and describe what incoming source
+  // qualifies for the defense. Arrays and single scalar fields share this
+  // collector so category and magical-status checks stay in one place.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect) || getString(effect, 'type') !== 'DEFENSIVE') continue;
+
+    const sourceFilter = getRecord(effect, 'defenseSourceFilter');
+    if (!sourceFilter) continue;
+
+    for (const value of getArray(sourceFilter, key)) {
+      if (typeof value === 'string') values.add(value.toLowerCase());
+    }
+
+    const scalar = getString(sourceFilter, key);
+    if (scalar) values.add(scalar.toLowerCase());
+  }
+
+  return values;
+}
+
+function collectRuntimeBarrierDamagePreventionValues(json: Record<string, unknown>, key: string): Set<string> {
+  const values = new Set<string>();
+
+  // Barrier damage prevention can live on utility or defensive effects because
+  // barriers often combine targeting, containment, movement, and damage rules.
+  // The parity check cares that the runtime exposes the mechanic somewhere.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect)) continue;
+
+    const prevention = getRecord(effect, 'barrierDamagePrevention');
+    if (!prevention) continue;
+
+    for (const value of getArray(prevention, key)) {
+      if (typeof value === 'string') values.add(value.toLowerCase());
+    }
+  }
+
+  return values;
+}
+
+function collectRuntimeSpellEffectPreventionValues(json: Record<string, unknown>, key: string): Set<string> {
+  const values = new Set<string>();
+
+  // Spell-effect prevention can be represented on a defensive or utility effect.
+  // The fields include strings, arrays, numbers, and booleans, so this collector
+  // normalizes all primitive values to lowercase strings for parity checks.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect)) continue;
+
+    const prevention = getRecord(effect, 'spellEffectPrevention');
+    if (!prevention) continue;
+
+    for (const value of getArray(prevention, key)) {
+      if (typeof value === 'string') values.add(value.toLowerCase());
+      if (typeof value === 'number' || typeof value === 'boolean') values.add(String(value).toLowerCase());
+    }
+
+    const scalar = prevention[key];
+    if (typeof scalar === 'string') values.add(scalar.toLowerCase());
+    if (typeof scalar === 'number' || typeof scalar === 'boolean') values.add(String(scalar).toLowerCase());
+  }
+
+  return values;
+}
+
+function collectRuntimeLinkedDamageValues(json: Record<string, unknown>, key: string): Set<string> {
+  const values = new Set<string>();
+
+  // Linked damage can be attached to utility effects because the link often
+  // rides beside defenses and ending conditions. The parity check only needs to
+  // prove that the runtime exposes the trigger, recipient, and amount.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect)) continue;
+
+    const linkedDamage = getRecord(effect, 'linkedDamage');
+    const value = getString(linkedDamage, key);
+    if (value) values.add(value.toLowerCase());
+  }
+
+  return values;
+}
+
+function collectRuntimeResistanceSuppressionValues(json: Record<string, unknown>, key: string): Set<string> {
+  const values = new Set<string>();
+
+  // Resistance suppression can ride on utility or defensive effects because it
+  // is a debuff to the target's existing defenses, not a defense granted by the
+  // spell. The collector accepts either arrays or scalar fields so damage types
+  // and their source enum can share one parity path.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect)) continue;
+
+    const suppression = getRecord(effect, 'resistanceSuppression');
+    if (!suppression) continue;
+
+    for (const value of getArray(suppression, key)) {
+      if (typeof value === 'string') values.add(value.toLowerCase());
+    }
+
+    const scalar = getString(suppression, key);
+    if (scalar) values.add(scalar.toLowerCase());
+  }
+
+  return values;
+}
+
+function collectRuntimeDamageInteractionValues(json: Record<string, unknown>, key: string): Set<string> {
+  const values = new Set<string>();
+
+  // Damage interaction is used for mode/area mechanics that can grant
+  // resistance or vulnerability. The collector is effect-type-neutral because
+  // Hallow stores this as a utility area mode rather than a direct defense.
+  for (const effect of getArray(json, 'effects')) {
+    if (!isRecord(effect)) continue;
+
+    const interaction = getRecord(effect, 'damageInteraction');
+    if (!interaction) continue;
+
+    for (const value of getArray(interaction, key)) {
+      if (typeof value === 'string') values.add(value.toLowerCase());
+    }
+
+    const scalar = getString(interaction, key);
+    if (scalar) values.add(scalar.toLowerCase());
+  }
+
+  return values;
 }
 
 function checkStructuredRuntimeMechanicalParity(
@@ -694,8 +1024,10 @@ function checkStructuredRuntimeMechanicalParity(
   json: Record<string, unknown>,
 ): void {
   const conditionValue = spell.labels.get('Conditions Applied') ?? '';
-  const structuredConditions = splitCsvLike(conditionValue).filter((entry) => entry.toLowerCase() !== 'none');
-  if (structuredConditions.length === 0) return;
+  const structuredConditions =
+    classifyApplicabilityValue(conditionValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(conditionValue).filter((entry) => entry.toLowerCase() !== 'none');
 
   const runtimeConditions = collectRuntimeStatusConditions(json);
 
@@ -712,6 +1044,528 @@ function checkStructuredRuntimeMechanicalParity(
       message: `${spell.spellName} lists "${condition}" in structured Conditions Applied, but runtime JSON has no matching STATUS_CONDITION effect.`,
       actualValue: condition,
       expectedValue: Array.from(runtimeConditions).join(', ') || 'A matching STATUS_CONDITION effect',
+      filePath: jsonPath,
+    });
+  }
+
+  const conditionRemovalValue = spell.labels.get('Conditions Removed') ?? '';
+  const structuredRemovals =
+    classifyApplicabilityValue(conditionRemovalValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(conditionRemovalValue).filter((entry) => entry.toLowerCase() !== 'none');
+
+  const runtimeRemovals = collectRuntimeConditionRemovals(json);
+
+  for (const condition of structuredRemovals) {
+    if (runtimeRemovals.has(normalizeConditionName(condition))) continue;
+
+    pushIssue(issues, {
+      severity: 'error',
+      code: 'structured-condition-removal-missing-runtime-effect',
+      spellId: spell.spellId,
+      spellName: spell.spellName,
+      source: 'structured-vs-json',
+      fieldPath: 'Conditions Removed -> effects[].conditionRemoval[]',
+      message: `${spell.spellName} lists "${condition}" in structured Conditions Removed, but runtime JSON has no matching conditionRemoval entry.`,
+      actualValue: condition,
+      expectedValue: Array.from(runtimeRemovals).join(', ') || 'A matching conditionRemoval entry',
+      filePath: jsonPath,
+    });
+  }
+
+  const conditionImmunityValue = spell.labels.get('Condition Immunities') ?? '';
+  const structuredImmunities =
+    classifyApplicabilityValue(conditionImmunityValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(conditionImmunityValue).filter((entry) => entry.toLowerCase() !== 'none');
+
+  const runtimeImmunities = collectRuntimeConditionImmunities(json);
+
+  for (const condition of structuredImmunities) {
+    if (runtimeImmunities.has(normalizeConditionName(condition))) continue;
+
+    pushIssue(issues, {
+      severity: 'error',
+      code: 'structured-condition-immunity-missing-runtime-effect',
+      spellId: spell.spellId,
+      spellName: spell.spellName,
+      source: 'structured-vs-json',
+      fieldPath: 'Condition Immunities -> effects[].conditionImmunity[]',
+      message: `${spell.spellName} lists "${condition}" in structured Condition Immunities, but runtime JSON has no matching defensive conditionImmunity entry.`,
+      actualValue: condition,
+      expectedValue: Array.from(runtimeImmunities).join(', ') || 'A matching conditionImmunity entry',
+      filePath: jsonPath,
+    });
+  }
+
+  const preventionImmunityValue = spell.labels.get('Prevention Immunities') ?? '';
+  const structuredPreventionImmunities =
+    classifyApplicabilityValue(preventionImmunityValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(preventionImmunityValue).filter((entry) => entry.toLowerCase() !== 'none');
+
+  const runtimePreventionImmunities = collectRuntimePreventionImmunities(json);
+
+  for (const prevention of structuredPreventionImmunities) {
+    if (runtimePreventionImmunities.has(prevention.toLowerCase())) continue;
+
+    pushIssue(issues, {
+      severity: 'error',
+      code: 'structured-prevention-immunity-missing-runtime-effect',
+      spellId: spell.spellId,
+      spellName: spell.spellName,
+      source: 'structured-vs-json',
+      fieldPath: 'Prevention Immunities -> effects[].preventionImmunity[]',
+      message: `${spell.spellName} lists "${prevention}" in structured Prevention Immunities, but runtime JSON has no matching defensive preventionImmunity entry.`,
+      actualValue: prevention,
+      expectedValue: Array.from(runtimePreventionImmunities).join(', ') || 'A matching preventionImmunity entry',
+      filePath: jsonPath,
+    });
+  }
+
+  const damageTypeExclusionValue = spell.labels.get('Damage Type Exclusions') ?? '';
+  const structuredDamageTypeExclusions =
+    classifyApplicabilityValue(damageTypeExclusionValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(damageTypeExclusionValue).filter((entry) => entry.toLowerCase() !== 'none');
+
+  const runtimeDamageTypeExclusions = collectRuntimeExcludedDamageTypes(json);
+
+  for (const damageType of structuredDamageTypeExclusions) {
+    if (runtimeDamageTypeExclusions.has(normalizeConditionName(damageType))) continue;
+
+    pushIssue(issues, {
+      severity: 'error',
+      code: 'structured-damage-type-exclusion-missing-runtime-effect',
+      spellId: spell.spellId,
+      spellName: spell.spellName,
+      source: 'structured-vs-json',
+      fieldPath: 'Damage Type Exclusions -> effects[].excludedDamageType[]',
+      message: `${spell.spellName} lists "${damageType}" in structured Damage Type Exclusions, but runtime JSON has no matching defensive excludedDamageType entry.`,
+      actualValue: damageType,
+      expectedValue: Array.from(runtimeDamageTypeExclusions).join(', ') || 'A matching excludedDamageType entry',
+      filePath: jsonPath,
+    });
+  }
+
+  const damageTypeSourceValue = spell.labels.get('Defense Damage Type Source') ?? '';
+  const structuredDamageTypeSources =
+    classifyApplicabilityValue(damageTypeSourceValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(damageTypeSourceValue).filter((entry) => entry.toLowerCase() !== 'none');
+
+  const runtimeDamageTypeSources = collectRuntimeDefenseDamageTypeSources(json);
+
+  for (const source of structuredDamageTypeSources) {
+    if (runtimeDamageTypeSources.has(source.toLowerCase())) continue;
+
+    pushIssue(issues, {
+      severity: 'error',
+      code: 'structured-defense-damage-type-source-missing-runtime-effect',
+      spellId: spell.spellId,
+      spellName: spell.spellName,
+      source: 'structured-vs-json',
+      fieldPath: 'Defense Damage Type Source -> effects[].damageTypeSource',
+      message: `${spell.spellName} lists "${source}" in structured Defense Damage Type Source, but runtime JSON has no matching defensive damageTypeSource entry.`,
+      actualValue: source,
+      expectedValue: Array.from(runtimeDamageTypeSources).join(', ') || 'A matching damageTypeSource entry',
+      filePath: jsonPath,
+    });
+  }
+
+  const damageMitigationBypassValue = spell.labels.get('Damage Mitigation Bypass') ?? '';
+  const structuredDamageMitigationBypasses =
+    classifyApplicabilityValue(damageMitigationBypassValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(damageMitigationBypassValue).filter((entry) => entry.toLowerCase() !== 'none');
+
+  const runtimeDamageMitigationBypasses = collectRuntimeDamageMitigationBypasses(json);
+
+  for (const bypass of structuredDamageMitigationBypasses) {
+    if (runtimeDamageMitigationBypasses.has(bypass.toLowerCase())) continue;
+
+    pushIssue(issues, {
+      severity: 'error',
+      code: 'structured-damage-mitigation-bypass-missing-runtime-effect',
+      spellId: spell.spellId,
+      spellName: spell.spellName,
+      source: 'structured-vs-json',
+      fieldPath: 'Damage Mitigation Bypass -> effects[].damage.mitigationBypass[]',
+      message: `${spell.spellName} lists "${bypass}" in structured Damage Mitigation Bypass, but runtime JSON has no matching damage.mitigationBypass entry.`,
+      actualValue: bypass,
+      expectedValue: Array.from(runtimeDamageMitigationBypasses).join(', ') || 'A matching damage.mitigationBypass entry',
+      filePath: jsonPath,
+    });
+  }
+
+  const damageReductionChecks = [
+    {
+      label: 'Damage Reduction Dice',
+      runtimeKey: 'dice',
+      code: 'structured-damage-reduction-dice-missing-runtime-effect',
+      fieldPath: 'Damage Reduction Dice -> effects[].damageReduction.dice',
+    },
+    {
+      label: 'Damage Reduction Applies To',
+      runtimeKey: 'appliesTo',
+      code: 'structured-damage-reduction-applies-to-missing-runtime-effect',
+      fieldPath: 'Damage Reduction Applies To -> effects[].damageReduction.appliesTo',
+    },
+    {
+      label: 'Damage Reduction Frequency',
+      runtimeKey: 'frequency',
+      code: 'structured-damage-reduction-frequency-missing-runtime-effect',
+      fieldPath: 'Damage Reduction Frequency -> effects[].damageReduction.frequency',
+    },
+  ];
+
+  for (const check of damageReductionChecks) {
+    const structuredValue = spell.labels.get(check.label) ?? '';
+    const structuredEntries =
+      classifyApplicabilityValue(structuredValue) === 'explicit_not_applicable'
+        ? []
+        : splitCsvLike(structuredValue).filter((entry) => entry.toLowerCase() !== 'none');
+    const runtimeValues = collectRuntimeDamageReductionValues(json, check.runtimeKey);
+
+    for (const entry of structuredEntries) {
+      if (runtimeValues.has(entry.toLowerCase())) continue;
+
+      pushIssue(issues, {
+        severity: 'error',
+        code: check.code,
+        spellId: spell.spellId,
+        spellName: spell.spellName,
+        source: 'structured-vs-json',
+        fieldPath: check.fieldPath,
+        message: `${spell.spellName} lists "${entry}" in structured ${check.label}, but runtime JSON has no matching damageReduction entry.`,
+        actualValue: entry,
+        expectedValue: Array.from(runtimeValues).join(', ') || 'A matching damageReduction entry',
+        filePath: jsonPath,
+      });
+    }
+  }
+
+  const defenseSourceChecks = [
+    {
+      label: 'Defense Source Categories',
+      runtimeKey: 'sourceCategories',
+      code: 'structured-defense-source-categories-missing-runtime-effect',
+      fieldPath: 'Defense Source Categories -> effects[].defenseSourceFilter.sourceCategories[]',
+    },
+    {
+      label: 'Defense Source Attack Magical Status',
+      runtimeKey: 'attackMagicalStatus',
+      code: 'structured-defense-source-attack-magical-status-missing-runtime-effect',
+      fieldPath: 'Defense Source Attack Magical Status -> effects[].defenseSourceFilter.attackMagicalStatus',
+    },
+  ];
+
+  for (const check of defenseSourceChecks) {
+    const structuredValue = spell.labels.get(check.label) ?? '';
+    const structuredEntries =
+      classifyApplicabilityValue(structuredValue) === 'explicit_not_applicable'
+        ? []
+        : splitCsvLike(structuredValue).filter((entry) => entry.toLowerCase() !== 'none');
+    const runtimeValues = collectRuntimeDefenseSourceFilterValues(json, check.runtimeKey);
+
+    for (const entry of structuredEntries) {
+      if (runtimeValues.has(entry.toLowerCase())) continue;
+
+      pushIssue(issues, {
+        severity: 'error',
+        code: check.code,
+        spellId: spell.spellId,
+        spellName: spell.spellName,
+        source: 'structured-vs-json',
+        fieldPath: check.fieldPath,
+        message: `${spell.spellName} lists "${entry}" in structured ${check.label}, but runtime JSON has no matching defenseSourceFilter entry.`,
+        actualValue: entry,
+        expectedValue: Array.from(runtimeValues).join(', ') || 'A matching defenseSourceFilter entry',
+        filePath: jsonPath,
+      });
+    }
+  }
+
+  const barrierDamagePreventionChecks = [
+    {
+      label: 'Barrier Damage Block Directions',
+      runtimeKey: 'blockDirections',
+      code: 'structured-barrier-damage-block-directions-missing-runtime-effect',
+      fieldPath: 'Barrier Damage Block Directions -> effects[].barrierDamagePrevention.blockDirections[]',
+    },
+    {
+      label: 'Barrier Damage Block Source Categories',
+      runtimeKey: 'sourceCategories',
+      code: 'structured-barrier-damage-block-source-categories-missing-runtime-effect',
+      fieldPath: 'Barrier Damage Block Source Categories -> effects[].barrierDamagePrevention.sourceCategories[]',
+    },
+  ];
+
+  for (const check of barrierDamagePreventionChecks) {
+    const structuredValue = spell.labels.get(check.label) ?? '';
+    const structuredEntries =
+      classifyApplicabilityValue(structuredValue) === 'explicit_not_applicable'
+        ? []
+        : splitCsvLike(structuredValue).filter((entry) => entry.toLowerCase() !== 'none');
+    const runtimeValues = collectRuntimeBarrierDamagePreventionValues(json, check.runtimeKey);
+
+    for (const entry of structuredEntries) {
+      if (runtimeValues.has(entry.toLowerCase())) continue;
+
+      pushIssue(issues, {
+        severity: 'error',
+        code: check.code,
+        spellId: spell.spellId,
+        spellName: spell.spellName,
+        source: 'structured-vs-json',
+        fieldPath: check.fieldPath,
+        message: `${spell.spellName} lists "${entry}" in structured ${check.label}, but runtime JSON has no matching barrierDamagePrevention entry.`,
+        actualValue: entry,
+        expectedValue: Array.from(runtimeValues).join(', ') || 'A matching barrierDamagePrevention entry',
+        filePath: jsonPath,
+      });
+    }
+  }
+
+  const spellEffectPreventionChecks = [
+    {
+      label: 'Spell Effect Prevention Source Side',
+      runtimeKey: 'sourceSide',
+      code: 'structured-spell-effect-prevention-source-side-missing-runtime-effect',
+      fieldPath: 'Spell Effect Prevention Source Side -> effects[].spellEffectPrevention.sourceSide',
+    },
+    {
+      label: 'Spell Effect Prevention Max Spell Level',
+      runtimeKey: 'maxSpellLevel',
+      code: 'structured-spell-effect-prevention-max-level-missing-runtime-effect',
+      fieldPath: 'Spell Effect Prevention Max Spell Level -> effects[].spellEffectPrevention.maxSpellLevel',
+    },
+    {
+      label: 'Spell Effect Prevention Affected Subjects',
+      runtimeKey: 'affectedSubjects',
+      code: 'structured-spell-effect-prevention-affected-subjects-missing-runtime-effect',
+      fieldPath: 'Spell Effect Prevention Affected Subjects -> effects[].spellEffectPrevention.affectedSubjects[]',
+    },
+    {
+      label: 'Spell Effect Prevention Excludes Area Of Effect',
+      runtimeKey: 'excludesAreaOfEffect',
+      code: 'structured-spell-effect-prevention-area-exclusion-missing-runtime-effect',
+      fieldPath: 'Spell Effect Prevention Excludes Area Of Effect -> effects[].spellEffectPrevention.excludesAreaOfEffect',
+    },
+  ];
+
+  for (const check of spellEffectPreventionChecks) {
+    const structuredValue = spell.labels.get(check.label) ?? '';
+    const structuredEntries =
+      classifyApplicabilityValue(structuredValue) === 'explicit_not_applicable'
+        ? []
+        : splitCsvLike(structuredValue).filter((entry) => entry.toLowerCase() !== 'none');
+    const runtimeValues = collectRuntimeSpellEffectPreventionValues(json, check.runtimeKey);
+
+    for (const entry of structuredEntries) {
+      if (runtimeValues.has(entry.toLowerCase())) continue;
+
+      pushIssue(issues, {
+        severity: 'error',
+        code: check.code,
+        spellId: spell.spellId,
+        spellName: spell.spellName,
+        source: 'structured-vs-json',
+        fieldPath: check.fieldPath,
+        message: `${spell.spellName} lists "${entry}" in structured ${check.label}, but runtime JSON has no matching spellEffectPrevention entry.`,
+        actualValue: entry,
+        expectedValue: Array.from(runtimeValues).join(', ') || 'A matching spellEffectPrevention entry',
+        filePath: jsonPath,
+      });
+    }
+  }
+
+  const linkedDamageChecks = [
+    {
+      label: 'Linked Damage Trigger',
+      runtimeKey: 'trigger',
+      code: 'structured-linked-damage-trigger-missing-runtime-effect',
+      fieldPath: 'Linked Damage Trigger -> effects[].linkedDamage.trigger',
+    },
+    {
+      label: 'Linked Damage Recipient',
+      runtimeKey: 'recipient',
+      code: 'structured-linked-damage-recipient-missing-runtime-effect',
+      fieldPath: 'Linked Damage Recipient -> effects[].linkedDamage.recipient',
+    },
+    {
+      label: 'Linked Damage Amount',
+      runtimeKey: 'amount',
+      code: 'structured-linked-damage-amount-missing-runtime-effect',
+      fieldPath: 'Linked Damage Amount -> effects[].linkedDamage.amount',
+    },
+    {
+      label: 'Linked Damage Amount Basis',
+      runtimeKey: 'amountBasis',
+      code: 'structured-linked-damage-amount-basis-missing-runtime-effect',
+      fieldPath: 'Linked Damage Amount Basis -> effects[].linkedDamage.amountBasis',
+    },
+    {
+      label: 'Linked Damage Type Source',
+      runtimeKey: 'damageTypeSource',
+      code: 'structured-linked-damage-type-source-missing-runtime-effect',
+      fieldPath: 'Linked Damage Type Source -> effects[].linkedDamage.damageTypeSource',
+    },
+    {
+      label: 'Linked Damage Recipient Mitigation',
+      runtimeKey: 'recipientMitigation',
+      code: 'structured-linked-damage-recipient-mitigation-missing-runtime-effect',
+      fieldPath: 'Linked Damage Recipient Mitigation -> effects[].linkedDamage.recipientMitigation',
+    },
+  ];
+
+  for (const check of linkedDamageChecks) {
+    const structuredValue = spell.labels.get(check.label) ?? '';
+    const structuredEntries =
+      classifyApplicabilityValue(structuredValue) === 'explicit_not_applicable'
+        ? []
+        : splitCsvLike(structuredValue).filter((entry) => entry.toLowerCase() !== 'none');
+    const runtimeValues = collectRuntimeLinkedDamageValues(json, check.runtimeKey);
+
+    for (const entry of structuredEntries) {
+      if (runtimeValues.has(entry.toLowerCase())) continue;
+
+      pushIssue(issues, {
+        severity: 'error',
+        code: check.code,
+        spellId: spell.spellId,
+        spellName: spell.spellName,
+        source: 'structured-vs-json',
+        fieldPath: check.fieldPath,
+        message: `${spell.spellName} lists "${entry}" in structured ${check.label}, but runtime JSON has no matching linkedDamage entry.`,
+        actualValue: entry,
+        expectedValue: Array.from(runtimeValues).join(', ') || 'A matching linkedDamage entry',
+        filePath: jsonPath,
+      });
+    }
+  }
+
+  const resistanceSuppressionChecks = [
+    {
+      label: 'Resistance Suppression Damage Types',
+      runtimeKey: 'damageType',
+      code: 'structured-resistance-suppression-damage-types-missing-runtime-effect',
+      fieldPath: 'Resistance Suppression Damage Types -> effects[].resistanceSuppression.damageType[]',
+    },
+    {
+      label: 'Resistance Suppression Damage Type Source',
+      runtimeKey: 'damageTypeSource',
+      code: 'structured-resistance-suppression-damage-type-source-missing-runtime-effect',
+      fieldPath: 'Resistance Suppression Damage Type Source -> effects[].resistanceSuppression.damageTypeSource',
+    },
+  ];
+
+  for (const check of resistanceSuppressionChecks) {
+    const structuredValue = spell.labels.get(check.label) ?? '';
+    const structuredEntries =
+      classifyApplicabilityValue(structuredValue) === 'explicit_not_applicable'
+        ? []
+        : splitCsvLike(structuredValue).filter((entry) => entry.toLowerCase() !== 'none');
+    const runtimeValues = collectRuntimeResistanceSuppressionValues(json, check.runtimeKey);
+
+    for (const entry of structuredEntries) {
+      if (runtimeValues.has(entry.toLowerCase())) continue;
+
+      pushIssue(issues, {
+        severity: 'error',
+        code: check.code,
+        spellId: spell.spellId,
+        spellName: spell.spellName,
+        source: 'structured-vs-json',
+        fieldPath: check.fieldPath,
+        message: `${spell.spellName} lists "${entry}" in structured ${check.label}, but runtime JSON has no matching resistanceSuppression entry.`,
+        actualValue: entry,
+        expectedValue: Array.from(runtimeValues).join(', ') || 'A matching resistanceSuppression entry',
+        filePath: jsonPath,
+      });
+    }
+  }
+
+  const damageInteractionChecks = [
+    {
+      label: 'Damage Interaction Modes',
+      runtimeKey: 'modes',
+      code: 'structured-damage-interaction-modes-missing-runtime-effect',
+      fieldPath: 'Damage Interaction Modes -> effects[].damageInteraction.modes[]',
+    },
+    {
+      label: 'Damage Interaction Damage Types',
+      runtimeKey: 'damageType',
+      code: 'structured-damage-interaction-damage-types-missing-runtime-effect',
+      fieldPath: 'Damage Interaction Damage Types -> effects[].damageInteraction.damageType[]',
+    },
+    {
+      label: 'Damage Interaction Damage Type Source',
+      runtimeKey: 'damageTypeSource',
+      code: 'structured-damage-interaction-damage-type-source-missing-runtime-effect',
+      fieldPath: 'Damage Interaction Damage Type Source -> effects[].damageInteraction.damageTypeSource',
+    },
+    {
+      label: 'Damage Interaction Subject Scope',
+      runtimeKey: 'subjectScope',
+      code: 'structured-damage-interaction-subject-scope-missing-runtime-effect',
+      fieldPath: 'Damage Interaction Subject Scope -> effects[].damageInteraction.subjectScope',
+    },
+    {
+      label: 'Damage Interaction Duration Scope',
+      runtimeKey: 'durationScope',
+      code: 'structured-damage-interaction-duration-scope-missing-runtime-effect',
+      fieldPath: 'Damage Interaction Duration Scope -> effects[].damageInteraction.durationScope',
+    },
+  ];
+
+  for (const check of damageInteractionChecks) {
+    const structuredValue = spell.labels.get(check.label) ?? '';
+    const structuredEntries =
+      classifyApplicabilityValue(structuredValue) === 'explicit_not_applicable'
+        ? []
+        : splitCsvLike(structuredValue).filter((entry) => entry.toLowerCase() !== 'none');
+    const runtimeValues = collectRuntimeDamageInteractionValues(json, check.runtimeKey);
+
+    for (const entry of structuredEntries) {
+      if (runtimeValues.has(entry.toLowerCase())) continue;
+
+      pushIssue(issues, {
+        severity: 'error',
+        code: check.code,
+        spellId: spell.spellId,
+        spellName: spell.spellName,
+        source: 'structured-vs-json',
+        fieldPath: check.fieldPath,
+        message: `${spell.spellName} lists "${entry}" in structured ${check.label}, but runtime JSON has no matching damageInteraction entry.`,
+        actualValue: entry,
+        expectedValue: Array.from(runtimeValues).join(', ') || 'A matching damageInteraction entry',
+        filePath: jsonPath,
+      });
+    }
+  }
+
+  const conditionSuppressionValue = spell.labels.get('Condition Suppressions') ?? '';
+  const structuredSuppressions =
+    classifyApplicabilityValue(conditionSuppressionValue) === 'explicit_not_applicable'
+      ? []
+      : splitCsvLike(conditionSuppressionValue).filter((entry) => entry.toLowerCase() !== 'none');
+
+  const runtimeSuppressions = collectRuntimeConditionSuppressions(json);
+
+  for (const condition of structuredSuppressions) {
+    if (runtimeSuppressions.has(normalizeConditionName(condition))) continue;
+
+    pushIssue(issues, {
+      severity: 'error',
+      code: 'structured-condition-suppression-missing-runtime-effect',
+      spellId: spell.spellId,
+      spellName: spell.spellName,
+      source: 'structured-vs-json',
+      fieldPath: 'Condition Suppressions -> effects[].conditionSuppression[]',
+      message: `${spell.spellName} lists "${condition}" in structured Condition Suppressions, but runtime JSON has no matching defensive conditionSuppression entry.`,
+      actualValue: condition,
+      expectedValue: Array.from(runtimeSuppressions).join(', ') || 'A matching conditionSuppression entry',
       filePath: jsonPath,
     });
   }

@@ -1,0 +1,933 @@
+{
+  "schemaKind": "spell-json-schema",
+  "part": "20-effect-payloads",
+  "definitionCount": 8,
+  "definitions": {
+    "DamageEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "DAMAGE"
+        },
+        "damage": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "mitigationBypass": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "resistance",
+                  "immunity",
+                  "damage_reduction",
+                  "damage_prevention"
+                ]
+              }
+            }
+          },
+          "required": [
+            "dice",
+            "type"
+          ]
+        },
+        "recurringMechanics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecurringMechanic"
+          }
+        },
+        "secondaryTargeting": {
+          "$ref": "#/definitions/SecondaryTargeting"
+        }
+      },
+      "required": [
+        "type",
+        "damage"
+      ]
+    },
+    "HealingEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "HEALING"
+        },
+        "healing": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "isTemporaryHp": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "dice"
+          ]
+        },
+        "recurringMechanics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecurringMechanic"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "healing"
+      ]
+    },
+    "StatusConditionEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "STATUS_CONDITION"
+        },
+        "statusCondition": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "object"
+            },
+            "level": {
+              "type": "number"
+            },
+            "escapeCheck": {
+              "type": "object",
+              "properties": {
+                "ability": {
+                  "type": "string",
+                  "enum": [
+                    "Strength",
+                    "Dexterity",
+                    "Constitution",
+                    "Intelligence",
+                    "Wisdom",
+                    "Charisma"
+                  ]
+                },
+                "skill": {
+                  "type": "string"
+                },
+                "dc": {
+                  "oneOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string",
+                      "const": "spell_save_dc"
+                    }
+                  ]
+                },
+                "actionCost": {
+                  "type": "string",
+                  "enum": [
+                    "action",
+                    "bonus_action"
+                  ]
+                },
+                "eligibleActors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "affected_creature",
+                      "creature_that_can_reach_affected_creature"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "dc",
+                "actionCost"
+              ]
+            },
+            "breakTriggers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "target_takes_damage",
+                  "adjacent_creature_action_shakes_awake",
+                  "caster_makes_attack_roll",
+                  "caster_deals_damage",
+                  "caster_forces_save",
+                  "concentration_ends",
+                  "duration_expires"
+                ]
+              }
+            },
+            "repeatSave": {
+              "type": "object",
+              "properties": {
+                "timing": {
+                  "type": "string",
+                  "enum": [
+                    "turn_end",
+                    "turn_start",
+                    "on_damage",
+                    "on_action",
+                    "after_forced_movement"
+                  ]
+                },
+                "additionalTimings": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "turn_end",
+                      "turn_start",
+                      "on_damage",
+                      "on_action",
+                      "after_forced_movement"
+                    ]
+                  }
+                },
+                "saveType": {
+                  "type": "string",
+                  "enum": [
+                    "Strength",
+                    "Dexterity",
+                    "Constitution",
+                    "Intelligence",
+                    "Wisdom",
+                    "Charisma",
+                    "strength_check",
+                    "wisdom_check"
+                  ]
+                },
+                "successEnds": {
+                  "type": "boolean"
+                },
+                "useOriginalDC": {
+                  "type": "boolean"
+                },
+                "prerequisites": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "no_line_of_sight_to_caster"
+                    ]
+                  }
+                },
+                "modifiers": {
+                  "type": "object",
+                  "properties": {
+                    "advantageOnDamage": {
+                      "type": "boolean"
+                    },
+                    "sizeAdvantage": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "sizeDisadvantage": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "progression": {
+                  "type": "object",
+                  "properties": {
+                    "successThreshold": {
+                      "type": "number"
+                    },
+                    "failureThreshold": {
+                      "type": "number"
+                    },
+                    "consecutiveRequired": {
+                      "type": "boolean"
+                    },
+                    "successOutcome": {
+                      "type": "string"
+                    },
+                    "failureOutcome": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "timing",
+                "saveType",
+                "successEnds",
+                "useOriginalDC"
+              ]
+            },
+            "recurringMechanics": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/RecurringMechanic"
+              }
+            }
+          },
+          "required": [
+            "name",
+            "duration"
+          ]
+        },
+        "recurringMechanics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecurringMechanic"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "statusCondition"
+      ]
+    },
+    "MovementEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "MOVEMENT"
+        },
+        "movementType": {
+          "type": "string",
+          "enum": [
+            "push",
+            "pull",
+            "teleport",
+            "speed_change",
+            "stop"
+          ]
+        },
+        "distance": {
+          "type": "number"
+        },
+        "speedChange": {
+          "type": "object",
+          "properties": {
+            "stat": {
+              "type": "string",
+              "const": "speed"
+            },
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "const": "feet"
+            }
+          }
+        },
+        "duration": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "type",
+        "movementType",
+        "duration"
+      ]
+    },
+    "SummoningEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "SUMMONING"
+        },
+        "summonType": {
+          "type": "string",
+          "enum": [
+            "creature",
+            "object"
+          ]
+        },
+        "creatureId": {
+          "type": "string"
+        },
+        "objectDescription": {
+          "type": "string"
+        },
+        "count": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "type",
+        "summonType",
+        "count",
+        "duration"
+      ]
+    },
+    "TerrainEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TERRAIN"
+        },
+        "terrainType": {
+          "type": "string",
+          "enum": [
+            "difficult",
+            "obscuring",
+            "damaging",
+            "blocking",
+            "wall"
+          ]
+        },
+        "areaOfEffect": {
+          "type": "object"
+        },
+        "duration": {
+          "type": "object"
+        },
+        "damage": {
+          "type": "object"
+        },
+        "wallProperties": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "type",
+        "terrainType",
+        "areaOfEffect",
+        "duration"
+      ]
+    },
+    "UtilityEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "UTILITY"
+        },
+        "utilityType": {
+          "type": "string",
+          "enum": [
+            "light",
+            "communication",
+            "creation",
+            "information",
+            "control",
+            "sensory",
+            "other"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "recurringMechanics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecurringMechanic"
+          }
+        },
+        "conditionRemoval": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attackAugments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AttackAugment"
+          }
+        },
+        "grantedActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GrantedAction"
+          }
+        },
+        "abilityCheckModifier": {
+          "$ref": "#/definitions/AbilityCheckModifier"
+        },
+        "controlledEntity": {
+          "$ref": "#/definitions/ControlledEntity"
+        },
+        "sensoryManifestation": {
+          "$ref": "#/definitions/SensoryManifestation"
+        },
+        "illusion": {
+          "$ref": "#/definitions/IllusionMetadata"
+        },
+        "fallControl": {
+          "type": "object",
+          "properties": {
+            "descentRate": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "not_applicable"
+                  ]
+                }
+              ]
+            },
+            "descentRateUnit": {
+              "type": "string",
+              "enum": [
+                "feet_per_round",
+                "not_applicable"
+              ]
+            },
+            "fallDamageOnLanding": {
+              "type": "string",
+              "enum": [
+                "prevented",
+                "normal",
+                "not_applicable"
+              ]
+            },
+            "endingTrigger": {
+              "type": "string",
+              "enum": [
+                "target_lands",
+                "not_applicable"
+              ]
+            },
+            "endingScope": {
+              "type": "string",
+              "enum": [
+                "effect",
+                "spell",
+                "not_applicable"
+              ]
+            }
+          }
+        },
+        "barrierDamagePrevention": {
+          "type": "object",
+          "properties": {
+            "blockDirections": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "outside_to_inside",
+                  "inside_to_outside",
+                  "both"
+                ]
+              }
+            },
+            "sourceCategories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "attack",
+                  "effect",
+                  "spell",
+                  "object",
+                  "energy"
+                ]
+              }
+            },
+            "protectedSubjects": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "inside_creature_or_object",
+                  "outside_targets",
+                  "barrier_itself"
+                ]
+              }
+            }
+          }
+        },
+        "spellEffectPrevention": {
+          "type": "object",
+          "properties": {
+            "sourceSide": {
+              "type": "string",
+              "enum": [
+                "outside",
+                "inside",
+                "any"
+              ]
+            },
+            "maxSpellLevel": {
+              "type": "number"
+            },
+            "affectedSubjects": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "creatures",
+                  "objects",
+                  "areas",
+                  "anything_inside"
+                ]
+              }
+            },
+            "excludesAreaOfEffect": {
+              "type": "boolean"
+            },
+            "scaling": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "slot_level_threshold_bonus"
+                  ]
+                },
+                "baseSlotLevel": {
+                  "type": "number"
+                },
+                "bonusPerSlotLevel": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "deathPrevention": {
+          "$ref": "#/definitions/DeathPrevention"
+        },
+        "endCleanup": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EffectEndCleanup"
+          }
+        },
+        "sustainRequirement": {
+          "$ref": "#/definitions/SustainRequirement"
+        },
+        "linkedDamage": {
+          "type": "object",
+          "properties": {
+            "trigger": {
+              "type": "string",
+              "enum": [
+                "target_takes_damage"
+              ]
+            },
+            "recipient": {
+              "type": "string",
+              "enum": [
+                "caster",
+                "target",
+                "linked_creature"
+              ]
+            },
+            "amount": {
+              "type": "string",
+              "enum": [
+                "same_amount"
+              ]
+            },
+            "amountBasis": {
+              "type": "string",
+              "enum": [
+                "post_target_mitigation"
+              ]
+            },
+            "damageTypeSource": {
+              "type": "string",
+              "enum": [
+                "triggering_damage_type",
+                "untyped"
+              ]
+            },
+            "recipientMitigation": {
+              "type": "string",
+              "enum": [
+                "not_reapplied",
+                "apply_recipient_mitigation"
+              ]
+            }
+          }
+        },
+        "resistanceSuppression": {
+          "type": "object",
+          "properties": {
+            "damageType": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "damageTypeSource": {
+              "type": "string",
+              "enum": [
+                "listed",
+                "chosen_damage_type",
+                "triggering_damage_type"
+              ]
+            }
+          }
+        },
+        "damageInteraction": {
+          "type": "object",
+          "properties": {
+            "modes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "resistance",
+                  "vulnerability"
+                ]
+              }
+            },
+            "damageType": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "damageTypeSource": {
+              "type": "string",
+              "enum": [
+                "listed",
+                "chosen_damage_type",
+                "triggering_damage_type"
+              ]
+            },
+            "subjectScope": {
+              "type": "string",
+              "enum": [
+                "chosen_creature_types",
+                "all_targets",
+                "not_applicable"
+              ]
+            },
+            "durationScope": {
+              "type": "string",
+              "enum": [
+                "while_in_area",
+                "while_active",
+                "permanent"
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "type",
+        "utilityType",
+        "description"
+      ]
+    },
+    "DefensiveEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "DEFENSIVE"
+        },
+        "defenseType": {
+          "type": "string",
+          "enum": [
+            "ac_bonus",
+            "resistance",
+            "immunity",
+            "damage_reduction",
+            "temporary_hp",
+            "advantage_on_saves",
+            "disadvantage_on_attacks"
+          ]
+        },
+        "value": {
+          "type": "number"
+        },
+        "damageType": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "damageTypeSource": {
+          "type": "string",
+          "enum": [
+            "listed",
+            "triggering_damage_type",
+            "chosen_damage_type"
+          ]
+        },
+        "excludedDamageType": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "damageReduction": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "flat": {
+              "type": "number"
+            },
+            "appliesTo": {
+              "type": "string",
+              "enum": [
+                "damage_taken"
+              ]
+            },
+            "frequency": {
+              "type": "string",
+              "enum": [
+                "once_per_turn",
+                "every_time"
+              ]
+            }
+          }
+        },
+        "resistanceSuppression": {
+          "type": "object",
+          "properties": {
+            "damageType": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "damageTypeSource": {
+              "type": "string",
+              "enum": [
+                "listed",
+                "chosen_damage_type",
+                "triggering_damage_type"
+              ]
+            }
+          }
+        },
+        "damageInteraction": {
+          "type": "object",
+          "properties": {
+            "modes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "resistance",
+                  "vulnerability"
+                ]
+              }
+            },
+            "damageType": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "damageTypeSource": {
+              "type": "string",
+              "enum": [
+                "listed",
+                "chosen_damage_type",
+                "triggering_damage_type"
+              ]
+            },
+            "subjectScope": {
+              "type": "string",
+              "enum": [
+                "chosen_creature_types",
+                "all_targets",
+                "not_applicable"
+              ]
+            },
+            "durationScope": {
+              "type": "string",
+              "enum": [
+                "while_in_area",
+                "while_active",
+                "permanent"
+              ]
+            }
+          }
+        },
+        "preventionImmunity": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "hit_point_maximum_reduction"
+            ]
+          }
+        },
+        "deathPrevention": {
+          "$ref": "#/definitions/DeathPrevention"
+        },
+        "endCleanup": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EffectEndCleanup"
+          }
+        },
+        "conditionImmunity": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "conditionSuppression": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "savingThrow": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "defenseSourceFilter": {
+          "type": "object",
+          "properties": {
+            "sourceCategories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "attack",
+                  "spell",
+                  "effect",
+                  "environment"
+                ]
+              }
+            },
+            "attackMagicalStatus": {
+              "type": "string",
+              "enum": [
+                "any",
+                "magical",
+                "nonmagical",
+                "not_applicable"
+              ]
+            }
+          }
+        },
+        "duration": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "type",
+        "defenseType",
+        "duration"
+      ]
+    }
+  }
+}

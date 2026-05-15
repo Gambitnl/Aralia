@@ -33,7 +33,7 @@ Implement a dynamic economy where world events (e.g., droughts, surpluses) visib
 ### 4. Connect UI
 - [x] Update `src/components/Trade/MerchantModal.tsx`.
   - Uses `calculatePrice` from `economyUtils` for buy/sell prices.
-  - Visual indicators: â–² High Demand (red), â–¼ Low Price (green) based on `isModified` + `multiplier`.
+  - Visual indicators: â-² High Demand (red), â-1/4 Low Price (green) based on `isModified` + `multiplier`.
 
 ### 5. Verification
 - [x] Unit tests for `economyUtils`.
@@ -49,14 +49,14 @@ Implement a dynamic economy where world events (e.g., droughts, surpluses) visib
 
 From `docs/VISION.md` Section 6: Economy & Trade:
 
-- [x] Dynamic economy simulation â€” `economyUtils.ts`, MarketEvents, scarcity/surplus modifiers
-- [x] Trade route mechanics â€” `TradeRouteManager.ts` + `TradeRouteSystem.ts` in `src/systems/economy/`
-- [x] Resource availability per region â€” `REGIONAL_ECONOMIES` in `src/data/economy/regions.ts` with per-region imports/exports
-- [ ] Business ownership â€” Stronghold types defined but no business simulation
-- [ ] Investment/profit system â€” No caravan investment, loans, or speculation
-- [ ] Smuggling mechanics â€” `SmugglingSystem.ts` exists but not wired to economy
-- [ ] Guild membership/politics â€” `ThievesGuildSystem.ts` exists but no faction-wide economics
-- [x] Price fluctuation events â€” `MarketEventType` (BOOM, BUST, SHORTAGE, SURPLUS, WAR_TAX, FESTIVAL) via WorldEventManager
+- [x] Dynamic economy simulation â€" `economyUtils.ts`, MarketEvents, scarcity/surplus modifiers
+- [x] Trade route mechanics â€" `TradeRouteManager.ts` + `TradeRouteSystem.ts` in `src/systems/economy/`
+- [x] Resource availability per region â€" `REGIONAL_ECONOMIES` in `src/data/economy/regions.ts` with per-region imports/exports
+- [ ] Business ownership â€" Stronghold types defined but no business simulation
+- [ ] Investment/profit system â€" No caravan investment, loans, or speculation
+- [ ] Smuggling mechanics â€" `SmugglingSystem.ts` exists but not wired to economy
+- [ ] Guild membership/politics â€" `ThievesGuildSystem.ts` exists but no faction-wide economics
+- [x] Price fluctuation events â€" `MarketEventType` (BOOM, BUST, SHORTAGE, SURPLUS, WAR_TAX, FESTIVAL) via WorldEventManager
 
 ### Beyond Original Plan (Already Built)
 - [x] Regional import/export price modifiers in `calculatePrice()`
@@ -67,7 +67,7 @@ From `docs/VISION.md` Section 6: Economy & Trade:
 
 ---
 
-## Expanded Roadmap â€” Phases 1â€“7
+## Expanded Roadmap â€" Phases 1â€"7
 
 ### Phase 1: Wire the Foundation
 **Goal**: Fix orphaned `legacyReducer` (stronghold actions currently do nothing), connect `processDailyUpkeep` to daily loop, add stronghold management actions.
@@ -102,7 +102,7 @@ From `docs/VISION.md` Section 6: Economy & Trade:
 - [ ] Tests for faction economics
 
 ### Phase 4: Business Ownership
-**Goal**: Full business simulation extending strongholds â€” supply chains, customer satisfaction, competition.
+**Goal**: Full business simulation extending strongholds â€" supply chains, customer satisfaction, competition.
 
 - [ ] Create `src/types/business.ts` (BusinessType, BusinessMetrics, SupplyContract, BusinessState, BusinessDailyReport)
 - [ ] Create `src/systems/economy/BusinessSimulation.ts`
@@ -134,7 +134,7 @@ From `docs/VISION.md` Section 6: Economy & Trade:
 - [ ] Tests for intel delay and courier system
 
 ### Phase 7: In-World UI
-**Goal**: Enchanted ledger books, wax-sealed courier scrolls, tavern notice boards â€” no modern dashboards.
+**Goal**: Enchanted ledger books, wax-sealed courier scrolls, tavern notice boards â€" no modern dashboards.
 
 - [ ] Create `src/components/Economy/LedgerBook.tsx` (enchanted book with parchment)
 - [ ] Create `src/components/Economy/CourierPouch.tsx` (sealed scrolls)

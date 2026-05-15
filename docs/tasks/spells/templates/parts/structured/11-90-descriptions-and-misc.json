@@ -1,0 +1,228 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 11,
+  "fields": [
+    {
+      "label": "Repeat Save Timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "turn_end",
+        "turn_start",
+        "on_damage",
+        "on_action",
+        "after_forced_movement",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.repeatSave.timing",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Repeat-save spells need the trigger timing as structured data."
+        }
+      ],
+      "comment": "Repeat-save spells need the trigger timing as structured data. It maps to `effects[].statusCondition.repeatSave.timing`. Purpose: Repeat Save Timing exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.repeatSave.timing`. The value type is `enum`. Use `not_applicable` when the spell has no repeat save/check.",
+      "acceptedValueNotes": {
+        "turn_end": "Repeat save or check happens at the end of the affected creature's turn.",
+        "turn_start": "Repeat save or check happens at the start of the affected creature's turn.",
+        "on_damage": "Repeat save or check happens when the affected creature takes damage.",
+        "on_action": "Repeat save or check requires an action or similar deliberate attempt.",
+        "after_forced_movement": "Repeat save or check happens after spell-forced movement has been resolved.",
+        "not_applicable": "Schema-safe sentinel for spells with no repeat save/check."
+      }
+    },
+    {
+      "label": "Repeat Save Additional Timings",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "turn_end",
+        "turn_start",
+        "on_damage",
+        "on_action",
+        "after_forced_movement",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.repeatSave.additionalTimings[]",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some spells repeat on more than one trigger; this keeps the second trigger out of prose-only descriptions."
+        }
+      ],
+      "comment": "Some spells repeat on more than one trigger; this keeps the second trigger out of prose-only descriptions. It maps to `effects[].statusCondition.repeatSave.additionalTimings[]`. Purpose: Repeat Save Additional Timings exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.repeatSave.additionalTimings[]`. The value type is `csv-enum`. Use `not_applicable` when there is no additional timing."
+    },
+    {
+      "label": "Repeat Save Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+        "strength_check",
+        "wisdom_check",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.repeatSave.saveType",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The repeat save/check ability needs to remain visible even when it differs from the initial spell save summary."
+        }
+      ],
+      "comment": "The repeat save/check ability needs to remain visible even when it differs from the initial spell save summary. It maps to `effects[].statusCondition.repeatSave.saveType`. Purpose: Repeat Save Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.repeatSave.saveType`. The value type is `enum`. Use `not_applicable` when the spell has no repeat save/check."
+    },
+    {
+      "label": "Repeat Save Success Ends",
+      "required": false,
+      "valueType": "boolean-or-sentinel",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.repeatSave.successEnds",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "A repeat save success can immediately end the spell or only count toward a later threshold."
+        }
+      ],
+      "comment": "A repeat save success can immediately end the spell or only count toward a later threshold. It maps to `effects[].statusCondition.repeatSave.successEnds`. Purpose: Repeat Save Success Ends exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.repeatSave.successEnds`. The value type is `boolean-or-sentinel`. Use `not_applicable` when the spell has no repeat save/check."
+    },
+    {
+      "label": "Repeat Save Prerequisites",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "no_line_of_sight_to_caster",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.repeatSave.prerequisites[]",
+      "log": [
+        {
+          "at": "2026-05-14T04:15:00+02:00",
+          "action": "created",
+          "why": "Fear allows its repeat save only when the affected creature ends its turn without line of sight to the caster."
+        }
+      ],
+      "comment": "Repeat Save Prerequisites records conditions that must be true before a repeat save can be attempted. It maps to `effects[].statusCondition.repeatSave.prerequisites[]`. Purpose: Repeat Save Prerequisites exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about gated repeat saves. Use `no_line_of_sight_to_caster` when the creature can attempt the save only after ending its turn where it cannot see the caster. Use `not_applicable` when the repeat save has no prerequisite."
+    },
+    {
+      "label": "Repeat Save Progression",
+      "required": false,
+      "valueType": "summary-or-sentinel",
+      "jsonPath": "effects[].statusCondition.repeatSave.progression",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Counter-based spells need to preserve success/failure thresholds and final outcomes."
+        }
+      ],
+      "comment": "Counter-based spells need to preserve success/failure thresholds and final outcomes. It maps to `effects[].statusCondition.repeatSave.progression`. Purpose: Repeat Save Progression exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.repeatSave.progression`. The value type is `summary-or-sentinel`. Use `not_applicable` when the repeat save has no success/failure counter."
+    },
+    {
+      "label": "Escape Check Ability",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.escapeCheck.ability",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Some conditions can be ended by an action check that is not the same as the repeat save."
+        }
+      ],
+      "comment": "Escape Check Ability records the ability used for an action-based escape or release check. It maps to `effects[].statusCondition.escapeCheck.ability`. Purpose: Escape Check Ability exists so canonical prose, structured markdown, and runtime JSON do not flatten action checks into repeat saves. Use `not_applicable` when the condition has no action-based escape check."
+    },
+    {
+      "label": "Escape Check Skill",
+      "required": false,
+      "valueType": "string-or-sentinel",
+      "jsonPath": "effects[].statusCondition.escapeCheck.skill",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Snare uses Intelligence (Arcana), which loses mechanics if only Intelligence is recorded."
+        }
+      ],
+      "comment": "Escape Check Skill records a named skill required for an escape or release check. It maps to `effects[].statusCondition.escapeCheck.skill`. Purpose: Escape Check Skill exists so skill-specific checks such as Intelligence (Arcana) do not become generic ability checks. Use `not_applicable` when the escape check has no named skill or no escape check exists."
+    },
+    {
+      "label": "Escape Check DC",
+      "required": false,
+      "valueType": "number-or-enum",
+      "acceptedValues": [
+        "spell_save_dc",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.escapeCheck.dc",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Escape checks need to preserve whether they use a fixed DC or the caster's spell save DC."
+        }
+      ],
+      "comment": "Escape Check DC records the target number for an action-based escape or release check. It maps to `effects[].statusCondition.escapeCheck.dc`. Purpose: Escape Check DC exists so the runtime can distinguish fixed DCs from the caster's spell save DC. Use `not_applicable` when no escape check exists."
+    },
+    {
+      "label": "Escape Check Action Cost",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.escapeCheck.actionCost",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Action-based escape checks need their action economy represented."
+        }
+      ],
+      "comment": "Escape Check Action Cost records what action economy is spent to attempt the escape or release check. It maps to `effects[].statusCondition.escapeCheck.actionCost`. Purpose: Escape Check Action Cost exists so escape mechanics are not hidden in prose. Use `not_applicable` when no escape check exists."
+    },
+    {
+      "label": "Escape Check Eligible Actors",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "affected_creature",
+        "creature_that_can_reach_affected_creature",
+        "not_applicable"
+      ],
+      "jsonPath": "effects[].statusCondition.escapeCheck.eligibleActors[]",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Snare allows either the restrained creature or another creature that can reach it to attempt the Arcana check."
+        }
+      ],
+      "comment": "Escape Check Eligible Actors records who may spend the action to attempt the escape or release check. It maps to `effects[].statusCondition.escapeCheck.eligibleActors[]`. Purpose: Escape Check Eligible Actors exists so helper-release mechanics are not collapsed into the affected creature's own repeat save. Use `not_applicable` when no escape check exists."
+    }
+  ]
+}

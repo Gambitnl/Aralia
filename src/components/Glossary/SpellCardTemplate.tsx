@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 06/04/2026, 03:47:23
+ * Last Sync: 07/05/2026, 00:03:31
  * Dependents: components/Glossary/Glossary.tsx, components/Glossary/GlossaryEntryPanel.tsx, components/Glossary/index.ts, components/Glossary/spellGateChecker/SpellGateBucketSections.tsx, components/Glossary/spellGateChecker/SpellGateChecksPanel.tsx
  * Imports: 1 files
  *
@@ -23,7 +23,7 @@ import GlossaryTooltip from './GlossaryTooltip';
  */
 type DistanceUnit = 'feet' | 'miles' | 'inches';
 type SpatialMeasuredUnit = DistanceUnit | 'gallons' | 'minutes';
-type GeometrySizeType = 'radius' | 'diameter' | 'length' | 'edge' | 'side';
+type GeometrySizeType = 'radius' | 'diameter' | 'length' | 'edge' | 'side' | 'square';
 
 export interface SpellData {
     id: string;
@@ -207,6 +207,8 @@ const formatSizeTypeLabel = (sizeType?: GeometrySizeType): string => {
             return 'Edge';
         case 'side':
             return 'Side';
+        case 'square':
+            return 'Square';
         default:
             return 'Size';
     }
@@ -359,7 +361,9 @@ const formatRange = (range?: SpellData['range'], targeting?: SpellData['targetin
             'Ring': '⭕'
         };
 
-        let aoeLabel = `${formatSizeTypeLabel(sizeType)} ${formatMeasuredDistance(size, sizeUnit ?? 'feet')} ${shapeEmoji[shape] || shape}`;
+        let aoeLabel = sizeType === 'square'
+            ? `${size.toLocaleString('en-US')} sq. ft.`
+            : `${formatSizeTypeLabel(sizeType)} ${formatMeasuredDistance(size, sizeUnit ?? 'feet')} ${shapeEmoji[shape] || shape}`;
 
         // Add semantic notes for extended AoE types
         if (followsCaster) aoeLabel += ' (follows caster)';

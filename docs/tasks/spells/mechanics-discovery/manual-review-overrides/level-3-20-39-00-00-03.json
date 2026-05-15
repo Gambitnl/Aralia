@@ -1,0 +1,121 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "haste": [
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "haste::object_stats_or_damageability",
+        "canonicalEvidence": "It gains a +2 bonus to Armor Class.",
+        "structuredState": "Effect Type now includes DEFENSIVE.",
+        "jsonState": "Runtime JSON now has DEFENSIVE ac_bonus +2.",
+        "issue": "The AC bonus is represented as a defensive effect; remaining Haste gaps are tracked under modifier, movement, and aftermath rows.",
+        "recommendedTemplateChange": "No object-stat field change required for this row.",
+        "recommendedJsonChange": "Closed by adding DEFENSIVE ac_bonus +2 and avoiding an object-stat interpretation.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "haste::status_or_state_change",
+        "canonicalEvidence": "When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn.",
+        "structuredState": "Conditions Applied now uses not_applicable so the structured block does not falsely claim an immediate encoded condition.",
+        "jsonState": "Runtime JSON does not encode the post-spell Incapacitated/Speed 0 consequence because spell-end effect timing is not supported.",
+        "issue": "Haste has a delayed spell-end state change that needs a spell-end trigger model before it can be encoded correctly.",
+        "recommendedTemplateChange": "Add spellEndTrigger/afterEffect fields for temporary post-duration statuses and speed overrides.",
+        "recommendedJsonChange": "Add runtime spellEndEffect data for Incapacitated and Speed 0 until the end of the target's next turn.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "haste::conditional_ending",
+        "canonicalEvidence": "Until the spell ends ... When the spell ends ...",
+        "structuredState": "Duration and concentration fields represent the normal spell duration.",
+        "jsonState": "Runtime defensive duration matches the one-minute concentration duration.",
+        "issue": "The ordinary duration scoping is represented; the post-spell aftermath is tracked separately.",
+        "recommendedTemplateChange": "No conditional ending change required for this row.",
+        "recommendedJsonChange": "No duration runtime change required for this row.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "aftermath_or_memory",
+        "findingId": "haste::aftermath_or_memory",
+        "canonicalEvidence": "When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn, as a wave of lethargy washes over it.",
+        "structuredState": "The aftermath remains only in canonical prose and Description.",
+        "jsonState": "Runtime JSON intentionally does not encode the aftermath as immediate status.",
+        "issue": "Haste's end-of-spell lethargy is a delayed aftermath effect that needs first-class spell-end timing.",
+        "recommendedTemplateChange": "Add aftermath fields for spell-end effects, status, movement override, and end timing.",
+        "recommendedJsonChange": "Add runtime aftermath/spellEndEffect data instead of immediate status.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "haste::manual_willing_target",
+        "canonicalEvidence": "Choose a willing creature that you can see within range.",
+        "structuredState": "Valid Targets: willing_creature.",
+        "jsonState": "Runtime targeting uses allies and has no first-class willing target filter.",
+        "issue": "Haste requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      },
+      {
+        "bucketId": "movement_or_repositioning",
+        "findingId": "haste::manual_speed_and_limited_extra_action",
+        "canonicalEvidence": "The target's Speed is doubled ... and it gains an additional action on each of its turns. That action can be used to take only the Attack (one attack only), Dash, Disengage, Hide, or Utilize action.",
+        "structuredState": "No speed multiplier or limited extra-action fields.",
+        "jsonState": "Runtime JSON has no movement modifier or extra-action data.",
+        "issue": "Haste's speed doubling and constrained extra action are not represented.",
+        "recommendedTemplateChange": "Add speedMultiplier and extraAction fields with allowed action list and one-attack limit.",
+        "recommendedJsonChange": "Add runtime movementModifier speed x2 and extraAction allowedActions Attack/Dash/Disengage/Hide/Utilize with oneAttackOnly.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "hunger-of-hadar": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "hunger-of-hadar::choice_or_mode",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. The Cold or Acid damage (your choice) increases by 1d6 for each spell slot level above 3.",
+        "structuredState": "Scaling Rule 1 records special_text choice scaling.",
+        "jsonState": "Runtime damage effects include prose customFormula but no typed choice of which damage leg scales.",
+        "issue": "Hunger of Hadar lets the caster choose whether Cold or Acid damage scales at higher slots, but runtime has no typed scaling-choice data.",
+        "recommendedTemplateChange": "Add choice-based damage scaling fields.",
+        "recommendedJsonChange": "Add runtime scalingChoice data allowing Cold or Acid +1d6 per slot above 3.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "hunger-of-hadar::attack_or_save_modifier",
+        "canonicalEvidence": "Any creature that ends its turn there must succeed on a Dexterity saving throw or take 2d6 Acid damage.",
+        "structuredState": "Save Stat: Dexterity; Save Outcome: none.",
+        "jsonState": "Runtime end-turn Acid damage now uses a Dexterity save with saveEffect none.",
+        "issue": "The end-turn Dexterity save negating Acid damage is represented after splitting the flattened damage effect.",
+        "recommendedTemplateChange": "No save-field change required for this row.",
+        "recommendedJsonChange": "Closed by changing the Acid leg to an end-turn Dexterity save with no damage on success.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "hunger-of-hadar::terrain_or_surface",
+        "canonicalEvidence": "The Sphere is Difficult Terrain.",
+        "structuredState": "Effect Type includes TERRAIN.",
+        "jsonState": "Runtime JSON now has a TERRAIN effect with terrainType difficult and a 20-foot Sphere area.",
+        "issue": "The difficult terrain mechanic is represented in structured markdown and runtime JSON.",
+        "recommendedTemplateChange": "No terrain-field change required for this row.",
+        "recommendedJsonChange": "Closed by adding a TERRAIN difficult effect for the sphere.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "hunger-of-hadar::vision_light_sound",
+        "canonicalEvidence": "It is filled with strange whispers and slurping noises, which can be heard up to 30 feet away. No light, magical or otherwise, can illuminate the area, and creatures fully within it have the Blinded condition.",
+        "structuredState": "Effect Type includes STATUS_CONDITION, but no darkness, anti-light, audible-radius, or fully-within condition fields.",
+        "jsonState": "Runtime JSON now has Blinded, but not the no-light illumination rule, sound radius, or fully-within area membership condition.",
+        "issue": "Hunger of Hadar's darkness, anti-illumination, sound radius, and fully-within blind condition are only partially represented.",
+        "recommendedTemplateChange": "Add darkness/illumination suppression, sound radius, and area-membership condition fields.",
+        "recommendedJsonChange": "Add runtime visionLightSound data for magical/nonmagical light suppression, audible 30 feet, and Blinded only while fully within.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

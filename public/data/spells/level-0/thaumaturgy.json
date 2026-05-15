@@ -9,7 +9,6 @@
     "Cleric"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -53,19 +52,111 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 6,
+    "optionsSource": "controlOptions",
+    "maxActiveNonInstantaneous": 3,
+    "canDismissActive": "not_applicable",
+    "options": [
+      {
+        "label": "Altered Eyes",
+        "summary": "Alter the appearance of your eyes for 1 minute.",
+        "controlOptionIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute"
+      },
+      {
+        "label": "Booming Voice",
+        "summary": "Make your voice boom up to three times as loud for 1 minute and gain Advantage on Charisma (Intimidation) checks.",
+        "controlOptionIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute"
+      },
+      {
+        "label": "Fire Play",
+        "summary": "Cause flames to flicker, brighten, dim, or change color for 1 minute.",
+        "controlOptionIndices": [
+          2
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute"
+      },
+      {
+        "label": "Invisible Hand",
+        "summary": "Instantly cause an unlocked door or window to fly open or slam shut.",
+        "controlOptionIndices": [
+          3
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "instantaneous"
+      },
+      {
+        "label": "Phantom Sound",
+        "summary": "Create an instantaneous sound from a chosen point within range.",
+        "controlOptionIndices": [
+          4
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "instantaneous"
+      },
+      {
+        "label": "Tremors",
+        "summary": "Cause harmless tremors in the ground for 1 minute.",
+        "controlOptionIndices": [
+          5
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 minute"
+      }
+    ],
+    "notes": "Up to three 1-minute Thaumaturgy effects can be active at a time."
   },
   "effects": [
     {
@@ -86,18 +177,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
       "description": "Create one minor sign (voice boom, flame change, tremor, door/shutter movement, eye color change, harmless omen) lasting up to 1 minute.",
@@ -108,7 +218,33 @@
       },
       "grantedActions": [],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "name": "Altered Eyes",
+          "effect": "Alter the appearance of your eyes for 1 minute."
+        },
+        {
+          "name": "Booming Voice",
+          "effect": "Your voice booms up to three times as loud as normal for 1 minute.",
+          "details": "For the duration, you have Advantage on Charisma (Intimidation) checks."
+        },
+        {
+          "name": "Fire Play",
+          "effect": "Cause flames to flicker, brighten, dim, or change color for 1 minute."
+        },
+        {
+          "name": "Invisible Hand",
+          "effect": "Instantly cause an unlocked door or window to fly open or slam shut."
+        },
+        {
+          "name": "Phantom Sound",
+          "effect": "Create an instantaneous sound that originates from a point of your choice within range."
+        },
+        {
+          "name": "Tremors",
+          "effect": "Cause harmless tremors in the ground for 1 minute."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -127,8 +263,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
@@ -136,7 +280,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "Manifest a minor wonder within range. Choose one: boom your voice, alter flames, tremble ground, open/close shutters, change eye color, or cause harmless signs-all lasting up to a minute.",
+  "description": "You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time. Altered Eyes. You alter the appearance of your eyes for 1 minute. Booming Voice. Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) checks. Fire Play. You cause flames to flicker, brighten, dim, or change color for 1 minute. Invisible Hand. You instantaneously cause an unlocked door or window to fly open or slam shut. Phantom Sound. You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers. Tremors. You cause harmless tremors in the ground for 1 minute.",
   "higherLevels": "",
   "tags": [
     "utility",

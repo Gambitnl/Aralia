@@ -12,7 +12,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -68,7 +67,27 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     },
     "rangeUnit": "feet",
     "spatialDetails": {
@@ -96,6 +115,400 @@
     {
       "type": "DAMAGE",
       "trigger": {
+        "type": "on_enter_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "damage": {
+        "dice": "10d10",
+        "type": "Necrotic"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "Death symbol: each target makes a Constitution save, taking 10d10 Necrotic damage on a failed save or half as much on success.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Frightened",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "breakTriggers": [
+          "duration_expires"
+        ],
+        "aftermath": "While Frightened, the target must move at least 30 feet away from the glyph on each of its turns if able."
+      },
+      "description": "Fear symbol failed save applies Frightened for 1 minute.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Incapacitated",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "breakTriggers": [
+          "duration_expires"
+        ],
+        "aftermath": ""
+      },
+      "description": "Pain symbol failed save applies Incapacitated for 1 minute.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Unconscious",
+        "duration": {
+          "type": "minutes",
+          "value": 10
+        },
+        "breakTriggers": [
+          "target_takes_damage"
+        ],
+        "aftermath": "A creature can also wake the target by using an action to shake it awake."
+      },
+      "description": "Sleep symbol failed save applies Unconscious for 10 minutes.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Stunned",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "breakTriggers": [
+          "duration_expires"
+        ],
+        "aftermath": ""
+      },
+      "description": "Stunning symbol failed save applies Stunned for 1 minute.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "ATTACK_ROLL_MODIFIER",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "attackRollModifier": {
+        "modifier": "disadvantage",
+        "direction": "outgoing",
+        "attackKind": "any",
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "notes": "Discord also prevents meaningful communication and gives disadvantage on ability checks."
+      },
+      "description": "Discord symbol failed save causes argument and disadvantage on attack rolls and ability checks for 1 minute.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
         "type": "immediate",
         "frequency": "every_time",
         "consumption": "unlimited",
@@ -111,29 +524,150 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
-      "damage": {
-        "dice": "10d10",
-        "type": "Necrotic"
-      },
+      "utilityType": "other",
+      "description": "You inscribe a harmful glyph either on a surface (such as a section of floor or wall) or within an object that can be closed (such as a book or chest). The glyph can cover an area no larger than 10 feet in diameter. If you choose an object, it must remain in place; if it is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered. The glyph is nearly imperceptible and requires a successful Wisdom (Perception) check against your spell save DC to notice. When you inscribe the glyph, you set its trigger and choose which effect the symbol bears: Death, Discord, Fear, Pain, Sleep, or Stunning. Each one is explained below. Set the Trigger. You decide what triggers the glyph when you cast the spell. For glyphs inscribed on a surface, common triggers include touching or stepping on the glyph, removing another object covering it, or approaching within a certain distance of it. For glyphs inscribed within an object, common triggers include opening that object or seeing the glyph. You can refine the trigger so that only creatures of certain types activate it (for example, the glyph could be set to affect Aberrations). You can also set conditions for creatures that don't trigger the glyph, such as those who say a certain password. Once triggered, the glyph glows, filling a 60-foot-radius Sphere with Dim Light for 10 minutes, after which time the spell ends. Each creature in the Sphere when the glyph activates is targeted by its effect, as is a creature that enters the Sphere for the first time on a turn or ends its turn there. A creature is targeted only once per turn. Death. Each target makes a Constitution saving throw, taking 10d10 Necrotic damage on a failed save or half as much damage on a successful save. Discord. Each target makes a Wisdom saving throw. On a failed save, a target argues with other creatures for 1 minute. During this time, it is incapable of meaningful communication and has Disadvantage on attack rolls and ability checks. Fear. Each target must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute. While Frightened, the target must move at least 30 feet away from the glyph on each of its turns, if able. Pain. Each target must succeed on a Constitution saving throw or have the Incapacitated condition for 1 minute. Sleep. Each target must succeed on a Wisdom saving throw or have the Unconscious condition for 10 minutes. A creature awakens if it takes damage or if someone takes an action to shake it awake. Stunning. Each target must succeed on a Wisdom saving throw or have the Stunned condition for 1 minute.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": ""
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [
+        {
+          "name": "Surface Or Object Glyph",
+          "effect": "The glyph can be inscribed on a surface or within a closable object and can cover an area no larger than 10 feet in diameter."
+        },
+        {
+          "name": "Object Movement Breaks Glyph",
+          "effect": "If an inscribed object moves more than 10 feet from where the spell was cast, the glyph breaks and the spell ends without triggering."
+        },
+        {
+          "name": "Nearly Imperceptible",
+          "effect": "The glyph requires a successful Wisdom (Perception) check against your spell save DC to notice."
+        },
+        {
+          "name": "Set Trigger",
+          "effect": "You decide what triggers the glyph when you cast the spell."
+        },
+        {
+          "name": "Refine Trigger",
+          "effect": "You can refine the trigger so only creatures of certain types activate it."
+        },
+        {
+          "name": "Trigger Exclusions",
+          "effect": "You can set conditions for creatures that do not trigger the glyph, such as those saying a password."
+        },
+        {
+          "name": "Triggered Dim Light",
+          "effect": "Once triggered, the glyph glows and fills a 60-foot-radius Sphere with Dim Light for 10 minutes."
+        },
+        {
+          "name": "Once Per Turn Targeting",
+          "effect": "A creature in the Sphere is targeted when the glyph activates, enters for the first time on a turn, or ends its turn there, but only once per turn."
+        },
+        {
+          "name": "Death Symbol",
+          "effect": "Constitution save; failed save deals 10d10 Necrotic damage and successful save deals half."
+        },
+        {
+          "name": "Discord Symbol",
+          "effect": "Wisdom save; failed save makes the target argue for 1 minute, prevents meaningful communication, and gives Disadvantage on attack rolls and ability checks."
+        },
+        {
+          "name": "Fear Symbol",
+          "effect": "Wisdom save; failed save gives Frightened for 1 minute and the target must move at least 30 feet away from the glyph on each of its turns if able."
+        },
+        {
+          "name": "Pain Symbol",
+          "effect": "Constitution save; failed save gives Incapacitated for 1 minute."
+        },
+        {
+          "name": "Sleep Symbol",
+          "effect": "Wisdom save; failed save gives Unconscious for 10 minutes, ending if the target takes damage or another creature uses an action to shake it awake."
+        },
+        {
+          "name": "Stunning Symbol",
+          "effect": "Wisdom save; failed save gives Stunned for 1 minute."
+        }
+      ],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "inscribed_ward_moved_beyond_distance",
+          "scope": "spell",
+          "distanceFeet": 10,
+          "durationValue": "not_applicable",
+          "durationUnit": "not_applicable",
+          "description": "If an inscribed object moves more than 10 feet from where the spell was cast, the glyph breaks and the spell ends without triggering."
+        },
+        {
+          "trigger": "triggered_duration_expires",
+          "scope": "spell",
+          "distanceFeet": "not_applicable",
+          "durationValue": 10,
+          "durationUnit": "minute",
+          "description": "Once triggered, the symbol glows and remains active for 10 minutes, after which the spell ends."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -141,7 +675,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You inscribe a harmful glyph either on a surface (such as a section of floor or wall) or within an object that can be closed (such as a book or chest). The glyph can cover an area no larger than 10 feet in diameter. If you choose an object, it must remain in place; if it is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered. The glyph is nearly imperceptible and requires a successful Wisdom (Perception) check against your spell save DC to notice. When you inscribe the glyph, you set its trigger and choose which effect the symbol bears: Death, Discord, Fear, Pain, Sleep, or Stunning. Each one is explained below.",
+  "description": "You inscribe a harmful glyph either on a surface (such as a section of floor or wall) or within an object that can be closed (such as a book or chest). The glyph can cover an area no larger than 10 feet in diameter. If you choose an object, it must remain in place; if it is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered. The glyph is nearly imperceptible and requires a successful Wisdom (Perception) check against your spell save DC to notice. When you inscribe the glyph, you set its trigger and choose which effect the symbol bears: Death, Discord, Fear, Pain, Sleep, or Stunning. Each one is explained below. Set the Trigger. You decide what triggers the glyph when you cast the spell. For glyphs inscribed on a surface, common triggers include touching or stepping on the glyph, removing another object covering it, or approaching within a certain distance of it. For glyphs inscribed within an object, common triggers include opening that object or seeing the glyph. You can refine the trigger so that only creatures of certain types activate it (for example, the glyph could be set to affect Aberrations). You can also set conditions for creatures that don't trigger the glyph, such as those who say a certain password. Once triggered, the glyph glows, filling a 60-foot-radius Sphere with Dim Light for 10 minutes, after which time the spell ends. Each creature in the Sphere when the glyph activates is targeted by its effect, as is a creature that enters the Sphere for the first time on a turn or ends its turn there. A creature is targeted only once per turn. Death. Each target makes a Constitution saving throw, taking 10d10 Necrotic damage on a failed save or half as much damage on a successful save. Discord. Each target makes a Wisdom saving throw. On a failed save, a target argues with other creatures for 1 minute. During this time, it is incapable of meaningful communication and has Disadvantage on attack rolls and ability checks. Fear. Each target must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute. While Frightened, the target must move at least 30 feet away from the glyph on each of its turns, if able. Pain. Each target must succeed on a Constitution saving throw or have the Incapacitated condition for 1 minute. Sleep. Each target must succeed on a Wisdom saving throw or have the Unconscious condition for 10 minutes. A creature awakens if it takes damage or if someone takes an action to shake it awake. Stunning. Each target must succeed on a Wisdom saving throw or have the Stunned condition for 1 minute.",
   "higherLevels": "",
   "tags": []
 }

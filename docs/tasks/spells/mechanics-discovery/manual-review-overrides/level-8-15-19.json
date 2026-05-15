@@ -1,0 +1,255 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 8 packet 15-19 manual review decisions. Closed entries include reasons; open entries are schema propagation work."
+  ],
+  "findings": {
+    "maze::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched occupied-space fallback; target remains one visible creature and reappearance fallback is now a utility option.",
+      "recommendedTemplateChange": "Added Reappear on end option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "maze::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: sight is ordinary targeting and already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "maze::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: banishment to labyrinthine demiplane and return space are now utility/control options.",
+      "recommendedTemplateChange": "Added teleportation utility options.",
+      "recommendedJsonChange": "Added controlOptions."
+    },
+    "maze::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Study action escape check and success ending are now utility/control options.",
+      "recommendedTemplateChange": "Added Study escape option.",
+      "recommendedJsonChange": "Added Study escape controlOption."
+    },
+    "maze::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: target reappearing in original or nearest unoccupied space is now the Reappear on end option.",
+      "recommendedTemplateChange": "Added Reappear on end option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "mighty-fortress::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: door placement, room layout, furnishings, designated servant command permissions, and permanent-casting choice are now utility options.",
+      "recommendedTemplateChange": "Added Mighty Fortress utility options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "mighty-fortress::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: four turrets, up to four doors, rooms, and one hundred servants are now captured by spatial details and utility/summoning effects.",
+      "recommendedTemplateChange": "Existing spatial details plus new utility options preserve counts.",
+      "recommendedJsonChange": "Added controlOptions and SUMMONING count 100."
+    },
+    "mighty-fortress::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: ground eligibility and no-existing-structures requirement are now a Ground eligibility option.",
+      "recommendedTemplateChange": "Added Ground eligibility option.",
+      "recommendedJsonChange": "Changed runtime validTargets to ground and added option."
+    },
+    "mighty-fortress::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: sight is ordinary placement targeting and already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "mighty-fortress::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: fortress structure, keep, doors, furnishings, food, crumble behavior, and permanence are now utility options plus existing spatial details.",
+      "recommendedTemplateChange": "Added structure utility options.",
+      "recommendedJsonChange": "Added controlOptions."
+    },
+    "mighty-fortress::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: one hundred invisible servants are now a runtime SUMMONING effect.",
+      "recommendedTemplateChange": "Added Invisible servants utility option.",
+      "recommendedJsonChange": "Added SUMMONING servant effect with count 100."
+    },
+    "mighty-fortress::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: costly consumed diamond was already represented; food production/removal crumble are now utility options.",
+      "recommendedTemplateChange": "Added Furnishings and food option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "mighty-fortress::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: stone section AC/HP/immunities/destruction/collapse text is now a Stone durability utility option, with detailed data still tracked as schema gap.",
+      "recommendedTemplateChange": "Added Stone durability option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "mighty-fortress::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: harmless lift and safe leave-on-ground text do not apply a named condition; they are preserved in utility options/description.",
+      "recommendedTemplateChange": "No condition field needed.",
+      "recommendedJsonChange": "No STATUS_CONDITION JSON needed."
+    },
+    "mighty-fortress::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: fortress eruption/crumble/sinkback and permanence are now structure utility options.",
+      "recommendedTemplateChange": "Added Temporary fortress and Permanent fortress options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "mind-blank::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: emotion/alignment sensing, thought reading, location detection, information gathering, remote observation, and mind-control blocks are now utility options.",
+      "recommendedTemplateChange": "Added shielding utility options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "mind-blank::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Charmed immunity and information-gathering protection are now represented by defensive/utility effects.",
+      "recommendedTemplateChange": "Added Defense Type immunity and utility options.",
+      "recommendedJsonChange": "Added DEFENSIVE immunity and controlOptions."
+    },
+    "mind-blank::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: this is immunity to Charmed rather than applying Charmed; it is now represented as defensive immunity.",
+      "recommendedTemplateChange": "Added Defense Type immunity.",
+      "recommendedJsonChange": "Added DEFENSIVE immunity effect."
+    },
+    "mind-blank::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched \"until the spell ends\"; no special early ending exists beyond duration.",
+      "recommendedTemplateChange": "No conditional-ending template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "power-word-stun::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: no initial save exists; end-turn Constitution save is now repeatSave on the Stunned condition.",
+      "recommendedTemplateChange": "Added End-turn save utility option and Save Outcome negates_condition.",
+      "recommendedJsonChange": "Added Stunned STATUS_CONDITION repeatSave."
+    },
+    "power-word-stun::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Stunned target end-turn Constitution save is now runtime repeatSave metadata.",
+      "recommendedTemplateChange": "Added End-turn save utility option.",
+      "recommendedJsonChange": "Added repeatSave metadata."
+    },
+    "power-word-stun::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: sight is ordinary targeting and already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "power-word-stun::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: 150 Hit Point threshold is not object stats; it is now a Hit point threshold utility option and schema gap.",
+      "recommendedTemplateChange": "Added Hit point threshold option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "power-word-stun::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Stunned and alternate Speed 0 branch are now represented by status and movement effects.",
+      "recommendedTemplateChange": "Added Conditions Applied: Stunned and Movement Type stop.",
+      "recommendedJsonChange": "Added STATUS_CONDITION and MOVEMENT effects."
+    },
+    "power-word-stun::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: end-turn successful save ending the Stunned condition is now repeatSave metadata.",
+      "recommendedTemplateChange": "Added End-turn save option.",
+      "recommendedJsonChange": "Added repeatSave metadata."
+    },
+    "sunburst::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: point choice is ordinary area targeting already represented by ranged area geometry.",
+      "recommendedTemplateChange": "No choice template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "sunburst::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Constitution damage save and repeat save for Blinded are now represented by damage/status effects.",
+      "recommendedTemplateChange": "Added Blinded condition and utility options.",
+      "recommendedJsonChange": "Added DAMAGE and STATUS_CONDITION effects."
+    },
+    "sunburst::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: end-turn Constitution repeat save for Blinded is now repeatSave metadata.",
+      "recommendedTemplateChange": "Added End-turn save utility option.",
+      "recommendedJsonChange": "Added Blinded repeatSave metadata."
+    },
+    "sunburst::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: brilliant sunlight and Darkness dispel are now utility/control options.",
+      "recommendedTemplateChange": "Added Brilliant sunlight and Darkness dispel options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "sunburst::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Blinded is now explicit structured condition and runtime STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "Added Conditions Applied: Blinded.",
+      "recommendedJsonChange": "Added Blinded STATUS_CONDITION effect."
+    }
+  },
+  "manualFindings": {
+    "maze": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Maze needs a banishment/demiplane containment and escape-check schema instead of only utility options.",
+        "recommendedTemplateChange": "Add banishment destination, escape action/check/DC, and return-space fields.",
+        "recommendedJsonChange": "Add runtime banishment/escapeCheck/returnLocation objects.",
+        "bucketId": "travel_or_planar_movement",
+        "findingId": "maze::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "mighty-fortress": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Mighty Fortress needs durable created-structure stats for sections, per-inch HP, damage immunities, connected collapse, permanence cadence, and generated food/servants as data.",
+        "recommendedTemplateChange": "Add created-structure stat, permanence cadence, generated resource, and servant-control fields.",
+        "recommendedJsonChange": "Add runtime createdStructure, structureSectionStats, permanenceRule, generatedResources, and servantStaff objects.",
+        "bucketId": "created_object_or_structure",
+        "findingId": "mighty-fortress::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "mind-blank": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Mind Blank needs anti-divination/mind-control protection fields and condition-immunity fields that are not just damage immunity arrays.",
+        "recommendedTemplateChange": "Add conditionImmunity and informationProtection fields.",
+        "recommendedJsonChange": "Add runtime conditionImmunities and informationProtection objects.",
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "mind-blank::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "power-word-stun": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Power Word Stun needs hit-point threshold branching and alternate Speed 0 branch fields.",
+        "recommendedTemplateChange": "Add thresholdBranch fields for target HP and alternate effects.",
+        "recommendedJsonChange": "Add runtime thresholdBranches with <=150 Stunned and >150 Speed 0 outcomes.",
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "power-word-stun::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "sunburst": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Sunburst needs light/darkness interaction fields for dispelling Darkness created by any spell.",
+        "recommendedTemplateChange": "Add light/darkness interaction fields.",
+        "recommendedJsonChange": "Add runtime dispelsDarkness or lightInteraction object.",
+        "bucketId": "vision_light_sound",
+        "findingId": "sunburst::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ]
+  }
+}

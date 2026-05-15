@@ -9,7 +9,7 @@ A monolithic `effects` object is an `effects` array that contains only a single 
 
 These monolithic effects are inappropriately categorized because they almost universally (112 out of 113 instances) use `UTILITY` as a catch-all umbrella type. They use this generic type to mask what should be an array of granular, distinct damage, status, or terrain components.
 
-Because these spells were imported during early prototyping—prior to the engine supporting arrays of distinct effects—their effect-level `"description"` is currently just a 1-to-1 duplicate of the top-level spell `"description"`.
+Because these spells were imported during early prototyping-prior to the engine supporting arrays of distinct effects-their effect-level `"description"` is currently just a 1-to-1 duplicate of the top-level spell `"description"`.
 
 ## Examples Identified
 - `public/data/spells/level-9/prismatic-wall.json`: The entire spell acts as a single `UTILITY` block. It must be broken down sequentially: a conditional Fire damage effect (layer 1), Acid damage effect (layer 2), Lightning damage (layer 3), Poison damage (layer 4), Cold damage (layer 5), a conditional Restrained/Petrified status effect (layer 6), and a Blinded/teleportation effect (layer 7).

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 07/05/2026, 00:02:27
+ * Dependents: components/BattleMap/AbilityPalette.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file AbilityButton.tsx
  * A dedicated component for displaying a single ability button in the palette.
@@ -25,6 +41,10 @@ const formatAbilityRange = (range: number): string => {
 const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisabled }) => {
     const shouldReduceMotion = useReducedMotion();
     const isOnCooldown = (ability.currentCooldown || 0) > 0;
+    const isExhausted = ability.maxUses !== undefined && (ability.usesRemaining ?? ability.maxUses) <= 0;
+    const usesLabel = ability.maxUses !== undefined
+      ? `${ability.usesRemaining ?? ability.maxUses}/${ability.maxUses}`
+      : null;
     const costText = ability.cost.type.charAt(0).toUpperCase() + ability.cost.type.slice(1);
     const rangeText = formatAbilityRange(ability.range);
 
@@ -95,11 +115,17 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                         <span className="text-red-400 font-medium">{ability.currentCooldown} turns</span>
                     </div>
                 ) : null}
+                {usesLabel ? (
+                    <div className="flex justify-between text-[10px]">
+                        <span className="text-gray-400">Uses:</span>
+                        <span className={isExhausted ? 'text-red-400 font-medium' : 'text-emerald-300 font-medium'}>{usesLabel}</span>
+                    </div>
+                ) : null}
             </div>
         </div>
     );
 
-    const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}`;
+    const accessibleLabel = `${visual.label}, ${costText} cost, range ${rangeText}${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}${isExhausted ? ', depleted' : usesLabel ? `, ${usesLabel} uses` : ''}`;
 
     return (
         <Tooltip content={tooltipContent}>
@@ -132,6 +158,11 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 {isOnCooldown && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-amber-400 font-bold text-lg rounded-md">
                         {ability.currentCooldown}
+                    </div>
+                )}
+                {isExhausted && !isOnCooldown && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-red-400 font-bold text-xs rounded-md">
+                        0/{ability.maxUses}
                     </div>
                 )}
             </motion.button>

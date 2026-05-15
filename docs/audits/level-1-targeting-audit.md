@@ -1,4 +1,4 @@
-﻿# Level 1 Spell Targeting Filter Audit
+# Level 1 Spell Targeting Filter Audit
 
 Last reviewed: 2026-03-12
 

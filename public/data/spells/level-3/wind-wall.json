@@ -9,11 +9,7 @@
     "Druid",
     "Ranger"
   ],
-  "subClasses": [
-    "Cleric - Nature Domain (PHB)",
-    "Warlock - The Genie (TCoE)"
-  ],
-  "subClassesVerification": "verified",
+  "subClasses": [],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -72,7 +68,27 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     },
     "rangeUnit": "feet",
     "spatialDetails": {
@@ -119,10 +135,31 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "4d8",
@@ -133,7 +170,119 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "control",
+      "description": "For the duration, the strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects cannot pass through the wall. Loose, lightweight materials brought into the wall fly upward. Ordinary arrows, bolts, and similar projectiles launched at targets behind the wall are deflected upward and miss automatically, while boulders hurled by Giants or siege engines and similar projectiles are unaffected. Creatures in gaseous form cannot pass through it.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [
+        {
+          "name": "Gas Barrier",
+          "effect": "Keeps fog, smoke, and other gases at bay."
+        },
+        {
+          "name": "Small Flying Block",
+          "effect": "Small or smaller flying creatures or objects cannot pass through the wall."
+        },
+        {
+          "name": "Lightweight Updraft",
+          "effect": "Loose, lightweight materials brought into the wall fly upward."
+        },
+        {
+          "name": "Ordinary Projectile Deflection",
+          "effect": "Ordinary arrows, bolts, and similar projectiles launched at targets behind the wall are deflected upward and miss automatically.",
+          "details": "Boulders hurled by Giants or siege engines, and similar projectiles, are unaffected."
+        },
+        {
+          "name": "Gaseous Form Block",
+          "effect": "Creatures in gaseous form cannot pass through the wall."
+        }
+      ],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

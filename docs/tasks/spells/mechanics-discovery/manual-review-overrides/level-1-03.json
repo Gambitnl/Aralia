@@ -1,0 +1,375 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "sleep::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Sleep now represents the initial Wisdom save, Incapacitated first stage, and a status-gated Unconscious second stage, but the exact branch timing remains approximated by generic repeat-save fields.",
+      "recommendedTemplateChange": "Add staged save fields for initial save, repeat save at end of next turn, success/failure branches, and escalation.",
+      "recommendedJsonChange": "Closed stale HP-pool and no-save modeling by adding Wisdom-save-gated Incapacitated plus a second Unconscious effect requiring Incapacitated; add richer stagedCondition data later for exact branch timing."
+    },
+    "sleep::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Sleep has a two-stage status flow: failed first save gives Incapacitated until the end of the next turn, then failed second save gives Unconscious for the duration. Runtime JSON now carries both stages, but the relationship is still encoded with generic trigger/requiresStatus fields rather than a dedicated staged status model.",
+      "recommendedTemplateChange": "Add staged status fields for Incapacitated-to-Unconscious progression.",
+      "recommendedJsonChange": "Replace the generic two-effect approximation with dedicated runtime stagedStatus data for second-save failure applying Unconscious for the duration."
+    },
+    "sleep::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Sleep now records both per-target break triggers, target_takes_damage and adjacent_creature_action_shakes_awake, in structured Condition Break Triggers and runtime statusCondition.breakTriggers for the Incapacitated and Unconscious stages.",
+      "issue": "Sleep ends on a target if it takes damage or someone within 5 feet uses an action to shake it awake; runtime JSON keeps this in status description only.",
+      "recommendedTemplateChange": "Add per-target ending fields for target takes damage and adjacent action shake-awake.",
+      "recommendedJsonChange": "Add runtime ending conditions for damage and adjacent action wake-up."
+    },
+    "snare::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Snare's initial Dexterity save and end-of-turn Dexterity repeat save are represented after correcting the stale repeat-save ability.",
+      "recommendedTemplateChange": "No new attack/save field needed for the represented save rows.",
+      "recommendedJsonChange": "Closed by correcting repeatSave.saveType from Wisdom to Dexterity."
+    },
+    "snare::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "A restrained creature can repeat the Dexterity save at the end of each of its turns, and runtime JSON now represents that repeat save.",
+      "recommendedTemplateChange": "No repeat-save field change needed for this reviewed row.",
+      "recommendedJsonChange": "No further JSON change needed for the represented end-turn Dexterity save."
+    },
+    "snare::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Snare creates a 5-foot-radius magic trap circle on the ground or floor, but runtime JSON only stores area targeting and a generic utility description.",
+      "recommendedTemplateChange": "Add trap surface fields for ground/floor placement, circle radius, and rope-to-trap transformation.",
+      "recommendedJsonChange": "Add runtime trapSurface data for ground/floor circle placement."
+    },
+    "snare::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The trap is nearly invisible and can be discerned with Intelligence (Investigation) against spell save DC, but runtime JSON stores this only in utility prose.",
+      "recommendedTemplateChange": "Add visibility/discernment fields for nearly invisible traps and Investigation checks.",
+      "recommendedJsonChange": "Add runtime detection data for nearly invisible trap and Intelligence (Investigation) discernment."
+    },
+    "snare::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Snare triggers only when a Small, Medium, or Large creature moves onto the ground or floor in the radius. Runtime now filters sizes and records the no-restrained cleanup ending, but the ground/floor movement trigger is not fully first-class.",
+      "recommendedTemplateChange": "Add trap trigger fields for eligible sizes and movement onto the ground/floor area.",
+      "recommendedJsonChange": "Add runtime trapTrigger data for movement onto the circle's ground/floor surface."
+    },
+    "snare::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Snare restrains and hoists the creature upside down 3 feet above the ground/floor; Restrained is represented, but the hoisted position and upside-down state are prose-only.",
+      "recommendedTemplateChange": "Add positional restraint fields for hoisted height and inverted hanging state.",
+      "recommendedJsonChange": "Add runtime restraintPosition data for hanging upside down 3 feet above the surface."
+    },
+    "snare::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Snare transforms consumed rope into a nearly invisible magic trap circle, but that world-state change is not represented beyond utility prose.",
+      "recommendedTemplateChange": "Add trap creation/world-state fields for consumed rope disappearing and trap circle becoming magical.",
+      "recommendedJsonChange": "Add runtime trapCreation data for rope disappearance and magic trap circle."
+    },
+    "snare::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Snare now records the end-turn Dexterity repeat save, Intelligence (Arcana) action escape check with eligible actors, and the post-trigger no-creature-restrained spell ending in structured markdown and runtime JSON.",
+      "issue": "Snare's restrained effect can end by repeat Dexterity save or Intelligence (Arcana) action check, and the spell ends after triggering when no creature is restrained by it.",
+      "recommendedTemplateChange": "Add alternative escape and post-trigger spell-ending fields.",
+      "recommendedJsonChange": "Runtime now corrects the repeat save and Intelligence escape ability, but still needs skill-specific Arcana and no-creature-restrained ending data."
+    },
+    "speak-with-animals::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Speak with Animals lets the caster use any Influence action skill option with Beasts, but runtime JSON only stores generic communication prose.",
+      "recommendedTemplateChange": "Add social action option fields for enabled Influence skill options and target creature type.",
+      "recommendedJsonChange": "Add runtime socialActionOptions data for Influence options with Beasts."
+    },
+    "speak-with-animals::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched information a Beast perceived in the past day, but the spell does not grant the caster a remote sensor or perception channel.",
+      "recommendedTemplateChange": "Track Beast-reported information under communication/knowledge fields.",
+      "recommendedJsonChange": "Track Beast-reported information under communication/knowledge data."
+    },
+    "speak-with-animals::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Speak with Animals grants comprehension and verbal communication with Beasts, but runtime JSON does not expose target creature type, communication mode, or comprehension as fields.",
+      "recommendedTemplateChange": "Add communication fields for creature type, verbal communication, and comprehension.",
+      "recommendedJsonChange": "Add runtime communication data for comprehend_and_speak_with Beasts."
+    },
+    "speak-with-animals::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Beasts can provide information about nearby locations and monsters and whatever they perceived within the past day, but the knowledge payload and limits are prose-only.",
+      "recommendedTemplateChange": "Add knowledge payload fields for nearby locations, monsters, perceived-within-past-day, and topic limitations.",
+      "recommendedJsonChange": "Add runtime knowledgePayload data for Beast information limits and categories."
+    },
+    "tashas-caustic-brew::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Tasha's Caustic Brew requires choosing a direction for the acid line, but runtime targeting does not expose direction choice.",
+      "recommendedTemplateChange": "Add line direction choice fields for caster-originating line areas.",
+      "recommendedJsonChange": "Add runtime areaDirectionChoice data for the 30-foot line."
+    },
+    "tashas-caustic-brew::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Tasha's Caustic Brew now uses a failed Dexterity save to apply Covered in Acid and turn-start acid damage, but the scrape/wash action cleanup and exact recurring condition lifecycle still need first-class fields.",
+      "recommendedTemplateChange": "Add recurring damage condition fields and action cleanup fields for scrape_or_wash_off self/other.",
+      "recommendedJsonChange": "Closed the stale immediate half-damage model by adding Covered in Acid plus turn_start damage requiring that status; add runtime cleanup action data for scraping or washing the acid off."
+    },
+    "tashas-hideous-laughter::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'of your choice' is ordinary single-target selection, and runtime targeting already captures one visible creature within range.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond ordinary targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed beyond ordinary targeting."
+    },
+    "tashas-hideous-laughter::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "closedReason": "The statusCondition.repeatSave object now records timing turn_end, additionalTimings [on_damage], saveType Wisdom, successEnds true, useOriginalDC true, and modifiers.advantageOnDamage true.",
+      "issue": "The initial Wisdom save and end-turn repeat save are represented, and Prone/Incapacitated are now split into separate runtime effects, but the damage-triggered repeat save is not represented as a separate trigger.",
+      "recommendedTemplateChange": "Add multiple repeat-save trigger fields, including on_damage with advantage.",
+      "recommendedJsonChange": "Add runtime repeatSaveTriggers for turn_end and on_damage, with Advantage on the damage-triggered save."
+    },
+    "tashas-hideous-laughter::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Tasha's Hideous Laughter now records both repeat-save timings: turn_end and on_damage, with the damage-triggered Advantage modifier preserved.",
+      "issue": "The target repeats Wisdom saves both at the end of each turn and each time it takes damage; runtime only has the end-turn repeat save plus a modifier note.",
+      "recommendedTemplateChange": "Add repeat save arrays so one condition can have multiple repeat timings.",
+      "recommendedJsonChange": "Add runtime repeatSave trigger for damage in addition to turn_end."
+    },
+    "tashas-hideous-laughter::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the requirement that the caster can see the target; this is already represented as lineOfSight true.",
+      "recommendedTemplateChange": "No vision/light/sound field needed beyond targeting line of sight.",
+      "recommendedJsonChange": "No JSON change needed; targeting.lineOfSight is true."
+    },
+    "tashas-hideous-laughter::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "closedReason": "The damage-triggered repeat save is now represented by statusCondition.repeatSave.additionalTimings [on_damage], with modifiers.advantageOnDamage true.",
+      "issue": "Damage triggers an additional Wisdom save with Advantage, but runtime repeat-save data does not model damage as a trigger.",
+      "recommendedTemplateChange": "Add damage-triggered repeat save fields.",
+      "recommendedJsonChange": "Add runtime on_damage repeat save trigger with Advantage."
+    },
+    "tashas-hideous-laughter::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Prone and Incapacitated are now separate status effects, but the rule that the target cannot end Prone on itself while affected is prose-only.",
+      "recommendedTemplateChange": "Add condition lock fields for cannot_end_condition_self while another spell effect is active.",
+      "recommendedJsonChange": "Add runtime conditionLock data preventing the target from ending Prone on itself while the spell lasts."
+    },
+    "tashas-hideous-laughter::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Both repeat-save paths now share statusCondition.repeatSave.successEnds true, including the damage-triggered on_damage additional timing. The remaining Prone self-ending lock stays open under status_or_state_change.",
+      "issue": "A successful repeat save ends the spell, including the damage-triggered repeat save that is not yet first-class runtime data.",
+      "recommendedTemplateChange": "Add spell-ending fields tied to each repeat save trigger.",
+      "recommendedJsonChange": "Add runtime successEnds data for both end-turn and damage-triggered repeat saves."
+    },
+    "tensers-floating-disk::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The unoccupied space of your choice is ordinary point placement and the runtime targeting already stores a point target within range.",
+      "recommendedTemplateChange": "No choice/mode field needed beyond point targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change needed beyond point targeting."
+    },
+    "tensers-floating-disk::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Tenser's Floating Disk must be created in an unoccupied visible space, but runtime targeting does not expose the unoccupied-space requirement.",
+      "recommendedTemplateChange": "Add point-placement eligibility fields for unoccupied space.",
+      "recommendedJsonChange": "Add runtime placementFilter.unoccupied true for the disk."
+    },
+    "tensers-floating-disk::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The disk can move across uneven terrain, stairs, and slopes, but cannot cross elevation changes of 10 feet or more; spatial details preserve measurements, but traversal permissions are prose-only.",
+      "recommendedTemplateChange": "Add object traversal fields for allowed terrain and blocked elevation changes.",
+      "recommendedJsonChange": "Add runtime traversal data for uneven terrain/stairs/slopes allowed and elevationChangeLimit 10 feet."
+    },
+    "tensers-floating-disk::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the requirement that the caster can see the placement space; this is already represented as lineOfSight true.",
+      "recommendedTemplateChange": "No vision/light/sound field needed beyond targeting line of sight.",
+      "recommendedJsonChange": "No JSON change needed; targeting.lineOfSight is true."
+    },
+    "tensers-floating-disk::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The disk follows the caster when the caster moves more than 20 feet away and remains within 20 feet, but follow movement behavior is only summarized in objectDescription and spatial notes.",
+      "recommendedTemplateChange": "Add created-object follow fields for follow threshold, desired distance, immobile-near-caster rule, and obstacle limitations.",
+      "recommendedJsonChange": "Add runtime followBehavior data for the disk."
+    },
+    "tensers-floating-disk::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched traversal over uneven terrain, but the disk does not change the environment.",
+      "recommendedTemplateChange": "Track traversal limits under terrain/surface and controlled object movement fields.",
+      "recommendedJsonChange": "Track traversal limits under object traversal data."
+    },
+    "tensers-floating-disk::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Tenser's Floating Disk now records both spell-ending triggers in structured markdown and runtime conditionalEndings: carried_weight_exceeds_limit for overloading the 500-pound disk and beyond_max_distance for the caster moving more than 100 feet away. Disk object, terrain, and travel mechanics remain open in their own buckets.",
+      "issue": "The spell ends if more than 500 pounds is placed on the disk or if the caster moves more than 100 feet from it; runtime JSON only mentions these in prose/objectDescription.",
+      "recommendedTemplateChange": "Add created-object capacity and conditional ending fields for overweight and break distance.",
+      "recommendedJsonChange": "Add runtime capacityPounds 500 and ending conditions for overweight and caster distance greater than 100 feet."
+    },
+    "thunderous-smite::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Thunderous Smite's Strength save for the push/Prone rider is represented, and the stale singular creatureType key plus missing damage scaling have been corrected.",
+      "recommendedTemplateChange": "No new attack/save field needed for this reviewed row.",
+      "recommendedJsonChange": "Closed by preserving Strength save rider data, removing creatureType typo, and setting damage scaling to +1d6."
+    },
+    "thunderous-smite::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The failed-save 10-foot push away from the caster is represented as a MOVEMENT effect.",
+      "recommendedTemplateChange": "No forced-movement field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented push movement."
+    },
+    "thunderous-smite::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Thunderous Smite's 300-foot audible strike is now represented by structured sound fields and runtime soundEmission data.",
+      "recommendedTemplateChange": "Closed by Sound Audible Radius 300 feet, Sound Source caster, and Sound Trigger on_hit.",
+      "recommendedJsonChange": "Closed by adding soundEmission with audibleRadius 300 feet to the runtime effect."
+    },
+    "thunderous-smite::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The failed-save Prone rider is represented as a separate status condition, and inappropriate repeat-save/escape defaults have been removed.",
+      "recommendedTemplateChange": "No new status field needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented Prone rider."
+    },
+    "thunderous-smite::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched failed-save conditional wording, but Thunderous Smite has no special early-ending rule.",
+      "recommendedTemplateChange": "No conditional-ending field needed.",
+      "recommendedJsonChange": "No conditional-ending JSON change needed."
+    },
+    "thunderwave::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Thunderwave's Constitution save for half damage is represented.",
+      "recommendedTemplateChange": "No attack/save field change needed for this reviewed row.",
+      "recommendedJsonChange": "No JSON change needed for represented save-gated damage."
+    },
+    "thunderwave::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Thunderwave pushes failed-save creatures and unsecured objects 10 feet away, but runtime JSON keeps both pushes in a generic utility description instead of MOVEMENT/object movement data.",
+      "recommendedTemplateChange": "Add failed-save forced movement fields for creatures and unsecured object push fields.",
+      "recommendedJsonChange": "Add runtime MOVEMENT effect for failed-save creature push and objectMovement data for unsecured objects entirely within the cube."
+    },
+    "thunderwave::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Thunderwave's 300-foot audible boom is now represented by structured sound fields and runtime soundEmission data.",
+      "recommendedTemplateChange": "Closed by Sound Audible Radius 300 feet, Sound Source spell_area, and Sound Trigger on_cast.",
+      "recommendedJsonChange": "Closed by adding soundEmission with audibleRadius 300 feet to the runtime effect."
+    },
+    "thunderwave::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the phrase 'In addition'; Thunderwave has no healing or restoration mechanic.",
+      "recommendedTemplateChange": "No healing/restoration field needed.",
+      "recommendedJsonChange": "No healing/restoration JSON change needed."
+    },
+    "unseen-servant::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched command text, but Unseen Servant has no attack roll, saving throw, or ability-check modifier.",
+      "recommendedTemplateChange": "Track command behavior under summon/control fields.",
+      "recommendedJsonChange": "Track command behavior under summon/control data."
+    },
+    "unseen-servant::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Unseen Servant appears in an unoccupied space on the ground, but runtime targeting does not expose unoccupied-space or ground placement constraints.",
+      "recommendedTemplateChange": "Add summon placement fields for unoccupied space and on-ground requirement.",
+      "recommendedJsonChange": "Add runtime placementFilter data for unoccupied ground space."
+    },
+    "unseen-servant::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Once on each caster turn, a Bonus Action can mentally command the servant to move up to 15 feet and interact with an object; runtime only stores commandCost bonus_action and objectDescription prose.",
+      "recommendedTemplateChange": "Add controlled entity command fields for frequency, action cost, mental command, movement distance, and object interaction.",
+      "recommendedJsonChange": "Add runtime commandOptions data for once-per-turn bonus-action move/interact command."
+    },
+    "unseen-servant::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The servant can be commanded to move up to 15 feet, but movement is only in objectDescription prose.",
+      "recommendedTemplateChange": "Add controlled entity movement fields for commanded movement distance.",
+      "recommendedJsonChange": "Add runtime controlledMovement data with maxDistance 15 feet per command."
+    },
+    "unseen-servant::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The servant must appear on the ground; runtime has no placement surface field.",
+      "recommendedTemplateChange": "Add placement surface fields for summons/created entities.",
+      "recommendedJsonChange": "Add runtime placementSurface ground."
+    },
+    "unseen-servant::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The servant is Invisible, but invisibility is only prose inside objectDescription and not a status/visibility field.",
+      "recommendedTemplateChange": "Add summoned entity visibility/status fields for Invisible.",
+      "recommendedJsonChange": "Add runtime summon.statuses or visibility value for Invisible."
+    },
+    "unseen-servant::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The servant can interact with objects and perform simple tasks including fetching, cleaning, mending, folding, lighting fires, serving food, and pouring drinks, but allowed task categories are prose-only.",
+      "recommendedTemplateChange": "Add controlled task fields for simple humanlike tasks and object interaction.",
+      "recommendedJsonChange": "Add runtime taskCapabilities data for object interaction and listed task categories."
+    },
+    "unseen-servant::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Unseen Servant is represented as a summon, but size, invisibility, mindless/shapeless force traits, AC, HP, Strength, no-attack rule, task completion/wait behavior, command range ending, and 0-HP ending are not first-class fields.",
+      "recommendedTemplateChange": "Extend summon/control fields for creature/object stats, traits, allowed/prohibited actions, command behavior, and lifecycle ending rules.",
+      "recommendedJsonChange": "Extend runtime summon data beyond objectDescription with stats, traits, command options, task behavior, and ending conditions."
+    },
+    "unseen-servant::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched serving food and pouring drinks examples, but Unseen Servant does not create or consume resources itself.",
+      "recommendedTemplateChange": "Track examples under task capabilities, not resource consumption.",
+      "recommendedJsonChange": "Track examples under taskCapabilities, not resource consumption."
+    },
+    "unseen-servant::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The servant has AC 10, 1 Hit Point, Strength 2, cannot attack, and the spell ends at 0 HP; runtime stores these only in objectDescription.",
+      "recommendedTemplateChange": "Add summon stat fields for AC, HP, ability scores, attack prohibition, and 0-HP spell ending.",
+      "recommendedJsonChange": "Add runtime summon stats and zeroHpEnding data."
+    },
+    "unseen-servant::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The servant is Invisible, mindless, shapeless, and Medium, but those traits/states are prose-only.",
+      "recommendedTemplateChange": "Add summoned entity trait/status fields for Invisible, mindless, shapeless, and size.",
+      "recommendedJsonChange": "Add runtime summon traits and size data."
+    },
+    "unseen-servant::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Some servant tasks can alter the world state, such as cleaning, mending, lighting fires, serving food, and pouring drinks, but task effects are not enumerated.",
+      "recommendedTemplateChange": "Add task capability fields that can describe simple world-state interactions.",
+      "recommendedJsonChange": "Add runtime taskCapabilities/worldInteraction data."
+    },
+    "unseen-servant::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Unseen Servant now records both spell-ending triggers in structured markdown and runtime conditionalEndings: created_entity_drops_to_0_hp and beyond_max_distance. The servant's AC/HP/Strength, command action, movement, invisibility, and task capabilities remain open in their own buckets.",
+      "issue": "The spell ends if the servant drops to 0 HP or if a commanded task would move it more than 60 feet away from the caster, but runtime JSON does not expose these ending conditions.",
+      "recommendedTemplateChange": "Add summon ending fields for zero HP and command-distance limit.",
+      "recommendedJsonChange": "Add runtime ending conditions for zeroHp and commandWouldExceedDistance 60 feet."
+    },
+    "witch-bolt::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Witch Bolt's initial range, initial damage, later-turn Bonus Action cost, and sustain scaling have been corrected, but the automatic sustain damage is not explicitly tied to the sustained arc/target relationship.",
+      "recommendedTemplateChange": "Add sustained-link damage fields for later-turn automatic damage independent of initial hit.",
+      "recommendedJsonChange": "Closed stale range/damage/action/scaling data; add runtime sustainedLink data for the automatic 1d12 Bonus Action damage."
+    },
+    "witch-bolt::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The sustained lightning arc is a maintained link between caster and target, but runtime JSON represents it only as concentration plus a later action damage effect.",
+      "recommendedTemplateChange": "Add sustained link fields for caster-target arc effects.",
+      "recommendedJsonChange": "Add runtime sustainedLink data for the lightning arc."
+    },
+    "witch-bolt::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Witch Bolt now records both spell-ending triggers in structured markdown and runtime conditionalEndings: target_outside_spell_range and target_has_total_cover_from_caster. The sustained-link damage relationship remains open in the separate attack_or_save_modifier and ward_alarm_or_trigger rows.",
+      "issue": "Witch Bolt ends if the target is outside spell range or has Total Cover from the caster, but runtime JSON does not expose these ending conditions.",
+      "recommendedTemplateChange": "Add conditional ending fields for target outside range and total cover from caster.",
+      "recommendedJsonChange": "Add runtime ending conditions for outside range 60 feet and target has Total Cover."
+    },
+    "wrathful-smite::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Wrathful Smite's Wisdom save for Frightened is represented, and stale singular creatureType plus missing damage scaling have been corrected.",
+      "recommendedTemplateChange": "No new attack/save field needed for this reviewed row.",
+      "recommendedJsonChange": "Closed by preserving the Wisdom save rider, removing the creatureType typo, correcting repeat save timing/type, and setting damage scaling to +1d6."
+    },
+    "wrathful-smite::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The Frightened target repeats the Wisdom save at the end of each of its turns, and runtime JSON now represents that timing.",
+      "recommendedTemplateChange": "No repeat-save field change needed for this reviewed row.",
+      "recommendedJsonChange": "Closed by changing repeatSave timing to turn_end and saveType to Wisdom."
+    },
+    "wrathful-smite::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Frightened condition is represented as a status condition on failed Wisdom save.",
+      "recommendedTemplateChange": "No status field change needed for this reviewed row.",
+      "recommendedJsonChange": "No further JSON change needed for represented Frightened rider."
+    },
+    "wrathful-smite::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched until-spell-ends wording, but the actual ending mechanic is the represented end-turn repeat save success.",
+      "recommendedTemplateChange": "No separate conditional-ending field needed beyond repeatSave.successEnds.",
+      "recommendedJsonChange": "No separate conditional-ending JSON change needed beyond repeatSave.successEnds."
+    }
+  },
+  "manualFindings": {}
+}

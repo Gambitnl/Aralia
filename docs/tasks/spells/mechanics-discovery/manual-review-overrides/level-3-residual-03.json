@@ -1,0 +1,126 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "magic-circle::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "magic-circle::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Some state changes are not simple D&D conditions and need state-change fields.",
+      "recommendedTemplateChange": "Add state-change bucket fields for non-condition states.",
+      "recommendedJsonChange": "Use STATUS_CONDITION where possible and Utility Options elsewhere."
+    },
+    "major-image::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Vision, sound, obscurement, or sensory fields need a stronger sensory schema when not just line of sight.",
+      "recommendedTemplateChange": "Add sensory/vision/light/sound bucket fields.",
+      "recommendedJsonChange": "Use current light/terrain/utility representation as interim data."
+    },
+    "major-image::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; illusion_or_disguise is either already represented or covered by a separately open schema bucket.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "major-image::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Remote perception or sensing needs source, range, medium, and information fields.",
+      "recommendedTemplateChange": "Add sensor/remote perception bucket fields.",
+      "recommendedJsonChange": "Use existing Utility Options as interim data."
+    },
+    "major-image::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Environmental changes need reusable world-state fields for weather, obscurement, growth, gas, liquids, and hazards.",
+      "recommendedTemplateChange": "Add environment/world-state bucket fields.",
+      "recommendedJsonChange": "Use current terrain/damage/utility fields as interim data."
+    },
+    "mass-healing-word::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "mass-healing-word::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "mass-healing-word::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "mass-healing-word::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Costs, spell storage, triggers, or resources need non-component resource fields.",
+      "recommendedTemplateChange": "Add resource/cost/spell-storage bucket fields.",
+      "recommendedJsonChange": "Use current component/utility fields as interim data."
+    },
+    "mass-healing-word::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Healing, restoration, transfer, or condition removal needs specific restoration/prevention fields beyond generic utility.",
+      "recommendedTemplateChange": "Add restoration/condition-removal/healing-transfer bucket fields.",
+      "recommendedJsonChange": "Use current HEALING/UTILITY effects until propagation."
+    },
+    "mass-healing-word::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "meld-into-stone::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "meld-into-stone::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; target_filter_or_eligibility is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "meld-into-stone::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Terrain/surface rules need stronger terrain, surface, passability, and environmental-state fields when not already covered by TERRAIN.",
+      "recommendedTemplateChange": "Add terrain/surface bucket fields.",
+      "recommendedJsonChange": "Use current terrain/utility representation as interim data."
+    },
+    "meld-into-stone::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Vision, sound, obscurement, or sensory fields need a stronger sensory schema when not just line of sight.",
+      "recommendedTemplateChange": "Add sensory/vision/light/sound bucket fields.",
+      "recommendedJsonChange": "Use current light/terrain/utility representation as interim data."
+    },
+    "meld-into-stone::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Knowledge, attitude, speech, or memory effects need explicit social/knowledge fields.",
+      "recommendedTemplateChange": "Add social/knowledge bucket fields.",
+      "recommendedJsonChange": "Use current status/utility text as interim representation."
+    },
+    "meld-into-stone::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Some state changes are not simple D&D conditions and need state-change fields.",
+      "recommendedTemplateChange": "Add state-change bucket fields for non-condition states.",
+      "recommendedJsonChange": "Use STATUS_CONDITION where possible and Utility Options elsewhere."
+    },
+    "melfs-minute-meteors::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "melfs-minute-meteors::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    }
+  },
+  "manualFindings": {}
+}

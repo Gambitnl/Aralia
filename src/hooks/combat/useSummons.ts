@@ -100,7 +100,7 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
                     effects: action.damage ? [{
                         type: 'damage',
                         value: effectValue,
-                        damageType: (action.damage.type as AbilityEffect['damageType']) || 'physical'
+                        damageType: (action.damage.type as AbilityEffect['damageType']) || 'bludgeoning'
                     }] : [],
                     icon: isAttack ? '⚔️' : '✨'
                 };
@@ -115,7 +115,8 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
                 bonusAction: { used: false, remaining: 1 },
                 reaction: { used: false, remaining: 1 },
                 movement: { used: 0, total: statBlock.speed || 30 },
-                freeActions: 1
+                freeActions: 1,
+                legendary: { used: 0, total: 0 }
             },
             isSummon: true,
             summonMetadata: {

@@ -1,0 +1,251 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 7 manual review override shard for spell indexes 20-24 in generated discovery row order.",
+    "This packet added structured/runtime mechanics for Sequester, Simulacrum, Symbol, Teleport, and Temple of the Gods."
+  ],
+  "findings": {
+    "sequester::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster-chosen early ending condition is preserved in utility options, but runtime lacks first-class arbitrary condition/end trigger authoring fields.",
+      "recommendedTemplateChange": "Add custom ending condition fields with range/visibility constraints.",
+      "recommendedJsonChange": "Add runtime customEndCondition data."
+    },
+    "sequester::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The target's Invisible condition is represented as STATUS_CONDITION and utility option.",
+      "recommendedTemplateChange": "No additional visibility field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Invisible."
+    },
+    "sequester::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Remote magical viewing prevention is preserved in utility options, but runtime lacks a first-class remote perception block field.",
+      "recommendedTemplateChange": "Add remote magical viewing block fields.",
+      "recommendedJsonChange": "Add runtime remoteViewingBlock data."
+    },
+    "sequester::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched object targeting; Sequester affects an existing object or willing creature and creates no object or structure.",
+      "recommendedTemplateChange": "Track under target_filter_or_eligibility/status.",
+      "recommendedJsonChange": "No created-object runtime data required."
+    },
+    "sequester::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The creature's lack of need for food, water, or air is represented in utility options.",
+      "recommendedTemplateChange": "No resource field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "sequester::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Divination targeting and magic detection blocks are preserved in utility options, but runtime lacks first-class divination/magic-detection immunity fields.",
+      "recommendedTemplateChange": "Add divination targeting and magic detection block fields.",
+      "recommendedJsonChange": "Add runtime divinationProtection data."
+    },
+    "sequester::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Invisible and Unconscious suspended animation states are represented as STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION effects."
+    },
+    "sequester::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "No environmental surface/world change remains after review; the detector matched suspended-animation survival prose.",
+      "recommendedTemplateChange": "Track under status/resource.",
+      "recommendedJsonChange": "No environmental runtime data required."
+    },
+    "sequester::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Damage-ending and custom early-ending conditions are preserved in status break triggers and utility options, but runtime lacks arbitrary visible-within-1-mile ending condition fields.",
+      "recommendedTemplateChange": "Add custom conditional ending fields.",
+      "recommendedJsonChange": "Add runtime customEndCondition data with triggerRange."
+    },
+    "simulacrum::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Beast or Humanoid target eligibility and 10-foot casting presence are represented by target filter and utility options.",
+      "recommendedTemplateChange": "No additional target field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.filter.creatureTypes and UTILITY controlOptions."
+    },
+    "simulacrum::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The simulacrum is represented as SUMMONING and utility options, but runtime lacks first-class copied-stat exceptions, half maximum Hit Points, cannot-cast-this-spell, cannot-rest, and cannot-level fields.",
+      "recommendedTemplateChange": "Add copied creature exception fields.",
+      "recommendedJsonChange": "Add runtime copiedCreatureOverrides data."
+    },
+    "simulacrum::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Repair cost of 100 GP per Hit Point is represented in HEALING description/options, but runtime lacks first-class paid repair fields.",
+      "recommendedTemplateChange": "Add repair cost per HP fields.",
+      "recommendedJsonChange": "Add runtime repairCost data."
+    },
+    "simulacrum::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Half Hit Point maximum, damage repair, 0 HP snow reversion, and recast destruction are preserved in effects/options, but runtime lacks typed copied-entity HP maximum and destruction/reversion fields.",
+      "recommendedTemplateChange": "Add copied entity HP maximum and destruction/reversion fields.",
+      "recommendedJsonChange": "Add runtime copiedEntityStats and destructionOutcome data."
+    },
+    "simulacrum::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The ice or snow pile becoming the simulacrum is represented in utility options and summon data; no separate environmental change is needed for this pass.",
+      "recommendedTemplateChange": "Track under summon_or_controlled_entity.",
+      "recommendedJsonChange": "Closed by SUMMONING and UTILITY controlOptions."
+    },
+    "symbol::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Choosing Death, Discord, Fear, Pain, Sleep, or Stunning is represented by effects/options, but runtime lacks first-class mutually exclusive ward mode selection.",
+      "recommendedTemplateChange": "Add ward mode choice fields.",
+      "recommendedJsonChange": "Add runtime wardModeOptions data."
+    },
+    "symbol::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Death, Discord, Fear, Pain, Sleep, and Stunning saves are represented by separate effects/options, but runtime lacks once-per-turn area targeting and per-mode save routing tied to the chosen symbol.",
+      "recommendedTemplateChange": "Add chosen-mode save routing plus once-per-turn targeting fields.",
+      "recommendedJsonChange": "Add runtime chosenWardEffect and oncePerTurnTargeting data."
+    },
+    "symbol::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Glyph coverage and object movement break distance are represented by spatial details and utility options.",
+      "recommendedTemplateChange": "No additional terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails and UTILITY controlOptions."
+    },
+    "symbol::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Nearly imperceptible glyph and triggered Dim Light are preserved, but runtime lacks first-class detectability DC and triggered light duration fields.",
+      "recommendedTemplateChange": "Add detectability and triggered light fields.",
+      "recommendedJsonChange": "Add runtime detectability and triggeredLight data."
+    },
+    "symbol::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the inscribed glyph; it is represented by spatial details and utility options, not a free-standing created object.",
+      "recommendedTemplateChange": "Track under ward_alarm_or_trigger.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "symbol::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Trigger examples, creature-type refinements, password-like exclusions, and object movement breakage are preserved in utility options, but runtime lacks first-class configurable ward trigger/refinement fields.",
+      "recommendedTemplateChange": "Add configurable ward trigger, trigger refinement, and exclusion fields.",
+      "recommendedJsonChange": "Add runtime wardTriggerRules data."
+    },
+    "symbol::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Frightened, Incapacitated, Unconscious, and Stunned outcomes are represented as STATUS_CONDITION effects and options.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION effects."
+    },
+    "symbol::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The glyph can end without triggering if moved too far, and triggered light lasts 10 minutes before the spell ends; runtime lacks first-class moved-too-far break and triggered-duration ending fields.",
+      "recommendedTemplateChange": "Add object movement break and triggered duration ending fields.",
+      "recommendedJsonChange": "Add runtime wardBreakDistance and triggeredDurationEnd data.",
+      "closedReason": "Closed by the glyph placement/trigger lifetime batch: structured markdown now records inscribed_ward_moved_beyond_distance and triggered_duration_expires, while runtime JSON has conditional endings for the 10-foot object movement break and the 10-minute post-trigger active duration."
+    },
+    "teleport::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creature group versus object target and familiarity category selection are represented in targeting/options, but runtime lacks first-class destination familiarity choice and outcome table fields.",
+      "recommendedTemplateChange": "Add teleport familiarity table fields.",
+      "recommendedJsonChange": "Add runtime teleportOutcomeTable data."
+    },
+    "teleport::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target wording; line-of-sight targeting is represented.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "Closed by targeting.lineOfSight."
+    },
+    "teleport::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Instant same-plane transport is represented by MOVEMENT and utility options.",
+      "recommendedTemplateChange": "No additional travel field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT and UTILITY effects."
+    },
+    "teleport::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Known destination, sigil-like permanent circle familiarity, linked object, and false destination categories are preserved in utility options, but runtime lacks first-class destination knowledge/familiarity fields.",
+      "recommendedTemplateChange": "Add destination familiarity/knowledge fields.",
+      "recommendedJsonChange": "Add runtime destinationFamiliarity data."
+    },
+    "teleport::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Similar area, off-target distance, random direction, and mishap rerolls are preserved in utility/damage effects, but runtime lacks first-class teleport deviation outcome fields.",
+      "recommendedTemplateChange": "Add teleport deviation/outcome fields.",
+      "recommendedJsonChange": "Add runtime teleportDeviation data."
+    },
+    "temple-of-the-gods::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Appearance, illumination, windows, door access, opposed creature types, and permanence choices are represented in utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "temple-of-the-gods::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Opposed creature Charisma entry save and 1d4 d20 penalty are represented as effects/options, but runtime lacks first-class opposed-type save/penalty routing for selected creature types.",
+      "recommendedTemplateChange": "Add opposed creature type save and d20 penalty fields.",
+      "recommendedJsonChange": "Add runtime opposedCreatureRules data."
+    },
+    "temple-of-the-gods::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Temple footprint and unoccupied cube placement are represented by area/spatial details and utility options.",
+      "recommendedTemplateChange": "No additional terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.areaOfEffect/spatialDetails."
+    },
+    "temple-of-the-gods::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Illumination choice, opaque magical force, shimmer, and incense are preserved in utility options, but runtime lacks first-class selectable illumination and sensory atmosphere fields.",
+      "recommendedTemplateChange": "Add selectable light and sensory atmosphere fields.",
+      "recommendedJsonChange": "Add runtime selectableIllumination and atmosphereSensory data."
+    },
+    "temple-of-the-gods::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched shimmer/appearance language, but the temple is a conjured structure, not an illusion or disguise.",
+      "recommendedTemplateChange": "Track under created_object_or_structure.",
+      "recommendedJsonChange": "No illusion runtime data required."
+    },
+    "temple-of-the-gods::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Divination sensor and targeting blocks are preserved in utility options, but runtime lacks first-class divination sensor/targeting protection fields.",
+      "recommendedTemplateChange": "Add divination sensor and targeting block fields.",
+      "recommendedJsonChange": "Add runtime divinationProtection data."
+    },
+    "temple-of-the-gods::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The temple structure is represented by area/spatial details and options, but runtime lacks first-class created structure properties for floor/walls/roof/door/windows/altar and physical passability.",
+      "recommendedTemplateChange": "Add created structure component/passability fields.",
+      "recommendedJsonChange": "Add runtime createdStructure data."
+    },
+    "temple-of-the-gods::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Ethereal travel into the temple is blocked and preserved in utility options, but runtime lacks first-class ethereal travel block fields.",
+      "recommendedTemplateChange": "Add ethereal travel block fields.",
+      "recommendedJsonChange": "Add runtime blockedTravel data."
+    },
+    "temple-of-the-gods::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Bonus healing inside the temple is represented by a HEALING effect and utility option.",
+      "recommendedTemplateChange": "No additional healing field required for this pass.",
+      "recommendedJsonChange": "Closed by HEALING effect."
+    },
+    "temple-of-the-gods::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Disintegrate instantly destroys the temple, Dispel Magic cannot dispel it, and Antimagic Field has no effect; runtime preserves this in utility options but lacks created-structure damageability/interaction fields.",
+      "recommendedTemplateChange": "Add created structure spell interaction and destruction fields.",
+      "recommendedJsonChange": "Add runtime structureSpellInteractions data."
+    },
+    "temple-of-the-gods::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Opposed creature entry blocking is represented as STATUS_CONDITION plus utility options.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION effect."
+    },
+    "temple-of-the-gods::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Mild temperature, incense, idol/altar, illumination choice, and appearance are preserved in utility options.",
+      "recommendedTemplateChange": "No additional environmental field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "temple-of-the-gods::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Temple of the Gods now records daily same-spot permanence and Disintegrate destruction.",
+      "recommendedTemplateChange": "Closed by Duration Progression fields for repeated_casts and Conditional Ending Triggers disintegrate_targets_effect.",
+      "recommendedJsonChange": "Closed by runtime durationProgression and conditionalEndings data.",
+      "closedReason": "Temple of the Gods now records the year-long daily same-spot permanence rule and the Disintegrate destruction trigger in structured markdown and runtime JSON."
+    }
+  }
+}

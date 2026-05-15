@@ -1,4 +1,4 @@
-﻿# Design Plan: Slasher Feat Implementation
+# Design Plan: Slasher Feat Implementation
 
 Last Reviewed: 2026-03-12
 Status: Preserved feature-design note / partially landed combat feature plan

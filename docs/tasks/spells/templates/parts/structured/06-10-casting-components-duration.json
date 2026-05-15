@@ -1,0 +1,174 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "10-casting-components-duration",
+  "fieldCount": 9,
+  "fields": [
+    {
+      "label": "Verbal",
+      "required": true,
+      "valueType": "boolean",
+      "jsonPath": "components.verbal",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Component flags drive casting restrictions."
+        }
+      ],
+      "comment": "Component flags drive casting restrictions. It maps to `components.verbal`. Purpose: Verbal exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `components.verbal`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "label": "Somatic",
+      "required": true,
+      "valueType": "boolean",
+      "jsonPath": "components.somatic",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Component flags drive casting restrictions."
+        }
+      ],
+      "comment": "Component flags drive casting restrictions. It maps to `components.somatic`. Purpose: Somatic exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `components.somatic`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "label": "Material",
+      "required": true,
+      "valueType": "boolean",
+      "jsonPath": "components.material",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Material component presence is separate from description, cost, and consumption."
+        }
+      ],
+      "comment": "Material component presence is separate from description, cost, and consumption. It maps to `components.material`. Purpose: Material exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `components.material`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "label": "Material Description",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "components.materialDescription",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Material description preserves the actual required item."
+        }
+      ],
+      "comment": "Material description preserves the actual required item. It maps to `components.materialDescription`. Purpose: Material Description exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `components.materialDescription`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Material Cost GP",
+      "required": false,
+      "valueType": "number",
+      "jsonPath": "components.materialCost",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Cost has runtime implications for casting availability."
+        }
+      ],
+      "comment": "Cost has runtime implications for casting availability. It maps to `components.materialCost`. Purpose: Material Cost GP exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `components.materialCost`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Consumed",
+      "required": false,
+      "valueType": "boolean",
+      "jsonPath": "components.isConsumed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Consumption changes inventory behavior and repeated casting cost."
+        }
+      ],
+      "comment": "Consumption changes inventory behavior and repeated casting cost. It maps to `components.isConsumed`. Purpose: Consumed exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `components.isConsumed`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Duration Type",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "instantaneous",
+        "timed",
+        "special",
+        "until_dispelled",
+        "until_dispelled_or_triggered"
+      ],
+      "jsonPath": "duration.type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Duration type controls effect expiry behavior."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "The structured duration bucket currently uses lowercase duration tokens; they remain accepted while the bucket finishes normalization."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Some structured rows use time as the non-instantaneous, non-concentration duration family."
+        }
+      ],
+      "comment": "Some structured rows use time as the non-instantaneous, non-concentration duration family. It maps to `duration.type`. Purpose: Duration Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `duration.type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "instantaneous": "Allowed value for Duration Type; use only when the canonical spell text supports this exact mechanic.",
+        "timed": "Allowed value for Duration Type; use only when the canonical spell text supports this exact mechanic.",
+        "special": "Allowed value for Duration Type; use only when the canonical spell text supports this exact mechanic.",
+        "until_dispelled": "Allowed value for Duration Type; use only when the canonical spell text supports this exact mechanic.",
+        "until_dispelled_or_triggered": "Allowed value for Duration Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Duration Value",
+      "required": false,
+      "valueType": "number",
+      "jsonPath": "duration.value",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Timed effects need a numeric duration."
+        }
+      ],
+      "comment": "Timed effects need a numeric duration. It maps to `duration.value`. Purpose: Duration Value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `duration.value`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Duration Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "round",
+        "minute",
+        "hour",
+        "day"
+      ],
+      "jsonPath": "duration.unit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Duration units must be structured so 1 minute does not become 1 round."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Plural duration units exist in the current structured corpus and are accepted as display-normalization variants."
+        }
+      ],
+      "comment": "Plural duration units exist in the current structured corpus and are accepted as display-normalization variants. It maps to `duration.unit`. Purpose: Duration Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `duration.unit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "round": "Use when Duration Unit is measured in rounds; keep the numeric duration or casting amount in the paired value field.",
+        "minute": "Use when Duration Unit is measured in minutes; keep the numeric duration or casting amount in the paired value field.",
+        "hour": "Use when Duration Unit is measured in hours; keep the numeric duration or casting amount in the paired value field.",
+        "day": "Allowed value for Duration Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    }
+  ]
+}

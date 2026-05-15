@@ -1,4 +1,4 @@
-﻿# Spell Implementation Checklist
+# Spell Implementation Checklist
 
 Last Updated: 2026-03-11
 Purpose: Current implementation checklist for adding or repairing spell JSON in the live repo.

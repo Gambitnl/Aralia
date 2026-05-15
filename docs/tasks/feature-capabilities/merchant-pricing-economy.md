@@ -1,4 +1,4 @@
-﻿# Merchant Pricing And Economy Integration
+# Merchant Pricing And Economy Integration
 
 This capability note tracks how shared economy pricing is wired into merchant trading. The core pricing path is already implemented: MerchantModal calls the shared price calculator, and the calculator already applies market events, scarcity and surplus logic, regional modifiers, inflation, and faction trade bonuses.
 

@@ -1,0 +1,268 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 3 manual review override shard for spell indexes 60-66 in generated discovery row order."
+  ],
+  "findings": {
+    "tongues::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched hear/see wording, but Tongues is a communication and language-comprehension spell rather than a light, vision, or sound-area mechanic.",
+      "recommendedTemplateChange": "Track under communication/language fields, not vision-light-sound fields.",
+      "recommendedJsonChange": "Closed for this bucket; runtime utilityType is communication and the description now preserves spoken, signed, heard, and seen language modes."
+    },
+    "tongues::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Tongues grants understanding of spoken or signed languages and makes the target understandable to creatures that know at least one language, but runtime only has utilityType plus prose.",
+      "recommendedTemplateChange": "Add structured communication-language fields for understood modes, expressed modes, recipient eligibility, and hear/see requirements.",
+      "recommendedJsonChange": "Add runtime communicationLanguage data instead of relying on description prose."
+    },
+    "tongues::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Any creature that knows at least one language can understand the target if it can hear the speech or see the signing; the language-knowledge eligibility is not first-class.",
+      "recommendedTemplateChange": "Add communication recipient eligibility fields such as requiresKnownLanguage and perceptionMode.",
+      "recommendedJsonChange": "Add typed recipient filters for creatures that know at least one language and can hear or see the target's communication."
+    },
+    "vampiric-touch::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Until the spell ends, the caster can make the melee spell attack again on each turn as a Magic action against the same or different creature, but the current runtime does not model repeat attacks as granted actions.",
+      "recommendedTemplateChange": "Add sustained repeat-attack fields for action type, cadence, attack reuse, and target-retargeting permission.",
+      "recommendedJsonChange": "Add runtime granted/repeat action data for the per-turn Magic action attack."
+    },
+    "vampiric-touch::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points wording, but Vampiric Touch restores HP from damage dealt and does not spend, consume, or create a tracked resource.",
+      "recommendedTemplateChange": "Track the mechanic under healing/life-drain fields instead of resource fields.",
+      "recommendedJsonChange": "Closed by adding a typed HEALING effect for half the Necrotic damage dealt."
+    },
+    "vampiric-touch::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "On a hit, the caster regains Hit Points equal to half the Necrotic damage dealt; this was missing from runtime effects.",
+      "recommendedTemplateChange": "No new field required for this pass; structured Effect Type now includes HEALING.",
+      "recommendedJsonChange": "Closed by adding a HEALING effect with a custom formula tied to half the Necrotic damage dealt."
+    },
+    "vampiric-touch::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points wording, but this is creature healing and not object AC, HP, or damageability.",
+      "recommendedTemplateChange": "Track under healing/life-drain fields.",
+      "recommendedJsonChange": "Track under the typed HEALING effect."
+    },
+    "vampiric-touch::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The cited 'Until the spell ends' wording gates the repeat attack by the normal spell duration and does not introduce a special ending condition.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "No runtime conditional-ending data required beyond duration/concentration."
+    },
+    "wall-of-sand::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall must be on the ground, blocks line of sight but not movement, and costs 3 feet of movement for every 1 foot moved in its space; runtime has wall dimensions but no typed movement-cost multiplier or ground placement rule.",
+      "recommendedTemplateChange": "Add terrain obstruction fields for ground placement, line-of-sight blocking, movement passability, and movement-cost multiplier.",
+      "recommendedJsonChange": "Add runtime terrain/wall obstruction data for 3-for-1 movement cost and line-of-sight blocking."
+    },
+    "wall-of-sand::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall blocks line of sight, and creatures are Blinded while in its space; runtime has Blinded but does not type the wall's line-of-sight blocking separately.",
+      "recommendedTemplateChange": "Add opaque/blocks-line-of-sight fields for area hazards and structures.",
+      "recommendedJsonChange": "Add runtime sightObstruction or wallProperties data for line-of-sight blocking."
+    },
+    "wall-of-sand::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched wall creation and dimensions; structured markdown and JSON already carry the 30-foot length, 10-foot height, and 10-foot thickness as spatial form data.",
+      "recommendedTemplateChange": "No new structure-dimension field required for this spell.",
+      "recommendedJsonChange": "Closed by existing spatialDetails and areaOfEffect fields."
+    },
+    "wall-of-sand::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creatures are Blinded while in the wall's space; runtime has the Blinded condition, but it cannot express that the condition is location-dependent and ends when the creature leaves the wall.",
+      "recommendedTemplateChange": "Add area-scoped condition fields for conditions that apply only while occupying an area.",
+      "recommendedJsonChange": "Add runtime status scope data such as appliesWhileInArea and endsOnExit."
+    },
+    "wall-of-sand::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The wall vanishes when the spell ends, which is normal duration behavior and not a separate conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "No runtime conditional-ending data required beyond duration/concentration."
+    },
+    "wall-of-sand::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The wall vanishing at spell end leaves no persistent aftermath or memory state.",
+      "recommendedTemplateChange": "No aftermath field required.",
+      "recommendedJsonChange": "No runtime aftermath data required."
+    },
+    "wall-of-water::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Ranged weapon attacks that enter the wall's space have disadvantage, and fire damage is halved if the fire effect passes through the wall; both are only in utility prose.",
+      "recommendedTemplateChange": "Add wall-interaction modifier fields for ranged weapon attack disadvantage and damage-type reduction through the wall.",
+      "recommendedJsonChange": "Add runtime attackThroughArea and damageThroughArea modifier data."
+    },
+    "wall-of-water::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall's space is difficult terrain, cold damage can freeze 5-foot-square sections, and destroyed frozen sections leave gaps that water does not refill; runtime only stores most of this in prose.",
+      "recommendedTemplateChange": "Add terrain/wall state fields for difficult terrain, freeze transformation, section size, and non-refill gaps.",
+      "recommendedJsonChange": "Add runtime terrain plus section-state data for difficult terrain and frozen/destroyed sections."
+    },
+    "wall-of-water::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'point you can see within range', which is normal line-of-sight targeting already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "wall-of-water::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The straight and ringed wall forms are typed, but cold-created frozen wall sections with AC, HP, destruction, and non-refill gaps are not first-class structure states.",
+      "recommendedTemplateChange": "Add destructible section fields for created or transformed wall portions.",
+      "recommendedJsonChange": "Add runtime destructibleSections data for frozen 5-foot-square sections."
+    },
+    "wall-of-water::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched water not refilling a destroyed frozen section, but this is a structure-state gap rather than a resource or consumption mechanic.",
+      "recommendedTemplateChange": "Track under destructible wall section state fields.",
+      "recommendedJsonChange": "Track under destructibleSections/nonRefillGap data once that bucket is implemented."
+    },
+    "wall-of-water::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each 5-foot-square frozen section has AC 5 and 15 Hit Points and is destroyed at 0 HP; runtime has no typed destructible-section stats.",
+      "recommendedTemplateChange": "Add object/section AC, HP, size, and destroyed-at-zero fields.",
+      "recommendedJsonChange": "Add runtime destructible section stats for frozen wall portions."
+    },
+    "wall-of-water::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Cold damage passing through the wall freezes part of it, fire damage through it is halved, and destroyed sections remain empty; these environmental interactions are only prose.",
+      "recommendedTemplateChange": "Add environmental interaction fields keyed by damage type and pass-through condition.",
+      "recommendedJsonChange": "Add runtime environmentalInteractions data for cold freezing, fire halving, and destroyed-section gaps."
+    },
+    "wall-of-water::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The wall vanishes when the spell ends, which is normal duration behavior and not a separate conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "No runtime conditional-ending data required beyond duration/concentration."
+    },
+    "wall-of-water::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The wall vanishing at spell end leaves no persistent aftermath or memory state.",
+      "recommendedTemplateChange": "No aftermath field required.",
+      "recommendedJsonChange": "No runtime aftermath data required."
+    },
+    "water-breathing::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'of your choice', but the meaningful count mechanic is already captured as up to ten targets.",
+      "recommendedTemplateChange": "No choice-or-mode field required.",
+      "recommendedJsonChange": "Closed by existing multi targeting with maxTargets 10."
+    },
+    "water-breathing::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'grants ... ability', but Water Breathing creates no object or structure.",
+      "recommendedTemplateChange": "No created-object field required.",
+      "recommendedJsonChange": "No runtime created-object data required."
+    },
+    "water-breathing::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched breathing wording, but the spell grants an environmental capability and does not consume a resource.",
+      "recommendedTemplateChange": "Track underwater respiration under environmental/adaptation capability fields, not resource fields.",
+      "recommendedJsonChange": "No runtime resource data required."
+    },
+    "water-breathing::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Targets gain the ability to breathe underwater while retaining normal respiration; runtime stores this as utility prose without typed environmental adaptation fields.",
+      "recommendedTemplateChange": "Add environmental adaptation fields for underwater breathing and retained normal respiration.",
+      "recommendedJsonChange": "Add runtime environmentalAdaptation data for underwater breathing plus normal respiration retained."
+    },
+    "water-breathing::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The underwater breathing lasts until the spell ends, which is normal duration behavior and not a separate conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "No runtime conditional-ending data required beyond duration."
+    },
+    "water-walk::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'of your choice', but the meaningful count mechanic is already captured as up to ten targets.",
+      "recommendedTemplateChange": "No choice-or-mode field required.",
+      "recommendedJsonChange": "Closed by existing multi targeting with maxTargets 10."
+    },
+    "water-walk::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Bonus Action wording, but Water Walk does not modify attacks, saves, or checks.",
+      "recommendedTemplateChange": "Track the Bonus Action transition under granted/sustained action or movement-mode fields.",
+      "recommendedJsonChange": "Closed for this bucket by adding a granted Bonus Action entry to runtime utility data."
+    },
+    "water-walk::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Targets can move across any liquid surface as harmless solid ground, with lava heat still damaging them, but runtime stores liquid-surface movement only as utility prose.",
+      "recommendedTemplateChange": "Add movement-surface adaptation fields for liquid-surface walking, surface examples, harmless-ground treatment, and retained heat damage exceptions.",
+      "recommendedJsonChange": "Add runtime surfaceMovement data for liquid surfaces and damage exceptions."
+    },
+    "water-walk::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'solid ground' wording, but the spell does not create an object or structure; it changes how targets interact with liquid surfaces.",
+      "recommendedTemplateChange": "Track under surface movement/adaptation fields.",
+      "recommendedJsonChange": "No runtime created-object data required."
+    },
+    "water-walk::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched liquid examples, but Water Walk spends no resource and consumes no tracked quantity.",
+      "recommendedTemplateChange": "Track under surface movement/adaptation fields.",
+      "recommendedJsonChange": "No runtime resource data required."
+    },
+    "water-walk::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell changes the target's interaction with liquids, including water, acid, mud, snow, quicksand, and lava, while preserving lava heat damage; runtime has no typed environmental adaptation.",
+      "recommendedTemplateChange": "Add environmental adaptation fields for liquid traversal and hazardous-liquid exceptions.",
+      "recommendedJsonChange": "Add runtime environmentalAdaptation data for liquid traversal plus lava heat damage exception."
+    },
+    "water-walk::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Bonus Action transition and fall-through exception, but neither is a spell-ending condition.",
+      "recommendedTemplateChange": "Track under surface transition action fields.",
+      "recommendedJsonChange": "Closed for this bucket by adding a granted Bonus Action entry; no conditional-ending data required."
+    },
+    "wind-wall::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched point choice and wall-shaping choice; dimensions and continuous-path shaping are already present in structured spatial form notes and runtime spatialDetails.",
+      "recommendedTemplateChange": "No choice-or-mode field required for this spell.",
+      "recommendedJsonChange": "Closed by existing spatialDetails notes."
+    },
+    "wind-wall::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Strength save for 4d8 Bludgeoning damage with half damage on success is already typed in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "No attack/save modifier field required for the initial damage.",
+      "recommendedJsonChange": "Closed by existing DAMAGE effect with Strength save and saveEffect half."
+    },
+    "wind-wall::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall rises from the ground, follows one continuous path along the ground, and blocks certain creatures, objects, gases, and projectiles; runtime has spatial notes and utility controlOptions but no typed passability/filter rules.",
+      "recommendedTemplateChange": "Add wall passability/filter fields for ground pathing, gas blocking, flying-size blocking, projectile deflection, and unaffected projectile exceptions.",
+      "recommendedJsonChange": "Add runtime wallInteraction data instead of relying on controlOptions prose."
+    },
+    "wind-wall::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "Wall dimensions and continuous-path shaping are already represented in structured markdown and runtime spatialDetails.",
+      "recommendedTemplateChange": "No new structure-dimension field required for this spell.",
+      "recommendedJsonChange": "Closed by existing areaOfEffect and spatialDetails fields."
+    },
+    "wind-wall::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Loose lightweight materials fly upward and ordinary projectiles launched at targets behind the wall miss automatically, with heavy/siege projectile exceptions; runtime now preserves these as utility controlOptions but lacks filterable projectile/material rules.",
+      "recommendedTemplateChange": "Add ward/interception fields for ordinary projectile auto-miss, lightweight material updraft, and exception filters.",
+      "recommendedJsonChange": "Add runtime interception/projectileFilter data instead of prose-only controlOptions."
+    },
+    "wind-wall::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Strong wind keeps fog, smoke, and gases at bay and prevents gaseous-form creatures from passing; runtime now preserves this as utility controlOptions but lacks typed gas and form passability fields.",
+      "recommendedTemplateChange": "Add environmental barrier fields for gas/smoke/fog blocking and gaseous-form passability.",
+      "recommendedJsonChange": "Add runtime environmentalBarrier data for gases and gaseous-form creatures."
+    }
+  },
+  "manualFindings": {
+    "water-breathing::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Water Breathing affects up to ten willing creatures, but runtime targeting only says creatures and has no willing-target eligibility field.",
+      "recommendedTemplateChange": "Add willing-target eligibility fields to targeting filters.",
+      "recommendedJsonChange": "Add runtime target filter data for willing creatures."
+    },
+    "water-walk::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Water Walk affects up to ten willing creatures, but runtime targeting only says creatures and has no willing-target eligibility field.",
+      "recommendedTemplateChange": "Add willing-target eligibility fields to targeting filters.",
+      "recommendedJsonChange": "Add runtime target filter data for willing creatures."
+    }
+  }
+}

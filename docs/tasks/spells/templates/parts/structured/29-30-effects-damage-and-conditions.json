@@ -1,0 +1,39 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Triggered Applications",
+      "valueType": "csv-string",
+      "jsonPath": "effects[].triggeredApplications[]",
+      "why": "Area spells need explicit initial/entry/end-turn application timing.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Area spells need explicit initial/entry/end-turn application timing."
+        }
+      ],
+      "comment": "Area spells need explicit initial/entry/end-turn application timing. It maps to `effects[].triggeredApplications[]`. Purpose: Triggered Applications exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].triggeredApplications[]`. The value type is `csv-string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Temporary HP",
+      "valueType": "boolean",
+      "jsonPath": "effects[].healing.temporary",
+      "why": "Temporary hit point spells need explicit healing semantics.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Temporary hit point spells need explicit healing semantics."
+        }
+      ],
+      "comment": "Temporary hit point spells need explicit healing semantics. It maps to `effects[].healing.temporary`. Purpose: Temporary HP exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].healing.temporary`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

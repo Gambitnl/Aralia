@@ -1,0 +1,297 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 14,
+  "fields": [
+    {
+      "label": "Damage Type Exclusions",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].excludedDamageType[]",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "registered",
+          "why": "Feign Death grants resistance to all damage except Psychic, which needs a typed exception list instead of prose-only handling."
+        }
+      ],
+      "comment": "Lists damage types excluded from a broad defensive damage entry. Use this when canonical prose says a target resists or is immune to a large damage set with named exceptions, such as `all damage except Psychic`. It maps to `effects[].excludedDamageType[]`. Purpose: Damage Type Exclusions exists so exception-based resistance/immunity is not flattened into description prose or misrepresented as unconditional all-damage protection. Use `not_applicable` when the spell has no damage-type exception mechanic."
+    },
+    {
+      "label": "Defense Damage Type Source",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].damageTypeSource",
+      "acceptedValues": [
+        "listed",
+        "triggering_damage_type",
+        "chosen_damage_type",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T00:40:00+02:00",
+          "action": "registered",
+          "why": "Absorb Elements lists eligible damage types, but the actual resistance is copied from the triggering damage event."
+        }
+      ],
+      "comment": "Explains how to interpret defensive `Damage Type` entries. Use `listed` when every listed type applies directly, `triggering_damage_type` when the active type is copied from the damage event that triggered the spell, and `chosen_damage_type` when a caster or player chooses one type from the listed options. It maps to `effects[].damageTypeSource`. Purpose: Defense Damage Type Source prevents dynamic resistance from being mistaken for simultaneous resistance to every eligible listed type. Use `not_applicable` when the spell has no defensive damage-type mechanic.",
+      "acceptedValueNotes": {
+        "listed": "Every listed Damage Type applies directly.",
+        "triggering_damage_type": "The active type is the damage type from the event that triggered the spell.",
+        "chosen_damage_type": "The active type is selected by the caster/player from the eligible list.",
+        "not_applicable": "The spell has no defensive damage-type source mechanic."
+      }
+    },
+    {
+      "label": "Damage Reduction Dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "jsonPath": "effects[].damageReduction.dice",
+      "log": [
+        {
+          "at": "2026-05-14T01:00:00+02:00",
+          "action": "registered",
+          "why": "Resistance reduces qualifying damage by 1d4, which is not the same mechanic as resistance or immunity."
+        }
+      ],
+      "comment": "Stores the rolled amount subtracted from qualifying damage. Use this for damage-reduction mechanics such as `reduce the total damage taken by 1d4`; do not use it for normal resistance or immunity. It maps to `effects[].damageReduction.dice`. Purpose: Damage Reduction Dice exists so damage subtraction is not flattened into utility prose or mis-modeled as resistance. Use `not_applicable` when the spell has no rolled damage-reduction mechanic."
+    },
+    {
+      "label": "Damage Reduction Applies To",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].damageReduction.appliesTo",
+      "acceptedValues": [
+        "damage_taken",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:00:00+02:00",
+          "action": "registered",
+          "why": "Damage reduction needs to say whether it subtracts from incoming damage, outgoing damage, or another future damage total."
+        }
+      ],
+      "comment": "Names which damage total the reduction modifies. Current closed corpus usage is `damage_taken`, meaning the target subtracts the amount from incoming damage it takes. It maps to `effects[].damageReduction.appliesTo`. Purpose: Damage Reduction Applies To prevents reduction rules from being confused with attack damage bonuses or healing. Use `not_applicable` when the spell has no damage-reduction mechanic.",
+      "acceptedValueNotes": {
+        "damage_taken": "Subtract from damage the protected target takes.",
+        "not_applicable": "The spell has no damage-reduction mechanic."
+      }
+    },
+    {
+      "label": "Damage Reduction Frequency",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].damageReduction.frequency",
+      "acceptedValues": [
+        "once_per_turn",
+        "every_time",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:00:00+02:00",
+          "action": "registered",
+          "why": "Resistance can benefit a creature only once per turn, so frequency must be typed instead of living only in prose."
+        }
+      ],
+      "comment": "Stores how often the damage reduction can be used while the effect is active. Use `once_per_turn` for prose like `only once per turn`; use `every_time` when every qualifying damage event is reduced. It maps to `effects[].damageReduction.frequency`. Purpose: Damage Reduction Frequency keeps consumption limits visible to runtime and validation. Use `not_applicable` when the spell has no damage-reduction mechanic.",
+      "acceptedValueNotes": {
+        "once_per_turn": "Only one qualifying damage event per turn can be reduced.",
+        "every_time": "Every qualifying damage event can be reduced.",
+        "not_applicable": "The spell has no damage-reduction mechanic."
+      }
+    },
+    {
+      "label": "Resistance Suppression Damage Types",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].resistanceSuppression.damageType[]",
+      "acceptedValues": [
+        "Acid",
+        "Bludgeoning",
+        "Cold",
+        "Fire",
+        "Force",
+        "Lightning",
+        "Necrotic",
+        "Piercing",
+        "Poison",
+        "Psychic",
+        "Radiant",
+        "Slashing",
+        "Thunder",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:10:00+02:00",
+          "action": "registered",
+          "why": "Elemental Bane makes the target lose resistance to the caster's chosen damage type, which is neither normal damage reduction nor a defensive resistance granted by the spell."
+        }
+      ],
+      "comment": "Lists the damage types whose existing resistance is suppressed on the affected target. Use this when canonical prose says the target loses resistance to a damage type, such as Elemental Bane; do not use it for granting resistance, granting vulnerability, or subtracting a damage amount. It maps to `effects[].resistanceSuppression.damageType[]`. Purpose: Resistance Suppression Damage Types keeps resistance-removal mechanics from being hidden in description prose or inverted into defensive resistance data. Use `not_applicable` when the spell has no resistance-suppression mechanic.",
+      "acceptedValueNotes": {
+        "Acid": "Suppress existing Acid resistance.",
+        "Bludgeoning": "Suppress existing Bludgeoning resistance.",
+        "Cold": "Suppress existing Cold resistance.",
+        "Fire": "Suppress existing Fire resistance.",
+        "Force": "Suppress existing Force resistance.",
+        "Lightning": "Suppress existing Lightning resistance.",
+        "Necrotic": "Suppress existing Necrotic resistance.",
+        "Piercing": "Suppress existing Piercing resistance.",
+        "Poison": "Suppress existing Poison resistance.",
+        "Psychic": "Suppress existing Psychic resistance.",
+        "Radiant": "Suppress existing Radiant resistance.",
+        "Slashing": "Suppress existing Slashing resistance.",
+        "Thunder": "Suppress existing Thunder resistance.",
+        "not_applicable": "The spell does not suppress any existing damage resistance."
+      }
+    },
+    {
+      "label": "Resistance Suppression Damage Type Source",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].resistanceSuppression.damageTypeSource",
+      "acceptedValues": [
+        "listed",
+        "chosen_damage_type",
+        "triggering_damage_type",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:10:00+02:00",
+          "action": "registered",
+          "why": "Elemental Bane lists eligible damage types but suppresses resistance only to the one type chosen when the spell is cast."
+        }
+      ],
+      "comment": "Explains how the active suppressed damage type is selected from Resistance Suppression Damage Types. Use `listed` when every listed resistance is suppressed, `chosen_damage_type` when the caster or player chooses one eligible type, and `triggering_damage_type` when the active suppressed type is copied from a triggering damage event. It maps to `effects[].resistanceSuppression.damageTypeSource`. Purpose: Resistance Suppression Damage Type Source prevents eligible choices from being mistaken for simultaneous suppression of every listed resistance. Use `not_applicable` when the spell has no resistance-suppression mechanic.",
+      "acceptedValueNotes": {
+        "listed": "Every listed resistance suppression type applies directly.",
+        "chosen_damage_type": "The active resistance suppression type is selected from the listed options.",
+        "triggering_damage_type": "The active resistance suppression type is copied from the triggering damage event.",
+        "not_applicable": "The spell has no resistance-suppression mechanic."
+      }
+    },
+    {
+      "label": "Damage Interaction Modes",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].damageInteraction.modes[]",
+      "acceptedValues": [
+        "resistance",
+        "vulnerability",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:55:00+02:00",
+          "action": "registered",
+          "why": "Hallow's extra effect can grant either Resistance or Vulnerability in an area, so the template needs a neutral damage-interaction mode."
+        }
+      ],
+      "comment": "Lists area or mode-based changes to how affected creatures receive damage. Use `resistance` and `vulnerability` for Hallow-style extra effects; do not force vulnerability into Defense Type. It maps to `effects[].damageInteraction.modes[]`. Purpose: Damage Interaction Modes keeps beneficial and harmful damage interaction choices in one runtime shape. Use `not_applicable` when the spell has no damage-interaction mode."
+    },
+    {
+      "label": "Damage Interaction Damage Types",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].damageInteraction.damageType[]",
+      "comment": "Lists eligible damage types for a damage-interaction mode. For chosen-type modes, list the choice set and pair it with Damage Interaction Damage Type Source. It maps to `effects[].damageInteraction.damageType[]`. Purpose: Damage Interaction Damage Types prevents area-mode resistance or vulnerability from being hidden in prose. Use `not_applicable` when the spell has no damage-interaction mode."
+    },
+    {
+      "label": "Damage Interaction Damage Type Source",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].damageInteraction.damageTypeSource",
+      "acceptedValues": [
+        "listed",
+        "chosen_damage_type",
+        "triggering_damage_type",
+        "not_applicable"
+      ],
+      "comment": "Explains how the active damage type is selected for a damage-interaction mode. Use `chosen_damage_type` when the caster chooses one type from the eligible list. It maps to `effects[].damageInteraction.damageTypeSource`. Purpose: Damage Interaction Damage Type Source keeps eligible choices from being mistaken for simultaneous interaction with every listed type. Use `not_applicable` when the spell has no damage-interaction mode."
+    },
+    {
+      "label": "Damage Interaction Subject Scope",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].damageInteraction.subjectScope",
+      "acceptedValues": [
+        "chosen_creature_types",
+        "all_targets",
+        "not_applicable"
+      ],
+      "comment": "Names which subjects the damage-interaction mode can affect. Use `chosen_creature_types` for Hallow wording like `creatures of any types you choose`. It maps to `effects[].damageInteraction.subjectScope`. Purpose: Damage Interaction Subject Scope keeps mode eligibility separate from the spell's point/area target. Use `not_applicable` when the spell has no damage-interaction mode."
+    },
+    {
+      "label": "Damage Interaction Duration Scope",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].damageInteraction.durationScope",
+      "acceptedValues": [
+        "while_in_area",
+        "while_active",
+        "permanent",
+        "not_applicable"
+      ],
+      "comment": "States when the damage-interaction mode applies. Use `while_in_area` for area-bound mechanics such as Hallow's Resistance and Vulnerability extra effects. It maps to `effects[].damageInteraction.durationScope`. Purpose: Damage Interaction Duration Scope prevents area-local interactions from being treated as permanent creature changes. Use `not_applicable` when the spell has no damage-interaction mode."
+    },
+    {
+      "label": "Defense Source Categories",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].defenseSourceFilter.sourceCategories[]",
+      "acceptedValues": [
+        "attack",
+        "spell",
+        "effect",
+        "environment",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:20:00+02:00",
+          "action": "registered",
+          "why": "Investiture of Stone limits its B/P/S resistance to damage from attacks, not every possible source of those damage types."
+        }
+      ],
+      "comment": "Lists the incoming source categories a defensive effect applies to. Use this when canonical prose limits a defense by source, such as `from attacks`; do not use target eligibility fields for this, because the spell target and the incoming damage source are different things. It maps to `effects[].defenseSourceFilter.sourceCategories[]`. Purpose: Defense Source Categories prevents source-limited resistance or immunity from becoming unconditional. Use `not_applicable` when the defense has no source-category restriction.",
+      "acceptedValueNotes": {
+        "attack": "The defense applies to incoming damage or effects from attacks.",
+        "spell": "The defense applies to incoming damage or effects from spells.",
+        "effect": "The defense applies to other named effects.",
+        "environment": "The defense applies to environmental sources.",
+        "not_applicable": "The defense has no source-category restriction."
+      }
+    },
+    {
+      "label": "Defense Source Attack Magical Status",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].defenseSourceFilter.attackMagicalStatus",
+      "acceptedValues": [
+        "any",
+        "magical",
+        "nonmagical",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:20:00+02:00",
+          "action": "registered",
+          "why": "Investiture of Stone resists B/P/S damage only from nonmagical attacks, so magical-status filtering must be typed."
+        }
+      ],
+      "comment": "States whether an attack-source defense applies to magical attacks, nonmagical attacks, any attack, or no attack-source filter. Use this only for defenses whose canonical prose limits incoming attack sources by magical status. It maps to `effects[].defenseSourceFilter.attackMagicalStatus`. Purpose: Defense Source Attack Magical Status keeps nonmagical-attack resistance from being treated as blanket damage resistance. Use `not_applicable` when the defense has no attack magical-status restriction.",
+      "acceptedValueNotes": {
+        "any": "The defense applies to attacks regardless of magical status.",
+        "magical": "The defense applies only to magical attacks.",
+        "nonmagical": "The defense applies only to nonmagical attacks.",
+        "not_applicable": "The defense has no attack magical-status restriction."
+      }
+    }
+  ]
+}

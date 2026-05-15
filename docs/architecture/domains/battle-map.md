@@ -1,4 +1,4 @@
-﻿# Battle Map
+# Battle Map
 
 ## Purpose
 

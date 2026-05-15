@@ -9,7 +9,6 @@
     "Druid"
   ],
   "subClasses": [],
-  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -52,22 +51,172 @@
       "creatures"
     ],
     "lineOfSight": true,
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
+    "maxTargets": 11,
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
+    {
+      "type": "MOVEMENT",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "movementType": "speed_change",
+      "speedChange": {
+        "stat": "speed",
+        "value": 300,
+        "unit": "feet"
+      },
+      "duration": {
+        "type": "special",
+        "value": 0
+      },
+      "distance": 0,
+      "forcedMovement": {
+        "usesReaction": false,
+        "direction": "caster_choice",
+        "maxDistance": ""
+      },
+      "description": "In cloud form, a target has a Fly Speed of 300 feet and can hover. Runtime still needs a first-class movement-mode field for fly speed and hover.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "on_caster_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "statusCondition": {
+        "name": "Stunned",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "level": 0
+      },
+      "description": "Reverting to normal form takes 1 minute, during which the target has the Stunned condition.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "resistance",
+      "damageType": [
+        "Bludgeoning",
+        "Piercing",
+        "Slashing"
+      ],
+      "duration": {
+        "type": "special",
+        "value": 0
+      },
+      "description": "In cloud form, a target has Resistance to Bludgeoning, Piercing, and Slashing damage.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "immunity",
+      "damageType": [],
+      "conditionImmunity": [
+        "Prone"
+      ],
+      "duration": {
+        "type": "special",
+        "value": 0
+      },
+      "description": "In cloud form, a target has Immunity to the Prone condition.",
+      "conditionalEndings": []
+    },
     {
       "type": "UTILITY",
       "trigger": {
@@ -86,18 +235,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
       "description": "You and up to ten willing creatures of your choice within range assume gaseous forms for the duration, appearing as wisps of cloud. While in this cloud form, a target has a Fly Speed of 300 feet and can hover; it has Immunity to the Prone condition; and it has Resistance to Bludgeoning, Piercing, and Slashing damage. The only actions a target can take in this form are the Dash action or a Magic action to begin reverting to its normal form. Reverting takes 1 minute, during which the target has the Stunned condition. Until the spell ends, the target can revert to cloud form, which also requires a Magic action followed by a 1-minute transformation. If a target is in cloud form and flying when the effect ends, the target descends 60 feet per round for 1 minute until it lands, which it does safely. If it can't land after 1 minute, it falls the remaining distance.",
@@ -108,7 +276,36 @@
       },
       "grantedActions": [],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "name": "Gaseous Cloud Form",
+          "effect": "Targets assume gaseous cloud form for the duration."
+        },
+        {
+          "name": "Fly Speed And Hover",
+          "effect": "In cloud form, a target has a Fly Speed of 300 feet and can hover."
+        },
+        {
+          "name": "Prone Immunity",
+          "effect": "In cloud form, a target has Immunity to the Prone condition."
+        },
+        {
+          "name": "Only Dash Or Revert",
+          "effect": "In cloud form, the only actions a target can take are Dash or a Magic action to begin reverting."
+        },
+        {
+          "name": "Revert To Normal Form",
+          "effect": "Reverting to normal form takes 1 minute and Stuns the target during the transformation."
+        },
+        {
+          "name": "Revert To Cloud Form",
+          "effect": "Until the spell ends, the target can use a Magic action and 1-minute transformation to return to cloud form."
+        },
+        {
+          "name": "Safe Descent Then Fall",
+          "effect": "If the effect ends while a target is flying in cloud form, it descends 60 feet per round for 1 minute, then falls any remaining distance if it cannot land."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -127,8 +324,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

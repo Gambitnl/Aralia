@@ -1,0 +1,515 @@
+{
+  "templateKind": "runtime-json",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 22,
+  "fields": [
+    {
+      "path": "targeting.type",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "self",
+        "single",
+        "multi",
+        "area",
+        "melee",
+        "ranged",
+        "point"
+      ],
+      "structuredLabel": "Targeting Type",
+      "acceptedValueParity": "runtime_subset_ok",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Targeting Type."
+        }
+      ],
+      "comment": "Mapped from structured Targeting Type. It maps to `targeting.type`. It is populated from the structured markdown label `Targeting Type`. Purpose: targeting.type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Targeting Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "self": "Use when the canonical spell centers this targeting.type mechanic on the caster rather than a separate target.",
+        "single": "Allowed value for targeting.type; use only when the canonical spell text supports this exact mechanic.",
+        "multi": "Allowed value for targeting.type; use only when the canonical spell text supports this exact mechanic.",
+        "area": "Allowed value for targeting.type; use only when the canonical spell text supports this exact mechanic.",
+        "melee": "Allowed value for targeting.type; use only when the canonical spell text supports this exact mechanic.",
+        "ranged": "Allowed value for targeting.type; use only when the canonical spell text supports this exact mechanic.",
+        "point": "Use `point` for targeting.type only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available."
+      }
+    },
+    {
+      "path": "targeting.range",
+      "required": true,
+      "valueType": "number",
+      "structuredLabel": "Targeting Range",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Targeting Range."
+        }
+      ],
+      "comment": "Mapped from structured Targeting Range. It maps to `targeting.range`. It is populated from the structured markdown label `Targeting Range`. Purpose: targeting.range exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Targeting Range`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.range`. The value type is `number`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "targeting.rangeUnit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "structuredLabel": "Targeting Range Unit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Targeting Range Unit."
+        }
+      ],
+      "comment": "Mapped from structured Targeting Range Unit. It maps to `targeting.rangeUnit`. It is populated from the structured markdown label `Targeting Range Unit`. Purpose: targeting.rangeUnit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Targeting Range Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.rangeUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when targeting.rangeUnit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when targeting.rangeUnit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for targeting.rangeUnit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "targeting.validTargets[]",
+      "required": true,
+      "valueType": "enum-array",
+      "acceptedValues": [
+        "self",
+        "creatures",
+        "allies",
+        "enemies",
+        "objects",
+        "point",
+        "ground"
+      ],
+      "structuredLabel": "Valid Targets",
+      "acceptedValueParity": "runtime_subset_ok",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Valid Targets."
+        }
+      ],
+      "comment": "Mapped from structured Valid Targets. It maps to `targeting.validTargets[]`. It is populated from the structured markdown label `Valid Targets`. Purpose: targeting.validTargets[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Valid Targets`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.validTargets[]`. The value type is `enum-array`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "self": "Use when the canonical spell centers this targeting.validTargets[] mechanic on the caster rather than a separate target.",
+        "creatures": "Use when the canonical spell limits this targeting.validTargets[] mechanic to creatures; do not use for objects unless the prose also permits objects.",
+        "allies": "Allowed value for targeting.validTargets[]; use only when the canonical spell text supports this exact mechanic.",
+        "enemies": "Allowed value for targeting.validTargets[]; use only when the canonical spell text supports this exact mechanic.",
+        "objects": "Use when the canonical spell limits this targeting.validTargets[] mechanic to objects; do not use for creatures unless the prose also permits creatures.",
+        "point": "Use `point` for targeting.validTargets[] only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "ground": "Allowed value for targeting.validTargets[]; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "targeting.lineOfSight",
+      "required": true,
+      "valueType": "boolean",
+      "structuredLabel": "Line of Sight",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Line of Sight."
+        }
+      ],
+      "comment": "Mapped from structured Line of Sight. It maps to `targeting.lineOfSight`. It is populated from the structured markdown label `Line of Sight`. Purpose: targeting.lineOfSight exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Line of Sight`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.lineOfSight`. The value type is `boolean`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "targeting.filter.willing",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "required",
+        "not_applicable"
+      ],
+      "structuredLabel": "Target Willingness",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs a first-class consent gate for willing-creature spells."
+        }
+      ],
+      "comment": "Runtime targeting needs a first-class consent gate for willing-creature spells. It maps to `targeting.filter.willing`. It is populated from the structured markdown label `Target Willingness`. Purpose: targeting.filter.willing exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Willingness`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.willing`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "required": "Use `required` for targeting.filter.willing only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for targeting.filter.willing only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.objectEligibility.wornOrCarried",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Object Worn Or Carried",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        }
+      ],
+      "acceptedValues": [
+        "excluded",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category. It maps to `targeting.filter.objectEligibility.wornOrCarried`. It is populated from the structured markdown label `Target Object Worn Or Carried`. Purpose: targeting.filter.objectEligibility.wornOrCarried exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Object Worn Or Carried`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.objectEligibility.wornOrCarried`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "excluded": "Allowed value for targeting.filter.objectEligibility.wornOrCarried; use only when the canonical spell text supports this exact mechanic.",
+        "not_applicable": "Use for targeting.filter.objectEligibility.wornOrCarried only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.objectEligibility.magicalStatus",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Object Magical Status",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        }
+      ],
+      "acceptedValues": [
+        "any",
+        "nonmagical",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category. It maps to `targeting.filter.objectEligibility.magicalStatus`. It is populated from the structured markdown label `Target Object Magical Status`. Purpose: targeting.filter.objectEligibility.magicalStatus exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Object Magical Status`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.objectEligibility.magicalStatus`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "any": "Allowed value for targeting.filter.objectEligibility.magicalStatus; use only when the canonical spell text supports this exact mechanic.",
+        "nonmagical": "Allowed value for targeting.filter.objectEligibility.magicalStatus; use only when the canonical spell text supports this exact mechanic.",
+        "not_applicable": "Use for targeting.filter.objectEligibility.magicalStatus only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.objectEligibility.fixedToSurface",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Object Fixed To Surface",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        }
+      ],
+      "acceptedValues": [
+        "excluded",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category. It maps to `targeting.filter.objectEligibility.fixedToSurface`. It is populated from the structured markdown label `Target Object Fixed To Surface`. Purpose: targeting.filter.objectEligibility.fixedToSurface exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Object Fixed To Surface`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.objectEligibility.fixedToSurface`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "excluded": "Allowed value for targeting.filter.objectEligibility.fixedToSurface; use only when the canonical spell text supports this exact mechanic.",
+        "not_applicable": "Use for targeting.filter.objectEligibility.fixedToSurface only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.objectEligibility.maxSize",
+      "required": true,
+      "valueType": "string",
+      "structuredLabel": "Target Object Max Size",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        }
+      ],
+      "comment": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category. It maps to `targeting.filter.objectEligibility.maxSize`. It is populated from the structured markdown label `Target Object Max Size`. Purpose: targeting.filter.objectEligibility.maxSize exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Object Max Size`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.objectEligibility.maxSize`. The value type is `string`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "targeting.filter.objectEligibility.maxWeightPounds",
+      "required": true,
+      "valueType": "number-or-not-applicable",
+      "structuredLabel": "Target Object Max Weight Pounds",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        }
+      ],
+      "comment": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category. It maps to `targeting.filter.objectEligibility.maxWeightPounds`. It is populated from the structured markdown label `Target Object Max Weight Pounds`. Purpose: targeting.filter.objectEligibility.maxWeightPounds exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Object Max Weight Pounds`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.objectEligibility.maxWeightPounds`. The value type is `number-or-not-applicable`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "targeting.filter.objectEligibility.maxWeightScaling",
+      "required": true,
+      "valueType": "string",
+      "structuredLabel": "Target Object Max Weight Scaling",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category."
+        }
+      ],
+      "comment": "Runtime targeting needs object eligibility checks that are separate from the broad objects target category. It maps to `targeting.filter.objectEligibility.maxWeightScaling`. It is populated from the structured markdown label `Target Object Max Weight Scaling`. Purpose: targeting.filter.objectEligibility.maxWeightScaling exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Object Max Weight Scaling`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.objectEligibility.maxWeightScaling`. The value type is `string`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "targeting.filter.communicationPrerequisites.canHearCaster",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Can Hear Caster",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs explicit hearing, understanding, and sight prerequisites."
+        }
+      ],
+      "acceptedValues": [
+        "required",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs explicit hearing, understanding, and sight prerequisites. It maps to `targeting.filter.communicationPrerequisites.canHearCaster`. It is populated from the structured markdown label `Target Can Hear Caster`. Purpose: targeting.filter.communicationPrerequisites.canHearCaster exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Can Hear Caster`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.communicationPrerequisites.canHearCaster`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "required": "Use `required` for targeting.filter.communicationPrerequisites.canHearCaster only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for targeting.filter.communicationPrerequisites.canHearCaster only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.communicationPrerequisites.canUnderstandCaster",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Can Understand Caster",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs explicit hearing, understanding, and sight prerequisites."
+        }
+      ],
+      "acceptedValues": [
+        "required",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs explicit hearing, understanding, and sight prerequisites. It maps to `targeting.filter.communicationPrerequisites.canUnderstandCaster`. It is populated from the structured markdown label `Target Can Understand Caster`. Purpose: targeting.filter.communicationPrerequisites.canUnderstandCaster exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Can Understand Caster`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.communicationPrerequisites.canUnderstandCaster`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "required": "Use `required` for targeting.filter.communicationPrerequisites.canUnderstandCaster only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for targeting.filter.communicationPrerequisites.canUnderstandCaster only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.communicationPrerequisites.canSeeCaster",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Can See Caster",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs explicit hearing, understanding, and sight prerequisites."
+        }
+      ],
+      "acceptedValues": [
+        "required",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs explicit hearing, understanding, and sight prerequisites. It maps to `targeting.filter.communicationPrerequisites.canSeeCaster`. It is populated from the structured markdown label `Target Can See Caster`. Purpose: targeting.filter.communicationPrerequisites.canSeeCaster exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Can See Caster`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.communicationPrerequisites.canSeeCaster`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "required": "Use `required` for targeting.filter.communicationPrerequisites.canSeeCaster only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "not_applicable": "Use for targeting.filter.communicationPrerequisites.canSeeCaster only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.abilityThreshold.ability",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Ability Threshold Ability",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs explicit ability-score eligibility thresholds."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs explicit ability-score eligibility thresholds."
+        }
+      ],
+      "acceptedValues": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs explicit ability-score eligibility thresholds. It maps to `targeting.filter.abilityThreshold.ability`. It is populated from the structured markdown label `Target Ability Threshold Ability`. Purpose: targeting.filter.abilityThreshold.ability exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Ability Threshold Ability`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.abilityThreshold.ability`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "Strength": "Allowed value for targeting.filter.abilityThreshold.ability; use only when the canonical spell text supports this exact mechanic.",
+        "Dexterity": "Allowed value for targeting.filter.abilityThreshold.ability; use only when the canonical spell text supports this exact mechanic.",
+        "Constitution": "Allowed value for targeting.filter.abilityThreshold.ability; use only when the canonical spell text supports this exact mechanic.",
+        "Intelligence": "Allowed value for targeting.filter.abilityThreshold.ability; use only when the canonical spell text supports this exact mechanic.",
+        "Wisdom": "Allowed value for targeting.filter.abilityThreshold.ability; use only when the canonical spell text supports this exact mechanic.",
+        "Charisma": "Allowed value for targeting.filter.abilityThreshold.ability; use only when the canonical spell text supports this exact mechanic.",
+        "not_applicable": "Use for targeting.filter.abilityThreshold.ability only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.abilityThreshold.operator",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Ability Threshold Operator",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs explicit ability-score eligibility thresholds."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs explicit ability-score eligibility thresholds."
+        }
+      ],
+      "acceptedValues": [
+        "greater_than",
+        "greater_than_or_equal",
+        "less_than",
+        "less_than_or_equal",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs explicit ability-score eligibility thresholds. It maps to `targeting.filter.abilityThreshold.operator`. It is populated from the structured markdown label `Target Ability Threshold Operator`. Purpose: targeting.filter.abilityThreshold.operator exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Ability Threshold Operator`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.abilityThreshold.operator`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "greater_than": "Allowed value for targeting.filter.abilityThreshold.operator; use only when the canonical spell text supports this exact mechanic.",
+        "greater_than_or_equal": "Allowed value for targeting.filter.abilityThreshold.operator; use only when the canonical spell text supports this exact mechanic.",
+        "less_than": "Allowed value for targeting.filter.abilityThreshold.operator; use only when the canonical spell text supports this exact mechanic.",
+        "less_than_or_equal": "Allowed value for targeting.filter.abilityThreshold.operator; use only when the canonical spell text supports this exact mechanic.",
+        "not_applicable": "Use for targeting.filter.abilityThreshold.operator only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.filter.abilityThreshold.value",
+      "required": true,
+      "valueType": "number-or-not-applicable",
+      "structuredLabel": "Target Ability Threshold Value",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs explicit ability-score eligibility thresholds."
+        },
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "changed",
+          "why": "Runtime targeting needs explicit ability-score eligibility thresholds."
+        }
+      ],
+      "comment": "Runtime targeting needs explicit ability-score eligibility thresholds. It maps to `targeting.filter.abilityThreshold.value`. It is populated from the structured markdown label `Target Ability Threshold Value`. Purpose: targeting.filter.abilityThreshold.value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Ability Threshold Value`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.abilityThreshold.value`. The value type is `number-or-not-applicable`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "targeting.filter.selfRelation",
+      "required": true,
+      "valueType": "enum",
+      "structuredLabel": "Target Self Relation",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Runtime targeting needs an explicit self-versus-other gate for spells like Warding Bond."
+        }
+      ],
+      "acceptedValues": [
+        "must_be_self",
+        "must_be_other",
+        "self_allowed",
+        "not_applicable"
+      ],
+      "comment": "Runtime targeting needs an explicit self-versus-other gate for spells like Warding Bond. It maps to `targeting.filter.selfRelation`. It is populated from the structured markdown label `Target Self Relation`. Purpose: targeting.filter.selfRelation exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Self Relation`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.selfRelation`. The value type is `enum`. This is expected on every spell/template instance. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "must_be_self": "Allowed value for targeting.filter.selfRelation; use only when the canonical spell text supports this exact mechanic.",
+        "must_be_other": "Allowed value for targeting.filter.selfRelation; use only when the canonical spell text supports this exact mechanic.",
+        "self_allowed": "Allowed value for targeting.filter.selfRelation; use only when the canonical spell text supports this exact mechanic.",
+        "not_applicable": "Use for targeting.filter.selfRelation only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "path": "targeting.maxTargets",
+      "required": true,
+      "valueType": "number-scalable-or-unlimited",
+      "structuredLabel": "Targeting Max",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Targeting Max."
+        }
+      ],
+      "comment": "Mapped from structured Targeting Max. It maps to `targeting.maxTargets`. It is populated from the structured markdown label `Targeting Max`. Purpose: targeting.maxTargets exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Targeting Max`, after that field has been checked against canonical prose. Use a finite number for fixed caps, a scalable object for level-based caps, and `unlimited` only for canonical any-number targeting. It maps to runtime JSON path `targeting.maxTargets`. The value type is `number-scalable-or-unlimited`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "number": "Use a finite number when the spell gives an exact target cap.",
+        "scalable": "Use a scalable object when character level or slot level changes the target cap.",
+        "unlimited": "Use `unlimited` only when the canonical spell prose allows any number of valid targets; do not use a fake high number such as 999."
+      }
+    },
+    {
+      "path": "targeting.targetParticipation.requiresWithinRangeForFullCasting",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "structuredLabel": "Target Participation Requires Full Casting Range",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Runtime targeting needs to know when selected targets must remain in range during a long casting before the spell can affect them."
+        }
+      ],
+      "comment": "Runtime targeting needs to know when selected targets must remain in range during a long casting before the spell can affect them. It maps to `targeting.targetParticipation.requiresWithinRangeForFullCasting`. It is populated from the structured markdown label `Target Participation Requires Full Casting Range`. Purpose: targeting.targetParticipation.requiresWithinRangeForFullCasting exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Use `true` when targets must remain within range for the whole casting time, and use `not_applicable` only when the field is carried as an explicit sentinel for spells without that mechanic."
+    },
+    {
+      "path": "targeting.targetParticipation.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Target Participation Notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Short target-participation notes preserve the exact long-casting wording beside the runtime flag."
+        }
+      ],
+      "comment": "Short target-participation notes preserve the exact long-casting wording beside the runtime flag. It maps to `targeting.targetParticipation.notes`. It is populated from the structured markdown label `Target Participation Notes`. Purpose: targeting.targetParticipation.notes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about the participation rule while the boolean field remains narrow."
+    }
+  ]
+}

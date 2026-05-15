@@ -25,6 +25,7 @@ This document provides a high-level map of the Aralia codebase, organized by pro
 | [Items / Trade / Inventory](./architecture/domains/items-trade-inventory.md) | Item management and economy | `InventoryList.tsx` |
 | [Planes / Travel](./architecture/domains/planes-travel.md) | Planar mechanics and travel systems | Planar systems |
 | [Data Pipelines](./architecture/domains/data-pipelines.md) | Scripts, generators, validators | `scripts/` |
+| [Monster Data Pipeline](./architecture/MONSTER_DATA_PIPELINE.md) | 5eTools ingestion and bestiary adapter | `5eToolsAdapter.ts` |
 
 ---
 

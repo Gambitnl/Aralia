@@ -4,7 +4,7 @@
 
 **Goal:** Fix three issues with the Takram sky mode in the 3D Test page: (1) time slider must move the sun, (2) celestial bodies (moon + stars) must be visible at night, (3) volumetric clouds must render visibly.
 
-**Architecture:** The Takram sky (`TakramSkySystem.tsx`) wraps `@takram/three-atmosphere` (Bruneton scattering) + `@takram/three-clouds` (volumetric ray-marching) + `@react-three/postprocessing` (EffectComposer with ACES tone mapping). The sun direction flows from the time slider in `PreviewThreeDTest.tsx` → `gameTime` Date → `getLightingForTime()` in `lighting.ts` → `Scene3D.tsx` sunDirection prop → `TakramSkySystem.tsx` which transforms it to ECEF space each frame. The Sky Lab panel in `PreviewThreeDTest.tsx` provides debug controls.
+**Architecture:** The Takram sky (`TakramSkySystem.tsx`) wraps `@takram/three-atmosphere` (Bruneton scattering) + `@takram/three-clouds` (volumetric ray-marching) + `@react-three/postprocessing` (EffectComposer with ACES tone mapping). The sun direction flows from the time slider in `PreviewThreeDTest.tsx` -> `gameTime` Date -> `getLightingForTime()` in `lighting.ts` -> `Scene3D.tsx` sunDirection prop -> `TakramSkySystem.tsx` which transforms it to ECEF space each frame. The Sky Lab panel in `PreviewThreeDTest.tsx` provides debug controls.
 
 **Tech Stack:** React, Three.js, @react-three/fiber, @takram/three-atmosphere, @takram/three-clouds, @react-three/postprocessing, postprocessing
 
@@ -18,16 +18,16 @@
 **Fix (applied, needs cleanup):**
 - `Scene3D.tsx`: Skip azimuth/elevation overrides when `skyMode === 'takram'`
 - `PreviewThreeDTest.tsx`: In Takram mode, `lightingOverrides` only forwards intensity/fog (not sun position)
-- `lighting.ts`: Added `trueSunDirection` — unclamped astronomical direction (see Issue 2)
+- `lighting.ts`: Added `trueSunDirection` - unclamped astronomical direction (see Issue 2)
 
 ### Issue 2: No celestial bodies (stars, moon)
 **Root cause (confirmed):** Two sub-issues:
 
-**2a. Sun never goes below horizon.** `lighting.ts:82` clamps: `Math.max(0.15, sunHeight + 0.25)`. At midnight, `sunHeight = -1.0` but the clamped direction Y becomes `max(0.15, -0.75) = 0.15`. The Takram atmosphere always sees the sun above the horizon → perpetual daylight → stars never visible.
+**2a. Sun never goes below horizon.** `lighting.ts:82` clamps: `Math.max(0.15, sunHeight + 0.25)`. At midnight, `sunHeight = -1.0` but the clamped direction Y becomes `max(0.15, -0.75) = 0.15`. The Takram atmosphere always sees the sun above the horizon -> perpetual daylight -> stars never visible.
 
 **Fix (applied):** Added `trueSunDirection` in `lighting.ts` with unclamped `sunHeight`. `Scene3D.tsx` uses this for `TakramSkySystem` while keeping the clamped direction for the directional light.
 
-**2b. Exposure too high at night.** `gl.toneMappingExposure = 6.0` amplifies residual atmospheric scattering at night, keeping the sky too bright for stars to show. **Additionally**, `gl.toneMappingExposure` has no effect when the `EffectComposer`'s `<ToneMapping>` pass is active — the postprocessing ToneMapping overrides the renderer's built-in tone mapping.
+**2b. Exposure too high at night.** `gl.toneMappingExposure = 6.0` amplifies residual atmospheric scattering at night, keeping the sky too bright for stars to show. **Additionally**, `gl.toneMappingExposure` has no effect when the `EffectComposer`'s `<ToneMapping>` pass is active - the postprocessing ToneMapping overrides the renderer's built-in tone mapping.
 
 **Fix (partially applied, needs verification):**
 - Added `exposure` prop to `TakramSkySystem`, forwarded to `<ToneMapping exposure={exposure} />`
@@ -46,7 +46,7 @@
 **Root cause (investigation in progress):** The `<Clouds>` component IS rendered inside the EffectComposer. Default cloud layers from `@takram/three-clouds` sit at altitude 750-2200m (ECEF meters). All required textures exist in `public/data/takram-atmosphere/` and load without errors. No console errors related to clouds.
 
 **Possible causes (not yet confirmed):**
-1. The `<ToneMapping>` `exposure` prop may not work the same as `gl.toneMappingExposure` — clouds may be too dim to see after ACES at the default exposure
+1. The `<ToneMapping>` `exposure` prop may not work the same as `gl.toneMappingExposure` - clouds may be too dim to see after ACES at the default exposure
 2. The `enableNormalPass` on EffectComposer may not be providing correct depth for the cloud ray marcher, causing clouds to be clipped
 3. Cloud coverage at 0.5 with the default local_weather.png texture may produce very sparse cloud coverage
 4. The fog (`fogExp2`) may be obscuring the clouds at the horizon
@@ -125,11 +125,11 @@ Expected: No new errors related to TakramSkySystem
 
 The `gl.toneMappingExposure` useEffect was the original mechanism, but now that exposure flows through the `<ToneMapping exposure={}>` prop on the EffectComposer pass, the renderer-level setting is redundant (and may conflict). However, when `effectComposerEnabled=false`, the `<ToneMapping>` pass doesn't exist, so `gl.toneMappingExposure` is the only exposure control.
 
-- [ ] **Step 1: Test with EffectComposer ON — change time to midnight, verify sky goes dark**
+- [ ] **Step 1: Test with EffectComposer ON - change time to midnight, verify sky goes dark**
 
 Open preview, enable Takram mode, set time to 0:00. The sky should be noticeably darker than at 14:00. If the sky is still bright, the `<ToneMapping exposure>` prop may not be taking effect.
 
-- [ ] **Step 2: Test with EffectComposer OFF — verify gl.toneMappingExposure still works as fallback**
+- [ ] **Step 2: Test with EffectComposer OFF - verify gl.toneMappingExposure still works as fallback**
 
 In Sky Lab, toggle EffectComposer OFF. The sky should still respond to time changes (though without clouds or ACES tone mapping).
 
@@ -262,7 +262,7 @@ In the reset button handler:
 setTakramMoon(true);
 ```
 
-### Task 5: Visual verification — full day/night cycle
+### Task 5: Visual verification - full day/night cycle
 
 - [ ] **Step 1: Test sunrise (6:00)**
 

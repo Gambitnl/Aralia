@@ -1,4 +1,4 @@
-﻿# Visibility System Integration Guide
+# Visibility System Integration Guide
 
 ## Overview
 

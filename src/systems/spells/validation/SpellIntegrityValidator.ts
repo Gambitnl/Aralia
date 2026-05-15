@@ -70,9 +70,19 @@ export class SpellIntegrityValidator {
       // (e.g., "works on everything except Undead and Constructs").
       const hasExclusions = filter?.excludeCreatureTypes && filter.excludeCreatureTypes.length > 0;
 
-      // If neither list is populated, the targeting is completely unconstrained.
-      if (!hasInclusions && !hasExclusions) {
-        errors.push(`Enchantment Gap: Single-target Enchantment spell has no targeting filters (expected creature type restriction or exclusions)`);
+      // Social enchantments like Suggestion constrain targets through explicit
+      // communication prerequisites rather than a creature-type list. Treat any
+      // required hearing/understanding/sight gate as a real targeting filter.
+      const communication = filter?.communicationPrerequisites;
+      const hasCommunicationPrerequisites = Boolean(
+        communication?.canHearCaster === 'required'
+        || communication?.canUnderstandCaster === 'required'
+        || communication?.canSeeCaster === 'required'
+      );
+
+      // If no recognized gate is populated, the targeting is unconstrained.
+      if (!hasInclusions && !hasExclusions && !hasCommunicationPrerequisites) {
+        errors.push(`Enchantment Gap: Single-target Enchantment spell has no targeting filters (expected creature type, exclusion, or communication restriction)`);
       }
     }
 

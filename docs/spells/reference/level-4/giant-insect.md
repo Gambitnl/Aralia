@@ -3,6 +3,7 @@
 - **School**: Conjuration
 - **Ritual**: false
 - **Classes**: Druid
+- **Sub-Classes**: Folded into Classes
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -12,6 +13,20 @@
 - **Range Distance**: 60
 - **Targeting Type**: point
 - **Valid Targets**: point
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -24,10 +39,29 @@
 - **Concentration**: true
 
 - **Effect Type**: UTILITY
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: created_entity_drops_to_0_hp
+- **Conditional Ending Scope**: effect
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Utility Type**: summoning
 
 - **Description**: You summon a giant centipede, spider, or wasp (chosen when you cast the spell). It manifests in an unoccupied space you can see within range and uses the Giant Insect stat block. The form you choose determines certain details in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
-- **Higher Levels**: Use the spell slot's level for the spell's level in the stat block.
+- **Higher Levels**: Use the spell slot's level for the spell's level in the stat block. Large Beast, Unaligned AC 11 + the spell's level HP 30 + 10 for each spell level above 4 Speed 40 ft., Climb 40 ft., Fly 40 ft. (Wasp only) Senses Darkvision 60 ft., Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Spider Climb. The insect can climb difficult surfaces, including along ceilings, without needing to make an ability check. Multiattack. The insect makes a number of attacks equal to half this spell's level (round down). Poison Jab. Melee Attack Roll: Bonus equals your spell attack modifier, reach 10 ft. Hit: 1d6 + 3 plus the spell's level Piercing damage plus 1d4 Poison damage. Web Bolt (Spider Only). Ranged Attack Roll: Bonus equals your spell attack modifier, range 60 ft. Hit: 1d10 + 3 plus the spell's level Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn. Venomous Spew (Centipede Only). Constitution Saving Throw: Your spell save DC, one creature the insect can see within 10 feet. Failure: The target has the Poisoned condition until the start of the insect's next turn.
+- **Scaling Rule 1 Type**: special_text
+- **Scaling Rule 1 Applies To**: canonical higher-level prose
+- **Scaling Rule 1 Notes**: Use the spell slot's level for the spell's level in the stat block. Large Beast, Unaligned AC 11 + the spell's level HP 30 + 10 for each spell level above 4 Speed 40 ft., Climb 40 ft., Fly 40 ft. (Wasp only) Senses Darkvision 60 ft., Passive Perception 12 Languages Understands the languages you know CR None (XP 0; PB equals your Proficiency Bonus) Spider Climb. The insect can climb difficult surfaces, including along ceilings, without needing to make an ability check. Multiattack. The insect makes a number of attacks equal to half this spell's level (round down). Poison Jab. Melee Attack Roll: Bonus equals your spell attack modifier, reach 10 ft. Hit: 1d6 + 3 plus the spell's level Piercing damage plus 1d4 Poison damage. Web Bolt (Spider Only). Ranged Attack Roll: Bonus equals your spell attack modifier, range 60 ft. Hit: 1d10 + 3 plus the spell's level Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn. Venomous Spew (Centipede Only). Constitution Saving Throw: Your spell save DC, one creature the insect can see within 10 feet. Failure: The target has the Poisoned condition until the start of the insect's next turn.
 
 ### Giant Insect Stat Block
 - **Armor Class**: 11 + the spell's level
@@ -66,20 +100,20 @@ Damage/Effect: Summoning
 
 Rules Text:
 You summon a giant centipede, spider, or wasp (chosen when you cast the spell). It manifests in an unoccupied space you can see within range and uses the Giant Insect stat block. The form you choose determines certain details in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends.
-The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don’t issue any, it takes the Dodge action and uses its movement to avoid danger.
-Using a Higher-Level Spell Slot. Use the spell slot’s level for the spell’s level in the stat block.
+The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.
+Using a Higher-Level Spell Slot. Use the spell slot's level for the spell's level in the stat block.
 Large Beast, Unaligned
-AC 11 + the spell’s level
+AC 11 + the spell's level
 HP 30 + 10 for each spell level above 4
 Speed 40 ft., Climb 40 ft., Fly 40 ft. (Wasp only)
 Senses Darkvision 60 ft., Passive Perception 12
 Languages Understands the languages you know
 CR None (XP 0; PB equals your Proficiency Bonus)
 Spider Climb. The insect can climb difficult surfaces, including along ceilings, without needing to make an ability check.
-Multiattack. The insect makes a number of attacks equal to half this spell’s level (round down).
-Poison Jab. Melee Attack Roll: Bonus equals your spell attack modifier, reach 10 ft. Hit: 1d6 + 3 plus the spell’s level Piercing damage plus 1d4 Poison damage.
-Web Bolt (Spider Only). Ranged Attack Roll: Bonus equals your spell attack modifier, range 60 ft. Hit: 1d10 + 3 plus the spell’s level Bludgeoning damage, and the target’s Speed is reduced to 0 until the start of the insect’s next turn.
-Venomous Spew (Centipede Only). Constitution Saving Throw: Your spell save DC, one creature the insect can see within 10 feet. Failure: The target has the Poisoned condition until the start of the insect’s next turn.
+Multiattack. The insect makes a number of attacks equal to half this spell's level (round down).
+Poison Jab. Melee Attack Roll: Bonus equals your spell attack modifier, reach 10 ft. Hit: 1d6 + 3 plus the spell's level Piercing damage plus 1d4 Poison damage.
+Web Bolt (Spider Only). Ranged Attack Roll: Bonus equals your spell attack modifier, range 60 ft. Hit: 1d10 + 3 plus the spell's level Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn.
+Venomous Spew (Centipede Only). Constitution Saving Throw: Your spell save DC, one creature the insect can see within 10 feet. Failure: The target has the Poisoned condition until the start of the insect's next turn.
 
 Spell Tags:
 Summoning

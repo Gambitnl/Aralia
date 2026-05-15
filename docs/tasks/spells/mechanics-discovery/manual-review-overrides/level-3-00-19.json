@@ -1,0 +1,724 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 3 manual review override shard for spell indexes 0-19 in generated discovery row order."
+  ],
+  "findings": {
+    "animate-dead::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animate Dead chooses between bones and corpse, which determines Skeleton versus Zombie output; runtime only stores this in prose.",
+      "recommendedTemplateChange": "Add source-material mode fields for bones_to_skeleton and corpse_to_zombie.",
+      "recommendedJsonChange": "Add runtime summon/sourceMode data for Skeleton versus Zombie creation."
+    },
+    "animate-dead::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched command wording, but Animate Dead has no attack roll, save, or check modifier in the cited sentence.",
+      "recommendedTemplateChange": "Track command mechanics under summon/control and sustain action fields.",
+      "recommendedJsonChange": "Track command mechanics under summon/control data."
+    },
+    "animate-dead::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "Reasserting control can affect up to four existing creatures, and higher-level slots add two more Undead per slot; runtime has no typed count/scaling data.",
+      "recommendedTemplateChange": "Add animate/reassert count fields for base reassert count and +2 creatures per slot above 3.",
+      "recommendedJsonChange": "Add runtime target/count scaling for animate or reassert control modes.",
+      "closedReason": "Closed the reassert-control count by adding `controlled_undead` to the target-instance vocabulary and recording Animate Dead's reassert mode as up to four existing undead, plus two per slot level above 3, in structured markdown and runtime targeting.instanceAllocation. The separate animate-versus-reassert mode, source corpse/bones eligibility, undead output, command action, control duration, and transformation mechanics remain open under other Animate Dead rows."
+    },
+    "animate-dead::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell targets a pile of bones or corpse of a Medium or Small Humanoid; runtime was corrected from creatures to objects but cannot express corpse/bones, Humanoid origin, or size.",
+      "recommendedTemplateChange": "Add corpse/remains eligibility fields for source type, original creature type, and size.",
+      "recommendedJsonChange": "Add runtime object/remains filters for bones/corpse, Medium or Small, Humanoid."
+    },
+    "animate-dead::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A Bonus Action can mentally command controlled creatures within 60 feet, and recasting before 24 hours reasserts control; runtime only stores this as prose.",
+      "recommendedTemplateChange": "Add controlled-summon command action and recast-to-maintain-control fields.",
+      "recommendedJsonChange": "Add runtime commandAction and reassertControl data."
+    },
+    "animate-dead::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates Skeleton or Zombie servants, controls them for 24 hours, supports shared commands, default Dodge behavior, and task persistence; runtime has only a generic utility description.",
+      "recommendedTemplateChange": "Add undead summon/control fields for creature output, control duration, command behavior, default action, and task continuation.",
+      "recommendedJsonChange": "Add runtime summonEntity/control data for animated undead."
+    },
+    "animate-dead::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target remains become an Undead Skeleton or Zombie; runtime lacks a first-class transformation/animation state.",
+      "recommendedTemplateChange": "Add object/remains-to-creature transformation fields.",
+      "recommendedJsonChange": "Add runtime transformation data from corpse/bones to Undead creature."
+    },
+    "aura-of-vitality::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points wording, but Aura of Vitality is healing, not object stats or damageability; runtime now uses HEALING effects.",
+      "recommendedTemplateChange": "No object-stats field required.",
+      "recommendedJsonChange": "Closed by replacing prose utility with immediate and turn-start HEALING effects."
+    },
+    "beacon-of-hope::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Beacon of Hope can choose any number of creatures, but runtime targeting uses maxTargets 1.",
+      "recommendedTemplateChange": "Add unlimited/any-number target count fields.",
+      "recommendedJsonChange": "Add runtime target count data for any number of creatures within range."
+    },
+    "beacon-of-hope::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell grants Advantage on Wisdom saving throws and Death Saving Throws, but runtime stores this in prose only.",
+      "recommendedTemplateChange": "Add saving throw advantage fields scoped by save category.",
+      "recommendedJsonChange": "Add runtime saveAdvantage data for Wisdom saves and Death Saving Throws."
+    },
+    "beacon-of-hope::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Targets regain the maximum possible Hit Points from any healing, but runtime has no typed healing maximization modifier.",
+      "recommendedTemplateChange": "Add healing modifier fields for maximize incoming healing.",
+      "recommendedJsonChange": "Add runtime healingModifier data for maximum healing received."
+    },
+    "beacon-of-hope::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points wording, but Beacon of Hope modifies healing received rather than object stats or damageability.",
+      "recommendedTemplateChange": "Track under healing modifier fields.",
+      "recommendedJsonChange": "Track under healingModifier data."
+    },
+    "bestow-curse::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Bestow Curse has multiple curse options and an open-ended GM-approved option; runtime stores all options in one utility description.",
+      "recommendedTemplateChange": "Add curse option fields for ability-score disadvantage, attacks-against-caster disadvantage, action-waste save, extra necrotic damage, and GM-approved alternative.",
+      "recommendedJsonChange": "Add runtime curseOptions data instead of a single utility description."
+    },
+    "bestow-curse::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial Wisdom save is now represented, but the selected curse options include multiple d20 modifiers and a recurring Wisdom save that remain prose-only.",
+      "recommendedTemplateChange": "Add option-scoped attack/save/check modifier fields and recurring save fields.",
+      "recommendedJsonChange": "Add runtime curse option data for selected ability disadvantage, attacks against caster, and start-turn Wisdom save."
+    },
+    "blinding-smite::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Blinding Smite's damage and Blinded rider are hit-gated, and the repeat save is Constitution at turn end; runtime now reflects those mechanics.",
+      "recommendedTemplateChange": "No additional attack/save field required for this reviewed row.",
+      "recommendedJsonChange": "Closed by changing damage/status conditions to hit-gated and correcting repeatSave to Constitution."
+    },
+    "blinding-smite::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The end-of-turn Constitution save that ends the spell on success is represented on the Blinded status payload.",
+      "recommendedTemplateChange": "No repeat-save field change required.",
+      "recommendedJsonChange": "Closed by correcting repeatSave.saveType to Constitution."
+    },
+    "blinding-smite::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The Blinded condition is represented as a STATUS_CONDITION effect, and the spell has no separate light/sound payload beyond Radiant damage presentation.",
+      "recommendedTemplateChange": "No vision/light/sound field required beyond status condition data.",
+      "recommendedJsonChange": "No additional vision/light/sound JSON change required."
+    },
+    "blinding-smite::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Blinded condition is represented and now correctly hit-gated.",
+      "recommendedTemplateChange": "Closed by marking structured Effect Type as DAMAGE, STATUS_CONDITION.",
+      "recommendedJsonChange": "Closed by preserving Blinded and correcting its gating and repeat save."
+    },
+    "blinding-smite::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The Blinded condition lasts until the spell ends, with the special end condition handled by the represented repeat save.",
+      "recommendedTemplateChange": "No additional conditional-ending field required for this reviewed row.",
+      "recommendedJsonChange": "No additional conditional-ending JSON change required."
+    },
+    "blink::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Blink lets the caster choose the return space within 10 feet, with fallback to the nearest unoccupied space; runtime stores this in prose only.",
+      "recommendedTemplateChange": "Add return-placement choice fields for visible unoccupied space within range and fallback nearest space.",
+      "recommendedJsonChange": "Add runtime planarReturn data for chosen return location and fallback placement."
+    },
+    "blink::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The return requires a visible unoccupied space within 10 feet or nearest unoccupied fallback; no structured/runtime placement filter exists.",
+      "recommendedTemplateChange": "Add unoccupied visible destination eligibility fields.",
+      "recommendedJsonChange": "Add runtime destinationFilter data."
+    },
+    "blink::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "While on the Ethereal Plane, the caster can perceive the previous plane in gray out to 60 feet; this sensory limit is prose-only.",
+      "recommendedTemplateChange": "Add planar perception fields for source plane, visual presentation, and range limit.",
+      "recommendedJsonChange": "Add runtime planarPerception data for 60-foot gray perception."
+    },
+    "blink::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Blink changes cross-plane perception and whether creatures on the other plane can perceive the caster; runtime has no typed planar perception/visibility barrier.",
+      "recommendedTemplateChange": "Add planar perception and cross-plane detectability fields.",
+      "recommendedJsonChange": "Add runtime planarVisibility data for perceiving and being perceived across planes."
+    },
+    "blink::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Blink uses an end-of-turn 1d6 roll, shifts the caster to the Ethereal Plane on 4-6, ends instantly if already there, and returns the caster at start of next turn; runtime only has corrected prose.",
+      "recommendedTemplateChange": "Add recurring planar shift fields for die roll, success range, destination plane, already-on-plane ending, return timing, and return placement.",
+      "recommendedJsonChange": "Add runtime planarShift data instead of prose-only utility text."
+    },
+    "blink::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The spell ends instantly if the caster is already on the Ethereal Plane when the shift would occur; this conditional ending is prose-only.",
+      "recommendedTemplateChange": "Add conditional-ending fields for already-on-destination-plane.",
+      "recommendedJsonChange": "Add runtime ending condition for already being on the Ethereal Plane.",
+      "closedReason": "Closed by adding the already_on_destination_plane conditional-ending trigger and recording Blink's Ethereal Plane self-ending condition in structured markdown and runtime JSON."
+    },
+    "blink::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Returning when the spell ends is part of Blink's planar movement/return mechanic, not a separate aftermath or memory effect.",
+      "recommendedTemplateChange": "Track under planar return fields.",
+      "recommendedJsonChange": "Track under planarShift return data."
+    },
+    "blink::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "The detector's flavor row includes mechanical planar movement, perception, and cross-plane interaction rules; pure presentation is not being deferred separately here.",
+      "recommendedTemplateChange": "Resolve through planar movement and perception fields.",
+      "recommendedJsonChange": "Resolve through planarShift and planarPerception data."
+    },
+    "call-lightning::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses a point under the cloud on cast and can later target the same or a different point; runtime lacks cloud-relative point targeting.",
+      "recommendedTemplateChange": "Add cloud-relative strike point fields.",
+      "recommendedJsonChange": "Add runtime strikePoint data constrained to under the cloud."
+    },
+    "call-lightning::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save for half Lightning damage is represented on the damage effect.",
+      "recommendedTemplateChange": "No attack/save field change required for this reviewed row.",
+      "recommendedJsonChange": "No attack/save JSON change required."
+    },
+    "call-lightning::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates or controls a visible storm cloud above the caster, but runtime only represents a generic area and damage effect.",
+      "recommendedTemplateChange": "Add visible cloud/object fields for storm cloud placement, cylinder dimensions, and above-caster constraint.",
+      "recommendedJsonChange": "Add runtime stormCloud data with cloud dimensions and position constraints."
+    },
+    "call-lightning::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Outdoors in an existing storm, the spell controls that storm instead of creating a cloud and gains +1d10 damage; this environmental branch is prose-only.",
+      "recommendedTemplateChange": "Add environmental branch fields for existing storm control and storm damage bonus.",
+      "recommendedJsonChange": "Add runtime environmentalCondition data for outdoors-in-storm mode and +1d10 damage."
+    },
+    "call-lightning::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The cited 'until the spell ends' text describes repeat use duration, not a special ending condition.",
+      "recommendedTemplateChange": "Track repeat Magic action under sustain/recast fields.",
+      "recommendedJsonChange": "Track repeat strike under sustainAction data."
+    },
+    "catnap::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing up to three targets is ordinary multi-target selection and is now represented by Targeting Max 3.",
+      "recommendedTemplateChange": "No choice/mode field required beyond targeting.",
+      "recommendedJsonChange": "Closed by changing runtime targeting to multi with maxTargets 3 and creatures only."
+    },
+    "catnap::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The calming gesture is somatic presentation, and the can-see target requirement is represented by lineOfSight true.",
+      "recommendedTemplateChange": "No vision/light/sound field required for this reviewed row.",
+      "recommendedJsonChange": "No vision/light/sound JSON change required."
+    },
+    "catnap::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Unconscious is now represented, but gaining a short rest after the full duration and immunity to Catnap until a long rest are still prose-only.",
+      "recommendedTemplateChange": "Add rest-benefit and temporary recast-immunity fields tied to completing the full duration.",
+      "recommendedJsonChange": "Add runtime restBenefit and affectedBySpellLockout data."
+    },
+    "catnap::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Catnap now records target_takes_damage and adjacent_creature_action_shakes_awake as structured Condition Break Triggers and runtime statusCondition.breakTriggers. The full-duration short-rest benefit and long-rest lockout remain open under status_or_state_change.",
+      "issue": "The spell ends early on a target if it takes damage or someone uses an action to shake or slap it awake; these per-target ending conditions are prose-only.",
+      "recommendedTemplateChange": "Add per-target ending fields for damage and adjacent/action wake-up.",
+      "recommendedJsonChange": "Add runtime ending conditions for damage and action wake/slap."
+    },
+    "clairvoyance::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses seeing or hearing and can switch senses later; runtime stores this mode choice in prose only.",
+      "recommendedTemplateChange": "Add remote sensor sense mode fields and active mode switching.",
+      "recommendedJsonChange": "Add runtime sensorModes data for seeing/hearing and switch action."
+    },
+    "clairvoyance::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Bonus Action text, but Clairvoyance has no attack/save/check modifier.",
+      "recommendedTemplateChange": "Track the Bonus Action under sensor mode switching.",
+      "recommendedJsonChange": "Track the Bonus Action under sensorModeSwitch data."
+    },
+    "clairvoyance::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Switching between seeing and hearing is a Bonus Action; runtime prose was corrected, but no typed action field exists.",
+      "recommendedTemplateChange": "Add sensor mode switch action fields.",
+      "recommendedJsonChange": "Add runtime sensorModeSwitch actionCost bonus_action."
+    },
+    "clairvoyance::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The sensor is Invisible but appears as a luminous fist-sized orb to creatures that can see it; seeing/hearing modes are also not typed.",
+      "recommendedTemplateChange": "Add sensor visibility fields and sensory mode fields.",
+      "recommendedJsonChange": "Add runtime sensor visibility and mode data."
+    },
+    "clairvoyance::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Clairvoyance creates an intangible, invulnerable, stationary sensor in a familiar or obvious location and routes seeing or hearing through it; runtime has this only as utility prose.",
+      "recommendedTemplateChange": "Add remote sensor fields for location eligibility, invisibility, intangibility, invulnerability, stationary behavior, and sense routing.",
+      "recommendedJsonChange": "Add runtime remoteSensor data."
+    },
+    "clairvoyance::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Invisible describes the sensor's visibility property, not an Invisible condition applied to a creature.",
+      "recommendedTemplateChange": "Track under sensor visibility fields.",
+      "recommendedJsonChange": "Track under remoteSensor visibility data."
+    },
+    "conjure-animals::choice_or_mode": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The chosen animal form is cosmetic in the 2024 pack version because the pack keeps the same mechanics regardless of wolves, serpents, birds, or another form.",
+      "recommendedTemplateChange": "No mechanical mode field required for animal appearance in this goal.",
+      "recommendedJsonChange": "No runtime mechanical field required for animal appearance in this goal."
+    },
+    "conjure-animals::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster gains Advantage on Strength saves near the pack, and creatures can be forced to make Dexterity saves from several once-per-turn pack proximity triggers; runtime lacks both the save advantage and the damage trigger model.",
+      "recommendedTemplateChange": "Add aura-adjacent save advantage fields and pack proximity damage trigger fields.",
+      "recommendedJsonChange": "Add runtime saveAdvantage and packDamageTrigger data."
+    },
+    "conjure-animals::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The pack appears and moves to unoccupied visible spaces; runtime has no unoccupied-space placement filter for the pack.",
+      "recommendedTemplateChange": "Add unoccupied visible space fields for conjured packs.",
+      "recommendedJsonChange": "Add runtime placement filters for pack creation and movement."
+    },
+    "conjure-animals::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visibility requirements and spectral appearance; mechanical visibility requirements are target/placement filters, while spectral appearance is deferred flavor.",
+      "recommendedTemplateChange": "No separate vision/light/sound field required.",
+      "recommendedJsonChange": "No separate vision/light/sound JSON change required."
+    },
+    "conjure-animals::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a Large spectral intangible pack that lasts for the duration and moves when the caster moves; runtime still contains older summon-style prose and lacks 2024 pack data.",
+      "recommendedTemplateChange": "Add conjured pack fields for size, intangibility, movement coupling, threat radius, and duration.",
+      "recommendedJsonChange": "Replace old summon creature prose with runtime conjuredPack data."
+    },
+    "conjure-animals::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The specific animal appearance examples are cosmetic once Large spectral intangible pack mechanics are tracked separately.",
+      "recommendedTemplateChange": "No field required for the exact animal appearance examples.",
+      "recommendedJsonChange": "No runtime field required for the exact animal appearance examples."
+    },
+    "conjure-barrage::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell affects each creature of the caster's choice in the cone, meaning the caster can exclude creatures in the area; runtime has no area-exclusion choice model.",
+      "recommendedTemplateChange": "Add area target-selection fields for chosen creatures in an area.",
+      "recommendedJsonChange": "Add runtime selectableAreaTargets data so the caster can choose affected creatures inside the cone."
+    },
+    "conjure-barrage::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save for half Force damage is represented, and structured damage was corrected to 5d8 Force.",
+      "recommendedTemplateChange": "Closed by correcting structured Damage Dice to 5d8 and Damage Type to Force.",
+      "recommendedJsonChange": "No JSON save/damage change required beyond existing valid 5d8 Force save-half damage."
+    },
+    "conjure-barrage::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The visible-creature requirement is represented by lineOfSight true after correction.",
+      "recommendedTemplateChange": "Closed by changing structured Line of Sight to true.",
+      "recommendedJsonChange": "Closed by changing runtime targeting.lineOfSight to true."
+    },
+    "conjure-barrage::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The spectral weapons launch and disappear immediately; this is instantaneous damage presentation, not a ward, alarm, or delayed trigger.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field required.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON change required."
+    },
+    "conjure-barrage::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The spectral weapon/ammunition visual is descriptive presentation for the Force damage and remains deferred flavor.",
+      "recommendedTemplateChange": "No mechanical field required for this visual presentation.",
+      "recommendedJsonChange": "No runtime field required for this visual presentation."
+    },
+    "counterspell::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Counterspell requires a Constitution save by the target caster, and a failed save dissipates the spell with no effect; runtime stores this as prose-only utility with condition always.",
+      "recommendedTemplateChange": "Add spell-interruption save fields for Constitution save and failed-save spell cancellation.",
+      "recommendedJsonChange": "Add runtime interruptSpell data with saveType Constitution and failed-save cancellation."
+    },
+    "counterspell::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Counterspell is a reaction to seeing a creature within 60 feet casting a spell, and failed save wastes the action, Bonus Action, or Reaction used to cast while preserving the spell slot; runtime does not expose the reaction trigger or action-waste/slot-preserve outcome.",
+      "recommendedTemplateChange": "Add reaction spell-interrupt fields for casting trigger, wasted action kind, and slot-not-expended outcome.",
+      "recommendedJsonChange": "Add runtime reactionTrigger and interruptedCastOutcome data."
+    },
+    "create-food-and-water::choice_or_mode": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The food looking like a food of the caster's choice is cosmetic; the nourishing food/water quantities are tracked under created-resource buckets.",
+      "recommendedTemplateChange": "No mechanical choice field required for food appearance.",
+      "recommendedJsonChange": "No runtime mechanical field required for food appearance."
+    },
+    "create-food-and-water::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The food and water appear on the ground or in containers within range; runtime targets ground only and does not type the container option.",
+      "recommendedTemplateChange": "Add placement fields for ground_or_containers.",
+      "recommendedJsonChange": "Add runtime placement data for ground or containers."
+    },
+    "create-food-and-water::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates 45 pounds of nourishing food and 30 gallons of clean water, but runtime stores the created quantities and spoilage only in prose.",
+      "recommendedTemplateChange": "Add created resource fields for food pounds, water gallons, food quality, water cleanliness, and spoilage time.",
+      "recommendedJsonChange": "Add runtime createdResources data."
+    },
+    "create-food-and-water::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Food and water quantities, nourishment/dehydration relevance, and food spoilage after 24 hours are resource mechanics not first-class in runtime JSON.",
+      "recommendedTemplateChange": "Add consumable resource fields for nourishment, hydration, quantities, and spoilage.",
+      "recommendedJsonChange": "Add runtime consumableResource data for food/water and spoilage."
+    },
+    "create-food-and-water::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell changes world state by creating clean water and food at a location or in containers.",
+      "recommendedTemplateChange": "Add environmental creation fields for food/water placement.",
+      "recommendedJsonChange": "Add runtime environmentalCreation data or link to createdResources."
+    },
+    "crusaders-mantle::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Crusader's Mantle is now represented as hit-triggered extra Radiant damage for weapon or Unarmed Strike hits while in the aura.",
+      "recommendedTemplateChange": "Closed by marking structured Effect Type as BUFF, DAMAGE.",
+      "recommendedJsonChange": "Closed by changing the runtime trigger to on_attack_hit and condition to hit."
+    },
+    "crusaders-mantle::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched allies, but ally inclusion is target/effect scope for the aura, not a social or knowledge effect.",
+      "recommendedTemplateChange": "No social/knowledge field required.",
+      "recommendedJsonChange": "No social/knowledge JSON change required."
+    },
+    "daylight::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Daylight can target a point or an object that isn't worn or carried; runtime now includes point and objects, but the not-worn-or-carried object filter is not first-class.",
+      "recommendedTemplateChange": "Add object eligibility fields for not worn/carried and mode-specific point versus object targeting.",
+      "recommendedJsonChange": "Add runtime objectEligibility data for unattended object mode."
+    },
+    "daylight::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Bright and dim radii are now represented, but object-origin Emanation, opaque-cover blocking, and dispelling overlapping Darkness from level 3 or lower are still prose-only.",
+      "recommendedTemplateChange": "Add light source mode fields, opaque cover blocker fields, and darkness dispel interaction fields.",
+      "recommendedJsonChange": "Add runtime lightMode, lightBlocker, and dispelDarkness data."
+    },
+    "dispel-magic::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Dispel Magic can target a creature, object, or magical effect; runtime now allows creatures and objects, but magical effects are not a valid target category.",
+      "recommendedTemplateChange": "Add magical_effect as a target category or a spell-effect target family.",
+      "recommendedJsonChange": "Add runtime target support for magical effects."
+    },
+    "dispel-magic::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "For ongoing spells of level 4 or higher, Dispel Magic requires a spellcasting ability check against DC 10 plus spell level; runtime stores the check in prose only.",
+      "recommendedTemplateChange": "Add ability-check resolution fields for spellcasting ability checks with formula DCs.",
+      "recommendedJsonChange": "Add runtime dispelCheck data for spellcasting ability versus 10 + spell level."
+    },
+    "dispel-magic::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Ongoing spells end automatically up to the cast slot level and end on successful checks above that level; runtime has no typed dispel/ending data.",
+      "recommendedTemplateChange": "Add dispel fields for auto-ended spell level threshold and checked spell level threshold.",
+      "recommendedJsonChange": "Add runtime dispelMagic data for automatic and checked ending."
+    },
+    "elemental-weapon::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses Acid, Cold, Fire, Lightning, or Thunder for the weapon's extra damage; runtime stores the choices as a slash-delimited damage type.",
+      "recommendedTemplateChange": "Add damage type choice fields.",
+      "recommendedJsonChange": "Add runtime choice data for elemental damage type instead of slash-delimited string."
+    },
+    "elemental-weapon::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The extra damage is now hit-triggered, but the +1/+2/+3 attack-roll bonus and tiered damage scaling remain prose-only.",
+      "recommendedTemplateChange": "Add weapon attack augment fields for attack bonus and tiered extra damage.",
+      "recommendedJsonChange": "Add runtime attackAugment data for magic weapon attack bonus and slot-tiered damage."
+    },
+    "elemental-weapon::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The elemental damage type choice does not create an environmental change.",
+      "recommendedTemplateChange": "Track under damage type choice and attack augment fields.",
+      "recommendedJsonChange": "Track under damage type choice and attackAugment data."
+    },
+    "enemies-abound::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Affected creatures must choose targets randomly from visible creatures in range of the attack, spell, or ability; runtime stores this targeting override in prose only.",
+      "recommendedTemplateChange": "Add random target-selection fields for affected creature actions.",
+      "recommendedJsonChange": "Add runtime randomTargeting data."
+    },
+    "enemies-abound::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial Intelligence save is now represented, but the repeat save whenever the target takes damage remains prose-only.",
+      "recommendedTemplateChange": "Add damage-triggered repeat save fields.",
+      "recommendedJsonChange": "Add runtime repeatSave trigger for on_damage_taken."
+    },
+    "enemies-abound::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If an enemy provokes an Opportunity Attack from the affected creature, it must make that attack if able; runtime has no forced opportunity attack behavior.",
+      "recommendedTemplateChange": "Add reaction behavior fields for must_take_opportunity_attack_if_able.",
+      "recommendedJsonChange": "Add runtime opportunityAttackBehavior data."
+    },
+    "enemies-abound::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Enemies Abound's immunity-to-Frightened automatic success rule is now encoded as a save auto-outcome override.",
+      "recommendedTemplateChange": "Closed by Save Auto Outcome auto_success with condition immune_to_frightened.",
+      "recommendedJsonChange": "Closed by runtime condition.saveOutcomeOverrides carrying immune_to_frightened -> auto_success."
+    },
+    "enemies-abound::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Enemies Abound now records the damage-triggered Intelligence repeat save as structured Recurring Mechanics and runtime recurringMechanics data.",
+      "issue": "The target can repeat the Intelligence save each time it takes damage, ending the effect on success; runtime has no damage-triggered repeat save.",
+      "recommendedTemplateChange": "Add repeat save trigger value for each_time_takes_damage.",
+      "recommendedJsonChange": "Add runtime repeatSave data with timing on_damage_taken."
+    },
+    "enemies-abound::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The affected creature regards all creatures it can see as enemies and randomly targets among creatures it can see; sight drives the behavior but is prose-only.",
+      "recommendedTemplateChange": "Add sight-scoped enemy perception and target-randomization fields.",
+      "recommendedJsonChange": "Add runtime perceivedEnemies and visibleTargetPool data."
+    },
+    "enemies-abound::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Frightened text is an immunity prerequisite for auto-success, not a condition the spell applies.",
+      "recommendedTemplateChange": "Track under target eligibility/auto-success fields.",
+      "recommendedJsonChange": "Track under saveAutoSuccess data."
+    },
+    "enemies-abound::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The cited 'until the spell ends' phrase is ordinary duration scoping; the special ending is tracked under damage-triggered repeat save.",
+      "recommendedTemplateChange": "No separate conditional-ending field required for this reviewed row.",
+      "recommendedJsonChange": "No separate conditional-ending JSON change required."
+    },
+    "erupting-earth::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing a ground point is ordinary area-origin targeting and is now represented by ground targeting.",
+      "recommendedTemplateChange": "Closed by changing structured Valid Targets to ground.",
+      "recommendedJsonChange": "Closed by changing runtime validTargets to ground."
+    },
+    "erupting-earth::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save for half Bludgeoning damage is represented.",
+      "recommendedTemplateChange": "No attack/save field change required.",
+      "recommendedJsonChange": "No attack/save JSON change required."
+    },
+    "erupting-earth::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Difficult Terrain is now represented, but clearing each 5-foot-square portion by hand for at least 1 minute is not typed.",
+      "recommendedTemplateChange": "Add terrain clearing fields for portion size, clearing method, and time per portion.",
+      "recommendedJsonChange": "Add runtime terrainClearing data for 5-foot-square portions and 1 minute by hand."
+    },
+    "erupting-earth::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The visible ground point requirement is represented by lineOfSight true and ground targeting.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "No vision/light/sound JSON change required."
+    },
+    "erupting-earth::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ground becomes Difficult Terrain until cleared; terrain creation is represented, but the until-cleared world-state cleanup details are still incomplete.",
+      "recommendedTemplateChange": "Add environmental terrain cleanup fields.",
+      "recommendedJsonChange": "Add runtime terrainClearing data."
+    },
+    "fast-friends::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing one target is ordinary target selection; target eligibility details are tracked separately.",
+      "recommendedTemplateChange": "No choice/mode field required beyond targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "fast-friends::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The initial Wisdom save and Charmed condition are represented, and inappropriate default repeat-save data was removed, but harm/conflict-triggered Wisdom save with advantage while fighting is not typed.",
+      "recommendedTemplateChange": "Add conditional repeat save fields for harmful/conflicting tasks and fighting advantage.",
+      "recommendedJsonChange": "Add runtime taskConflictRepeatSave data."
+    },
+    "fast-friends::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "The target must be a Humanoid that can see and hear the caster and understand them; Humanoid and line of sight are represented, but hearing and understanding are not first-class.",
+      "recommendedTemplateChange": "Closed by communication prerequisite propagation: structured markdown now records hearing, understanding, and sight requirements.",
+      "recommendedJsonChange": "Closed by communication prerequisite propagation: targeting.filter.communicationPrerequisites now carries the matching runtime facts.",
+      "reviewerNote": "Closed because this target-filter finding is fully represented by the new communication prerequisite fields."
+    },
+    "fast-friends::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Fast Friends' target sight, hearing, and understanding prerequisites are represented by Target Can See/Hear/Understand Caster and mirrored in runtime targeting/effect communicationPrerequisites.",
+      "recommendedTemplateChange": "No new template field needed; existing target communication prerequisite fields cover this eligibility mechanic.",
+      "recommendedJsonChange": "Runtime targeting and effect target filters now require target sight, hearing, and understanding of the caster."
+    },
+    "fast-friends::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target must understand the caster and receive requested services/activities; runtime has no communication prerequisite or task payload fields.",
+      "recommendedTemplateChange": "Add understand-caster and requested-task fields.",
+      "recommendedJsonChange": "Add runtime communication/taskRequest data."
+    },
+    "fast-friends::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Charmed target undertakes requested services in a friendly manner, can receive new tasks, and later knows it was charmed; runtime only stores Charmed.",
+      "recommendedTemplateChange": "Add social-control task fields and post-effect awareness fields.",
+      "recommendedJsonChange": "Add runtime socialControl and aftermathAwareness data."
+    },
+    "fast-friends::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Charmed condition is represented, and inappropriate default escape/repeat-save data was removed.",
+      "recommendedTemplateChange": "No additional status field required for Charmed itself.",
+      "recommendedJsonChange": "No additional status JSON change required for Charmed itself."
+    },
+    "fast-friends::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The spell ends if the requested activity would result in certain death; this ending condition is prose-only.",
+      "recommendedTemplateChange": "Add conditional-ending fields for certain-death task requests.",
+      "recommendedJsonChange": "Add runtime ending condition for certain_death_activity.",
+      "closedReason": "Closed by adding the certain_death_activity_requested conditional-ending trigger and recording Fast Friends' certain-death request ending in structured markdown and runtime JSON."
+    },
+    "fast-friends::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When the spell ends, the creature knows it was Charmed by the caster; runtime has no aftermath awareness field.",
+      "recommendedTemplateChange": "Add aftermath awareness fields for knows_charmed_by_caster.",
+      "recommendedJsonChange": "Add runtime aftermathAwareness data."
+    }
+  },
+  "manualFindings": {
+    "aura-of-vitality": [
+      {
+        "bucketId": "healing_or_restoration",
+        "findingId": "aura-of-vitality::manual_create_and_turn_start_healing",
+        "canonicalEvidence": "When you create the aura and at the start of each of your turns while it persists, you can restore 2d6 Hit Points to one creature in it.",
+        "structuredState": "Effect Type: HEALING; Damage Dice: 2d6; Damage Type: Healing.",
+        "jsonState": "Runtime JSON now has immediate and turn_start HEALING effects for 2d6.",
+        "issue": "Aura of Vitality's recurring healing is now represented directly instead of as bonus-action utility prose.",
+        "recommendedTemplateChange": "No additional healing field required for this reviewed row.",
+        "recommendedJsonChange": "Closed by adding immediate and turn_start HEALING effects.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "bestow-curse": [
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "bestow-curse::manual_slot_duration_concentration_scaling",
+        "canonicalEvidence": "If you cast this spell using a level 4 spell slot, you can maintain Concentration on it for up to 10 minutes. If you use a level 5+ spell slot, the spell doesn't require Concentration, and the duration becomes 8 hours (level 5-6 slot) or 24 hours (level 7-8 slot). If you use a level 9 spell slot, the spell lasts until dispelled.",
+        "structuredState": "Scaling Rule 1 records the special higher-level prose.",
+        "jsonState": "Runtime scaling has no typed duration or concentration changes by slot level.",
+        "issue": "Closed: Bestow Curse's slot-tier duration and concentration changes are now structured and runtime-mapped.",
+        "recommendedTemplateChange": "Closed by changing Scaling Rule 1 to slot_level_table for duration.concentration.",
+        "recommendedJsonChange": "Closed by runtime higherLevelScaling slot_level_table entries for level 4, levels 5-6, levels 7-8, and level 9.",
+        "resolutionStatus": "closed",
+        "closedReason": "Bestow Curse now records the higher-slot duration and concentration override table in structured markdown and runtime JSON."
+      }
+    ],
+    "blinding-smite": [
+      {
+        "bucketId": "reaction_or_opportunity_restriction",
+        "findingId": "blinding-smite::manual_cast_after_hit_trigger",
+        "canonicalEvidence": "Reaction Trigger: immediately after you hit a creature with a melee weapon or Unarmed Strike.",
+        "structuredState": "Reaction Trigger records the after-hit casting trigger.",
+        "jsonState": "Runtime JSON uses immediate damage/status triggers and does not expose the spell's casting trigger.",
+        "issue": "Blinding Smite is cast after a triggering melee weapon or unarmed hit, but runtime timing does not preserve that trigger.",
+        "recommendedTemplateChange": "Add casting trigger fields for after-hit smite-style spells, including allowed attack sources and target binding.",
+        "recommendedJsonChange": "Add runtime castingTrigger data for immediately after hitting a creature with a melee weapon or Unarmed Strike.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "call-lightning": [
+      {
+        "bucketId": "sustain_or_recast_action",
+        "findingId": "call-lightning::manual_repeat_magic_action_strike",
+        "canonicalEvidence": "Until the spell ends, you can take a Magic action to call down lightning in that way again, targeting the same point or a different one.",
+        "structuredState": "Effect Type: DAMAGE; no repeat action field.",
+        "jsonState": "Runtime JSON has only an immediate damage effect.",
+        "issue": "Call Lightning's repeat Magic action to call another bolt is not represented.",
+        "recommendedTemplateChange": "Add sustain/reuse action fields for Magic action repeat strikes.",
+        "recommendedJsonChange": "Add runtime sustainAction/repeatEffect data for repeated lightning calls.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "catnap": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "catnap::manual_willing_creature_targets",
+        "canonicalEvidence": "up to three willing creatures of your choice that you can see within range",
+        "structuredState": "Targeting now records multi, max 3, creatures.",
+        "jsonState": "Runtime targeting now records multi, maxTargets 3, creatures, lineOfSight true, but no willing target filter.",
+        "issue": "Catnap requires willing creature targets; willingness is not first-class in runtime targeting.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "catnap::manual_slot_target_scaling",
+        "canonicalEvidence": "At Higher Levels. When you cast this spell using a spell slot of 4th level or higher, you can target one additional willing creature for each slot level above 3rd.",
+        "structuredState": "Scaling Rule 1 records special_text target scaling.",
+        "jsonState": "Runtime targeting maxTargets is 3 with no target-count scaling data.",
+        "issue": "Catnap's higher-level target count scaling is not represented in runtime data.",
+        "recommendedTemplateChange": "Add target-count scaling fields.",
+        "recommendedJsonChange": "Add runtime targetScaling data for +1 target per slot above 3.",
+        "resolutionStatus": "closed",
+        "closedReason": "Catnap now records higher-slot target-count scaling with structured targeting.maxTargets scaling notes and runtime targeting.maxTargets slot-level thresholds."
+      }
+    ],
+    "conjure-animals": [
+      {
+        "bucketId": "repeat_save_or_recurring_check",
+        "findingId": "conjure-animals::manual_once_per_turn_pack_damage_trigger",
+        "canonicalEvidence": "Whenever the pack moves within 10 feet of a creature you can see and whenever a creature you can see enters a space within 10 feet of the pack or ends its turn there, you can force that creature to make a Dexterity saving throw. On a failed save, the creature takes 3d10 Slashing damage. A creature makes this save only once per turn.",
+        "structuredState": "Save Stat: Dexterity; Save Outcome currently says half, but canonical has no half-damage success branch.",
+        "jsonState": "Runtime has no damage effect for the 2024 pack trigger.",
+        "issue": "Conjure Animals needs a once-per-turn proximity save trigger with no half-damage success branch; current structured and runtime layers do not preserve it.",
+        "recommendedTemplateChange": "Add once-per-turn proximity trigger fields and correct the save outcome away from half when that field family exists.",
+        "recommendedJsonChange": "Add runtime packDamageTrigger data for movement/entry/end-turn triggers, Dexterity save, and 3d10 Slashing on failed save only.",
+        "resolutionStatus": "closed",
+        "closedReason": "Conjure Animals now records the once-per-turn pack proximity Dexterity save and Slashing damage as structured Recurring Mechanics and runtime recurringMechanics data."
+      }
+    ],
+    "daylight": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "daylight::manual_point_or_object_mode",
+        "canonicalEvidence": "For the duration, sunlight spreads from a point within range and fills a 60-foot-radius Sphere. Alternatively, you cast the spell on an object that isn't being worn or carried, causing the sunlight to fill a 60-foot Emanation originating from that object.",
+        "structuredState": "Valid Targets: location_or_object; Area Shape: sphere.",
+        "jsonState": "Runtime targeting now allows point and objects but has one Sphere area only.",
+        "issue": "Daylight has point-origin Sphere and object-origin Emanation modes with different attachment behavior.",
+        "recommendedTemplateChange": "Add light mode fields for point sphere versus object emanation.",
+        "recommendedJsonChange": "Add runtime lightModes data for point-origin sphere and object-origin emanation.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "dispel-magic": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "dispel-magic::manual_magical_effect_target",
+        "canonicalEvidence": "Choose one creature, object, or magical effect within range.",
+        "structuredState": "Valid Targets: creature_object_or_effect.",
+        "jsonState": "Runtime now allows creatures and objects, but not standalone magical effects.",
+        "issue": "Dispel Magic's magical-effect target type has no runtime target category.",
+        "recommendedTemplateChange": "Add magical_effect target eligibility.",
+        "recommendedJsonChange": "Add runtime validTargets support for magical effects or a spellEffectTarget branch.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "elemental-weapon": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "elemental-weapon::manual_nonmagical_weapon_target",
+        "canonicalEvidence": "A nonmagical weapon you touch becomes a magic weapon.",
+        "structuredState": "Valid Targets: nonmagical_weapon.",
+        "jsonState": "Runtime targeting allows objects but has no nonmagical weapon filter.",
+        "issue": "Elemental Weapon specifically requires a nonmagical weapon target.",
+        "recommendedTemplateChange": "Add object subtype and nonmagical target filter fields.",
+        "recommendedJsonChange": "Add runtime objectFilter for weapon and nonmagical.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "elemental-weapon::manual_weapon_becomes_magical",
+        "canonicalEvidence": "A nonmagical weapon you touch becomes a magic weapon.",
+        "structuredState": "Effect Type: BUFF, DAMAGE.",
+        "jsonState": "Runtime has hit-triggered extra damage but no magic-weapon state.",
+        "issue": "The target weapon becoming magical is a state change not represented in runtime data.",
+        "recommendedTemplateChange": "Add object state fields for becomes_magic_weapon.",
+        "recommendedJsonChange": "Add runtime objectStateChange data for magic weapon.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "erupting-earth": [
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "erupting-earth::manual_churned_earth_and_stone",
+        "canonicalEvidence": "A fountain of churned earth and stone erupts in a 20-foot cube centered on that point.",
+        "structuredState": "Effect Type: DAMAGE, TERRAIN.",
+        "jsonState": "Runtime has DAMAGE and TERRAIN effects but no typed churned-earth creation beyond terrain.",
+        "issue": "The churned earth/stone is represented enough as Difficult Terrain for current runtime, but future terrain material fields could preserve material presentation if needed.",
+        "recommendedTemplateChange": "No new field required in this pass beyond terrain; optional future terrain material field could carry churned earth and stone.",
+        "recommendedJsonChange": "No runtime change required beyond the added TERRAIN effect.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}

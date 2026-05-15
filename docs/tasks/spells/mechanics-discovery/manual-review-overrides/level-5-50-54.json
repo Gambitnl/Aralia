@@ -1,0 +1,226 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 50-54 in generated discovery row order."
+  ],
+  "findings": {
+    "telekinesis::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creature/object modes, same-or-new target choice, and repeated Magic action use remain prose-only beyond the basic Restrained state.",
+      "recommendedTemplateChange": "Add telekinesis mode and target-switch fields.",
+      "recommendedJsonChange": "Add runtime telekinesisModes data."
+    },
+    "telekinesis::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime has the creature Strength save and Restrained state, but object modes, worn/carried object save, and automatic unattended object movement remain under-modeled.",
+      "recommendedTemplateChange": "Add separate creature, unattended object, and worn/carried object save branches.",
+      "recommendedJsonChange": "Add runtime telekinesisBranch data."
+    },
+    "telekinesis::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Huge-or-smaller creature/object limits and worn/carried object branching are not represented in targeting.",
+      "recommendedTemplateChange": "Add target size and worn/carried object eligibility fields.",
+      "recommendedJsonChange": "Add runtime telekinesisEligibility data."
+    },
+    "telekinesis::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 30-foot creature/object movement and pulling worn/carried objects away are not represented as movement effects.",
+      "recommendedTemplateChange": "Add telekinetic forced movement fields for creatures and objects.",
+      "recommendedJsonChange": "Add runtime telekineticMovement data."
+    },
+    "telekinesis::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "telekinesis::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Restrained duration is corrected, but suspended-in-air state and fall unless reapplied remain prose-only.",
+      "recommendedTemplateChange": "Add suspension/fall state fields.",
+      "recommendedJsonChange": "Add runtime telekineticSuspension data."
+    },
+    "telekinesis::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched lifted target positioning; this is target movement/status, not an environmental change.",
+      "recommendedTemplateChange": "Track under forced movement and status.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "telekinesis::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Switching targets ends the previous target's effect and a lifted creature falls unless reapplied; runtime lacks these ending conditions.",
+      "recommendedTemplateChange": "Add target-switch and reapply-or-fall ending fields.",
+      "recommendedJsonChange": "Add runtime telekinesisEnding data."
+    },
+    "teleportation-circle::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The destination circle must be chosen from known same-plane sigil sequences; runtime lacks destination choice and known-sigil fields.",
+      "recommendedTemplateChange": "Add teleportation-circle destination/sigil fields.",
+      "recommendedJsonChange": "Add runtime teleportationCircleDestination data."
+    },
+    "teleportation-circle::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Arrival is within 5 feet of the destination circle or nearest unoccupied space if occupied; runtime lacks arrival-space fallback fields.",
+      "recommendedTemplateChange": "Add arrival destination and fallback occupancy fields.",
+      "recommendedJsonChange": "Add runtime teleportArrival data."
+    },
+    "teleportation-circle::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 5-foot-radius circle must be drawn on the ground and can become permanent after repeated casting; runtime lacks surface/permanence fields.",
+      "recommendedTemplateChange": "Add portal surface and permanent-circle progression fields.",
+      "recommendedJsonChange": "Add runtime teleportationCircleSurface data."
+    },
+    "teleportation-circle::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The portal travel, same-plane restriction, enter-portal trigger, and arrival placement remain prose-only.",
+      "recommendedTemplateChange": "Add portal travel fields.",
+      "recommendedJsonChange": "Add runtime teleportationPortal data."
+    },
+    "teleportation-circle::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Learning and memorizing sigil sequences, including two starting Material Plane destinations and studying for 1 minute, remain prose-only.",
+      "recommendedTemplateChange": "Add sigil knowledge/memorization fields.",
+      "recommendedJsonChange": "Add runtime sigilSequenceKnowledge data."
+    },
+    "teleportation-circle::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Committing a new sigil sequence to memory after study is a knowledge-state change not represented in runtime.",
+      "recommendedTemplateChange": "Add learned-sigil state fields.",
+      "recommendedJsonChange": "Add runtime learnedSigil data."
+    },
+    "transmute-rock::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell has rock-to-mud and mud-to-rock modes with different saves, terrain, damage, restraint, and object stats; runtime only has one damage effect.",
+      "recommendedTemplateChange": "Add transmute mode fields.",
+      "recommendedJsonChange": "Add runtime transmuteRockModes data."
+    },
+    "transmute-rock::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Strength saves for mud restraint, Dexterity saves for falling mud damage, and Dexterity saves for mud-to-rock shunting/restraint are not all represented.",
+      "recommendedTemplateChange": "Add per-mode save branches.",
+      "recommendedJsonChange": "Add runtime transmuteRockSaveBranches data."
+    },
+    "transmute-rock::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Safe shunting to an unoccupied surface space is not represented.",
+      "recommendedTemplateChange": "Add shunt destination eligibility fields.",
+      "recommendedJsonChange": "Add runtime shuntDestination data."
+    },
+    "transmute-rock::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Sinking into mud and shunting to the surface are not represented as movement/position outcomes.",
+      "recommendedTemplateChange": "Add sink and shunt movement fields.",
+      "recommendedJsonChange": "Add runtime transmuteRockMovement data."
+    },
+    "transmute-rock::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Mud difficult movement cost, rock/mud surface transformation, ceiling mud fall, and mud depth limits are prose-only.",
+      "recommendedTemplateChange": "Add terrain transformation fields.",
+      "recommendedJsonChange": "Add runtime transmuteRockTerrain data."
+    },
+    "transmute-rock::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible area selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "transmute-rock::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "Movement cost through mud is terrain movement cost, not resource consumption.",
+      "recommendedTemplateChange": "Track under terrain fields.",
+      "recommendedJsonChange": "No resource/consumption runtime data required."
+    },
+    "transmute-rock::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The restraining rock's AC 15, 25 HP, and poison/psychic immunity are not represented.",
+      "recommendedTemplateChange": "Add restraint-object stats fields.",
+      "recommendedJsonChange": "Add runtime transmuteRockObjectStats data."
+    },
+    "transmute-rock::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Restrained by mud/rock, action escape, DC 20 Strength check, and damage-to-break options are not fully represented.",
+      "recommendedTemplateChange": "Add restraint and escape/break fields.",
+      "recommendedJsonChange": "Add runtime transmuteRockRestraint data."
+    },
+    "transmute-rock::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The area changes between rock and mud and can create falling mud; runtime lacks environment transformation data.",
+      "recommendedTemplateChange": "Add environmental transmutation fields.",
+      "recommendedJsonChange": "Add runtime transmuteRockEnvironment data."
+    },
+    "tree-stride::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now has a teleport surface, but destination spot choice within 5 feet and no-movement fallback remain prose-only.",
+      "recommendedTemplateChange": "Add tree-stride destination choice fields.",
+      "recommendedJsonChange": "Add runtime treeStrideDestination data."
+    },
+    "tree-stride::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Tree Stride now records the end-turn outside-tree restriction as structured Recurring Mechanics and runtime recurringMechanics data.",
+      "issue": "The caster must end each turn outside a tree; runtime lacks this per-turn restriction.",
+      "recommendedTemplateChange": "Add per-turn ending-position restriction fields.",
+      "recommendedJsonChange": "Add runtime treeStrideTurnRestriction data."
+    },
+    "tree-stride::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The once-per-turn transportation ability is now represented as a per-turn MOVEMENT effect.",
+      "recommendedTemplateChange": "No new sustain-action field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport with per-turn consumption."
+    },
+    "tree-stride::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The tree-to-tree transportation is now represented as a MOVEMENT teleport effect.",
+      "recommendedTemplateChange": "No new travel field required.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport."
+    },
+    "tree-stride::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster instantly knows the location of all same-kind trees within 500 feet; runtime lacks typed local knowledge/sensor fields.",
+      "recommendedTemplateChange": "Add same-kind tree location knowledge fields.",
+      "recommendedJsonChange": "Add runtime treeLocationKnowledge data."
+    },
+    "wall-of-force::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The wall's main spatial forms and panel choices are already represented in spatialDetails; push side choice remains tracked under forced_movement.",
+      "recommendedTemplateChange": "No new form-choice field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails."
+    },
+    "wall-of-force::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the wall cuts through a creature's space, the creature is pushed to a chosen side; runtime lacks this push effect.",
+      "recommendedTemplateChange": "Add wall-creation displacement fields.",
+      "recommendedJsonChange": "Add runtime wallDisplacement data."
+    },
+    "wall-of-force::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Orientation, free-floating/resting placement, dome/globe/flat panel forms, dimensions, and thickness are represented in structured/runtime spatial fields.",
+      "recommendedTemplateChange": "No new terrain/surface field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails."
+    },
+    "wall-of-force::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall is Invisible, but runtime only records it in prose.",
+      "recommendedTemplateChange": "Add object/structure visibility fields.",
+      "recommendedJsonChange": "Add runtime wallVisibility data."
+    },
+    "wall-of-force::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now marks the utility as creation and captures geometry, but physical pass-through blocking, damage immunity, Dispel Magic immunity, and Disintegrate destruction remain prose-only.",
+      "recommendedTemplateChange": "Add wall barrier/material immunity and spell-destruction fields.",
+      "recommendedJsonChange": "Add runtime wallBarrierProperties data."
+    },
+    "wall-of-force::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall extends into the Ethereal Plane and blocks ethereal travel, but this planar blocking is not typed.",
+      "recommendedTemplateChange": "Add ethereal-plane blocking fields.",
+      "recommendedJsonChange": "Add runtime planarTravelBlock data."
+    },
+    "wall-of-force::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The wall's Invisible state is prose-only.",
+      "recommendedTemplateChange": "Add created-object visibility state fields.",
+      "recommendedJsonChange": "Add runtime invisibleStructure data."
+    }
+  },
+  "manualFindings": {}
+}

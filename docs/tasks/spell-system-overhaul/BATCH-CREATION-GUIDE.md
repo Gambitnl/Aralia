@@ -79,7 +79,7 @@ A section where Jules logs progress for each spell in the batch.
 
 As batches are processed and reviewed, gaps will be discovered:
 
-1. **Review PR** → Identify issues not covered by current criteria
+1. **Review PR** -> Identify issues not covered by current criteria
 2. **Update `JULES_ACCEPTANCE_CRITERIA.md`** with new rules
 3. **Future batches** automatically inherit new criteria via REQUIRED READING
 4. **Earlier batches** may need re-review against updated criteria

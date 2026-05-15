@@ -1,4 +1,4 @@
-﻿# Level 2 Spell Migration - Historical Rollup
+# Level 2 Spell Migration - Historical Rollup
 
 **Last Reviewed:** 2026-03-12  
 **Status:** Historical rollup summary

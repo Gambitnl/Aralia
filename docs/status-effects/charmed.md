@@ -163,7 +163,7 @@
 
 | Line | Snippet |
 |---|---|
-| 21 | `'Vedalken Dispassion: You have advantage on saving throws to avoid or end the charmed condition, and magic can’t put you to sleep.',` |
+| 21 | `'Vedalken Dispassion: You have advantage on saving throws to avoid or end the charmed condition, and magic can't put you to sleep.',` |
 
 ### `src/data/races/winter_eladrin.ts`
 
@@ -241,7 +241,7 @@
 | Line | Snippet |
 |---|---|
 | 223 | `/** Unique ID for the condition (e.g., 'blinded', 'charmed'). */` |
-| 461 | `charmed: { id: 'charmed', label: 'Charmed', icon: '💕', color: '#EC4899', description: 'Can’t attack the charmer or target the charmer with harmful ab...` |
+| 461 | `charmed: { id: 'charmed', label: 'Charmed', icon: '💕', color: '#EC4899', description: 'Can't attack the charmer or target the charmer with harmful ab...` |
 
 ### `src/utils/validation/spellConsistencyValidator.ts`
 
@@ -280,7 +280,7 @@
 
 | Line | Snippet |
 |---|---|
-| 18 | `// Player casts Friends → target saves → if fail, Charmed` |
+| 18 | `// Player casts Friends -> target saves -> if fail, Charmed` |
 
 ### `.jules/personas/37_taxonomist.md`
 
@@ -501,7 +501,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ### `src/data/races/bugbear.md`
 

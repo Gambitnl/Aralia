@@ -26,12 +26,13 @@ describe('actionEconomyUtils', () => {
       const character = createMockCombatCharacter({
         stats: { speed: 40, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, cr: "1" },
         actionEconomy: {
-          action: { used: true, remaining: 0 },
-          bonusAction: { used: true, remaining: 1 }, // partially used case
-          reaction: { used: true, remaining: 0 },
-          movement: { used: 30, total: 40 },
-          freeActions: 0
-        }
+            action: { used: true, remaining: 0 },
+            bonusAction: { used: true, remaining: 0 },
+            reaction: { used: true, remaining: 0 },
+            legendary: { used: 0, total: 0 },
+            movement: { used: 30, total: 30 },
+            freeActions: 0,
+        },
       });
 
       const resetCharacter = resetEconomy(character);

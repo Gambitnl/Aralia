@@ -11,7 +11,6 @@
   "subClasses": [
     "Paladin - Oath of the Ancients"
   ],
-  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -53,18 +52,33 @@
     "lineOfSight": true,
     "range": 0,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -92,17 +106,36 @@
           {
             "type": "advantage",
             "appliesTo": {
-              "size": [
+              "sizes": [
                 "Large",
                 "Huge",
                 "Gargantuan"
               ],
               "creatureTypes": [],
               "excludeCreatureTypes": [],
-              "sizes": [],
               "alignments": [],
               "hasCondition": [],
-              "isNativeToPlane": false
+              "isNativeToPlane": false,
+              "willing": "not_applicable",
+              "objectEligibility": {
+                "wornOrCarried": "not_applicable",
+                "magicalStatus": "not_applicable",
+                "fixedToSurface": "not_applicable",
+                "maxSize": "not_applicable",
+                "maxWeightPounds": "not_applicable",
+                "maxWeightScaling": "not_applicable"
+              },
+              "communicationPrerequisites": {
+                "canHearCaster": "not_applicable",
+                "canUnderstandCaster": "not_applicable",
+                "canSeeCaster": "not_applicable"
+              },
+              "abilityThreshold": {
+                "ability": "not_applicable",
+                "operator": "not_applicable",
+                "value": "not_applicable"
+              },
+              "selfRelation": "not_applicable"
             },
             "reason": "Large or larger creatures have advantage on the saving throw.",
             "value": 0,
@@ -117,9 +150,30 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
-        "requiresStatus": []
+        "requiresStatus": [],
+        "saveOutcomeOverrides": []
       },
       "statusCondition": {
         "name": "Restrained",
@@ -153,7 +207,8 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
     },
     {
       "type": "DAMAGE",
@@ -176,17 +231,36 @@
         "requiresStatus": [
           "Restrained"
         ],
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "1d6",
@@ -197,7 +271,8 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

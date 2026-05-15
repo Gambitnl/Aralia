@@ -9,11 +9,7 @@
     "Sorcerer",
     "Wizard"
   ],
-  "subClasses": [
-    "Cleric - Death Domain (DMG)",
-    "Warlock - The Undying (SCAG)"
-  ],
-  "subClassesVerification": "verified",
+  "subClasses": [],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -57,18 +53,33 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -90,18 +101,37 @@
       },
       "condition": {
         "type": "hit",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "2d8",
@@ -112,7 +142,8 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
     },
     {
       "type": "STATUS_CONDITION",
@@ -131,19 +162,38 @@
         }
       },
       "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "negates_condition",
+        "type": "hit",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "statusCondition": {
         "name": "Poisoned",
@@ -151,24 +201,15 @@
           "type": "rounds",
           "value": 1
         },
-        "level": 0,
-        "escapeCheck": {
-          "dc": 0,
-          "actionCost": "action"
-        },
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Wisdom",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
+        "level": 0
       },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

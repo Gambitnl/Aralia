@@ -1,4 +1,4 @@
-﻿# Guide: Adding a New Character Class to Aralia RPG
+# Guide: Adding a New Character Class to Aralia RPG
 
 Last Updated: 2026-03-11
 Purpose: Describe the current class-addition workflow based on the repo as it exists now.

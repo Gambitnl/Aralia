@@ -9,7 +9,6 @@
     "Druid"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -51,21 +50,106 @@
     "lineOfSight": false,
     "range": 0,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "resistance",
+      "damageType": [
+        "Acid",
+        "Cold",
+        "Fire",
+        "Lightning",
+        "Thunder"
+      ],
+      "duration": {
+        "type": "minutes",
+        "value": 1
+      },
+      "description": "The caster has resistance to Acid, Cold, Fire, Lightning, and Thunder damage for the duration.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "on_target_attack",
+        "frequency": "every_time",
+        "consumption": "per_turn",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "reaction",
+          "optional": true
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "immunity",
+      "damageType": [
+        "Acid",
+        "Cold",
+        "Fire",
+        "Lightning",
+        "Thunder"
+      ],
+      "duration": {
+        "type": "rounds",
+        "value": 1
+      },
+      "description": "When the caster takes one of the listed damage types, the caster can use a reaction to gain immunity to that type, including against the triggering damage, until the end of the caster's next turn.",
+      "conditionalEndings": []
+    },
     {
       "type": "UTILITY",
       "trigger": {
@@ -84,18 +168,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
       "description": "You have resistance to acid, cold, fire, lightning, and thunder damage for the spell's duration. When you take damage of one of those types, you can use your reaction to gain immunity to that type of damage, including against the triggering damage. If you do so, the resistances end, and you have the immunity until the end of your next turn, at which time the spell ends.",
@@ -106,7 +209,24 @@
       },
       "grantedActions": [],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "name": "Reaction Immunity",
+          "effect": "When the caster takes one of the listed damage types, the caster can use a reaction to gain immunity to that type, including against the triggering damage."
+        },
+        {
+          "name": "Resistances End",
+          "effect": "Using the reaction immunity ends the spell's resistances."
+        },
+        {
+          "name": "Immunity Until Next Turn",
+          "effect": "The chosen immunity lasts until the end of the caster's next turn."
+        },
+        {
+          "name": "Spell Ends After Immunity",
+          "effect": "The spell ends at the end of the caster's next turn after the reaction immunity."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -125,8 +245,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

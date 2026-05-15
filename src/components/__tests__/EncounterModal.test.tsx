@@ -1,7 +1,6 @@
 
 import React from 'react';
-// TODO(lint-intent): 'fireEvent' is unused in this test; use it in the assertion path or remove it.
-import { render, screen, fireEvent as _fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import EncounterModal from '../Combat/EncounterModal';
 // TODO(lint-intent): 't' is unused in this test; use it in the assertion path or remove it.
@@ -11,6 +10,25 @@ import { t as _t } from '../../utils/i18n';
 vi.mock('../../utils/i18n', () => ({
   t: (key: string) => key,
 }));
+
+// EncounterModal now reads the active party from the game state when callers do
+// not provide a party override. These unit tests only care about modal rendering
+// states, so the hook is mocked with an empty party instead of mounting the full
+// application provider around every assertion.
+vi.mock('../../state/GameContext', () => ({
+  useGameState: () => ({
+    state: {
+      party: [],
+    },
+  }),
+}));
+
+function openAiGeneratedTab() {
+  // The modal now opens on the bestiary builder by default. These regression
+  // tests cover the older AI-generated encounter surface, so each test switches
+  // to that tab before asserting its loading, error, empty, or result content.
+  fireEvent.click(screen.getByRole('button', { name: 'AI Generated' }));
+}
 
 describe('EncounterModal', () => {
   const mockOnClose = vi.fn();
@@ -28,6 +46,8 @@ describe('EncounterModal', () => {
         onAction={mockOnAction}
       />
     );
+
+    openAiGeneratedTab();
 
     expect(screen.getByText('encounter_modal.loading')).toBeInTheDocument();
     expect(screen.getByText('encounter_modal.loading_flavor')).toBeInTheDocument();
@@ -47,6 +67,8 @@ describe('EncounterModal', () => {
       />
     );
 
+    openAiGeneratedTab();
+
     expect(screen.getByText('encounter_modal.error_title')).toBeInTheDocument();
     expect(screen.getByText(errorMsg)).toBeInTheDocument();
   });
@@ -63,6 +85,8 @@ describe('EncounterModal', () => {
         onAction={mockOnAction}
       />
     );
+
+    openAiGeneratedTab();
 
     expect(screen.getByText('encounter_modal.no_encounter')).toBeInTheDocument();
   });
@@ -83,6 +107,8 @@ describe('EncounterModal', () => {
         onAction={mockOnAction}
       />
     );
+
+    openAiGeneratedTab();
 
     expect(screen.getByText('encounter_modal.title')).toBeInTheDocument();
     expect(screen.getByText('Goblin x 2')).toBeInTheDocument();

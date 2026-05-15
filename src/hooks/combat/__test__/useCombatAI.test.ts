@@ -32,7 +32,8 @@ const mockCharacter: CombatCharacter = {
     bonusAction: { used: false, remaining: 1 },
     movement: { used: 0, total: 30 },
     reaction: { used: false, remaining: 1 },
-    freeActions: 0
+    freeActions: 0,
+    legendary: { used: 0, total: 0 }
   },
   statusEffects: [],
   conditions: []

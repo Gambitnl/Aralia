@@ -1,0 +1,243 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 20-24 in generated discovery row order.",
+    "This packet covers Heroes' Feast and the four Investiture spells. Runtime edits encode all mechanics the current schema can carry; remaining actionable_open entries identify first-class schema gaps instead of leaving them as prose-only surprises."
+  ],
+  "findings": {
+    "heroes-feast::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The feast surface, unoccupied 10-foot Cube, and adjacent placement are now represented by targeting plus a creation utility option.",
+      "recommendedTemplateChange": "No additional terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.areaOfEffect and UTILITY creation/controlOptions."
+    },
+    "heroes-feast::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The 1-hour consumption window, disappearance timing, and delayed benefit onset are now represented as structured utility options.",
+      "recommendedTemplateChange": "No additional resource field required for this pass.",
+      "recommendedJsonChange": "Closed by Delayed Benefits utility option."
+    },
+    "heroes-feast::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The participant's Hit Point maximum increases by 2d10 and the participant gains the same number of Hit Points; runtime now records the healing and prose but lacks a first-class hit-point-maximum-increase amount field.",
+      "recommendedTemplateChange": "Add hit-point-maximum increase fields with dice/formula, duration, affected target count, and not_applicable sentinel.",
+      "recommendedJsonChange": "Add runtime hpMaximumIncrease data instead of encoding this only as HEALING description/controlOptions."
+    },
+    "heroes-feast::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Immunity to the Frightened and Poisoned conditions is encoded as DEFENSIVE immunity with condition names in damageType because runtime lacks first-class condition immunity fields.",
+      "recommendedTemplateChange": "Closed by the Condition Immunities field, which separates status-condition immunity from damage immunity.",
+      "recommendedJsonChange": "Closed by moving Frightened and Poisoned out of damageType and into conditionImmunity on the existing DEFENSIVE immunity effect."
+    },
+    "heroes-feast::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance to Poison damage is represented as a DEFENSIVE resistance effect with 24-hour duration.",
+      "recommendedTemplateChange": "No additional damage-prevention field required for Poison resistance.",
+      "recommendedJsonChange": "Closed by DEFENSIVE resistance to Poison."
+    },
+    "investiture-of-flame::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses the line direction for the action-created fire line; runtime stores the granted action but lacks a typed direction-choice field.",
+      "recommendedTemplateChange": "Add spell-granted action direction/placement choice fields.",
+      "recommendedJsonChange": "Add runtime actionPlacementChoice data for line direction."
+    },
+    "investiture-of-flame::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save and half-damage outcome for the action-created fire line are represented in the DAMAGE effect.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE condition.saveType/saveEffect."
+    },
+    "investiture-of-flame::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The repeatable action to create the fire line is represented as an on_caster_action DAMAGE effect and a granted action.",
+      "recommendedTemplateChange": "No additional granted-action field required for this pass.",
+      "recommendedJsonChange": "Closed by trigger.on_caster_action and UTILITY grantedActions."
+    },
+    "investiture-of-flame::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The 30-foot bright light and additional 30-foot dim light are represented in structured light fields and runtime UTILITY light data.",
+      "recommendedTemplateChange": "No additional light field required.",
+      "recommendedJsonChange": "Closed by Light Bright/Dim Radius and UTILITY light."
+    },
+    "investiture-of-flame::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Fire immunity and Cold resistance are represented as DEFENSIVE effects.",
+      "recommendedTemplateChange": "No additional defense field required for this pass.",
+      "recommendedJsonChange": "Closed by DEFENSIVE immunity/resistance effects."
+    },
+    "investiture-of-flame::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The light, adjacent fire damage aura, and action-created fire line are represented by UTILITY light and DAMAGE effects.",
+      "recommendedTemplateChange": "No additional environmental field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY light plus on_enter_area/on_end_turn_in_area/on_caster_action DAMAGE effects."
+    },
+    "investiture-of-flame::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'Until the spell ends' is the normal duration/concentration boundary for this spell's benefits and is already represented by timed concentration duration.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration.concentration and timed 10-minute duration."
+    },
+    "investiture-of-ice::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses the cone direction for the spell-granted freezing wind action; runtime stores the granted action but lacks a typed direction-choice field.",
+      "recommendedTemplateChange": "Add spell-granted action direction/placement choice fields.",
+      "recommendedJsonChange": "Add runtime actionPlacementChoice data for cone direction."
+    },
+    "investiture-of-ice::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save, half-damage outcome, and failed-save speed-halving consequence are represented.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE and MOVEMENT conditions."
+    },
+    "investiture-of-ice::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The repeatable action to create the freezing wind cone is represented as an on_caster_action DAMAGE effect and a granted action.",
+      "recommendedTemplateChange": "No additional granted-action field required for this pass.",
+      "recommendedJsonChange": "Closed by trigger.on_caster_action and UTILITY grantedActions."
+    },
+    "investiture-of-ice::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The moving 10-foot icy difficult-terrain radius is represented as TERRAIN using a schema-safe Sphere shape, and the caster's ignored ice/snow difficult terrain is represented as utility/movement prose; runtime lacks first-class moving emanation and ignore-terrain-cost fields.",
+      "recommendedTemplateChange": "Add moving aura/emanation terrain fields and ignore-terrain-cost fields.",
+      "recommendedJsonChange": "Add runtime movingTerrainAura and ignoreTerrainCost data."
+    },
+    "investiture-of-ice::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Cold immunity and Fire resistance are represented as DEFENSIVE effects.",
+      "recommendedTemplateChange": "No additional defense field required for this pass.",
+      "recommendedJsonChange": "Closed by DEFENSIVE immunity/resistance effects."
+    },
+    "investiture-of-ice::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The icy ground aura, caster ice/snow movement benefit, and action-created freezing wind are represented in runtime effects, with first-class schema gaps tracked under terrain_or_surface.",
+      "recommendedTemplateChange": "No separate environmental field required beyond the terrain/movement gaps already recorded.",
+      "recommendedJsonChange": "Closed by TERRAIN, MOVEMENT, and UTILITY effects for this pass."
+    },
+    "investiture-of-ice::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'Until the spell ends' is the normal duration/concentration boundary for this spell's benefits and is already represented by timed concentration duration.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration.concentration and timed 10-minute duration."
+    },
+    "investiture-of-stone::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save that negates being knocked Prone is represented in the STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION condition.saveType/saveEffect."
+    },
+    "investiture-of-stone::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Ejection to the nearest unoccupied space when the caster ends movement inside earth or stone is described in runtime, but there is no first-class nearest-unoccupied-space destination field.",
+      "recommendedTemplateChange": "Add forced relocation destination fields for nearest unoccupied space and invalid end-position handling.",
+      "recommendedJsonChange": "Add runtime invalidEndPositionRelocation data."
+    },
+    "investiture-of-stone::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The repeatable action to create the earthquake radius is represented as a granted action and STATUS_CONDITION trigger.",
+      "recommendedTemplateChange": "No additional granted-action field required for this pass.",
+      "recommendedJsonChange": "Closed by trigger.on_caster_action and UTILITY grantedActions."
+    },
+    "investiture-of-stone::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The detector matched both knock-prone and self-ejection. Prone is represented as a status condition; self-ejection remains prose because runtime lacks invalid end-position relocation fields.",
+      "recommendedTemplateChange": "Track Prone under status_or_state_change and add invalid-position ejection fields for the self-ejection case.",
+      "recommendedJsonChange": "Add runtime invalidEndPositionRelocation data."
+    },
+    "investiture-of-stone::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Earthquake ground radius, ignored earth/stone difficult terrain, and movement through solid earth/stone are represented in structured/runtime prose, but runtime lacks first-class ignore-terrain-cost and move-through-solid-material fields.",
+      "recommendedTemplateChange": "Add ignore-terrain-cost and move-through-solid-material fields.",
+      "recommendedJsonChange": "Add runtime ignoreTerrainCost and phaseThroughMaterial data."
+    },
+    "investiture-of-stone::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Prone from the earthquake action and Stunned after invalid movement ending are represented as STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION effects for Prone and Stunned."
+    },
+    "investiture-of-stone::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance to Bludgeoning, Piercing, and Slashing damage is represented, but the nonmagical-attacks source restriction is only in description because defensive effects lack source/magical filters.",
+      "recommendedTemplateChange": "Add defense source filters for magical/nonmagical attacks and source categories.",
+      "recommendedJsonChange": "Add runtime defenseSourceFilter data.",
+      "reviewerNote": "Closed by adding Defense Source Categories -> effects[].defenseSourceFilter.sourceCategories[] and Defense Source Attack Magical Status -> effects[].defenseSourceFilter.attackMagicalStatus, then setting Investiture of Stone to attack/nonmagical."
+    },
+    "investiture-of-stone::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Earth/stone difficult-terrain movement and moving through solid earth or stone are represented as utility/movement effects, with first-class schema gaps tracked under terrain_or_surface.",
+      "recommendedTemplateChange": "No separate environmental field required beyond the terrain/movement gaps already recorded.",
+      "recommendedJsonChange": "Closed by UTILITY and MOVEMENT effects for this pass."
+    },
+    "investiture-of-stone::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ordinary 'Until the spell ends' duration is represented, but the special ending when the caster ends movement inside earth or stone is only described in prose.",
+      "recommendedTemplateChange": "Add conditional spell-ending triggers tied to invalid end positions.",
+      "recommendedJsonChange": "Add runtime conditionalSpellEnd data for ending inside earth or stone."
+    },
+    "investiture-of-wind::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Ranged weapon attack disadvantage and the Constitution save for the wind Cube are represented.",
+      "recommendedTemplateChange": "No additional attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by DEFENSIVE disadvantage_on_attacks and DAMAGE condition.saveType/saveEffect."
+    },
+    "investiture-of-wind::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The repeatable action to create the wind Cube is represented as an on_caster_action DAMAGE effect and a granted action.",
+      "recommendedTemplateChange": "No additional granted-action field required for this pass.",
+      "recommendedJsonChange": "Closed by trigger.on_caster_action and UTILITY grantedActions."
+    },
+    "investiture-of-wind::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster's 60-foot flying speed is represented as MOVEMENT speed_change and utility prose, but runtime lacks a first-class movement-mode field distinguishing flying speed from generic speed.",
+      "recommendedTemplateChange": "Add movement mode fields for walking/flying/swimming/climbing/burrowing speed grants.",
+      "recommendedJsonChange": "Add runtime movementModeSpeed data."
+    },
+    "investiture-of-wind::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Large-or-smaller failed-save push is represented as MOVEMENT push, but runtime lacks a first-class 'away from center of area' direction; caster_choice is a schema-safe placeholder.",
+      "recommendedTemplateChange": "Add forced-movement origin/direction fields including away_from_area_center.",
+      "recommendedJsonChange": "Add runtime forcedMovement.origin=center_of_area and direction=away_from_origin."
+    },
+    "investiture-of-wind::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The visible point within 60 feet for the wind Cube is represented in spatialDetails notes and the granted action range limit.",
+      "recommendedTemplateChange": "No additional vision field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails and UTILITY grantedActions rangeLimit."
+    },
+    "investiture-of-wind::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The wind around the caster and the action-created swirling wind Cube are represented as defensive, movement, damage, and utility effects.",
+      "recommendedTemplateChange": "No separate environmental field required for this pass.",
+      "recommendedJsonChange": "Closed by DEFENSIVE, MOVEMENT, DAMAGE, and UTILITY effects."
+    },
+    "investiture-of-wind::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by end-cleanup consequence batch 01: Investiture of Wind now has structured End Cleanup fields and runtime effects[].endCleanup[] data for removing spell-granted flying speed, causing fall_if_aloft, and allowing can_prevent_fall.",
+      "issue": "Falling if still flying when the spell ends is represented in utility prose, but runtime lacks a first-class on-spell-end consequence field.",
+      "recommendedTemplateChange": "Add spell-end consequence fields for fall/drop/other aftermath triggers.",
+      "recommendedJsonChange": "Add runtime onSpellEndConsequence data for fall if still flying."
+    },
+    "investiture-of-wind::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by end-cleanup consequence batch 01: the spell-end falling aftermath is represented as effects[].endCleanup[].consequence = fall_if_aloft with preventedBy = can_prevent_fall.",
+      "issue": "The fall after the spell ends is an aftermath effect; it is recorded in utility prose but lacks first-class runtime trigger data.",
+      "recommendedTemplateChange": "Add aftermath/on-spell-end consequence fields.",
+      "recommendedJsonChange": "Add runtime onSpellEndConsequence data."
+    }
+  },
+  "manualFindings": {
+    "investiture-of-stone": [
+      {
+        "bucketId": "json_formatting_drift",
+        "findingId": "investiture-of-stone::manual_json_formatting_drift_normalized",
+        "canonicalEvidence": "Runtime JSON file used inconsistent PowerShell-style formatting compared with nearby spell files.",
+        "structuredState": "Structured Markdown was not affected by the formatting drift.",
+        "jsonState": "JSON data was semantically preserved while adding missing mechanics and normalizing this one file for reviewability.",
+        "issue": "Formatting drift made manual review of this spell harder and riskier while adding mechanical effects.",
+        "recommendedTemplateChange": "No spell template change required; keep formatting drift separate from mechanical schema drift.",
+        "recommendedJsonChange": "Closed by normalizing investiture-of-stone.json during the mechanical edit and rerunning JSON, parity, runtime template, and discovery gates.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}

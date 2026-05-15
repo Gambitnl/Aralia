@@ -70,6 +70,8 @@ function formatGateSizeType(sizeType?: string): string {
             return 'edge';
         case 'side':
             return 'side';
+        case 'square':
+            return 'square';
         default:
             return '';
     }
@@ -104,7 +106,9 @@ function formatRangeAreaGeometry(spell: SpellData | null): string | null {
         let areaLabel = `area=${area.shape}`;
 
         if (typeof area.size === 'number') {
-            areaLabel += ` ${sizePrefix ? `${sizePrefix} ` : ''}${formatGateMeasuredDistance(area.size, area.sizeUnit ?? 'feet')}`;
+            areaLabel += area.sizeType === 'square'
+                ? ` ${area.size.toLocaleString('en-US')} sq. ft.`
+                : ` ${sizePrefix ? `${sizePrefix} ` : ''}${formatGateMeasuredDistance(area.size, area.sizeUnit ?? 'feet')}`;
         }
 
         if (typeof area.height === 'number' && area.height > 0) {

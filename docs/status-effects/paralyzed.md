@@ -18,7 +18,7 @@
 
 | Line | Snippet |
 |---|---|
-| 21 | `'Mechanical Nature: You have resistance to poison, immunity to disease, and advantage on saves against being paralyzed or poisoned. You don’t need to ...` |
+| 21 | `'Mechanical Nature: You have resistance to poison, immunity to disease, and advantage on saves against being paralyzed or poisoned. You don't need to ...` |
 
 ### `src/systems/combat/reactions/OpportunityAttackSystem.ts`
 
@@ -79,7 +79,7 @@
 
 | Line | Snippet |
 |---|---|
-| 467 | `paralyzed: { id: 'paralyzed', label: 'Paralyzed', icon: '⚡', color: '#FBBF24', description: 'Incapacitated and can’t move or speak. Attacks against th...` |
+| 467 | `paralyzed: { id: 'paralyzed', label: 'Paralyzed', icon: '⚡', color: '#FBBF24', description: 'Incapacitated and can't move or speak. Attacks against th...` |
 
 ### `src/utils/combat/combatUtils.ts`
 
@@ -139,7 +139,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ## JSON Data Files (.json)
 

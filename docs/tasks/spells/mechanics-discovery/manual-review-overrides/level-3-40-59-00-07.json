@@ -1,0 +1,122 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "speak-with-dead": [
+      {
+        "bucketId": "ward_alarm_or_trigger",
+        "findingId": "speak-with-dead::ward_alarm_or_trigger",
+        "canonicalEvidence": "The corpse is under no compulsion to offer a truthful answer if you are antagonistic toward it or it recognizes you as an enemy.",
+        "structuredState": "No hostility/truthfulness condition fields.",
+        "jsonState": "Runtime JSON has no answer truthfulness condition.",
+        "issue": "Answer truthfulness depends on social relationship, but runtime has no field for this.",
+        "recommendedTemplateChange": "Add answerTruthfulness condition fields.",
+        "recommendedJsonChange": "Add runtime answerBehavior data for no truth compulsion when antagonistic or enemy-recognized.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "speak-with-dead::social_or_knowledge_effect",
+        "canonicalEvidence": "The corpse knows only what it knew in life, cannot learn new information, does not comprehend anything since it died, and cannot speculate about future events.",
+        "structuredState": "No knowledge boundary fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "The corpse knowledge boundaries are not represented.",
+        "recommendedTemplateChange": "Add knowledgeBoundary fields for life knowledge, no new information, no post-death comprehension, no future speculation.",
+        "recommendedJsonChange": "Add runtime knowledgeLimits data for the corpse answers.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "speak-with-dead::status_or_state_change",
+        "canonicalEvidence": "The corpse must have a mouth, and this spell fails if the deceased creature was Undead when it died.",
+        "structuredState": "No corpse anatomy or died-as-Undead failure fields.",
+        "jsonState": "Runtime targeting has no corpse mouth or former-Undead filters.",
+        "issue": "Speak with Dead has target failure conditions based on corpse mouth and creature type at death.",
+        "recommendedTemplateChange": "Add corpse target filters for hasMouth and wasUndeadWhenDied.",
+        "recommendedJsonChange": "Add runtime targetFilter corpseHasMouth true and failsIfWasUndeadWhenDied true.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "speak-with-dead::conditional_ending",
+        "canonicalEvidence": "The spell fails if the corpse was the target of this spell within the past 10 days. Until the spell ends, you can ask the corpse up to five questions.",
+        "structuredState": "No prior-target cooldown or question-count ending fields.",
+        "jsonState": "Runtime JSON has no 10-day lockout or question limit.",
+        "issue": "Speak with Dead has a 10-day retarget failure and a five-question limit.",
+        "recommendedTemplateChange": "Add priorTargetCooldown and maxQuestions fields.",
+        "recommendedJsonChange": "Add runtime castFailure if targetedWithinPastDays 10 and maxQuestions 5.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "speak-with-plants": [
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "speak-with-plants::terrain_or_surface",
+        "canonicalEvidence": "You can turn Difficult Terrain caused by plant growth into ordinary terrain, or ordinary terrain where plants are present into Difficult Terrain.",
+        "structuredState": "Area Shape now Emanation; no terrain conversion fields.",
+        "jsonState": "Runtime area shape now Emanation, but terrain conversion is prose-only.",
+        "issue": "Speak with Plants can convert plant-related difficult/ordinary terrain in either direction.",
+        "recommendedTemplateChange": "Add plant terrain conversion mode fields.",
+        "recommendedJsonChange": "Add runtime terrainConversion data for difficult-to-ordinary and ordinary-with-plants-to-difficult.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "message_or_communication",
+        "findingId": "speak-with-plants::message_or_communication",
+        "canonicalEvidence": "Plants gain ability to communicate with you and follow simple commands. If a Plant creature is in the area, you can communicate with it as if you shared a common language.",
+        "structuredState": "No plant communication/common-language fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Plant communication and shared-language communication with Plant creatures are not typed.",
+        "recommendedTemplateChange": "Add plant communication and common-language fields.",
+        "recommendedJsonChange": "Add runtime communication data for plants and Plant creatures.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "speak-with-plants::summon_or_controlled_entity",
+        "canonicalEvidence": "You imbue plants with limited sentience and animation, giving them the ability to communicate with you and follow your simple commands.",
+        "structuredState": "No controlled plant animation fields.",
+        "jsonState": "Runtime JSON has no commandable plant state.",
+        "issue": "The spell animates plants for limited commands without uprooting movement, but runtime has no plant state/control data.",
+        "recommendedTemplateChange": "Add plant sentience/animation command fields and no-uproot movement limit.",
+        "recommendedJsonChange": "Add runtime plantAnimation data for limited sentience, simple commands, branch/tendril/stalk movement, and cannotUproot.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "speak-with-plants::environmental_change",
+        "canonicalEvidence": "You can question plants about events in the spell area within the past day, gaining information about creatures that have passed, weather, and other circumstances.",
+        "structuredState": "No area event-history knowledge fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "The spell exposes one-day local event history through plants and can alter plant terrain, but both are prose-only.",
+        "recommendedTemplateChange": "Add plant memory/event-history and terrain conversion fields.",
+        "recommendedJsonChange": "Add runtime plantKnowledge data for last 1 day creatures/weather/circumstances and terrain conversion data.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "speak-with-plants::manual_emanation_geometry",
+        "canonicalEvidence": "You imbue plants in an immobile 30-foot Emanation.",
+        "structuredState": "Area Shape now records emanation.",
+        "jsonState": "Runtime areaOfEffect now records Emanation.",
+        "issue": "The Emanation shape is represented after correction.",
+        "recommendedTemplateChange": "No area shape change required for this row.",
+        "recommendedJsonChange": "Closed by changing structured and runtime area shape from Sphere to Emanation.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "spirit-guardians": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "spirit-guardians::choice_or_mode",
+        "canonicalEvidence": "If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish.",
+        "structuredState": "Damage Type is Radiant/Necrotic; no alignment-based form or damage-type choice fields.",
+        "jsonState": "Runtime damage type is flattened as Radiant/Necrotic.",
+        "issue": "Spirit Guardians ties spectral form and damage type to caster alignment, with a good/neutral appearance choice.",
+        "recommendedTemplateChange": "Add caster-alignment damage/form mapping and appearance choice fields.",
+        "recommendedJsonChange": "Add runtime alignmentMode data: good/neutral Radiant with angelic/fey appearance choice, evil Necrotic fiendish.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

@@ -13,7 +13,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -57,65 +56,38 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
     {
-      "type": "DAMAGE",
-      "trigger": {
-        "type": "immediate",
-        "frequency": "every_time",
-        "consumption": "unlimited",
-        "attackFilter": {
-          "weaponType": "any",
-          "attackType": "any"
-        },
-        "movementType": "any",
-        "sustainCost": {
-          "actionType": "action",
-          "optional": false
-        }
-      },
-      "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "none",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false
-        },
-        "requiresStatus": [],
-        "saveModifiers": []
-      },
-      "damage": {
-        "dice": "1d6",
-        "type": "Cold"
-      },
-      "scaling": {
-        "type": "character_level",
-        "bonusPerLevel": "+1d6",
-        "customFormula": "1d6 at level 1, 2d6 at level 5, 3d6 at level 11, 4d6 at level 17"
-      },
-      "description": ""
-    },
-    {
-      "type": "STATUS_CONDITION",
+      "type": "ATTACK_ROLL_MODIFIER",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -140,35 +112,54 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
-      "statusCondition": {
-        "name": "Frostbitten",
+      "attackRollModifier": {
+        "modifier": "disadvantage",
+        "direction": "outgoing",
+        "attackKind": "weapon",
+        "consumption": "next_attack",
         "duration": {
           "type": "rounds",
           "value": 1
         },
-        "level": 0,
-        "escapeCheck": {
-          "dc": 0,
-          "actionCost": "action"
-        },
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Wisdom",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
+        "notes": "On a failed Constitution save, the target has disadvantage on the next weapon attack roll it makes before the end of its next turn."
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Cold"
       },
       "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
+        "type": "character_level",
+        "bonusPerLevel": "+1d6",
+        "customFormula": "1d6 at level 1, 2d6 at level 5, 3d6 at level 11, 4d6 at level 17"
       },
-      "description": ""
+      "description": "On a failed Constitution save, the target takes cold damage and has disadvantage on the next weapon attack roll it makes before the end of its next turn.",
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

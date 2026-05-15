@@ -1,4 +1,4 @@
-﻿# Codex Terminal Dev Hub - Implementation Plan
+# Codex Terminal Dev Hub - Implementation Plan
 
 Date: 2026-02-27
 Last Reviewed: 2026-03-12

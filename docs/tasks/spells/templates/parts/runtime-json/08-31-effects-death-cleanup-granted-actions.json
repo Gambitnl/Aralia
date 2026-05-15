@@ -1,0 +1,534 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 22,
+  "fields": [
+    {
+      "path": "effects[].deathPrevention.triggers[]",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "drop_to_0_hp",
+        "instant_death_no_damage",
+        "not_applicable"
+      ],
+      "structuredLabel": "Death Prevention Triggers",
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "Some protective spells intercept death events directly instead of reducing damage or applying healing."
+        }
+      ],
+      "comment": "Mapped from structured Death Prevention Triggers. Purpose: Death Prevention Triggers exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Death Prevention Triggers`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].deathPrevention.triggers[]`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "drop_to_0_hp": "Use when the spell changes a would-drop-to-0-HP event into a different result, such as dropping to 1 HP instead.",
+        "instant_death_no_damage": "Use when the spell negates an effect that would kill the target instantly without dealing damage.",
+        "not_applicable": "Use only when canonical prose has no death-prevention mechanic."
+      }
+    },
+    {
+      "path": "effects[].deathPrevention.dropToHitPoints",
+      "required": false,
+      "valueType": "number-or-sentinel",
+      "structuredLabel": "Death Prevention Drop To Hit Points",
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "A 0-HP prevention rule needs the replacement hit point total instead of hiding it in description text."
+        }
+      ],
+      "comment": "Mapped from structured Death Prevention Drop To Hit Points. Purpose: Death Prevention Drop To Hit Points exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Death Prevention Drop To Hit Points`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].deathPrevention.dropToHitPoints`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "number": "Use the exact replacement hit point total from canonical prose.",
+        "not_applicable": "Use when no replacement hit point total applies."
+      }
+    },
+    {
+      "path": "effects[].deathPrevention.negatesInstantDeathWithoutDamage",
+      "required": false,
+      "valueType": "boolean-or-sentinel",
+      "acceptedValues": [
+        "true",
+        "false",
+        "not_applicable"
+      ],
+      "structuredLabel": "Death Prevention Negates Instant Death Without Damage",
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "Instant-kill prevention is not the same as damage resistance, immunity, or healing."
+        }
+      ],
+      "comment": "Mapped from structured Death Prevention Negates Instant Death Without Damage. Purpose: Death Prevention Negates Instant Death Without Damage exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Death Prevention Negates Instant Death Without Damage`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].deathPrevention.negatesInstantDeathWithoutDamage`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "true": "Use when canonical prose explicitly negates instant death without damage.",
+        "false": "Use when a death-prevention mechanic exists but does not negate instant death without damage.",
+        "not_applicable": "Use when the spell has no death-prevention mechanic."
+      }
+    },
+    {
+      "path": "effects[].deathPrevention.consumption",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "first_trigger_ends_spell",
+        "not_applicable"
+      ],
+      "structuredLabel": "Death Prevention Consumption",
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether a death-prevention ward remains active after it fires."
+        }
+      ],
+      "comment": "Mapped from structured Death Prevention Consumption. Purpose: Death Prevention Consumption exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Death Prevention Consumption`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].deathPrevention.consumption`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "first_trigger_ends_spell": "Use when the first qualifying death-prevention event consumes or ends the spell.",
+        "not_applicable": "Use when the spell has no death-prevention mechanic."
+      }
+    },
+    {
+      "path": "effects[].deathPrevention.scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "target",
+        "not_applicable"
+      ],
+      "structuredLabel": "Death Prevention Scope",
+      "log": [
+        {
+          "at": "2026-05-14T05:05:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know who receives the death-prevention benefit."
+        }
+      ],
+      "comment": "Mapped from structured Death Prevention Scope. Purpose: Death Prevention Scope exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Death Prevention Scope`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].deathPrevention.scope`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "target": "Use when the spell's target receives the death-prevention benefit.",
+        "not_applicable": "Use when the spell has no death-prevention mechanic."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].trigger",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "spell_ends",
+        "effect_ends",
+        "item_effect_ends",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Trigger",
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Some spells remove spell-created state when the spell or effect ends without creating a separate early-ending trigger."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Trigger. Purpose: End Cleanup Trigger exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this cleanup mechanic. Populate it from the structured markdown field `End Cleanup Trigger`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].trigger`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "spell_ends": "Use when cleanup runs because the whole spell ends.",
+        "effect_ends": "Use when cleanup runs because one effect ends while other spell parts may remain.",
+        "item_effect_ends": "Use when cleanup belongs to a spell-created or spell-empowered item effect ending.",
+        "not_applicable": "Use only when canonical prose has no explicit end-cleanup mechanic."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].removes",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "temporary_hit_points",
+        "spell_granted_flying_speed",
+        "extradimensional_space",
+        "created_ammunition",
+        "spell_material_container",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Removes",
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know which spell-created state is removed at cleanup time."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Removes. Purpose: End Cleanup Removes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this cleanup mechanic. Populate it from the structured markdown field `End Cleanup Removes`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].removes`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "temporary_hit_points": "Use when cleanup removes Temporary Hit Points created by the spell or effect.",
+        "spell_granted_flying_speed": "Use when cleanup removes a flying speed granted by this spell or one of its effects.",
+        "extradimensional_space": "Use when cleanup removes a spell-created extradimensional space or pocket.",
+        "created_ammunition": "Use when cleanup removes or destroys ammunition created by this spell.",
+        "spell_material_container": "Use when cleanup destroys or removes a material container that the spell uses as an ongoing anchor.",
+        "not_applicable": "Use when no end-cleanup state is removed."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].source",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "this_spell",
+        "this_effect",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Source",
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Temporary Hit Points and other states can come from several sources, so cleanup must name the source it owns."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Source. Purpose: End Cleanup Source exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this cleanup mechanic. Populate it from the structured markdown field `End Cleanup Source`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].source`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "this_spell": "Use when cleanup removes state granted by this spell as a whole.",
+        "this_effect": "Use when cleanup removes state granted only by the same effect packet.",
+        "not_applicable": "Use when no end-cleanup source applies."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "target",
+        "caster",
+        "affected_creatures",
+        "contents",
+        "created_objects",
+        "spell_component",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Scope",
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know who loses the spell-created state during cleanup."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Scope. Purpose: End Cleanup Scope exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this cleanup mechanic. Populate it from the structured markdown field `End Cleanup Scope`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].scope`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "target": "Use when the spell target loses the spell-created state.",
+        "caster": "Use when the caster loses the spell-created state.",
+        "affected_creatures": "Use when all currently affected creatures lose the spell-created state.",
+        "contents": "Use when cleanup affects the creatures, objects, or other contents inside a spell-created space, container, or passage.",
+        "created_objects": "Use when cleanup affects objects created by the spell rather than creatures or contents.",
+        "spell_component": "Use when cleanup affects the material component or container that anchors the spell.",
+        "not_applicable": "Use when no end-cleanup scope applies."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].amount",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "all_remaining",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Amount",
+      "log": [
+        {
+          "at": "2026-05-14T06:55:00+02:00",
+          "action": "created",
+          "why": "Cleanup can remove all remaining spell-created state or a narrower amount in future spells."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Amount. Purpose: End Cleanup Amount exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this cleanup mechanic. Populate it from the structured markdown field `End Cleanup Amount`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].amount`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "all_remaining": "Use when all remaining matching state from the named source is removed.",
+        "not_applicable": "Use when no end-cleanup amount applies."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].consequence",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "fall_if_aloft",
+        "contents_drop_out",
+        "disintegrate",
+        "destroy",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Consequence",
+      "log": [
+        {
+          "at": "2026-05-14T11:15:00+02:00",
+          "action": "created",
+          "why": "Some cleanup rules immediately create a follow-up runtime consequence instead of only removing state."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Consequence. Purpose: End Cleanup Consequence exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about cleanup consequences. Populate it from the structured markdown field `End Cleanup Consequence`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].consequence`. Use `not_applicable` only when cleanup has no follow-up consequence.",
+      "acceptedValueNotes": {
+        "fall_if_aloft": "Use when the affected creature falls after losing spell-granted flight if it is still aloft.",
+        "contents_drop_out": "Use when contents inside a spell-created space or container drop out when that space or container ends.",
+        "disintegrate": "Use when cleanup causes spell-created objects or ammunition to disintegrate.",
+        "destroy": "Use when cleanup destroys a spell-owned object or material container.",
+        "not_applicable": "Use when no cleanup consequence applies."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].preventedBy",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "can_prevent_fall",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Prevented By",
+      "log": [
+        {
+          "at": "2026-05-14T11:15:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know when a cleanup consequence is conditional rather than automatic."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Prevented By. Purpose: End Cleanup Prevented By exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about exceptions to cleanup consequences. Populate it from the structured markdown field `End Cleanup Prevented By`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].preventedBy`. Use `not_applicable` only when the cleanup consequence has no prevention clause.",
+      "acceptedValueNotes": {
+        "can_prevent_fall": "Use when another ability, spell, trait, or other runtime state can stop the fall after spell-granted flight ends.",
+        "not_applicable": "Use when no prevention clause applies."
+      }
+    },
+    {
+      "path": "effects[].endCleanup[].destination",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "space_exit_anchor",
+        "not_applicable"
+      ],
+      "structuredLabel": "End Cleanup Destination",
+      "log": [
+        {
+          "at": "2026-05-14T11:35:00+02:00",
+          "action": "created",
+          "why": "Some cleanup consequences move contents out of a spell-created space and need a destination that is narrower than a full forced-placement system."
+        }
+      ],
+      "comment": "Mapped from structured End Cleanup Destination. Purpose: End Cleanup Destination exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about where cleanup moves contents. Populate it from the structured markdown field `End Cleanup Destination`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].endCleanup[].destination`. Use `not_applicable` only when cleanup does not move or place contents.",
+      "acceptedValueNotes": {
+        "space_exit_anchor": "Use when contents leave through, or drop out at, the spell-created space's entrance, exit, or anchor point.",
+        "not_applicable": "Use when no cleanup destination applies."
+      }
+    },
+    {
+      "path": "effects[].grantedActions[].actor",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Granted Action Actor",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Some spells give the target or another subject a new action instead of giving the caster a repeat action."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Actor. Purpose: Granted Action Actor exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Actor`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].actor`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "caster": "Use when the caster can use the granted action.",
+        "target": "Use when the spell target can use the granted action.",
+        "summoned_entity": "Use when a summoned or created entity can use the granted action.",
+        "affected_creature": "Use when any currently affected creature can use the granted action.",
+        "not_applicable": "Use when the spell does not grant an action."
+      },
+      "acceptedValues": [
+        "caster",
+        "target",
+        "summoned_entity",
+        "affected_creature",
+        "not_applicable"
+      ]
+    },
+    {
+      "path": "effects[].grantedActions[].action",
+      "required": false,
+      "valueType": "slug-or-sentinel",
+      "structuredLabel": "Granted Action Name",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "The runtime needs a stable action identifier rather than relying only on prose."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Name. Purpose: Granted Action Name exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Name`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].action`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "not_applicable": "Use when the spell does not grant an action."
+      }
+    },
+    {
+      "path": "effects[].grantedActions[].actionKind",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Granted Action Type",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "A spell-granted Magic action is mechanically different from a generic action label."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Type. Purpose: Granted Action Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].actionKind`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "magic_action": "Use when canonical prose says the granted action is a Magic action.",
+        "standard_action": "Use when the granted action is an ordinary action without the Magic-action tag.",
+        "bonus_action": "Use when the granted action costs a Bonus Action.",
+        "reaction": "Use when the granted action costs a Reaction.",
+        "not_applicable": "Use when the spell does not grant an action."
+      },
+      "acceptedValues": [
+        "magic_action",
+        "standard_action",
+        "bonus_action",
+        "reaction",
+        "not_applicable"
+      ]
+    },
+    {
+      "path": "effects[].grantedActions[].frequency",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Granted Action Frequency",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether the granted action is repeatable while the spell remains active."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Frequency. Purpose: Granted Action Frequency exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Frequency`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].frequency`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "once": "Use when the granted action can be used one time.",
+        "each_turn": "Use when the granted action can be used on each eligible turn.",
+        "while_active": "Use when the action remains generally available while the spell is active.",
+        "not_applicable": "Use when the spell does not grant an action."
+      },
+      "acceptedValues": [
+        "once",
+        "each_turn",
+        "while_active",
+        "not_applicable"
+      ]
+    },
+    {
+      "path": "effects[].grantedActions[].areaShape",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Granted Action Area Shape",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Some granted actions emit a shaped area, such as Dragon's Breath creating a cone."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Area Shape. Purpose: Granted Action Area Shape exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Area Shape`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].areaShape`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "Cone": "Use when the granted action creates a cone.",
+        "Line": "Use when the granted action creates a line.",
+        "Sphere": "Use when the granted action creates a sphere.",
+        "Cube": "Use when the granted action creates a cube.",
+        "Cylinder": "Use when the granted action creates a cylinder.",
+        "not_applicable": "Use when the granted action has no area shape."
+      },
+      "acceptedValues": [
+        "Cone",
+        "Line",
+        "Sphere",
+        "Cube",
+        "Cylinder",
+        "not_applicable"
+      ]
+    },
+    {
+      "path": "effects[].grantedActions[].areaSize",
+      "required": false,
+      "valueType": "number-or-sentinel",
+      "structuredLabel": "Granted Action Area Size",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "A granted area action needs its numeric area size outside prose."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Area Size. Purpose: Granted Action Area Size exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Area Size`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].areaSize`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "not_applicable": "Use when the granted action has no area size."
+      }
+    },
+    {
+      "path": "effects[].grantedActions[].areaSizeUnit",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Granted Action Area Size Unit",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "Area size needs an explicit unit for runtime use."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Area Size Unit. Purpose: Granted Action Area Size Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Area Size Unit`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].areaSizeUnit`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "feet": "Use when the granted action area is measured in feet.",
+        "miles": "Use when the granted action area is measured in miles.",
+        "not_applicable": "Use when the granted action has no area size unit."
+      },
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "not_applicable"
+      ]
+    },
+    {
+      "path": "effects[].grantedActions[].effectIndices[]",
+      "required": false,
+      "valueType": "csv-number",
+      "structuredLabel": "Granted Action Effect Indices",
+      "log": [
+        {
+          "at": "2026-05-14T07:10:00+02:00",
+          "action": "created",
+          "why": "The granted action should point to the runtime effect packets it activates."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Effect Indices. Purpose: Granted Action Effect Indices exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this granted-action mechanic. Populate it from the structured markdown field `Granted Action Effect Indices`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].effectIndices[]`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "not_applicable": "Use when there are no linked effect indexes."
+      }
+    },
+    {
+      "path": "effects[].grantedActions[].prerequisites[]",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "target_object_within_spell_range",
+        "target_within_spell_range",
+        "not_applicable"
+      ],
+      "structuredLabel": "Granted Action Prerequisites",
+      "log": [
+        {
+          "at": "2026-05-14T07:30:00+02:00",
+          "action": "created",
+          "why": "Some granted actions can only be used while a stated condition remains true."
+        }
+      ],
+      "comment": "Mapped from structured Granted Action Prerequisites. Purpose: Granted Action Prerequisites exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about repeat-action restrictions. Populate it from the structured markdown field `Granted Action Prerequisites`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].grantedActions[].prerequisites[]`. Use `not_applicable` only when the spell genuinely has no such mechanic.",
+      "acceptedValueNotes": {
+        "target_object_within_spell_range": "Use when the granted action can only be used while the original target object remains within the spell's range.",
+        "target_within_spell_range": "Use when the granted action can only be used while the original creature or target remains within the spell's range.",
+        "not_applicable": "Use when the granted action has no extra prerequisite or the spell grants no action."
+      }
+    }
+  ]
+}

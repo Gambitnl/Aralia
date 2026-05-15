@@ -94,7 +94,7 @@ round. Your job is to verify the V3 model fits your bucket.
 ### What does the Components bucket track?
 
 The migration of V/S/M (verbal, somatic, material) component
-declarations from canonical extract → structured framework shape →
+declarations from canonical extract -> structured framework shape ->
 runtime JSON. **The migration is mostly done** - only 3 spells are
 flagged as residue, and they're all documented as accepted
 source-shape boundaries (canonical uses `**` footnote markers,

@@ -43,7 +43,7 @@
 
 | Line | Snippet |
 |---|---|
-| 462 | `deafened: { id: 'deafened', label: 'Deafened', icon: '🙉', color: '#9CA3AF', description: 'Can’t hear and automatically fails any ability check that r...` |
+| 462 | `deafened: { id: 'deafened', label: 'Deafened', icon: '🙉', color: '#9CA3AF', description: 'Can't hear and automatically fails any ability check that r...` |
 
 ## Documentation & Markdown (.md)
 
@@ -127,7 +127,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ## JSON Data Files (.json)
 

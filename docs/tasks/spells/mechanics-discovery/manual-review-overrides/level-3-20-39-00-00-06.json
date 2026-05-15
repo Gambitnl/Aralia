@@ -1,0 +1,121 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "intellect-fortress": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "intellect-fortress::manual_self_or_willing_target",
+        "canonicalEvidence": "You or one willing creature you can see within range",
+        "structuredState": "Valid Targets currently lists creatures, objects, point.",
+        "jsonState": "Runtime validTargets currently lists creatures, objects, point.",
+        "issue": "Intellect Fortress targets self or one willing creature, but both structured and runtime allow objects and points and lack willingness.",
+        "recommendedTemplateChange": "Add self_or_willing_creature target value or target mode fields.",
+        "recommendedJsonChange": "Add runtime targeting for self or willing creature; remove object/point eligibility.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "intellect-fortress::manual_slot_target_scaling",
+        "canonicalEvidence": "When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd. The creatures must be within 30 feet of each other when you target them.",
+        "structuredState": "Scaling Rule 1 records special_text target scaling.",
+        "jsonState": "Runtime targeting maxTargets is 1 with no target-count scaling or mutual-distance constraint.",
+        "issue": "Intellect Fortress's higher-slot target scaling and within-30-feet-between-targets constraint are not represented.",
+        "recommendedTemplateChange": "Add target-count scaling and target-cluster-distance fields.",
+        "recommendedJsonChange": "Add runtime targetScaling +1 per slot above 3 and targetCluster maxDistance 30 feet.",
+        "resolutionStatus": "closed",
+        "closedReason": "Closed by adding first-class target-cluster fields and runtime targeting.targetCluster data: Intellect Fortress now records slot-level targeting.maxTargets scaling and the requirement that all higher-slot chosen targets be within 30 feet of each other."
+      }
+    ],
+    "leomunds-tiny-hut": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "leomunds-tiny-hut::choice_or_mode",
+        "canonicalEvidence": "Until the spell ends, you can command the interior to have Dim Light or Darkness (no action required). The Emanation is opaque from the outside and of any color you choose, but it's transparent from the inside.",
+        "structuredState": "Area Shape now records Emanation, but no light-mode or color/opacity fields exist.",
+        "jsonState": "Runtime area shape now records Emanation, but light mode, opacity direction, and color choice are prose-only.",
+        "issue": "Tiny Hut has no-action light mode choices and directional opacity/color state that are not represented.",
+        "recommendedTemplateChange": "Add lightModeChoice, directionalOpacity, and optional color fields.",
+        "recommendedJsonChange": "Add runtime lightControl and directionalVisibility data for dim light/darkness, opaque outside, transparent inside, and chosen color.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "leomunds-tiny-hut::vision_light_sound",
+        "canonicalEvidence": "Until the spell ends, you can command the interior to have Dim Light or Darkness (no action required). The Emanation is opaque from the outside ... but it's transparent from the inside.",
+        "structuredState": "No light control or directional visibility fields.",
+        "jsonState": "Runtime JSON has no light or one-way visibility effect beyond prose.",
+        "issue": "Tiny Hut's interior light state and one-way visibility are not typed.",
+        "recommendedTemplateChange": "Add area light state and one-way visibility fields.",
+        "recommendedJsonChange": "Add runtime vision/light data for interior dim light/darkness and outside-opaque/inside-transparent visibility.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "leomunds-tiny-hut::summon_or_controlled_entity",
+        "canonicalEvidence": "Until the spell ends, you can command the interior to have Dim Light or Darkness (no action required).",
+        "structuredState": "No creature/entity is summoned or controlled.",
+        "jsonState": "Runtime JSON has no summon or controlled entity.",
+        "issue": "This is an environmental command, not a summon/control mechanic; the light control is tracked in vision/light rows.",
+        "recommendedTemplateChange": "No summon/control field required for this row.",
+        "recommendedJsonChange": "No summon/control runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "leomunds-tiny-hut::environmental_change",
+        "canonicalEvidence": "The atmosphere inside the Emanation is comfortable and dry, regardless of the weather outside.",
+        "structuredState": "No interior atmosphere or weather-isolation fields.",
+        "jsonState": "Runtime JSON has no typed environmental state beyond prose.",
+        "issue": "Tiny Hut creates a comfortable, dry interior independent of outside weather.",
+        "recommendedTemplateChange": "Add environmentalChange fields for comfortable/dry interior and weather isolation.",
+        "recommendedJsonChange": "Add runtime environmentalChange data for comfortable, dry interior independent of outside weather.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "leomunds-tiny-hut::conditional_ending",
+        "canonicalEvidence": "The spell ends early if you leave the Emanation or if you cast it again.",
+        "structuredState": "No caster-leaves-area or recast-ending fields.",
+        "jsonState": "Runtime JSON has no conditional ending data.",
+        "issue": "Leomund's Tiny Hut's caster-leaves-area and end-on-recast early endings are now represented by Conditional Ending Triggers and runtime conditionalEndings.",
+        "recommendedTemplateChange": "Closed by Conditional Ending Triggers caster_leaves_area and end_on_recast with scope spell.",
+        "recommendedJsonChange": "Closed by runtime conditionalEndings carrying caster_leaves_area and end_on_recast for the spell.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "deferred_descriptive_flavor",
+        "findingId": "leomunds-tiny-hut::deferred_descriptive_flavor",
+        "canonicalEvidence": "The Emanation is opaque from the outside and of any color you choose, but it's transparent from the inside.",
+        "structuredState": "Color is only prose.",
+        "jsonState": "Runtime JSON does not type decorative color.",
+        "issue": "The chosen color is being deferred as descriptive presentation; the opacity mechanics are tracked separately.",
+        "recommendedTemplateChange": "No required decorative color field for this goal.",
+        "recommendedJsonChange": "No runtime color-only change required for this goal.",
+        "resolutionStatus": "deferred_flavor"
+      },
+      {
+        "bucketId": "ward_alarm_or_trigger",
+        "findingId": "leomunds-tiny-hut::manual_passage_and_spell_barrier",
+        "canonicalEvidence": "Creatures and objects within the Emanation when you cast the spell can move through it freely. All other creatures and objects are barred from passing through it. Spells of level 3 or lower can't be cast through it, and the effects of such spells can't extend into it.",
+        "structuredState": "No initial-occupant whitelist, passage barrier, or spell blocking fields.",
+        "jsonState": "Runtime JSON stores the barrier rules only in prose.",
+        "issue": "Tiny Hut creates a passage and spell-effect barrier with an initial occupant/object whitelist.",
+        "recommendedTemplateChange": "Add barrier fields for initial occupants/objects, barred entrants, blocked spell levels, and blocked spell effects.",
+        "recommendedJsonChange": "Add runtime barrier data for initial allowed creatures/objects, outside barred creatures/objects, and level <=3 spell/effect blocking.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "leomunds-tiny-hut::manual_cast_failure_if_not_encapsulating",
+        "canonicalEvidence": "The spell fails when you cast it if the Emanation isn't big enough to fully encapsulate all creatures in its area.",
+        "structuredState": "No cast-failure precondition fields.",
+        "jsonState": "Runtime JSON has no cast failure condition.",
+        "issue": "Tiny Hut has a casting failure precondition based on whether the area fully encapsulates creatures.",
+        "recommendedTemplateChange": "Add castFailureCondition fields for area encapsulation requirements.",
+        "recommendedJsonChange": "Add runtime castFailure data for not fully encapsulating all creatures in area.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

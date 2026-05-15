@@ -17,7 +17,7 @@ across the three pipeline layers:
    single-word (`Acid`, `Cold`, `Fire`, `Force`, `Lightning`,
    `Necrotic`, `Poison`, `Psychic`, `Radiant`, `Thunder`,
    `Bludgeoning`, `Piercing`, `Slashing`).
-3. **Runtime JSON** (`public/data/spells/`) — primary field
+3. **Runtime JSON** (`public/data/spells/`) - primary field
    `effects[i].damage.type` as a string token **when** singleton;
    composite cases move to `damage.typeSelection` /
    `damage.typeResolution` once migrated (see below).
@@ -25,7 +25,7 @@ across the three pipeline layers:
 The bucket converges these to a single representation in the JSON
 template end state.
 
-## Headline issue — composite damage type strings
+## Headline issue - composite damage type strings
 
 Some spells let the caster pick a damage type from a set at cast
 time. The **canonical narrative** spells this out clearly ("X, Y, Z,
@@ -48,7 +48,7 @@ silently broken for these spells.
 
 Authoritative **machine-generated** list:
 
-- [`SPELL_DAMAGE_TYPE_RUNTIME_INVENTORY.md`](./SPELL_DAMAGE_TYPE_RUNTIME_INVENTORY.md) — produced by
+- [`SPELL_DAMAGE_TYPE_RUNTIME_INVENTORY.md`](./SPELL_DAMAGE_TYPE_RUNTIME_INVENTORY.md) - produced by
   `node scripts/inventory-spell-damage-runtime.mjs`
 
 **Funnel (re-run script to refresh):**
@@ -56,7 +56,7 @@ Authoritative **machine-generated** list:
 1. **459** spell JSON files under `public/data/spells/level-*`.
 2. **312** have **no** `DAMAGE` effect at all (buffs, summons without a DAMAGE row, utility, etc.).
 3. **147** have ≥1 `DAMAGE` effect; of those **135** use only **non-empty single known tokens** on every DAMAGE row (these are **out of scope** for composite-type work).
-4. **12** **remainder** — any DAMAGE row with **empty** `damage.type` **or** a string **not** in the PHB-like allowlist (slash lists, prose, `variable`, …). **Start here** for `typeSelection` / multi-effect fixes.
+4. **12** **remainder** - any DAMAGE row with **empty** `damage.type` **or** a string **not** in the PHB-like allowlist (slash lists, prose, `variable`, ...). **Start here** for `typeSelection` / multi-effect fixes.
 
 The 12 IDs: `absorb-elements`, `chromatic-orb`, `conjure-elemental` (`type="variable"`),
 `conjure-minor-elementals`, `dragons-breath`, `elemental-weapon`, `fire-shield`,
@@ -67,10 +67,10 @@ The 12 IDs: `absorb-elements`, `chromatic-orb`, `conjure-elemental` (`type="vari
 sit in bucket (2); they never hit the DAMAGE-type funnel until modeled.
 
 **Not in DAMAGE pipeline:** `find-steed` has **no** `DAMAGE` effect; `Celestial/Fey/Fiend` lives on
-`summon.statBlock.type`, which is a **creature-type hint**, not `damage.type` — still wrong shape for
+`summon.statBlock.type`, which is a **creature-type hint**, not `damage.type` - still wrong shape for
 summon metadata, separate cleanup.
 
-### Inventory — structured reference (`- **Damage Type**:`) slash patterns
+### Inventory - structured reference (`- **Damage Type**:`) slash patterns
 
 Slash-glued lines (matches `docs/spells/reference/**/*.md`):
 
@@ -88,7 +88,7 @@ classify rows without substring heuristics on `/` or commas.
 ### Runtime JSON (`effects[].damage`)
 
 1. **`type`** remains a **single** string token (PascalCase: `Fire`, `Cold`,
-   …) **only** when the effect has exactly one intrinsic damage energy type.
+   ...) **only** when the effect has exactly one intrinsic damage energy type.
 
 2. For **caster pick one of a fixed set at cast time** (orb / glyph /
    elemental weapon / dragons breath / spirit guardians / shield mode /
@@ -114,7 +114,7 @@ classify rows without substring heuristics on `/` or commas.
    "typeResolution": "triggering_damage_type"
    ```
 
-   …with **`type`** omitted — or a dedicated `kind` on `typeSelection`:
+   ...with **`type`** omitted - or a dedicated `kind` on `typeSelection`:
    `{ "kind": "triggering", "allow": ["Acid","Cold","Fire","Lightning","Thunder"] }`
    if the allowed set matters mechanically.
 
@@ -123,7 +123,7 @@ classify rows without substring heuristics on `/` or commas.
    glued `Cold/Acid` string.
 
 5. **wrong-axis summon fields** (`find-steed`): `summon.statBlock.type` abuses a
-   slash string for celestial/fey/fiend choice — not `damage.type`, but belongs
+   slash string for celestial/fey/fiend choice - not `damage.type`, but belongs
    in summon modeling, not a damage-token field.
 
 Random multi-type (`prismatic-spray`): treat under a future **weighted /
@@ -138,14 +138,14 @@ For chooser rows, replace slash glue with explicit fields, e.g.:
 - **Damage Type Options**: Acid, Cold, Fire, Lightning, Poison, Thunder
 ```
 
-…or equivalent machine-friendly list aligned with runtime `options`.
+...or equivalent machine-friendly list aligned with runtime `options`.
 
 **Why not** `damage.type` as `{ kind, options }` for all spells?
 Mass migration of every SPELL row; validators and content tools expect a plain
 string today. Keeping `type` only for singletons minimizes churn while
 parity scripts whitelist `typeSelection`/`typeResolution`.
 
-Scripts should normalize canonical prose (“or”, commas, slashes) onto the same
+Scripts should normalize canonical prose ("or", commas, slashes) onto the same
 canonical option list **before** diffing.
 
 ## Current Status
@@ -172,7 +172,7 @@ placeholders with real subbuckets - likely candidates:
 - `single_token_damage_type_clean` (most damage-dealing spells)
 - `chooser_damage_type_one_of` (orb, glyph, dragons breath,
   elemental weapon, spirit guardians, fire shield mode, illusory dragon,
-  conjure minor elementals slam, …)
+  conjure minor elementals slam, ...)
 - `triggering_damage_type` (`absorb-elements` extra strike)
 - `multi_effect_damage_timing` (`hunger-of-hadar`; split DAMAGE rows)
 - `random_or_table_damage_type` (`prismatic-spray`; not `one_of`)
@@ -187,7 +187,7 @@ placeholders with real subbuckets - likely candidates:
 
 ### Phase 1: canonical -> structured
 
-1. **Chooser/composite shape** — **recommended** schema documented
+1. **Chooser/composite shape** - **recommended** schema documented
    above; lock in during implementation (`typeSelection`,
    `typeResolution`, markdown `Damage Type Options`).
 2. **Author / extend canonical-audit script** to compare structured

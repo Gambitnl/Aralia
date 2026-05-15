@@ -1,0 +1,105 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 5-9 in generated discovery row order."
+  ],
+  "findings": {
+    "circle-of-power::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Friendly creatures in the area now have a typed DEFENSIVE advantage_on_saves effect for spells and magical effects, but runtime lacks a typed evasion-style rider for taking no damage on successful half-damage saves against spells or magical effects.",
+      "recommendedTemplateChange": "Add save-success damage-negation rider fields for effects that normally deal half damage on a successful save.",
+      "recommendedJsonChange": "Add runtime saveSuccessDamageOverride data; current JSON preserves this rider only in the spell description."
+    },
+    "circle-of-power::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched until the spell ends and the sphere moving with the caster, but this is normal duration/concentration plus existing followsCaster area data rather than a special conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required for this pass.",
+      "recommendedJsonChange": "Closed by duration, concentration, and areaOfEffect.followsCaster."
+    },
+    "cloudkill::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save for Poison damage is represented across immediate, enter/moved-into-area, and end-turn triggers, with first-per-turn gating on the recurring triggers and slot-level damage scaling.",
+      "recommendedTemplateChange": "No new save/damage field required for this pass.",
+      "recommendedJsonChange": "Closed by adding separate DAMAGE effects for immediate, on_enter_area, and on_end_turn_in_area triggers."
+    },
+    "cloudkill::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Heavily Obscured, which is a sensory/visibility mechanic rather than healing or restoration; runtime now stores it as a sensory UTILITY effect.",
+      "recommendedTemplateChange": "Track under vision/light/sound or sensory utility fields, not healing.",
+      "recommendedJsonChange": "Closed by adding a sensory UTILITY effect for Heavily Obscured."
+    },
+    "cloudkill::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The fog is Heavily Obscured and recurring damage is typed, but runtime lacks created-cloud movement fields for moving 10 feet away from the caster at the start of each caster turn and lacks a strong-wind dispersal ending condition.",
+      "recommendedTemplateChange": "Add created cloud/hazard movement fields and environmental dispersal ending fields.",
+      "recommendedJsonChange": "Add runtime cloudMovement and dispersalCondition data."
+    },
+    "commune-with-nature::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses three facts to learn from a fixed option set, but runtime stores the fact menu only in prose.",
+      "recommendedTemplateChange": "Add divination fact-choice fields for choose-N-from-options information spells.",
+      "recommendedJsonChange": "Add runtime informationChoice data with chooseCount 3 and fact options."
+    },
+    "commune-with-nature::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Outdoor and underground radii are already represented in spatialDetails, and the underground/cave wording changes information radius rather than creating terrain.",
+      "recommendedTemplateChange": "No terrain field required for this finding.",
+      "recommendedJsonChange": "Closed by existing spatialDetails forms for outdoor and underground knowledge areas."
+    },
+    "commune-with-nature::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The spell can reveal locations of settlements, bodies of water, and similar features, but it does not create objects or structures.",
+      "recommendedTemplateChange": "Track as information query result categories.",
+      "recommendedJsonChange": "No created-object runtime data required."
+    },
+    "commune-with-nature::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "Communing with nature spirits is the information source and does not summon or control an entity in the scene.",
+      "recommendedTemplateChange": "Track under information/contact fields.",
+      "recommendedJsonChange": "No summon/control runtime data required."
+    },
+    "commune-with-nature::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched bodies of water in the learned facts, but the spell does not create, consume, or transform resources.",
+      "recommendedTemplateChange": "Track bodies of water as an information category.",
+      "recommendedJsonChange": "No resource/consumption runtime data required."
+    },
+    "commune-with-nature::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell grants knowledge of a natural area with different outdoor/underground radii, fails where nature is replaced by construction, and offers three fact choices from a list; runtime lacks typed information-query fields for those choices and failure condition.",
+      "recommendedTemplateChange": "Add information query fields for radius by environment, choose-three fact menu, construction failure condition, and result categories.",
+      "recommendedJsonChange": "Add runtime natureInformationQuery data."
+    },
+    "commune-with-nature::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The spell learns environmental facts but does not change the environment.",
+      "recommendedTemplateChange": "Track as social/knowledge information query data.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "commune::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster asks up to three yes/no questions, can receive correct yes/no, unclear, or short-phrase answers, and repeated casting before a Long Rest creates cumulative 25 percent no-answer risk; runtime stores this as prose only.",
+      "recommendedTemplateChange": "Add divine information query fields for question count, answer forms, correctness, knowledge-limit unclear result, DM phrase override, and repeat-before-rest failure chance.",
+      "recommendedJsonChange": "Add runtime divineQuery data."
+    },
+    "commune::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The caster must ask questions before the one-minute spell duration ends; this is the normal duration window for the information query, not a separate conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required for this pass.",
+      "recommendedJsonChange": "Closed by duration with information-query timing tracked under social_or_knowledge_effect."
+    },
+    "cone-of-cold::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save, half-damage outcome, Cold damage dice, cone area, and slot-level scaling are already represented.",
+      "recommendedTemplateChange": "No new attack/save field required.",
+      "recommendedJsonChange": "Closed by existing DAMAGE effect and targeting area."
+    },
+    "cone-of-cold::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A creature killed by the spell becomes a frozen statue until it thaws; runtime lacks typed kill-triggered transformation/environmental corpse-state fields.",
+      "recommendedTemplateChange": "Add kill-triggered aftermath/transformation fields for frozen statue until thaw.",
+      "recommendedJsonChange": "Add runtime killAftermath or corpseTransformation data."
+    }
+  },
+  "manualFindings": {}
+}

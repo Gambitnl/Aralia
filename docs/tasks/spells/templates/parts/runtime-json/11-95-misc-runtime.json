@@ -1,0 +1,45 @@
+{
+  "templateKind": "runtime-json",
+  "part": "95-misc-runtime",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "path": "higherLevelScaling",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": "Higher Levels",
+      "structuredPattern": "^Scaling Rule \\d+ ",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Structured scaling is the future machine-readable companion to Higher Levels prose."
+        },
+        {
+          "at": "2026-05-08T00:00:00+02:00",
+          "action": "mapped-structured-pattern",
+          "why": "Runtime higherLevelScaling must be backed by numbered structured scaling rules, not only by copied Higher Levels prose."
+        }
+      ],
+      "comment": "Runtime higherLevelScaling must be backed by numbered structured scaling rules, not only by copied Higher Levels prose. It maps to `higherLevelScaling`. It is populated from the structured markdown label `Higher Levels`. Purpose: higherLevelScaling exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Higher Levels`, after that field has been checked against canonical prose. It maps to runtime JSON path `higherLevelScaling`. The value type is `object`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "durationProgression",
+      "required": false,
+      "valueType": "object-array",
+      "structuredLabels": [
+        "Duration Progression Trigger",
+        "Duration Progression Required Casts",
+        "Duration Progression Cadence",
+        "Duration Progression Same Target Required",
+        "Duration Progression Same Location Required",
+        "Duration Progression Same Configuration Required",
+        "Duration Progression Requires Full Concentration",
+        "Duration Progression Extension",
+        "Duration Progression Outcome",
+        "Duration Progression Dispellable"
+      ],
+      "comment": "Stores repeated-cast, recast-maintenance, and full-concentration rules that change a spell's duration or permanence. Purpose: durationProgression exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about permanence or duration-extension mechanics. Populate it from the structured duration-progression labels after canonical prose review. It maps to runtime JSON path `durationProgression`. Omit or leave empty only when the spell has no duration-progression mechanic."
+    }
+  ]
+}

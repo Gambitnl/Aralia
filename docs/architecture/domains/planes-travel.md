@@ -1,4 +1,4 @@
-﻿# Planes / Travel
+# Planes / Travel
 
 ## Purpose
 

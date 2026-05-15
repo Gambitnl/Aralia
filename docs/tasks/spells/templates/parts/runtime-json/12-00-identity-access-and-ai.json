@@ -1,0 +1,22 @@
+{
+  "templateKind": "runtime-json",
+  "part": "00-identity-access-and-ai",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "path": "tags[]",
+      "required": true,
+      "valueType": "string-array",
+      "structuredLabel": null,
+      "runtimeOnly": true,
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Tags are runtime/search metadata and are not currently sourced from canonical spell fields."
+        }
+      ],
+      "comment": "Tags are runtime/search metadata and are not currently sourced from canonical spell fields. It maps to `tags[]`. Purpose: tags[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. It is runtime metadata derived from file organization or local engine needs rather than a direct canonical prose mechanic. It maps to runtime JSON path `tags[]`. The value type is `string-array`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    }
+  ]
+}

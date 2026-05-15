@@ -22,6 +22,20 @@
 - **Area Thickness**: 1
 - **Area Thickness Unit**: feet
 - **Valid Targets**: point
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 - **Verbal**: true
 - **Somatic**: true
@@ -36,10 +50,29 @@
 - **Effect Type**: DAMAGE
 - **Save Stat**: Dexterity
 - **Save Outcome**: half
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Damage Dice**: 5d8
 - **Damage Type**: Fire
 - **Description**: You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration. When the wall appears, each creature in its area makes a Dexterity saving throw, taking 5d8 Fire damage on a failed save or half as much damage on a successful one. One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.
 - **Higher Levels**: The damage increases by 1d8 for each spell slot level above 4.
+- **Scaling Rule 1 Type**: slot_level_bonus
+- **Scaling Rule 1 Applies To**: damage | Fire damage | dice 5d8 | trigger immediate
+- **Scaling Rule 1 Bonus Per Level**: +1d8
 - **Spatial Form 1 Label**: Straight Wall
 - **Spatial Form 1 Shape**: Wall
 - **Spatial Form 1 Size Value**: 60
@@ -103,4 +136,5 @@ Warlock - Fiend Patron
 Capture Method: http
 Legacy Page: false
 -->
+
 

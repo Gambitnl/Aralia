@@ -2,6 +2,41 @@
 import { describe, it, expect } from 'vitest';
 import { auditSpell } from '../spellAuditor';
 
+// Spell targeting filters are intentionally explicit so the spell schema can
+// tell the difference between "this mechanic is absent" and "this mechanic was
+// forgotten." These audit tests are about scaling issues, so they use neutral
+// not-applicable filter values everywhere targeting is not under test.
+function createNeutralTargetFilter() {
+  return {
+    creatureTypes: [],
+    excludeCreatureTypes: [],
+    sizes: [],
+    alignments: [],
+    hasCondition: [],
+    isNativeToPlane: false,
+    willing: 'not_applicable',
+    objectEligibility: {
+      wornOrCarried: 'not_applicable',
+      magicalStatus: 'not_applicable',
+      fixedToSurface: 'not_applicable',
+      maxSize: 'not_applicable',
+      maxWeightPounds: 'not_applicable',
+      maxWeightScaling: 'not_applicable',
+    },
+    communicationPrerequisites: {
+      canHearCaster: 'not_applicable',
+      canUnderstandCaster: 'not_applicable',
+      canSeeCaster: 'not_applicable',
+    },
+    abilityThreshold: {
+      ability: 'not_applicable',
+      operator: 'not_applicable',
+      value: 'not_applicable',
+    },
+    selfRelation: 'not_applicable',
+  };
+}
+
 describe('spellAuditor', () => {
   it('detects phantom scaling (text without logic)', () => {
     // We need a valid spell according to the strict Schema
@@ -23,7 +58,7 @@ describe('spellAuditor', () => {
       range: { type: 'ranged', distance: 60 },
       components: { verbal: true, somatic: true, material: false, isConsumed: false, materialDescription: '', materialCost: 0 },
       duration: { type: 'instantaneous', concentration: false, value: 0, unit: 'round' },
-      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true, maxTargets: 1, areaOfEffect: { shape: 'Sphere', size: 0 }, filter: { creatureTypes: [], excludeCreatureTypes: [], sizes: [], alignments: [], hasCondition: [], isNativeToPlane: false } },
+      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true, maxTargets: 1, areaOfEffect: { shape: 'Sphere', size: 0 }, filter: createNeutralTargetFilter() },
       effects: [
         {
           type: 'DAMAGE',
@@ -68,7 +103,7 @@ describe('spellAuditor', () => {
       range: { type: 'ranged', distance: 60 },
       components: { verbal: true, somatic: true, material: false, isConsumed: false, materialDescription: '', materialCost: 0 },
       duration: { type: 'instantaneous', concentration: false, value: 0, unit: 'round' },
-      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true, maxTargets: 1, areaOfEffect: { shape: 'Sphere', size: 0 }, filter: { creatureTypes: [], excludeCreatureTypes: [], sizes: [], alignments: [], hasCondition: [], isNativeToPlane: false } },
+      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true, maxTargets: 1, areaOfEffect: { shape: 'Sphere', size: 0 }, filter: createNeutralTargetFilter() },
       effects: [
         {
           type: 'DAMAGE',
@@ -114,7 +149,7 @@ describe('spellAuditor', () => {
       range: { type: 'ranged', distance: 60 },
       components: { verbal: true, somatic: true, material: false, isConsumed: false, materialDescription: '', materialCost: 0 },
       duration: { type: 'instantaneous', concentration: false, value: 0, unit: 'round' },
-      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true, maxTargets: 1, areaOfEffect: { shape: 'Sphere', size: 0 }, filter: { creatureTypes: [], excludeCreatureTypes: [], sizes: [], alignments: [], hasCondition: [], isNativeToPlane: false } },
+      targeting: { type: 'single', range: 60, validTargets: ['creatures'], lineOfSight: true, maxTargets: 1, areaOfEffect: { shape: 'Sphere', size: 0 }, filter: createNeutralTargetFilter() },
       effects: [
         {
           type: 'DAMAGE',

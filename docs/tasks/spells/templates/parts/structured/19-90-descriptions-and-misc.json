@@ -1,0 +1,258 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 13,
+  "fields": [
+    {
+      "label": "Barrier Damage Block Directions",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].barrierDamagePrevention.blockDirections[]",
+      "acceptedValues": [
+        "outside_to_inside",
+        "inside_to_outside",
+        "both",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:45:00+02:00",
+          "action": "registered",
+          "why": "Otiluke's Resilient Sphere blocks damage across the barrier in both directions, which is not ordinary resistance."
+        }
+      ],
+      "comment": "Lists which cross-barrier damage directions are blocked. Use `outside_to_inside` when outside-origin harm cannot affect inside targets, `inside_to_outside` when inside-origin harm cannot affect outside targets, or both values when the barrier blocks harm both ways. It maps to `effects[].barrierDamagePrevention.blockDirections[]`. Purpose: Barrier Damage Block Directions keeps origin-side damage blocking from being hidden in prose or confused with damage resistance. Use `not_applicable` when the spell has no barrier damage-blocking mechanic.",
+      "acceptedValueNotes": {
+        "outside_to_inside": "Outside-origin damage or effects cannot damage protected subjects inside the barrier.",
+        "inside_to_outside": "Inside-origin damage or effects cannot damage targets outside the barrier.",
+        "both": "The barrier blocks damage in both directions when a compact single value is preferred.",
+        "not_applicable": "The spell has no barrier damage-blocking mechanic."
+      }
+    },
+    {
+      "label": "Barrier Damage Block Source Categories",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].barrierDamagePrevention.sourceCategories[]",
+      "acceptedValues": [
+        "attack",
+        "effect",
+        "spell",
+        "object",
+        "energy",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:45:00+02:00",
+          "action": "registered",
+          "why": "Otiluke's Resilient Sphere blocks attacks, effects, physical objects, energy, and spell effects across its barrier."
+        }
+      ],
+      "comment": "Lists the source categories blocked by a barrier damage-prevention rule. Use this for canonical prose that names attacks, effects, spells, objects, energy, or similar source groups that cannot pass through or deal damage across a barrier. It maps to `effects[].barrierDamagePrevention.sourceCategories[]`. Purpose: Barrier Damage Block Source Categories explains what kinds of harm the barrier stops. Use `not_applicable` when the spell has no barrier damage-blocking mechanic.",
+      "acceptedValueNotes": {
+        "attack": "Attacks are blocked by the barrier.",
+        "effect": "Non-spell effects are blocked by the barrier.",
+        "spell": "Spell effects are blocked by the barrier.",
+        "object": "Physical objects are blocked by the barrier.",
+        "energy": "Energy is blocked by the barrier.",
+        "not_applicable": "The spell has no barrier damage-blocking mechanic."
+      }
+    },
+    {
+      "label": "Spell Effect Prevention Source Side",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].spellEffectPrevention.sourceSide",
+      "acceptedValues": [
+        "outside",
+        "inside",
+        "any",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "Globe of Invulnerability blocks qualifying spells only when they are cast from outside the barrier."
+        }
+      ],
+      "comment": "States which side a blocked spell effect must originate from. Use this for barrier rules that prevent spells from outside or inside the protected area from taking effect. It maps to `effects[].spellEffectPrevention.sourceSide`. Purpose: Spell Effect Prevention Source Side keeps source-side spell blocking explicit instead of prose-only. Use `not_applicable` when the spell has no spell-effect prevention mechanic."
+    },
+    {
+      "label": "Spell Effect Prevention Max Spell Level",
+      "required": false,
+      "valueType": "number",
+      "jsonPath": "effects[].spellEffectPrevention.maxSpellLevel",
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "Globe of Invulnerability blocks spells of level 5 or lower, with higher-slot scaling."
+        }
+      ],
+      "comment": "Stores the highest spell level blocked by a spell-effect prevention rule at the base casting level. It maps to `effects[].spellEffectPrevention.maxSpellLevel`. Purpose: Spell Effect Prevention Max Spell Level makes level-gated negation auditable and scalable. Use `not_applicable` when the spell has no level-gated spell-effect prevention mechanic."
+    },
+    {
+      "label": "Spell Effect Prevention Affected Subjects",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].spellEffectPrevention.affectedSubjects[]",
+      "acceptedValues": [
+        "creatures",
+        "objects",
+        "areas",
+        "anything_inside",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "Globe of Invulnerability protects creatures, objects, and areas inside the globe from qualifying outside spells."
+        }
+      ],
+      "comment": "Lists what protected subjects qualifying spells cannot affect. Use this for spell-effect prevention that blocks effects on creatures, objects, areas, or everything inside a barrier. It maps to `effects[].spellEffectPrevention.affectedSubjects[]`. Purpose: Spell Effect Prevention Affected Subjects keeps the protected scope machine-readable. Use `not_applicable` when the spell has no spell-effect prevention mechanic."
+    },
+    {
+      "label": "Spell Effect Prevention Excludes Area Of Effect",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "effects[].spellEffectPrevention.excludesAreaOfEffect",
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "Globe of Invulnerability excludes its interior from qualifying outside spell areas of effect."
+        }
+      ],
+      "comment": "Records whether qualifying spell areas exclude the protected area. Use true when canonical prose says the protected area is excluded from areas of effect created by blocked spells. It maps to `effects[].spellEffectPrevention.excludesAreaOfEffect`. Purpose: Spell Effect Prevention Excludes Area Of Effect preserves area exclusion separately from target immunity. Use `not_applicable` when the spell has no area-exclusion prevention mechanic."
+    },
+    {
+      "label": "Linked Damage Trigger",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].linkedDamage.trigger",
+      "acceptedValues": [
+        "target_takes_damage",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:30:00+02:00",
+          "action": "registered",
+          "why": "Warding Bond mirrors damage from the warded target to the caster whenever the target takes damage."
+        }
+      ],
+      "comment": "States which linked damage event causes mirrored damage. Use `target_takes_damage` when the spell says damage taken by the protected target also harms another linked participant. It maps to `effects[].linkedDamage.trigger`. Purpose: Linked Damage Trigger keeps damage sharing from being hidden in utility prose. Use `not_applicable` when the spell has no linked-damage mechanic."
+    },
+    {
+      "label": "Linked Damage Recipient",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].linkedDamage.recipient",
+      "acceptedValues": [
+        "caster",
+        "target",
+        "linked_creature",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:30:00+02:00",
+          "action": "registered",
+          "why": "Warding Bond sends the mirrored damage to the caster, not back to the warded target."
+        }
+      ],
+      "comment": "Names who takes the mirrored damage. Use `caster` for Warding Bond-style damage sharing where the caster takes damage equal to the target's damage. It maps to `effects[].linkedDamage.recipient`. Purpose: Linked Damage Recipient makes the direction of damage sharing explicit. Use `not_applicable` when the spell has no linked-damage mechanic."
+    },
+    {
+      "label": "Linked Damage Amount",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].linkedDamage.amount",
+      "acceptedValues": [
+        "same_amount",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:30:00+02:00",
+          "action": "registered",
+          "why": "Warding Bond says the caster takes the same amount of damage, so the transfer amount must be typed."
+        }
+      ],
+      "comment": "Stores how much damage is mirrored. Use `same_amount` when canonical prose says another participant takes the same amount of damage as the original target. It maps to `effects[].linkedDamage.amount`. Purpose: Linked Damage Amount distinguishes damage mirroring from rolled damage, resistance, or damage reduction. Use `not_applicable` when the spell has no linked-damage mechanic."
+    },
+    {
+      "label": "Linked Damage Amount Basis",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].linkedDamage.amountBasis",
+      "acceptedValues": [
+        "post_target_mitigation",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:25:00+02:00",
+          "action": "registered",
+          "why": "Warding Bond's same-amount damage needs to say whether the mirrored amount is calculated before or after the warded target's resistance/vulnerability."
+        }
+      ],
+      "comment": "Stores which damage total is mirrored by linked damage. Use `post_target_mitigation` when canonical prose says another participant takes the same amount the protected target actually took after the protected target's resistance, vulnerability, and other reductions are resolved. It maps to `effects[].linkedDamage.amountBasis`. Purpose: Linked Damage Amount Basis prevents Warding Bond-style damage from double-counting or ignoring resistance/vulnerability timing. Use `not_applicable` when the spell has no linked-damage mechanic."
+    },
+    {
+      "label": "Linked Damage Type Source",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].linkedDamage.damageTypeSource",
+      "acceptedValues": [
+        "triggering_damage_type",
+        "untyped",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:25:00+02:00",
+          "action": "registered",
+          "why": "Mirrored damage may need a damage type for logging and later interactions, but the type should be sourced explicitly rather than inferred from prose."
+        }
+      ],
+      "comment": "Stores where the linked damage's type comes from. Use `triggering_damage_type` when the mirrored damage follows the damage type that caused the original target to take damage; use `untyped` only when the spell creates damage with no type. It maps to `effects[].linkedDamage.damageTypeSource`. Purpose: Linked Damage Type Source keeps damage typing visible without changing the mirrored amount policy. Use `not_applicable` when the spell has no linked-damage mechanic."
+    },
+    {
+      "label": "Linked Damage Recipient Mitigation",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].linkedDamage.recipientMitigation",
+      "acceptedValues": [
+        "not_reapplied",
+        "apply_recipient_mitigation",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:25:00+02:00",
+          "action": "registered",
+          "why": "Warding Bond's caster damage should not be left ambiguous when the caster also has resistance or vulnerability."
+        }
+      ],
+      "comment": "Stores whether the linked recipient's own resistance, vulnerability, or damage prevention is applied to the mirrored damage after the amount has been chosen. Use `not_reapplied` for prose like `the same amount of damage`, where the linked recipient takes the already-determined amount; use `apply_recipient_mitigation` only when a spell clearly creates a second damage event that should be mitigated by the recipient. It maps to `effects[].linkedDamage.recipientMitigation`. Purpose: Linked Damage Recipient Mitigation prevents linked damage from being accidentally doubled, halved, or prevented a second time. Use `not_applicable` when the spell has no linked-damage mechanic."
+    },
+    {
+      "label": "Condition Suppressions",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].conditionSuppression[]",
+      "log": [
+        {
+          "at": "2026-05-13T23:45:00+02:00",
+          "action": "registered",
+          "why": "Calm Emotions suppresses existing Charmed and Frightened conditions without ending them permanently."
+        }
+      ],
+      "comment": "Lists named status conditions the spell temporarily suppresses without removing. Use this when canonical prose says an existing condition is suppressed for a duration, not when the condition is prevented from being applied in the first place. It maps to `effects[].conditionSuppression[]`. Purpose: Condition Suppressions exists so temporary condition suspension is not confused with condition immunity, condition removal, or damage immunity. Use `not_applicable` when the spell has no suppression mechanic."
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "motivational-speech": [
+      {
+        "bucketId": "deferred_descriptive_flavor",
+        "findingId": "motivational-speech::manual_jim_omin_quote",
+        "canonicalEvidence": "I once heard a motivational speech by Jim and it was the worst ninety seconds of my life. What does Omin see in him, anyway?",
+        "structuredState": "The joke appears in Higher Levels/Scaling prose but has no mechanical effect.",
+        "jsonState": "Runtime higherLevels includes the quote as prose only.",
+        "issue": "The Jim/Omin quote is descriptive flavor and not part of the runtime mechanics goal.",
+        "recommendedTemplateChange": "Remove from mechanical scaling later if canonical cleanup is desired; no mechanic field required.",
+        "recommendedJsonChange": "No runtime mechanic change required for the quote.",
+        "resolutionStatus": "deferred_flavor"
+      }
+    ],
+    "nondetection": [
+      {
+        "bucketId": "sensor_or_remote_perception",
+        "findingId": "nondetection::sensor_or_remote_perception",
+        "canonicalEvidence": "The target cannot be targeted by any Divination spell or perceived through magical scrying sensors.",
+        "structuredState": "Effect Type: UTILITY; no divination targeting immunity or scrying sensor perception fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "Nondetection blocks Divination targeting and magical scrying sensor perception, but these protections are not typed.",
+        "recommendedTemplateChange": "Add divinationProtection and scryingSensorBlock fields.",
+        "recommendedJsonChange": "Add runtime antiDivination data for cannotBeTargetedByDivination and cannotBePerceivedByMagicalScryingSensors.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "nondetection::manual_target_types_and_size",
+        "canonicalEvidence": "The target can be a willing creature, or it can be a place or an object no larger than 10 feet in any dimension.",
+        "structuredState": "Valid Targets now lists creatures, objects, point.",
+        "jsonState": "Runtime validTargets now includes creatures, objects, point, but lacks willingness and max object/place dimension.",
+        "issue": "Nondetection target categories are represented, but willing creature and 10-foot maximum object/place size are not.",
+        "recommendedTemplateChange": "Add target willingness and max dimension fields for object/place targets.",
+        "recommendedJsonChange": "Add runtime targetFilter.willing for creatures and maxDimensionFeet 10 for object/place targets.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "nondetection::manual_consumed_diamond_dust",
+        "canonicalEvidence": "A pinch of diamond dust worth 25+ GP, which the spell consumes.",
+        "structuredState": "Material Cost GP: 25; Consumed: true.",
+        "jsonState": "Runtime components preserve materialCost 25 and isConsumed true.",
+        "issue": "The consumed diamond dust component is represented.",
+        "recommendedTemplateChange": "No material component change required.",
+        "recommendedJsonChange": "No runtime component change required.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "phantom-steed": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "phantom-steed::choice_or_mode",
+        "canonicalEvidence": "You decide the creature appearance. For the duration, you or a creature you choose can ride the steed.",
+        "structuredState": "Effect Type: SUMMON; no appearance or rider choice fields.",
+        "jsonState": "Runtime JSON stores appearance and rider choice in prose utility.",
+        "issue": "Phantom Steed has caster-chosen appearance and rider eligibility choices that are not typed.",
+        "recommendedTemplateChange": "Add summon appearance choice and allowed rider fields.",
+        "recommendedJsonChange": "Add runtime summonAppearanceChoice and allowedRiderChoice data.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "phantom-steed::target_filter_or_eligibility",
+        "canonicalEvidence": "A Large, quasi-real, horselike creature appears on the ground in an unoccupied space of your choice within range.",
+        "structuredState": "Valid Targets: location; no unoccupied ground space fields.",
+        "jsonState": "Runtime targeting validTargets ground but lacks unoccupied-space requirement.",
+        "issue": "The steed must appear in an unoccupied ground space, but runtime only says ground.",
+        "recommendedTemplateChange": "Add unoccupied ground-space target eligibility.",
+        "recommendedJsonChange": "Add runtime targetFilter unoccupied=true for ground point.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "phantom-steed::terrain_or_surface",
+        "canonicalEvidence": "Appears on the ground in an unoccupied space.",
+        "structuredState": "Valid Targets: location.",
+        "jsonState": "Runtime targeting uses ground.",
+        "issue": "The ground placement surface is represented; unoccupied eligibility is tracked separately.",
+        "recommendedTemplateChange": "No surface type change required for this row.",
+        "recommendedJsonChange": "No ground target change required for this row.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "illusion_or_disguise",
+        "findingId": "phantom-steed::illusion_or_disguise",
+        "canonicalEvidence": "A Large, quasi-real, horselike creature appears. You decide the creature appearance.",
+        "structuredState": "Effect Type: SUMMON; no quasi-real illusion or appearance fields.",
+        "jsonState": "Runtime JSON has only prose utility.",
+        "issue": "The quasi-real illusory nature and appearance decision are not represented.",
+        "recommendedTemplateChange": "Add quasiReal/illusion summon presentation fields.",
+        "recommendedJsonChange": "Add runtime summonPresentation quasiReal and appearanceChoice.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "phantom-steed::summon_or_controlled_entity",
+        "canonicalEvidence": "A Large, quasi-real, horselike creature appears ... The steed uses the Riding Horse stat block, except it has a Speed of 100 feet and can travel 13 miles in an hour.",
+        "structuredState": "Effect Type: SUMMON.",
+        "jsonState": "Runtime effect is UTILITY prose, not a typed summon.",
+        "issue": "Phantom Steed summons a rideable creature with a modified stat block, but runtime does not have typed summon data.",
+        "recommendedTemplateChange": "Add summon fields for base stat block, size, equipment, speed override, travel pace, and rider rules.",
+        "recommendedJsonChange": "Add runtime SUMMON data using Riding Horse with Speed 100 and travel 13 miles/hour.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "travel_or_planar_movement",
+        "findingId": "phantom-steed::travel_or_planar_movement",
+        "canonicalEvidence": "It has a Speed of 100 feet and can travel 13 miles in an hour.",
+        "structuredState": "No speed or travel pace override fields.",
+        "jsonState": "Runtime JSON has speed/travel only in prose.",
+        "issue": "The steed movement and overland travel values are not typed.",
+        "recommendedTemplateChange": "Add summoned mount speed and travel pace fields.",
+        "recommendedJsonChange": "Add runtime mountMovement speed 100 feet and travel 13 miles per hour.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

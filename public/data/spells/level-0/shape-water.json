@@ -11,7 +11,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -68,8 +67,83 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 4,
+    "optionsSource": "controlOptions",
+    "maxActiveNonInstantaneous": 2,
+    "canDismissActive": true,
+    "options": [
+      {
+        "label": "Move Or Flow",
+        "summary": "Move or change the flow of water up to 5 feet in any direction without causing damage.",
+        "controlOptionIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "instantaneous"
+      },
+      {
+        "label": "Shape And Animate",
+        "summary": "Form water into simple shapes and animate it at your direction for 1 hour.",
+        "controlOptionIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      },
+      {
+        "label": "Color Or Opacity",
+        "summary": "Change the water's color or opacity in the same way throughout for 1 hour.",
+        "controlOptionIndices": [
+          2
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      },
+      {
+        "label": "Freeze",
+        "summary": "Freeze the water if no creatures are in it; it unfreezes in 1 hour.",
+        "controlOptionIndices": [
+          3
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      }
+    ],
+    "notes": "No more than two non-instantaneous Shape Water effects can be active at once, and the caster can dismiss one as an action."
   },
   "effects": [
     {
@@ -90,18 +164,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
       "description": "Manipulate water in a 5-foot cube (move, animate, color, or freeze)",
@@ -112,7 +205,28 @@
       },
       "grantedActions": [],
       "attackAugments": [],
-      "controlOptions": [],
+      "controlOptions": [
+        {
+          "name": "Move Or Flow",
+          "effect": "Move or change the flow of water up to 5 feet in any direction.",
+          "details": "This movement doesn't have enough force to cause damage."
+        },
+        {
+          "name": "Shape And Animate",
+          "effect": "Form water into simple shapes and animate it at your direction.",
+          "details": "This change lasts for 1 hour."
+        },
+        {
+          "name": "Color Or Opacity",
+          "effect": "Change the water's color or opacity in the same way throughout.",
+          "details": "This change lasts for 1 hour."
+        },
+        {
+          "name": "Freeze",
+          "effect": "Freeze the water, provided no creatures are in it.",
+          "details": "The water unfreezes in 1 hour."
+        }
+      ],
       "taunt": {
         "disadvantageAgainstOthers": false,
         "leashRangeFeet": 0,
@@ -131,8 +245,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
@@ -140,7 +262,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You choose an area of water that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways:\n\n* You instantaneously move or otherwise change the flow of the water as you direct, up to 5 feet in any direction. This movement doesn't have enough force to cause damage.\n* You cause the water to form into simple shapes and animate at your direction. This change lasts for 1 hour.\n* You change the water's color or opacity. The water must be changed in the same way throughout. This change lasts for 1 hour.\n* You freeze the water, provided that there are no creatures in it. The water unfreezes in 1 hour.\n\nIf you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.",
+  "description": "You choose an area of water that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways: You instantaneously move or otherwise change the flow of the water as you direct, up to 5 feet in any direction. This movement doesn't have enough force to cause damage. You cause the water to form into simple shapes and animate at your direction. This change lasts for 1 hour. You change the water's color or opacity. The water must be changed in the same way throughout. This change lasts for 1 hour. You freeze the water, provided that there are no creatures in it. The water unfreezes in 1 hour. If you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.",
   "higherLevels": "",
   "tags": [
     "utility",

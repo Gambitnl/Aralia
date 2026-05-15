@@ -8,7 +8,7 @@ Generated: 2026-05-02 (`scripts/inventory-spell-damage-runtime.mjs`).
 - **Single known damage type**: for every such row, non-empty `effect.damage.type` that matches PHB-like PascalCase tokens: Acid, Bludgeoning, Cold, Fire, Force, Lightning, Necrotic, Piercing, Poison, Psychic, Radiant, Slashing, Thunder.
 - **Summon / STATUS / Terrain / etc.** with stray `damage` blobs are ignored unless there is an actual DAMAGE effect.
 
-**Caveat:** Spells whose damage appears only in `description`/summons (`elemental-bane`) have **zero** DAMAGE effects until modeled — they appear under *no_damage_effect*.
+**Caveat:** Spells whose damage appears only in `description`/summons (`elemental-bane`) have **zero** DAMAGE effects until modeled - they appear under *no_damage_effect*.
 
 ## Funnel counts
 
@@ -16,27 +16,27 @@ Generated: 2026-05-02 (`scripts/inventory-spell-damage-runtime.mjs`).
 | --- | ---: | --- |
 | All spell JSON files under `public/data/spells/level-*` | 459 | |
 | **No** DAMAGE effect | 312 | Not in mechanical damage-type pipeline for this bucket |
-| DAMAGE + every row single known type | 135 | **Filtered out** — no composite / empty type on DAMAGE rows |
+| DAMAGE + every row single known type | 135 | **Filtered out** - no composite / empty type on DAMAGE rows |
 | **Remainder** (needs attention) | 12 | Empty or non-standard `damage.type` on at least one DAMAGE row |
 
-## Remainder — spells to focus on
+## Remainder - spells to focus on
 
-Each line: `id` — per-DAMAGE-effect `(effectIndex) type="..." dice="..."`.
+Each line: `id` - per-DAMAGE-effect `(effectIndex) type="..." dice="..."`.
 
-- **absorb-elements** — (1) type="Acid/Cold/Fire/Lightning/Thunder" dice="1d6"
-- **chromatic-orb** — (0) type="Acid/Cold/Fire/Lightning/Poison/Thunder" dice="3d8"
-- **conjure-elemental** — (0) type="variable" dice="8d8"
-- **conjure-minor-elementals** — (0) type="Acid, Cold, Fire, or Lightning" dice="2d8"
-- **dragons-breath** — (1) type="Acid/Cold/Fire/Lightning/Poison" dice="3d6"
-- **elemental-weapon** — (0) type="Acid/Cold/Fire/Lightning/Thunder" dice="1d4"
-- **fire-shield** — (0) type="Fire or Cold" dice="2d8"
-- **glyph-of-warding** — (0) type="Acid/Cold/Fire/Lightning/Thunder" dice="5d8"
-- **hunger-of-hadar** — (0) type="Cold/Acid" dice="2d6"
-- **illusory-dragon** — (0) type="acid, cold, fire, lightning, necrotic, or poison" dice="7d6"
-- **prismatic-spray** — (0) type="Fire, Acid, Lightning, Poison, Cold" dice="12d6"
-- **spirit-guardians** — (0) type="Radiant/Necrotic" dice="3d8"
+- **absorb-elements** - (1) type="Acid/Cold/Fire/Lightning/Thunder" dice="1d6"
+- **chromatic-orb** - (0) type="Acid/Cold/Fire/Lightning/Poison/Thunder" dice="3d8"
+- **conjure-elemental** - (0) type="variable" dice="8d8"
+- **conjure-minor-elementals** - (0) type="Acid, Cold, Fire, or Lightning" dice="2d8"
+- **dragons-breath** - (1) type="Acid/Cold/Fire/Lightning/Poison" dice="3d6"
+- **elemental-weapon** - (0) type="Acid/Cold/Fire/Lightning/Thunder" dice="1d4"
+- **fire-shield** - (0) type="Fire or Cold" dice="2d8"
+- **glyph-of-warding** - (0) type="Acid/Cold/Fire/Lightning/Thunder" dice="5d8"
+- **hunger-of-hadar** - (0) type="Cold/Acid" dice="2d6"
+- **illusory-dragon** - (0) type="acid, cold, fire, lightning, necrotic, or poison" dice="7d6"
+- **prismatic-spray** - (0) type="Fire, Acid, Lightning, Poison, Cold" dice="12d6"
+- **spirit-guardians** - (0) type="Radiant/Necrotic" dice="3d8"
 
-## Reference — no DAMAGE effect (full list)
+## Reference - no DAMAGE effect (full list)
 
 Total: **312** spells. Collapsed for size; use search in editor or re-run script.
 
@@ -359,9 +359,9 @@ Total: **312** spells. Collapsed for size; use search in editor or re-run script
 
 </details>
 
-## Reference — clean DAMAGE rows (filtered out)
+## Reference - clean DAMAGE rows (filtered out)
 
-Total: **135** spells — each DAMAGE effect uses one known token only.
+Total: **135** spells - each DAMAGE effect uses one known token only.
 
 <details>
 <summary>Click to expand spell ids</summary>

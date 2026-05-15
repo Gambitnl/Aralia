@@ -1,10 +1,10 @@
-# Roadmap Node Layman Renames — Implementation Plan
+# Roadmap Node Layman Renames - Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Rename every opaque roadmap node to plain English that a non-technical person can read cold and immediately understand.
 
-**Architecture:** All renames are added as entries to `ROADMAP_CAPABILITY_RENAME_RULES` in `generate.ts`. New rules appended at the end of the array override earlier rules for the same `from` key (the `Map` constructor keeps the last entry). Node IDs remain stable — layout positions and test history are unaffected. No other files need changing.
+**Architecture:** All renames are added as entries to `ROADMAP_CAPABILITY_RENAME_RULES` in `generate.ts`. New rules appended at the end of the array override earlier rules for the same `from` key (the `Map` constructor keeps the last entry). Node IDs remain stable - layout positions and test history are unaffected. No other files need changing.
 
 **Tech Stack:** TypeScript (`generate.ts`), Vite dev server, live browser verification
 
@@ -12,9 +12,9 @@
 
 ### How the rename system works (read before implementing)
 
-Each rule is `{ from: string, to: string }` where `from` is the **original milestone source name** (the `name:` field in the milestones array). Rules are appended after existing ones — duplicate `from` keys resolve to the last entry in the array, so new rules silently override old ones.
+Each rule is `{ from: string, to: string }` where `from` is the **original milestone source name** (the `name:` field in the milestones array). Rules are appended after existing ones - duplicate `from` keys resolve to the last entry in the array, so new rules silently override old ones.
 
-When a parent is renamed, children in the same sub-tree must also have their `to` path updated to use the new parent name — otherwise children appear under the old parent path.
+When a parent is renamed, children in the same sub-tree must also have their `to` path updated to use the new parent name - otherwise children appear under the old parent path.
 
 The array ends at the closing `];` on line ~1792 of `generate.ts`. All new entries go just before that `];`.
 
@@ -167,7 +167,7 @@ cd "F:/Repos/Aralia" && git add devtools/roadmap/scripts/roadmap-engine/generate
 **Files:**
 - Modify: `devtools/roadmap/scripts/roadmap-engine/generate.ts`
 
-**Step 1: Add these entries (note: `Pipeline Annotation` was already renamed to `Test Metadata Annotation` by an existing rule — override it here)**
+**Step 1: Add these entries (note: `Pipeline Annotation` was already renamed to `Test Metadata Annotation` by an existing rule - override it here)**
 
 ```ts
   // ── Layman renames: Which Nodes Have Tests children ───────────────────────
@@ -701,7 +701,7 @@ The Vite dev server on port 3010 must be running. Navigate to `http://localhost:
 
 **Step 2: Spot-check each renamed branch**
 
-Expand Dev Tools → Roadmap Tool in the canvas. Verify these names appear correctly:
+Expand Dev Tools -> Roadmap Tool in the canvas. Verify these names appear correctly:
 
 - `Graph Display Stability` (was: Visualization Stability)
 - `Run Tests From the Roadmap` (was: Node Test Execution Capability)

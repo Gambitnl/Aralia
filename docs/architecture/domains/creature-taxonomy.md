@@ -1,4 +1,4 @@
-﻿# Creature Taxonomy System
+# Creature Taxonomy System
 
 ## Purpose
 

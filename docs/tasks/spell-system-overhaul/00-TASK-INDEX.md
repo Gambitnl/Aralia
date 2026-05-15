@@ -28,41 +28,41 @@ This epic transitions Aralia from a brittle regex-based spell parser to a robust
 
 ```
 Phase 1: Foundation (Weeks 1-2)
-├── 01 → TypeScript Interfaces & Types
-├── 02 → AoE Calculation Utilities
-└── 03 → Command Pattern Base Architecture
-     └── 04 → Damage & Healing Commands
+├── 01 -> TypeScript Interfaces & Types
+├── 02 -> AoE Calculation Utilities
+└── 03 -> Command Pattern Base Architecture
+     └── 04 -> Damage & Healing Commands
 
 Phase 2: Core Mechanics (Weeks 3-4)
-├── 05 → Status Condition Command
-├── 06 → Concentration Tracking System
-├── 07 → Saving Throw System
-├── 08 → Damage Resistance/Vulnerability
-└── 09 → Convert 20 Core Spells
+├── 05 -> Status Condition Command
+├── 06 -> Concentration Tracking System
+├── 07 -> Saving Throw System
+├── 08 -> Damage Resistance/Vulnerability
+└── 09 -> Convert 20 Core Spells
 
 Phase 3: Advanced Features (Weeks 5-6)
-├── 10 → Movement & Teleport Commands
-├── 11 → Terrain & Hazard Commands
-├── 12 → Summoning Commands
-├── 13 → Defensive & Utility Commands
-├── 14 → Hybrid Spell Support (Ice Knife)
-├── 15 → Multi-Target Selection System
-├── 16 → Spell Upscaling System
-└── 17 → Spell Upscaling UI
+├── 10 -> Movement & Teleport Commands
+├── 11 -> Terrain & Hazard Commands
+├── 12 -> Summoning Commands
+├── 13 -> Defensive & Utility Commands
+├── 14 -> Hybrid Spell Support (Ice Knife)
+├── 15 -> Multi-Target Selection System
+├── 16 -> Spell Upscaling System
+└── 17 -> Spell Upscaling UI
 
 Phase 4: AI DM Integration (Weeks 7-9)
-├── 18 → Material Tagging System
-├── 19 → AI Spell Arbitrator Service
-├── 20 → AI Validation Caching Layer
-├── 21 → AI-Assisted Spells (Tier 2)
-└── 22 → AI-DM Spells (Tier 3)
+├── 18 -> Material Tagging System
+├── 19 -> AI Spell Arbitrator Service
+├── 20 -> AI Validation Caching Layer
+├── 21 -> AI-Assisted Spells (Tier 2)
+└── 22 -> AI-DM Spells (Tier 3)
 
 Phase 5: Migration & Polish (Weeks 10-11)
-├── 23 → Spell Migration Scripts
-├── 24 → Legacy Parser Removal
-├── 25 → Performance Optimization
-├── 26 → Combat Log Enhancements
-└── 27 → End-to-End Testing Suite
+├── 23 -> Spell Migration Scripts
+├── 24 -> Legacy Parser Removal
+├── 25 -> Performance Optimization
+├── 26 -> Combat Log Enhancements
+└── 27 -> End-to-End Testing Suite
 ```
 
 ---
@@ -138,7 +138,7 @@ Phase 5: Migration & Polish (Weeks 10-11)
 - **Total Tasks:** 27
 - **Total Estimated Days:** 57 days (~11.5 weeks)
 - **Recommended Team Size:** 2-3 agents working in parallel
-- **Critical Path:** 01 → 03 → 04 → 05 → 07 → 14 → 19 → 23 → 27
+- **Critical Path:** 01 -> 03 -> 04 -> 05 -> 07 -> 14 -> 19 -> 23 -> 27
 
 ---
 

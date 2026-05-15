@@ -1,0 +1,348 @@
+{
+  "schemaKind": "spell-json-schema",
+  "part": "40-modifiers-and-controlled-entities",
+  "definitionCount": 3,
+  "definitions": {
+    "AttackAugment": {
+      "type": "object",
+      "properties": {
+        "attackType": {
+          "type": "string",
+          "enum": [
+            "weapon",
+            "melee_weapon",
+            "ranged_weapon"
+          ]
+        },
+        "weaponRequirement": {
+          "type": "object",
+          "properties": {
+            "weaponTypes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "club",
+                  "quarterstaff",
+                  "pebble",
+                  "sling",
+                  "any_weapon",
+                  "proficient_weapon"
+                ]
+              }
+            },
+            "proficiencyRequired": {
+              "type": "boolean"
+            },
+            "minimumValueCp": {
+              "type": "number"
+            },
+            "heldByCaster": {
+              "type": "boolean"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "grantedAttack": {
+          "type": "object",
+          "properties": {
+            "timing": {
+              "type": "string",
+              "enum": [
+                "during_cast",
+                "while_active"
+              ]
+            },
+            "count": {
+              "const": 1
+            },
+            "usesCastingWeapon": {
+              "type": "boolean"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "abilitySubstitution": {
+          "type": "object",
+          "properties": {
+            "attackRoll": {
+              "type": "string",
+              "enum": [
+                "spellcasting_ability"
+              ]
+            },
+            "damageRoll": {
+              "type": "string",
+              "enum": [
+                "spellcasting_ability"
+              ]
+            },
+            "replaces": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Strength",
+                  "Dexterity"
+                ]
+              }
+            }
+          }
+        },
+        "damageDieOverride": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "scaling": {
+              "type": "object"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "damageTypeChoice": {
+          "type": "object",
+          "properties": {
+            "timing": {
+              "type": "string",
+              "enum": [
+                "on_damage"
+              ]
+            },
+            "chooser": {
+              "type": "string",
+              "enum": [
+                "caster"
+              ]
+            },
+            "appliesTo": {
+              "type": "string",
+              "enum": [
+                "attack_damage"
+              ]
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "label"
+                ]
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalDamage": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        },
+        "appliesOn": {
+          "type": "string",
+          "enum": [
+            "hit"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "attackType"
+      ]
+    },
+    "AbilityCheckModifier": {
+      "type": "object",
+      "properties": {
+        "appliesTo": {
+          "type": "string",
+          "enum": [
+            "ability_check"
+          ]
+        },
+        "bonusDice": {
+          "type": "string"
+        },
+        "flatModifier": {
+          "type": "number"
+        },
+        "skillSelection": {
+          "type": "string",
+          "enum": [
+            "chosen_skill",
+            "not_applicable"
+          ]
+        },
+        "skillChooser": {
+          "type": "string",
+          "enum": [
+            "caster"
+          ]
+        },
+        "skillPool": {
+          "type": "string",
+          "enum": [
+            "any_skill"
+          ]
+        },
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "every_matching_check",
+            "once"
+          ]
+        },
+        "durationScope": {
+          "type": "string",
+          "enum": [
+            "while_active",
+            "next_check"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "appliesTo",
+        "skillSelection",
+        "frequency",
+        "durationScope"
+      ]
+    },
+    "ControlledEntity": {
+      "type": "object",
+      "properties": {
+        "entityType": {
+          "type": "string",
+          "enum": [
+            "spectral_hand"
+          ]
+        },
+        "count": {
+          "type": "number"
+        },
+        "appearsAt": {
+          "type": "string",
+          "enum": [
+            "chosen_point"
+          ]
+        },
+        "durationScope": {
+          "type": "string",
+          "enum": [
+            "spell_duration"
+          ]
+        },
+        "controlActionType": {
+          "type": "string",
+          "enum": [
+            "magic_action",
+            "action"
+          ]
+        },
+        "initialUseOnCast": {
+          "type": "boolean"
+        },
+        "laterControlTiming": {
+          "type": "string",
+          "enum": [
+            "later_turns"
+          ]
+        },
+        "movementDistance": {
+          "type": "number"
+        },
+        "movementUnit": {
+          "type": "string",
+          "enum": [
+            "feet"
+          ]
+        },
+        "maxDistanceFromCaster": {
+          "type": "number"
+        },
+        "canAttack": {
+          "type": "boolean"
+        },
+        "canActivateMagicItems": {
+          "type": "boolean"
+        },
+        "carryCapacityPounds": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "not_applicable"
+              ]
+            }
+          ]
+        },
+        "allowedInteractions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "endingTriggers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "caster_recasts",
+              "beyond_max_distance"
+            ]
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entityType",
+        "count",
+        "appearsAt",
+        "durationScope",
+        "controlActionType",
+        "initialUseOnCast",
+        "laterControlTiming",
+        "movementDistance",
+        "movementUnit",
+        "maxDistanceFromCaster",
+        "canAttack",
+        "canActivateMagicItems",
+        "carryCapacityPounds",
+        "allowedInteractions",
+        "endingTriggers"
+      ]
+    }
+  }
+}

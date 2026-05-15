@@ -1,0 +1,159 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 45-49 in generated discovery row order."
+  ],
+  "findings": {
+    "seeming::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can choose same or different appearances for multiple targets, but runtime lacks typed disguise option fields.",
+      "recommendedTemplateChange": "Add multi-target illusion/disguise choice fields.",
+      "recommendedJsonChange": "Add runtime seemingAppearanceOptions data."
+    },
+    "seeming::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Unwilling targets can make a Charisma save to be unaffected, and Study can reveal the disguise with Intelligence (Investigation); runtime keeps both checks in prose.",
+      "recommendedTemplateChange": "Add unwilling-target save and inspection-check fields.",
+      "recommendedJsonChange": "Add runtime seemingSaveAndInspection data."
+    },
+    "seeming::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The illusion changes visible body/equipment appearance and apparent height/weight; runtime lacks typed visual illusion fields.",
+      "recommendedTemplateChange": "Add visual disguise fields for apparent size/weight/body/equipment changes.",
+      "recommendedJsonChange": "Add runtime visualDisguise data."
+    },
+    "seeming::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell's core disguise constraints, physical-inspection failure, and Study action reveal mechanics are prose-only.",
+      "recommendedTemplateChange": "Add illusion/disguise constraint and reveal fields.",
+      "recommendedJsonChange": "Add runtime seemingDisguise data."
+    },
+    "skill-empowerment::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses one proficient skill not already benefiting from expertise; runtime lacks selected-skill and eligibility fields.",
+      "recommendedTemplateChange": "Add skill-choice eligibility fields.",
+      "recommendedJsonChange": "Add runtime skillEmpowermentChoice data."
+    },
+    "skill-empowerment::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target doubles proficiency for ability checks using the chosen skill; runtime lacks an ability-check/proficiency modifier effect.",
+      "recommendedTemplateChange": "Add ability-check proficiency/expertise modifier fields.",
+      "recommendedJsonChange": "Add runtime skillCheckModifier data."
+    },
+    "skill-empowerment::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched descriptive understanding prose; the mechanical effect is skill expertise, not communication.",
+      "recommendedTemplateChange": "No message/communication field required.",
+      "recommendedJsonChange": "No message/communication runtime data required."
+    },
+    "skill-empowerment::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The expertise lasts until the normal spell duration ends and has no special conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    },
+    "steel-wind-strike::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The up-to-five visible creature target choice is represented by multi targeting and maxTargets 5.",
+      "recommendedTemplateChange": "No new choice field required.",
+      "recommendedJsonChange": "Closed by targeting."
+    },
+    "steel-wind-strike::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now has teleport movement, but the destination must be an unoccupied visible space within 5 feet of a hit-or-missed target; that secondary destination filter is not typed.",
+      "recommendedTemplateChange": "Add teleport destination fields for unoccupied visible space near any attacked target.",
+      "recommendedJsonChange": "Add runtime teleportDestination data."
+    },
+    "steel-wind-strike::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Visible initial targets are represented by lineOfSight; the visible teleport destination is tracked under target_filter_or_eligibility.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "steel-wind-strike::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The optional 5-foot teleport after attacks is now represented as a MOVEMENT teleport effect.",
+      "recommendedTemplateChange": "No new travel field required.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport."
+    },
+    "steel-wind-strike::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The vanish/strike wording is presentation for attack and teleport delivery, not an environmental change.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "swift-quiver::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The bonus-action two-attack grant is now represented as a granted action.",
+      "recommendedTemplateChange": "No new attack modifier field required for this pass.",
+      "recommendedJsonChange": "Closed by grantedActions."
+    },
+    "swift-quiver::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The each-turn bonus action to make two ammunition-weapon attacks is now represented as a granted action.",
+      "recommendedTemplateChange": "No new sustain-action field required for this pass.",
+      "recommendedJsonChange": "Closed by grantedActions frequency each_turn."
+    },
+    "swift-quiver::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Ammunition leaping into the hand is descriptive delivery of the created ammunition, not a separate vision/light/sound mechanic.",
+      "recommendedTemplateChange": "Track under creation/resource fields.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "swift-quiver::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "The quiver is transmuted and creates ammunition; no illusion or disguise is involved.",
+      "recommendedTemplateChange": "No illusion/disguise field required.",
+      "recommendedJsonChange": "No illusion/disguise runtime data required."
+    },
+    "swift-quiver::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now has created-ammunition cleanup, but still lacks the typed ending if the quiver leaves the caster's possession.",
+      "recommendedTemplateChange": "Add or reuse possession-based conditional-ending fields for the quiver leaving possession.",
+      "recommendedJsonChange": "Add runtime conditionalEnding data for the quiver leaving possession."
+    },
+    "swift-quiver::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Created ammunition disintegrates when the spell ends; runtime lacks typed cleanup/aftermath data.",
+      "recommendedTemplateChange": "Add created-object cleanup fields.",
+      "recommendedJsonChange": "Add runtime createdAmmunitionCleanup data.",
+      "closedReason": "Closed by the created-object cleanup batch: structured markdown and runtime JSON now use effects[].endCleanup[] with created_ammunition, created_objects, all_remaining, and disintegrate on spell end."
+    },
+    "synaptic-static::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The chosen point and 20-foot-radius sphere are represented by area targeting.",
+      "recommendedTemplateChange": "No choice-or-mode field required.",
+      "recommendedJsonChange": "Closed by targeting."
+    },
+    "synaptic-static::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Initial damage and repeat save are represented, but the d6 penalty to attack rolls, ability checks, and Constitution concentration saves remains only implicit in the Muddled Thoughts status.",
+      "recommendedTemplateChange": "Add multi-surface d6 penalty fields for attack rolls, ability checks, and concentration saves.",
+      "recommendedJsonChange": "Add runtime muddledThoughtsPenalty data."
+    },
+    "synaptic-static::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The end-of-turn Intelligence repeat save is now represented with the correct save ability.",
+      "recommendedTemplateChange": "No new repeat-save field required.",
+      "recommendedJsonChange": "Closed by statusCondition.repeatSave."
+    }
+  },
+  "manualFindings": {
+    "synaptic-static": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "title": "Target Filters And Eligibility",
+        "spellId": "synaptic-static",
+        "findingId": "synaptic-static::target_filter_or_eligibility",
+        "canonicalEvidence": "A creature with an Intelligence score of 2 or lower can't be affected by this spell.",
+        "structuredState": "Valid Targets: creatures",
+        "jsonState": "Runtime has no validated ability-score threshold filter.",
+        "issue": "The spell excludes creatures with Intelligence 2 or lower, but the current targeting schema has no first-class ability-score maximum filter.",
+        "recommendedTemplateChange": "Closed by ability-threshold propagation: structured markdown now records the target ability, operator, and threshold value.",
+        "recommendedJsonChange": "Closed by ability-threshold propagation: targeting.filter.abilityThreshold now carries the matching runtime facts.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because this target-filter finding is fully represented by the new abilityThreshold fields."
+      }
+    ]
+  }
+}

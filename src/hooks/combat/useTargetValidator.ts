@@ -21,7 +21,7 @@
  */
 import { useCallback } from 'react';
 import { CombatCharacter, Ability, Position, BattleMapData } from '../../types/combat';
-import { getDistance } from '../../utils/combatUtils';
+import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 
 interface UseTargetValidatorProps {
@@ -52,11 +52,12 @@ const getTargetLabel = (targetCharacter: CombatCharacter | null): string => {
 
 export function useTargetValidator({ characters, mapData }: UseTargetValidatorProps) {
 
-    // Helper: Find character at exact grid position
+    // Helper: Find character occupying a specific grid position
     const getCharacterAtPosition = useCallback((position: Position): CombatCharacter | null => {
-        return characters.find(char =>
-            char.position.x === position.x && char.position.y === position.y
-        ) || null;
+        return characters.find(char => {
+            const occupied = getOccupiedTiles(char);
+            return occupied.some(tile => tile.x === position.x && tile.y === position.y);
+        }) || null;
     }, [characters]);
 
     /**
@@ -89,7 +90,12 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
         const targetCharacter = getCharacterAtPosition(targetPosition);
 
         // 2. Range Check
-        const distance = getDistance(caster.position, targetPosition);
+        // If we targeted a character, use character-to-character distance (closest tiles).
+        // Otherwise use position-to-position distance.
+        const distance = targetCharacter 
+            ? getCharacterDistance(caster, targetCharacter)
+            : getDistance(caster.position, targetPosition);
+
         if (distance > ability.range) {
             const targetLabel = getTargetLabel(targetCharacter);
             return {
@@ -100,7 +106,23 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
 
         // 3. Line of Sight Check
         if (ability.type === 'attack' || ability.type === 'spell') {
-            if (!hasLineOfSight(startTile, endTile, mapData)) {
+            const casterTiles = getOccupiedTiles(caster);
+            const targetTiles = targetCharacter 
+                ? getOccupiedTiles(targetCharacter)
+                : [targetPosition];
+
+            const hasLoS = casterTiles.some(cPos => {
+                const cTile = mapData.tiles.get(`${cPos.x}-${cPos.y}`);
+                if (!cTile) return false;
+
+                return targetTiles.some(tPos => {
+                    const tTile = mapData.tiles.get(`${tPos.x}-${tPos.y}`);
+                    if (!tTile) return false;
+                    return hasLineOfSight(cTile, tTile, mapData);
+                });
+            });
+
+            if (!hasLoS) {
                 const targetLabel = getTargetLabel(targetCharacter).toLowerCase();
                 return {
                     isValid: false,
@@ -109,7 +131,22 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
             }
         }
 
-        // 4. Logic by Targeting Type
+        // 4. Creature-Type Constraint Check (e.g. Hold Person: Humanoid only)
+        if (ability.validCreatureTypes?.length && targetCharacter) {
+            const targetTypes = targetCharacter.stats.creatureTypes ?? [];
+            const hasValidType = ability.validCreatureTypes.some(required =>
+                targetTypes.some(ct => ct.toLowerCase() === required.toLowerCase())
+            );
+            if (!hasValidType) {
+                const typeList = ability.validCreatureTypes.join(', ');
+                return {
+                    isValid: false,
+                    reason: `${ability.name} can only target ${typeList} creatures.`
+                };
+            }
+        }
+
+        // 5. Logic by Targeting Type
         switch (ability.targeting) {
             case 'single_enemy':
                 if (!targetCharacter) {
@@ -147,14 +184,18 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
                     };
                 }
                 return { isValid: true };
-            case 'self':
-                if (targetPosition.x !== caster.position.x || targetPosition.y !== caster.position.y) {
+            case 'self': {
+                const isCasterTile = getOccupiedTiles(caster).some(
+                    tile => tile.x === targetPosition.x && tile.y === targetPosition.y
+                );
+                if (!isCasterTile) {
                     return {
                         isValid: false,
                         reason: `${ability.name} can only target ${caster.name}.`
                     };
                 }
                 return { isValid: true };
+            }
             case 'area':
                 return { isValid: true };
             default:

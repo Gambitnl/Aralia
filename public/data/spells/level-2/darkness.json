@@ -10,13 +10,7 @@
     "Warlock",
     "Wizard"
   ],
-  "subClasses": [
-    "Cleric - Night Domain (HCS)",
-    "Cleric - Shadow Domain (BoET)",
-    "Druid - Circle of Shadows (BoET)",
-    "Paladin - Oathbreaker (DMG)"
-  ],
-  "subClassesVerification": "verified",
+  "subClasses": [],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -72,7 +66,27 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "excluded",
+        "magicalStatus": "any",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -94,21 +108,40 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "control",
-      "description": "Creates a 15-foot-radius sphere of magical darkness blocking sight and nonmagical light; can be moved if cast on an object you hold or on an unattended point.",
+      "description": "Creates magical Darkness in a 15-foot-radius Sphere from a point, or a 15-foot Emanation from an unattended object; Darkvision cannot see through it and nonmagical light cannot illuminate it.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -135,8 +168,16 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
@@ -144,7 +185,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere . Darkvision canÃ¢â‚¬â„¢t see through it, and nonmagical light canÃ¢â‚¬â„¢t illuminate it. Alternatively, you cast the spell on an object that isnÃ¢â‚¬â„¢t being worn or carried, causing the Darkness to fill a 15-foot Emanation originating from that object. Covering that object with something opaque, such as a bowl or helm, blocks the Darkness. If any of this spellÃ¢â‚¬â„¢s area overlaps with an area of Bright Light or Dim Light created by a spell of level 2 or lower, that other spell is dispelled.",
+  "description": "For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere . Darkvision can't see through it, and nonmagical light can't illuminate it. Alternatively, you cast the spell on an object that isn't being worn or carried, causing the Darkness to fill a 15-foot Emanation originating from that object. Covering that object with something opaque, such as a bowl or helm, blocks the Darkness. If any of this spell's area overlaps with an area of Bright Light or Dim Light created by a spell of level 2 or lower, that other spell is dispelled.",
   "higherLevels": "",
   "tags": [
     "utility",

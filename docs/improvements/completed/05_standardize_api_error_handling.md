@@ -1,4 +1,4 @@
-﻿# Improvement Note: Standardize API Error Handling
+# Improvement Note: Standardize API Error Handling
 
 ## Status
 

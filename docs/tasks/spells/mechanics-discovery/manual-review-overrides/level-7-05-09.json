@@ -1,0 +1,165 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 7 manual review override shard for spell indexes 05-09 in generated discovery row order.",
+    "This packet normalized Dream of the Blue Veil JSON formatting while preserving data and adding missing mechanics for transport, unconsciousness, and cancellation rules."
+  ],
+  "findings": {
+    "draconic-transformation::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save and half-damage breath weapon are represented by the DAMAGE effect; this entry is closed because the save mechanic is no longer only prose.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE condition.saveType/saveEffect."
+    },
+    "draconic-transformation::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The bonus-action repeat breath weapon is represented by the DAMAGE trigger/sustain cost and utility granted action; this entry is closed because the repeat action is no longer only prose.",
+      "recommendedTemplateChange": "No additional sustain field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE trigger and UTILITY grantedActions."
+    },
+    "draconic-transformation::movement_or_repositioning": {
+      "resolutionStatus": "closed",
+      "issue": "The 60-foot flying speed is represented by a MOVEMENT speed-change effect and utility option; this entry is closed because movement is no longer flattened into description only.",
+      "recommendedTemplateChange": "No additional movement field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT speedChange and UTILITY controlOptions."
+    },
+    "draconic-transformation::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched breath/wings language, but the spell grants the caster flight and an exhaled cone; it does not force another creature to move.",
+      "recommendedTemplateChange": "Track the true mechanic under movement_or_repositioning.",
+      "recommendedJsonChange": "No forced-movement runtime data required."
+    },
+    "draconic-transformation::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Blindsight, seeing while blinded or in darkness, invisible-creature visibility, hiding exception, and total-cover exception are preserved in utility options, but runtime lacks first-class sense/visibility exception fields.",
+      "recommendedTemplateChange": "Add sense grant and visibility exception fields for blindsight, invisible creatures, hidden creatures, darkness, blindness, and total cover.",
+      "recommendedJsonChange": "Add runtime senseGrant or perceptionMode data instead of relying only on UTILITY controlOptions."
+    },
+    "draconic-transformation::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The transformation into draconic features is represented by utility options plus movement/damage effects, but runtime lacks a first-class transformation/state-change payload for feature bundles.",
+      "recommendedTemplateChange": "Add transformation feature bundle fields when the transformation bucket is propagated.",
+      "recommendedJsonChange": "Add runtime transformationFeatureBundle data for spells that grant bundled temporary form features."
+    },
+    "draconic-transformation::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal duration language ('until the spell ends'); the benefits are already bounded by timed concentration duration and effect durations.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration and effect durations."
+    },
+    "dream-of-the-blue-veil::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the blue-curtain pull/transport prose, but the mechanic is planar-world transport rather than forced movement by push/pull.",
+      "recommendedTemplateChange": "Track under travel_or_planar_movement.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport-style effect."
+    },
+    "dream-of-the-blue-veil::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The full-duration interworld transport, destination constraints, and origin anchors are represented by MOVEMENT and utility options; this entry is closed because travel is no longer only prose.",
+      "recommendedTemplateChange": "No additional travel field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT effect and UTILITY controlOptions."
+    },
+    "dream-of-the-blue-veil::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The requirement that the caster be aware of the destination world's existence is represented in utility options; this entry is closed because the knowledge prerequisite is no longer hidden only in prose.",
+      "recommendedTemplateChange": "No additional knowledge prerequisite field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "dream-of-the-blue-veil::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Affected creatures falling unconscious is represented as a STATUS_CONDITION effect with break triggers; this entry is closed because the state change is now structured.",
+      "recommendedTemplateChange": "No additional status field required.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION statusCondition."
+    },
+    "dream-of-the-blue-veil::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Target-damage exclusion and caster-damage group cancellation are preserved in status aftermath and utility options, but runtime lacks first-class per-target cancellation versus caster-wide cancellation fields.",
+      "recommendedTemplateChange": "Add per-target and caster-wide cancellation fields for long-duration transport/setup spells.",
+      "recommendedJsonChange": "Add runtime cancellationRules data instead of relying only on statusCondition.aftermath/controlOptions."
+    },
+    "etherealness::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Ethereal-only interaction limits and higher-level willing-creature eligibility are preserved in utility/scaling prose, but runtime lacks first-class planar interaction filters and scaled target eligibility.",
+      "recommendedTemplateChange": "Add planar interaction filter fields and scaled willing-target eligibility fields.",
+      "recommendedJsonChange": "Add runtime planarInteractionFilter and scaledTargetEligibility data."
+    },
+    "etherealness::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 60-foot gray perception limit into the origin plane is preserved in utility options, but runtime lacks first-class cross-plane perception range/appearance fields.",
+      "recommendedTemplateChange": "Add cross-plane perception range and appearance fields.",
+      "recommendedJsonChange": "Add runtime crossPlanePerception data."
+    },
+    "etherealness::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The origin-plane perception rule is represented as utility options, but runtime lacks a typed perception/sensor payload for range-limited plane overlap sight.",
+      "recommendedTemplateChange": "Add sensor/perception fields for plane-overlap sight.",
+      "recommendedJsonChange": "Add runtime perceptionMode data."
+    },
+    "etherealness::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Entry into the Border Ethereal and return to the origin plane are represented by MOVEMENT plus utility options; this entry is closed because the travel mechanic is no longer only prose.",
+      "recommendedTemplateChange": "No additional travel field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT and UTILITY effects."
+    },
+    "etherealness::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Moving up or down costs an extra foot per foot moved; this is preserved in utility options, but runtime lacks first-class alternate movement-cost fields.",
+      "recommendedTemplateChange": "Add movement cost multiplier fields for directional or terrain-like movement costs.",
+      "recommendedJsonChange": "Add runtime movementCostMultiplier data."
+    },
+    "etherealness::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Return on spell end, occupied-space shunting, and invalid-plane instant ending are represented in movement, damage, and utility options; this entry is closed because the end behavior is no longer only prose.",
+      "recommendedTemplateChange": "No additional conditional-ending field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT, DAMAGE, and UTILITY effects."
+    },
+    "etherealness::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched higher-level targeting prose, not an aftermath or memory mechanic.",
+      "recommendedTemplateChange": "Track under scaling/target eligibility instead.",
+      "recommendedJsonChange": "No aftermath runtime data required."
+    },
+    "finger-of-death::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save and half-damage outcome are represented by the DAMAGE effect; this entry is closed because the save mechanic is already structured.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE condition.saveType/saveEffect."
+    },
+    "finger-of-death::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The base spell can target a creature, but only a Humanoid killed by the spell rises as a Zombie; runtime stores this in summon/utility target filters while the allowed condition enum cannot express target killed by spell.",
+      "recommendedTemplateChange": "Add death-triggered target filter fields for conditional riders.",
+      "recommendedJsonChange": "Add runtime deathTriggeredRider data keyed to creature type and cause of death."
+    },
+    "finger-of-death::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'a creature you can see'; this is ordinary line-of-sight targeting and is already represented.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "Closed by targeting.lineOfSight."
+    },
+    "finger-of-death::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The zombie creation is a death-triggered rider, not a ward/alarm, and runtime currently approximates it with after_primary because the trigger enum cannot express 'target killed by this spell at start of your next turn'.",
+      "recommendedTemplateChange": "Add death-triggered rider timing fields.",
+      "recommendedJsonChange": "Add runtime targetDeathTrigger with delayed start-of-next-turn timing."
+    },
+    "fire-storm::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save and half-damage outcome are represented by the DAMAGE effect.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE condition.saveType/saveEffect."
+    },
+    "fire-storm::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Flammable objects that are not worn or carried start burning; valid targets now include objects and utility/terrain effects preserve the rule, but runtime lacks object flammability and worn/carried exclusion filters.",
+      "recommendedTemplateChange": "Add object flammability plus worn/carried exclusion fields.",
+      "recommendedJsonChange": "Add runtime objectIgnitionFilter data."
+    },
+    "fire-storm::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Starting unworn, uncarried flammable objects burning is represented as TERRAIN/UTILITY data, but runtime lacks first-class object ignition state-change fields.",
+      "recommendedTemplateChange": "Add object ignition/environmental change fields.",
+      "recommendedJsonChange": "Add runtime objectIgnition data."
+    }
+  }
+}

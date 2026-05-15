@@ -1,4 +1,4 @@
-﻿# Combat
+# Combat
 
 ## Purpose
 
@@ -52,6 +52,30 @@ This pass verified that the combat domain already has:
 - event infrastructure
 - action-economy, line-of-sight, targeting, area-of-effect, and saving-throw utility surfaces
 - spell-aware combat orchestration through useAbilitySystem
+
+## Known Limitations
+
+Tracked gaps in the current implementation. See `docs/superpowers/plans/` for fix plans.
+
+### Player-to-Combat Bridge (`createPlayerCombatCharacter`)
+
+`src/utils/combat/combatUtils.ts` is the equivalent of the monster pipeline for player characters — it converts a `PlayerCharacter` into a `CombatCharacter`. Unlike the monster pipeline, it has no architecture doc and several gaps:
+
+- **`armorClass` / `baseAC` not mapped.** The `PlayerCharacter.armorClass` field (baked into each character's JSON) is never assigned to `CombatCharacter.armorClass` or `baseAC` in the constructor (~line 738). Every player character enters combat with `armorClass: undefined`. Fix: two-line addition. See `docs/superpowers/plans/2026-05-12-equip-premade-characters.md` Task 1.
+- **Ranged weapon range not read.** `createWeaponAbility` sets `range: (reach) ? 2 : 1` with no path for ranged weapons. A longbow equipped in `MainHand` gets range 1 (melee). Fix: parse a `range:N` convention from `weapon.properties`. See same plan, Task 2.
+- **Class features not auto-generated (partial).** Only `fighter` (Second Wind) and `rogue` (Cunning Dash) have hardcoded class ability generation. Barbarian Rage, Monk Flurry of Blows, Bardic Inspiration, and Divine Smite are absent from the combat palette for their classes. See `docs/superpowers/plans/` for the class-abilities plan (Plan 2, forthcoming).
+- **Rage resistance never applied.** Even if Rage were added as a `StatusEffect` with `modifiers.resistance: ['bludgeoning','piercing','slashing']`, `ResistanceCalculator.applyResistances` (`src/utils/combat/resistanceUtils.ts:126`) only checks `CombatCharacter.resistances[]` — the direct field. It does not inspect `statusEffects[].modifiers.resistance[]`. Rage resistance would be stored but silently ignored.
+- **Sneak Attack absent.** No auto-trigger logic exists in `DamageCommand`, `AbilityCommandFactory`, or `useActionExecutor`. The only reference is a placeholder `isSneakAttack: false` in the combat log message factory.
+
+### Premade Character Data
+
+All 13 premade characters in `public/premade-characters/` have `"equippedItems": {}`. Every character falls back to Unarmed Strike (flat `1 + STR mod` bludgeoning, no dice) regardless of class. The three pure casters (Sorcerer, Warlock, Wizard) are intentionally weaponless and unaffected. Fix: JSON data only, no code changes. See `docs/superpowers/plans/2026-05-12-equip-premade-characters.md`.
+
+### Death Saving Throws
+
+No death saving throw system exists. When a player character reaches 0 HP, `advanceTurn` (`src/hooks/combat/useTurnOrder.ts:112`) skips them via `char.currentHP > 0` — they are invisible to the turn system indefinitely. Enemy characters have the same behaviour. D&D 5e rule: player characters are *downed* at 0 HP and roll a d20 on each of their turns (3 successes = stable, 3 failures = dead); enemies die immediately. Fix plan: `docs/superpowers/plans/2026-05-11-death-saving-throws.md`.
+
+---
 
 ## Open Follow-Through Questions
 

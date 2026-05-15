@@ -1,14 +1,22 @@
 /**
  * @file EncounterModal.tsx
- * A modal component to display a generated D&D encounter.
- * This is now a display-only component. Generation logic is handled before it's shown.
+ * Displays an AI-generated encounter and provides a manual encounter builder
+ * backed by the full 5eTools XMM bestiary.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Monster, GroundingChunk, Action, TempPartyMember } from '../../types';
-import { CLASSES_DATA } from '../../constants'; // To get class names
+import { CLASSES_DATA } from '../../constants';
 import { t } from '../../utils/i18n';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
+import MonsterPicker, { PickedMonster } from './MonsterPicker';
+import { calculateDifficulty, DifficultyTier } from '../../utils/combat/encounterDifficulty';
+import { useGameState } from '../../state/GameContext';
+import {
+  generateBestiaryEncounter,
+  BestiaryEncounterResult,
+  EncounterDifficultyTarget,
+} from '../../utils/world/bestiaryEncounterGenerator';
 
 interface EncounterModalProps {
   isOpen: boolean;
@@ -18,8 +26,26 @@ interface EncounterModalProps {
   error: string | null;
   isLoading: boolean;
   onAction: (action: Action) => void;
-  partyUsed?: TempPartyMember[]; // The party used for generation
+  partyUsed?: TempPartyMember[];
+  /** Called when the user first opens the AI tab. Triggers the Gemini encounter generation. */
+  onRequestAiGeneration?: () => void;
 }
+
+type Tab = 'ai' | 'custom' | 'bestiary';
+
+const TIER_COLORS: Record<DifficultyTier, string> = {
+  Easy:   'bg-green-500',
+  Medium: 'bg-yellow-400',
+  Hard:   'bg-orange-500',
+  Deadly: 'bg-red-600',
+};
+
+const TIER_TEXT: Record<DifficultyTier, string> = {
+  Easy:   'text-green-400',
+  Medium: 'text-yellow-300',
+  Hard:   'text-orange-400',
+  Deadly: 'text-red-400',
+};
 
 const EncounterModal: React.FC<EncounterModalProps> = ({
   isOpen,
@@ -29,31 +55,155 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
   error,
   isLoading,
   onAction,
-  partyUsed
+  partyUsed,
+  onRequestAiGeneration,
 }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
+  const [tab, setTab] = useState<Tab>('bestiary');
+  /** Tracks whether we have already fired the AI generation request this session. */
+  const [aiRequested, setAiRequested] = useState(false);
+  const [customMonsters, setCustomMonsters] = useState<PickedMonster[]>([]);
+
+  // Bestiary tab state — generated locally, no Redux needed
+  const [bestiaryDifficulty, setBestiaryDifficulty] = useState<EncounterDifficultyTarget>('Medium');
+  const [bestiaryResult, setBestiaryResult] = useState<BestiaryEncounterResult | null>(null);
+  const [bestiaryGenerated, setBestiaryGenerated] = useState(false); // lazy: only generate on first tab visit
+  const [lairOnly, setLairOnly] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  /**
+   * Single source of truth for the encounter being built on the bestiary tab.
+   * Seeded from the generator on every roll; user can +/− any row or add extra
+   * monsters from the search picker — all edits land here directly.
+   */
+  const [liveMonsters, setLiveMonsters] = useState<Monster[]>([]);
+
+  const { state } = useGameState();
+  const party = state.party;
+  const effectiveParty: TempPartyMember[] = partyUsed && partyUsed.length > 0
+    ? partyUsed
+    : party.map(p => ({ id: p.id, name: p.name, classId: p.class.id, level: p.level || 1 }));
+
+  const rollBestiaryEncounter = useCallback((difficulty: EncounterDifficultyTarget, lair: boolean) => {
+    const result = generateBestiaryEncounter(effectiveParty, { difficulty, lairOnly: lair });
+    setBestiaryResult(result);
+    setLiveMonsters(result?.monsters ? [...result.monsters] : []);
+    setBestiaryGenerated(true);
+  }, [effectiveParty]);
+
+  /** Merges a MonsterPicker selection into liveMonsters — stacks onto existing rows. */
+  const handleAddSearchMonster = useCallback((picked: PickedMonster) => {
+    const cr = picked.isLair && picked.crLair ? picked.crLair : picked.cr;
+    setLiveMonsters(prev => {
+      const idx = prev.findIndex(m => m.name === picked.name && m.cr === cr);
+      if (idx !== -1) {
+        // Already in the list — increment quantity
+        return prev.map((m, i) => i === idx ? { ...m, quantity: m.quantity + picked.quantity } : m);
+      }
+      return [...prev, {
+        name: picked.name,
+        quantity: picked.quantity,
+        cr,
+        description: `${picked.name} · CR ${cr}`,
+      }];
+    });
+  }, []);
 
   useEffect(() => {
-    // Don't focus immediately if still loading
     if (isOpen && !isLoading) {
-      // firstFocusableElementRef.current?.focus(); // Removed ref usage as WindowFrame doesn't support passing ref easily to children for focus, and standardized windows don't usually auto-focus internal buttons
+      // firstFocusableElementRef.current?.focus();
     }
   }, [isOpen, isLoading]);
+
+  // Reset all local state whenever the modal is reopened
+  useEffect(() => {
+    if (isOpen) {
+      setTab('bestiary');
+      setAiRequested(false);
+      setCustomMonsters([]);
+      setBestiaryResult(null);
+      setBestiaryGenerated(false);
+      setBestiaryDifficulty('Medium');
+      setLairOnly(false);
+      setShowSearch(false);
+      setLiveMonsters([]);
+    }
+  }, [isOpen]);
+
+  // Fire AI generation the first time the user opens the AI tab
+  useEffect(() => {
+    if (tab === 'ai' && !aiRequested && !isLoading && !encounter) {
+      setAiRequested(true);
+      onRequestAiGeneration?.();
+    }
+  }, [tab, aiRequested, isLoading, encounter, onRequestAiGeneration]);
+
+  // Auto-generate when the bestiary tab is first opened
+  useEffect(() => {
+    if (tab === 'bestiary' && !bestiaryGenerated) {
+      rollBestiaryEncounter(bestiaryDifficulty, lairOnly);
+    }
+  }, [tab, bestiaryGenerated, bestiaryDifficulty, lairOnly, rollBestiaryEncounter]);
+
+  // Live difficulty recalculated whenever quantities change.
+  const liveDiff = useMemo(() => {
+    const active = liveMonsters.filter(m => m.quantity > 0);
+    if (active.length === 0) return null;
+    return calculateDifficulty(
+      active.map(m => ({ cr: m.cr, quantity: m.quantity })),
+      effectiveParty.map(p => p.level || 1),
+    );
+  }, [liveMonsters, effectiveParty]);
 
   if (!isOpen) {
     return null;
   }
 
   const handleSimulateBattle = () => {
-    if (encounter) {
-      onAction({
-        type: 'START_BATTLE_MAP_ENCOUNTER',
-        label: 'Simulate Battle',
-        payload: { startBattleMapEncounterData: { monsters: encounter } }
-      });
-      // The modal will be closed by the state update in the reducer
+    let monsters: Monster[];
+    if (tab === 'custom') {
+      monsters = customMonsters.map(m => ({
+        name: m.name,
+        quantity: m.quantity,
+        cr: m.isLair && m.crLair ? m.crLair : m.cr,
+        description: m.description,
+      }));
+    } else if (tab === 'bestiary') {
+      monsters = liveMonsters.filter(m => m.quantity > 0);
+    } else {
+      monsters = encounter ?? [];
     }
+
+    if (monsters.length === 0) return;
+
+    onAction({
+      type: 'START_BATTLE_MAP_ENCOUNTER',
+      label: 'Simulate Battle',
+      payload: { startBattleMapEncounterData: { monsters } }
+    });
   };
+
+  function addCustomMonster(m: PickedMonster) {
+    setCustomMonsters(prev => {
+      const existing = prev.findIndex(e => e.name === m.name && e.isLair === m.isLair);
+      if (existing !== -1) {
+        return prev.map((e, i) => i === existing ? { ...e, quantity: e.quantity + m.quantity } : e);
+      }
+      return [...prev, m];
+    });
+  }
+
+  function removeCustomMonster(name: string, isLair?: boolean) {
+    setCustomMonsters(prev => prev.filter(m => !(m.name === name && m.isLair === isLair)));
+  }
+
+  function toggleLair(name: string, isLair?: boolean) {
+    setCustomMonsters(prev => prev.map(m => {
+      if (m.name === name && m.isLair === isLair) {
+        return { ...m, isLair: !m.isLair };
+      }
+      return m;
+    }));
+  }
 
   const renderContent = () => {
     if (isLoading) {
@@ -77,11 +227,11 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
     }
     return (
       <>
-        {partyUsed && partyUsed.length > 0 && (
+        {effectiveParty && effectiveParty.length > 0 && (
           <div className="mb-4 p-3 bg-gray-900/50 rounded-lg">
             <h5 className="text-xs font-semibold text-sky-400 mb-1">{t('encounter_modal.generated_for')}</h5>
             <p className="text-xs text-gray-400">
-              {partyUsed.map(p => `Lvl ${p.level} ${CLASSES_DATA[p.classId]?.name || 'Adventurer'}`).join(', ')}
+              {effectiveParty.map(p => `Lvl ${p.level} ${CLASSES_DATA[p.classId]?.name || 'Adventurer'}`).join(', ')}
             </p>
           </div>
         )}
@@ -114,7 +264,20 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
     );
   };
 
-  const canSimulate = !isLoading && !error && encounter && encounter.length > 0;
+  const partyLevels = (effectiveParty ?? []).map(p => p.level);
+  const difficulty = customMonsters.length > 0 && partyLevels.length > 0
+    ? calculateDifficulty(
+        customMonsters.map(m => ({ cr: m.cr, quantity: m.quantity })),
+        partyLevels,
+      )
+    : null;
+
+  const canSimulateAi = !isLoading && !error && encounter && encounter.length > 0;
+  const canSimulateCustom = customMonsters.length > 0;
+  const canSimulateBestiary = liveMonsters.some(m => m.quantity > 0);
+  const canSimulate = tab === 'ai' ? canSimulateAi
+    : tab === 'bestiary' ? canSimulateBestiary
+    : canSimulateCustom;
 
   return (
     <WindowFrame
@@ -123,12 +286,323 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
       storageKey={WINDOW_KEYS.ENCOUNTER_MODAL}
     >
       <div className="flex flex-col h-full bg-gray-800 p-6">
+        {/* Tab bar */}
+        <div className="flex border-b border-gray-600 mb-4 shrink-0">
+          <button
+            onClick={() => setTab('ai')}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+              tab === 'ai'
+                ? 'border-amber-400 text-amber-300'
+                : 'border-transparent text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            AI Generated
+          </button>
+          <button
+            onClick={() => setTab('custom')}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+              tab === 'custom'
+                ? 'border-amber-400 text-amber-300'
+                : 'border-transparent text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            Custom (5eTools)
+          </button>
+          <button
+            onClick={() => setTab('bestiary')}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+              tab === 'bestiary'
+                ? 'border-emerald-400 text-emerald-300'
+                : 'border-transparent text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            🎲 Bestiary Roll
+          </button>
+        </div>
+
         <div className="overflow-y-auto scrollable-content flex-grow p-1 pr-2">
-          {renderContent()}
+          {tab === 'ai' && renderContent()}
+
+          {tab === 'bestiary' && (
+            <div className="flex flex-col gap-4">
+              {/* Difficulty selector + lair toggle */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-gray-400 shrink-0">Difficulty:</span>
+                {(['Easy', 'Medium', 'Hard', 'Deadly'] as EncounterDifficultyTarget[]).map(d => (
+                  <button
+                    key={d}
+                    onClick={() => {
+                      setBestiaryDifficulty(d);
+                      setBestiaryGenerated(false); // trigger re-gen via useEffect
+                    }}
+                    className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
+                      bestiaryDifficulty === d
+                        ? d === 'Easy'   ? 'bg-green-700 text-green-200'
+                        : d === 'Medium' ? 'bg-yellow-700 text-yellow-200'
+                        : d === 'Hard'   ? 'bg-orange-700 text-orange-200'
+                        : 'bg-red-800 text-red-200'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                  >
+                    {d}
+                  </button>
+                ))}
+                <button
+                  onClick={() => rollBestiaryEncounter(bestiaryDifficulty, lairOnly)}
+                  className="ml-auto px-3 py-1 text-xs font-semibold rounded bg-emerald-800/60 text-emerald-300 hover:bg-emerald-700/60 border border-emerald-700/50 transition-colors"
+                >
+                  🎲 Reroll
+                </button>
+              </div>
+
+              {/* Lair toggle */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    const next = !lairOnly;
+                    setLairOnly(next);
+                    rollBestiaryEncounter(bestiaryDifficulty, next);
+                  }}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+                    lairOnly ? 'bg-amber-600' : 'bg-gray-600'
+                  }`}
+                  role="switch"
+                  aria-checked={lairOnly}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      lairOnly ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+                <span className="text-xs text-gray-300">
+                  🏰 Lair encounter
+                </span>
+                {lairOnly && (
+                  <span className="text-xs text-amber-400/80 italic">
+                    — only monsters with lair actions
+                  </span>
+                )}
+              </div>
+
+              {/* Generated encounter */}
+              {bestiaryResult ? (
+                <>
+                  {/* Party context */}
+                  {effectiveParty.length > 0 && (
+                    <div className="p-3 bg-gray-900/50 rounded-lg">
+                      <h5 className="text-xs font-semibold text-sky-400 mb-1">{t('encounter_modal.generated_for')}</h5>
+                      <p className="text-xs text-gray-400">
+                        {effectiveParty.map(p => `Lvl ${p.level} ${CLASSES_DATA[p.classId]?.name || 'Adventurer'}`).join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Template label */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Template:</span>
+                    <span className="text-xs text-emerald-400 font-medium">{bestiaryResult.templateLabel}</span>
+                  </div>
+
+                  {/* Monster cards with quantity controls */}
+                  <div className="space-y-2">
+                    {liveMonsters.map((monster, i) => {
+                      const qty = monster.quantity;
+                      const removed = qty === 0;
+                      const isAdded = bestiaryResult
+                        ? !bestiaryResult.monsters.some(m => m.name === monster.name && m.cr === monster.cr)
+                        : true;
+                      return (
+                        <div
+                          key={`${monster.name}|${monster.cr}|${i}`}
+                          className={`p-3 rounded-lg border transition-colors ${
+                            removed
+                              ? 'bg-gray-800/30 border-gray-700/40 opacity-40'
+                              : isAdded
+                              ? 'bg-indigo-900/30 border-indigo-700/50'
+                              : 'bg-gray-700/50 border-gray-600'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Quantity stepper */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() => setLiveMonsters(prev => prev.map((m, j) => j === i ? { ...m, quantity: Math.max(0, m.quantity - 1) } : m))}
+                                className="w-6 h-6 flex items-center justify-center rounded bg-gray-600 hover:bg-gray-500 text-gray-200 text-sm font-bold leading-none transition-colors"
+                                aria-label={`Decrease ${monster.name} count`}
+                              >−</button>
+                              <span className="w-6 text-center text-sm font-bold text-white tabular-nums">{qty}</span>
+                              <button
+                                onClick={() => setLiveMonsters(prev => prev.map((m, j) => j === i ? { ...m, quantity: m.quantity + 1 } : m))}
+                                className="w-6 h-6 flex items-center justify-center rounded bg-gray-600 hover:bg-gray-500 text-gray-200 text-sm font-bold leading-none transition-colors"
+                                aria-label={`Increase ${monster.name} count`}
+                              >+</button>
+                            </div>
+
+                            {/* Name + CR */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-baseline gap-2 flex-wrap">
+                                <span className={`font-bold text-sm ${removed ? 'line-through text-gray-500' : isAdded ? 'text-indigo-300' : 'text-amber-300'}`}>
+                                  {monster.name}
+                                </span>
+                                <span className="text-xs text-sky-400 shrink-0">CR {monster.cr}</span>
+                                {isAdded && !removed && (
+                                  <span className="text-xs text-indigo-400/70 italic">added</span>
+                                )}
+                              </div>
+                              {!removed && (
+                                <p className="text-gray-400 italic text-xs mt-0.5 truncate">{monster.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Monster search — add extra creatures from the full 5eTools library */}
+                  <div className="border border-gray-700 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setShowSearch(s => !s)}
+                      className="w-full flex items-center justify-between px-3 py-2 bg-gray-800/60 hover:bg-gray-700/60 text-xs font-semibold text-gray-300 transition-colors"
+                    >
+                      <span>＋ Add Monster from Library</span>
+                      <span className="text-gray-500">{showSearch ? '▲' : '▼'}</span>
+                    </button>
+                    {showSearch && (
+                      <div className="p-3 bg-gray-800/30 relative">
+                        <MonsterPicker onAdd={handleAddSearchMonster} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Live difficulty bar */}
+                  {liveDiff ? (
+                    <div className="p-3 bg-gray-900/50 rounded-lg space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-400">
+                          Adjusted XP:{' '}
+                          <span className="text-white font-medium">{liveDiff.adjustedXp.toLocaleString()}</span>
+                          {liveDiff.rawXp !== liveDiff.adjustedXp && (
+                            <span className="text-gray-500 ml-1">(raw {liveDiff.rawXp.toLocaleString()})</span>
+                          )}
+                        </span>
+                        <span className={`text-xs font-bold ${TIER_TEXT[liveDiff.tier]}`}>
+                          {liveDiff.tier}
+                        </span>
+                      </div>
+                      <div className="relative h-2 rounded bg-gray-700 overflow-hidden">
+                        <div
+                          className={`absolute inset-y-0 left-0 transition-all duration-150 ${TIER_COLORS[liveDiff.tier]}`}
+                          style={{ width: `${Math.min(100, (liveDiff.adjustedXp / (liveDiff.thresholds.deadly * 1.5)) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Easy {liveDiff.thresholds.easy.toLocaleString()}</span>
+                        <span>Med {liveDiff.thresholds.medium.toLocaleString()}</span>
+                        <span>Hard {liveDiff.thresholds.hard.toLocaleString()}</span>
+                        <span>Deadly {liveDiff.thresholds.deadly.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500 italic text-center py-2">
+                      All monsters removed — add at least one to see difficulty.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-gray-500 italic text-center py-4">
+                  {lairOnly
+                    ? 'No lair monsters found at this difficulty — try a higher difficulty or disable the lair filter.'
+                    : 'Generating encounter…'}
+                </p>
+              )}
+            </div>
+          )}
+
+          {tab === 'custom' && (
+            <div className="flex flex-col gap-4">
+              <MonsterPicker onAdd={addCustomMonster} />
+
+              {customMonsters.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-sky-400 uppercase tracking-wide">
+                    Encounter ({customMonsters.reduce((s, m) => s + m.quantity, 0)} combatants)
+                  </h4>
+                  {customMonsters.map(m => (
+                    <div
+                      key={`${m.name}-${m.isLair ? 'lair' : 'base'}`}
+                      className="flex justify-between items-center bg-gray-700/50 px-3 py-2 rounded border border-gray-600"
+                    >
+                      <div className="flex items-center">
+                        <span className="text-sm text-white font-medium">{m.name}</span>
+                        <span className="text-xs text-gray-400 ml-2">×{m.quantity} · CR {m.isLair && m.crLair ? m.crLair : m.cr}</span>
+                        {m.crLair && (
+                          <label className="ml-4 text-xs text-amber-300 cursor-pointer flex items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={m.isLair || false}
+                              onChange={() => toggleLair(m.name, m.isLair)}
+                              className="accent-amber-500"
+                            />
+                            In Lair
+                          </label>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => removeCustomMonster(m.name, m.isLair)}
+                        className="text-gray-500 hover:text-red-400 text-xs ml-2 transition-colors"
+                        aria-label={`Remove ${m.name}`}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {difficulty && (
+                <div className="mt-2 p-3 bg-gray-900/50 rounded-lg space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-400">
+                      Encounter XP: <span className="text-white font-medium">{difficulty.adjustedXp.toLocaleString()}</span>
+                      {difficulty.multiplier !== 1 && (
+                        <span className="text-gray-500 ml-1">
+                          ({difficulty.rawXp.toLocaleString()} × {difficulty.multiplier})
+                        </span>
+                      )}
+                    </span>
+                    <span className={`text-xs font-bold ${TIER_TEXT[difficulty.tier]}`}>
+                      {difficulty.tier}
+                    </span>
+                  </div>
+                  <div className="relative h-2 rounded bg-gray-700 overflow-hidden">
+                    <div
+                      className={`absolute inset-y-0 left-0 transition-all ${TIER_COLORS[difficulty.tier]}`}
+                      style={{ width: `${Math.min(100, (difficulty.adjustedXp / (difficulty.thresholds.deadly * 1.5)) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Easy {difficulty.thresholds.easy.toLocaleString()}</span>
+                    <span>Med {difficulty.thresholds.medium.toLocaleString()}</span>
+                    <span>Hard {difficulty.thresholds.hard.toLocaleString()}</span>
+                    <span>Deadly {difficulty.thresholds.deadly.toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+
+              {customMonsters.length === 0 && (
+                <p className="text-xs text-gray-500 italic text-center py-2">
+                  Search and click a monster to add it to the encounter.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
           <button
+            ref={firstFocusableElementRef}
             onClick={handleSimulateBattle}
             disabled={!canSimulate}
             className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow disabled:bg-gray-500 disabled:cursor-not-allowed"

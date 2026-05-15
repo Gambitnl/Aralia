@@ -59,7 +59,7 @@ import { handleTakeItem, handleEquipItem, handleUnequipItem, handleUseItem, hand
 import { handleOracle } from './handleOracle';
 import { handleGeminiCustom } from './handleGeminiCustom';
 // Encounter handlers are implemented in src/hooks/actions/handleEncounter.ts.
-import { handleGenerateEncounter, handleShowEncounterModal, handleHideEncounterModal, handleStartBattleMapEncounter, handleEndBattle } from './handleEncounter';
+import { handleGenerateEncounter, handleTriggerAiEncounter, handleShowEncounterModal, handleHideEncounterModal, handleStartBattleMapEncounter, handleEndBattle } from './handleEncounter';
 // Resource and spell handlers are implemented in src/hooks/actions/handleResourceActions.ts.
 import { handleCastSpell, handleUseLimitedAbility, handleTogglePreparedSpell, handleLongRest, handleShortRest } from './handleResourceActions';
 // Merchant handlers are implemented in src/hooks/actions/handleMerchantInteraction.ts.
@@ -194,8 +194,11 @@ export function buildActionHandlers({
     },
 
     // Encounter and combat flow (handleEncounter.ts).
-    GENERATE_ENCOUNTER: async () => {
-      await handleGenerateEncounter({ gameState, dispatch });
+    GENERATE_ENCOUNTER: () => {
+      handleGenerateEncounter({ gameState, dispatch });
+    },
+    TRIGGER_AI_ENCOUNTER: async () => {
+      await handleTriggerAiEncounter({ gameState, dispatch });
     },
     SHOW_ENCOUNTER_MODAL: (action) => {
       handleShowEncounterModal(dispatch, (action.payload as { encounterData: ShowEncounterModalPayload }).encounterData);

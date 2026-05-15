@@ -14,6 +14,13 @@ const ENTRY_BASE_DIR = path.join(__dirname, '../public/data/glossary/entries');
 const files = glob.sync('spells/**/*.md', { cwd: ENTRY_BASE_DIR });
 
 let fixed = 0;
+
+function escapeYamlString(value) {
+  // Frontmatter is generated as a quoted YAML string. Escape backslashes first
+  // so a later quote escape cannot be neutralized by an existing slash.
+  return String(value || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 files.forEach(relPath => {
   const fullPath = path.join(ENTRY_BASE_DIR, relPath);
   const raw = fs.readFileSync(fullPath, 'utf-8');
@@ -65,7 +72,7 @@ files.forEach(relPath => {
       `title: "${title}"`,
       `category: "${attributes.category}"`,
       `tags: ${JSON.stringify(attributes.tags || ['level 0'])}`,
-      `excerpt: "${(attributes.excerpt || '').replace(/"/g, '\\"')}"`,
+      `excerpt: "${escapeYamlString(attributes.excerpt)}"`,
       `seeAlso: ${JSON.stringify(attributes.seeAlso)}`,
       `filePath: "${attributes.filePath}"`,
       '---'

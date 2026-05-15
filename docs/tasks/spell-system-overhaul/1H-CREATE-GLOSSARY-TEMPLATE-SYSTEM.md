@@ -1,4 +1,4 @@
-﻿# Path 2.E: Spell Description Glossary Linking
+# Path 2.E: Spell Description Glossary Linking
 
 **Status:** Active capability gap note
 **Last Reviewed:** 2026-03-12

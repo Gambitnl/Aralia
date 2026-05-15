@@ -1,4 +1,4 @@
-﻿# Level 1 Spell Gaps
+# Level 1 Spell Gaps
 
 **Status:** Active rollup pointer
 **Last Reviewed:** 2026-03-12

@@ -1,0 +1,57 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "label": "Defense Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "ac_bonus",
+        "set_base_ac",
+        "ac_minimum",
+        "resistance",
+        "immunity",
+        "damage_reduction",
+        "temporary_hp",
+        "advantage_on_saves",
+        "disadvantage_on_attacks"
+      ],
+      "jsonPath": "effects[].defenseType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Defensive effects need machine-readable behavior instead of description-only text."
+        }
+      ],
+      "comment": "Defensive effects need machine-readable behavior instead of description-only text. It maps to `effects[].defenseType`. Purpose: Defense Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].defenseType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "ac_bonus": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic.",
+        "set_base_ac": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic.",
+        "ac_minimum": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic.",
+        "resistance": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic.",
+        "immunity": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic.",
+        "damage_reduction": "Allowed value for Defense Type; use when canonical prose subtracts a fixed or rolled amount from qualifying damage instead of granting resistance or immunity.",
+        "temporary_hp": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic.",
+        "advantage_on_saves": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic.",
+        "disadvantage_on_attacks": "Allowed value for Defense Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Defense Value",
+      "required": false,
+      "valueType": "number-or-formula",
+      "jsonPath": "effects[].value",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "AC, temporary hit point, and similar defensive numbers must be explicit."
+        }
+      ],
+      "comment": "AC, temporary hit point, and similar defensive numbers must be explicit. It maps to `effects[].value`. Purpose: Defense Value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].value`. The value type is `number-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 - **School**: Conjuration
 - **Ritual**: false
 - **Classes**: Druid
-- **Sub-Classes**: None
+- **Sub-Classes**: No Subclass Entries
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: bonus_action
@@ -17,6 +17,20 @@
 - **Targeting Range Unit**: feet
 - **Targeting Max**: 1
 - **Valid Targets**: self
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: false
 
 - **Verbal**: true
@@ -29,12 +43,31 @@
 - **Concentration**: false
 
 - **Effect Type**: UTILITY, DAMAGE
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: end_on_recast
+- **Conditional Ending Scope**: spell
 - **Utility Type**: light
-- **Light Bright Radius**: 10
-- **Light Dim Radius**: 10
+- **Light Bright Radius**: 20
+- **Light Dim Radius**: 20
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: false
+- **Light Ignites Objects**: false
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 
-- **Description**: A flickering flame appears in your hand. The flame remains there for the duration and harms neither you nor your equipment. The flame sheds bright light in a 10-foot radius and dim light for an additional 10 feet. The spell ends if you dismiss it as an action or if you cast it again. You can also attack with the flame, although doing so ends the spell. When you cast this spell, or as an action on a later turn, you can hurl the flame at a creature within 30 feet of you. Make a ranged spell attack. On a hit, the target takes 1d8 fire damage.
+- **Description**: A flickering flame appears in your hand and remains there for the duration. While there, the flame emits no heat and ignites nothing, and it sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The spell ends if you cast it again. Until the spell ends, you can take a Magic action to hurl fire at a creature or an object within 60 feet of you. Make a ranged spell attack. On a hit, the target takes 1d8 Fire damage.
 - **Higher Levels**: This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).
+- **Scaling Rule 1 Type**: character_level_tiers
+- **Scaling Rule 1 Applies To**: damage | Fire damage | dice 1d8 | trigger on_caster_action
+- **Scaling Rule 1 Notes**: 1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17; bonusPerLevel=+1d8
 
 ## Canonical D&D Beyond Snapshot
 

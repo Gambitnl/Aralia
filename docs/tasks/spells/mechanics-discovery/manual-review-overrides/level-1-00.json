@@ -1,0 +1,677 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "absorb-elements::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched triggering damage and first-hit wording, but Absorb Elements is a reaction/conditional rider rather than a ward, alarm, or delayed trap.",
+      "recommendedTemplateChange": "Track through reaction trigger, damage reduction, attack augment, and conditional-ending fields.",
+      "recommendedJsonChange": "Track through runtime reaction trigger, selected triggering damage type, first-hit consumption, and ending data."
+    },
+    "absorb-elements::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Absorb Elements grants resistance only to the triggering damage type, but runtime JSON lists all eligible damage types as if all resistances apply at once.",
+      "recommendedTemplateChange": "Add selected/triggering damage type fields for defensive reactions.",
+      "recommendedJsonChange": "Replace the all-types resistance representation with runtime data meaning 'damage type from the triggering damage event'.",
+      "reviewerNote": "Closed by adding Defense Damage Type Source -> effects[].damageTypeSource and setting it to triggering_damage_type. The first-hit stored energy, triggering-type damage rider, and spell-ending behavior remain open under conditional_ending."
+    },
+    "absorb-elements::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Absorb Elements stores energy for the first melee attack hit on the caster's next turn and then ends, but current data did not explicitly bind the added damage type to the triggering type or model end-after-first-hit as an ending condition.",
+      "recommendedTemplateChange": "Conditional Ending fields now include on_attack_hit, and Damage Type now records triggering_damage_type for the stored-energy rider.",
+      "recommendedJsonChange": "Runtime damage now uses triggering_damage_type and the stored-energy damage effect has conditionalEndings with on_attack_hit/scope spell.",
+      "closedReason": "Absorb Elements already had an on_attack_hit first-hit damage effect; this pass made the damage type explicitly follow the triggering damage event and added an on_attack_hit conditional ending so the spell ends when the stored energy is spent."
+    },
+    "alarm::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Alarm can ward a door, a window, or a 20-foot cube and lets the caster choose audible or mental alarm mode, but JSON keeps those choices in prose.",
+      "recommendedTemplateChange": "Add ward target-shape fields and alarm mode choice fields.",
+      "recommendedJsonChange": "Add runtime ward target data and mode data for audible versus mental alarm."
+    },
+    "alarm::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The audible alarm creates a handbell sound for 10 seconds within 60 feet of the warded area, but sound duration and radius are not structured.",
+      "recommendedTemplateChange": "Add audible alarm fields for sound type, sound duration, and audible radius.",
+      "recommendedJsonChange": "Add runtime sensory data for a 10-second handbell audible within 60 feet."
+    },
+    "alarm::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Alarm's core ward trigger, intrusion conditions, exempt creatures, audible/mental delivery, mental one-mile range, and sleep wake-up are flattened into one utility description.",
+      "recommendedTemplateChange": "Add ward/alarm fields for trigger event, warded area/object, exempt creatures, delivery mode, mental range, and wakes-sleeping-caster behavior.",
+      "recommendedJsonChange": "Add runtime alarm/ward data instead of prose-only utility."
+    },
+    "alarm::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Alarm wards an existing area, door, or window but does not materially change the environment.",
+      "recommendedTemplateChange": "Track this through ward/alarm target fields.",
+      "recommendedJsonChange": "Track this through runtime ward/alarm target data."
+    },
+    "alarm::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for the alarm trigger, not a special early-ending condition.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond the existing eight-hour duration.",
+      "recommendedJsonChange": "No runtime conditional-ending field needed beyond existing duration."
+    },
+    "animal-friendship::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Animal Friendship's Wisdom save and negated Charmed condition are already represented.",
+      "recommendedTemplateChange": "No additional attack/save field needed.",
+      "recommendedJsonChange": "No attack/save JSON change needed."
+    },
+    "animal-friendship::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal line-of-sight targeting, which is already represented.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed.",
+      "recommendedJsonChange": "No separate runtime vision/light/sound field needed."
+    },
+    "animal-friendship::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animal Friendship applies the Charmed condition to a Beast for 24 hours, but the status runtime includes inappropriate default repeat-save data that is not in the canonical prose.",
+      "recommendedTemplateChange": "Add explicit not-applicable sentinels for repeat saves and escape checks on status effects that do not have them.",
+      "recommendedJsonChange": "Replace default repeatSave/escapeCheck placeholders with schema-safe not_applicable values once the status template supports them."
+    },
+    "animal-friendship::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Animal Friendship ends if the caster or an ally damages the target, but runtime status data did not model that break condition.",
+      "recommendedTemplateChange": "Conditional Ending fields now include caster_or_ally_damages_target.",
+      "recommendedJsonChange": "Runtime JSON now has effects[0].conditionalEndings with trigger caster_or_ally_damages_target and scope spell.",
+      "closedReason": "Animal Friendship now records the caster-or-ally damage break condition in both structured markdown and runtime conditionalEndings."
+    },
+    "armor-of-agathys::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'melee attack roll' wording; the runtime retaliation trigger now filters melee attacks, and no d20 modifier is involved.",
+      "recommendedTemplateChange": "No attack/save modifier field needed.",
+      "recommendedJsonChange": "Closed by changing the reactive damage attackFilter weaponType from any to melee."
+    },
+    "armor-of-agathys::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Armor of Agathys uses temporary hit points as both a defense value and the condition that keeps the retaliatory damage alive, but the relationship was not explicit.",
+      "recommendedTemplateChange": "Defense Type/Defense Value/Scaling fields record the Temporary Hit Points, and Conditional Ending fields now record temporary_hit_points_depleted.",
+      "recommendedJsonChange": "Runtime JSON now links the defensive temp-HP effect and retaliatory damage effect through matching temporary_hit_points_depleted conditionalEndings.",
+      "closedReason": "Armor of Agathys already records the 5 Temporary Hit Points and scaling as defensive data; this pass added the temp-HP depletion ending to both the temp-HP effect and the retaliatory damage effect so the relationship is explicit."
+    },
+    "armor-of-agathys::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Armor of Agathys ends early when its temporary hit points are gone; runtime JSON had the temp HP and retaliatory damage but no explicit ending condition.",
+      "recommendedTemplateChange": "Conditional Ending fields now include temporary_hit_points_depleted.",
+      "recommendedJsonChange": "Runtime JSON now has temporary_hit_points_depleted conditionalEndings tied to the spell's granted Temporary Hit Points.",
+      "closedReason": "Armor of Agathys now records temporary_hit_points_depleted in structured markdown and runtime conditionalEndings, making the early spell end explicit."
+    },
+    "arms-of-hadar::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Arms of Hadar's Strength save and half damage on success are represented for the damage effect.",
+      "recommendedTemplateChange": "No additional attack/save modifier field needed for the damage save.",
+      "recommendedJsonChange": "No damage-save JSON change needed."
+    },
+    "arms-of-hadar::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Arms of Hadar suppresses all reactions until the start of the target's next turn on a failed Strength save; the status rider now uses negates_condition, but still relies on a broad Reactions Suppressed status with inappropriate default repeat-save/escape sentinels.",
+      "recommendedTemplateChange": "Use reaction restriction fields for all-reaction suppression, failed-save gate, and until-start-of-target-next-turn duration, with not_applicable repeat-save/escape fields.",
+      "recommendedJsonChange": "Add runtime reactionRestriction data or narrow status metadata; clear repeatSave/escapeCheck placeholders once not_applicable sentinels exist."
+    },
+    "bane::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'creatures of your choice' is ordinary multi-target selection, and the three-target maximum plus slot scaling are already represented.",
+      "recommendedTemplateChange": "No separate choice/mode field needed beyond multi-target targeting and scaling.",
+      "recommendedJsonChange": "No choice/mode JSON change needed beyond existing targeting and scaling."
+    },
+    "bane::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Bane subtracts 1d4 from attack rolls and saving throws made by failed-save targets, but structured markdown and JSON only apply a generic Bane status; the save outcome was corrected to negates_condition.",
+      "recommendedTemplateChange": "Add attack/save penalty fields for affected roll types, dice 1d4, failed-save gate, and duration while concentrated.",
+      "recommendedJsonChange": "Add runtime rollModifier data for attack rolls and saving throws instead of relying on status-condition name semantics."
+    },
+    "bane::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal line-of-sight targeting, which is already represented.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed.",
+      "recommendedJsonChange": "No separate runtime vision/light/sound field needed."
+    },
+    "bane::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'before the spell ends' scopes the roll penalty to the normal concentration duration, not a special early-ending mechanic.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond concentration duration.",
+      "recommendedJsonChange": "No runtime conditional-ending field needed beyond duration/concentration."
+    },
+    "bless::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Bless adds 1d4 to attack rolls and saving throws for affected targets, but structured markdown and JSON only apply a generic Blessed status.",
+      "recommendedTemplateChange": "Add attack/save bonus fields for affected roll types, dice 1d4, target duration, and concentration scope.",
+      "recommendedJsonChange": "Add runtime rollModifier data for attack rolls and saving throws instead of relying on status-condition name semantics."
+    },
+    "bless::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'before the spell ends' scopes the bonus to the normal concentration duration, not a special early-ending mechanic.",
+      "recommendedTemplateChange": "No conditional-ending field needed beyond concentration duration.",
+      "recommendedJsonChange": "No runtime conditional-ending field needed beyond duration/concentration."
+    },
+    "burning-hands::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Burning Hands' Dexterity save and half-damage success are already represented as a save-gated damage effect.",
+      "recommendedTemplateChange": "No additional attack/save modifier field needed.",
+      "recommendedJsonChange": "No JSON change needed for the creature damage save."
+    },
+    "burning-hands::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Burning Hands ignites flammable objects in the cone that are not worn or carried, but targeting and effects only cover creatures.",
+      "recommendedTemplateChange": "Add object ignition fields for flammable objects, area membership, and not-worn-or-carried exclusion.",
+      "recommendedJsonChange": "Add runtime environmental/object effect data that starts burning on eligible flammable objects in the cone."
+    },
+    "burning-hands::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell starts eligible flammable objects burning, which is a persistent world-state/environmental effect not represented structurally.",
+      "recommendedTemplateChange": "Add burning/ignition environmental state fields for objects.",
+      "recommendedJsonChange": "Add runtime burning state application for eligible objects."
+    },
+    "catapult::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Catapult requires choosing an eligible object and a travel direction, then resolving a straight-line movement path; current data collapses this to an area line plus prose utility.",
+      "recommendedTemplateChange": "Add object projectile fields for selected object, chosen direction, straight-line travel, maximum distance, fall behavior, and stop-on-impact.",
+      "recommendedJsonChange": "Add runtime projectile/objectMovement data rather than generic utility text."
+    },
+    "catapult::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Catapult's Dexterity save is only made by a creature the moving object would strike, and failure causes the object to stop and damage both object and creature; JSON stores a generic immediate save damage effect.",
+      "recommendedTemplateChange": "Add projectile-impact save fields tied to collision, object stop behavior, and damage-to-both-target-and-object.",
+      "recommendedJsonChange": "Add runtime collision-gated save and impact damage data instead of immediate area damage."
+    },
+    "catapult::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Catapult targets one object weighing 1 to 5 pounds that is not worn or carried, with higher-slot weight scaling, but runtime targeting allows creatures and objects without weight or worn/carried filters.",
+      "recommendedTemplateChange": "Closed by object-eligibility propagation: structured markdown now records object worn/carried, magical status, fixed-to-surface, size, weight, and weight-scaling fields.",
+      "recommendedJsonChange": "Closed by object-eligibility propagation: targeting.filter.objectEligibility now carries the matching runtime facts.",
+      "reviewerNote": "Closed because this target-filter finding is fully represented by the new objectEligibility fields; mixed target-mode and environmental object-effect findings remain open."
+    },
+    "catapult::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Catapult stops early on impact with a solid surface and then drops the object, but there is no surface collision or fall-state representation.",
+      "recommendedTemplateChange": "Add projectile collision fields for solid surface impact and fall-to-ground behavior.",
+      "recommendedJsonChange": "Add runtime projectile collision/landing data."
+    },
+    "catapult::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'choose direction' wording, but Catapult has no social or knowledge mechanic.",
+      "recommendedTemplateChange": "No social/knowledge field needed.",
+      "recommendedJsonChange": "No social/knowledge JSON field needed."
+    },
+    "charm-person::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Charm Person represents the Wisdom save and combat advantage modifier, but the status effect still carries inappropriate default repeat-save/escape placeholders not present in the prose.",
+      "recommendedTemplateChange": "Add not_applicable sentinels for repeat saves and escape checks on one-save status effects.",
+      "recommendedJsonChange": "Replace default repeatSave/escapeCheck placeholders with not_applicable values once supported."
+    },
+    "charm-person::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "The Humanoid target filter is represented in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "No target filter change needed for the Humanoid gate.",
+      "recommendedJsonChange": "No target filter JSON change needed for the Humanoid gate."
+    },
+    "charm-person::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal line-of-sight targeting, which is already represented.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed.",
+      "recommendedJsonChange": "No separate runtime vision/light/sound field needed."
+    },
+    "charm-person::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Charm Person makes the Charmed creature Friendly and later aware it was Charmed by the caster; the runtime has a generic utility description but no structured friendly-state or awareness payload.",
+      "recommendedTemplateChange": "Add social disposition fields for Friendly-to-caster and aftermath awareness fields for knows-charmed-by-caster.",
+      "recommendedJsonChange": "Add runtime socialDisposition and aftermathAwareness data."
+    },
+    "charm-person::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Charm Person ends if the caster or allies damage the target, but the status condition had no explicit break condition.",
+      "recommendedTemplateChange": "Conditional Ending fields now include caster_or_ally_damages_target.",
+      "recommendedJsonChange": "Runtime JSON now has conditionalEndings for caster_or_ally_damages_target on the Charmed status effect and the spell-end awareness utility effect.",
+      "closedReason": "Charm Person now records the caster-or-ally damage break condition in structured markdown and runtime conditionalEndings. The separate Friendly state and knows-it-was-charmed aftermath payloads remain open under their own buckets."
+    },
+    "charm-person::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When Charm Person ends, the target knows it was Charmed by the caster; this aftermath knowledge is not structured.",
+      "recommendedTemplateChange": "Add aftermath awareness fields for target knowledge after spell end.",
+      "recommendedJsonChange": "Add runtime aftermath data recording that the target knows it was Charmed by the caster."
+    },
+    "chromatic-orb::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Chromatic Orb requires choosing one of six damage types and can leap to additional chosen targets when two or more damage dice match, but runtime JSON stores the damage types as a slash-delimited string and has no leap mechanic.",
+      "recommendedTemplateChange": "Add chosen damage type fields and chained-target leap fields for duplicate damage dice, target distance from previous target, target uniqueness, and slot-level leap cap.",
+      "recommendedJsonChange": "Add runtime choice data for selected damage type and chain/leap data for duplicate d8 triggers, additional attack rolls, fresh damage rolls, and one-target-per-casting limits."
+    },
+    "chromatic-orb::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Chromatic Orb's leap requires a new attack roll and new damage roll against the new target; JSON only represents the initial attack damage.",
+      "recommendedTemplateChange": "Add secondary attack fields for conditional chained attacks.",
+      "recommendedJsonChange": "Add runtime secondary attack data triggered by duplicate damage dice."
+    },
+    "chromatic-orb::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched elemental damage type words, but Chromatic Orb does not create a persistent environmental change.",
+      "recommendedTemplateChange": "Track selected damage type under choice/damage fields.",
+      "recommendedJsonChange": "Track selected damage type under runtime choice/damage data."
+    },
+    "color-spray::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Color Spray's stale HP-pool utility data was removed and the Blinded status is now Constitution-save gated, but the status still uses generic one-round duration plus default repeat-save/escape placeholders rather than an explicit until-end-of-caster-next-turn duration with not_applicable sentinels.",
+      "recommendedTemplateChange": "Add duration endpoint fields for until_end_of_caster_next_turn and not_applicable repeat-save/escape fields for one-save status effects.",
+      "recommendedJsonChange": "Add runtime status duration endpoint and replace default repeatSave/escapeCheck placeholders once supported."
+    },
+    "color-spray::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The Blinded condition is represented as the mechanical outcome; the flashing colorful light is presentation rather than a persistent light effect.",
+      "recommendedTemplateChange": "No separate light/sound field needed beyond the Blinded status.",
+      "recommendedJsonChange": "No separate runtime light/sound field needed beyond the Blinded status."
+    },
+    "color-spray::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The dazzling array of flashing, colorful light describes the spell's visual presentation and is intentionally deferred as flavor after the Blinded mechanic is captured.",
+      "recommendedTemplateChange": "No field needed for this descriptive visual wording in this goal.",
+      "recommendedJsonChange": "No runtime field needed for this descriptive visual wording in this goal."
+    },
+    "command::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Command's five named options are represented in structured markdown and runtime controlOptions.",
+      "recommendedTemplateChange": "No new choice/mode field needed for the option list itself.",
+      "recommendedJsonChange": "No choice/mode JSON change needed for the option list itself."
+    },
+    "command::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Command's Wisdom save and negated utility effect are represented; the Halt action restrictions are represented in control option details.",
+      "recommendedTemplateChange": "No attack/save modifier change needed for this reviewed row.",
+      "recommendedJsonChange": "No attack/save JSON change needed for this reviewed row."
+    },
+    "command::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal line-of-sight targeting and verbal delivery, already represented by targeting and components.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed.",
+      "recommendedJsonChange": "No separate runtime vision/light/sound field needed."
+    },
+    "command::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Command requires the caster to speak a one-word command, but runtime JSON does not make the spoken-word delivery or language/understanding assumptions explicit.",
+      "recommendedTemplateChange": "Add command/communication fields for spoken one-word delivery and any language-understanding requirements or exclusions discovered across command-like spells.",
+      "recommendedJsonChange": "Add runtime commandDelivery data rather than leaving spoken one-word command only in prose."
+    },
+    "command::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "Command temporarily directs the target's next turn but does not summon or create a controlled entity.",
+      "recommendedTemplateChange": "Track through utility control option fields, not summon/controlled-entity fields.",
+      "recommendedJsonChange": "Track through runtime controlOptions, not summon/controlled-entity data."
+    },
+    "command::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Approach option's end-turn clause; Command has no ward, alarm, or delayed trigger.",
+      "recommendedTemplateChange": "No ward/alarm/trigger field needed.",
+      "recommendedJsonChange": "No ward/alarm/trigger JSON field needed."
+    },
+    "compelled-duel::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Compelled Duel's Wisdom save, attack disadvantage against others, and 30-foot leash are represented in runtime taunt data.",
+      "recommendedTemplateChange": "No attack/save modifier field needed for this reviewed row beyond existing taunt fields.",
+      "recommendedJsonChange": "No JSON change needed for the represented taunt mechanics."
+    },
+    "compelled-duel::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched normal line-of-sight targeting, which is already represented.",
+      "recommendedTemplateChange": "No separate vision/light/sound field needed.",
+      "recommendedJsonChange": "No separate runtime vision/light/sound field needed."
+    },
+    "compelled-duel::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Compelled Duel's listed break conditions are represented in runtime taunt.breakConditions.",
+      "recommendedTemplateChange": "No conditional-ending change needed for the currently represented break-condition list.",
+      "recommendedJsonChange": "No JSON change needed for the currently represented break-condition list."
+    },
+    "comprehend-languages::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Comprehend Languages requires touching the surface that contains written language, but this prerequisite is only stored in prose.",
+      "recommendedTemplateChange": "Add written-language reading fields for surface-touch requirement and read rate.",
+      "recommendedJsonChange": "Add runtime languageUnderstanding data for written text requiring touched surface."
+    },
+    "comprehend-languages::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Comprehend Languages distinguishes heard language, seen signed language, and seen written language, but runtime JSON stores them in one prose description.",
+      "recommendedTemplateChange": "Add language comprehension mode fields for heard speech, seen signing, and seen writing.",
+      "recommendedJsonChange": "Add runtime languageUnderstanding modes instead of relying on prose."
+    },
+    "comprehend-languages::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Comprehend Languages grants literal meaning only, reads about one page per minute, and does not decode symbols or secret messages; these communication limitations are prose-only.",
+      "recommendedTemplateChange": "Add communication/language fields for literal-meaning-only, page read rate, and no-symbol-or-secret-message decoding.",
+      "recommendedJsonChange": "Add runtime communication/language limitation data for these constraints."
+    },
+    "cure-wounds::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Cure Wounds heals 2d8 plus the caster's spellcasting ability modifier, but runtime healing only stores dice 2d8.",
+      "recommendedTemplateChange": "Add healing formula fields for spellcasting ability modifier and slot-scaling dice.",
+      "recommendedJsonChange": "Add runtime healing modifier data for plus spellcasting ability modifier."
+    },
+    "detect-evil-and-good::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched creature type names as if they were states; the actual mechanic is sensory detection and hallow knowledge.",
+      "recommendedTemplateChange": "Track through sensor/remote perception and knowledge-effect fields, not status/state fields.",
+      "recommendedJsonChange": "Track through runtime detection/knowledge data, not status/state data."
+    },
+    "detect-magic::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Detect Magic's faint aura visibility requires a later Magic action and only applies to visible creatures or objects bearing magic; runtime stores this in prose.",
+      "recommendedTemplateChange": "Add detection reveal fields for follow-up Magic action, visible target requirement, aura visibility, and blocker materials.",
+      "recommendedJsonChange": "Add runtime grantedAction/detectionReveal data plus blocker material data."
+    },
+    "detect-magic::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Detect Magic teaches the spell school when the detected effect was created by a spell, but this knowledge payload is prose-only.",
+      "recommendedTemplateChange": "Add knowledge payload fields for detected spell school and created-by-spell prerequisite.",
+      "recommendedJsonChange": "Add runtime knowledge data for learning spell school from detected spell-created effects."
+    },
+    "detect-magic::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "The faint aura is not pure flavor; it is the visible reveal mechanic after using a Magic action.",
+      "recommendedTemplateChange": "Resolve through detection reveal fields.",
+      "recommendedJsonChange": "Resolve through runtime detectionReveal data."
+    }
+  },
+  "manualFindings": {
+    "fog-cloud": [
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "fog-cloud::manual_heavy_obscurement",
+        "canonicalEvidence": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured.",
+        "structuredState": "Effect Type: TERRAIN; description preserves Heavily Obscured prose.",
+        "jsonState": "Runtime JSON uses TERRAIN terrainType obscuring but has no explicit heavily_obscured value.",
+        "issue": "The fog imposes the Heavily Obscured visibility state, but the runtime uses a coarse obscuring terrain type.",
+        "recommendedTemplateChange": "Add obscurity-level fields for terrain and environmental visibility effects.",
+        "recommendedJsonChange": "Add runtime obscurityLevel data for heavily_obscured.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "goodberry": [
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "goodberry::manual_created_berries",
+        "canonicalEvidence": "Ten berries appear in your hand and are infused with magic for the duration.",
+        "structuredState": "Effect Type: UTILITY; Utility Type: creation.",
+        "jsonState": "Runtime JSON stores a generic creation utility description only.",
+        "issue": "Goodberry creates a fixed count of ten magic berries, but count, item identity, and duration are not first-class created-object data.",
+        "recommendedTemplateChange": "Add created consumable object fields for object name, count, location, duration, and magical state.",
+        "recommendedJsonChange": "Add runtime createdObject/consumableResource data for ten berries appearing in hand.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "hellish-rebuke": [
+      {
+        "bucketId": "reaction_or_opportunity_restriction",
+        "findingId": "hellish-rebuke::manual_reaction_trigger",
+        "canonicalEvidence": "Casting Time: Reaction, which you take in response to damage from a creature that you can see within 60 feet of yourself.",
+        "structuredState": "Casting Time Unit: reaction; Reaction Trigger: when a creature you can see within 60 feet damages you.",
+        "jsonState": "Runtime JSON stores castingTime.unit reaction plus reactionCondition and combatCost.condition.",
+        "issue": "Hellish Rebuke's reaction trigger is represented in casting-time data even though the damage effect trigger remains immediate.",
+        "recommendedTemplateChange": "No new reaction field needed for this reviewed row, but later effect-trigger normalization may want to reference castingTime.reactionCondition.",
+        "recommendedJsonChange": "No JSON change needed for the represented reaction trigger.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "hellish-rebuke::manual_damaging_creature_target",
+        "canonicalEvidence": "The creature that damaged you is momentarily surrounded by green flames.",
+        "structuredState": "Reaction Trigger identifies the damaging creature; targeting stores one visible creature within 60 feet.",
+        "jsonState": "Runtime JSON stores the reaction condition and visible creature targeting, but target identity depends on the reaction trigger prose.",
+        "issue": "The spell can target only the creature that damaged the caster, and that relationship is not first-class target-filter data.",
+        "recommendedTemplateChange": "Add trigger-source target fields for reaction spells where the legal target is the triggering creature.",
+        "recommendedJsonChange": "Add runtime triggerSourceTarget data so the effect target is bound to the damaging creature.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "heroism": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "heroism::manual_willing_target",
+        "canonicalEvidence": "A willing creature you touch is imbued with bravery.",
+        "structuredState": "Valid Targets: creatures; no explicit willing target field.",
+        "jsonState": "Runtime targeting stores creatures but has no willing-target filter.",
+        "issue": "Heroism requires a willing creature, but willingness is not represented as target eligibility data.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "heroism::manual_slot_scaled_targets",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 1.",
+        "structuredState": "Scaling Rule 1 records special higher-level prose; max target count remains one.",
+        "jsonState": "Runtime JSON stores maxTargets 1 and no target-count scaling formula.",
+        "issue": "Heroism's higher-level target scaling is not represented as runtime target-count scaling.",
+        "recommendedTemplateChange": "Add target-count scaling fields for one additional target per slot level above base.",
+        "recommendedJsonChange": "Add runtime scaling data that increases maxTargets by one per slot level above 1.",
+        "resolutionStatus": "closed",
+        "closedReason": "Heroism now records higher-slot target-count scaling with structured targeting.maxTargets scaling notes and runtime targeting.maxTargets slot-level thresholds."
+      }
+    ],
+    "hex": [
+      {
+        "bucketId": "sustain_or_recast_action",
+        "findingId": "hex::manual_bonus_action_curse_transfer",
+        "canonicalEvidence": "If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature.",
+        "structuredState": "Description preserves the transfer text; no dedicated follow-up action fields.",
+        "jsonState": "Runtime JSON stores the transfer rule in description only.",
+        "issue": "Hex grants a later bonus-action curse transfer after the current cursed target drops to 0 HP, but that follow-up action is not modeled.",
+        "recommendedTemplateChange": "Add follow-up action fields for conditional retargeting after target_drops_to_0_hp.",
+        "recommendedJsonChange": "Add runtime followUpAction or curseTransfer data with bonus_action cost and later-turn timing.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "hex::manual_slot_scaled_concentration_duration",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. Your Concentration can last longer with a spell slot of level 2 (up to 4 hours), 3-4 (up to 8 hours), or 5+ (24 hours).",
+        "structuredState": "Scaling Rule 1 records special higher-level prose.",
+        "jsonState": "Runtime duration stays one hour and scaling has no duration thresholds.",
+        "issue": "Closed: Hex's slot-level concentration-duration thresholds are now represented as structured scaling rules and runtime higherLevelScaling.",
+        "recommendedTemplateChange": "Closed by changing Scaling Rule 1 to slot_level_table for duration.concentration_maximum.",
+        "recommendedJsonChange": "Closed by runtime higherLevelScaling slot_level_table entries for slot 2, slots 3-4, and slot 5+.",
+        "resolutionStatus": "closed",
+        "closedReason": "Hex now records its higher-slot maximum concentration durations in structured markdown and runtime JSON. The separate bonus-action curse transfer after target drops to 0 HP remains open under hex::manual_bonus_action_curse_transfer."
+      }
+    ],
+    "jump": [
+      {
+        "bucketId": "movement_or_repositioning",
+        "findingId": "jump::manual_fixed_jump_option",
+        "canonicalEvidence": "Once on each of its turns until the spell ends, that creature can jump up to 30 feet by spending 10 feet of movement.",
+        "structuredState": "Effect Type: UTILITY; Utility Type: other.",
+        "jsonState": "Runtime JSON now repeats the canonical jump wording in description, but has no movement option payload.",
+        "issue": "Jump grants a specific once-per-turn movement option with a fixed jump distance and movement cost, but this is not modeled as movement data.",
+        "recommendedTemplateChange": "Add movement option fields for jump distance, movement cost, frequency, and duration.",
+        "recommendedJsonChange": "Add runtime movementOption data for jump up to 30 feet by spending 10 feet of movement once per turn.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "jump::manual_willing_target",
+        "canonicalEvidence": "You touch a willing creature.",
+        "structuredState": "Valid Targets: creatures; no explicit willing target field.",
+        "jsonState": "Runtime targeting stores creatures but has no willing-target filter.",
+        "issue": "Jump requires a willing creature, but willingness is not represented as target eligibility data.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "jump::manual_slot_scaled_targets",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 1.",
+        "structuredState": "Scaling Rule 1 records special higher-level prose; max target count remains one.",
+        "jsonState": "Runtime JSON stores maxTargets 1 and no target-count scaling formula.",
+        "issue": "Jump's higher-level target scaling is not represented as runtime target-count scaling.",
+        "recommendedTemplateChange": "Add target-count scaling fields for one additional target per slot level above base.",
+        "recommendedJsonChange": "Add runtime scaling data that increases maxTargets by one per slot level above 1.",
+        "resolutionStatus": "closed",
+        "closedReason": "Jump now records higher-slot target-count scaling with structured targeting.maxTargets scaling notes and runtime targeting.maxTargets slot-level thresholds."
+      }
+    ],
+    "longstrider": [
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "longstrider::manual_slot_scaled_targets",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 1.",
+        "structuredState": "Scaling Rule 1 records special higher-level prose; max target count remains one.",
+        "jsonState": "Runtime JSON stores maxTargets 1 and no target-count scaling formula.",
+        "issue": "Longstrider's higher-level target scaling is not represented as runtime target-count scaling.",
+        "recommendedTemplateChange": "Add target-count scaling fields for one additional target per slot level above base.",
+        "recommendedJsonChange": "Add runtime scaling data that increases maxTargets by one per slot level above 1.",
+        "resolutionStatus": "closed",
+        "closedReason": "Longstrider now records higher-slot target-count scaling with structured targeting.maxTargets scaling notes and runtime targeting.maxTargets slot-level thresholds."
+      }
+    ],
+    "mage-armor": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "mage-armor::manual_willing_unarmored_target",
+        "canonicalEvidence": "You touch a willing creature who isn't wearing armor.",
+        "structuredState": "Valid Targets: allies; Effect Type: DEFENSIVE.",
+        "jsonState": "Runtime targeting stores allies and the defensive effect has restrictions.noArmor true, but no willingness target field.",
+        "issue": "Mage Armor requires a willing unarmored creature; unarmored is represented as a defensive restriction, but willing target eligibility is not first-class.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      }
+    ],
+    "magic-missile": [
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "magic-missile::manual_dart_allocation_and_scaling",
+        "canonicalEvidence": "You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. The darts all strike simultaneously, and you can direct them to hit one creature or several. Using a Higher-Level Spell Slot. The spell creates one more dart for each spell slot level above 1.",
+        "structuredState": "Targeting Max: 3; Scaling Rule 1 Bonus Per Level: +1 dart (1d4+1 each).",
+        "jsonState": "Runtime JSON stores maxTargets 3 and damage scaling prose, but no separate dart count, per-dart allocation, simultaneity, or dart-count scaling field.",
+        "issue": "Magic Missile is a multi-instance projectile spell, but dart count and allocation are flattened into targeting and scaling prose.",
+        "recommendedTemplateChange": "Add projectile instance fields for base count, allocation among targets, simultaneous resolution, and per-slot added instances.",
+        "recommendedJsonChange": "Add runtime projectileInstances data for base 3 darts plus one per slot above 1, each dealing 1d4+1 Force.",
+        "resolutionStatus": "closed",
+        "closedReason": "Magic Missile now records its base dart count, per-slot added darts, same-or-different target allocation, and simultaneous dart resolution with structured Target Instance fields and runtime targeting.instanceAllocation data."
+      }
+    ],
+    "ray-of-sickness": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "ray-of-sickness::manual_hit_gated_poisoned_rider",
+        "canonicalEvidence": "Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and has the Poisoned condition until the end of your next turn.",
+        "structuredState": "Attack Roll: ranged; Save Stat and Save Outcome have been corrected to not_applicable.",
+        "jsonState": "Runtime JSON now gates both damage and Poisoned condition on hit instead of an unrelated Constitution save.",
+        "issue": "Ray of Sickness has no saving throw; the poisoned rider is hit-gated.",
+        "recommendedTemplateChange": "No new attack/save field needed for this reviewed row after correcting stale save fields.",
+        "recommendedJsonChange": "Closed by changing the status condition from save-gated to hit-gated and removing inappropriate repeat-save/escape defaults.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "ray-of-sickness::manual_poisoned_until_next_turn",
+        "canonicalEvidence": "On a hit, the target takes 2d8 Poison damage and has the Poisoned condition until the end of your next turn.",
+        "structuredState": "Conditions Applied: Poisoned.",
+        "jsonState": "Runtime JSON stores Poisoned with a one-round duration.",
+        "issue": "The Poisoned condition is represented, though the current duration model is still coarse for 'until the end of your next turn'.",
+        "recommendedTemplateChange": "Later duration work should add until_end_of_caster_next_turn as an explicit status duration value.",
+        "recommendedJsonChange": "Later runtime duration work should replace rounds:1 with a caster-next-turn end marker.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "chromatic-orb": [
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "chromatic-orb::manual_damage_dice_leap_chain",
+        "canonicalEvidence": "If you roll the same number on two or more of the d8s, the orb leaps to a different target of your choice within 30 feet of the target. Make an attack roll against the new target, and make a new damage roll.",
+        "structuredState": "Effect Type: DAMAGE; structured fields only preserve the initial ranged spell attack and damage.",
+        "jsonState": "Runtime JSON only has one DAMAGE effect for the initial hit.",
+        "issue": "Chromatic Orb has conditional chained attacks and target uniqueness rules that are not represented as structured or runtime mechanics.",
+        "recommendedTemplateChange": "Add chain/leap fields for trigger on duplicate damage dice, secondary target distance, fresh attack/damage rolls, slot-level maximum leaps, and one-target-per-casting limit.",
+        "recommendedJsonChange": "Add runtime chainedAttack data for duplicate-dice leap behavior.",
+        "resolutionStatus": "closed",
+        "closedReason": "Closed by adding Secondary Target structured fields and runtime effects[].secondaryTargeting data. Chromatic Orb now records duplicate damage dice as the chain trigger, previous-target origin, different chosen creature within 30 feet, fresh attack and damage rolls, slot-level maximum leaps, and one-target-per-casting uniqueness."
+      }
+    ],
+    "command": [
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "command::manual_grovel_prone_state",
+        "canonicalEvidence": "Grovel. The target has the Prone condition and then ends its turn.",
+        "structuredState": "Control option details mention Prone, but Conditions Applied is not populated for the option.",
+        "jsonState": "Runtime controlOptions contain prose details for Grovel but no status/state payload for Prone.",
+        "issue": "The Grovel option applies the Prone condition, but that state change is flattened into option text.",
+        "recommendedTemplateChange": "Add option-level status/state fields for utility control options that apply named conditions.",
+        "recommendedJsonChange": "Add runtime option-level statusCondition/stateChange data for Grovel applying Prone.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "create-or-destroy-water": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "create-or-destroy-water::manual_create_destroy_modes",
+        "canonicalEvidence": "You do one of the following: Create Water ... Alternatively, the water falls as rain ... Destroy Water ... Alternatively, you destroy fog in a 30-foot Cube within range.",
+        "structuredState": "Spatial forms and measured details preserve some sizes and volumes, but the four mode choices are collapsed into one utility description.",
+        "jsonState": "Runtime JSON stores spatialDetails for rain/fog cubes and volume, but no runtime option list for create contained water, create rain, destroy contained water, or destroy fog.",
+        "issue": "Create or Destroy Water has four utility modes with different targets, environmental effects, and scaling choices.",
+        "recommendedTemplateChange": "Add utility option fields for create contained water, create rain, destroy contained water, and destroy fog, including per-mode target, volume/cube size, exposed-flame extinguishing, and slot-scaling choice.",
+        "recommendedJsonChange": "Add runtime utilityOptions data instead of relying on one prose description.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "create-or-destroy-water::manual_water_rain_fog_flame_state",
+        "canonicalEvidence": "The water falls as rain in a 30-foot Cube within range, extinguishing exposed flames there. ... You destroy fog in a 30-foot Cube within range.",
+        "structuredState": "Spatial forms mention rain and fog clearance cubes.",
+        "jsonState": "Runtime spatialDetails mention rain and fog clearance cubes; the utility effect description carries exposed-flame extinguishing.",
+        "issue": "The spell creates clean water, extinguishes exposed flames with rain, destroys contained water, and clears fog, but these world-state changes are not first-class runtime fields.",
+        "recommendedTemplateChange": "Add environmental change fields for water creation/destruction, rain extinguishing exposed flames, and fog destruction.",
+        "recommendedJsonChange": "Add runtime environmentalChange data for water volume, rain cube, exposed flame extinguishing, and fog removal.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "detect-evil-and-good": [
+      {
+        "bucketId": "sensor_or_remote_perception",
+        "findingId": "detect-evil-and-good::manual_creature_and_hallow_detection",
+        "canonicalEvidence": "For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the Hallow spell is active there and, if so, where.",
+        "structuredState": "Effect Type: UTILITY; Utility Type: sensory; barrier spatial details are represented.",
+        "jsonState": "Runtime JSON stores a generic sensory utility description plus barrier spatialDetails.",
+        "issue": "The spell's detected creature types, Hallow detection, location payload, and blocker materials are not represented as first-class detection fields.",
+        "recommendedTemplateChange": "Add detection fields for detected creature types, detected spell/effect names, location payload, radius, and blocker materials.",
+        "recommendedJsonChange": "Add runtime detection data for creature-type and Hallow sensing instead of prose-only utility.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "detect-evil-and-good::manual_hallow_presence_knowledge",
+        "canonicalEvidence": "You also sense whether the Hallow spell is active there and, if so, where.",
+        "structuredState": "No explicit knowledge payload field for Hallow.",
+        "jsonState": "Runtime JSON only mentions Hallow in the utility description.",
+        "issue": "The spell provides knowledge of whether Hallow is active and where it is, but that payload is prose-only.",
+        "recommendedTemplateChange": "Add knowledge payload fields for detected spell/effect presence and location.",
+        "recommendedJsonChange": "Add runtime knowledge data for Hallow presence and location.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "detect-poison-and-disease": [
+      {
+        "bucketId": "sensor_or_remote_perception",
+        "findingId": "detect-poison-and-disease::manual_poison_creature_contagion_detection",
+        "canonicalEvidence": "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself.",
+        "structuredState": "Effect Type: UTILITY; Utility Type: sensory; barrier spatial details are represented.",
+        "jsonState": "Runtime JSON stores a generic sensory utility description plus barrier spatialDetails.",
+        "issue": "The spell detects several poison/disease categories and their locations, but the categories and location payload are prose-only.",
+        "recommendedTemplateChange": "Add detection fields for poisons, poisonous/venomous creatures, magical contagions, location payload, radius, and blocker materials.",
+        "recommendedJsonChange": "Add runtime detection data for poison, poisonous/venomous creature, and magical contagion sensing.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "detect-poison-and-disease::manual_kind_identification",
+        "canonicalEvidence": "You sense the kind of poison, creature, or contagion in each case.",
+        "structuredState": "No explicit knowledge payload field for kind identification.",
+        "jsonState": "Runtime JSON only mentions kind identification in the utility description.",
+        "issue": "The spell identifies the kind of poison, poisonous creature, or contagion, but that knowledge payload is prose-only.",
+        "recommendedTemplateChange": "Add knowledge payload fields for detected kind/category.",
+        "recommendedJsonChange": "Add runtime knowledge data for kind identification.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

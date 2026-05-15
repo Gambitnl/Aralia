@@ -1,4 +1,4 @@
-﻿# Data Pipelines
+# Data Pipelines
 
 ## Purpose
 

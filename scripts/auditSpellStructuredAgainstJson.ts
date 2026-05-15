@@ -311,9 +311,24 @@ function formatSizeTypeLabel(sizeType: string): string {
       return 'Edge';
     case 'side':
       return 'Side';
+    case 'square':
+      return 'Square';
     default:
       return '';
   }
+}
+
+function formatAreaMeasurement(size: number, unit: string, sizeType?: string): string {
+  if (normalizeComparableText(sizeType ?? '').toLowerCase() === 'square') {
+    const normalizedUnit = normalizeDistanceUnit(unit || 'feet');
+    const renderedUnit = normalizedUnit === 'feet' ? 'sq. ft.' : `sq. ${normalizedUnit}`;
+
+    // Square-foot fields are total covered area, not a radius or edge length.
+    // Rendering them separately keeps ward spells from masquerading as cubes.
+    return `${size.toLocaleString('en-US')} ${renderedUnit}`;
+  }
+
+  return formatMeasuredDistance(size, unit, 'hyphenated');
 }
 
 function formatStructuredCastingTime(labels: Map<string, string>): string {
@@ -383,11 +398,31 @@ function formatStructuredRange(labels: Map<string, string>): string {
       break;
   }
 
-  if (!areaSize || areaSize === 'N/A') return base;
+  const normalizedAreaSize = areaSize.toLowerCase();
+  if (!areaSize || normalizedAreaSize === 'n/a' || normalizedAreaSize === 'none' || normalizedAreaSize === 'not_applicable') {
+    return base;
+  }
 
-  const hasAreaShape = areaShape && areaShape !== 'N/A';
+  const normalizedAreaShape = areaShape.toLowerCase();
+  const hasAreaShape = Boolean(
+    areaShape
+      && normalizedAreaShape !== 'n/a'
+      && normalizedAreaShape !== 'none'
+      && normalizedAreaShape !== 'not_applicable',
+  );
   if (!hasAreaShape) {
-    return base ? `${base} (${areaSize})` : areaSize;
+    const sizeType = (labels.get('Area Size Type') ?? '').trim();
+    const areaValue = Number(areaSize);
+    const normalizedAreaUnit = areaUnit === 'miles'
+      ? 'miles'
+      : areaUnit === 'inches'
+        ? 'inches'
+        : 'feet';
+    const areaLabel = Number.isFinite(areaValue)
+      ? formatAreaMeasurement(areaValue, normalizedAreaUnit, sizeType)
+      : areaSize;
+
+    return base ? `${base} (${areaLabel})` : areaLabel;
   }
 
   const renderedShape = areaShape
@@ -403,9 +438,11 @@ function formatStructuredRange(labels: Map<string, string>): string {
   const sizeType = (labels.get('Area Size Type') ?? '').trim();
   const renderedSizeType = sizeType ? formatSizeTypeLabel(sizeType) : '';
   const renderedMeasurement = Number.isFinite(areaValue)
-    ? formatMeasuredDistance(areaValue, normalizedAreaUnit, 'hyphenated')
+    ? formatAreaMeasurement(areaValue, normalizedAreaUnit, sizeType)
     : areaSize;
-  const area = `${renderedSizeType ? `${renderedSizeType} ` : ''}${renderedMeasurement} ${renderedShape}`.trim();
+  const area = normalizeComparableText(sizeType).toLowerCase() === 'square'
+    ? renderedMeasurement
+    : `${renderedSizeType ? `${renderedSizeType} ` : ''}${renderedMeasurement} ${renderedShape}`.trim();
 
   if (!base) return area;
   return `${base} (${area})`;
@@ -451,9 +488,12 @@ function formatJsonRange(spell: unknown): string {
     ? area.shape.split(/[_\s-]+/).map(titleCaseWord).join(' ')
     : '';
   const renderedSizeType = area.sizeType ? formatSizeTypeLabel(area.sizeType) : '';
-  const areaLabel = renderedShape
-    ? `${renderedSizeType ? `${renderedSizeType} ` : ''}${formatMeasuredDistance(area.size, area.sizeUnit ?? 'feet', 'hyphenated')} ${renderedShape}`
-    : `${area.size}`;
+  const renderedMeasurement = formatAreaMeasurement(area.size, area.sizeUnit ?? 'feet', area.sizeType);
+  const areaLabel = normalizeComparableText(area.sizeType ?? '').toLowerCase() === 'square'
+    ? renderedMeasurement
+    : renderedShape
+      ? `${renderedSizeType ? `${renderedSizeType} ` : ''}${renderedMeasurement} ${renderedShape}`
+      : `${area.size}`;
 
   if (!base) return areaLabel;
   return `${base} (${areaLabel})`;
@@ -761,7 +801,7 @@ function formatJsonDuration(spell: unknown): string {
 }
 
 function normalizeStructuredList(value: string): string[] {
-  if (!value || value === 'None') return [];
+  if (!value || value === 'None' || value === 'not_applicable') return [];
   return value
     .split(',')
     .map((entry) => entry.trim())
@@ -769,8 +809,115 @@ function normalizeStructuredList(value: string): string[] {
     .sort();
 }
 
+/**
+ * Sub-Classes-specific normalizer. The structured layer carries three sentinel
+ * markers - `Folded into Classes` / `Unsupported Entries` / `No Subclass Entries`
+ * - which are policy signals, NOT spell-access entries. The runtime JSON has
+ * no equivalent encoding yet (a `subClassesStatus` field is queued as Phase 3
+ * schema work), so for Phase 2 parity purposes a marker on the .md side is
+ * treated as equivalent to an empty array on the JSON side.
+ */
+const SUB_CLASSES_MARKERS: ReadonlySet<string> = new Set([
+  'Folded into Classes',
+  'Unsupported Entries',
+  'No Subclass Entries',
+]);
+
+function normalizeStructuredSubClassesValue(value: string): string[] {
+  const trimmed = (value ?? '').trim();
+  if (SUB_CLASSES_MARKERS.has(trimmed)) return [];
+  return normalizeStructuredList(value);
+}
+
 function joinComparableList(entries: string[]): string {
   return entries.join(', ');
+}
+
+function formatStructuredAccessGrants(labels: Map<string, string>): string {
+  const grants: string[] = [];
+
+  // Access grants model non-list spell access separately from `Classes`.
+  // Numbered fields let a spell carry multiple independent sources later while
+  // keeping Mending's Tinker's Magic case compact today.
+  for (let index = 1; index <= 20; index += 1) {
+    const sourceType = (labels.get(`Access Grant ${index} Source Type`) ?? '').trim();
+    const className = (labels.get(`Access Grant ${index} Class`) ?? '').trim();
+    const feature = (labels.get(`Access Grant ${index} Feature`) ?? '').trim();
+    const accessType = (labels.get(`Access Grant ${index} Access Type`) ?? '').trim();
+    const automatic = (labels.get(`Access Grant ${index} Automatic`) ?? '').trim();
+    const consumesSelection = (labels.get(`Access Grant ${index} Consumes Selection`) ?? '').trim();
+    const notes = (labels.get(`Access Grant ${index} Notes`) ?? '').trim();
+
+    if (!sourceType && !feature) continue;
+
+    grants.push([
+      sourceType,
+      className ? `class=${className}` : '',
+      feature ? `feature=${feature}` : '',
+      accessType ? `access=${accessType}` : '',
+      automatic ? `automatic=${automatic}` : '',
+      consumesSelection ? `consumesSelection=${consumesSelection}` : '',
+      notes ? `notes=${notes}` : '',
+    ].filter(Boolean).join('|'));
+  }
+
+  return grants.sort().join('; ');
+}
+
+function formatJsonAccessGrants(spell: unknown): string {
+  const parsed = SpellValidator.safeParse(spell);
+  if (!parsed.success) return '';
+
+  return (parsed.data.accessGrants ?? [])
+    .map((grant) => [
+      grant.sourceType,
+      grant.className ? `class=${grant.className}` : '',
+      grant.sourceName ? `feature=${grant.sourceName}` : '',
+      grant.accessType ? `access=${grant.accessType}` : '',
+      `automatic=${grant.automatic}`,
+      grant.consumesSelection != null ? `consumesSelection=${grant.consumesSelection}` : '',
+      grant.notes ? `notes=${grant.notes}` : '',
+    ].filter(Boolean).join('|'))
+    .sort()
+    .join('; ');
+}
+
+function formatStructuredUtilityOptions(labels: Map<string, string>): string {
+  const options: string[] = [];
+
+  // Utility cantrips like Elementalism are not one generic action; they expose a
+  // menu of concrete modes. Numbered option fields keep that menu structured
+  // without pretending each mode is a separate spell.
+  for (let index = 1; index <= 20; index += 1) {
+    const name = (labels.get(`Utility Option ${index} Name`) ?? '').trim();
+    const effect = (labels.get(`Utility Option ${index} Effect`) ?? '').trim();
+    const details = (labels.get(`Utility Option ${index} Details`) ?? '').trim();
+
+    if (!name && !effect) continue;
+
+    options.push([
+      name,
+      effect ? `effect=${effect}` : '',
+      details ? `details=${details}` : '',
+    ].filter(Boolean).join('|'));
+  }
+
+  return options.sort().join('; ');
+}
+
+function formatJsonUtilityOptions(spell: unknown): string {
+  const parsed = SpellValidator.safeParse(spell);
+  if (!parsed.success) return '';
+
+  return parsed.data.effects
+    .flatMap((effect) => effect.type === 'UTILITY' ? (effect.controlOptions ?? []) : [])
+    .map((option) => [
+      option.name,
+      option.effect ? `effect=${option.effect}` : '',
+      option.details ? `details=${option.details}` : '',
+    ].filter(Boolean).join('|'))
+    .sort()
+    .join('; ');
 }
 
 function formatJsonComparableRecord(spellId: string, jsonPath: string, rawSpell: unknown): StructuredJsonComparableRecord {
@@ -792,6 +939,8 @@ function formatJsonComparableRecord(spellId: string, jsonPath: string, rawSpell:
     ['School', spell.school],
     ['Classes', joinComparableList([...spell.classes].sort())],
     ['Sub-Classes', joinComparableList([...spell.subClasses].sort())],
+    ['Access Grants', formatJsonAccessGrants(rawSpell)],
+    ['Utility Options', formatJsonUtilityOptions(rawSpell)],
     ['Casting Time', formatJsonCastingTime(spell)],
     ['Range/Area', formatJsonRange(spell)],
     ['Components', formatJsonComponents(spell)],
@@ -816,7 +965,9 @@ function buildComparableFields(structured: StructuredSpellRecord, comparableJson
     { field: 'Level', structuredValue: structured.labels.get('Level') ?? '', jsonValue: comparableJson.labels.get('Level') ?? '' },
     { field: 'School', structuredValue: structured.labels.get('School') ?? '', jsonValue: comparableJson.labels.get('School') ?? '' },
     { field: 'Classes', structuredValue: joinComparableList(normalizeStructuredList(structured.labels.get('Classes') ?? '')), jsonValue: comparableJson.labels.get('Classes') ?? '' },
-    { field: 'Sub-Classes', structuredValue: joinComparableList(normalizeStructuredList(structured.labels.get('Sub-Classes') ?? '')), jsonValue: comparableJson.labels.get('Sub-Classes') ?? '' },
+    { field: 'Sub-Classes', structuredValue: joinComparableList(normalizeStructuredSubClassesValue(structured.labels.get('Sub-Classes') ?? '')), jsonValue: comparableJson.labels.get('Sub-Classes') ?? '' },
+    { field: 'Access Grants', structuredValue: formatStructuredAccessGrants(structured.labels), jsonValue: comparableJson.labels.get('Access Grants') ?? '' },
+    { field: 'Utility Options', structuredValue: formatStructuredUtilityOptions(structured.labels), jsonValue: comparableJson.labels.get('Utility Options') ?? '' },
     { field: 'Casting Time', structuredValue: formatStructuredCastingTime(structured.labels), jsonValue: comparableJson.labels.get('Casting Time') ?? '' },
     { field: 'Range/Area', structuredValue: formatStructuredRange(structured.labels), jsonValue: comparableJson.labels.get('Range/Area') ?? '' },
     { field: 'Components', structuredValue: formatStructuredComponents(structured.labels), jsonValue: comparableJson.labels.get('Components') ?? '' },
@@ -837,7 +988,8 @@ function buildComparableFields(structured: StructuredSpellRecord, comparableJson
 
 function isMeaningfulValue(value: string): boolean {
   const normalized = normalizeComparableText(value);
-  return normalized.length > 0 && normalized.toLowerCase() !== 'none' && normalized.toLowerCase() !== 'n/a';
+  const lower = normalized.toLowerCase();
+  return normalized.length > 0 && lower !== 'none' && lower !== 'n/a' && lower !== 'not_applicable';
 }
 
 function pushMismatch(

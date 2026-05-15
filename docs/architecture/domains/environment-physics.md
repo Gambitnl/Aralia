@@ -1,4 +1,4 @@
-﻿# Environment & Physics
+# Environment & Physics
 
 ## Purpose
 

@@ -1,0 +1,298 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 13,
+  "fields": [
+    {
+      "label": "Area Shape",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Cone",
+        "Cube",
+        "Cylinder",
+        "Line",
+        "Sphere",
+        "Square",
+        "Circle",
+        "Emanation",
+        "Wall",
+        "Hemisphere",
+        "Ring"
+      ],
+      "jsonPath": "targeting.areaOfEffect.shape",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Area shape is separate from range so self, point, line, wall, and emanation spells do not collapse together."
+        }
+      ],
+      "comment": "Area shape is separate from range so self, point, line, wall, and emanation spells do not collapse together. It maps to `targeting.areaOfEffect.shape`. Purpose: Area Shape exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.shape`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "Cone": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Cube": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Cylinder": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Line": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Sphere": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Square": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Circle": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Emanation": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Wall": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Hemisphere": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic.",
+        "Ring": "Allowed value for Area Shape; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Area Size",
+      "required": false,
+      "valueType": "number-or-na",
+      "jsonPath": "targeting.areaOfEffect.size",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Area size is the primary measurement for area targeting."
+        }
+      ],
+      "comment": "Area size is the primary measurement for area targeting. It maps to `targeting.areaOfEffect.size`. Purpose: Area Size exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.size`. The value type is `number-or-na`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Area Size Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "radius",
+        "diameter",
+        "length",
+        "edge",
+        "side",
+        "square"
+      ],
+      "jsonPath": "targeting.areaOfEffect.sizeType",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "A size number can mean radius, diameter, edge, side, or length depending on the shape."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "Large ward spells expose square-foot floor area separately from linear radius/diameter area facts."
+        }
+      ],
+      "comment": "Large ward spells expose square-foot floor area separately from linear radius/diameter area facts. It maps to `targeting.areaOfEffect.sizeType`. Purpose: Area Size Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.sizeType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "radius": "Allowed value for Area Size Type; use only when the canonical spell text supports this exact mechanic.",
+        "diameter": "Allowed value for Area Size Type; use only when the canonical spell text supports this exact mechanic.",
+        "length": "Allowed value for Area Size Type; use only when the canonical spell text supports this exact mechanic.",
+        "edge": "Allowed value for Area Size Type; use only when the canonical spell text supports this exact mechanic.",
+        "side": "Allowed value for Area Size Type; use only when the canonical spell text supports this exact mechanic.",
+        "square": "Allowed value for Area Size Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Area Size Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "jsonPath": "targeting.areaOfEffect.sizeUnit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Area measurements need explicit units for non-foot outliers."
+        }
+      ],
+      "comment": "Area measurements need explicit units for non-foot outliers. It maps to `targeting.areaOfEffect.sizeUnit`. Purpose: Area Size Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.sizeUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when Area Size Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Area Size Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Area Size Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Area Height",
+      "required": false,
+      "valueType": "number",
+      "jsonPath": "targeting.areaOfEffect.height",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Cylinders, walls, and wards often need a second vertical measurement."
+        }
+      ],
+      "comment": "Cylinders, walls, and wards often need a second vertical measurement. It maps to `targeting.areaOfEffect.height`. Purpose: Area Height exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.height`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Area Height Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "jsonPath": "targeting.areaOfEffect.heightUnit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Height units must not be inferred from horizontal area units."
+        }
+      ],
+      "comment": "Height units must not be inferred from horizontal area units. It maps to `targeting.areaOfEffect.heightUnit`. Purpose: Area Height Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.heightUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when Area Height Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Area Height Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Area Height Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Area Width",
+      "required": false,
+      "valueType": "number",
+      "jsonPath": "targeting.areaOfEffect.width",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Line, wall, and custom forms may need width separate from length."
+        }
+      ],
+      "comment": "Line, wall, and custom forms may need width separate from length. It maps to `targeting.areaOfEffect.width`. Purpose: Area Width exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.width`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Area Width Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "jsonPath": "targeting.areaOfEffect.widthUnit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Width needs its own unit for exact wall and line geometry."
+        }
+      ],
+      "comment": "Width needs its own unit for exact wall and line geometry. It maps to `targeting.areaOfEffect.widthUnit`. Purpose: Area Width Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.widthUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when Area Width Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Area Width Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Area Width Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Area Thickness",
+      "required": false,
+      "valueType": "number",
+      "jsonPath": "targeting.areaOfEffect.thickness",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Walls and barriers can have thickness independent from area size."
+        }
+      ],
+      "comment": "Walls and barriers can have thickness independent from area size. It maps to `targeting.areaOfEffect.thickness`. Purpose: Area Thickness exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.thickness`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Area Thickness Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "jsonPath": "targeting.areaOfEffect.thicknessUnit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Thickness unit must remain explicit when barriers use inches."
+        }
+      ],
+      "comment": "Thickness unit must remain explicit when barriers use inches. It maps to `targeting.areaOfEffect.thicknessUnit`. Purpose: Area Thickness Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.thicknessUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when Area Thickness Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Area Thickness Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Area Thickness Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Area Follows Caster",
+      "required": false,
+      "valueType": "boolean",
+      "jsonPath": "targeting.areaOfEffect.followsCaster",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Self-origin moving auras and emanations need movement semantics beyond shape and size."
+        }
+      ],
+      "comment": "Self-origin moving auras and emanations need movement semantics beyond shape and size. It maps to `targeting.areaOfEffect.followsCaster`. Purpose: Area Follows Caster exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.areaOfEffect.followsCaster`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "pattern": "^Spatial Form \\d+ (Label|Shape|Size Value|Size Type|Size Unit|Height Value|Height Unit|Width Value|Width Unit|Thickness Value|Thickness Unit|Segment Count|Segment Width Value|Segment Width Unit|Segment Height Value|Segment Height Unit|Notes)$",
+      "required": false,
+      "valueType": "structured-numbered-group",
+      "jsonPath": "targeting.spatialDetails.forms[]",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Elementalism and other multi-mode spells need alternate forms without overwriting the primary Range/Area header."
+        }
+      ],
+      "comment": "Elementalism and other multi-mode spells need alternate forms without overwriting the primary Range/Area header. It maps to `targeting.spatialDetails.forms[]`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.spatialDetails.forms[]`. The value type is `structured-numbered-group`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "pattern": "^Spatial Detail \\d+ (Label|Kind|Subject|Value|Unit|Qualifier|Notes)$",
+      "required": false,
+      "valueType": "structured-numbered-group",
+      "jsonPath": "targeting.spatialDetails.measuredDetails[]",
+      "acceptedValuesBySuffix": {
+        "Kind": [
+          "blocker",
+          "opening",
+          "diameter",
+          "thickness",
+          "depth",
+          "size_change",
+          "distance",
+          "count",
+          "volume",
+          "time",
+          "special"
+        ],
+        "Unit": [
+          "feet",
+          "miles",
+          "inches",
+          "gallons",
+          "minutes"
+        ]
+      },
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Measured edge facts like volume, extra distance, or duration need a home outside prose."
+        }
+      ],
+      "comment": "Measured edge facts like volume, extra distance, or duration need a home outside prose. It maps to `targeting.spatialDetails.measuredDetails[]`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.spatialDetails.measuredDetails[]`. The value type is `structured-numbered-group`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

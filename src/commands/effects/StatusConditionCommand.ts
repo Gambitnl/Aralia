@@ -1,6 +1,6 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState, StatusEffect, ActiveCondition } from '../../types/combat';
-import { isStatusConditionEffect, EffectDuration } from '../../types/spells';
+import { isStatusConditionEffect, EffectDuration, ConditionName } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { generateId } from '../../utils/combatUtils';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
@@ -15,7 +15,18 @@ export class StatusConditionCommand extends BaseEffectCommand {
     let currentState = state;
 
     for (const target of this.getTargets(currentState)) {
-      // 1. Check Saving Throw (if applicable)
+      // 1. Check Condition Immunity
+      const conditionName = this.effect.statusCondition.name as ConditionName;
+      if (target.conditionImmunities?.includes(conditionName)) {
+        currentState = this.addLogEntry(currentState, {
+          type: 'status',
+          message: `${target.name} is immune to ${conditionName}`,
+          characterId: target.id
+        });
+        continue;
+      }
+
+      // 2. Check Saving Throw (if applicable)
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
         const caster = this.getCaster(currentState);
         const dc = calculateSpellDC(caster);

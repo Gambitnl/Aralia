@@ -1,4 +1,4 @@
-﻿# Race Enrichment Workflow
+# Race Enrichment Workflow
 
 Last Updated: 2026-03-11
 Purpose: Document the current race-sync workflow that keeps glossary race entries aligned with character-creator race data.

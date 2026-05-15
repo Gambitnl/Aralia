@@ -96,7 +96,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ## JSON Data Files (.json)
 

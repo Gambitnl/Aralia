@@ -1,4 +1,4 @@
-﻿# Levels 1-9 Spell Migration Guide
+# Levels 1-9 Spell Migration Guide
 
 **Last Reviewed:** 2026-03-12  
 **Status:** Active bridge / narrowed playbook  

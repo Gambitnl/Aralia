@@ -4,7 +4,7 @@
 - **School**: Transmutation
 - **Ritual**: false
 - **Classes**: Druid
-- **Sub-Classes**: None
+- **Sub-Classes**: No Subclass Entries
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -16,7 +16,21 @@
 - **Targeting Range**: 5
 - **Targeting Range Unit**: feet
 - **Targeting Max**: 1
-- **Valid Targets**: creatures, objects, enemies
+- **Valid Targets**: creatures
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 
 - **Verbal**: false
@@ -29,11 +43,30 @@
 - **Concentration**: false
 
 - **Effect Type**: DAMAGE
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Damage Dice**: 1d10
 - **Damage Type**: Acid
 
-- **Description**: You channel primal magic to cause your teeth or fingernails to sharpen, ready to deliver a corrosive attack. Make a melee spell attack against one creature within 5 feet of you. On a hit, the target takes 1d10 acid damage.
-- **Higher Levels**: None
+- **Description**: You channel primal magic to cause your teeth or fingernails to sharpen, ready to deliver a corrosive attack. Make a melee spell attack against one creature within 5 feet of you. On a hit, the target takes 1d10 acid damage. After you make the attack, your teeth or fingernails return to normal.
+- **Higher Levels**: This spell's damage increases by 1d10 when you reach 5th level (2d10), 11th level (3d10), and 17th level (4d10).
+- **Scaling Rule 1 Type**: character_level_tiers
+- **Scaling Rule 1 Applies To**: damage | Acid damage | dice 1d10 | trigger immediate
+- **Scaling Rule 1 Notes**: 1d10 at level 1, 2d10 at level 5, 3d10 at level 11, 4d10 at level 17; bonusPerLevel=+1d10
 
 ## Canonical D&D Beyond Snapshot
 
@@ -52,7 +85,7 @@ Damage/Effect: Acid
 
 Rules Text:
 You channel primal magic to cause your teeth or fingernails to sharpen, ready to deliver a corrosive attack. Make a melee spell attack against one creature within 5 feet of you. On a hit, the target takes 1d10 acid damage. After you make the attack, your teeth or fingernails return to normal.
-The spell’s damage increases by 1d10 when you reach 5th level (2d10), 11th level (3d10), and 17th level (4d10).
+The spell's damage increases by 1d10 when you reach 5th level (2d10), 11th level (3d10), and 17th level (4d10).
 
 Spell Tags:
 Damage

@@ -1,0 +1,21 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "label": "Condition Immunity Source Creature Types",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].attackerFilter.creatureTypes[]",
+      "log": [
+        {
+          "at": "2026-05-13T23:30:00+02:00",
+          "action": "registered",
+          "why": "Protection from Evil and Good blocks Charmed and Frightened only from a named source creature-type set."
+        }
+      ],
+      "comment": "Lists the source creature types whose condition-causing effects are blocked by a condition-immunity defensive effect. Leave this as `not_applicable` for unconditional immunities like Heroism, and populate it only when the canonical prose limits the immunity by source creature type. It maps to `effects[].attackerFilter.creatureTypes[]` on the condition-immunity DEFENSIVE effect. Purpose: Condition Immunity Source Creature Types exists so source-limited immunity is not flattened into a generic condition-immunity list."
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "summon-lesser-demons": [
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "summon-lesser-demons::terrain_or_surface",
+        "canonicalEvidence": "As part of casting the spell, you can form a circle on the ground with the blood used as a material component.",
+        "structuredState": "No optional blood-circle ground ward fields.",
+        "jsonState": "Runtime JSON has the circle only in prose.",
+        "issue": "The optional blood circle is a ground ward that restricts summoned demons, but it is not represented.",
+        "recommendedTemplateChange": "Add optional ground ward/circle fields.",
+        "recommendedJsonChange": "Add runtime bloodCircle option with protected area around caster.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "summon-lesser-demons::vision_light_sound",
+        "canonicalEvidence": "You choose the unoccupied spaces you can see within range where they appear.",
+        "structuredState": "Line of Sight: true.",
+        "jsonState": "Runtime targeting lineOfSight is true.",
+        "issue": "The visibility requirement is represented for the placement target, though multi-placement remains open.",
+        "recommendedTemplateChange": "No line-of-sight change required for this row.",
+        "recommendedJsonChange": "No line-of-sight runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "message_or_communication",
+        "findingId": "summon-lesser-demons::message_or_communication",
+        "canonicalEvidence": "You utter foul words, summoning demons from the chaos of the Abyss.",
+        "structuredState": "Verbal component is true.",
+        "jsonState": "Runtime components preserve verbal casting.",
+        "issue": "The foul words are casting presentation, not a separate communication mechanic.",
+        "recommendedTemplateChange": "No message/communication field required.",
+        "recommendedJsonChange": "No runtime communication change required.",
+        "resolutionStatus": "deferred_flavor"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "summon-lesser-demons::summon_or_controlled_entity",
+        "canonicalEvidence": "Two, four, or eight demons appear by table result; demons are hostile to all creatures, roll group initiative, have their own turns, and pursue and attack nearest non-demons.",
+        "structuredState": "Effect Type: SUMMON; scaling prose records higher-level counts.",
+        "jsonState": "Runtime JSON has no typed SUMMON effect.",
+        "issue": "The summon count, CR cap, hostile behavior, group initiative, own turns, targeting behavior, and higher-slot multipliers are not represented.",
+        "recommendedTemplateChange": "Add summon table, behavior, initiative, hostility, and slot multiplier fields.",
+        "recommendedJsonChange": "Add runtime SUMMON data for table outcomes, hostileToAll, groupInitiative, ownTurns, attackNearestNonDemons, and level 6-7 x2 / 8-9 x3 count scaling.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "summon-lesser-demons::resource_or_consumption",
+        "canonicalEvidence": "Using the material component in this manner consumes it when the spell ends.",
+        "structuredState": "Consumed: false because the blood is only consumed when used for the optional circle.",
+        "jsonState": "Runtime components isConsumed false and no conditional consumption data.",
+        "issue": "The blood component has optional delayed consumption if used to form the circle.",
+        "recommendedTemplateChange": "Add conditional material consumption fields.",
+        "recommendedJsonChange": "Add runtime componentConsumption conditional on bloodCircleUsed at spell end.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "summon-lesser-demons::object_stats_or_damageability",
+        "canonicalEvidence": "A summoned demon disappears when it drops to 0 hit points or when the spell ends.",
+        "structuredState": "No summon HP ending fields.",
+        "jsonState": "Runtime JSON has no summon entity data.",
+        "issue": "Summoned demons disappear at 0 HP, which requires typed summon lifecycle data.",
+        "recommendedTemplateChange": "Add summon disappearance conditions.",
+        "recommendedJsonChange": "Add runtime summonLifecycle disappearsAt0Hp and onSpellEnd.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "summon-lesser-demons::conditional_ending",
+        "canonicalEvidence": "A summoned demon disappears when it drops to 0 hit points or when the spell ends. Using the material component in this manner consumes it when the spell ends.",
+        "structuredState": "No summon lifecycle or delayed consumption fields.",
+        "jsonState": "Runtime JSON has neither lifecycle nor delayed consumption data.",
+        "issue": "Summon lifecycle endings and optional material consumption at spell end are not represented.",
+        "recommendedTemplateChange": "Add summon lifecycle and conditional component consumption fields.",
+        "recommendedJsonChange": "Add runtime lifecycle/consumption data tied to spell end and demon HP 0.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "aftermath_or_memory",
+        "findingId": "summon-lesser-demons::aftermath_or_memory",
+        "canonicalEvidence": "A summoned demon disappears when it drops to 0 hit points or when the spell ends.",
+        "structuredState": "No post-end aftermath beyond summon disappearance.",
+        "jsonState": "Runtime JSON has no summon lifecycle.",
+        "issue": "This is a summon lifecycle rule rather than a separate aftermath mechanic.",
+        "recommendedTemplateChange": "No separate aftermath field required beyond summon lifecycle.",
+        "recommendedJsonChange": "No separate aftermath runtime change required beyond summon lifecycle.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "thunder-step": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "thunder-step::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature within 10 feet of the space you left must make a Constitution saving throw, taking 3d10 thunder damage on a failed save or half as much damage on a successful one.",
+        "structuredState": "Save/damage are represented; no origin-left-space burst field.",
+        "jsonState": "Runtime DAMAGE effect has Constitution save half 3d10 Thunder, but no 10-foot burst around departure space.",
+        "issue": "The save and damage are represented; the departure-space burst geometry is not.",
+        "recommendedTemplateChange": "Add departure-origin burst fields for teleport damage.",
+        "recommendedJsonChange": "Add runtime damage area centered on origin space radius 10 feet.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "thunder-step::target_filter_or_eligibility",
+        "canonicalEvidence": "Teleport yourself to an unoccupied space you can see within range. You can also teleport one willing creature of your size or smaller within 5 feet; there must be an unoccupied space within 5 feet of your destination or it is left behind.",
+        "structuredState": "Valid Targets: location; no passenger eligibility/destination-adjacent space fields.",
+        "jsonState": "Runtime targeting ground with lineOfSight, but no unoccupied destination or passenger rules.",
+        "issue": "Thunder Step has destination occupancy and optional passenger eligibility/placement rules that are not represented.",
+        "recommendedTemplateChange": "Add teleport destination and passenger eligibility fields.",
+        "recommendedJsonChange": "Add runtime teleport data for unoccupied visible destination and optional passenger willing, size<=caster, within 5 feet, carrying capacity, destination space within 5 feet or left behind.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

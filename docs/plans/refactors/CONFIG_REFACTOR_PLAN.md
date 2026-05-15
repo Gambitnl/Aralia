@@ -1,4 +1,4 @@
-﻿# Configuration Refactor Plan And Research
+# Configuration Refactor Plan And Research
 
 Last Reviewed: 2026-03-12
 Status: Preserved refactor-research note / partially landed configuration plan

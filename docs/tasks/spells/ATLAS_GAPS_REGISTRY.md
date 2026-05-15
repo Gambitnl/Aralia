@@ -157,8 +157,8 @@ Anything beyond that is a gap. Report it here.
 - **Original report (orchestrator policy)**: Buckets could carry
   `status: 'active'` Phase 2 or Phase 3 steps while Phase 1 still had
   open `queued` or `active` steps. Conceptually wrong - the
-  canonical → structured → JSON migration is sequential; you can't
-  meaningfully run structured → JSON parity while structured itself
+  canonical -> structured -> JSON migration is sequential; you can't
+  meaningfully run structured -> JSON parity while structured itself
   is still being shaped from canonical. Multiple V3 buckets had Phase
   2 work flagged active despite incomplete Phase 1 work.
 - **Resolution**: Added `isPhase1Complete(bucket)` helper that returns

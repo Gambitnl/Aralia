@@ -12,8 +12,9 @@
     "Sorcerer",
     "Wizard"
   ],
-  "subClasses": [],
-  "subClassesVerification": "unverified",
+  "subClasses": [
+    "Paladin - Oath of the Ancients"
+  ],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -55,23 +56,38 @@
     ],
     "lineOfSight": false,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "DEFENSIVE",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -88,49 +104,83 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-      "description": "Until the spell ends, one willing creature you touch has Resistance to Bludgeoning, Piercing, and Slashing damage.",
+      "defenseType": "resistance",
+      "damageType": [
+        "Bludgeoning",
+        "Piercing",
+        "Slashing"
+      ],
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "description": "Until the spell ends, one willing creature the caster touches has Resistance to Bludgeoning, Piercing, and Slashing damage.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable"
       },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": ""
-      }
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

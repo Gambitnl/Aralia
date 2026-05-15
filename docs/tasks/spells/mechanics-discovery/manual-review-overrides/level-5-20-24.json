@@ -1,0 +1,201 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 20-24 in generated discovery row order."
+  ],
+  "findings": {
+    "dominate-person::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Wisdom save, Advantage when the caster or allies are fighting the target, and on-damage repeat save are still prose-only in runtime.",
+      "recommendedTemplateChange": "Add domination save fields for initial save, combat-state advantage, and on-damage repeat save.",
+      "recommendedJsonChange": "Add runtime dominationSave data."
+    },
+    "dominate-person::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can command the target to take a Reaction but must spend the caster's own Reaction; runtime lacks reaction command economy.",
+      "recommendedTemplateChange": "Add controlled-target reaction command fields with controller reaction cost.",
+      "recommendedJsonChange": "Add runtime commandReaction data."
+    },
+    "dominate-person::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "The Humanoid target filter is already represented in runtime targeting.",
+      "recommendedTemplateChange": "No target-filter field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.filter.creatureTypes Humanoid."
+    },
+    "dominate-person::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "dominate-person::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster has a same-plane telepathic link with the Charmed target and can issue no-action commands through it; runtime lacks telepathic-link fields.",
+      "recommendedTemplateChange": "Add telepathic link fields for target condition, same-plane requirement, command use, and examples.",
+      "recommendedJsonChange": "Add runtime telepathyLink data."
+    },
+    "dominate-person::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Charmed target obeys no-action commands on its turn, has fallback self-protection behavior, can be commanded to use a Reaction at caster reaction cost, and repeats saves on damage; runtime lacks dominated-target control fields.",
+      "recommendedTemplateChange": "Add dominated-target control fields distinct from summon fields.",
+      "recommendedJsonChange": "Add runtime dominationControl data."
+    },
+    "dominate-person::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The same-plane phrase constrains telepathy and does not move a creature between planes.",
+      "recommendedTemplateChange": "Track as telepathic link constraint.",
+      "recommendedJsonChange": "No travel/planar movement runtime data required."
+    },
+    "dominate-person::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Charmed, telepathic command obedience, same-plane communication, and default behavior are all social/control mechanics, but runtime preserves them only in prose.",
+      "recommendedTemplateChange": "Add domination social/control fields.",
+      "recommendedJsonChange": "Add runtime dominationSocialControl data."
+    },
+    "dominate-person::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target gains Charmed for the duration, with repeat save on damage and domination riders; runtime lacks typed Charmed effect and status riders.",
+      "recommendedTemplateChange": "Add Charmed status plus domination rider fields.",
+      "recommendedJsonChange": "Add runtime Charmed STATUS_CONDITION and domination riders."
+    },
+    "dream::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the messenger is terrifying, the target makes a Wisdom save; on failure it gains no rest benefit and takes 3d6 Psychic damage on waking. Runtime lacks this optional save/damage/rest branch.",
+      "recommendedTemplateChange": "Add optional nightmare branch fields for message length, Wisdom save, delayed wake damage, and rest-benefit denial.",
+      "recommendedJsonChange": "Add runtime nightmareBranch data."
+    },
+    "dream::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The messenger can shape the dream environment with landscapes, objects, and images; runtime lacks typed dream illusion/environment-shaping fields.",
+      "recommendedTemplateChange": "Add dream environment shaping fields.",
+      "recommendedJsonChange": "Add runtime dreamEnvironment data."
+    },
+    "dream::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The messenger can converse with a sleeping target and optionally deliver a terrifying message of up to ten words; runtime lacks typed dream communication fields.",
+      "recommendedTemplateChange": "Add dream communication fields for conversation, target sleep requirement, and message word limit.",
+      "recommendedJsonChange": "Add runtime dreamCommunication data."
+    },
+    "dream::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The same-plane requirement gates targeting and does not move a creature between planes.",
+      "recommendedTemplateChange": "Track under target eligibility.",
+      "recommendedJsonChange": "No travel/planar movement runtime data required."
+    },
+    "dream::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell targets a known same-plane creature, reports whether the target is awake, can wait for sleep, and makes the target perfectly recall the dream; runtime lacks typed dream-knowledge and memory fields.",
+      "recommendedTemplateChange": "Add dream target knowledge, awake-state feedback, wait-for-sleep, and perfect-recall fields.",
+      "recommendedJsonChange": "Add runtime dreamKnowledge data."
+    },
+    "dream::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The messenger is Incapacitated and has Speed 0 while in trance; runtime lacks typed trance status/speed effects.",
+      "recommendedTemplateChange": "Add messenger trance state fields for Incapacitated and Speed 0.",
+      "recommendedJsonChange": "Add runtime messengerTrance status data."
+    },
+    "dream::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The messenger can emerge from the trance at any time to end the spell, and if the target is awake the messenger can end the trance/spell or wait for sleep; runtime lacks these ending choices.",
+      "recommendedTemplateChange": "Add dream ending choice fields.",
+      "recommendedJsonChange": "Add runtime dreamEnding data."
+    },
+    "enervation::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime has the initial Dexterity save but flattens success as half damage; canonical success is 2d8 and spell ends, while failure is 4d8 and enables sustained damage.",
+      "recommendedTemplateChange": "Add save-branch damage fields with different success/failure dice and branch outcomes.",
+      "recommendedJsonChange": "Add runtime branchedSaveDamage data."
+    },
+    "enervation::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "After a failed save, the caster can use an action each turn to automatically deal 4d8 Necrotic damage; the spell ends if the caster uses the action for anything else. Runtime lacks sustained action and missed-action ending fields.",
+      "recommendedTemplateChange": "Add sustained damage action fields with required action each turn and fail-to-sustain ending.",
+      "recommendedJsonChange": "Add runtime sustainDamageAction data."
+    },
+    "enervation::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection and descriptive inky darkness; the visible target is targeting, and the inky appearance is not a separate light/sound mechanic.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "enervation::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The caster regains hit points from damage dealt; this is healing/life-drain, not resource consumption.",
+      "recommendedTemplateChange": "Track under healing/life-drain fields.",
+      "recommendedJsonChange": "No resource/consumption runtime data required."
+    },
+    "enervation::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Whenever the spell deals damage, the caster regains hit points equal to half the Necrotic damage taken; runtime lacks linked life-drain healing fields.",
+      "recommendedTemplateChange": "Add damage-linked healing fields for half damage dealt.",
+      "recommendedJsonChange": "Add runtime lifeDrainHealing data."
+    },
+    "enervation::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched damage amounts and healing, but no object stats or object damageability are involved.",
+      "recommendedTemplateChange": "No object-stat field required.",
+      "recommendedJsonChange": "No object-stat runtime data required."
+    },
+    "enervation::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The inky tendril is spell presentation and does not change the environment.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "enervation::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell ends on successful initial save, on caster using an action for anything else, when target leaves range, or when target has total cover; runtime lacks these branch and ending conditions.",
+      "recommendedTemplateChange": "Add branch-ending and sustain-ending fields for save success, action use, range loss, and total cover.",
+      "recommendedJsonChange": "Add runtime enervationEnding data."
+    },
+    "far-step::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched bonus action wording, but Far Step does not modify attacks, saves, or checks.",
+      "recommendedTemplateChange": "Track under sustain action and teleport movement.",
+      "recommendedJsonChange": "No attack/save runtime data required."
+    },
+    "far-step::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The teleport destination must be an unoccupied visible space up to 60 feet away; runtime now has teleport movement but lacks unoccupied visible destination fields.",
+      "recommendedTemplateChange": "Add teleport destination eligibility fields for visible and unoccupied space.",
+      "recommendedJsonChange": "Add runtime teleportDestination filter data."
+    },
+    "far-step::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "On each later turn before the spell ends, the caster can use a bonus action to teleport again; runtime has the teleport effect but lacks repeat granted-action semantics.",
+      "recommendedTemplateChange": "Add repeat teleport action fields for bonus-action reuse while active.",
+      "recommendedJsonChange": "Add runtime repeatTeleportAction data."
+    },
+    "far-step::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible destination selection, which is a teleport destination filter rather than a vision/light/sound effect.",
+      "recommendedTemplateChange": "Track under teleport destination eligibility.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "far-step::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The 60-foot teleport movement is now represented as a MOVEMENT teleport effect; repeat-use precision remains tracked under sustain_or_recast_action.",
+      "recommendedTemplateChange": "No new travel field required for this pass.",
+      "recommendedJsonChange": "Closed by adding MOVEMENT teleport."
+    },
+    "far-step::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The bonus-action repeat lasts until the normal spell duration ends; no special conditional ending is present.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    },
+    "flame-strike::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save, half-damage outcome, Fire damage, Radiant damage, and +1d6 scaling to both damage components are now represented.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by adding the missing Radiant DAMAGE effect and scaling."
+    },
+    "flame-strike::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The vertical column of fire is instantaneous spell presentation and damage delivery, not a persistent environmental change.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    }
+  },
+  "manualFindings": {}
+}

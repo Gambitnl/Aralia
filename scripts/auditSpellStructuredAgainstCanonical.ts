@@ -37,6 +37,14 @@ const REPORT_JSON_PATH = path.join(REPO_ROOT, '.agent', 'roadmap-local', 'spell-
 const REPORT_MD_PATH = path.join(REPO_ROOT, 'docs', 'tasks', 'spells', 'SPELL_STRUCTURED_VS_CANONICAL_REPORT.md');
 const CANONICAL_SNAPSHOT_HEADING = '## Canonical D&D Beyond Snapshot';
 const CANONICAL_ONLY_MARKER = '<!-- CANONICAL-ONLY-REFERENCE -->';
+// A "from-5etools" partial canonical block is the parity escape-hatch for spells that have no
+// public D&D Beyond detail page (Galder's Tower, Galder's Speedy Courier, Blade of Disaster, etc.).
+// The block carries only the structural identity fields (Name, Level, School) sourced from the
+// 5etools community index; rules text and component prose are intentionally not embedded. When
+// this marker is present, the audit only compares fields the partial block actually populates and
+// suppresses `missing-canonical-field` mismatches for the rest, so the partial coverage doesn't
+// produce synthetic noise across the prose lanes that the partial block deliberately omits.
+const CANONICAL_FROM_FIVE_E_TOOLS_MARKER = '<!-- CANONICAL-FROM-5ETOOLS -->';
 
 type MismatchKind = 'value-mismatch' | 'missing-structured-field' | 'missing-canonical-field';
 
@@ -59,6 +67,8 @@ interface CanonicalSpellRecord {
   rulesText: string;
   higherLevelsText: string;
   availableFor: string[];
+  captureMethod: string;
+  legacyPage: boolean;
 }
 
 interface ComparableField {
@@ -90,6 +100,17 @@ interface GroupedMismatch {
   sampleSummaries: string[];
 }
 
+interface PolicyBoundary {
+  id: string;
+  spellId: string;
+  spellName: string;
+  markdownPath: string;
+  field: string;
+  structuredValue: string;
+  canonicalValue: string;
+  policy: string;
+}
+
 interface StructuredVsCanonicalReport {
   generatedAt: string;
   scannedMarkdownFiles: number;
@@ -97,6 +118,8 @@ interface StructuredVsCanonicalReport {
   mismatchCount: number;
   mismatches: ComparisonMismatch[];
   groupedMismatches: GroupedMismatch[];
+  policyBoundaryCount: number;
+  policyBoundaries: PolicyBoundary[];
 }
 
 interface AuditOptions {
@@ -144,6 +167,26 @@ function isCanonicalOnlyMarkdown(markdown: string): boolean {
   return markdown.includes(CANONICAL_ONLY_MARKER);
 }
 
+function isCanonicalFromFiveEtoolsMarkdown(markdown: string): boolean {
+  return markdown.includes(CANONICAL_FROM_FIVE_E_TOOLS_MARKER);
+}
+
+// The 5etools partial canonical block is a stand-alone HTML comment that appears
+// immediately after the `<!-- CANONICAL-FROM-5ETOOLS -->` sentinel rather than under a
+// "Canonical D&D Beyond Snapshot" heading. Returning the inner block lets the existing
+// `extractCanonicalField` / `extractCanonicalSectionBlock` helpers pull labels from it
+// unchanged. Returns null when the file is missing the marker or the trailing comment.
+function extractFiveEtoolsCommentBlock(markdown: string): string | null {
+  const markerIndex = markdown.indexOf(CANONICAL_FROM_FIVE_E_TOOLS_MARKER);
+  if (markerIndex === -1) return null;
+
+  const commentStart = markdown.indexOf('<!--', markerIndex + CANONICAL_FROM_FIVE_E_TOOLS_MARKER.length);
+  const commentEnd = commentStart === -1 ? -1 : markdown.indexOf('-->', commentStart);
+  if (commentStart === -1 || commentEnd === -1) return null;
+
+  return markdown.slice(commentStart + 4, commentEnd).trim();
+}
+
 function parseStructuredSpellRecord(markdownPath: string, markdown: string): StructuredSpellRecord {
   const lines = markdown.split(/\r?\n/);
   const heading = lines.find((line) => line.startsWith('# ')) ?? `# ${path.basename(markdownPath, '.md')}`;
@@ -188,11 +231,12 @@ function extractCanonicalSectionBlock(commentBlock: string, label: string, nextL
   // The raw copied canonical snapshots do not consistently put blank lines between sections.
   // Earlier versions of this parser only stopped when the next label appeared after an empty
   // line, which made multiline sections like Rules Text and Material Component look empty even
-  // though the spell file clearly contained them. That inflated report buckets like Description
-  // and Material Component with parser residue instead of real spell drift. We now stop as soon
-  // as the next known section label begins on a new line.
+  // though the spell file clearly contained them. Some legacy snapshots also have intentionally
+  // empty blocks like `Available For:` immediately followed by `Capture Method:`. The lookahead
+  // therefore accepts a next label at the start of the captured block as well as after a newline,
+  // so an empty canonical section stays empty instead of swallowing the next metadata label.
   const match = commentBlock.match(
-    new RegExp(`(?:^|\\r?\\n)${escapedLabel}:\\r?\\n([\\s\\S]*?)(?=\\r?\\n(?:${escapedNextLabels}):|$)`, 'i'),
+    new RegExp(`(?:^|\\r?\\n)${escapedLabel}:\\r?\\n([\\s\\S]*?)(?=(?:${escapedNextLabels}):|\\r?\\n(?:${escapedNextLabels}):|$)`, 'i'),
   );
 
   return match ? match[1].trim() : '';
@@ -247,6 +291,8 @@ function parseCanonicalSpellRecord(commentBlock: string): CanonicalSpellRecord {
       'Capture Method',
       'Legacy Page',
     ]),
+    captureMethod: extractCanonicalField(commentBlock, 'Capture Method'),
+    legacyPage: normalizeComparableText(extractCanonicalField(commentBlock, 'Legacy Page')).toLowerCase() === 'true',
   };
 }
 
@@ -383,19 +429,24 @@ function formatMeasuredDistance(
   unit: 'feet' | 'miles' | 'inches' = 'feet',
   style: 'separated' | 'hyphenated' = 'separated',
 ): string {
+  // Large ward spells are displayed by the canonical source with thousands
+  // separators, so the audit keeps that display stable when comparing measured
+  // floor areas such as Forbiddance's 40,000 square feet.
+  const renderedValue = value.toLocaleString('en-US');
+
   if (unit === 'miles') {
     return style === 'hyphenated'
-      ? `${value}-mile`
-      : `${value} ${value === 1 ? 'mile' : 'miles'}`;
+      ? `${renderedValue}-mile`
+      : `${renderedValue} ${value === 1 ? 'mile' : 'miles'}`;
   }
 
   if (unit === 'inches') {
     return style === 'hyphenated'
-      ? `${value}-inch`
-      : `${value} ${value === 1 ? 'inch' : 'inches'}`;
+      ? `${renderedValue}-inch`
+      : `${renderedValue} ${value === 1 ? 'inch' : 'inches'}`;
   }
 
-  return style === 'hyphenated' ? `${value}-ft.` : `${value} ft.`;
+  return style === 'hyphenated' ? `${renderedValue}-ft.` : `${renderedValue} ft.`;
 }
 
 function normalizeDistanceUnit(raw: string): 'feet' | 'miles' | 'inches' {
@@ -458,7 +509,7 @@ function formatCanonicalCastingTimeForStructuredComparison(canonicalCastingTime:
 }
 
 function canonicalRangeMentionsAreaShape(canonicalRangeArea: string): boolean {
-  return /\b(cone|cube|cylinder|emanation|line|sphere)\b/i.test(canonicalRangeArea);
+  return /\b(cone|cube|cylinder|emanation|line|sphere|square)\b/i.test(canonicalRangeArea);
 }
 
 function canonicalRangeHasParentheticalDistance(canonicalRangeArea: string): boolean {
@@ -477,6 +528,7 @@ function formatStructuredRange(labels: Map<string, string>, canonicalRangeArea: 
   const targetingRangeUnit = (labels.get('Targeting Range Unit') ?? labels.get('Range Distance Unit') ?? labels.get('Range Unit') ?? '').trim();
   const areaShape = (labels.get('Area Shape') ?? '').trim();
   const areaSize = (labels.get('Area Size') ?? '').trim();
+  const areaSizeType = (labels.get('Area Size Type') ?? '').trim();
   const areaUnit = (labels.get('Area Size Unit') ?? labels.get('Area Unit') ?? '').trim();
 
   let base = '';
@@ -509,14 +561,25 @@ function formatStructuredRange(labels: Map<string, string>, canonicalRangeArea: 
       break;
   }
 
-  // Self-origin attack cantrips store the reach in Targeting Range rather than
-  // Range Distance. The canonical source flattens that into the visible
-  // Range/Area header, so this audit folds the reach back in only for comparison.
-  if (rangeType === 'self' && canonicalRangeHasSelfReach(canonicalRangeArea) && (!areaSize || areaSize === 'N/A') && targetingRange && targetingRange !== '0') {
-    const numericTargetingRange = Number(targetingRange);
+  // Self-origin attack cantrips may store the reach either as Targeting Range or
+  // as Area Size, depending on whether the runtime needs area metadata. The
+  // canonical source flattens both shapes into the visible Range/Area header, so
+  // this audit folds the same reach back in only for comparison.
+  if (rangeType === 'self' && canonicalRangeHasSelfReach(canonicalRangeArea) && !canonicalRangeMentionsAreaShape(canonicalRangeArea)) {
+    const normalizedAreaSize = areaSize.toLowerCase();
+    const areaSizeIsMeaningful = areaSize
+      && normalizedAreaSize !== 'n/a'
+      && normalizedAreaSize !== 'none'
+      && normalizedAreaSize !== 'not_applicable';
+    const comparableReach = areaSizeIsMeaningful ? areaSize : targetingRange;
+    const comparableReachUnit = areaSizeIsMeaningful ? areaUnit : targetingRangeUnit;
+
+    if (!comparableReach || comparableReach === '0') return base;
+
+    const numericTargetingRange = Number(comparableReach);
     const renderedTargetingRange = Number.isFinite(numericTargetingRange)
-      ? formatMeasuredDistance(numericTargetingRange, normalizeDistanceUnit(targetingRangeUnit || 'feet'))
-      : `${targetingRange} ${targetingRangeUnit || 'ft.'}`.trim();
+      ? formatMeasuredDistance(numericTargetingRange, normalizeDistanceUnit(comparableReachUnit || 'feet'))
+      : `${comparableReach} ${comparableReachUnit || 'ft.'}`.trim();
 
     return `${base} (${renderedTargetingRange})`;
   }
@@ -525,24 +588,40 @@ function formatStructuredRange(labels: Map<string, string>, canonicalRangeArea: 
   // Range/Area header. When the canonical header omits the shape, the audit
   // compares the shared size fact and leaves the richer shape fact intact in the
   // structured block for runtime/template validation.
-  if (!areaSize || areaSize === 'N/A' || !canonicalRangeHasParentheticalDistance(canonicalRangeArea)) return base;
+  const normalizedAreaSize = areaSize.toLowerCase();
+  if (
+    !areaSize
+    || normalizedAreaSize === 'n/a'
+    || normalizedAreaSize === 'none'
+    || normalizedAreaSize === 'not_applicable'
+    || !canonicalRangeHasParentheticalDistance(canonicalRangeArea)
+  ) {
+    return base;
+  }
 
-  const hasAreaShape = areaShape && areaShape !== 'N/A';
+  const normalizedAreaShape = areaShape.toLowerCase();
+  const hasAreaShape = areaShape
+    && normalizedAreaShape !== 'n/a'
+    && normalizedAreaShape !== 'none'
+    && normalizedAreaShape !== 'not_applicable';
   const sourceHeaderShowsShape = hasAreaShape && canonicalRangeMentionsAreaShape(canonicalRangeArea);
   const areaValue = Number(areaSize);
   const renderedAreaSize = Number.isFinite(areaValue)
     ? formatMeasuredDistance(areaValue, normalizeDistanceUnit(areaUnit || 'feet'), sourceHeaderShowsShape ? 'hyphenated' : 'separated')
     : areaSize;
+  const renderedAreaFact = areaSizeType.toLowerCase() === 'square'
+    ? `${renderedAreaSize} 2`
+    : renderedAreaSize;
 
   if (!hasAreaShape) {
-    return base ? `${base} (${renderedAreaSize})` : renderedAreaSize;
+    return base ? `${base} (${renderedAreaFact})` : renderedAreaFact;
   }
 
   const renderedShape = areaShape
     .split(/[_\s-]+/)
     .map(titleCaseWord)
     .join(' ');
-  const area = sourceHeaderShowsShape ? `${renderedAreaSize} ${renderedShape}` : renderedAreaSize;
+  const area = sourceHeaderShowsShape ? `${renderedAreaFact} ${renderedShape}` : renderedAreaFact;
 
   if (!base) return area;
   return `${base} (${area})`;
@@ -557,9 +636,9 @@ function formatCanonicalRangeForStructuredComparison(canonicalRangeArea: string)
     .replace(/\b(\d+)\s*(?:inches?|inch)\b/gi, (_match, distance: string) => formatMeasuredDistance(Number(distance), 'inches'));
 
   comparable = comparable
-    .replace(/\b(\d+)\s+ft\.\s+(Cone|Cube|Cylinder|Emanation|Line|Sphere)\b/gi, '$1-ft. $2')
-    .replace(/\b(\d+)\s+(mile|miles)\s+(Cone|Cube|Cylinder|Emanation|Line|Sphere)\b/gi, '$1-mile $3')
-    .replace(/\b(\d+)\s+(inch|inches)\s+(Cone|Cube|Cylinder|Emanation|Line|Sphere)\b/gi, '$1-inch $3')
+    .replace(/\b(\d+)\s+ft\.\s+(Cone|Cube|Cylinder|Emanation|Line|Sphere|Square)\b/gi, '$1-ft. $2')
+    .replace(/\b(\d+)\s+(mile|miles)\s+(Cone|Cube|Cylinder|Emanation|Line|Sphere|Square)\b/gi, '$1-mile $3')
+    .replace(/\b(\d+)\s+(inch|inches)\s+(Cone|Cube|Cylinder|Emanation|Line|Sphere|Square)\b/gi, '$1-inch $3')
     .replace(/\(\s*\)/g, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -581,6 +660,25 @@ function formatStructuredComponents(labels: Map<string, string>): string {
   if (material) parts.push('M *');
 
   return parts.join(', ');
+}
+
+function formatCanonicalComponentsForStructuredComparison(canonicalComponents: string): string {
+  const normalized = normalizeComparableText(canonicalComponents);
+  if (!normalized) return '';
+
+  // Canonical component lines mix display-only footnote markers (`M *`, `M **`)
+  // with older legacy captures that inline the material text after bare
+  // component letters. The structured layer compares the actual V/S/M flags
+  // here; material description, cost, and consumption are checked by the
+  // Material Component lane instead of by the footnote count.
+  const components = normalized
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\*+/g, '*')
+    .split(/[,\s]+/)
+    .map((part) => part.trim().toUpperCase())
+    .filter((part) => part === 'V' || part === 'S' || part === 'M');
+
+  return components.map((component) => (component === 'M' ? 'M *' : component)).join(', ');
 }
 
 function formatStructuredMaterial(labels: Map<string, string>): string {
@@ -747,7 +845,7 @@ function splitCanonicalAvailableFor(entries: string[]): { classes: string[]; sub
 }
 
 function normalizeStructuredList(value: string): string[] {
-  if (!value || value === 'None') return [];
+  if (!value || value === 'None' || value === 'not_applicable') return [];
   return value
     .split(',')
     .map((entry) => entry.trim())
@@ -791,8 +889,13 @@ function splitCanonicalRulesText(rawRulesText: string): { mainRulesText: string;
 }
 
 function normalizeHigherLevelsDisplay(value: string): string {
-  let comparable = normalizeComparableText(value)
+  let comparable = normalizeComparableText(value);
+  if (comparable.toLowerCase() === 'not_applicable') return '';
+
+  comparable = comparable
     .replace(/^Cantrip Upgrade\.\s*/i, '')
+    .replace(/^At Higher Levels\.\s*/i, '')
+    .replace(/^Using a Higher-Level Spell Slot\.\s*/i, '')
     .replace(/^The spell's damage increases\b/i, "This spell's damage increases");
 
   const cantripDamageMatch = comparable.match(
@@ -874,7 +977,7 @@ function buildComparableFields(structured: StructuredSpellRecord, canonical: Can
     {
       field: 'Components',
       structuredValue: formatStructuredComponents(structured.labels),
-      canonicalValue: canonical.components,
+      canonicalValue: formatCanonicalComponentsForStructuredComparison(canonical.components),
     },
     {
       field: 'Material Component',
@@ -909,7 +1012,21 @@ function buildComparableFields(structured: StructuredSpellRecord, canonical: Can
 
 function isMeaningfulValue(value: string): boolean {
   const normalized = normalizeComparableText(value);
-  return normalized.length > 0 && normalized.toLowerCase() !== 'none' && normalized.toLowerCase() !== 'n/a';
+  const lower = normalized.toLowerCase();
+  return normalized.length > 0 && lower !== 'none' && lower !== 'n/a' && lower !== 'not_applicable';
+}
+
+function isStructuredSubclassPolicyMarker(value: string): boolean {
+  // The structured Sub-Classes lane deliberately keeps a small marker vocabulary
+  // for cases where raw canonical access data should not become runtime-facing
+  // subclass entries. Those markers are reviewed and maintained by the dedicated
+  // roster audit, so the raw canonical parity report must preserve them as policy
+  // outcomes instead of reopening the bucket as ordinary drift.
+  const normalized = normalizeComparableText(value).toLowerCase();
+  return normalized === 'folded into classes'
+    || normalized === 'unsupported entries'
+    || normalized === 'no subclass entries'
+    || normalized === 'not_applicable';
 }
 
 function pushMismatch(
@@ -935,14 +1052,126 @@ function pushMismatch(
   });
 }
 
-function collectSpellMismatches(structured: StructuredSpellRecord, canonical: CanonicalSpellRecord): ComparisonMismatch[] {
+function shouldTreatAsPolicyBoundary(field: ComparableField, canonical: CanonicalSpellRecord): boolean {
+  // Several legacy D&D Beyond captures preserved spell prose but did not expose
+  // the page's `Available For` list. In those cases the structured Classes row
+  // is still the best known access surface, and deleting it would destroy useful
+  // data. The audit therefore records this as a boundary instead of a defect.
+  if (
+    field.field === 'Classes'
+    && canonical.legacyPage
+    && canonical.availableFor.length === 0
+    && isMeaningfulValue(field.structuredValue)
+    && !isMeaningfulValue(field.canonicalValue)
+  ) {
+    return true;
+  }
+
+  // Sub-Classes now have a dedicated roster-aware audit that applies the repo's
+  // supported-subclass and repeated-base policies before judging parity. The raw
+  // canonical report intentionally does not duplicate that logic because doing so
+  // makes policy-correct spell rows look "wrong" whenever the source snapshot keeps
+  // unsupported or folded entries around. Every Sub-Classes comparison therefore
+  // records as a boundary here and defers pass/fail ownership to that specialist audit.
+  return field.field === 'Sub-Classes';
+}
+
+function buildPolicyBoundary(
+  structured: StructuredSpellRecord,
+  field: ComparableField,
+): PolicyBoundary {
+  const structuredValue = normalizeComparableText(field.structuredValue);
+  const canonicalValue = normalizeComparableText(field.canonicalValue);
+  const isSubclassPolicyBoundary = field.field === 'Sub-Classes';
+  const usesStructuredSubclassMarker = isStructuredSubclassPolicyMarker(field.structuredValue);
+
+  return {
+    id: isSubclassPolicyBoundary
+      ? `${structured.spellId}::${field.field}::structured-subclass-policy-marker`
+      : `${structured.spellId}::${field.field}::legacy-canonical-missing-access`,
+    spellId: structured.spellId,
+    spellName: structured.spellName,
+    markdownPath: structured.markdownPath,
+    field: field.field,
+    structuredValue,
+    canonicalValue: isSubclassPolicyBoundary ? canonicalValue : '',
+    policy: isSubclassPolicyBoundary
+      ? usesStructuredSubclassMarker
+        ? 'Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.'
+        : 'Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.'
+      : 'Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.',
+  };
+}
+
+function hasStructuredHigherLevelScalingRules(labels: Map<string, string>): boolean {
+  // Higher Levels prose can be copied perfectly while still failing the real
+  // bucket goal: the structured layer must say what value scales. Numbered
+  // Scaling Rule rows are the explicit contract for that machine-readable work.
+  for (const label of labels.keys()) {
+    if (/^Scaling Rule \d+ (Type|Applies To|Base|Levels|Bonus Per Level|Slot Level|Area Size|Target Count|Notes)$/.test(label)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function collectHigherLevelScalingCoverageMismatch(
+  structured: StructuredSpellRecord,
+  canonical: CanonicalSpellRecord,
+  mismatches: ComparisonMismatch[],
+): void {
+  const canonicalHigherLevels = formatCanonicalHigherLevelsForStructuredComparison(canonical.higherLevelsText);
+  const structuredHigherLevels = formatStructuredHigherLevelsForCanonicalComparison(structured.labels);
+
+  // If either side exposes higher-level prose, the audit now expects the
+  // structured block to also declare scaling rows. This intentionally reopens
+  // the Higher Levels bucket for spells whose prose was copied but whose
+  // scaling math is still not machine-actionable.
+  if (
+    (isMeaningfulValue(canonicalHigherLevels) || isMeaningfulValue(structuredHigherLevels))
+    && !hasStructuredHigherLevelScalingRules(structured.labels)
+  ) {
+    pushMismatch(
+      mismatches,
+      structured,
+      'missing-structured-field',
+      'Higher Level Scaling',
+      '',
+      canonicalHigherLevels || structuredHigherLevels,
+      `${structured.spellName} has higher-level scaling prose but no structured Scaling Rule rows describing what values scale.`,
+    );
+  }
+}
+
+interface CollectSpellComparisonOptions {
+  // True for the partial 5etools-derived canonical blocks that intentionally only
+  // populate identity fields (Name, Level, School). When set, fields where the
+  // canonical side is unpopulated are skipped instead of producing
+  // `missing-canonical-field` mismatches, since the partial block is not claiming
+  // coverage of those fields. Value-mismatches and missing-structured-field
+  // mismatches still fire normally on the populated fields.
+  partialCanonical?: boolean;
+}
+
+function collectSpellComparison(
+  structured: StructuredSpellRecord,
+  canonical: CanonicalSpellRecord,
+  options: CollectSpellComparisonOptions = {},
+): { mismatches: ComparisonMismatch[]; policyBoundaries: PolicyBoundary[] } {
   const mismatches: ComparisonMismatch[] = [];
+  const policyBoundaries: PolicyBoundary[] = [];
 
   for (const field of buildComparableFields(structured, canonical)) {
     const structuredValue = normalizeComparableText(field.structuredValue);
     const canonicalValue = normalizeComparableText(field.canonicalValue);
     const structuredComparisonValue = normalizeFieldComparableText(field.field, structuredValue);
     const canonicalComparisonValue = normalizeFieldComparableText(field.field, canonicalValue);
+
+    if (shouldTreatAsPolicyBoundary(field, canonical)) {
+      policyBoundaries.push(buildPolicyBoundary(structured, field));
+      continue;
+    }
 
     if (!isMeaningfulValue(structuredValue) && !isMeaningfulValue(canonicalValue)) {
       continue;
@@ -962,6 +1191,13 @@ function collectSpellMismatches(structured: StructuredSpellRecord, canonical: Ca
     }
 
     if (isMeaningfulValue(structuredValue) && !isMeaningfulValue(canonicalValue)) {
+      // Partial 5etools canonical blocks deliberately omit the prose fields
+      // (Description, Higher Levels, Material Component, etc.). Treating those
+      // omissions as `missing-canonical-field` mismatches would punish the
+      // partial block for being intentionally narrow, so the audit skips them
+      // here instead. Identity fields still get full comparison coverage.
+      if (options.partialCanonical) continue;
+
       pushMismatch(
         mismatches,
         structured,
@@ -987,7 +1223,13 @@ function collectSpellMismatches(structured: StructuredSpellRecord, canonical: Ca
     }
   }
 
-  return mismatches;
+  // The higher-level-scaling coverage check inspects structured Scaling Rule
+  // rows when either side has higher-level prose. Partial 5etools blocks do
+  // not embed higher-level prose, so this would only fire on the structured
+  // side - same shape as a normal canonical run, no special-casing needed.
+  collectHigherLevelScalingCoverageMismatch(structured, canonical, mismatches);
+
+  return { mismatches, policyBoundaries };
 }
 
 function groupMismatches(mismatches: ComparisonMismatch[]): GroupedMismatch[] {
@@ -1049,8 +1291,9 @@ function renderMarkdownReport(report: StructuredVsCanonicalReport): string {
     `Spell files compared: ${report.comparedSpellFiles}`,
     `Total mismatches: ${report.mismatchCount}`,
     `Grouped mismatch buckets: ${report.groupedMismatches.length}`,
+    `Policy boundaries: ${report.policyBoundaryCount}`,
     '',
-    'This report does not arbitrate which side is correct. It only surfaces where the structured Aralia spell data and the copied canonical snapshot are not currently identical.',
+    'This report does not arbitrate which side is correct. It surfaces where the structured Aralia spell data and the copied canonical snapshot are not currently identical, and it lists accepted policy boundaries separately so missing source data is not silent.',
     '',
     '## Grouped Mismatches',
     '',
@@ -1075,6 +1318,22 @@ function renderMarkdownReport(report: StructuredVsCanonicalReport): string {
     }
     lines.push('');
   }
+
+  lines.push('## Policy Boundaries');
+  lines.push('');
+
+  if (report.policyBoundaries.length === 0) {
+    lines.push('No policy boundaries recorded.');
+    lines.push('');
+    return lines.join('\n');
+  }
+
+  for (const boundary of report.policyBoundaries) {
+    lines.push(`- ${boundary.spellName} / ${boundary.field}`);
+    lines.push(`  - Structured: \`${boundary.structuredValue}\``);
+    lines.push(`  - Policy: ${boundary.policy}`);
+  }
+  lines.push('');
 
   return lines.join('\n');
 }
@@ -1106,11 +1365,32 @@ export function buildReport(options: AuditOptions = {}): StructuredVsCanonicalRe
     ? [findMarkdownFileForSpell(options.spellId)].filter((value): value is string => Boolean(value))
     : listMarkdownFiles(SPELL_REFERENCE_ROOT);
   const mismatches: ComparisonMismatch[] = [];
+  const policyBoundaries: PolicyBoundary[] = [];
   let comparedSpellFiles = 0;
 
   for (const markdownPath of files) {
     const markdown = readMarkdown(markdownPath);
     if (isCanonicalOnlyMarkdown(markdown)) continue;
+
+    // Files carrying the 5etools partial-canonical marker take the partial path:
+    // we extract the trailing comment block (which only carries Name / Level /
+    // School), build a CanonicalSpellRecord whose unset prose fields parse as
+    // empty strings, and pass `partialCanonical: true` so the comparison only
+    // checks the populated identity fields. Without the partial flag, the
+    // empty prose fields would each generate a synthetic `missing-canonical-field`
+    // mismatch and flood the report.
+    if (isCanonicalFromFiveEtoolsMarkdown(markdown)) {
+      const partialBlock = extractFiveEtoolsCommentBlock(markdown);
+      if (!partialBlock) continue;
+
+      const structured = parseStructuredSpellRecord(markdownPath, markdown);
+      const canonical = parseCanonicalSpellRecord(partialBlock);
+      comparedSpellFiles += 1;
+      const comparison = collectSpellComparison(structured, canonical, { partialCanonical: true });
+      mismatches.push(...comparison.mismatches);
+      policyBoundaries.push(...comparison.policyBoundaries);
+      continue;
+    }
 
     const commentBlock = extractCanonicalCommentBlock(markdown);
     if (!commentBlock) continue;
@@ -1118,7 +1398,9 @@ export function buildReport(options: AuditOptions = {}): StructuredVsCanonicalRe
     const structured = parseStructuredSpellRecord(markdownPath, markdown);
     const canonical = parseCanonicalSpellRecord(commentBlock);
     comparedSpellFiles += 1;
-    mismatches.push(...collectSpellMismatches(structured, canonical));
+    const comparison = collectSpellComparison(structured, canonical);
+    mismatches.push(...comparison.mismatches);
+    policyBoundaries.push(...comparison.policyBoundaries);
   }
 
   return {
@@ -1128,6 +1410,8 @@ export function buildReport(options: AuditOptions = {}): StructuredVsCanonicalRe
     mismatchCount: mismatches.length,
     mismatches,
     groupedMismatches: groupMismatches(mismatches),
+    policyBoundaryCount: policyBoundaries.length,
+    policyBoundaries,
   };
 }
 
@@ -1149,6 +1433,7 @@ function main(): void {
   console.log(`Spell files compared: ${report.comparedSpellFiles}`);
   console.log(`Total mismatches: ${report.mismatchCount}`);
   console.log(`Grouped mismatch buckets: ${report.groupedMismatches.length}`);
+  console.log(`Policy boundaries: ${report.policyBoundaryCount}`);
 }
 
 const isDirectRun = process.argv[1]
