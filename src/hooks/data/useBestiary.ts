@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { MONSTERS_DATA } from '../../data/monsters';
+import type { MonsterData } from '../../types/ui';
 
 export interface BestiaryEntry {
   name: string;
@@ -7,64 +9,36 @@ export interface BestiaryEntry {
   xpLair?: number;
   type: string;
   source: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  raw: any;
+  raw: MonsterData;
 }
 
-// Module-level cache — survives re-renders and remounts within a session
+// Module-level cache survives re-renders and remounts within a session.
 let cachedEntries: BestiaryEntry[] | null = null;
 
-function parseCr(cr: unknown): string {
-  if (typeof cr === 'string') return cr;
-  if (cr && typeof cr === 'object' && 'cr' in cr) return String((cr as { cr: unknown }).cr);
-  return '0';
-}
-
-function parseCrLair(cr: unknown): string | undefined {
-  if (cr && typeof cr === 'object' && 'lair' in cr) return String((cr as { lair: unknown }).lair);
-  return undefined;
-}
-
-function parseXpLair(cr: unknown): number | undefined {
-  if (cr && typeof cr === 'object' && 'xpLair' in cr) return Number((cr as { xpLair: unknown }).xpLair);
-  return undefined;
-}
-
-function parseType(type: unknown): string {
-  if (typeof type === 'string') return type;
-  if (type && typeof type === 'object' && 'type' in type) return String((type as { type: unknown }).type);
-  return 'unknown';
+function buildEntriesFromGeneratedRegistry(): BestiaryEntry[] {
+  // CI and deployed builds do not include the ignored vendor/5etools-src tree.
+  // The generated monster registry is the checked-in, reproducible runtime
+  // surface produced by scripts/ingestMonsters.ts.
+  return Object.values(MONSTERS_DATA)
+    .map((monster) => ({
+      name: monster.name,
+      cr: monster.baseStats.cr ?? '0',
+      type: monster.baseStats.creatureTypes?.join(', ') || 'unknown',
+      source: 'generated',
+      raw: monster,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function useBestiary() {
-  const [entries, setEntries] = useState<BestiaryEntry[]>(cachedEntries ?? []);
-  const [isLoading, setIsLoading] = useState(cachedEntries === null);
-  const [error, setError] = useState<string | null>(null);
+  const [entries, setEntries] = useState<BestiaryEntry[]>(cachedEntries ?? buildEntriesFromGeneratedRegistry());
+  const [isLoading] = useState(false);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     if (cachedEntries !== null) return;
-
-    // Dynamic import — Vite creates a lazy chunk (~1.2 MB, cached after first load)
-    import('../../../vendor/5etools-src/data/bestiary/bestiary-xmm.json')
-      .then(({ default: data }) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const monsters = (data as any).monster as any[];
-        cachedEntries = monsters.map(m => ({
-          name: m.name as string,
-          cr: parseCr(m.cr),
-          crLair: parseCrLair(m.cr),
-          xpLair: parseXpLair(m.cr),
-          type: parseType(m.type),
-          source: (m.source as string) ?? 'XMM',
-          raw: m,
-        }));
-        setEntries(cachedEntries);
-        setIsLoading(false);
-      })
-      .catch(err => {
-        setError((err as Error).message);
-        setIsLoading(false);
-      });
+    cachedEntries = buildEntriesFromGeneratedRegistry();
+    setEntries(cachedEntries);
   }, []);
 
   return { entries, isLoading, error };

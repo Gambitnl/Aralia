@@ -123,6 +123,42 @@ function codePointLabel(text: string): string {
         .join(' ');
 }
 
+function findEscapedUnicodeIssues(filePath: string, lineText: string, lineIdx: number, isStrict: boolean): Issue[] {
+    // JSON can hide risky text behind ASCII-only unicode escapes such as
+    // "\u0027" or "\u00E9". The normal character walk below only sees the
+    // backslash and letters, so this explicit pass reports those escape
+    // sequences before decoded non-ASCII scanning begins.
+    const issues: Issue[] = [];
+    const escapedLatin1Pattern = /\\u00([0-9a-fA-F]{2})/g;
+
+    for (const match of lineText.matchAll(escapedLatin1Pattern)) {
+        const start = match.index;
+        if (start === undefined) {
+            continue;
+        }
+
+        const code = Number.parseInt(match[1], 16);
+        const codePoint = `U+00${match[1].toUpperCase()}`;
+        const printableAscii = code >= 0x20 && code <= 0x7e;
+
+        issues.push({
+            file: filePath,
+            line: lineIdx + 1,
+            column: start + 1,
+            char: match[0],
+            codePoint,
+            type: printableAscii
+                ? 'Escaped U+00xx: Printable ASCII hidden by JSON escape'
+                : 'Escaped U+00xx: Latin-1 character escape needs review',
+            suggested: printableAscii ? String.fromCharCode(code) : undefined,
+            lineText,
+            severity: isStrict ? 'strict' : 'soft',
+        });
+    }
+
+    return issues;
+}
+
 // ============================================================================
 // Issue Detection
 // ============================================================================
@@ -138,6 +174,8 @@ export function checkFile(filePath: string): Issue[] {
 
     lines.forEach((lineText, lineIdx) => {
         const sequenceIndexes = new Set<number>();
+
+        issues.push(...findEscapedUnicodeIssues(filePath, lineText, lineIdx, isStrict));
 
         MOJIBAKE_NORMALIZATIONS.forEach((normalization) => {
             normalization.pattern.lastIndex = 0;

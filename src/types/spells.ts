@@ -488,6 +488,33 @@ export interface TargetConditionFilter {
   alignments?: string[];
   /** Conditions the target must have (e.g., ["Prone", "Charmed"]) */
   hasCondition?: string[];
+  /** Plane-native restriction used by banishment-style and summoning-adjacent effects. */
+  isNativeToPlane?: boolean;
+  /** Whether the spell requires a willing target, rejects willing targets, or does not care. */
+  willing?: "willing" | "unwilling" | "not_applicable";
+  /** Object-specific gates such as worn, carried, magical, fixed, size, and weight limits. */
+  objectEligibility?: {
+    wornOrCarried?: string;
+    magicalStatus?: string;
+    fixedToSurface?: string;
+    maxSize?: string;
+    maxWeightPounds?: number | string;
+    maxWeightScaling?: string;
+  };
+  /** Communication and perception gates that make social/control targeting explicit. */
+  communicationPrerequisites?: {
+    canHearCaster?: "required" | "not_applicable";
+    canUnderstandCaster?: "required" | "not_applicable";
+    canSeeCaster?: "required" | "not_applicable";
+  };
+  /** Ability-score threshold gates such as "Intelligence 4 or higher." */
+  abilityThreshold?: {
+    ability?: string;
+    operator?: string;
+    value?: number | string;
+  };
+  /** Whether the target must be the caster, another creature, or has no self/other rule. */
+  selfRelation?: string;
 }
 
 /** Describes a secondary or chained target reached from a spell's first target. */

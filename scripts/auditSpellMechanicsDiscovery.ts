@@ -933,7 +933,9 @@ function writeBucketReports(report: MechanicsDiscoveryReport): void {
 }
 
 function escapeMarkdownTable(value: string): string {
-  return value.replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
+  // Escape backslashes before Markdown pipes so command/schema text stays
+  // literal in generated bucket tables.
+  return value.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
 }
 
 // ============================================================================

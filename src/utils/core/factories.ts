@@ -87,6 +87,31 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
       // SpellValidator expects areaOfEffect on all targeting payloads.
       areaOfEffect: { shape: "Sphere", size: 0 },
       filter: {
+        // Targeting filters have grown into several explicit subfamilies so
+        // spell tests can exercise willingness, object gates, communication
+        // prerequisites, ability thresholds, and self/other restrictions without
+        // hiding those mechanics behind prose. The factory uses neutral values
+        // so individual tests only override the rule they care about.
+        willing: "not_applicable",
+        objectEligibility: {
+          wornOrCarried: "not_applicable",
+          magicalStatus: "not_applicable",
+          fixedToSurface: "not_applicable",
+          maxSize: "not_applicable",
+          maxWeightPounds: "not_applicable",
+          maxWeightScaling: "not_applicable",
+        },
+        communicationPrerequisites: {
+          canHearCaster: "not_applicable",
+          canUnderstandCaster: "not_applicable",
+          canSeeCaster: "not_applicable",
+        },
+        abilityThreshold: {
+          ability: "not_applicable",
+          operator: "not_applicable",
+          value: "not_applicable",
+        },
+        selfRelation: "not_applicable",
         creatureTypes: [],
         excludeCreatureTypes: [],
         sizes: [],

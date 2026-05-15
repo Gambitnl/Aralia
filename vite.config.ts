@@ -2450,7 +2450,11 @@ export default defineConfig(async ({ mode, command }) => {
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'spell_pipeline_atlas.html'))
             ? { spell_pipeline_atlas: path.resolve(__dirname, 'misc', 'spell_pipeline_atlas.html') }
             : {}),
+          // Agent docs are a local-only ignored tool surface. Build it only
+          // when both the HTML shell and its ignored React entry file exist,
+          // otherwise CI and clean checkouts should build only committed pages.
           ...(fs.existsSync(path.resolve(__dirname, 'misc', 'agent_docs.html'))
+            && fs.existsSync(path.resolve(__dirname, 'src', 'agent-docs-entry.tsx'))
             ? { agent_docs: path.resolve(__dirname, 'misc', 'agent_docs.html') }
             : {}),
           ...(includeRoadmapBuildEntries && fs.existsSync(path.resolve(__dirname, 'devtools', 'roadmap', 'roadmap.html'))

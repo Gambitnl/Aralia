@@ -246,7 +246,9 @@ function classifyFinding(finding: ClassifiedFinding): string {
 }
 
 function escapeMarkdownCell(value: string): string {
-  return value.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+  // Escape the escape character first so later Markdown pipe escaping remains
+  // literal instead of creating an incomplete sanitization path.
+  return value.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
 }
 
 // ============================================================================

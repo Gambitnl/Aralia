@@ -117,10 +117,6 @@ function extractPropertyTokens(sourceText: string): Set<string> {
   return tokens;
 }
 
-function normalizeFieldPath(fieldPath: string): string {
-  return fieldPath.replace(/\[\]/g, '[]');
-}
-
 function getLeafName(fieldPath: string): string {
   const parts = fieldPath.replace(/\[\]/g, '').split('.');
   return parts[parts.length - 1] ?? fieldPath;
@@ -235,7 +231,7 @@ function toContractRow(
   typeTokens: Set<string>,
   runtimeTokens: Set<string>,
 ): ContractFieldRow {
-  const fieldPath = normalizeFieldPath(field.fieldPath);
+  const fieldPath = field.fieldPath;
   const leafName = getLeafName(fieldPath);
   const schemaPresent = schemaPaths.has(fieldPath);
   const typeTokenPresent = typeTokens.has(leafName);
