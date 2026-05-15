@@ -4,6 +4,7 @@ import { defineConfig, loadEnv } from 'vite';
 import type { ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import { spawn, exec, execSync } from 'child_process';
+import { randomUUID } from 'crypto';
 import { WebSocket, WebSocketServer } from 'ws';
 import * as pty from 'node-pty';
 import {
@@ -1791,7 +1792,9 @@ const codexChatManager = () => ({
       // ── POST /api/codex-chat/start  →  spawn app-server, connect WS, return sessionId ──
       if (urlPath === '/api/codex-chat/start' && req.method === 'POST') {
         try {
-          const sessionId = Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+          // Session ids cross a local HTTP boundary, so use Node's UUID source
+          // instead of Math.random even though this is development tooling.
+          const sessionId = randomUUID().replace(/-/g, '');
           const cwd = process.cwd();
           const port = await findFreePort();
 

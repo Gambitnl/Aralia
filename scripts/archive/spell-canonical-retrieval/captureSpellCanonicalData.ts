@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomInt } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { chromium } from 'playwright';
@@ -132,7 +133,9 @@ function sleep(ms: number): Promise<void> {
 
 function randomIntBetween(min: number, max: number): number {
   if (max <= min) return min;
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  // Delay jitter crosses network-bound scraping behavior, so use Node's
+  // built-in integer source instead of Math.random.
+  return randomInt(min, max + 1);
 }
 
 function decodeHtmlEntities(value: string): string {
@@ -140,9 +143,10 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
 
+  // Decode ampersand last so escaped entities are not unescaped twice into
+  // tag-shaped text while preparing archived canonical spell prose.
   return numericDecoded
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&rsquo;/g, "'")
@@ -151,13 +155,51 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&mdash;/g, '-')
     .replace(/&bull;/g, '*')
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+function removeRawElementBlocks(html: string, tagName: string): string {
+  // Historical capture HTML may contain script/style blocks. This scanner
+  // removes those raw element blocks without relying on regex HTML parsing,
+  // including tolerant end tags such as "</script >".
+  const lowerHtml = html.toLowerCase();
+  const lowerTag = tagName.toLowerCase();
+  let result = '';
+  let cursor = 0;
+
+  while (cursor < html.length) {
+    const openStart = lowerHtml.indexOf(`<${lowerTag}`, cursor);
+    if (openStart === -1) {
+      result += html.slice(cursor);
+      break;
+    }
+
+    result += html.slice(cursor, openStart);
+    const openEnd = lowerHtml.indexOf('>', openStart);
+    if (openEnd === -1) {
+      break;
+    }
+
+    const closeStart = lowerHtml.indexOf(`</${lowerTag}`, openEnd + 1);
+    if (closeStart === -1) {
+      cursor = openEnd + 1;
+      continue;
+    }
+
+    const closeEnd = lowerHtml.indexOf('>', closeStart);
+    cursor = closeEnd === -1 ? html.length : closeEnd + 1;
+    result += ' ';
+  }
+
+  return result;
 }
 
 function stripHtml(html: string): string {
-  return decodeHtmlEntities(html)
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+  const withoutScript = removeRawElementBlocks(html, 'script');
+  const withoutStyle = removeRawElementBlocks(withoutScript, 'style');
+
+  return decodeHtmlEntities(withoutStyle)
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

@@ -172,9 +172,10 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
 
+  // Decode ampersand last. Otherwise text like "&amp;lt;" would be unescaped
+  // twice and become tag-shaped text instead of staying visibly escaped.
   return numericDecoded
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&rsquo;/g, "'")
@@ -183,13 +184,51 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&mdash;/g, '-')
     .replace(/&bull;/g, '*')
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+function removeRawElementBlocks(html: string, tagName: string): string {
+  // This review script only needs readable rules text, so script/style blocks
+  // can be removed with a small scanner instead of a fragile HTML-tag regex.
+  // The scanner accepts tolerant browser endings like "</script >".
+  const lowerHtml = html.toLowerCase();
+  const lowerTag = tagName.toLowerCase();
+  let result = '';
+  let cursor = 0;
+
+  while (cursor < html.length) {
+    const openStart = lowerHtml.indexOf(`<${lowerTag}`, cursor);
+    if (openStart === -1) {
+      result += html.slice(cursor);
+      break;
+    }
+
+    result += html.slice(cursor, openStart);
+    const openEnd = lowerHtml.indexOf('>', openStart);
+    if (openEnd === -1) {
+      break;
+    }
+
+    const closeStart = lowerHtml.indexOf(`</${lowerTag}`, openEnd + 1);
+    if (closeStart === -1) {
+      cursor = openEnd + 1;
+      continue;
+    }
+
+    const closeEnd = lowerHtml.indexOf('>', closeStart);
+    cursor = closeEnd === -1 ? html.length : closeEnd + 1;
+    result += ' ';
+  }
+
+  return result;
 }
 
 function stripHtml(html: string): string {
-  return decodeHtmlEntities(html)
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+  const withoutScript = removeRawElementBlocks(html, 'script');
+  const withoutStyle = removeRawElementBlocks(withoutScript, 'style');
+
+  return decodeHtmlEntities(withoutStyle)
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

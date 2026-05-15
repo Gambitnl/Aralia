@@ -54,7 +54,7 @@ allSpells.forEach(spell => {
         if (Array.isArray(val)) return JSON.stringify(val);
         if (typeof val === 'boolean') return String(val);
         if (typeof val === 'number') return String(val);
-        if (typeof val === 'string') return '"' + val.replace(/\|/g, '\\|') + '"';
+        if (typeof val === 'string') return '"' + val.replace(/\\/g, '\\\\').replace(/\|/g, '\\|') + '"';
         return String(val);
     });
     md += '| ' + row.join(' | ') + ' |\n';
