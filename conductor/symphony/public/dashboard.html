@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Symphony Dashboard</title>
+  <script>
+    /*
+      Apply the saved theme before CSS loads so the dashboard does not flash the
+      wrong colors when the operator refreshes during a long-running handoff.
+    */
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem('symphony-dashboard-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch {
+        /*
+          Storage can be unavailable in strict browser/privacy contexts. In that
+          case the page simply follows the system preference until the operator
+          clicks the toggle for the current session.
+        */
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+  <!--
+    This dashboard shell is intentionally static.
+
+    Symphony serves this file directly from disk, while the long-running Node
+    process and its Codex worker children keep running. That means visual edits
+    to this HTML/CSS/JS can be picked up by a browser refresh without restarting
+    the worker supervisor or killing active agent sessions.
+  -->
+  <main>
+    <header class="page-header">
+      <div>
+        <h1>Symphony Dashboard</h1>
+        <p id="refresh-note" class="refresh-note">
+          Loading current worker state.
+          <span id="refresh-status" class="refresh-status"></span>
+        </p>
+      </div>
+      <div class="page-actions" aria-label="Dashboard controls">
+        <button id="dispatch-toggle" class="dispatch-toggle" type="button" aria-pressed="false">Dispatch paused</button>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+        <button id="manual-refresh" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <section id="stats-card" class="card stats" aria-label="Run totals"></section>
+    <section id="task-intake-root" class="card" aria-label="Jules task intake"></section>
+    <section id="usage-root" class="card" aria-label="Codex usage tracker"></section>
+    <section id="approval-root" aria-label="Pending approvals"></section>
+    <section id="running-root" class="card" aria-label="Running issues"></section>
+    <section id="retrying-root" class="card" aria-label="Retrying issues"></section>
+    <section id="activity-root" aria-label="Worker activity"></section>
+  </main>
+
+  <script src="/dashboard.js" type="module"></script>
+</body>
+</html>

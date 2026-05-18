@@ -1,0 +1,2043 @@
+/*
+  Static dashboard styling.
+
+  This file is outside TypeScript on purpose. Editing colors, spacing, or layout
+  only requires refreshing the browser; it does not restart Symphony's worker
+  supervisor or its active Codex app-server child processes.
+*/
+
+:root {
+  color-scheme: light;
+  --page-bg: #f9f9f9;
+  --panel-bg: #ffffff;
+  --text: #222222;
+  --muted: #666666;
+  --border: #eeeeee;
+  --table-head: #f5f5f5;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --accent: #0066cc;
+  --code-bg: #f5f5f5;
+  --running-bg: #e8f5ee;
+  --running-text: #17633a;
+  --retrying-bg: #fff4df;
+  --retrying-text: #805000;
+  --approval-bg: #ffe8e8;
+  --approval-text: #9b1c1c;
+  --usage-good: #1f9d55;
+  --usage-warning: #c47f00;
+  --usage-danger: #c92a2a;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page-bg: #0f1115;
+  --panel-bg: #171a21;
+  --text: #e7eaf0;
+  --muted: #a3aab7;
+  --border: #2a2f3a;
+  --table-head: #20242d;
+  --shadow: rgba(0, 0, 0, 0.35);
+  --accent: #78aaff;
+  --code-bg: #10131a;
+  --running-bg: #143422;
+  --running-text: #8de0ad;
+  --retrying-bg: #3b2c0f;
+  --retrying-text: #ffd27a;
+  --approval-bg: #3f171b;
+  --approval-text: #ff9aa5;
+  --usage-good: #6ee7a0;
+  --usage-warning: #ffd166;
+  --usage-danger: #ff7a7a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /*
+      Keep the old automatic dark-mode behavior for operators who have not made
+      an explicit dashboard choice. Once the toggle stores a theme, the saved
+      preference wins over OS changes so long browser sessions stay predictable.
+    */
+    color-scheme: dark;
+    --page-bg: #0f1115;
+    --panel-bg: #171a21;
+    --text: #e7eaf0;
+    --muted: #a3aab7;
+    --border: #2a2f3a;
+    --table-head: #20242d;
+    --shadow: rgba(0, 0, 0, 0.35);
+    --accent: #78aaff;
+    --code-bg: #10131a;
+    --running-bg: #143422;
+    --running-text: #8de0ad;
+    --retrying-bg: #3b2c0f;
+    --retrying-text: #ffd27a;
+    --approval-bg: #3f171b;
+    --approval-text: #ff9aa5;
+    --usage-good: #6ee7a0;
+    --usage-warning: #ffd166;
+    --usage-danger: #ff7a7a;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text);
+}
+
+a {
+  color: var(--accent);
+}
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.55rem 0.8rem;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+input,
+textarea {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.page-header {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.theme-toggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent), transparent 75%);
+}
+
+.dispatch-toggle[aria-pressed="true"] {
+  border-color: var(--running-text);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--running-text), transparent 78%);
+}
+
+.dispatch-toggle[aria-pressed="false"] {
+  border-color: var(--approval-text);
+}
+
+.dispatch-toggle:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow);
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.section-heading {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.section-heading h2 {
+  margin-bottom: 0.35rem;
+  margin-top: 0;
+}
+
+.heading-actions {
+  /* Header actions are grouped so the dashboard can expose both the hard Git
+     gate and the multi-handoff Jules refresh without spreading controls across
+     the whole task intake section. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.usage-summary {
+  color: var(--muted);
+  margin: 0;
+}
+
+.usage-pill {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 0.2rem 0.55rem;
+  white-space: nowrap;
+}
+
+.method-pill {
+  /* Next-action endpoints are used by headless foremen as well as the browser.
+     Showing the HTTP method next to the URL prevents "which kind of request?"
+     guesswork when the action mutates task, Jules, PR, or local-sync state. */
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-right: 0.35rem;
+  padding: 0.12rem 0.45rem;
+}
+
+.control-surface {
+  /* This makes the local dashboard API visible as an operator surface, not just
+     an implementation detail hidden inside worker prompts or raw JSON state. */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.35rem;
+  min-width: min(100%, 360px);
+  padding: 0.75rem;
+}
+
+.control-surface span,
+.control-surface small {
+  color: var(--muted);
+}
+
+.worker-roster {
+  /* Worker designations are assigned by Symphony, not invented by the model.
+     This compact roster keeps those identities visible when several foremen
+     are coordinating Jules handoffs at the same time. */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.5rem;
+  min-width: min(100%, 420px);
+  padding: 0.75rem;
+}
+
+.worker-roster span,
+.worker-roster small {
+  color: var(--muted);
+}
+
+.worker-roster ol {
+  display: grid;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.worker-roster li {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.55rem;
+}
+
+.worker-roster li > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.usage-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 1rem;
+}
+
+.density-section {
+  /* Idle lower-dashboard evidence should stay reachable without taking the
+     same visual priority as the current foreman boundary. These drawers keep
+     status visible in one row and reveal the full packet only when opened or
+     when the state is urgent enough to open itself. */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.density-section summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.density-section summary > span {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.density-section summary strong {
+  font-size: 1rem;
+}
+
+.density-section summary small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.density-section[open] {
+  background: color-mix(in srgb, var(--panel-bg) 86%, var(--code-bg));
+}
+
+.density-section.active,
+.density-section.urgent {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+}
+
+.density-section.urgent {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--approval-text) 16%, transparent);
+}
+
+.density-section-body {
+  margin-top: 1rem;
+}
+
+.task-intake-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(300px, 1.1fr) minmax(280px, 0.9fr);
+  margin-top: 1rem;
+}
+
+.foreman-console {
+  /* This is the main dashboard hierarchy layer. The old dashboard put intake,
+     Git safety, Jules lifecycle, PR review, local return, and evidence controls
+     in one long stack. This wrapper keeps every surface available while making
+     the current middleman boundary the first decision point. */
+  display: grid;
+  gap: 1rem;
+}
+
+.foreman-current-boundary {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--retrying-text);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.foreman-current-boundary.ready,
+.foreman-current-boundary.complete {
+  border-left-color: var(--running-text);
+}
+
+.foreman-current-boundary.blocked {
+  border-left-color: var(--approval-text);
+}
+
+.foreman-current-boundary > div:first-child,
+.foreman-links {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.foreman-current-boundary h3 {
+  margin: 0;
+}
+
+.foreman-current-boundary p {
+  margin: 0;
+}
+
+.foreman-eyebrow {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.foreman-current-boundary dl {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 0;
+}
+
+.foreman-current-boundary dl div {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem;
+}
+
+.foreman-current-boundary dt {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.foreman-current-boundary dd {
+  margin: 0.2rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.foreman-detail-grid {
+  align-items: start;
+  display: grid;
+  gap: 0.8rem;
+  grid-auto-rows: max-content;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.foreman-detail-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.foreman-detail-group[open] {
+  background: color-mix(in srgb, var(--panel-bg) 82%, var(--code-bg));
+}
+
+.foreman-detail-group summary {
+  cursor: pointer;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.foreman-detail-group summary span {
+  font-weight: 700;
+}
+
+.foreman-detail-group summary small {
+  color: var(--muted);
+}
+
+.foreman-detail-group > div {
+  margin-top: 0.85rem;
+}
+
+.operator-plan {
+  /* This panel is the plain-English foreman layer for Jules delegation. It
+     turns scattered gate, PR, Jules, and local-sync fields into the next safe
+     operator action so the user does not have to decode raw workflow state. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.operator-plan.compact {
+  margin: 0.75rem 0;
+}
+
+.handoff-status-board {
+  /* This is the cross-handoff middleman overview. Detailed cards below still
+     own the commands and receipts; this board lets the operator scan every
+     active Jules delegation for session, PR, Scout/Core, and local sync state. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.8rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.handoff-status-board > div:first-child {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.handoff-status-board small {
+  color: var(--muted);
+}
+
+.handoff-status-board ol {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.handoff-status-board li {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--retrying-text);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem;
+}
+
+.handoff-status-board li.ready {
+  border-left-color: var(--running-text);
+}
+
+.handoff-status-board li.blocked {
+  border-left-color: var(--approval-text);
+}
+
+.handoff-status-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.handoff-status-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.handoff-status-grid div {
+  min-width: 0;
+}
+
+.handoff-status-label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.handoff-status-value {
+  display: block;
+  margin-top: 0.15rem;
+  overflow-wrap: anywhere;
+}
+
+.operator-plan.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.operator-plan.ready {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.operator-plan.waiting {
+  border-color: color-mix(in srgb, var(--retrying-text) 45%, var(--border));
+}
+
+.kickoff-sequence {
+  /* This is the plain-English start path for users who do not live in Linear.
+     It mirrors the real buttons without changing state by itself. */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.kickoff-sequence ol {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.kickoff-sequence li {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.65rem;
+}
+
+.kickoff-sequence li.done {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.kickoff-sequence li.blocked {
+  color: var(--muted);
+}
+
+.kickoff-sequence li.next {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.kickoff-sequence small {
+  color: var(--muted);
+}
+
+.task-routing {
+  /* This is Symphony's task-tracker/nudger surface. It does not start Jules or
+     local Codex by itself; it explains the current routing recommendation and
+     how long to pause before the next external refresh or nudge. */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+  padding: 0.85rem;
+}
+
+.task-routing.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.task-routing.ready {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.task-routing.waiting {
+  border-color: color-mix(in srgb, var(--retrying-text) 45%, var(--border));
+}
+
+.task-routing > div:first-child,
+.routing-next-action {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.task-routing p,
+.task-routing small,
+.routing-next-action span {
+  color: var(--muted);
+  margin: 0;
+}
+
+.task-routing ul,
+.task-routing ol {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.task-routing details {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem;
+}
+
+.worker-mode-packet {
+  /* Worker mode is a recommendation packet, not an assignment side effect. It
+     makes the local/Jules/model/reasoning choice legible before any Codex or
+     Jules worker is started, while the override note preserves explicit
+     WORKFLOW.md operator config as the final launch-time authority. */
+  background: color-mix(in srgb, var(--panel-bg) 72%, var(--code-bg));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem;
+}
+
+.worker-mode-packet > div:first-child {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.worker-mode-packet dl,
+.worker-mode-signals {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin: 0;
+}
+
+.worker-mode-packet dl div,
+.worker-mode-signals span {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.45rem;
+}
+
+.worker-mode-packet dt,
+.worker-mode-signals strong {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.worker-mode-packet dd {
+  margin: 0;
+}
+
+.task-nudge-ledger {
+  /* This is the durable pause/nudge receipt for the routing panel. It shows
+     what Symphony recorded without implying that Jules, Codex, GitHub, or Git
+     was changed by the record button. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.65rem;
+}
+
+.task-nudge-ledger > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.task-nudge-ledger ol {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.task-nudge-ledger li {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.45rem;
+}
+
+.task-nudge-ledger span {
+  font-weight: 700;
+}
+
+.task-nudge-ledger p {
+  margin: 0;
+}
+
+.task-nudge-scheduler {
+  /* This is the pause-aware scheduler view for the nudge ledger. It tells a
+     foreman whether a recorded boundary is due, still waiting, or blocked on
+     the operator while keeping refresh and launch actions manual. */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.6rem;
+}
+
+.task-nudge-scheduler.due {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.task-nudge-scheduler.waiting {
+  border-color: color-mix(in srgb, var(--retrying-text) 45%, var(--border));
+}
+
+.task-nudge-scheduler.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.task-nudge-scheduler > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.task-nudge-scheduler ol {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.task-nudge-scheduler li {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.2rem;
+  padding-top: 0.35rem;
+}
+
+.task-nudge-scheduler code {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.task-nudge-action-packet {
+  /* This packet is for the foreman layer, not for automatic execution. It
+     names the safe dashboard endpoint, method, and safety class so a future
+     worker can decide what to do without guessing from raw scheduler fields. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.45rem;
+}
+
+.task-nudge-action-packet strong,
+.task-nudge-action-packet small {
+  display: block;
+}
+
+.kickoff-guide {
+  /* This guide is the readable glossary for the kickoff form. It keeps the
+     dashboard usable for operators who know the desired work but not the Linear
+     issue / Jules manifest vocabulary yet. */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+}
+
+.kickoff-guide summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.kickoff-guide ol {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.85rem 0;
+  padding-left: 1.2rem;
+}
+
+.kickoff-guide li {
+  padding-left: 0.2rem;
+}
+
+.kickoff-guide li span {
+  display: block;
+  font-weight: 600;
+}
+
+.kickoff-guide small,
+.kickoff-guide dd,
+.kickoff-guide p {
+  color: var(--muted);
+}
+
+.kickoff-guide dl {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.kickoff-guide dl div {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.45rem;
+}
+
+.kickoff-guide dt {
+  font-weight: 600;
+}
+
+.kickoff-guide dd {
+  margin: 0;
+}
+
+.operator-plan > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.operator-plan p {
+  color: var(--muted);
+  margin: 0.65rem 0;
+}
+
+.operator-plan ol {
+  margin: 0;
+  padding-left: 1.35rem;
+}
+
+.operator-plan li + li {
+  margin-top: 0.25rem;
+}
+
+.queue-next-action {
+  /* Queue next action mirrors the top-level API action. It is intentionally
+     above the detailed kickoff sequence so humans and headless foremen can
+     agree on the single highest-priority move before looking at every card. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  margin: 1rem 0;
+  padding: 0.9rem;
+}
+
+.queue-next-action.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.queue-next-action.ready {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.queue-next-action.waiting {
+  border-color: color-mix(in srgb, var(--retrying-text) 45%, var(--border));
+}
+
+.queue-next-action > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.queue-next-action small {
+  color: var(--muted);
+}
+
+.action-session-link,
+.action-pr-link,
+.action-command {
+  /* Approval actions are only safe when the operator can inspect the Jules
+     cloud session before clicking the local Symphony approval endpoint. Keep
+     that link visually grouped with the action instead of burying it elsewhere
+     on the handoff card. PR-stage actions use the same treatment so GitHub's
+     remote review state stays adjacent to the local Symphony endpoint. Command
+     context uses the same compact placement when Scout/Core work is the real
+     human step before the local endpoint should be refreshed. */
+  margin: 0;
+}
+
+.action-request-body {
+  /* Some next actions are POST instructions for workers as much as buttons for
+     humans. This compact block makes the required JSON body visible without
+     forcing operators to inspect dashboard JavaScript or server route code. */
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+}
+
+.action-request-body summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.action-request-body p {
+  margin: 0.35rem 0 0;
+}
+
+.action-request-body code {
+  overflow-wrap: anywhere;
+}
+
+.queue-next-action > .queue-conflict-context {
+  /* This is the readable version of conflict_watch.next_action. The API gives
+     foremen affected PR URLs and file paths; this block keeps the same details
+     visible in the top dashboard action so Scout/Core arbitration does not hide
+     several screens down in individual handoff cards. */
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 0.35rem;
+  padding-top: 0.75rem;
+}
+
+.queue-conflict-context div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.queue-conflict-context strong {
+  font-size: 0.88rem;
+}
+
+.queue-conflict-context ul {
+  display: grid;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.queue-conflict-context li {
+  min-width: 0;
+}
+
+.queue-conflict-context code {
+  overflow-wrap: anywhere;
+}
+
+.conflict-watch {
+  /* This is the multi-PR risk view for Jules batches. Individual handoff cards
+     show per-PR risk; this panel shows when several Jules PRs are likely to
+     collide on the same shared or poison file before Core merges anything. */
+  border-color: color-mix(in srgb, var(--approval-text) 25%, var(--border));
+}
+
+.conflict-watch div + div {
+  margin-top: 0.75rem;
+}
+
+.conflict-watch ul {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.conflict-watch li {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(10rem, 0.45fr) minmax(0, 1fr);
+}
+
+.conflict-watch li.failed span {
+  color: var(--approval-text);
+}
+
+.conflict-watch li.waiting span {
+  color: var(--retry-text);
+}
+
+.task-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.task-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.task-form span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.sync-gate {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.sync-gate.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.sync-gate.ready {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.sync-gate-header {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sync-gate dl {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1rem 0;
+}
+
+.sync-gate dl div {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+}
+
+.sync-gate dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.sync-gate dd {
+  margin: 0.2rem 0 0;
+  word-break: break-word;
+}
+
+.gate-blockers {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.gate-ok {
+  color: var(--running-text);
+}
+
+.sync-decision-board {
+  /* This is the operator's disposition checkpoint before Jules can start.
+     The existing remediation details show Git commands; this board shows the
+     human ownership decisions those commands depend on, so the dashboard does
+     not encourage a blind push, pull, stash, or delete. */
+  background: var(--panel-bg);
+  border: 1px solid color-mix(in srgb, var(--approval-text) 35%, var(--border));
+  border-radius: 8px;
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem;
+}
+
+.sync-decision-board > div:first-child p {
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+}
+
+.sync-decision-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.sync-decision-card {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.7rem;
+}
+
+.sync-decision-card span {
+  color: var(--approval-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sync-decision-card h4 {
+  margin: 0;
+}
+
+.sync-decision-card p {
+  margin: 0;
+}
+
+.sync-disposition-note {
+  background: var(--panel-bg);
+  border-left: 3px solid var(--accent);
+  padding: 0.45rem 0.6rem;
+}
+
+.sync-decision-card code {
+  display: block;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.sync-decision-card label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.sync-decision-card select,
+.sync-decision-card textarea {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+}
+
+.sync-decision-card button {
+  justify-self: start;
+}
+
+.git-sync-plan {
+  /* This panel is the bridge from disposition to action. It deliberately
+     presents a human-operated plan instead of a button that mutates Git, so
+     local work cannot be pushed, pulled, stashed, or cleaned by surprise. */
+  background: var(--panel-bg);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border-radius: 8px;
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+  padding: 0.85rem;
+}
+
+.git-sync-plan.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 35%, var(--border));
+}
+
+.git-sync-plan > div:first-child {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.git-sync-plan p,
+.git-sync-plan small {
+  color: var(--muted);
+  margin: 0;
+}
+
+.git-sync-plan ol {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.git-sync-plan li {
+  min-width: 0;
+}
+
+.git-sync-plan li span {
+  display: block;
+  font-weight: 700;
+}
+
+.git-sync-plan li.destructive span::after {
+  color: var(--approval-text);
+  content: " / mutating";
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.git-sync-plan code {
+  display: block;
+  margin-top: 0.25rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.git-sync-execution-packet {
+  /* This packet is the final human handoff for the Git blocker. It separates
+     safe inspection commands, human-run mutating commands, and proof commands
+     so the operator can act deliberately without treating Symphony as a Git
+     automation button. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.65rem;
+}
+
+.git-sync-execution-packet > div:first-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.git-sync-execution-packet div:not(:first-child) {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.git-sync-execution-packet ol {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.git-resolution-packet {
+  /* This is the concrete evidence drawer for the sync gate. It keeps the
+     commit/file facts visible beside the disposition board while still making
+     clear that Symphony only inspected Git state and did not change it. */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+  padding: 0.85rem;
+}
+
+.git-resolution-packet summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.git-resolution-packet p,
+.git-resolution-packet small {
+  color: var(--muted);
+  margin: 0;
+}
+
+.git-resolution-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.git-resolution-grid section {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.65rem;
+}
+
+.git-resolution-grid ol,
+.git-resolution-details {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.git-resolution-grid li {
+  min-width: 0;
+}
+
+.git-resolution-grid li span {
+  overflow-wrap: anywhere;
+}
+
+.git-resolution-grid code {
+  margin-right: 0.35rem;
+}
+
+.sync-remediation {
+  /* This expanded section is the GitHub-sync repair surface. Jules cannot see
+     local-only changes, so the dashboard shows concrete files and commands
+     instead of leaving the user with only a blocker count. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0 1rem;
+  padding: 0.75rem;
+}
+
+.sync-remediation summary {
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sync-remediation ol {
+  margin: 0.75rem 0;
+  padding-left: 1.35rem;
+}
+
+.sync-next-action {
+  /* This is the dashboard rendering of the machine-readable Git preflight
+     action. It keeps the hard Jules sync gate understandable without asking
+     the operator to infer the safest command from several separate lists. */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+}
+
+.sync-next-action.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.sync-next-action.ready {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.sync-next-action > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.sync-action-command {
+  margin: 0;
+}
+
+.file-samples {
+  margin: 0.75rem 0;
+}
+
+.file-samples ul {
+  display: grid;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+}
+
+.file-samples .muted {
+  color: var(--muted);
+}
+
+.command-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.command-list div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.command-list dt {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.command-list dd {
+  margin: 0;
+}
+
+.task-draft-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.task-draft {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+
+.task-draft.blocked {
+  border-left: 4px solid var(--approval-text);
+}
+
+.task-draft.ready {
+  border-left: 4px solid var(--running-text);
+}
+
+.task-draft.empty {
+  color: var(--muted);
+}
+
+.task-draft div {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.task-draft p {
+  white-space: pre-wrap;
+}
+
+.task-draft details {
+  margin: 0.75rem 0;
+}
+
+.card-next-action {
+  /* This card mirrors the machine-readable next_action object returned by the
+     task queue API. It keeps the browser workflow and headless foreman workflow
+     pointed at the same next safe action. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.card-next-action.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.card-next-action.ready {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.card-next-action.waiting {
+  border-color: color-mix(in srgb, var(--retrying-text) 45%, var(--border));
+}
+
+.card-next-action ol {
+  margin: 0;
+  padding-left: 1.35rem;
+}
+
+.handoff-manifest {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.handoff-manifest p {
+  margin: 0.25rem 0;
+}
+
+.expected-files,
+.verification-commands {
+  /* These are acceptance checks captured before Jules starts. They stay visible
+     across drafts and handoffs so the operator can verify that the remote
+     worker, PR review, and local sync all refer back to the same requested
+     tests instead of inventing a new finish line later. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.expected-files ul,
+.verification-commands ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.expected-files.empty-scope {
+  border-color: color-mix(in srgb, var(--warning) 48%, var(--border));
+}
+
+.expected-files.empty-scope p {
+  margin: 0.45rem 0 0;
+}
+
+.handoff-readiness {
+  /* This is the operator checklist for the Jules foreman workflow: it tells the
+     user whether a remote session exists, whether a PR is visible, and what
+     local review/pull steps are available before syncing cloud work locally. */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.handoff-readiness ul {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0.65rem 0;
+  padding: 0;
+}
+
+.handoff-readiness li {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.handoff-readiness li.ok em {
+  color: var(--running-text);
+}
+
+.handoff-readiness li.waiting em {
+  color: var(--muted);
+}
+
+.handoff-readiness li.failed em {
+  color: var(--approval-text);
+}
+
+.handoff-readiness em {
+  font-style: normal;
+  text-align: right;
+}
+
+.handoff-lifecycle {
+  /* This is the one-glance path from dashboard draft to local sync. The
+     detailed panels remain below; this strip keeps the overall Jules handoff
+     phase visible when several cards are open at the same time. */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.handoff-lifecycle ol {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+}
+
+.handoff-lifecycle li {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.6rem;
+}
+
+.handoff-lifecycle li.done {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.handoff-lifecycle li.waiting {
+  border-color: color-mix(in srgb, var(--retrying-text) 35%, var(--border));
+}
+
+.handoff-lifecycle em {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.pr-readiness {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.scout-core-readiness {
+  /* Scout/Core is a separate human review lane, not just another GitHub check.
+     This border differentiates the handoff review from the PR data panel so the
+     operator sees that Scout arbitration comes before Core merge/local sync. */
+  border-color: color-mix(in srgb, var(--retry-text) 40%, var(--border));
+}
+
+.jules-message-panel {
+  /* Operator notes are a human-facing audit trail. The textarea gives the
+     dashboard a direct feedback path to Jules while the message list shows what
+     actually got sent or failed. */
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
+}
+
+.jules-message-panel textarea {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: var(--text);
+  display: block;
+  font: inherit;
+  margin: 0.75rem 0 0.35rem;
+  min-height: 5rem;
+  padding: 0.65rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.jules-message-panel textarea:disabled {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.jules-message-panel li {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.jules-approval-panel {
+  /* Plan approval is a higher-stakes operator decision than a normal message,
+     so it gets its own panel and history instead of sharing the notes UI. */
+  border-color: color-mix(in srgb, var(--approval-text) 35%, var(--border));
+}
+
+.jules-approval-panel li {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.local-sync-readiness {
+  border-color: color-mix(in srgb, var(--running-text) 35%, var(--border));
+}
+
+.pr-next-action,
+.local-sync-next-action {
+  /* These next-action cards translate raw GitHub/local sync data into a single
+     operator decision. PR cards point Scout/Core at review work; local-sync
+     cards protect the user's checkout before a fast-forward pull. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.pr-next-action.blocked,
+.local-sync-next-action.blocked {
+  border-color: color-mix(in srgb, var(--approval-text) 45%, var(--border));
+}
+
+.pr-next-action.ready,
+.local-sync-next-action.ready {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.pr-next-action.waiting,
+.local-sync-next-action.waiting {
+  border-color: color-mix(in srgb, var(--retrying-text) 45%, var(--border));
+}
+
+.pr-next-action > div,
+.local-sync-next-action > div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.launch-receipt {
+  /* This is the per-handoff proof that the hard GitHub gate was checked at a
+     specific commit before Jules started. It keeps the launch receipt visible
+     near the PR/local-sync panels instead of hiding it inside raw JSON. */
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.pr-error {
+  color: var(--approval-text);
+}
+
+.risk-reasons {
+  color: var(--approval-text);
+  margin: 0.5rem 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.scope-violations {
+  /* Scope violations are different from ordinary risky files: they mean Jules
+     edited outside the boundary the operator gave Symphony before launch. Keep
+     this block visually close to the risk reasons so Scout/Core can catch it
+     before a PR merge or local sync. */
+  border-left: 3px solid var(--approval-text);
+  margin: 0.75rem 0;
+  padding-left: 0.75rem;
+}
+
+.scope-violations summary {
+  color: var(--approval-text);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.scope-violations p {
+  color: var(--muted);
+  margin: 0.45rem 0;
+}
+
+.changed-file-list {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+}
+
+.changed-file-list li {
+  align-items: baseline;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) auto minmax(12rem, 0.45fr);
+}
+
+.changed-file-list li.high em {
+  color: var(--approval-text);
+}
+
+.changed-file-list li.medium em {
+  color: var(--retrying-text);
+}
+
+.task-draft summary {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.task-draft details pre {
+  max-height: 24rem;
+  white-space: pre-wrap;
+}
+
+.task-draft button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.usage-meter {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.usage-meter-header {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.usage-track {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  height: 0.75rem;
+  margin: 0.7rem 0 0.45rem;
+  overflow: hidden;
+}
+
+.usage-fill {
+  background: var(--usage-good);
+  border-radius: inherit;
+  height: 100%;
+  transition: width 180ms ease;
+}
+
+.usage-meter.warning .usage-fill {
+  background: var(--usage-warning);
+}
+
+.usage-meter.danger .usage-fill {
+  background: var(--usage-danger);
+}
+
+.usage-meter.quiet .usage-fill {
+  background: var(--muted);
+}
+
+.stat {
+  font-size: 1.2rem;
+}
+
+.stat-value {
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--table-head);
+}
+
+code {
+  font-size: 0.85rem;
+  white-space: normal;
+  word-break: break-all;
+}
+
+small,
+.refresh-note,
+.refresh-status,
+.activity-kind,
+.activity-status,
+.approval-note,
+.file-feed {
+  color: var(--muted);
+}
+
+.message {
+  max-width: 360px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.badge {
+  border-radius: 999px;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 0.35rem;
+  padding: 0.15rem 0.45rem;
+}
+
+.running {
+  background: var(--running-bg);
+  color: var(--running-text);
+}
+
+.retrying {
+  background: var(--retrying-bg);
+  color: var(--retrying-text);
+}
+
+.approval {
+  background: var(--approval-bg);
+  color: var(--approval-text);
+}
+
+pre {
+  background: var(--code-bg);
+  border-radius: 4px;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.approval-panel {
+  border-color: color-mix(in srgb, var(--approval-text) 50%, var(--border));
+}
+
+.approval-panel h2 {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0;
+}
+
+.approval-detail {
+  /* Approval text is the human review surface for headless tool calls.
+     Keep it fully visible so long Linear comments or commands are not hidden
+     behind a small scroll box when the user is deciding what was requested. */
+  max-height: none;
+  white-space: pre-wrap;
+}
+
+.approval-actions {
+  /* Approval buttons answer the exact app-server request shown in this panel.
+     They stay next to the summary so the user can review the action and decide
+     without hunting through the raw activity JSON. */
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.approval-actions button {
+  min-width: 6rem;
+}
+
+.activity-feed {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.worker-identity {
+  /* Multiple foremen can be active at once. This compact strip ties the
+     activity trail back to Symphony's assigned worker callsign without forcing
+     the operator to inspect raw JSON or workspace marker files. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.worker-identity div {
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.activity-item {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.activity-item.agent {
+  border-left: 4px solid var(--accent);
+}
+
+.activity-item.command {
+  border-left: 4px solid var(--retrying-text);
+}
+
+.activity-item.file {
+  border-left: 4px solid var(--running-text);
+}
+
+.activity-item.approval {
+  border-left: 4px solid var(--approval-text);
+}
+
+.activity-item.usage,
+.activity-item.lifecycle,
+.activity-item.result,
+.activity-item.quiet {
+  opacity: 0.86;
+}
+
+.activity-item div {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.activity-item pre {
+  margin: 0.5rem 0 0;
+  max-height: 16rem;
+  white-space: pre-wrap;
+}
+
+.activity-kind,
+.activity-status {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.file-feed {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.25rem;
+}
+
+@media (max-width: 760px) {
+  .foreman-detail-grid,
+  .task-intake-grid {
+    grid-template-columns: 1fr;
+  }
+}

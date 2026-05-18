@@ -1,0 +1,25 @@
+{
+  "name": "symphony",
+  "version": "0.1.0",
+  "description": "TypeScript implementation of OpenAI Symphony — autonomous coding agent orchestrator",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "verify:jules-contract": "npm run build && node scripts/verify-queue-next-action.mjs && node scripts/verify-task-kickoff.mjs && node scripts/verify-git-preflight-blockers.mjs && node scripts/verify-linear-issue-blockers.mjs && node scripts/verify-linear-issue-preview.mjs && node scripts/verify-jules-manifest-preview.mjs && node scripts/verify-handoff-readiness-packet.mjs && node scripts/verify-clean-handoff-pass-path.mjs && node scripts/verify-middleman-path.mjs && node scripts/verify-middleman-foreman-pass-path.mjs && node scripts/verify-pr-scope-risk.mjs && node scripts/verify-handoff-manifest.mjs && node scripts/verify-launch-preflight.mjs && node scripts/verify-jules-launch-readiness-packet.mjs && node scripts/verify-approval-result.mjs && node scripts/verify-approval-policy-panel.mjs && node scripts/verify-foreman-prompt.mjs && node scripts/verify-readable-activity.mjs && node scripts/verify-usage-tracker.mjs && node scripts/verify-rate-limit-retention.mjs && node scripts/verify-dashboard-conflict-watch.mjs && node scripts/verify-dashboard-conflict-visual.mjs && node scripts/verify-handoff-status-board.mjs && node scripts/verify-dashboard-foreman-console.mjs && node scripts/verify-dashboard-density.mjs && node scripts/verify-worker-mode-packet.mjs && node scripts/verify-local-sync-next-action.mjs && node scripts/verify-local-sync-readiness-packet.mjs && node scripts/verify-scout-core-readiness-packet.mjs && node scripts/verify-pr-next-action.mjs && node scripts/verify-pr-check-artifacts.mjs && node scripts/verify-pr-comment-classification.mjs && node scripts/verify-observed-pr-watch.mjs && node scripts/verify-observed-pr-follow-up-draft.mjs && node scripts/verify-proof-board.mjs && node scripts/verify-worker-identity.mjs && node scripts/verify-worker-dashboard.mjs && node scripts/verify-codex-worker-assignment.mjs && node scripts/verify-dashboard-only-mode.mjs && node scripts/verify-dispatch-control-toggle.mjs && node scripts/verify-git-disposition-workflow.mjs && node scripts/verify-git-disposition-review-packet.mjs && node scripts/verify-git-resolution-packet.mjs && node scripts/verify-git-sync-plan.mjs && node scripts/verify-git-sync-execution-receipt.mjs && node scripts/verify-task-routing-nudging.mjs && node scripts/verify-task-nudge-ledger.mjs && node scripts/verify-task-nudge-scheduler.mjs && node scripts/verify-task-nudge-due-refresh.mjs && node scripts/verify-sync-decision-board.mjs && node scripts/verify-github-actions-quality.mjs && node scripts/verify-readme-jules-middleman.mjs && node scripts/verify-operating-spec.mjs && node scripts/verify-middleman-audit.mjs",
+    "verify:queue": "npm run build && node scripts/verify-queue-next-action.mjs",
+    "start": "tsx src/index.ts",
+    "dev": "tsx --watch src/index.ts"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "liquidjs": "^10.21.0",
+    "chokidar": "^4.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.14.0"
+  }
+}
