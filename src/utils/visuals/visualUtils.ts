@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 18/05/2026, 14:49:10
+ * Last Sync: 18/05/2026, 15:10:43
  * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, utils/visualUtils.ts, utils/visuals/index.ts
  * Imports: 2 files
  *
@@ -62,16 +62,47 @@ const ARMOR_ICON_BY_ITEM_ID: Record<string, string> = {
   shield_plus_one: 'shield_plus_one.svg',
 };
 
+// Older saved inventories can hold weapon records that only have an emoji in
+// `item.icon`. This table mirrors the current weapon registry so those records
+// can still use restored SVG art without rewriting the saved item data.
 const WEAPON_ICON_BY_ITEM_ID: Record<string, string> = {
+  club: 'club-weapon-type-01.svg',
+  dagger: 'dolch.svg',
+  greatclub: 'club-weapon-type-03.svg',
+  handaxe: 'kriegsbeil.svg',
+  javelin: 'speer.svg',
+  light_hammer: 'war-hammer-type-01.svg',
+  mace: 'mace.svg',
+  quarterstaff: 'baton.svg',
+  sickle: 'sichel.svg',
+  spear: 'speer.svg',
   dart: 'dart.svg',
   light_crossbow: 'light-crossbow.svg',
+  shortbow: 'kompositbogen.svg',
   sling: 'sling.svg',
+  battleaxe: 'kriegsbeil.svg',
+  flail: 'flail-weapon.svg',
+  glaive: 'hellebarde.svg',
+  greataxe: 'barbaren-axe.svg',
+  greatsword: 'bastardschwert-type-03.svg',
+  halberd: 'hellebarde.svg',
+  lance: 'speer.svg',
+  longsword: 'sword.svg',
+  maul: 'war-hammer-type-03.svg',
+  morningstar: 'morgenstern.svg',
+  pike: 'speer.svg',
+  rapier: 'florett-type-01.svg',
+  scimitar: 'sabel.svg',
+  shortsword: 'sword.svg',
   trident: 'trident.svg',
+  warhammer: 'war-hammer-type-02.svg',
   war_pick: 'war-pick.svg',
   whip: 'whip.svg',
   blowgun: 'blowgun.svg',
+  longbow: 'langbogen.svg',
   hand_crossbow: 'hand-crossbow.svg',
   heavy_crossbow: 'heavy-crossbow.svg',
+  rusty_sword: 'sabel.svg',
 };
 
 /**

@@ -5,6 +5,12 @@ import { NPC, Item } from '../../../types';
 // TODO(lint-intent): 'ItemVisualSpec' is unused in this test; use it in the assertion path or remove it.
 import { NPCVisualSpec, ItemVisualSpec as _ItemVisualSpec } from '../../../types/visuals';
 
+/**
+ * This file checks the visual resolver that turns game records into image paths
+ * or fallback symbols for the UI. Inventory panels call the same resolver, so
+ * these tests protect old saved items as well as newly-created item data.
+ */
+
 describe('resolveNPCVisual', () => {
   const mockNPC: NPC = {
     id: 'test-npc',
@@ -63,6 +69,63 @@ describe('resolveNPCVisual', () => {
 
     const result = resolveNPCVisual(npcWithVisual, overrideSpec);
     expect(result.fallbackContent).toBe('⚔️');
+  });
+});
+
+describe('resolveItemVisual legacy weapon ids', () => {
+  it('resolves every older emoji-only weapon id to restored SVG art', () => {
+    const expectedWeaponIcons: Record<string, string> = {
+      club: 'club-weapon-type-01.svg',
+      dagger: 'dolch.svg',
+      greatclub: 'club-weapon-type-03.svg',
+      handaxe: 'kriegsbeil.svg',
+      javelin: 'speer.svg',
+      light_hammer: 'war-hammer-type-01.svg',
+      mace: 'mace.svg',
+      quarterstaff: 'baton.svg',
+      sickle: 'sichel.svg',
+      spear: 'speer.svg',
+      dart: 'dart.svg',
+      light_crossbow: 'light-crossbow.svg',
+      shortbow: 'kompositbogen.svg',
+      sling: 'sling.svg',
+      battleaxe: 'kriegsbeil.svg',
+      flail: 'flail-weapon.svg',
+      glaive: 'hellebarde.svg',
+      greataxe: 'barbaren-axe.svg',
+      greatsword: 'bastardschwert-type-03.svg',
+      halberd: 'hellebarde.svg',
+      lance: 'speer.svg',
+      longsword: 'sword.svg',
+      maul: 'war-hammer-type-03.svg',
+      morningstar: 'morgenstern.svg',
+      pike: 'speer.svg',
+      rapier: 'florett-type-01.svg',
+      scimitar: 'sabel.svg',
+      shortsword: 'sword.svg',
+      trident: 'trident.svg',
+      warhammer: 'war-hammer-type-02.svg',
+      war_pick: 'war-pick.svg',
+      whip: 'whip.svg',
+      blowgun: 'blowgun.svg',
+      longbow: 'langbogen.svg',
+      hand_crossbow: 'hand-crossbow.svg',
+      heavy_crossbow: 'heavy-crossbow.svg',
+      rusty_sword: 'sabel.svg',
+    };
+
+    for (const [weaponId, iconFileName] of Object.entries(expectedWeaponIcons)) {
+      const result = resolveItemVisual({
+        id: weaponId,
+        name: weaponId,
+        description: 'Older saved weapon record',
+        type: 'weapon',
+        icon: 'legacy-emoji',
+      });
+
+      expect(result.src).toBe(`assets/icons/general/weapons/${iconFileName}`);
+      expect(result.fallbackContent).toBe('legacy-emoji');
+    }
   });
 });
 
