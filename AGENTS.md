@@ -154,7 +154,8 @@ If you are changing a system with roadmap implications, use the roadmap-related 
 1. **Testing**: Use `/test-ts` to execute unit tests (Vitest), type tests (TSD), or build-time checks (TSC).
 2. **Dependency Tracking**: When modifying exported signatures, `utils`, `hooks`, or `state` files, run:
    `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync <path>`
-3. **Session Hygiene**: Execute `/session-ritual` after major task verification to sync dependency headers and complete end-of-session maintenance.
+3. **Push Policy**: Treat broad `npm run typecheck` and `npm run lint` output as visible debt unless the task is explicitly a strict cleanup/review pass. The pre-push policy in `scripts/git/pre-push-aralia.sh` keeps unresolved conflicts and intent-gate failures blocking, but allows ordinary pushes to continue when project-wide type/lint debt is unrelated to the current work. Run `npm run hooks:install` to install or refresh the local `.git/hooks/pre-push` delegator.
+4. **Session Hygiene**: Execute `/session-ritual` after major task verification to sync dependency headers and complete end-of-session maintenance.
 
 ## Practical Rule
 

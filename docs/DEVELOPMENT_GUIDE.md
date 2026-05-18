@@ -17,6 +17,28 @@
 
 When working as an agent in this repo, prefer the workflow wrappers and session rules defined in [`../AGENTS.md`](../AGENTS.md), including `/test-ts`, dependency sync expectations, and `/session-ritual`.
 
+### Push Checks And Type Debt
+
+Aralia's pre-push policy is intentionally split between **sync blockers** and **visible debt**.
+
+- Sync blockers are problems that mean Git or the session cannot safely publish work, such as unresolved merge conflicts or a missing intent gate.
+- Visible debt includes broad `npm run typecheck` and `npm run lint` failures. These commands still run during the hook so the risk is visible, but ordinary pushes are allowed to continue when they fail.
+- Review or cleanup sessions can opt into strict behavior with `ARALIA_PRE_PUSH_STRICT=1 git push`, which makes typecheck and lint failures blocking for that push.
+
+The tracked policy script is [`../scripts/git/pre-push-aralia.sh`](../scripts/git/pre-push-aralia.sh). Local `.git/hooks/pre-push` should delegate to that file instead of keeping hidden hook logic that future agents cannot inspect.
+
+Install or refresh the local hook with:
+```bash
+npm run hooks:install
+```
+
+Use these push modes:
+- Ordinary sync: `git push`
+- Strict review or cleanup push: `ARALIA_PRE_PUSH_STRICT=1 git push`
+- Emergency bypass when Git hooks themselves are the blocker: `git push --no-verify`
+
+This policy does **not** mean TypeScript or lint warnings are unimportant. It means broad repo debt should not turn every sync into a whole-project cleanup session. Use targeted verification for the files and behavior touched by the current task, and reserve full strict cleanup for sessions whose explicit purpose is type or lint debt.
+
 ---
 
 ## 2. Architecture & Directory Orientation

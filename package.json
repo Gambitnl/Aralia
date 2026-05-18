@@ -24,6 +24,7 @@
     "image-gen:login": "tsx scripts/workflows/gemini/image-gen/open-gemini-profile.ts",
     "typecheck": "tsc -b",
     "lint": "eslint src scripts tests",
+    "hooks:install": "node scripts/git/install-pre-push-hook.cjs",
     "mcp": "tsx scripts/mcp-util.ts",
     "stitch:init": "npx @_davideast/stitch-mcp init",
     "stitch:doctor": "npx @_davideast/stitch-mcp doctor --verbose",
