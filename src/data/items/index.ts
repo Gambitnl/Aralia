@@ -5,6 +5,17 @@
  */
 import { Item } from '../../types/index.js';
 
+const ARMOR_ICON_PATH = 'assets/icons/general/armor/';
+
+/**
+ * Armor and shield SVGs live in the public general icon folder. The existing
+ * emoji/text `icon` values stay in place as fallbacks for logs, saves, and
+ * renderers that do not display image assets.
+ */
+const armorIcon = (fileName: string): Pick<Item, 'visual'> => ({
+  visual: { iconPath: `${ARMOR_ICON_PATH}${fileName}` },
+});
+
 export const WEAPONS_DATA: Record<string, Item> = {
   // --- Simple Melee Weapons ---
   'club': { id: 'club', name: 'Club', icon: '🪵', description: 'A simple wooden club.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d4', damageType: 'Bludgeoning', properties: ['Light'], weight: 2, cost: '1 SP', mastery: 'Slow' },
@@ -92,28 +103,28 @@ export const ITEMS: Record<string, Item> = {
   'diamond_300gp': { id: 'diamond_300gp', name: 'Diamond (300 GP)', icon: '💎', description: 'A large, clear diamond.', type: 'spell_component', weight: 0.1, cost: "300 GP", costInGp: 300, isConsumed: true, substitutable: false },
 
   // --- Armor: Head ---
-  'leather_cap': { id: 'leather_cap', name: 'Leather Cap', icon: '🎓', description: 'A simple leather cap.', type: 'armor', slot: 'Head', armorCategory: 'Light', baseArmorClass: 0, weight: 1, cost: '2 GP' },
-  'chainmail_coif': { id: 'chainmail_coif', name: 'Chainmail Coif', icon: '⛓️', description: 'A hood of interlocking metal rings.', type: 'armor', slot: 'Head', armorCategory: 'Medium', baseArmorClass: 0, weight: 3, cost: '15 GP' },
-  'steel_helmet': { id: 'steel_helmet', name: 'Steel Helmet', icon: '⛑️', description: 'A solid steel helmet.', type: 'armor', slot: 'Head', armorCategory: 'Heavy', baseArmorClass: 0, weight: 5, cost: '30 GP' },
+  'leather_cap': { id: 'leather_cap', name: 'Leather Cap', icon: '🎓', description: 'A simple leather cap.', type: 'armor', slot: 'Head', armorCategory: 'Light', baseArmorClass: 0, weight: 1, cost: '2 GP', ...armorIcon('leather_cap.svg') },
+  'chainmail_coif': { id: 'chainmail_coif', name: 'Chainmail Coif', icon: '⛓️', description: 'A hood of interlocking metal rings.', type: 'armor', slot: 'Head', armorCategory: 'Medium', baseArmorClass: 0, weight: 3, cost: '15 GP', ...armorIcon('chainmail_coif.svg') },
+  'steel_helmet': { id: 'steel_helmet', name: 'Steel Helmet', icon: '⛑️', description: 'A solid steel helmet.', type: 'armor', slot: 'Head', armorCategory: 'Heavy', baseArmorClass: 0, weight: 5, cost: '30 GP', ...armorIcon('steel_helmet.svg') },
 
   // --- Armor: Hands ---
-  'leather_gloves': { id: 'leather_gloves', name: 'Leather Gloves', icon: '🧤', description: 'Supple leather gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Light', baseArmorClass: 0, weight: 0.5, cost: '1 GP' },
-  'chainmail_gauntlets': { id: 'chainmail_gauntlets', name: 'Chainmail Gauntlets', icon: '🥊', description: 'Metal mesh gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Medium', baseArmorClass: 0, weight: 2, cost: '10 GP' },
-  'plate_gauntlets': { id: 'plate_gauntlets', name: 'Plate Gauntlets', icon: '🥊', description: 'Heavy plated gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Heavy', baseArmorClass: 0, weight: 4, cost: '50 GP' },
+  'leather_gloves': { id: 'leather_gloves', name: 'Leather Gloves', icon: '🧤', description: 'Supple leather gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Light', baseArmorClass: 0, weight: 0.5, cost: '1 GP', ...armorIcon('leather_gloves.svg') },
+  'chainmail_gauntlets': { id: 'chainmail_gauntlets', name: 'Chainmail Gauntlets', icon: '🥊', description: 'Metal mesh gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Medium', baseArmorClass: 0, weight: 2, cost: '10 GP', ...armorIcon('chainmail_gauntlets.svg') },
+  'plate_gauntlets': { id: 'plate_gauntlets', name: 'Plate Gauntlets', icon: '🥊', description: 'Heavy plated gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Heavy', baseArmorClass: 0, weight: 4, cost: '50 GP', ...armorIcon('plate_gauntlets.svg') },
 
   // --- Armor: Legs ---
-  'cloth_pants': { id: 'cloth_pants', name: 'Cloth Pants', icon: '👖', description: 'Simple cloth trousers.', type: 'armor', slot: 'Legs', armorCategory: 'Light', baseArmorClass: 0, weight: 2, cost: '5 SP' },
-  'leather_greaves': { id: 'leather_greaves', name: 'Leather Greaves', icon: '🦵', description: 'Leather leg protection.', type: 'armor', slot: 'Legs', armorCategory: 'Medium', baseArmorClass: 0, weight: 4, cost: '15 GP' },
-  'plate_greaves': { id: 'plate_greaves', name: 'Plate Greaves', icon: '🦵', description: 'Full plate leg armor.', type: 'armor', slot: 'Legs', armorCategory: 'Heavy', baseArmorClass: 0, weight: 8, cost: '75 GP' },
+  'cloth_pants': { id: 'cloth_pants', name: 'Cloth Pants', icon: '👖', description: 'Simple cloth trousers.', type: 'armor', slot: 'Legs', armorCategory: 'Light', baseArmorClass: 0, weight: 2, cost: '5 SP', ...armorIcon('cloth_pants.svg') },
+  'leather_greaves': { id: 'leather_greaves', name: 'Leather Greaves', icon: '🦵', description: 'Leather leg protection.', type: 'armor', slot: 'Legs', armorCategory: 'Medium', baseArmorClass: 0, weight: 4, cost: '15 GP', ...armorIcon('leather_greaves.svg') },
+  'plate_greaves': { id: 'plate_greaves', name: 'Plate Greaves', icon: '🦵', description: 'Full plate leg armor.', type: 'armor', slot: 'Legs', armorCategory: 'Heavy', baseArmorClass: 0, weight: 8, cost: '75 GP', ...armorIcon('plate_greaves.svg') },
 
   // --- Armor: Feet ---
-  'soft_boots': { id: 'soft_boots', name: 'Soft Boots', icon: '👢', description: 'Comfortable leather boots.', type: 'armor', slot: 'Feet', armorCategory: 'Light', baseArmorClass: 0, weight: 1, cost: '2 GP' },
-  'studded_boots': { id: 'studded_boots', name: 'Studded Boots', icon: '🥾', description: 'Reinforced leather boots.', type: 'armor', slot: 'Feet', armorCategory: 'Medium', baseArmorClass: 0, weight: 3, cost: '12 GP' },
-  'steel_boots': { id: 'steel_boots', name: 'Steel Boots', icon: '🥾', description: 'Heavy metal boots.', type: 'armor', slot: 'Feet', armorCategory: 'Heavy', baseArmorClass: 0, weight: 6, cost: '40 GP' },
+  'soft_boots': { id: 'soft_boots', name: 'Soft Boots', icon: '👢', description: 'Comfortable leather boots.', type: 'armor', slot: 'Feet', armorCategory: 'Light', baseArmorClass: 0, weight: 1, cost: '2 GP', ...armorIcon('soft_boots.svg') },
+  'studded_boots': { id: 'studded_boots', name: 'Studded Boots', icon: '🥾', description: 'Reinforced leather boots.', type: 'armor', slot: 'Feet', armorCategory: 'Medium', baseArmorClass: 0, weight: 3, cost: '12 GP', ...armorIcon('studded_boots.svg') },
+  'steel_boots': { id: 'steel_boots', name: 'Steel Boots', icon: '🥾', description: 'Heavy metal boots.', type: 'armor', slot: 'Feet', armorCategory: 'Heavy', baseArmorClass: 0, weight: 6, cost: '40 GP', ...armorIcon('steel_boots.svg') },
 
   // --- Armor: Wrists ---
-  'leather_bracers': { id: 'leather_bracers', name: 'Leather Bracers', icon: '💪', description: 'Protective leather wrist guards.', type: 'armor', slot: 'Wrists', armorCategory: 'Light', baseArmorClass: 0, weight: 0.5, cost: '3 GP' },
-  'reinforced_bracers': { id: 'reinforced_bracers', name: 'Reinforced Bracers', icon: '💪', description: 'Metal-studded bracers.', type: 'armor', slot: 'Wrists', armorCategory: 'Medium', baseArmorClass: 0, weight: 2, cost: '15 GP' },
+  'leather_bracers': { id: 'leather_bracers', name: 'Leather Bracers', icon: '💪', description: 'Protective leather wrist guards.', type: 'armor', slot: 'Wrists', armorCategory: 'Light', baseArmorClass: 0, weight: 0.5, cost: '3 GP', ...armorIcon('leather_bracers.svg') },
+  'reinforced_bracers': { id: 'reinforced_bracers', name: 'Reinforced Bracers', icon: '💪', description: 'Metal-studded bracers.', type: 'armor', slot: 'Wrists', armorCategory: 'Medium', baseArmorClass: 0, weight: 2, cost: '15 GP', ...armorIcon('reinforced_bracers.svg') },
 
   // --- Accessories: Neck ---
   'silver_necklace': { id: 'silver_necklace', name: 'Silver Necklace', icon: '📿', description: 'A simple silver chain.', type: 'accessory', slot: 'Neck', weight: 0.1, cost: '10 GP' },
@@ -138,20 +149,20 @@ export const ITEMS: Record<string, Item> = {
   'ring_of_protection': { id: 'ring_of_protection', name: 'Ring of Protection', icon: '✨', description: 'A magical ring that provides protection. (Placeholder)', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '1500 GP' },
 
   // Armor and Shield (Torso)
-  'padded_armor': { id: 'padded_armor', name: 'Padded Armor', icon: '🧥', description: 'Quilted layers of cloth and batting.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 11, addsDexterityModifier: true, stealthDisadvantage: true, weight: 8, cost: '5 GP' },
-  'leather_armor': { id: 'leather_armor', name: 'Leather Armor', icon: '👕', description: 'Stiffened leather plates.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 11, addsDexterityModifier: true, weight: 10, cost: '10 GP' },
-  'studded_leather_armor': { id: 'studded_leather_armor', name: 'Studded Leather Armor', icon: '👘', description: 'Leather reinforced with rivets.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 12, addsDexterityModifier: true, weight: 13, cost: '45 GP' },
-  'hide_armor': { id: 'hide_armor', name: 'Hide Armor', icon: '👚', description: 'Thick furs and pelts.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 12, addsDexterityModifier: true, maxDexterityBonus: 2, weight: 12, cost: '10 GP' },
-  'chain_shirt': { id: 'chain_shirt', name: 'Chain Shirt', icon: '⛓️', description: 'Interlocking metal rings.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 13, addsDexterityModifier: true, maxDexterityBonus: 2, weight: 20, cost: '50 GP' },
-  'scale_mail': { id: 'scale_mail', name: 'Scale Mail', icon: '🛡️', description: 'Overlapping metal scales.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 14, addsDexterityModifier: true, maxDexterityBonus: 2, stealthDisadvantage: true, weight: 45, cost: '50 GP' },
-  'breastplate': { id: 'breastplate', name: 'Breastplate', icon: '🛡️', description: 'Fitted metal chest piece.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 14, addsDexterityModifier: true, maxDexterityBonus: 2, weight: 20, cost: '400 GP' },
-  'half_plate_armor': { id: 'half_plate_armor', name: 'Half Plate Armor', icon: '🛡️', description: 'Shaped metal plates.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 15, addsDexterityModifier: true, maxDexterityBonus: 2, stealthDisadvantage: true, weight: 40, cost: '750 GP' },
-  'ring_mail': { id: 'ring_mail', name: 'Ring Mail', icon: '🛡️', description: 'Leather with heavy rings sewn in.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 14, addsDexterityModifier: false, stealthDisadvantage: true, weight: 40, cost: '30 GP' },
-  'chain_mail': { id: 'chain_mail', name: 'Chain Mail', icon: '⛓️', description: 'Interlocking metal rings, full suit.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 16, addsDexterityModifier: false, strengthRequirement: 13, stealthDisadvantage: true, weight: 55, cost: '75 GP' },
-  'splint_armor': { id: 'splint_armor', name: 'Splint Armor', icon: '🛡️', description: 'Vertical metal strips.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 17, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 60, cost: '200 GP' },
-  'plate_armor': { id: 'plate_armor', name: 'Plate Armor', icon: '🛡️', description: 'Full interlocking metal plates.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 18, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 65, cost: '1,500 GP' },
-  'shield_std': { id: 'shield_std', name: 'Shield', icon: '🛡️', description: 'A standard shield.', type: 'armor', slot: 'OffHand', armorCategory: 'Shield', armorClassBonus: 2, weight: 6, cost: '10 GP' },
-  'shield_plus_one': { id: 'shield_plus_one', name: '+1 Shield', icon: '🛡️', description: 'A magical shield that grants +3 to AC (+2 base + 1 enhancement).', type: 'armor', slot: 'OffHand', armorCategory: 'Shield', armorClassBonus: 3, weight: 6, cost: '1500 GP' },
+  'padded_armor': { id: 'padded_armor', name: 'Padded Armor', icon: '🧥', description: 'Quilted layers of cloth and batting.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 11, addsDexterityModifier: true, stealthDisadvantage: true, weight: 8, cost: '5 GP', ...armorIcon('padded_armor.svg') },
+  'leather_armor': { id: 'leather_armor', name: 'Leather Armor', icon: '👕', description: 'Stiffened leather plates.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 11, addsDexterityModifier: true, weight: 10, cost: '10 GP', ...armorIcon('leather_armor.svg') },
+  'studded_leather_armor': { id: 'studded_leather_armor', name: 'Studded Leather Armor', icon: '👘', description: 'Leather reinforced with rivets.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 12, addsDexterityModifier: true, weight: 13, cost: '45 GP', ...armorIcon('studded_leather_armor.svg') },
+  'hide_armor': { id: 'hide_armor', name: 'Hide Armor', icon: '👚', description: 'Thick furs and pelts.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 12, addsDexterityModifier: true, maxDexterityBonus: 2, weight: 12, cost: '10 GP', ...armorIcon('hide_armor.svg') },
+  'chain_shirt': { id: 'chain_shirt', name: 'Chain Shirt', icon: '⛓️', description: 'Interlocking metal rings.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 13, addsDexterityModifier: true, maxDexterityBonus: 2, weight: 20, cost: '50 GP', ...armorIcon('chain_shirt.svg') },
+  'scale_mail': { id: 'scale_mail', name: 'Scale Mail', icon: '🛡️', description: 'Overlapping metal scales.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 14, addsDexterityModifier: true, maxDexterityBonus: 2, stealthDisadvantage: true, weight: 45, cost: '50 GP', ...armorIcon('scale_mail.svg') },
+  'breastplate': { id: 'breastplate', name: 'Breastplate', icon: '🛡️', description: 'Fitted metal chest piece.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 14, addsDexterityModifier: true, maxDexterityBonus: 2, weight: 20, cost: '400 GP', ...armorIcon('breastplate.svg') },
+  'half_plate_armor': { id: 'half_plate_armor', name: 'Half Plate Armor', icon: '🛡️', description: 'Shaped metal plates.', type: 'armor', slot: 'Torso', armorCategory: 'Medium', baseArmorClass: 15, addsDexterityModifier: true, maxDexterityBonus: 2, stealthDisadvantage: true, weight: 40, cost: '750 GP', ...armorIcon('half_plate_armor.svg') },
+  'ring_mail': { id: 'ring_mail', name: 'Ring Mail', icon: '🛡️', description: 'Leather with heavy rings sewn in.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 14, addsDexterityModifier: false, stealthDisadvantage: true, weight: 40, cost: '30 GP', ...armorIcon('ring_mail.svg') },
+  'chain_mail': { id: 'chain_mail', name: 'Chain Mail', icon: '⛓️', description: 'Interlocking metal rings, full suit.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 16, addsDexterityModifier: false, strengthRequirement: 13, stealthDisadvantage: true, weight: 55, cost: '75 GP', ...armorIcon('chain_mail.svg') },
+  'splint_armor': { id: 'splint_armor', name: 'Splint Armor', icon: '🛡️', description: 'Vertical metal strips.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 17, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 60, cost: '200 GP', ...armorIcon('splint_armor.svg') },
+  'plate_armor': { id: 'plate_armor', name: 'Plate Armor', icon: '🛡️', description: 'Full interlocking metal plates.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 18, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 65, cost: '1,500 GP', ...armorIcon('plate_armor.svg') },
+  'shield_std': { id: 'shield_std', name: 'Shield', icon: '🛡️', description: 'A standard shield.', type: 'armor', slot: 'OffHand', armorCategory: 'Shield', armorClassBonus: 2, weight: 6, cost: '10 GP', ...armorIcon('shield_std.svg') },
+  'shield_plus_one': { id: 'shield_plus_one', name: '+1 Shield', icon: '🛡️', description: 'A magical shield that grants +3 to AC (+2 base + 1 enhancement).', type: 'armor', slot: 'OffHand', armorCategory: 'Shield', armorClassBonus: 3, weight: 6, cost: '1500 GP', ...armorIcon('shield_plus_one.svg') },
 };
 
 // Import gatherable items and merge them

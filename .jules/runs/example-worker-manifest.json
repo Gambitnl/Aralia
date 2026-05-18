@@ -1,0 +1,34 @@
+{
+  "runId": "example-worker-slice",
+  "source": "sources/github/Gambitnl/Aralia",
+  "startingBranch": "master",
+  "requirePlanApproval": true,
+  "automationMode": "AUTO_CREATE_PR",
+  "tasks": [
+    {
+      "id": "worker-ui-copy-slice",
+      "title": "Implement a bounded UI copy slice",
+      "persona": "scribe",
+      "mode": "worker",
+      "prompt": "Update one explicitly named UI text surface after Codex fills in the target file and acceptance criteria. Do not refactor neighboring components.",
+      "readScopes": [
+        "AGENTS.md",
+        ".jules/personas/03_scribe.md",
+        "src/components"
+      ],
+      "writeScopes": [
+        "src/components/ExampleTarget.tsx",
+        ".jules/worklogs/worklog_scribe.md"
+      ],
+      "forbiddenFiles": [
+        "package-lock.json",
+        "src/state",
+        "src/hooks"
+      ],
+      "verification": [
+        "Run the targeted unit or type check Codex specifies for the edited component.",
+        "State why no broader UI refactor was needed."
+      ]
+    }
+  ]
+}

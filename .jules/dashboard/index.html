@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<!--
+    ARALIA JULES DASHBOARD
+
+    This standalone page shows the Codex-managed Google Jules outsourcing queue.
+    It reads .jules/runs/jules-dashboard.json, which is produced by
+    .jules/orchestrator/cli.ts. The page is intentionally static so it can stay
+    inside the Jules workspace instead of adding another app runtime.
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aralia Jules Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --panel: #111827;
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --gold: #fbbf24;
+            --blue: #38bdf8;
+            --green: #34d399;
+            --red: #fb7185;
+            --purple: #a78bfa;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .page {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--gold);
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(2rem, 4vw, 3.1rem);
+        }
+
+        .subtitle {
+            margin: 6px 0 0;
+            color: var(--muted);
+            max-width: 760px;
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .link-button,
+        button {
+            position: relative;
+            border: 1px solid var(--border);
+            background: #121a2a;
+            color: var(--text);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .link-button:hover,
+        button:hover {
+            border-color: var(--blue);
+        }
+
+        .has-tooltip::after {
+            display: none;
+        }
+
+        .tooltip-bubble {
+            position: fixed;
+            z-index: 10;
+            width: max-content;
+            max-width: min(280px, calc(100vw - 32px));
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-radius: 6px;
+            background: #050a14;
+            color: var(--text);
+            font-size: 0.78rem;
+            font-weight: 500;
+            line-height: 1.4;
+            padding: 8px 10px;
+            pointer-events: none;
+            text-align: left;
+            white-space: normal;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 18px 0;
+        }
+
+        .reference-panel {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(17, 24, 39, 0.68);
+            margin: 0 0 18px;
+            padding: 14px;
+        }
+
+        .reference-panel.compact {
+            padding: 0;
+        }
+
+        .reference-panel summary {
+            align-items: center;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            list-style: none;
+            min-height: 74px;
+            padding: 14px;
+        }
+
+        .reference-panel summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .reference-panel summary::after {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--blue);
+            content: '+';
+            display: flex;
+            flex: 0 0 auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            height: 28px;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+        }
+
+        .reference-panel[open] summary::after {
+            content: '-';
+        }
+
+        .reference-panel summary:hover,
+        .reference-panel summary:focus-visible {
+            background: rgba(56, 189, 248, 0.06);
+            outline: none;
+        }
+
+        .reference-panel .panel-content {
+            border-top: 1px solid var(--border);
+            padding: 14px;
+        }
+
+        .summary-copy {
+            color: var(--muted);
+            font-size: 0.84rem;
+            line-height: 1.35;
+            margin-top: 4px;
+        }
+
+        .reference-panel h2 {
+            color: var(--gold);
+            font-size: 1rem;
+            margin: 0 0 6px;
+        }
+
+        .reference-note {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+            margin: 0 0 12px;
+        }
+
+        .reference-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .reference-card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #0f1726;
+            padding: 12px;
+        }
+
+        .reference-card h3 {
+            font-size: 0.92rem;
+            margin: 0 0 6px;
+        }
+
+        .reference-card p {
+            color: var(--muted);
+            font-size: 0.84rem;
+            line-height: 1.45;
+            margin: 0 0 8px;
+        }
+
+        .reference-card code {
+            color: #dbeafe;
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            margin: 2px 0;
+            overflow-wrap: anywhere;
+        }
+
+        .reference-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .lifecycle-list {
+            counter-reset: lifecycle;
+            display: grid;
+            gap: 8px;
+            list-style: none;
+            margin: 12px 0 0;
+            padding: 0;
+        }
+
+        .lifecycle-step {
+            counter-increment: lifecycle;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #0f1726;
+            display: grid;
+            gap: 6px;
+            grid-template-columns: auto 1fr;
+            padding: 10px;
+        }
+
+        .lifecycle-step::before {
+            align-items: center;
+            background: rgba(251, 191, 36, 0.12);
+            border: 1px solid rgba(251, 191, 36, 0.32);
+            border-radius: 999px;
+            color: var(--gold);
+            content: counter(lifecycle);
+            display: flex;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            height: 26px;
+            justify-content: center;
+            width: 26px;
+        }
+
+        .lifecycle-title {
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .lifecycle-body {
+            color: var(--muted);
+            font-size: 0.84rem;
+            grid-column: 2;
+            line-height: 1.45;
+        }
+
+        .lifecycle-body code {
+            color: #dbeafe;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            overflow-wrap: anywhere;
+        }
+
+        .metric,
+        .task,
+        .empty,
+        .error {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .metric {
+            background: var(--panel);
+            padding: 12px;
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .metric-value {
+            margin-top: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.45rem;
+            font-weight: 700;
+        }
+
+        .status-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .status-line code,
+        .task code {
+            color: #dbeafe;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 12px;
+        }
+
+        .task {
+            background: var(--panel);
+            padding: 14px;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .task h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            line-height: 1.35;
+        }
+
+        .pill {
+            flex: 0 0 auto;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .pill.running {
+            color: var(--blue);
+        }
+
+        .pill.completed {
+            color: var(--green);
+        }
+
+        .pill.failed {
+            color: var(--red);
+        }
+
+        .pill.needs-human {
+            color: var(--gold);
+        }
+
+        .pill.idle {
+            color: var(--muted);
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        .section-title {
+            color: var(--purple);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 2px;
+        }
+
+        ul {
+            margin: 6px 0 0;
+            padding-left: 18px;
+            color: var(--muted);
+            line-height: 1.45;
+            font-size: 0.86rem;
+        }
+
+        .task-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .empty {
+            color: var(--muted);
+            padding: 24px;
+            text-align: center;
+            border-style: dashed;
+        }
+
+        .error {
+            border-color: rgba(251, 113, 133, 0.45);
+            background: rgba(251, 113, 133, 0.08);
+            color: #fecdd3;
+            padding: 14px;
+        }
+
+        @media (max-width: 780px) {
+            .topbar {
+                flex-direction: column;
+            }
+
+            .actions {
+                justify-content: flex-start;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page">
+        <header class="topbar">
+            <div>
+                <h1>Jules Dashboard</h1>
+                <p class="subtitle">
+                    Codex uses this page to track bounded Google Jules sessions. The same JSON state is readable by
+                    humans and agents, so task status, write scopes, PR links, and review blockers stay visible.
+                </p>
+            </div>
+            <nav class="actions" aria-label="Dashboard actions">
+                <button id="refreshButton" class="has-tooltip" type="button"
+                    data-tooltip="Reloads the local dashboard JSON only. Run the orchestrator status or watch command first to fetch fresh Jules API state."
+                    title="Reloads local dashboard JSON only.">Refresh</button>
+                <a class="link-button has-tooltip" href="/Aralia/.jules/runs/jules-dashboard.json"
+                    data-tooltip="Opens the generated dashboard state file that this page renders."
+                    title="Open generated dashboard state JSON.">State JSON</a>
+                <a class="link-button has-tooltip" href="/Aralia/.jules/runs/example-smoke-manifest.json"
+                    data-tooltip="Opens the example manifest that defines the smoke Jules task, scopes, and verification rules."
+                    title="Open the example Jules task manifest.">Example Manifest</a>
+            </nav>
+        </header>
+
+        <section class="summary" aria-label="Run summary">
+            <div class="metric">
+                <div class="metric-label">Total</div>
+                <div class="metric-value" id="metricTotal">0</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Running</div>
+                <div class="metric-value" id="metricRunning">0</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Needs Human</div>
+                <div class="metric-value" id="metricNeedsHuman">0</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Completed</div>
+                <div class="metric-value" id="metricCompleted">0</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Failed</div>
+                <div class="metric-value" id="metricFailed">0</div>
+            </div>
+        </section>
+
+        <section class="status-line" aria-label="Run metadata">
+            <span>Run: <code id="runId">not-started</code></span>
+            <span>Source: <code id="source">sources/github/Gambitnl/Aralia</code></span>
+            <span>Branch: <code id="branch">main</code></span>
+            <span>Updated: <code id="updatedAt">unknown</code></span>
+        </section>
+
+        <details class="reference-panel compact" aria-label="Full Jules delivery lifecycle">
+            <summary>
+                <div>
+                    <h2>Full Delivery Lifecycle</h2>
+                    <div class="summary-copy">Jules task -> PR -> GitHub checks -> merge -> local sync -> dashboard refresh.</div>
+                </div>
+            </summary>
+            <div class="panel-content">
+                <p class="reference-note">
+                    Treat a Jules session as one remote worker inside a longer delivery pipeline. A task is not done when
+                    Jules finishes; it is done only after GitHub checks, merge, local sync, and dashboard refresh.
+                </p>
+                <ol class="lifecycle-list">
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Package a bounded task for Jules</div>
+                        <div class="lifecycle-body">
+                            Validate the manifest before launch: <code>npx tsx .jules/orchestrator/cli.ts validate &lt;manifest&gt;</code>.
+                            The manifest must declare read scopes, write scopes, forbidden files, verification, and mode.
+                        </div>
+                    </li>
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Launch and monitor the cloud session</div>
+                        <div class="lifecycle-body">
+                            Use <code>launch</code>, <code>status</code>, <code>watch</code>, <code>approve</code>,
+                            <code>message</code>, and <code>activities</code>. The dashboard updates only after the
+                            orchestrator rewrites <code>.jules/runs/jules-dashboard.json</code>.
+                        </div>
+                    </li>
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Collect Jules output safely</div>
+                        <div class="lifecycle-body">
+                            If Jules exposes an artifact, use <code>patch &lt;manifest&gt; &lt;task&gt; &lt;session-id&gt;</code>
+                            so Codex validates changed paths against the manifest before applying or accepting anything.
+                        </div>
+                    </li>
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Create or inspect the GitHub PR</div>
+                        <div class="lifecycle-body">
+                            When <code>AUTO_CREATE_PR</code> is enabled, Jules may create a PR. The PR link appears on task
+                            cards when the API reports it. If no PR exists, Codex creates one only after review.
+                        </div>
+                    </li>
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Gate on GitHub checks and Pages safety</div>
+                        <div class="lifecycle-body">
+                            Do not merge until required GitHub checks pass and the built app is safe for GitHub Pages.
+                            If checks fail, inspect CI logs, repair the branch, and refresh dashboard state afterward.
+                        </div>
+                    </li>
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Merge to GitHub master</div>
+                        <div class="lifecycle-body">
+                            Merge only after review disposition is recorded and the PR is green. No auto-merge is assumed by
+                            this dashboard.
+                        </div>
+                    </li>
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Sync local workspace</div>
+                        <div class="lifecycle-body">
+                            After GitHub merge, update the local checkout from master before continuing local work. This
+                            prevents Codex from building on stale pre-merge state.
+                        </div>
+                    </li>
+                    <li class="lifecycle-step">
+                        <div class="lifecycle-title">Refresh this dashboard</div>
+                        <div class="lifecycle-body">
+                            Run <code>status</code> or <code>watch</code> to update the local JSON, then use the
+                            <code>Refresh</code> button here to reload what the browser displays.
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </details>
+
+        <details class="reference-panel compact" aria-label="Jules API reference for agents">
+            <summary>
+                <div>
+                    <h2>Agent API Reference</h2>
+                    <div class="summary-copy">Official Jules API links plus the local orchestrator commands that wrap them.</div>
+                </div>
+            </summary>
+            <div class="panel-content">
+                <p class="reference-note">
+                    Use these Jules docs with the local orchestrator commands. This dashboard only reads local JSON; Codex
+                    refreshes, approves, messages, watches, and extracts artifacts through `.jules/orchestrator/cli.ts`.
+                </p>
+                <div class="reference-grid">
+                    <article class="reference-card">
+                        <h3>Overview & Auth</h3>
+                        <p>Base URL, API-key header, pagination, resource names, and common error responses.</p>
+                        <code>https://jules.googleapis.com/v1alpha</code>
+                        <div class="reference-actions">
+                            <a class="link-button has-tooltip" href="https://jules.google/docs/api/reference/overview"
+                                data-tooltip="Official Jules REST API overview: base URL, auth header, endpoints, pagination, and error handling."
+                                title="Open the official Jules API overview.">API Overview</a>
+                        </div>
+                    </article>
+
+                    <article class="reference-card">
+                        <h3>Sources</h3>
+                        <p>Find connected repositories and branch names before launching a task packet.</p>
+                        <code>GET /v1alpha/sources</code>
+                        <code>npx tsx .jules/orchestrator/cli.ts sources</code>
+                        <div class="reference-actions">
+                            <a class="link-button has-tooltip" href="https://jules.google/docs/api/reference/sources"
+                                data-tooltip="Official Jules Sources API docs. Use this before launch to confirm source names and branches."
+                                title="Open the official Jules Sources API docs.">Sources Docs</a>
+                        </div>
+                    </article>
+
+                    <article class="reference-card">
+                        <h3>Sessions</h3>
+                        <p>Create, inspect, approve, message, and delete single Jules sessions.</p>
+                        <code>POST /v1alpha/sessions</code>
+                        <code>GET /v1alpha/sessions/{sessionId}</code>
+                        <code>POST /v1alpha/sessions/{sessionId}:approvePlan</code>
+                        <code>POST /v1alpha/sessions/{sessionId}:sendMessage</code>
+                        <code>npx tsx .jules/orchestrator/cli.ts launch|status|approve|message</code>
+                        <div class="reference-actions">
+                            <a class="link-button has-tooltip" href="https://jules.google/docs/api/reference/sessions"
+                                data-tooltip="Official Jules Sessions API docs. These are the calls behind launch, status, approve, and message."
+                                title="Open the official Jules Sessions API docs.">Sessions Docs</a>
+                        </div>
+                    </article>
+
+                    <article class="reference-card">
+                        <h3>Activities & Artifacts</h3>
+                        <p>Read plan events, progress updates, agent messages, completion events, and patch artifacts.</p>
+                        <code>GET /v1alpha/sessions/{sessionId}/activities</code>
+                        <code>npx tsx .jules/orchestrator/cli.ts activities &lt;session-id&gt;</code>
+                        <code>npx tsx .jules/orchestrator/cli.ts patch &lt;manifest&gt; &lt;task&gt; &lt;session-id&gt;</code>
+                        <div class="reference-actions">
+                            <a class="link-button has-tooltip" href="https://jules.google/docs/api/reference/activities"
+                                data-tooltip="Official Jules Activities API docs. Use this when status alone is too coarse or when retrieving patch artifacts."
+                                title="Open the official Jules Activities API docs.">Activities Docs</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </details>
+
+        <section id="content" aria-label="Jules tasks"></section>
+    </main>
+
+    <script>
+        /*
+         * Dashboard runtime
+         *
+         * The page only reads JSON and renders it. It does not launch Jules,
+         * approve plans, or mutate repo state. Codex performs those operations
+         * through .jules/orchestrator/cli.ts so this UI stays safe for review.
+         */
+        const DASHBOARD_STATE_URL = '/Aralia/.jules/runs/jules-dashboard.json';
+        let activeTooltip = null;
+
+        const statusClassByState = {
+            QUEUED: 'running',
+            PLANNING: 'running',
+            IN_PROGRESS: 'running',
+            PAUSED: 'running',
+            AWAITING_PLAN_APPROVAL: 'needs-human',
+            AWAITING_USER_FEEDBACK: 'needs-human',
+            COMPLETED: 'completed',
+            FAILED: 'failed',
+            NOT_STARTED: 'idle',
+        };
+
+        document.getElementById('refreshButton').addEventListener('click', () => {
+            loadDashboardState();
+        });
+
+        document.addEventListener('pointerover', (event) => {
+            const target = event.target.closest?.('.has-tooltip');
+            if (target) showTooltip(target);
+        });
+
+        document.addEventListener('pointerout', (event) => {
+            const target = event.target.closest?.('.has-tooltip');
+            if (target) hideTooltip(target);
+        });
+
+        document.addEventListener('focusin', (event) => {
+            const target = event.target.closest?.('.has-tooltip');
+            if (target) showTooltip(target);
+        });
+
+        document.addEventListener('focusout', (event) => {
+            const target = event.target.closest?.('.has-tooltip');
+            if (target) hideTooltip(target);
+        });
+
+        window.addEventListener('resize', () => {
+            if (activeTooltip?.anchor) positionTooltip(activeTooltip.anchor, activeTooltip.bubble);
+        });
+
+        window.addEventListener('scroll', () => {
+            if (activeTooltip?.anchor) positionTooltip(activeTooltip.anchor, activeTooltip.bubble);
+        }, true);
+
+        loadDashboardState();
+
+        async function loadDashboardState() {
+            try {
+                const response = await fetch(`${DASHBOARD_STATE_URL}?cacheBust=${Date.now()}`);
+                if (!response.ok) {
+                    throw new Error(`Could not load dashboard state: ${response.status}`);
+                }
+
+                const state = await response.json();
+                renderDashboard(state);
+            } catch (error) {
+                renderError(error);
+            }
+        }
+
+        function renderDashboard(state) {
+            document.getElementById('metricTotal').textContent = state.summary.total;
+            document.getElementById('metricRunning').textContent = state.summary.running;
+            document.getElementById('metricNeedsHuman').textContent = state.summary.needsHuman;
+            document.getElementById('metricCompleted').textContent = state.summary.completed;
+            document.getElementById('metricFailed').textContent = state.summary.failed;
+            document.getElementById('runId').textContent = state.runId;
+            document.getElementById('source').textContent = state.source;
+            document.getElementById('branch').textContent = state.startingBranch;
+            document.getElementById('updatedAt').textContent = state.updatedAt;
+
+            const content = document.getElementById('content');
+            if (!state.tasks.length) {
+                content.innerHTML = '<div class="empty">No Jules tasks are active yet. Generate dashboard state with <code>npx tsx .jules/orchestrator/cli.ts dashboard .jules/runs/example-smoke-manifest.json</code>.</div>';
+                return;
+            }
+
+            content.innerHTML = `<div class="task-grid">${state.tasks.map(renderTask).join('')}</div>`;
+        }
+
+        function renderTask(task) {
+            const statusClass = statusClassByState[task.status] || 'idle';
+            const sessionLink = task.sessionUrl
+                ? renderActionLink(
+                    task.sessionUrl,
+                    'Jules Session',
+                    'Opens the live Jules session page for plan review, progress inspection, and final output.',
+                )
+                : '';
+            const prLink = task.pullRequestUrl
+                ? renderActionLink(
+                    task.pullRequestUrl,
+                    'Pull Request',
+                    'Opens the pull request created by Jules when the manifest allows PR creation.',
+                )
+                : '';
+
+            return `
+                <article class="task">
+                    <div class="task-head">
+                        <div>
+                            <h2>${escapeHtml(task.title)}</h2>
+                            <div class="meta">${escapeHtml(task.persona)} / ${escapeHtml(task.mode)} / <code>${escapeHtml(task.id)}</code></div>
+                        </div>
+                        <span class="pill ${statusClass}">${escapeHtml(task.status)}</span>
+                    </div>
+                    <div>
+                        <div class="section-title">Write Scope</div>
+                        ${renderList(task.writeScopes)}
+                    </div>
+                    <div>
+                        <div class="section-title">Verification</div>
+                        ${renderList(task.verification)}
+                    </div>
+                    <div class="meta">Updated: ${escapeHtml(task.updatedAt || 'not launched')}</div>
+                    <div class="task-actions">${sessionLink}${prLink}</div>
+                </article>
+            `;
+        }
+
+        function renderActionLink(url, label, tooltip) {
+            return `<a class="link-button has-tooltip" href="${escapeAttr(url)}" data-tooltip="${escapeAttr(tooltip)}" title="${escapeAttr(tooltip)}">${escapeHtml(label)}</a>`;
+        }
+
+        function showTooltip(anchor) {
+            const text = anchor.dataset.tooltip;
+            if (!text) return;
+
+            removeTooltip();
+
+            const bubble = document.createElement('div');
+            bubble.className = 'tooltip-bubble';
+            bubble.textContent = text;
+            document.body.appendChild(bubble);
+            activeTooltip = { anchor, bubble };
+            positionTooltip(anchor, bubble);
+        }
+
+        function hideTooltip(anchor) {
+            if (activeTooltip?.anchor === anchor) removeTooltip();
+        }
+
+        function removeTooltip() {
+            activeTooltip?.bubble.remove();
+            activeTooltip = null;
+        }
+
+        function positionTooltip(anchor, bubble) {
+            const margin = 12;
+            const gap = 8;
+            const anchorRect = anchor.getBoundingClientRect();
+            const bubbleRect = bubble.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let left = anchorRect.left + (anchorRect.width - bubbleRect.width) / 2;
+            let top = anchorRect.top - bubbleRect.height - gap;
+
+            if (top < margin) {
+                top = anchorRect.bottom + gap;
+            }
+
+            if (top + bubbleRect.height > viewportHeight - margin) {
+                top = Math.max(margin, viewportHeight - bubbleRect.height - margin);
+            }
+
+            left = Math.min(Math.max(margin, left), viewportWidth - bubbleRect.width - margin);
+
+            bubble.style.left = `${left}px`;
+            bubble.style.top = `${top}px`;
+        }
+
+        function renderList(items) {
+            if (!items || !items.length) return '<ul><li>None declared</li></ul>';
+            return `<ul>${items.map((item) => `<li><code>${escapeHtml(item)}</code></li>`).join('')}</ul>`;
+        }
+
+        function renderError(error) {
+            const content = document.getElementById('content');
+            content.innerHTML = `<div class="error">${escapeHtml(error instanceof Error ? error.message : String(error))}</div>`;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value);
+        }
+    </script>
+</body>
+
+</html>

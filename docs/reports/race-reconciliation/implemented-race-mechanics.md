@@ -1,0 +1,925 @@
+# Implemented Race Mechanics
+
+This report lists race details that are implemented or normalized by existing Aralia systems and were reclassified through the capability matrix during this goal.
+
+No source race files were overwritten from 5etools. The implemented slice was report/classifier normalization: existing supported fields and trait-derived details are now separated from unsupported mechanics with code references.
+
+## Implemented Or Normalized Now
+
+- half_elf / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- half_elf_aquatic / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- half_elf_drow / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- half_elf_high / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- half_elf_wood / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- half_orc / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- seersight_half_elf / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- stormborn_half_elf / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- vedalken / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- verdan / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- yuan_ti / Ability Bonuses: ability_bonus
+  - Representation: abilityBonuses_field
+  - Evidence: src/utils/character/statUtils.ts:calculateFixedRacialBonuses, src/utils/character/statUtils.ts:calculateFinalAbilityScores, src/components/CharacterCreator/state/characterCreatorState.ts, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through fixed_ability_bonus.
+- centaur / Natural Affinity: choice_of_skill
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:assembleFinalSkills, src/components/CharacterCreator/utils/skillSelectionUtils.ts:buildSkillsForSubmit, src/components/CharacterCreator/SkillSelection.tsx
+  - Validation note: classified as enforced_now only through fixed_or_selected_skill_proficiency.
+- changeling / Changeling Instincts: choice_of_skill
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:assembleFinalSkills, src/components/CharacterCreator/utils/skillSelectionUtils.ts:buildSkillsForSubmit, src/components/CharacterCreator/SkillSelection.tsx
+  - Validation note: classified as enforced_now only through fixed_or_selected_skill_proficiency.
+- human / Skillful: choice_of_skill
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:assembleFinalSkills, src/components/CharacterCreator/utils/skillSelectionUtils.ts:buildSkillsForSubmit, src/components/CharacterCreator/SkillSelection.tsx
+  - Validation note: classified as enforced_now only through fixed_or_selected_skill_proficiency.
+- abyssal_tiefling / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- astral_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- autumn_eladrin / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- beasthide_shifter / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- black_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- blue_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- brass_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- bronze_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- bugbear / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- chthonic_tiefling / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- copper_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- deep_gnome / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- draconblood_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- drow / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- duergar / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- fallen_aasimar / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- forest_gnome / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- goblin / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- gold_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- green_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- half_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- half_elf_aquatic / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- half_elf_drow / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- half_elf_high / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- half_elf_wood / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- half_orc / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- high_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- hill_dwarf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- hobgoblin / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- infernal_tiefling / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- leonin / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- longtooth_shifter / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- mountain_dwarf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- orc / Darkvision (120ft): darkvision
+  - Representation: trait_label_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- pallid_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- pathfinder_half_orc / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- plasmoid / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- protector_aasimar / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- ravenite_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- red_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- rock_gnome / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- runeward_dwarf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- scourge_aasimar / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- sea_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- seersight_half_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- shadar_kai / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- shadowveil_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- silver_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- simic_hybrid / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- spring_eladrin / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- stormborn_half_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- summer_eladrin / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- swiftstride_shifter / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- tabaxi / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- thri_kreen / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- triton / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- white_dragonborn / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- wildhunt_shifter / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- winter_eladrin / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- wood_elf / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- wordweaver_gnome / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- yuan_ti / Vision: darkvision
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision, src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through darkvision.
+- aarakocra / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- abyssal_tiefling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- air_genasi / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- astral_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- autognome / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- autumn_eladrin / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- beastborn_human / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- beasthide_shifter / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- black_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- blue_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- brass_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- bronze_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- bugbear / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- centaur / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- changeling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- chthonic_tiefling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- cloud_giant_goliath / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- copper_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- deep_gnome / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- draconblood_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- drow / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- duergar / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- earth_genasi / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- fairy / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- fallen_aasimar / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- firbolg / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- fire_genasi / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- fire_giant_goliath / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- forest_gnome / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- forgeborn_human / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- frost_giant_goliath / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- giff / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- githyanki / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- githzerai / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- goblin / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- gold_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- green_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- guardian_human / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- hadozee / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- half_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- half_elf_aquatic / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- half_elf_drow / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- half_elf_high / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- half_elf_wood / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- half_orc / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- halfling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- harengon / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- hearthkeeper_halfling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- high_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- hill_dwarf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- hill_giant_goliath / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- hobgoblin / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- human / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- infernal_tiefling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- kalashtar / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- kender / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- kenku / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- kobold / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- leonin / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- lightfoot_halfling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- lizardfolk / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- longtooth_shifter / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- lotusden_halfling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- loxodon / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- mender_halfling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- minotaur / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- mountain_dwarf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- orc / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- pallid_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- pathfinder_half_orc / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- plasmoid / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- protector_aasimar / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- ravenite_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- red_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- rock_gnome / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- runeward_dwarf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- satyr / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- scourge_aasimar / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- sea_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- seersight_half_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- shadar_kai / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- shadowveil_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- silver_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- simic_hybrid / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- spring_eladrin / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- stone_giant_goliath / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- storm_giant_goliath / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- stormborn_half_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- stout_halfling / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- summer_eladrin / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- swiftstride_shifter / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- tabaxi / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- thri_kreen / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- tortle / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- triton / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- vedalken / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- verdan / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- warforged / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- water_genasi / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- wayfarer_human / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- white_dragonborn / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- wildhunt_shifter / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- winter_eladrin / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- wood_elf / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- wordweaver_gnome / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- yuan_ti / Speed: movement_walk_speed
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed, src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace, src/utils/character/characterUtils.ts:normalizeCharacterRaceData, src/components/CharacterCreator/NameAndReview.tsx, src/components/CharacterSheet/Overview/CharacterOverview.tsx
+  - Validation note: classified as enforced_now only through walk_speed.
+- aarakocra / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- abyssal_tiefling / Otherworldly Presence: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- abyssal_tiefling / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- air_genasi / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- astral_elf / Astral Fire: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- beastborn_human / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- beastborn_human / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- chthonic_tiefling / Otherworldly Presence: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- chthonic_tiefling / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- draconblood_dragonborn / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- duergar / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- earth_genasi / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- fairy / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- fallen_aasimar / Light Bearer: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- fallen_aasimar / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- firbolg / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- fire_genasi / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- forest_gnome / Natural Illusionist: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- forgeborn_human / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- forgeborn_human / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- githyanki / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- githzerai / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- guardian_human / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- guardian_human / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- half_elf_high / Cantrip: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- hearthkeeper_halfling / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- infernal_tiefling / Otherworldly Presence: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- infernal_tiefling / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- mender_halfling / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- pathfinder_half_orc / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- pathfinder_half_orc / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- protector_aasimar / Light Bearer: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- protector_aasimar / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- runeward_dwarf / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- scourge_aasimar / Light Bearer: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- scourge_aasimar / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- seersight_half_elf / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- shadowveil_elf / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- stormborn_half_elf / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- water_genasi / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- wayfarer_human / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- wayfarer_human / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- wood_elf / Mask of the Wild: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- wordweaver_gnome / Spells of the Mark: racial_spell_grant
+  - Representation: trait_text_only
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- yuan_ti / Known Spells: racial_spell_grant
+  - Representation: knownSpells_field
+  - Evidence: src/utils/character/spellUtils.ts:getCharacterSpells, src/utils/character/characterValidation.ts:validateCharacterChoices, src/components/CharacterCreator/NameAndReview.tsx
+  - Validation note: classified as enforced_now only through known_racial_spells.
+- bugbear / Sneaky: skill_proficiency
+  - Representation: trait_text_only
+  - Evidence: src/components/CharacterCreator/hooks/useCharacterAssembly.ts:assembleFinalSkills, src/components/CharacterCreator/utils/skillSelectionUtils.ts:buildSkillsForSubmit, src/components/CharacterCreator/SkillSelection.tsx
+  - Validation note: classified as enforced_now only through fixed_or_selected_skill_proficiency.
+
+## Why No Race Data Was Bulk Edited
+
+The current supported mechanics are already represented in existing Aralia fields or trait text that existing utilities consume. Adding new broad fields for unsupported mechanics would create fake implementation without engine support.
+

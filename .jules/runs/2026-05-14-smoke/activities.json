@@ -1,0 +1,572 @@
+{
+  "activities": [
+    {
+      "name": "sessions/10863889126770106346/activities/322f47232d2347feae28f229ac2697ad",
+      "createTime": "2026-05-14T12:21:59.590801Z",
+      "originator": "agent",
+      "planGenerated": {
+        "plan": {
+          "id": "c0b43414735d4d0babfbc03bc8f353f5",
+          "steps": [
+            {
+              "id": "eab6456d36f84ec4bd5892488034d2f9",
+              "title": "Review `.jules/`, `AGENTS.md`, and `docs/` surfaces to identify where `docs/@JULES-WORKFLOW-GUIDE.md` is currently missing links."
+            },
+            {
+              "id": "4d4d3fa8da3a41ffa12623ee90cdec8d",
+              "title": "Formulate the required additions as a deferred work task.",
+              "index": 1
+            },
+            {
+              "id": "b78632dc6cda4cfe880a0f29122abffb",
+              "title": "Append a TODO entry to `.jules/worklogs/worklog_scribe.md`.",
+              "index": 2
+            },
+            {
+              "id": "6a84469555d44eb6a949461be565df59",
+              "title": "State that documentation-only verification was sufficient since we're only updating a worklog and not modifying code.",
+              "index": 3
+            },
+            {
+              "id": "cae82509a2654d88be62af967dd4f656",
+              "title": "Create a comprehensive final report summarizing the changes, verification result, and deferred tasks.",
+              "index": 4
+            }
+          ]
+        }
+      },
+      "id": "322f47232d2347feae28f229ac2697ad"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/task-10863889126770106346-activity-step-8718881002943744519",
+      "createTime": "2026-05-14T12:31:14.185321304Z",
+      "originator": "user",
+      "planApproved": {
+        "planId": "c0b43414735d4d0babfbc03bc8f353f5"
+      },
+      "id": "task-10863889126770106346-activity-step-8718881002943744519"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/474bae7164c441a3af7a480c303a13f5",
+      "createTime": "2026-05-14T12:32:28.605695Z",
+      "originator": "user",
+      "planApproved": {
+        "planId": "c0b43414735d4d0babfbc03bc8f353f5"
+      },
+      "id": "474bae7164c441a3af7a480c303a13f5"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/6c2ef2a975bf4ee787d57b447963a8ab",
+      "createTime": "2026-05-14T12:34:53.937771Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "6c2ef2a975bf4ee787d57b447963a8ab"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/ad1e91c8ca6a42e38904a030ea1ca400",
+      "createTime": "2026-05-14T12:35:03.341300Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "ad1e91c8ca6a42e38904a030ea1ca400"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/task-10863889126770106346-activity-step-17648805656504419823",
+      "createTime": "2026-05-14T12:35:07.850485776Z",
+      "originator": "user",
+      "planApproved": {
+        "planId": "c0b43414735d4d0babfbc03bc8f353f5"
+      },
+      "id": "task-10863889126770106346-activity-step-17648805656504419823"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/0b2073590e804764a3659e37b28ca032",
+      "createTime": "2026-05-14T12:35:11.368860Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "0b2073590e804764a3659e37b28ca032"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/7c9fc9402611403b936c9b0b33f07e76",
+      "createTime": "2026-05-14T12:35:19.710990Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "7c9fc9402611403b936c9b0b33f07e76"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/a6fce9aea11a4442b5f582d31d1fc31a",
+      "createTime": "2026-05-14T12:35:26.372676Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "a6fce9aea11a4442b5f582d31d1fc31a"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/94d3a5d892454c4ea97219dba924c2c5",
+      "createTime": "2026-05-14T12:35:35.930427Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "94d3a5d892454c4ea97219dba924c2c5"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/eff55f93f7b14c73816338ab7baf2a9f",
+      "createTime": "2026-05-14T12:35:58.822417Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "eff55f93f7b14c73816338ab7baf2a9f"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/18881b6562e5483a90313076c9b9b29d",
+      "createTime": "2026-05-14T12:37:04.099078Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "18881b6562e5483a90313076c9b9b29d"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/83d66f4f88664cc4b77c0d8576a4f5d4",
+      "createTime": "2026-05-14T12:39:46.072543Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "83d66f4f88664cc4b77c0d8576a4f5d4"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/95f28ab99d474edf91516c0d0da411c7",
+      "createTime": "2026-05-14T12:41:00.972801Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "95f28ab99d474edf91516c0d0da411c7"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/b6a4be44370d471ba688edb1411c7a69",
+      "createTime": "2026-05-14T12:41:07.531198Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "b6a4be44370d471ba688edb1411c7a69"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/ef79aeee193846898a7e4364860b95ac",
+      "createTime": "2026-05-14T12:41:17.415433Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "ef79aeee193846898a7e4364860b95ac"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/cf810aca67ba4ac99e6be19f049e50e3",
+      "createTime": "2026-05-14T12:41:24.492204Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "cf810aca67ba4ac99e6be19f049e50e3"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/359002f17f464a069e5d1856441bf9ac",
+      "createTime": "2026-05-14T12:41:45.307466Z",
+      "originator": "agent",
+      "progressUpdated": {
+        "title": "Reviewed the surfaces.",
+        "description": "Identified multiple places where `docs/@JULES-WORKFLOW-GUIDE.md` should be linked but is currently missing: `docs/@AI-PROMPT-GUIDE.md` (Related Docs), `AGENTS.md` (Good starting surfaces), `docs/@README-INDEX.md`, `docs/AGENT.md` (Compatibility note), and `.jules/_METHODOLOGY.md`."
+      },
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "359002f17f464a069e5d1856441bf9ac"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/4fc4216dd30c4b1bb206bdcb81af9f42",
+      "createTime": "2026-05-14T12:42:15.845029Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "4fc4216dd30c4b1bb206bdcb81af9f42"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/a8b6422c4e504f2a9560de47a640f3fc",
+      "createTime": "2026-05-14T12:42:21.034343Z",
+      "originator": "agent",
+      "progressUpdated": {
+        "title": "Formulated the necessary additions as a deferred task for the scribe worklog."
+      },
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "a8b6422c4e504f2a9560de47a640f3fc"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/470f561021684f15b0d96bd91f0a88dd",
+      "createTime": "2026-05-14T12:42:40.831064Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "470f561021684f15b0d96bd91f0a88dd"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/9b2166c35b354ada94b7d6ac57ae88dc",
+      "createTime": "2026-05-14T12:42:50.795474Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "9b2166c35b354ada94b7d6ac57ae88dc"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/a37ef6d612e44f4eaee4b0284d95f4f4",
+      "createTime": "2026-05-14T12:43:12.753283Z",
+      "originator": "agent",
+      "progressUpdated": {
+        "title": "Appended the TODO entry to .jules/worklogs/worklog_scribe.md outlining the mi...",
+        "description": "Appended the TODO entry to .jules/worklogs/worklog_scribe.md outlining the missing links and plan to add them."
+      },
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "a37ef6d612e44f4eaee4b0284d95f4f4"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/b96cc601f5474afb85b8ececf1e5235e",
+      "createTime": "2026-05-14T12:43:28.297987Z",
+      "originator": "agent",
+      "progressUpdated": {
+        "title": "Documentation-only verification was sufficient since we're only updating a wo...",
+        "description": "Documentation-only verification was sufficient since we're only updating a worklog and not modifying code. No build or test verification was required."
+      },
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "b96cc601f5474afb85b8ececf1e5235e"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/326dd7ed28ca4f19899613760e8165e4",
+      "createTime": "2026-05-14T12:44:25.156615Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "326dd7ed28ca4f19899613760e8165e4"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/265365713fc74eaf9944c48d5c3fcd01",
+      "createTime": "2026-05-14T12:44:38.700820Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "265365713fc74eaf9944c48d5c3fcd01"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/430fab8c370d4a9b882deffdf45096b7",
+      "createTime": "2026-05-14T12:44:49.146524Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "430fab8c370d4a9b882deffdf45096b7"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/3672c04c026a4f0ebfdbf3b72c6a5c9f",
+      "createTime": "2026-05-14T12:45:00.854258Z",
+      "originator": "agent",
+      "progressUpdated": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "3672c04c026a4f0ebfdbf3b72c6a5c9f"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/671adf91ec0f46ac9268862a211dcb15",
+      "createTime": "2026-05-14T12:45:29.318195Z",
+      "originator": "agent",
+      "agentMessaged": {
+        "agentMessage": "**Final Report**\n\n**Summary of Files Changed:**\n* `.jules/worklogs/worklog_scribe.md` - Added a `TODO` entry deferring the work to link `docs/@JULES-WORKFLOW-GUIDE.md` across various agent-facing and documentation surfaces.\n\n**Deferred Work (in `.jules/worklogs/worklog_scribe.md`):**\n* The task to add the missing links to `docs/@JULES-WORKFLOW-GUIDE.md` has been formulated as a deferred TODO in Scribe's worklog. The identified locations to link the workflow guide are:\n    1. `docs/@AI-PROMPT-GUIDE.md` (in the \"Related Docs\" section)\n    2. `AGENTS.md` (under \"Good starting surfaces\")\n    3. `docs/AGENT.md` (in the \"Use these docs instead\" compatibility pointer list)\n    4. `.jules/_METHODOLOGY.md` (under a general guidance section)\n\n**Verification Result:**\nDocumentation-only verification was sufficient since we're only updating a Markdown worklog file and not modifying any application code. No application build or local tests were run or necessary, as the changes had no impact on the build graph or executable systems. I reviewed `docs/`, `AGENTS.md` and `.jules/` to successfully execute the scope of the inspection."
+      },
+      "id": "671adf91ec0f46ac9268862a211dcb15"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/6b1b56b8cae741f0bb4946d6aee3fa5b",
+      "createTime": "2026-05-14T12:45:38.756920Z",
+      "originator": "agent",
+      "progressUpdated": {
+        "title": "Created the final report to the user summarizing changes, deferred work, and...",
+        "description": "Created the final report to the user summarizing changes, deferred work, and verification steps."
+      },
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599"
+            }
+          }
+        }
+      ],
+      "id": "6b1b56b8cae741f0bb4946d6aee3fa5b"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/1ca70a9f5c814e56bc97eace2792f2ff",
+      "createTime": "2026-05-14T12:45:56.704617Z",
+      "originator": "agent",
+      "progressUpdated": {
+        "title": "Code reviewed",
+        "description": "**Analysis and Reasoning:**\n\n1.  **User's Goal:** The user wants the agent to inspect specific documentation and agent-facing surfaces (`AGENTS.md`, `.jules`, etc.) to find where Jules orchestration documentation should be linked, and to document these findings as deferred tasks in the Scribe persona's worklog without modifying any other files.\n2.  **Evaluation of the Solution:**\n    *   **Core Functionality:** The patch correctly identifies locations where the `docs/@JULES-WORKFLOW-GUIDE.md` file should be linked (such as `docs/@AI-PROMPT-GUIDE.md`, `AGENTS.md`, `docs/AGENT.md`, and `.jules/_METHODOLOGY.md`). It documents these as a \"TODO\" in the `.jules/worklogs/worklog_scribe.md` file, which perfectly aligns with the instruction to defer the work instead of broadening the task.\n    *   **Safety & Side Effects:** The patch safely modifies only the allowed write scope file (`.jules/worklogs/worklog_scribe.md`). It adheres to the strict rules of not touching application code or forbidden package lock files. There are no side effects or regressions introduced.\n    *   **Completeness:** The agent successfully followed all constraints: it inspected the relevant files, formulated a deferred plan, updated the correct worklog file, and provided the required final report including the summary of changes, verification state, and deferred work summary.\n3.  **Merge Assessment:** The patch is functionally sound, adheres to all strict rules provided in the prompt, and completes the scouting objective without scope creep. There are no blocking issues or nitpicks.\n\n### Final Rating: #Correct#"
+      },
+      "id": "1ca70a9f5c814e56bc97eace2792f2ff"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/task-10863889126770106346-activity-step-4006520590217402128",
+      "createTime": "2026-05-14T12:51:40.829436684Z",
+      "originator": "user",
+      "userMessaged": {
+        "userMessage": "Please finalize this scout task if your inspection is complete. If blocked, report the blocker. Keep all output within .jules/worklogs/worklog_scribe.md and do not edit application code or package files."
+      },
+      "id": "task-10863889126770106346-activity-step-4006520590217402128"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/197ff3adecb24acb81a5a6fbaae1bdfe",
+      "createTime": "2026-05-14T12:56:46.148691Z",
+      "originator": "agent",
+      "agentMessaged": {
+        "agentMessage": "The inspection is complete and the findings have been documented in `.jules/worklogs/worklog_scribe.md` as requested. I am currently running the final memory recording step before submission."
+      },
+      "id": "197ff3adecb24acb81a5a6fbaae1bdfe"
+    },
+    {
+      "name": "sessions/10863889126770106346/activities/df472c1d823049feaa84f47a1bd158c8",
+      "createTime": "2026-05-14T12:57:59.116266Z",
+      "originator": "agent",
+      "sessionCompleted": {},
+      "artifacts": [
+        {
+          "changeSet": {
+            "source": "sources/github/Gambitnl/Aralia",
+            "gitPatch": {
+              "unidiffPatch": "diff --git a/.jules/worklogs/worklog_scribe.md b/.jules/worklogs/worklog_scribe.md\nindex 9e60721..ecf194d 100644\n--- a/.jules/worklogs/worklog_scribe.md\n+++ b/.jules/worklogs/worklog_scribe.md\n@@ -23,3 +23,12 @@\n ---\n \n <!-- Add new entries below this line -->\n+\n+## TODO: Link `@JULES-WORKFLOW-GUIDE.md` across Agent and Documentation Surfaces\n+**Context:** The `docs/@JULES-WORKFLOW-GUIDE.md` document exists to provide situational Jules-specific coordination notes, but it is currently unlinked from key agent-facing and documentation entry points. To improve discoverability without making it a universal workflow authority, it should be referenced where appropriate.\n+**Plan:**\n+1. In `docs/@AI-PROMPT-GUIDE.md`, append `[@JULES-WORKFLOW-GUIDE.md](./@JULES-WORKFLOW-GUIDE.md) for Jules-specific coordination patterns` to the \"Related Docs\" section.\n+2. In `AGENTS.md`, under \"Good starting surfaces\", add a bullet point linking to `docs/@JULES-WORKFLOW-GUIDE.md`.\n+3. In `docs/AGENT.md` (the compatibility pointer), add `[`./@JULES-WORKFLOW-GUIDE.md`](./@JULES-WORKFLOW-GUIDE.md) for historical Jules workflow context` to the \"Use these docs instead\" list.\n+4. In `.jules/_METHODOLOGY.md`, potentially link it under a \"Coordination\" or \"Guides\" section for personas to reference when dealing with parallel work and registry file conflicts.\n+**Status:** Pending\n",
+              "baseCommitId": "4e0ec21ec3ce3c927ba8224498293512b968f599",
+              "suggestedCommitMessage": "docs: defer JULES-WORKFLOW-GUIDE linking in Scribe worklog\n\nAdds a TODO to the Scribe persona's worklog to properly link\n`docs/@JULES-WORKFLOW-GUIDE.md` from relevant agent-facing and\ndocumentation hubs (e.g., `@AI-PROMPT-GUIDE.md`, `AGENTS.md`,\n`docs/AGENT.md`, and `_METHODOLOGY.md`) to improve discoverability\nwithout making it a universal authority."
+            }
+          }
+        }
+      ],
+      "id": "df472c1d823049feaa84f47a1bd158c8"
+    }
+  ]
+}

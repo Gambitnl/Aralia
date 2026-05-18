@@ -1,64 +1,55 @@
-# Aralia Documentation Index
+# Aralia Documentation Index & Active Inventory
 
-**Last Updated**: 2026-03-09  
-**Purpose**: Provide a stable map of the maintained documentation system without turning every report or local README into a top-level hub.
+**Last Updated**: 2026-05-17  
+**Purpose**: Provide a stable map of the maintained documentation system and highlight the active work surfaces that are currently relevant to contributors.
 
-## Start Here
+## 1. Start Here (Canonical Root)
 
-- [`@PROJECT-OVERVIEW.README.md`](./@PROJECT-OVERVIEW.README.md): product and project orientation
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md): domain-level architecture map
-- [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md): day-to-day development orientation
-- [`@DOCUMENTATION-GUIDE.md`](./@DOCUMENTATION-GUIDE.md): documentation-system rules and scope
-- [`@ACTIVE-DOCS.md`](./@ACTIVE-DOCS.md): current active work entry point
+- [`PROJECT_PROJECT_ARCHITECTURE.md`](./PROJECT_PROJECT_ARCHITECTURE.md): Product and project orientation, domain-level architecture map
+- [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md): Day-to-day development orientation, troubleshooting, and verification
+- [`@DOCUMENTATION-GUIDE.md`](./@DOCUMENTATION-GUIDE.md): Documentation-system rules and scope
 
-## Registries And Navigation
+## 2. Active Work Surfaces
 
-- [`@DOC-REGISTRY.md`](./@DOC-REGISTRY.md): numbered work-doc tracking
-- [`@DOC-NAMING-CONVENTIONS.md`](./@DOC-NAMING-CONVENTIONS.md): naming and retirement rules for numbered docs
-- [`@RETIRED-DOCS.md`](./@RETIRED-DOCS.md): retired-doc ledger
-- [`@DOC-INVENTORY.md`](./@DOC-INVENTORY.md): broad inventory snapshot
-- [`registry/@DOC-SCOPE.md`](./registry/@DOC-SCOPE.md): current in-scope vs excluded doc boundaries
-- [`registry/@DOC-MIGRATION-LEDGER.md`](./registry/@DOC-MIGRATION-LEDGER.md): active migration decisions and canonicalization notes
+Start here when you need to re-enter active development or documentation work quickly.
 
-## Primary Reference Areas
+- **Spell System Overhaul**: `docs/tasks/spell-system-overhaul/` (Start at `README.md` or `00-TASK-INDEX.md`)
+- **Spell Completeness Audit**: `docs/tasks/spell-completeness-audit/`
+- **3D Exploration**: `docs/tasks/3d-exploration/`
+- **Feature & QOL Backlog**: [`BACKLOG.md`](./BACKLOG.md)
+- **Live Spell Integration**: [`SPELL_INTEGRATION_STATUS.md`](./SPELL_INTEGRATION_STATUS.md)
 
-- [`architecture/`](./architecture/): system and domain references
-- [`guides/`](./guides/): recurring workflows and contributor guidance
-- [`features/`](./features/): feature explanations that still describe current systems
-- [`spells/`](./spells/): spell references and spell-system tracking docs
-- [`decision_logs/`](./decision_logs/): decision records
-- [`blueprints/`](./blueprints/): design blueprints and structured proposals that still matter
+*Note: There are other mixed active work areas under `docs/tasks/`, `docs/projects/`, and `docs/improvements/` that are pending normalization.*
 
-## Active Work Areas
+## 3. Registries And Navigation
 
-- [`tasks/`](./tasks/): active execution docs, project task trees, and investigations
-- [`plans/`](./plans/): dated planning docs that remain in active scope
-- [`projects/`](./projects/): project packages that mix specs, tasks, and quick-start docs
-- [`improvements/`](./improvements/): active improvement planning that has not yet been archived
-- [`FEATURES_TODO.md`](./FEATURES_TODO.md): feature backlog
-- [`QOL_TODO.md`](./QOL_TODO.md): quality-of-life backlog
-- [`SPELL_INTEGRATION_STATUS.md`](./SPELL_INTEGRATION_STATUS.md): live spell tracking board
+- [`@DOC-REGISTRY.md`](./@DOC-REGISTRY.md): Numbered work-doc tracking, naming rules, and retired doc ledger
+- [`registry/@DOC-SCOPE.md`](./registry/@DOC-SCOPE.md): Current in-scope vs excluded doc boundaries
+- [`registry/@DOC-REVIEW-LEDGER.md`](./registry/@DOC-REVIEW-LEDGER.md): Authoritative review queue for the current docs overhaul
+- [`registry/@DOC-MIGRATION-LEDGER.md`](./registry/@DOC-MIGRATION-LEDGER.md): Active migration decisions and canonicalization notes
 
-## Secondary Reference Surface
+## 4. Primary Reference Areas
 
-Source-adjacent docs under [`../src/`](../src/) remain in scope, but they are a separate layer from the root documentation hubs.
+- [`architecture/`](./architecture/): System and domain references
+- [`guides/`](./guides/): Recurring workflows and contributor guidance
+- [`features/`](./features/): Feature explanations that still describe current systems
+- [`spells/`](./spells/): Spell references and spell-system tracking docs
+- [`decision_logs/`](./decision_logs/): Decision records
+- [`blueprints/`](./blueprints/): Design blueprints and structured proposals that still matter
+
+## 5. Secondary Reference Surface
+
+Source-adjacent docs under `src/` remain in scope, but they are a separate layer from the root documentation hubs.
 
 Use them for local implementation context:
 - directory `README.md` files
 - file-adjacent `[Name].README.md` files
 
-Do not treat them as replacements for the main project entry docs in [`docs/`](./).
+Do not treat them as replacements for the main project entry docs in `docs/`.
 
-## Archive And History
+## 6. Archive And History
 
-- [`archive/`](./archive/): preserved historical documents and completed work
-- [`archive/reports/`](./archive/reports/): cleanup reports, audits, and prior overview snapshots that should no longer read as living authority
-- [`changelogs/`](./changelogs/): historical change logs
-- [`CHANGELOG.md`](./CHANGELOG.md): top-level historical changelog
-- [`generated/`](./generated/): generated inventories and machine-produced doc outputs
-
-## Notes
-
-- `docs/AGENT.md` is now a compatibility pointer so older references do not break.
-- Audit-style status reports were moved out of the root hub surface and into archive space.
-- Some subtrees still mix reference docs and work docs internally. The migration ledger tracks those splits.
+- [`archive/`](./archive/): Preserved historical documents and completed work
+- [`archive/reports/`](./archive/reports/): Cleanup reports, audits, and prior overview snapshots that should no longer read as living authority
+- [`CHANGELOG.md`](./CHANGELOG.md): Top-level historical changelog
+- [`generated/`](./generated/): Generated inventories and machine-produced doc outputs (e.g., `@ALL-MD-FILES.md`)

@@ -1,0 +1,31 @@
+{
+  "runId": "2026-05-14-smoke",
+  "source": "sources/github/Gambitnl/Aralia",
+  "startingBranch": "master",
+  "requirePlanApproval": true,
+  "automationMode": "NONE",
+  "tasks": [
+    {
+      "id": "jules-doc-scout",
+      "title": "Scout Jules documentation surfaces",
+      "persona": "scribe",
+      "mode": "scout",
+      "prompt": "Inspect .jules and docs agent-facing surfaces. Report where Jules orchestration docs should be linked, but do not edit application code.",
+      "readScopes": [
+        "AGENTS.md",
+        ".jules",
+        "docs/@AI-PROMPT-GUIDE.md",
+        "misc/agent_matrix.html"
+      ],
+      "writeScopes": [
+        ".jules/worklogs/worklog_scribe.md"
+      ],
+      "forbiddenFiles": [
+        "package-lock.json"
+      ],
+      "verification": [
+        "State whether documentation-only verification was sufficient."
+      ]
+    }
+  ]
+}

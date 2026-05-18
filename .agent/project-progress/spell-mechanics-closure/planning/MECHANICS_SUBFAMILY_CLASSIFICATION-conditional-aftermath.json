@@ -1,0 +1,693 @@
+{
+  "generatedAt": "2026-05-14T11:04:07.940Z",
+  "sourceReport": ".agent\\roadmap-local\\spell-validation\\spell-mechanics-discovery.json",
+  "openFindingsClassified": 82,
+  "groups": [
+    {
+      "id": "choice_mode_or_option_branch",
+      "title": "Choice, Mode, Or Option Branch",
+      "closureRule": "The spell exposes mode selection, option-specific targeting/effects, allocation choices, or player/caster branch choices.",
+      "count": 17,
+      "findings": [
+        {
+          "findingId": "druidcraft::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema.",
+          "recommendedTemplateChange": "Add aftermath/memory fields for post-spell knowledge and delayed consequences.",
+          "recommendedJsonChange": "Keep aftermath text in Utility Options/description until schema propagation."
+        },
+        {
+          "findingId": "elementalism::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema.",
+          "recommendedTemplateChange": "Add aftermath/memory fields for post-spell knowledge and delayed consequences.",
+          "recommendedJsonChange": "Keep aftermath text in Utility Options/description until schema propagation."
+        },
+        {
+          "findingId": "friends::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema.",
+          "recommendedTemplateChange": "Add aftermath/memory fields for post-spell knowledge and delayed consequences.",
+          "recommendedJsonChange": "Keep aftermath text in Utility Options/description until schema propagation."
+        },
+        {
+          "findingId": "calm-emotions::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "When Calm Emotions ends, the creature's attitude returns to normal, but the restoration/aftermath state is not represented.",
+          "recommendedTemplateChange": "Add aftermath/restoration fields for temporary attitude changes.",
+          "recommendedJsonChange": "Add runtime restoresPreviousAttitude or equivalent for the indifference mode."
+        },
+        {
+          "findingId": "knock::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Arcane Lock suppression lasts 10 minutes while the spell itself is instantaneous; that temporary suppression duration is not modeled.",
+          "recommendedTemplateChange": "Add temporary suppression duration fields for other spell/effect suppression.",
+          "recommendedJsonChange": "Add runtime suppressesEffect data for Arcane Lock with duration 10 minutes."
+        },
+        {
+          "findingId": "mind-spike::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The tracking rider lasts until the spell ends but is only useful while both creatures are on the same plane; the same-plane limit is not modeled as an ongoing condition.",
+          "recommendedTemplateChange": "Add ongoing-condition fields for same-plane gating on duration-bound knowledge effects.",
+          "recommendedJsonChange": "Add runtime ongoingCondition samePlaneRequired for the tracking rider."
+        },
+        {
+          "findingId": "haste::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Actionable open: Aftermath and memory effects need post-effect state fields.",
+          "recommendedTemplateChange": "Add aftermath/memory bucket fields.",
+          "recommendedJsonChange": "Use Utility Options/description as interim representation."
+        },
+        {
+          "findingId": "meld-into-stone::manual_leave_or_stone_damage_endings",
+          "bucketId": "conditional_ending",
+          "issue": "Meld into Stone has several conditional endings and expulsion damage branches that are prose-only.",
+          "recommendedTemplateChange": "Add leaveCost, expulsion trigger, and branch damage fields.",
+          "recommendedJsonChange": "Add runtime conditionalEnding data for leave movement, partial destruction/shape change 6d6 Force, and complete destruction/transmutation 50 Force."
+        },
+        {
+          "findingId": "phantom-steed::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Actionable open: Aftermath and memory effects need post-effect state fields.",
+          "recommendedTemplateChange": "Add aftermath/memory bucket fields.",
+          "recommendedJsonChange": "Use Utility Options/description as interim representation."
+        },
+        {
+          "findingId": "control-water::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Each active mode lasts until the spell ends or the caster chooses a different effect, and Part Water then fills back over the next round; runtime lacks mode replacement and restoration timing.",
+          "recommendedTemplateChange": "Add mode-duration/replacement fields and restoration-after-mode fields.",
+          "recommendedJsonChange": "Add runtime modeDuration and restorationTiming data."
+        },
+        {
+          "findingId": "dream::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The messenger can emerge from the trance at any time to end the spell, and if the target is awake the messenger can end the trance/spell or wait for sleep; runtime lacks these ending choices.",
+          "recommendedTemplateChange": "Add dream ending choice fields.",
+          "recommendedJsonChange": "Add runtime dreamEnding data."
+        },
+        {
+          "findingId": "modify-memory::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Damage, another spell targeting the creature, or ending before the memory description is complete prevents memory alteration; runtime lacks those ending and success-condition branches.",
+          "recommendedTemplateChange": "Add memory modification conditional-ending fields.",
+          "recommendedJsonChange": "Add runtime memoryModificationEnding data."
+        },
+        {
+          "findingId": "primordial-ward::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Using the reaction ends the resistances and then ends the spell at the end of the caster's next turn; runtime records this as utility options but lacks first-class conditional replacement/ending fields.",
+          "recommendedTemplateChange": "Add defense replacement and delayed conditional spell-end fields.",
+          "recommendedJsonChange": "Add runtime defenseReplacement and conditionalSpellEnd data."
+        },
+        {
+          "findingId": "tensers-transformation::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Cannot cast spells during the spell, temporary HP loss at end, and the exhaustion save immediately after ending are represented as options/status, but runtime lacks first-class spellcasting restriction and end-trigger aftermath fields.",
+          "recommendedTemplateChange": "Add spellcasting restriction, temporary-HP cleanup, and on-spell-end save fields.",
+          "recommendedJsonChange": "Add runtime spellcastingRestriction and onSpellEndSave data."
+        },
+        {
+          "findingId": "delayed-blast-fireball::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The bead explodes when the spell ends, when touch save fails, or when a thrown bead enters a creature space/collides with an object; runtime records this as options but lacks first-class object-triggered ending fields.",
+          "recommendedTemplateChange": "Add delayed projectile collision/touch/end triggers.",
+          "recommendedJsonChange": "Add runtime delayedProjectileTriggers data."
+        },
+        {
+          "findingId": "dream-of-the-blue-veil::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Target-damage exclusion and caster-damage group cancellation are preserved in status aftermath and utility options, but runtime lacks first-class per-target cancellation versus caster-wide cancellation fields.",
+          "recommendedTemplateChange": "Add per-target and caster-wide cancellation fields for long-duration transport/setup spells.",
+          "recommendedJsonChange": "Add runtime cancellationRules data instead of relying only on statusCondition.aftermath/controlOptions."
+        },
+        {
+          "findingId": "project-image::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The image disappears and the spell ends if it takes any damage; runtime preserves this in utility options but lacks a typed damage-to-illusion end trigger.",
+          "recommendedTemplateChange": "Add created illusion damage/end trigger fields.",
+          "recommendedJsonChange": "Add runtime illusionDamageEndTrigger data."
+        }
+      ]
+    },
+    {
+      "id": "external_destruction_or_dispel",
+      "title": "External Destruction Or Dispel",
+      "closureRule": "A named external spell, dispel effect, object destruction, movement break, or trigger consumption destroys or ends the created effect.",
+      "count": 10,
+      "findings": [
+        {
+          "findingId": "dispel-magic::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Ongoing spells end automatically up to the cast slot level and end on successful checks above that level; runtime has no typed dispel/ending data.",
+          "recommendedTemplateChange": "Add dispel fields for auto-ended spell level threshold and checked spell level threshold.",
+          "recommendedJsonChange": "Add runtime dispelMagic data for automatic and checked ending."
+        },
+        {
+          "findingId": "glyph-of-warding::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Glyph of Warding has movement-break and trigger-consumption ending rules that are not typed.",
+          "recommendedTemplateChange": "Add conditionalEnding fields for moved distance and one-shot trigger consumption.",
+          "recommendedJsonChange": "Add runtime conditionalEnding data for moved-more-than-10-feet break and ends-on-trigger."
+        },
+        {
+          "findingId": "swift-quiver::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Runtime has the attack grant and ammunition creation, but lacks typed ending if the quiver leaves possession and disintegration of created ammunition when the spell ends.",
+          "recommendedTemplateChange": "Add possession-based ending and created-ammunition cleanup fields.",
+          "recommendedJsonChange": "Add runtime swiftQuiverEnding data."
+        },
+        {
+          "findingId": "swift-quiver::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Created ammunition disintegrates when the spell ends; runtime lacks typed cleanup/aftermath data.",
+          "recommendedTemplateChange": "Add created-object cleanup fields.",
+          "recommendedJsonChange": "Add runtime createdAmmunitionCleanup data."
+        },
+        {
+          "findingId": "drawmijs-instant-summons::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell ends when the object is summoned, and the runtime prose also notes Dispel Magic or similar effects on the sapphire end the spell; these ending conditions are not typed.",
+          "recommendedTemplateChange": "Add linked-token destruction/use and dispel-on-token ending fields.",
+          "recommendedJsonChange": "Add runtime instantSummonsEnding data."
+        },
+        {
+          "findingId": "druid-grove::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Individual ward effects can be removed by Dispel Magic, the whole spell ends only when all effects are gone, and animated trees lose magic/reroot when the spell ends; runtime lacks these ending conditions.",
+          "recommendedTemplateChange": "Add per-subeffect dispel and guardian ending fields.",
+          "recommendedJsonChange": "Add runtime druidGroveEnding data."
+        },
+        {
+          "findingId": "magic-jar::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The container is destroyed when the spell ends; runtime lacks on-spell-end object destruction data.",
+          "recommendedTemplateChange": "Add on-spell-end object aftermath fields.",
+          "recommendedJsonChange": "Add runtime onSpellEndObjectDestruction data."
+        },
+        {
+          "findingId": "soul-cage::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell ends when the cage is destroyed or after the sixth exploit releases the soul; runtime records this as options but lacks first-class use-count and object-destruction end triggers.",
+          "recommendedTemplateChange": "Add use-count and object-destruction ending fields.",
+          "recommendedJsonChange": "Add runtime useCountEndCondition and objectDestroyedEndCondition data."
+        },
+        {
+          "findingId": "sequester::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Damage-ending and custom early-ending conditions are preserved in status break triggers and utility options, but runtime lacks arbitrary visible-within-1-mile ending condition fields.",
+          "recommendedTemplateChange": "Add custom conditional ending fields.",
+          "recommendedJsonChange": "Add runtime customEndCondition data with triggerRange."
+        },
+        {
+          "findingId": "symbol::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The glyph can end without triggering if moved too far, and triggered light lasts 10 minutes before the spell ends; runtime lacks first-class moved-too-far break and triggered-duration ending fields.",
+          "recommendedTemplateChange": "Add object movement break and triggered duration ending fields.",
+          "recommendedJsonChange": "Add runtime wardBreakDistance and triggeredDurationEnd data."
+        }
+      ]
+    },
+    {
+      "id": "ai_arbitration_or_custom_resolution",
+      "title": "AI Arbitration Or Custom Resolution",
+      "closureRule": "The finding likely cannot be captured with current deterministic schema without custom or AI-arbitrated handling.",
+      "count": 8,
+      "findings": [
+        {
+          "findingId": "charm-person::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "When Charm Person ends, the target knows it was Charmed by the caster; this aftermath knowledge is not structured.",
+          "recommendedTemplateChange": "Add aftermath awareness fields for target knowledge after spell end.",
+          "recommendedJsonChange": "Add runtime aftermath data recording that the target knows it was Charmed by the caster."
+        },
+        {
+          "findingId": "fast-friends::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "When the spell ends, the creature knows it was Charmed by the caster; runtime has no aftermath awareness field.",
+          "recommendedTemplateChange": "Add aftermath awareness fields for knows_charmed_by_caster.",
+          "recommendedJsonChange": "Add runtime aftermathAwareness data."
+        },
+        {
+          "findingId": "flame-arrows::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The extra damage is now hit-triggered, but per-ammunition magic ending on hit or miss, the twelve-piece draw limit, and +2 ammunition per higher slot remain prose-only.",
+          "recommendedTemplateChange": "Add empowered ammunition fields for count, hit-or-miss consumption, draw limit, and slot scaling.",
+          "recommendedJsonChange": "Add runtime ammunitionPool data for 12 pieces, +2 per slot above 3, and per-piece magic ending on hit or miss."
+        },
+        {
+          "findingId": "haste::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Haste's end-of-spell lethargy is a delayed aftermath effect that needs first-class spell-end timing.",
+          "recommendedTemplateChange": "Add aftermath fields for spell-end effects, status, movement override, and end timing.",
+          "recommendedJsonChange": "Add runtime aftermath/spellEndEffect data instead of immediate status."
+        },
+        {
+          "findingId": "leomunds-tiny-hut::manual_cast_failure_if_not_encapsulating",
+          "bucketId": "conditional_ending",
+          "issue": "Tiny Hut has a casting failure precondition based on whether the area fully encapsulates creatures.",
+          "recommendedTemplateChange": "Add castFailureCondition fields for area encapsulation requirements.",
+          "recommendedJsonChange": "Add runtime castFailure data for not fully encapsulating all creatures in area."
+        },
+        {
+          "findingId": "charm-monster::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "When the spell ends, the target knows it was Charmed by the caster; runtime lacks post-spell awareness/memory data.",
+          "recommendedTemplateChange": "Add aftermath/memory fields for target awareness after enchantments.",
+          "recommendedJsonChange": "Add runtime postEffectAwareness data."
+        },
+        {
+          "findingId": "immolation::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The target-to-ash death aftermath is mechanically relevant for corpse/object state but remains prose-only.",
+          "recommendedTemplateChange": "Add death aftermath transformation fields for spell-kill outcomes.",
+          "recommendedJsonChange": "Add runtime deathAftermath data for ash transformation."
+        },
+        {
+          "findingId": "tensers-transformation::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Temporary HP loss and possible Exhaustion after the spell ends are represented, but runtime lacks first-class aftermath trigger data.",
+          "recommendedTemplateChange": "Add on-spell-end aftermath fields.",
+          "recommendedJsonChange": "Add runtime onSpellEndAftermath data."
+        }
+      ]
+    },
+    {
+      "id": "transfer_retarget_or_reassignment",
+      "title": "Transfer, Retarget, Or Reassignment",
+      "closureRule": "An effect ends on one target, moves to another target, or can be reassigned while the spell remains active.",
+      "count": 8,
+      "findings": [
+        {
+          "findingId": "hex::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "If the cursed target drops to 0 Hit Points before the spell ends, the caster can move the curse to a new creature with a later Bonus Action; this transfer rule is prose-only.",
+          "recommendedTemplateChange": "Add conditional transfer fields for trigger target_drops_to_0_hp, later bonus-action retargeting, and new creature target.",
+          "recommendedJsonChange": "Add runtime curseTransfer data for 0-HP trigger and later bonus-action retargeting."
+        },
+        {
+          "findingId": "hunters-mark::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "If the marked target drops to 0 Hit Points before the spell ends, the caster can move the mark to a new visible creature with a Bonus Action; duration also scales at higher slots.",
+          "recommendedTemplateChange": "Add conditional transfer fields and duration scaling fields for Hunter's Mark.",
+          "recommendedJsonChange": "Add runtime markTransfer data for 0-HP retargeting and durationScaling thresholds for slots 3-4 and 5+."
+        },
+        {
+          "findingId": "remove-curse::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Remove Curse ends ordinary curses and has a different cursed-magic-item branch that breaks attunement without ending the item curse.",
+          "recommendedTemplateChange": "Add curseRemoval and cursedMagicItem attunement-break fields.",
+          "recommendedJsonChange": "Add runtime curseEffect data for end curses on creature/object and break owner attunement for cursed magic items."
+        },
+        {
+          "findingId": "speak-with-dead::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Speak with Dead has a 10-day retarget failure and a five-question limit.",
+          "recommendedTemplateChange": "Add priorTargetCooldown and maxQuestions fields.",
+          "recommendedJsonChange": "Add runtime castFailure if targetedWithinPastDays 10 and maxQuestions 5."
+        },
+        {
+          "findingId": "geas::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell ends on suicidal commands and can be ended by specific spells; runtime lacks typed conditional ending fields for both cases.",
+          "recommendedTemplateChange": "Add conditional-ending fields for forbidden command endings and external spell removal.",
+          "recommendedJsonChange": "Add runtime conditionalEnding data."
+        },
+        {
+          "findingId": "modify-memory::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The modified memory takes hold when the spell ends only if the description is complete; runtime lacks typed memory aftermath/finalization data.",
+          "recommendedTemplateChange": "Add memory finalization fields.",
+          "recommendedJsonChange": "Add runtime memoryFinalization data."
+        },
+        {
+          "findingId": "eyebite::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Wake-on-damage/shake, Panicked distance-and-sight ending, and cannot-retarget-a-creature-that-succeeded-against-this-casting are preserved in descriptions but not first-class ending/state fields.",
+          "recommendedTemplateChange": "Add per-option ending and per-casting target-immunity fields.",
+          "recommendedJsonChange": "Add runtime eyebiteEnding data."
+        },
+        {
+          "findingId": "clone::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "Actionable open: Clone exposes identity, memories, soul location, and revival lockout mechanics that need a dedicated life-state schema.",
+          "recommendedTemplateChange": "Add life-state/identity transfer fields for soul transfer, memory/personality continuity, equipment exclusion, and revival lockout.",
+          "recommendedJsonChange": "Add runtime lifeStateTransition fields that can be ignored when not applicable and consumed by resurrection/death systems later."
+        }
+      ]
+    },
+    {
+      "id": "duration_progression_or_permanence",
+      "title": "Duration Progression Or Permanence",
+      "closureRule": "Repeated casting, full-duration concentration, elapsed days, or slot level changes duration, permanence, or concentration requirements.",
+      "count": 8,
+      "findings": [
+        {
+          "findingId": "animal-messenger::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "If the Beast does not reach the destination before the spell ends, the message is lost and the Beast returns to the casting location; duration also scales by slot.",
+          "recommendedTemplateChange": "Add delivery failure and duration scaling fields.",
+          "recommendedJsonChange": "Add runtime deliveryFailure data and durationScaling +48 hours per slot above 2."
+        },
+        {
+          "findingId": "galders-tower::manual_recast_maintenance_and_permanent_tower",
+          "bucketId": "conditional_ending",
+          "issue": "Galder's Tower has recast maintenance and a same-location/same-configuration permanence rule that are prose-only.",
+          "recommendedTemplateChange": "Add recastMaintenance and permanenceCondition fields.",
+          "recommendedJsonChange": "Add runtime persistence data for +24 hour recasts and daily same-location/same-configuration one-year permanence."
+        },
+        {
+          "findingId": "glyph-of-warding::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Actionable open: Some ending conditions are represented in prose/options but need reusable break-condition fields.",
+          "recommendedTemplateChange": "Add conditional-ending bucket fields.",
+          "recommendedJsonChange": "Use existing duration/utility/status break fields as interim data."
+        },
+        {
+          "findingId": "leomunds-secret-chest::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell has a cumulative 5 percent daily ending chance after 60 days, ends if cast again, and ends if the Tiny replica is destroyed; runtime preserves these only in prose.",
+          "recommendedTemplateChange": "Add conditional ending fields for delayed cumulative chance, recast ending, and linked-object destruction.",
+          "recommendedJsonChange": "Add runtime conditionalEnding data for the 60-day cumulative chance, recast ending, and replica destruction."
+        },
+        {
+          "findingId": "summon-greater-demon::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Control can end on a successful Charisma save while the summoned demon remains, and an uncontrolled demon can linger for 1d6 rounds after concentration ends if it still has Hit Points; runtime lacks these ending branches.",
+          "recommendedTemplateChange": "Add summon control-ending and post-concentration linger fields.",
+          "recommendedJsonChange": "Add runtime controlEnding and uncontrolledLinger data."
+        },
+        {
+          "findingId": "contagion::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell can end on the target after three repeat-save successes, last 7 days after three failures, and resist later Poisoned-ending effects unless another Constitution save succeeds; runtime lacks those ending branches.",
+          "recommendedTemplateChange": "Add conditional status/spell ending fields for counted saves and condition-removal resistance.",
+          "recommendedJsonChange": "Add runtime conditionalEnding and conditionRemovalResistance data."
+        },
+        {
+          "findingId": "infernal-calling::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The devil disappears at 0 hit points or spell end, but if concentration ends after command immunity it remains for 3d6 minutes; runtime lacks those branch endings.",
+          "recommendedTemplateChange": "Add summoned-entity conditional ending/aftermath fields.",
+          "recommendedJsonChange": "Add runtime infernalCallingEnding data."
+        },
+        {
+          "findingId": "flesh-to-stone::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Three successful repeat saves end the spell, three failed saves convert the state to Petrified, and full-duration concentration changes the ending/removal behavior; runtime lacks those conditional ending fields.",
+          "recommendedTemplateChange": "Add save-count and concentration-completion ending fields.",
+          "recommendedJsonChange": "Add runtime fleshToStoneEnding data."
+        }
+      ]
+    },
+    {
+      "id": "summon_control_possession_or_soul_lifecycle",
+      "title": "Summon, Control, Possession, Or Soul Lifecycle",
+      "closureRule": "Summoned, animated, controlled, possessed, or soul/container states need lifecycle data distinct from ordinary spell ending.",
+      "count": 8,
+      "findings": [
+        {
+          "findingId": "phantom-steed::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The one-minute dismount grace after the spell ends is not represented.",
+          "recommendedTemplateChange": "Add spell-end aftermath fields for summoned mount fade and dismount grace.",
+          "recommendedJsonChange": "Add runtime aftermath fadeOut with riderDismountWindow 1 minute."
+        },
+        {
+          "findingId": "summon-lesser-demons::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Actionable open: Some ending conditions are represented in prose/options but need reusable break-condition fields.",
+          "recommendedTemplateChange": "Add conditional-ending bucket fields.",
+          "recommendedJsonChange": "Use existing duration/utility/status break fields as interim data."
+        },
+        {
+          "findingId": "summon-lesser-demons::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Summon lifecycle endings and optional material consumption at spell end are not represented.",
+          "recommendedTemplateChange": "Add summon lifecycle and conditional component consumption fields.",
+          "recommendedJsonChange": "Add runtime lifecycle/consumption data tied to spell end and demon HP 0."
+        },
+        {
+          "findingId": "danse-macabre::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The created undead remain under control until the spell ends, then become inanimate; runtime lacks spell-end reversion/lifecycle data.",
+          "recommendedTemplateChange": "Add animated creature lifecycle ending fields.",
+          "recommendedJsonChange": "Add runtime animatedUndead.lifecycle data."
+        },
+        {
+          "findingId": "infernal-calling::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "If concentration ends after command immunity, the devil acts freely for 3d6 minutes before disappearing; runtime lacks post-concentration aftermath behavior.",
+          "recommendedTemplateChange": "Add summon aftermath fields for post-control independent behavior and delayed disappearance.",
+          "recommendedJsonChange": "Add runtime summonAftermath data."
+        },
+        {
+          "findingId": "planar-binding::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Completion before spell end changes the creature's behavior, and another summon/creation spell's duration can be extended to match Planar Binding; runtime lacks those conditional duration/ending branches.",
+          "recommendedTemplateChange": "Add bound-service completion and linked-spell duration-extension fields.",
+          "recommendedJsonChange": "Add runtime planarBindingDurationLink data."
+        },
+        {
+          "findingId": "reincarnate::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell fails if the soul is not free or willing; runtime lacks this failure condition.",
+          "recommendedTemplateChange": "Add soul availability failure fields.",
+          "recommendedJsonChange": "Add runtime resurrectionFailure data."
+        },
+        {
+          "findingId": "druid-grove::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "When the spell ends, animated trees take root again if possible; runtime lacks this aftermath state.",
+          "recommendedTemplateChange": "Add guardian reroot aftermath fields.",
+          "recommendedJsonChange": "Add runtime guardianAftermath data."
+        }
+      ]
+    },
+    {
+      "id": "end_cleanup_fall_descent_or_prone",
+      "title": "End Cleanup: Fall, Descent, Or Prone Outcome",
+      "closureRule": "A spell or effect ending causes falling, controlled descent, landing prone, or another end-position consequence.",
+      "count": 6,
+      "findings": [
+        {
+          "findingId": "levitate::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The gentle float to the ground after the spell ends is an aftermath behavior rather than ordinary duration text.",
+          "recommendedTemplateChange": "Add aftermath behavior fields for movement effects.",
+          "recommendedJsonChange": "Add runtime aftermath data matching the conditional-ending finding."
+        },
+        {
+          "findingId": "watery-sphere::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "After the spell ends, restrained creatures are left prone where the sphere falls and normal flames within 30 feet have been extinguished; runtime lacks typed post-end state outcomes.",
+          "recommendedTemplateChange": "Add aftermath fields for spell-end prone placement and extinguished normal flames.",
+          "recommendedJsonChange": "Add runtime spellEndAftermath data."
+        },
+        {
+          "findingId": "telekinesis::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Switching targets ends the previous target's effect and a lifted creature falls unless reapplied; runtime lacks these ending conditions.",
+          "recommendedTemplateChange": "Add target-switch and reapply-or-fall ending fields.",
+          "recommendedJsonChange": "Add runtime telekinesisEnding data."
+        },
+        {
+          "findingId": "wall-of-stone::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The post-duration permanent wall, non-dispellable state, disappearance fallback, and possible panel-collapse aftermath are not typed.",
+          "recommendedTemplateChange": "Add structure aftermath fields.",
+          "recommendedJsonChange": "Add runtime wallAftermath data."
+        },
+        {
+          "findingId": "magic-jar::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Soul return, caster death, host death, body distance, body dead, and container destruction outcomes are too specific for current duration fields.",
+          "recommendedTemplateChange": "Add conditional spell-ending and soul-return outcome fields.",
+          "recommendedJsonChange": "Add runtime magicJarEndConditions data."
+        },
+        {
+          "findingId": "wind-walk::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Reverting to cloud form and the end-of-effect safe descent/fall sequence are represented as utility options but need first-class transformation and on-end movement consequence fields.",
+          "recommendedTemplateChange": "Add transformation state and on-spell-end descent/fall fields.",
+          "recommendedJsonChange": "Add runtime transformationState and onSpellEndMovementConsequence data."
+        }
+      ]
+    },
+    {
+      "id": "end_cleanup_space_or_passage_ejection",
+      "title": "End Cleanup: Space Or Passage Ejection",
+      "closureRule": "Spell-created spaces, passages, or containers end and move their contents to an exit, anchor, nearest space, or other explicit destination.",
+      "count": 6,
+      "findings": [
+        {
+          "findingId": "banishment::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Aberration, Celestial, Elemental, Fey, and Fiend targets do not return if the spell lasts for 1 minute; runtime has no typed duration-completion branch by creature type.",
+          "recommendedTemplateChange": "Add conditional ending fields for no-return-on-full-duration with creature-type filters.",
+          "recommendedJsonChange": "Add runtime conditionalEnding data for full-duration extraplanar banishment."
+        },
+        {
+          "findingId": "banishment::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "When the spell ends, the target reappears in its original space or nearest unoccupied space, unless the creature-type full-duration branch prevents return; runtime lacks return placement.",
+          "recommendedTemplateChange": "Add post-spell return placement fields for original space and nearest unoccupied fallback.",
+          "recommendedJsonChange": "Add runtime returnPlacement data."
+        },
+        {
+          "findingId": "watery-sphere::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell-end sequence makes the sphere fall, extinguishes normal flames within 30 feet, knocks restrained creatures prone where it falls, and then makes the water vanish; runtime lacks typed spell-end cleanup sequence fields.",
+          "recommendedTemplateChange": "Add ordered spell-end cleanup fields for created areas with occupant and environmental effects.",
+          "recommendedJsonChange": "Add runtime cleanupOnEnd sequence data."
+        },
+        {
+          "findingId": "banishing-smite::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "When the spell ends, the target reappears in its original space or nearest unoccupied fallback; runtime lacks typed spell-end return placement.",
+          "recommendedTemplateChange": "Add spell-end return placement fields for banishment effects.",
+          "recommendedJsonChange": "Add runtime returnPlacement data."
+        },
+        {
+          "findingId": "banishing-smite::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The spell-end return leaves the target in its original or nearest unoccupied space, but runtime lacks typed post-effect placement state.",
+          "recommendedTemplateChange": "Add aftermath placement fields for post-banishment return.",
+          "recommendedJsonChange": "Add runtime spellEndAftermath return placement data."
+        },
+        {
+          "findingId": "investiture-of-stone::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The ordinary 'Until the spell ends' duration is represented, but the special ending when the caster ends movement inside earth or stone is only described in prose.",
+          "recommendedTemplateChange": "Add conditional spell-ending triggers tied to invalid end positions.",
+          "recommendedJsonChange": "Add runtime conditionalSpellEnd data for ending inside earth or stone."
+        }
+      ]
+    },
+    {
+      "id": "delivery_failure_cooldown_or_availability",
+      "title": "Delivery Failure, Cooldown, Or Availability",
+      "closureRule": "A spell can fail delivery, create a later casting block, enforce a cooldown, or depend on target/soul availability.",
+      "count": 4,
+      "findings": [
+        {
+          "findingId": "detect-thoughts::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Detect Thoughts can end on successful Wisdom save against deeper probe or on a target's action Intelligence (Arcana) check while attention remains shifted; only prose carries the Arcana escape and attention condition.",
+          "recommendedTemplateChange": "Add conditional-ending and escape-check fields for successful probe save, target Arcana action, and shift-attention-away condition.",
+          "recommendedJsonChange": "Add runtime endConditions for successful probe save and target action Intelligence (Arcana) check against spell save DC."
+        },
+        {
+          "findingId": "sending::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Sending has delivery failure and recipient-created block conditions that can cause later casts to fail.",
+          "recommendedTemplateChange": "Add delivery failure and recipient block/cooldown fields.",
+          "recommendedJsonChange": "Add runtime deliveryFailure and recipientBlock duration 8 hours with failure result on blocked recast."
+        },
+        {
+          "findingId": "antilife-shell::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "If caster movement would force an affected creature through the barrier, the spell ends; runtime lacks movement-forced early-ending fields.",
+          "recommendedTemplateChange": "Add aura early-ending fields tied to caster movement forcing blocked creatures through the barrier.",
+          "recommendedJsonChange": "Add runtime conditionalEnding data for forced barrier crossing."
+        },
+        {
+          "findingId": "wall-of-light::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Beam use reduces the wall length by 10 feet whether the attack hits or misses, and the spell ends when the length reaches 0 feet; runtime lacks this ending condition.",
+          "recommendedTemplateChange": "Add mutable dimension and zero-length ending fields.",
+          "recommendedJsonChange": "Add runtime wallLengthReduction and zeroLengthEnds data."
+        }
+      ]
+    },
+    {
+      "id": "vision_light_sound_or_sensory",
+      "title": "Vision, Light, Sound, Or Sensory",
+      "closureRule": "Light, sound, visibility, senses, cover, heat, or sensory emission/suppression needs runtime data.",
+      "count": 2,
+      "findings": [
+        {
+          "findingId": "sickening-radiance::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell explicitly removes the emitted light and any Exhaustion levels it caused when the spell ends, but runtime lacks typed cleanup of caused conditions/riders.",
+          "recommendedTemplateChange": "Add spell-end cleanup fields for caused conditions and light riders.",
+          "recommendedJsonChange": "Add runtime cleanupOnEnd data."
+        },
+        {
+          "findingId": "conjure-celestial::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Moving the Cylinder when the caster moves and applying effects when creatures enter/end turn/move into it are represented, but runtime lacks first-class moving area and once-per-turn affected tracking.",
+          "recommendedTemplateChange": "Add moving area and once-per-turn affected fields.",
+          "recommendedJsonChange": "Add runtime movingArea and oncePerTurnEffectLimit data."
+        }
+      ]
+    },
+    {
+      "id": "save_counter_or_recurring_end",
+      "title": "Save Counter Or Recurring End",
+      "closureRule": "Recurring saves, counted successes/failures, branch outcomes, or escape checks end or transform an ongoing effect.",
+      "count": 2,
+      "findings": [
+        {
+          "findingId": "immolation::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "Runtime represents successful repeat save ending, but it still lacks typed data for the flames being impossible to extinguish by nonmagical means.",
+          "recommendedTemplateChange": "Add extinguishability or ending-prevention fields for magical ongoing effects.",
+          "recommendedJsonChange": "Add runtime endingRestrictions data for nonmagical extinguishing immunity."
+        },
+        {
+          "findingId": "power-word-pain::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The pain ends on a successful end-of-turn Constitution save, but runtime currently stores that in status aftermath/utility options rather than a typed recurring end condition.",
+          "recommendedTemplateChange": "Add recurring save end-condition fields.",
+          "recommendedJsonChange": "Add runtime recurringSaveEndCondition data."
+        }
+      ]
+    },
+    {
+      "id": "sustain_range_cover_or_upkeep",
+      "title": "Sustain, Range, Cover, Or Upkeep",
+      "closureRule": "A later action, range requirement, total-cover condition, or upkeep failure ends the spell or effect.",
+      "count": 1,
+      "findings": [
+        {
+          "findingId": "enervation::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell ends on successful initial save, on caster using an action for anything else, when target leaves range, or when target has total cover; runtime lacks these branch and ending conditions.",
+          "recommendedTemplateChange": "Add branch-ending and sustain-ending fields for save success, action use, range loss, and total cover.",
+          "recommendedJsonChange": "Add runtime enervationEnding data."
+        }
+      ]
+    },
+    {
+      "id": "needs_manual_subfamily",
+      "title": "Needs Manual Subfamily",
+      "closureRule": "No confident keyword match; classify manually before editing.",
+      "count": 1,
+      "findings": [
+        {
+          "findingId": "negative-energy-flood::aftermath_or_memory",
+          "bucketId": "aftermath_or_memory",
+          "issue": "The target's death aftermath happens at the start of the caster's next turn and needs a typed aftermath/timing surface.",
+          "recommendedTemplateChange": "Add start-of-next-turn death aftermath fields.",
+          "recommendedJsonChange": "Add runtime deathAftermath timing data."
+        }
+      ]
+    },
+    {
+      "id": "illusion_disguise_or_reveal",
+      "title": "Illusion, Disguise, Or Reveal",
+      "closureRule": "Illusion/disguise behavior, reveal conditions, study actions, physical interaction, or apparent state needs runtime data.",
+      "count": 1,
+      "findings": [
+        {
+          "findingId": "mental-prison::conditional_ending",
+          "bucketId": "conditional_ending",
+          "issue": "The spell ends on successful initial save and after breach-trigger damage; runtime records the damage but lacks first-class conditional spell-ending triggers.",
+          "recommendedTemplateChange": "Add conditional spell-ending triggers for save success and breach events.",
+          "recommendedJsonChange": "Add runtime conditionalSpellEnd data."
+        }
+      ]
+    }
+  ]
+}

@@ -1,34 +1,36 @@
-# Documentation Registry
+# Documentation Registry & Naming Conventions
 
-**Last Updated**: 2026-03-11  
-**Purpose**: Track the numbered work-doc families that still depend on an explicit registry, while documenting the numbering exceptions that the broader documentation migration still needs to normalize.
+**Last Updated**: 2026-05-17  
+**Purpose**: Track the numbered work-doc families that still depend on an explicit registry, define the naming and retirement rules for these legacy numbering systems, and maintain a ledger of retired docs.
 
-## What This Registry Covers
+## 1. Naming & Numbering Rules
 
-This file is no longer presented as a complete master index of every markdown file in the repository.
+Aralia currently has more than one naming era on disk.
 
-It currently tracks:
-- the main numbered work-doc families that still use explicit registry guidance
-- retired-number conventions where those families are already using `~`
-- known numbering anomalies that must be preserved and reviewed, not silently flattened
+### Canonical root docs
+These are stable orientation docs at the root of `docs/` (e.g., `PROJECT_PROJECT_ARCHITECTURE.md`, `DEVELOPMENT_GUIDE.md`).
+- Canonical root docs do not all use the `@` prefix.
+- Do not introduce `AGENT` into new filenames unless the file is specifically about agent behavior or compatibility.
 
-It does not try to be:
-- a full inventory of every doc under `docs/`
-- a source of truth for excluded roadmap-tooling docs
-- a guarantee that every numbered file outside the tracked families has already been normalized
+### Legacy numbered work-doc families
+Several active or historical work trees use local numbering systems (e.g., `1A-PROJECT-MASTER-SPRINGBOARD.md`).
+- Treat numbering as local to the work tree where it already exists.
+- Do not assume a single global numbering system for all docs.
+- The most common historical format is: `[NUMBER]-[DESCRIPTIVE-NAME].md`
 
-For the broader doc-system structure, see [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md). For the active migration queue, see [docs/registry/@DOC-REVIEW-LEDGER.md](./registry/@DOC-REVIEW-LEDGER.md).
+### How To Name A New Doc
+- **Canonical root doc**: Keep the name human-readable and role-based (e.g., `PROJECT_OVERVIEW`, `WORKFLOW`).
+- **Inside an established numbered work tree**: Inspect adjacent files first and continue the local pattern. Check the registries below to avoid collisions.
+- **Source-adjacent implementation doc**: Use `README.md` for a directory overview, or `[Name].README.md` for specific implementation notes near code.
 
-## Tracked Numbered Families
+---
+
+## 2. Tracked Numbered Families
 
 ### Spell System Overhaul
-
 **Location**: `docs/tasks/spell-system-overhaul/`
 
-This subtree currently contains both a primary numbered strand and several side-numbered documents.
-
 #### Primary numbered strand on disk
-
 | Identifier | File | Current file-state note |
 |------------|------|-------------------------|
 | 1A | [1A-PROJECT-MASTER-SPRINGBOARD.md](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md) | present |
@@ -51,32 +53,12 @@ This subtree currently contains both a primary numbered strand and several side-
 | 1Q | [1Q-MIGRATE-CANTRIPS-BATCH-9.md](./tasks/spell-system-overhaul/1Q-MIGRATE-CANTRIPS-BATCH-9.md) | present |
 
 #### Additional numbering exceptions already on disk
-
-These files are real and should be preserved during migration, but they are not part of the simple `1A` to `1Q` strand:
-
-- `00-AGENT-COORDINATION.md`
-- `00-DATA-VALIDATION-STRATEGY.md`
-- `00-GAP-ANALYSIS.md`
-- `00-PARALLEL-ARCHITECTURE.md`
-- `00-TASK-INDEX.md`
-- `01-typescript-interfaces.md`
-- `03-command-pattern-base.md`
-- `0-PRIORITY-SCHEMA-EVOLUTION.md`
-- `11A-DYNAMIC-LIGHTING-SUPPORT.md`
-- `11B-SAVE-PENALTY-RIDER.md`
-- `11C-TERRAIN-UTILITY-STRUCTURES.md`
-- `19-ai-spell-arbitrator.md`
-
-**Practical note**: if this subtree needs a new primary-strand doc before its numbering is normalized, the next unused simple identifier is `1R`. That does not resolve the duplicate `1F`; it only avoids introducing another collision.
+These files are real and should be preserved during migration, but they are not part of the simple `1A` to `1Q` strand: `00-AGENT-COORDINATION.md`, `00-DATA-VALIDATION-STRATEGY.md`, `00-GAP-ANALYSIS.md`, `00-PARALLEL-PROJECT_ARCHITECTURE.md`, `00-TASK-INDEX.md`, `01-typescript-interfaces.md`, `03-command-pattern-base.md`, `0-PRIORITY-SCHEMA-EVOLUTION.md`, `11A-DYNAMIC-LIGHTING-SUPPORT.md`, `11B-SAVE-PENALTY-RIDER.md`, `11C-TERRAIN-UTILITY-STRUCTURES.md`, `19-ai-spell-arbitrator.md`.
 
 ### Documentation Cleanup
-
 **Location**: `docs/tasks/documentation-cleanup/`
 
-This subtree contains a main `1A` to `1G` strand plus a `1G.x` subseries.
-
 #### Main strand on disk
-
 | Identifier | File | Current file-state note |
 |------------|------|-------------------------|
 | 1A | [1A-SURVEY-AND-CLASSIFICATION.md](./tasks/documentation-cleanup/1A-SURVEY-AND-CLASSIFICATION.md) | present |
@@ -87,23 +69,9 @@ This subtree contains a main `1A` to `1G` strand plus a `1G.x` subseries.
 | 1F | [1F-CREATE-SYSTEM-STATUS-REPORT.md](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md) | present |
 | 1G | [1G-MIGRATE-IMPROVEMENT-DOCS.md](./tasks/documentation-cleanup/1G-MIGRATE-IMPROVEMENT-DOCS.md) | present |
 
-#### `1G.x` subseries on disk
-
-- [1G.1-COMMON-COMPONENTS.md](./tasks/documentation-cleanup/1G.1-COMMON-COMPONENTS.md)
-- [1G.2-CONFIG-DECOUPLING.md](./tasks/documentation-cleanup/1G.2-CONFIG-DECOUPLING.md)
-- [1G.3-PLAYER-TYPES.md](./tasks/documentation-cleanup/1G.3-PLAYER-TYPES.md)
-- [1G.4-EXTERNALIZE-CSS.md](./tasks/documentation-cleanup/1G.4-EXTERNALIZE-CSS.md)
-- [1G.5-API-ERROR-HANDLING.md](./tasks/documentation-cleanup/1G.5-API-ERROR-HANDLING.md)
-- [1G.6-SUBMAP-RENDERING.md](./tasks/documentation-cleanup/1G.6-SUBMAP-RENDERING.md)
-- [1G.7-REDUCER-LOGIC.md](./tasks/documentation-cleanup/1G.7-REDUCER-LOGIC.md)
-- [1G.8-POINT-BUY-UI.md](./tasks/documentation-cleanup/1G.8-POINT-BUY-UI.md)
-- [1G.9-LOADING-TRANSITION.md](./tasks/documentation-cleanup/1G.9-LOADING-TRANSITION.md)
-- [1G.10-SUBMAP-GENERATION.md](./tasks/documentation-cleanup/1G.10-SUBMAP-GENERATION.md)
-
-**Practical note**: this family is historically meaningful but not yet fully normalized. Presence on disk does not, by itself, settle whether each file is still active, completed, or historical. That review is handled in the doc-review ledger.
+*(Also includes the `1G.1` to `1G.10` subseries).*
 
 ### Spell Completeness Audit
-
 **Location**: `docs/tasks/spell-completeness-audit/`
 
 | Identifier | File | Current file-state note |
@@ -115,7 +83,6 @@ This subtree contains a main `1A` to `1G` strand plus a `1G.x` subseries.
 | 2B | [2B-EXTRACT-REMAINING-LEVELS.md](./tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md) | present |
 
 ### 3D Exploration
-
 **Location**: `docs/tasks/3d-exploration/`
 
 | Identifier | File | Current file-state note |
@@ -123,35 +90,33 @@ This subtree contains a main `1A` to `1G` strand plus a `1G.x` subseries.
 | 1A | [1A-3D-EXPLORATION-ROADMAP.md](./tasks/3d-exploration/1A-3D-EXPLORATION-ROADMAP.md) | present |
 | 2B | [2B-3D-INTEGRATION-DESIGN-PLAN.md](./tasks/3d-exploration/2B-3D-INTEGRATION-DESIGN-PLAN.md) | present |
 
-Additional unnumbered work docs also exist in this subtree:
-- [implementation_plan.md](./tasks/3d-exploration/implementation_plan.md)
-- [world-map-rewire-mapping.md](./tasks/3d-exploration/world-map-rewire-mapping.md)
+*(Plus `implementation_plan.md` and `world-map-rewire-mapping.md`).*
 
-## Known Exceptions And Boundaries
+---
 
-- `docs/tasks/roadmap/` exists on disk but is currently excluded from the maintained documentation system by [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md).
-- [@ROADMAP-SYSTEM-GUIDE.md](./@ROADMAP-SYSTEM-GUIDE.md) also exists on disk but is part of that excluded roadmap-tooling surface.
-- [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) is a manually curated retirement ledger that is currently synced to the retired numbered docs explicitly tracked by this registry.
+## 3. Retired Documentation Ledger
 
-## Maintenance Rules
+### Retirement Convention
+For the numbered work-doc families that use tilde retirement:
+1. The identifier is preserved.
+2. The filename changes from `[NUMBER]-NAME.md` to `[NUMBER]~NAME.md`.
+3. The retired file stays available for historical context.
+4. The retirement should be reconciled with this registry.
 
-When adding a new numbered work doc:
+*(Important: A missing `~` does not prove that a numbered doc is still current).*
 
-1. Check the local subtree first.
-2. Continue the numbering pattern already used in that subtree.
-3. Avoid creating a new duplicate identifier.
-4. Update this registry only if the subtree is one of the tracked families above.
-5. Update [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md) only if the new doc is meant to be part of the current work-entry surface.
+### Retired Numbered Docs Currently Verified On Disk
 
-When retiring a numbered work doc:
+| Identifier | Document | Location | Verified file-state note |
+|------------|----------|----------|--------------------------|
+| 1C | [Version Display & Package Fix](./tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md) | `docs/tasks/spell-system-overhaul/` | tilde-marked file present |
+| 1A | [Inventory Local Spells](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | `docs/tasks/spell-completeness-audit/` | tilde-marked file present |
+| 1B | [Research PHB 2024 Spell List](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | `docs/tasks/spell-completeness-audit/` | tilde-marked file present |
+| 1C | [Gap Analysis](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | `docs/tasks/spell-completeness-audit/` | tilde-marked file present |
 
-1. Use the `~` marker if that family already uses tilde retirement.
-2. Preserve the identifier.
-3. Update this registry or the relevant local registry surface.
-4. Add or reconcile the retirement entry in [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) when that ledger is being maintained for the family.
-
-## Related Files
-
-- [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md) is the current work-entry surface.
-- [@DOC-NAMING-CONVENTIONS.md](./@DOC-NAMING-CONVENTIONS.md) explains the naming systems and the limits of the legacy numbering rules.
-- [docs/registry/@DOC-REVIEW-LEDGER.md](./registry/@DOC-REVIEW-LEDGER.md) is the authoritative review queue for the current documentation overhaul.
+### Restoration Guidance
+If a retired numbered work doc needs to become active again:
+1. Rename it back to the active local convention for that subtree.
+2. Update this file.
+3. Update `@README-INDEX.md` if it should return to the current work-entry surface.
+4. Add a short note explaining why the retired state was reversed.

@@ -12,7 +12,7 @@
     "validate:spells": "tsx scripts/validateSpellJsons.ts",
     "validate:spell-markdown": "tsx scripts/validateSpellMarkdownParity.ts",
     "audit:spell-template": "tsx scripts/auditSpellRuntimeTemplate.ts",
-        "audit:damage-type-canonical": "tsx scripts/auditSpellDamageTypeCanonical.ts",
+    "audit:damage-type-canonical": "tsx scripts/auditSpellDamageTypeCanonical.ts",
     "generate:spell-gates": "tsx scripts/generateSpellGateReport.ts",
     "fix:charset": "tsx scripts/check-non-ascii.ts --write",
     "validate": "npm run validate:charset && tsx scripts/validate-data.ts",
@@ -110,9 +110,12 @@
     "tailwindcss": "^3.4.17",
     "tsd": "^0.33.0",
     "tsx": "^4.20.6",
+    "typedoc": "^0.28.19",
+    "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.50.1",
     "vite": "^7.3.3",
+    "vitepress": "^1.6.4",
     "vitest": "^4.0.16"
   },
   "gemini": {

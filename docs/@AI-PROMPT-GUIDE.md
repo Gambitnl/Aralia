@@ -1,6 +1,6 @@
 # Guide: Briefing AI Collaborators On Aralia
 
-**Last Updated**: 2026-03-11  
+**Last Updated**: 2026-05-17
 **Purpose**: Help humans brief AI collaborators effectively for the current Aralia repository, using the repo's actual architecture and workflow constraints instead of the older static-app assumptions.
 
 ## What Makes A Good Request
@@ -126,8 +126,33 @@ This matters because Aralia is actively normalizing its documentation system, an
 
 "Fix this regression and verify it with the relevant local test or runtime check. If you cannot verify it fully, say exactly what remains unverified."
 
+## Historical Context: Async Worker Delegation (Jules Pattern)
+
+This section preserves a historical coordination pattern used for parallel agent work, especially when shared docs and registry files were prone to merge conflicts. While not the *only* valid workflow, the principles remain useful.
+
+### The Stable Principles Worth Preserving
+- give worker agents precise, bounded instructions
+- partition work to reduce file conflicts
+- keep central registry or index files under tighter orchestration
+- verify work before calling it complete
+
+### Strict Instruction Pattern
+When delegating bounded work to an asynchronous worker, the following structure is still a good pattern because ambiguous prompts create drift:
+1. `MISSION`
+2. `REQUIRED READING`
+3. `EXECUTION STEPS`
+4. `CONSTRAINTS`
+5. `DELIVERABLE`
+
+### Current Guidance For Shared Documentation Work
+If multiple workers are operating in parallel on docs:
+- keep ownership boundaries clear
+- avoid overlapping write sets
+- be cautious with shared surfaces like registry, index, or migration-ledger docs
+- let the orchestrator handle final reconciliation when several branches of work touch the same central doc surfaces
+
 ## Related Docs
 
 - [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md) for current dev workflow orientation
-- [ARCHITECTURE.md](./ARCHITECTURE.md) for subsystem mapping
+- [PROJECT_PROJECT_ARCHITECTURE.md](./PROJECT_PROJECT_ARCHITECTURE.md) for subsystem mapping
 - [@DOCUMENTATION-GUIDE.md](./@DOCUMENTATION-GUIDE.md) for doc-system structure and scope

@@ -1,0 +1,51 @@
+{
+  "runId": "example-batch-disjoint-worklogs",
+  "source": "sources/github/Gambitnl/Aralia",
+  "startingBranch": "master",
+  "requirePlanApproval": true,
+  "automationMode": "NONE",
+  "tasks": [
+    {
+      "id": "batch-scribe-doc-scout",
+      "title": "Scout documentation surfaces for Scribe",
+      "persona": "scribe",
+      "mode": "batch",
+      "prompt": "Inspect only the Scribe-facing documentation surfaces and summarize link or wording issues.",
+      "readScopes": [
+        "AGENTS.md",
+        ".jules/personas/03_scribe.md",
+        ".jules/guides"
+      ],
+      "writeScopes": [
+        ".jules/worklogs/worklog_scribe.md"
+      ],
+      "forbiddenFiles": [
+        "package-lock.json"
+      ],
+      "verification": [
+        "Confirm the report is documentation-only and stayed in the Scribe worklog."
+      ]
+    },
+    {
+      "id": "batch-architect-doc-scout",
+      "title": "Scout architecture surfaces for Architect",
+      "persona": "architect",
+      "mode": "batch",
+      "prompt": "Inspect only the Architect-facing documentation surfaces and summarize stale architecture references.",
+      "readScopes": [
+        "AGENTS.md",
+        ".jules/personas/11_architect.md",
+        ".jules/guides"
+      ],
+      "writeScopes": [
+        ".jules/worklogs/worklog_architect.md"
+      ],
+      "forbiddenFiles": [
+        "package-lock.json"
+      ],
+      "verification": [
+        "Confirm the report is documentation-only and stayed in the Architect worklog."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,544 @@
+[
+  {
+    "mechanicFamily": "walk_speed",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "race.traits",
+      "PlayerCharacter.speed"
+    ],
+    "enforcementPaths": [
+      "src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterSpeed",
+      "src/utils/character/characterUtils.ts:calculateCharacterSpeedFromRace",
+      "src/utils/character/characterUtils.ts:normalizeCharacterRaceData"
+    ],
+    "displayPaths": [
+      "src/components/CharacterCreator/NameAndReview.tsx",
+      "src/components/CharacterSheet/Overview/CharacterOverview.tsx"
+    ],
+    "limitations": [
+      "Only the walking speed number is enforced; fly, swim, climb, and burrow text is not structured."
+    ],
+    "exampleRaceIds": [
+      "human",
+      "wood_elf",
+      "air_genasi"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "darkvision",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "race.traits",
+      "PlayerCharacter.darkvisionRange"
+    ],
+    "enforcementPaths": [
+      "src/components/CharacterCreator/hooks/useCharacterAssembly.ts:calculateCharacterDarkvision",
+      "src/utils/character/characterUtils.ts:calculateCharacterDarkvisionFromRace",
+      "src/utils/character/characterUtils.ts:normalizeCharacterRaceData"
+    ],
+    "displayPaths": [
+      "src/components/CharacterSheet/Overview/CharacterOverview.tsx"
+    ],
+    "limitations": [
+      "Darkvision range is numeric only; lighting rules and magical-darkness exceptions are not modeled here."
+    ],
+    "exampleRaceIds": [
+      "drow",
+      "deep_gnome",
+      "half_orc"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "fixed_ability_bonus",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "race.abilityBonuses",
+      "PlayerCharacter.finalAbilityScores"
+    ],
+    "enforcementPaths": [
+      "src/utils/character/statUtils.ts:calculateFixedRacialBonuses",
+      "src/utils/character/statUtils.ts:calculateFinalAbilityScores",
+      "src/components/CharacterCreator/state/characterCreatorState.ts"
+    ],
+    "displayPaths": [
+      "src/components/CharacterCreator/NameAndReview.tsx"
+    ],
+    "limitations": [
+      "Flexible Any bonuses are intentionally skipped by the fixed-bonus calculator and handled by point-buy/choice flow."
+    ],
+    "exampleRaceIds": [
+      "half_orc",
+      "hill_dwarf"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "known_racial_spells",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "race.knownSpells",
+      "PlayerCharacter.spellbook"
+    ],
+    "enforcementPaths": [
+      "src/utils/character/spellUtils.ts:getCharacterSpells",
+      "src/utils/character/characterValidation.ts:validateCharacterChoices"
+    ],
+    "displayPaths": [
+      "src/components/CharacterCreator/NameAndReview.tsx"
+    ],
+    "limitations": [
+      "The spell grant is aggregated, but rest-limited casting uses and free cast tracking are not enforced."
+    ],
+    "exampleRaceIds": [
+      "air_genasi",
+      "aarakocra",
+      "abyssal_tiefling"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "racial_spell_ability_choice",
+    "supportStatus": "represented_only",
+    "dataFields": [
+      "race.racialSpellChoice",
+      "PlayerCharacter.racialSelections"
+    ],
+    "enforcementPaths": [
+      "src/utils/character/characterValidation.ts:validateCharacterChoices"
+    ],
+    "displayPaths": [
+      "src/components/CharacterCreator/state/characterCreatorState.ts",
+      "src/components/CharacterCreator/config/sidebarSteps.ts"
+    ],
+    "limitations": [
+      "The choice is stored and validated, but the current spell utility does not use it to calculate save DC or attack bonuses."
+    ],
+    "exampleRaceIds": [
+      "air_genasi",
+      "aarakocra"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "required_race_choice",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "PlayerCharacter.racialSelections",
+      "RaceDataBundle"
+    ],
+    "enforcementPaths": [
+      "src/utils/character/characterValidation.ts:validateCharacterChoices",
+      "src/components/CharacterCreator/state/characterCreatorState.ts"
+    ],
+    "displayPaths": [
+      "src/components/Party/PartyPane/PartyMemberCard.tsx"
+    ],
+    "limitations": [
+      "Only the known chooser families in validation are covered. Reflavored standalone races need their own explicit choice handling."
+    ],
+    "exampleRaceIds": [
+      "elf",
+      "tiefling",
+      "goliath"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "fixed_or_selected_skill_proficiency",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "PlayerCharacter.skills",
+      "PlayerCharacter.racialSelections"
+    ],
+    "enforcementPaths": [
+      "src/components/CharacterCreator/hooks/useCharacterAssembly.ts:assembleFinalSkills",
+      "src/components/CharacterCreator/utils/skillSelectionUtils.ts:buildSkillsForSubmit"
+    ],
+    "displayPaths": [
+      "src/components/CharacterCreator/SkillSelection.tsx"
+    ],
+    "limitations": [
+      "Only currently hardcoded race skill grants and choices are enforced; arbitrary trait text is not automatically converted."
+    ],
+    "exampleRaceIds": [
+      "human",
+      "elf",
+      "bugbear",
+      "centaur",
+      "changeling"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "canonical_race_rehydration",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "PlayerCharacter.race",
+      "ALL_RACES_DATA"
+    ],
+    "enforcementPaths": [
+      "src/utils/character/characterUtils.ts:normalizeCharacterRaceData"
+    ],
+    "displayPaths": [
+      "src/services/premadeCharacterService.ts"
+    ],
+    "limitations": [
+      "Rehydration restores canonical race data by ID; missing racialSelections remain validation work."
+    ],
+    "exampleRaceIds": [
+      "human",
+      "half_orc"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "race_derived_hp_ac_recalculation",
+    "supportStatus": "enforced",
+    "dataFields": [
+      "PlayerCharacter.finalAbilityScores",
+      "PlayerCharacter.maxHp",
+      "PlayerCharacter.armorClass"
+    ],
+    "enforcementPaths": [
+      "src/utils/character/characterUtils.ts:updateDerivedStats",
+      "src/utils/character/statUtils.ts:calculateFinalAbilityScores",
+      "src/utils/character/statUtils.ts:calculateArmorClass"
+    ],
+    "displayPaths": [
+      "src/components/CharacterSheet/Overview/CharacterOverview.tsx"
+    ],
+    "limitations": [
+      "This enforces derived HP/AC from ability scores and equipment, not standalone race traits like natural armor unless encoded elsewhere."
+    ],
+    "exampleRaceIds": [
+      "half_orc",
+      "hill_dwarf"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "visual_metadata",
+    "supportStatus": "display_only",
+    "dataFields": [
+      "race.visual",
+      "race.imageUrl"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [
+      "src/components/CharacterCreator/Race/RaceDetailModal.tsx",
+      "src/components/CharacterCreator/shared/CharacterCreatorTraitsTable.tsx"
+    ],
+    "limitations": [
+      "Visual data supports selection/display, not gameplay."
+    ],
+    "exampleRaceIds": [
+      "aarakocra",
+      "half_orc"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "display_identity_text",
+    "supportStatus": "display_only",
+    "dataFields": [
+      "race.traits",
+      "race.description",
+      "glossary race JSON"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [
+      "src/components/CharacterCreator/Race/RaceDetailModal.tsx"
+    ],
+    "limitations": [
+      "Creature type, size, culture, age, and lore text are shown but not used as mechanical gates."
+    ],
+    "exampleRaceIds": [
+      "human",
+      "aarakocra"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "once_per_rest_spell",
+    "supportStatus": "represented_only",
+    "dataFields": [
+      "race.knownSpells",
+      "race.racialSpellChoice",
+      "race.traits"
+    ],
+    "enforcementPaths": [
+      "src/utils/character/spellUtils.ts:getCharacterSpells"
+    ],
+    "displayPaths": [
+      "src/components/CharacterCreator/NameAndReview.tsx"
+    ],
+    "limitations": [
+      "The spell can be known/displayed, but free uses and rest reset limits are not tracked for racial spells."
+    ],
+    "exampleRaceIds": [
+      "aarakocra",
+      "duergar",
+      "firbolg"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "tool_weapon_language_proficiency",
+    "supportStatus": "display_only",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [
+      "src/components/CharacterCreator/Race/RaceDetailModal.tsx"
+    ],
+    "limitations": [
+      "Race has no structured language/tool/weapon proficiency fields in src/types/character.ts yet."
+    ],
+    "exampleRaceIds": [
+      "dragonborn",
+      "githyanki"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "alternate_movement_mode",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Fly, swim, climb, and burrow speeds are not separate PlayerCharacter movement fields."
+    ],
+    "exampleRaceIds": [
+      "aarakocra",
+      "sea_elf",
+      "tabaxi"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "damage_resistance",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Damage resolution does not consume race-owned resistance fields."
+    ],
+    "exampleRaceIds": [
+      "air_genasi",
+      "dragonborn",
+      "tiefling"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "breath_weapon",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Breath weapon action, save DC, scaling, area, damage type, and rest reset are not structured."
+    ],
+    "exampleRaceIds": [
+      "black_dragonborn",
+      "red_dragonborn"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "condition_save_advantage",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Saving throw logic does not consume race-owned conditional advantage traits."
+    ],
+    "exampleRaceIds": [
+      "drow",
+      "deep_gnome"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "death_prevention",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "No trigger/reaction/rest-reset mechanic exists for dropping to 1 HP."
+    ],
+    "exampleRaceIds": [
+      "half_orc"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "natural_weapon",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Race-granted attacks are not converted into weapon, action, or unarmed strike options."
+    ],
+    "exampleRaceIds": [
+      "aarakocra",
+      "tabaxi",
+      "lizardfolk"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "limited_use_reaction",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Combat reactions and rest-reset uses are not defined for race traits."
+    ],
+    "exampleRaceIds": [
+      "goblin",
+      "hadozee"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "reroll_or_luck",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Race-owned rerolls do not connect to the roll engine or limited-use tracking."
+    ],
+    "exampleRaceIds": [
+      "halfling",
+      "autognome"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "powerful_build",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Carrying capacity and size-based carry rules are not enforced from race data."
+    ],
+    "exampleRaceIds": [
+      "goliath",
+      "firbolg",
+      "bugbear"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "creature_communication",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Dialogue and creature interaction systems do not consume race communication traits."
+    ],
+    "exampleRaceIds": [
+      "firbolg",
+      "forest_gnome"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "environmental_adaptation",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Travel, rest, poison, breathing, sleep, and survival systems do not consume these race traits."
+    ],
+    "exampleRaceIds": [
+      "air_genasi",
+      "autognome",
+      "warforged"
+    ],
+    "confidence": "medium"
+  },
+  {
+    "mechanicFamily": "shapeshifting_or_disguise",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Identity-changing traits are not represented as actions, forms, or disguise state."
+    ],
+    "exampleRaceIds": [
+      "changeling"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "innate_teleport",
+    "supportStatus": "unsupported",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Teleport traits are not wired into movement, combat, map, or limited-use systems."
+    ],
+    "exampleRaceIds": [
+      "eladrin",
+      "shadar_kai"
+    ],
+    "confidence": "high"
+  },
+  {
+    "mechanicFamily": "ambiguous_unmapped_trait",
+    "supportStatus": "ambiguous",
+    "dataFields": [
+      "race.traits"
+    ],
+    "enforcementPaths": [],
+    "displayPaths": [],
+    "limitations": [
+      "Trait text needs human review before it can be classified as display text or a mechanic family."
+    ],
+    "exampleRaceIds": [],
+    "confidence": "low"
+  }
+]

@@ -1,0 +1,1 @@
+const t = '{@dc 14} Constitution saving throw'; console.log(t.match(/(?:\{@dc\s+(\d+)\}|DC\s+(\d+))\s+([a-zA-Z]+)\s+sav/i)); const t2 = 'DC 15 Dexterity save'; console.log(t2.match(/(?:\{@dc\s+(\d+)\}|DC\s+(\d+))\s+([a-zA-Z]+)\s+sav/i));

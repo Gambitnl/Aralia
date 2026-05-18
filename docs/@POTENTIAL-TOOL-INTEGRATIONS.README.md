@@ -1,6 +1,6 @@
 # Potential Tool Integrations For Aralia
 
-**Last Updated**: 2026-03-11  
+**Last Updated**: 2026-05-17
 **Purpose**: Preserve exploratory notes about possible tooling directions while clearly separating already-adopted tools from still-hypothetical additions.
 
 ## Status Of This File

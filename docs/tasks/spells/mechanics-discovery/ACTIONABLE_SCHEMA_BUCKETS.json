@@ -1,0 +1,3252 @@
+{
+  "generatedAt": "2026-05-14T11:42:13.258Z",
+  "sourceReport": ".agent/roadmap-local/spell-validation/spell-mechanics-discovery.json",
+  "actionableOpenFindings": 1235,
+  "groupedMechanicsFamilies": 24,
+  "buckets": [
+    {
+      "bucketId": "choice_or_mode",
+      "findings": 128,
+      "distinctSpells": 113,
+      "levels": [
+        {
+          "level": "1",
+          "count": 9
+        },
+        {
+          "level": "2",
+          "count": 20
+        },
+        {
+          "level": "3",
+          "count": 41
+        },
+        {
+          "level": "4",
+          "count": 16
+        },
+        {
+          "level": "5",
+          "count": 25
+        },
+        {
+          "level": "6",
+          "count": 12
+        },
+        {
+          "level": "7",
+          "count": 4
+        },
+        {
+          "level": "9",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add a choice/mode bucket with option-specific targets/effects.",
+          "count": 16
+        },
+        {
+          "text": "Add multi-effect ward mode and immunity/password choice fields.",
+          "count": 2
+        },
+        {
+          "text": "Add spell-granted action direction/placement choice fields.",
+          "count": 2
+        },
+        {
+          "text": "Add a healing-pool distribution bucket with unlimited target count and player allocation rules.",
+          "count": 1
+        },
+        {
+          "text": "Add ability-check modifier fields for chosen ability and disadvantage.",
+          "count": 1
+        },
+        {
+          "text": "Add ability-choice fields linked to save-disadvantage riders.",
+          "count": 1
+        },
+        {
+          "text": "Add animate/reassert mode and slot-scaled undead form choice fields.",
+          "count": 1
+        },
+        {
+          "text": "Add area target-selection fields for chosen creatures in an area.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Keep existing Utility Options or descriptions until mode schema propagation.",
+          "count": 16
+        },
+        {
+          "text": "Add runtime abilityCheckModifier data tied to the chosen ability instead of relying on generic controlOptions text.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime abilityChoice data and allow one selected ability per target.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime actionPlacementChoice data for cone direction.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime actionPlacementChoice data for line direction.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime alignmentMode data: good/neutral Radiant with angelic/fey appearance choice, evil Necrotic fiendish.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedObjectSelection data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime areaDirectionChoice data for the 30-foot line.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "alarm",
+          "level": 1,
+          "issue": "Alarm can ward a door, a window, or a 20-foot cube and lets the caster choose audible or mental alarm mode, but JSON keeps those choices in prose."
+        },
+        {
+          "spellId": "catapult",
+          "level": 1,
+          "issue": "Catapult requires choosing an eligible object and a travel direction, then resolving a straight-line movement path; current data collapses this to an area line plus prose utility."
+        },
+        {
+          "spellId": "chromatic-orb",
+          "level": 1,
+          "issue": "Chromatic Orb requires choosing one of six damage types and can leap to additional chosen targets when two or more damage dice match, but runtime JSON stores the damage types as a slash-delimited string and has no leap mechanic."
+        },
+        {
+          "spellId": "create-or-destroy-water",
+          "level": 1,
+          "issue": "Create or Destroy Water has four utility modes with different targets, environmental effects, and scaling choices."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "Find Familiar requires choosing a familiar form and creature type, and recasting changes the existing familiar's eligible form instead of creating another familiar."
+        }
+      ]
+    },
+    {
+      "bucketId": "attack_or_save_modifier",
+      "findings": 123,
+      "distinctSpells": 123,
+      "levels": [
+        {
+          "level": "0",
+          "count": 4
+        },
+        {
+          "level": "1",
+          "count": 17
+        },
+        {
+          "level": "2",
+          "count": 23
+        },
+        {
+          "level": "3",
+          "count": 21
+        },
+        {
+          "level": "4",
+          "count": 15
+        },
+        {
+          "level": "5",
+          "count": 24
+        },
+        {
+          "level": "6",
+          "count": 5
+        },
+        {
+          "level": "7",
+          "count": 6
+        },
+        {
+          "level": "8",
+          "count": 2
+        },
+        {
+          "level": "9",
+          "count": 6
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add savingThrowAdvantage fields for ability lists.",
+          "count": 2
+        },
+        {
+          "text": "Add a D20 test modifier bucket covering attacks, saves, and ability checks together.",
+          "count": 1
+        },
+        {
+          "text": "Add a save auto-success/auto-failure bucket keyed by target filter.",
+          "count": 1
+        },
+        {
+          "text": "Add a time/turn-economy bucket for extra turns and frozen non-caster actors.",
+          "count": 1
+        },
+        {
+          "text": "Add ability-check disadvantage and shared-save rider fields.",
+          "count": 1
+        },
+        {
+          "text": "Add ability-check modifier fields for advantage/disadvantage, ability, skill, duration, and source option.",
+          "count": 1
+        },
+        {
+          "text": "Add ability-check modifier fields for advantage/disadvantage/bonus, chosen ability filter, and duration.",
+          "count": 1
+        },
+        {
+          "text": "Add ability-check modifier fields for skill-specific Advantage against a marked target.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime rollModifier data for attack rolls and saving throws instead of relying on status-condition name semantics.",
+          "count": 2
+        },
+        {
+          "text": "Add on-end-turn wall damage and caster-action beam attack effects with shared scaling.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime abilityCheckModifier and sharedSaveRiders; current attack-roll modifier is a partial schema-safe encoding.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime abilityCheckModifier data and avoid duplicate-save attack modifier effects until shared-save riders are supported.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime abilityCheckModifier data for Charisma (Intimidation) advantage while Booming Voice is active.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime abilityCheckModifier data for disadvantage on checks made with the chosen ability.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime abilityCheckModifier data for Wisdom (Perception) and Wisdom (Survival) checks made to find the target.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime abilityCheckModifier data: type advantage, applies to chosen ability, duration while active.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "guidance",
+          "level": 0,
+          "issue": "Guidance adds 1d4 to ability checks for the chosen skill, but runtime JSON only records a generic utility description."
+        },
+        {
+          "spellId": "mind-sliver",
+          "level": 0,
+          "issue": "Mind Sliver's damage and next-save 1d4 penalty share one failed Intelligence save, but runtime JSON stores them as separate effects that can drift."
+        },
+        {
+          "spellId": "thaumaturgy",
+          "level": 0,
+          "issue": "Booming Voice grants Advantage on Charisma (Intimidation) checks for 1 minute, but this ability-check modifier is prose-only."
+        },
+        {
+          "spellId": "vicious-mockery",
+          "level": 0,
+          "issue": "Vicious Mockery's damage and next-attack Disadvantage rider share one failed Wisdom save, but JSON stores damage and a generic utility effect separately."
+        },
+        {
+          "spellId": "bane",
+          "level": 1,
+          "issue": "Bane subtracts 1d4 from attack rolls and saving throws made by failed-save targets, but structured markdown and JSON only apply a generic Bane status; the save outcome was corrected to negates_condition."
+        }
+      ]
+    },
+    {
+      "bucketId": "status_or_state_change",
+      "findings": 88,
+      "distinctSpells": 79,
+      "levels": [
+        {
+          "level": "1",
+          "count": 6
+        },
+        {
+          "level": "2",
+          "count": 11
+        },
+        {
+          "level": "3",
+          "count": 26
+        },
+        {
+          "level": "4",
+          "count": 9
+        },
+        {
+          "level": "5",
+          "count": 22
+        },
+        {
+          "level": "6",
+          "count": 5
+        },
+        {
+          "level": "7",
+          "count": 3
+        },
+        {
+          "level": "8",
+          "count": 1
+        },
+        {
+          "level": "9",
+          "count": 5
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add state-change bucket fields for non-condition states.",
+          "count": 9
+        },
+        {
+          "text": "Add a condition-removal/restoration bucket for named condition endings.",
+          "count": 1
+        },
+        {
+          "text": "Add a condition-removal/restoration bucket for named conditions and optional reaction-based state ending.",
+          "count": 1
+        },
+        {
+          "text": "Add a form transformation state bucket.",
+          "count": 1
+        },
+        {
+          "text": "Add ability-score override, capability lockout, long-interval repeat save, and ending-spell-list fields.",
+          "count": 1
+        },
+        {
+          "text": "Add area status prevention, status application, possession suppression, and corpse-state protection fields.",
+          "count": 1
+        },
+        {
+          "text": "Add area-scoped condition fields for conditions that apply only while occupying an area.",
+          "count": 1
+        },
+        {
+          "text": "Add areaMembership condition fields such as fully_within_area.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use STATUS_CONDITION where possible and Utility Options elsewhere.",
+          "count": 9
+        },
+        {
+          "text": "Add runtime abilityCheckModifier/attackRollModifier shared-save rider data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedObject.immunities data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime barrierRestriction data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime casterSpecificState data for noHiddenFromCaster and invisibleNoBenefitAgainstCaster.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime Charmed STATUS_CONDITION and domination riders.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime condition areaMembership=fully_within for Blinded.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conditional violationDamage data keyed to command noncompliance.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "command",
+          "level": 1,
+          "issue": "The Grovel option applies the Prone condition, but that state change is flattened into option text."
+        },
+        {
+          "spellId": "ray-of-sickness",
+          "level": 1,
+          "issue": "The Poisoned condition is represented, though the current duration model is still coarse for 'until the end of your next turn'."
+        },
+        {
+          "spellId": "sleep",
+          "level": 1,
+          "issue": "Sleep has a two-stage status flow: failed first save gives Incapacitated until the end of the next turn, then failed second save gives Unconscious for the duration. Runtime JSON now carries both stages, but the relationship is still encoded with generic trigger/requiresStatus fields rather than a dedicated staged status model."
+        },
+        {
+          "spellId": "snare",
+          "level": 1,
+          "issue": "Snare restrains and hoists the creature upside down 3 feet above the ground/floor; Restrained is represented, but the hoisted position and upside-down state are prose-only."
+        },
+        {
+          "spellId": "tashas-hideous-laughter",
+          "level": 1,
+          "issue": "Prone and Incapacitated are now separate status effects, but the rule that the target cannot end Prone on itself while affected is prose-only."
+        }
+      ]
+    },
+    {
+      "bucketId": "environmental_change",
+      "findings": 77,
+      "distinctSpells": 68,
+      "levels": [
+        {
+          "level": "0",
+          "count": 10
+        },
+        {
+          "level": "1",
+          "count": 6
+        },
+        {
+          "level": "2",
+          "count": 11
+        },
+        {
+          "level": "3",
+          "count": 26
+        },
+        {
+          "level": "4",
+          "count": 4
+        },
+        {
+          "level": "5",
+          "count": 6
+        },
+        {
+          "level": "6",
+          "count": 4
+        },
+        {
+          "level": "7",
+          "count": 6
+        },
+        {
+          "level": "8",
+          "count": 3
+        },
+        {
+          "level": "9",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add environment/world-state bucket fields.",
+          "count": 9
+        },
+        {
+          "text": "Add environment/world-state fields for ignition, weather, sensory phenomena, and lasting environmental facts.",
+          "count": 5
+        },
+        {
+          "text": "Add ward environmental subeffect fields.",
+          "count": 2
+        },
+        {
+          "text": "Add an object ignition/burning bucket for flammable objects and ongoing burn state.",
+          "count": 1
+        },
+        {
+          "text": "Add apparentEnvironment fields for sensory-only smell/sound/temperature and explicit no-damage/no-condition limits.",
+          "count": 1
+        },
+        {
+          "text": "Add burning/ignition environmental state fields for objects.",
+          "count": 1
+        },
+        {
+          "text": "Add comprehensive water-control environmental state fields for mode-specific effects.",
+          "count": 1
+        },
+        {
+          "text": "Add contact-with-target-object condition fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current terrain/damage/utility fields as interim data.",
+          "count": 9
+        },
+        {
+          "text": "Keep current utility/terrain/damage representation as interim data.",
+          "count": 5
+        },
+        {
+          "text": "Add runtime accumulatedDamage and objectIgnition data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedNatureArea data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime burning state application for eligible objects.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime cloudMovement and dispersalCondition data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conditionalEnding dispersedByStrongWind.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime contactCondition data for creatures in physical contact with the heated object.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "create-bonfire",
+          "level": 0,
+          "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket."
+        },
+        {
+          "spellId": "druidcraft",
+          "level": 0,
+          "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket."
+        },
+        {
+          "spellId": "elementalism",
+          "level": 0,
+          "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket."
+        },
+        {
+          "spellId": "fire-bolt",
+          "level": 0,
+          "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket."
+        },
+        {
+          "spellId": "green-flame-blade",
+          "level": 0,
+          "issue": "Actionable open: Ignition, weather, sensory, or cosmetic environmental change needs a reusable environment/world-state bucket."
+        }
+      ]
+    },
+    {
+      "bucketId": "vision_light_sound",
+      "findings": 76,
+      "distinctSpells": 68,
+      "levels": [
+        {
+          "level": "0",
+          "count": 3
+        },
+        {
+          "level": "1",
+          "count": 10
+        },
+        {
+          "level": "2",
+          "count": 13
+        },
+        {
+          "level": "3",
+          "count": 22
+        },
+        {
+          "level": "4",
+          "count": 6
+        },
+        {
+          "level": "5",
+          "count": 8
+        },
+        {
+          "level": "6",
+          "count": 4
+        },
+        {
+          "level": "7",
+          "count": 8
+        },
+        {
+          "level": "8",
+          "count": 2
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add sensory/vision/light/sound bucket fields.",
+          "count": 8
+        },
+        {
+          "text": "Add appearance-change fields for height, weight, facial features, voice, hair, coloration, and distinguishing characteristics.",
+          "count": 1
+        },
+        {
+          "text": "Add area light state and one-way visibility fields.",
+          "count": 1
+        },
+        {
+          "text": "Add area light/sound mode fields with magical-light level interactions and silence ingress/egress rules.",
+          "count": 1
+        },
+        {
+          "text": "Add audible alarm fields for sound type, sound duration, and audible radius.",
+          "count": 1
+        },
+        {
+          "text": "Add communication blocker fields for silence and material barriers.",
+          "count": 1
+        },
+        {
+          "text": "Add condition semantics mapping for Invisible or a visibility-state field if runtime needs it outside status name lookup.",
+          "count": 1
+        },
+        {
+          "text": "Add conditional light fields keyed to resource count.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current light/terrain/utility representation as interim data.",
+          "count": 8
+        },
+        {
+          "text": "Add runtime appearanceChange data including voice.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime communication blocker data for silence, one foot of stone/metal/wood, and thin lead.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime condition requiresCanSeeEffect for the pattern.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime condition requiring targets to see the caster/presented gem.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conditionalLightByResource data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime createdObjectVisibility data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime crossPlanePerception data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "message",
+          "level": 0,
+          "issue": "Message is blocked by magical silence and by specific barrier materials/thicknesses, which are not represented structurally."
+        },
+        {
+          "spellId": "thaumaturgy",
+          "level": 0,
+          "issue": "Thaumaturgy modifies voice volume, flames, and creates a point-originating sound, but these sensory mechanics are collapsed into one description."
+        },
+        {
+          "spellId": "vicious-mockery",
+          "level": 0,
+          "issue": "Vicious Mockery can target a creature the caster can see or hear; current targeting only records lineOfSight=true and does not represent hearing as an alternate perception path."
+        },
+        {
+          "spellId": "alarm",
+          "level": 1,
+          "issue": "The audible alarm creates a handbell sound for 10 seconds within 60 feet of the warded area, but sound duration and radius are not structured."
+        },
+        {
+          "spellId": "comprehend-languages",
+          "level": 1,
+          "issue": "Comprehend Languages distinguishes heard language, seen signed language, and seen written language, but runtime JSON stores them in one prose description."
+        }
+      ]
+    },
+    {
+      "bucketId": "target_filter_or_eligibility",
+      "findings": 75,
+      "distinctSpells": 74,
+      "levels": [
+        {
+          "level": "1",
+          "count": 5
+        },
+        {
+          "level": "2",
+          "count": 14
+        },
+        {
+          "level": "3",
+          "count": 17
+        },
+        {
+          "level": "4",
+          "count": 9
+        },
+        {
+          "level": "5",
+          "count": 13
+        },
+        {
+          "level": "6",
+          "count": 9
+        },
+        {
+          "level": "7",
+          "count": 6
+        },
+        {
+          "level": "8",
+          "count": 2
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add alternate target mode fields for point versus unattended object, including not-worn-or-carried object eligibility.",
+          "count": 1
+        },
+        {
+          "text": "Add area capacity fields by target size and auto-success size filters.",
+          "count": 1
+        },
+        {
+          "text": "Add area object eligibility fields for nonmagical and not worn/carried.",
+          "count": 1
+        },
+        {
+          "text": "Add arrival destination and fallback occupancy fields.",
+          "count": 1
+        },
+        {
+          "text": "Add cast-time excluded targets fields.",
+          "count": 1
+        },
+        {
+          "text": "Add corpse size/type and time-of-day casting eligibility fields.",
+          "count": 1
+        },
+        {
+          "text": "Add corpse/remains eligibility fields for source type, original creature type, and size.",
+          "count": 1
+        },
+        {
+          "text": "Add corpse/remains target values and not_applicable sentinel handling where target kind does not apply.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime objectEligibility data for nonmagical unattended objects in the area.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime objectIgnitionFilter data.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime createdGuardian or auraHazard data for placement, enemy filtering, invulnerability, occupied space, and 60-damage depletion.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime createdHound or wardGuardian data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime deathTriggeredRider data keyed to creature type and cause of death.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime deathTriggerSoulCapture and rememberedPlaceEligibility data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime destinationFilter data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime environmental/object effect data that starts burning on eligible flammable objects in the cone.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "burning-hands",
+          "level": 1,
+          "issue": "Burning Hands ignites flammable objects in the cone that are not worn or carried, but targeting and effects only cover creatures."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "The familiar appears and reappears only in unoccupied spaces, eligible forms are Beast CR 0 forms, and one familiar is allowed at a time."
+        },
+        {
+          "spellId": "hellish-rebuke",
+          "level": 1,
+          "issue": "The spell can target only the creature that damaged the caster, and that relationship is not first-class target-filter data."
+        },
+        {
+          "spellId": "tensers-floating-disk",
+          "level": 1,
+          "issue": "Tenser's Floating Disk must be created in an unoccupied visible space, but runtime targeting does not expose the unoccupied-space requirement."
+        },
+        {
+          "spellId": "unseen-servant",
+          "level": 1,
+          "issue": "Unseen Servant appears in an unoccupied space on the ground, but runtime targeting does not expose unoccupied-space or ground placement constraints."
+        }
+      ]
+    },
+    {
+      "bucketId": "terrain_or_surface",
+      "findings": 70,
+      "distinctSpells": 61,
+      "levels": [
+        {
+          "level": "0",
+          "count": 3
+        },
+        {
+          "level": "1",
+          "count": 5
+        },
+        {
+          "level": "2",
+          "count": 8
+        },
+        {
+          "level": "3",
+          "count": 25
+        },
+        {
+          "level": "4",
+          "count": 8
+        },
+        {
+          "level": "5",
+          "count": 7
+        },
+        {
+          "level": "6",
+          "count": 12
+        },
+        {
+          "level": "7",
+          "count": 1
+        },
+        {
+          "level": "8",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add terrain/surface bucket fields.",
+          "count": 9
+        },
+        {
+          "text": "Add anchored/fixed-object interaction fields for gravity and fall effects.",
+          "count": 1
+        },
+        {
+          "text": "Add area placement surface eligibility fields.",
+          "count": 1
+        },
+        {
+          "text": "Add conditional created-object terrain fields.",
+          "count": 1
+        },
+        {
+          "text": "Add enemy-only terrain modification fields.",
+          "count": 1
+        },
+        {
+          "text": "Add first-class wall/hemisphere/globe terrain effect shapes and solid-surface placement fields.",
+          "count": 1
+        },
+        {
+          "text": "Add first-class wall/ring terrain effect shapes and line-of-sight-blocking terrain fields.",
+          "count": 1
+        },
+        {
+          "text": "Add floor-area height and no-overlap fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current terrain/utility representation as interim data.",
+          "count": 9
+        },
+        {
+          "text": "Add runtime anchoredObjectInteraction and grabSurfaceEligibility data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bloodCircle option with protected area around caster.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime cover data and extend terrain effect area support for Wall shapes.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime druidGroveTerrain data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime enemyDifficultTerrain data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime environmentalChange extinguishUnprotectedFlames in area and within 30 feet, then vanish.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime environmentalHazards/fissures/structureCollapse objects with random formulas, derived radius, and escape DC/action data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "mold-earth",
+          "level": 0,
+          "issue": "Mold Earth can excavate/move/deposit loose earth, make difficult terrain, or restore normal terrain; JSON has terrain/manipulation but needs review against all modes."
+        },
+        {
+          "spellId": "prestidigitation",
+          "level": 0,
+          "issue": "Magic Mark places color, mark, or symbol on an object or surface for 1 hour."
+        },
+        {
+          "spellId": "thaumaturgy",
+          "level": 0,
+          "issue": "Tremors causes harmless ground tremors for 1 minute; this gray-zone world-state effect is not structured."
+        },
+        {
+          "spellId": "catapult",
+          "level": 1,
+          "issue": "Catapult stops early on impact with a solid surface and then drops the object, but there is no surface collision or fall-state representation."
+        },
+        {
+          "spellId": "comprehend-languages",
+          "level": 1,
+          "issue": "Comprehend Languages requires touching the surface that contains written language, but this prerequisite is only stored in prose."
+        }
+      ]
+    },
+    {
+      "bucketId": "social_or_knowledge_effect",
+      "findings": 68,
+      "distinctSpells": 64,
+      "levels": [
+        {
+          "level": "0",
+          "count": 1
+        },
+        {
+          "level": "1",
+          "count": 11
+        },
+        {
+          "level": "2",
+          "count": 13
+        },
+        {
+          "level": "3",
+          "count": 11
+        },
+        {
+          "level": "4",
+          "count": 6
+        },
+        {
+          "level": "5",
+          "count": 16
+        },
+        {
+          "level": "6",
+          "count": 5
+        },
+        {
+          "level": "7",
+          "count": 4
+        },
+        {
+          "level": "8",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add social/knowledge bucket fields.",
+          "count": 5
+        },
+        {
+          "text": "Add awareness and self-only casting permission fields for merged states.",
+          "count": 1
+        },
+        {
+          "text": "Add bargain/social constraint fields for service spells.",
+          "count": 1
+        },
+        {
+          "text": "Add bonded summon exclusivity fields across spell families.",
+          "count": 1
+        },
+        {
+          "text": "Add cognition/rationalization fields for mental illusions.",
+          "count": 1
+        },
+        {
+          "text": "Add communication knowledge-result fields.",
+          "count": 1
+        },
+        {
+          "text": "Add communication recipient eligibility fields such as requiresKnownLanguage and perceptionMode.",
+          "count": 1
+        },
+        {
+          "text": "Add communication through-barrier prerequisite fields for familiarity and known target location.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current status/utility text as interim representation.",
+          "count": 5
+        },
+        {
+          "text": "Add runtime allegiance and languages data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime attitudeChange and postEffectAwareness data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime attitudeChange data for Indifferent toward chosen creatures plus damage/witness break conditions.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime auraSpoof data for object detection results.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bargainConstraints data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bondLimit data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime breakEnchantment data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "message",
+          "level": 0,
+          "issue": "Message can pass through solid objects only if the caster is familiar with the target and knows it is beyond the barrier."
+        },
+        {
+          "spellId": "animal-friendship",
+          "level": 1,
+          "issue": "Animal Friendship applies the Charmed condition to a Beast for 24 hours, but the status runtime includes inappropriate default repeat-save data that is not in the canonical prose."
+        },
+        {
+          "spellId": "charm-person",
+          "level": 1,
+          "issue": "Charm Person makes the Charmed creature Friendly and later aware it was Charmed by the caster; the runtime has a generic utility description but no structured friendly-state or awareness payload."
+        },
+        {
+          "spellId": "detect-evil-and-good",
+          "level": 1,
+          "issue": "The spell provides knowledge of whether Hallow is active and where it is, but that payload is prose-only."
+        },
+        {
+          "spellId": "detect-magic",
+          "level": 1,
+          "issue": "Detect Magic teaches the spell school when the detected effect was created by a spell, but this knowledge payload is prose-only."
+        }
+      ]
+    },
+    {
+      "bucketId": "object_stats_or_damageability",
+      "findings": 56,
+      "distinctSpells": 52,
+      "levels": [
+        {
+          "level": "0",
+          "count": 3
+        },
+        {
+          "level": "1",
+          "count": 3
+        },
+        {
+          "level": "2",
+          "count": 7
+        },
+        {
+          "level": "3",
+          "count": 10
+        },
+        {
+          "level": "4",
+          "count": 6
+        },
+        {
+          "level": "5",
+          "count": 6
+        },
+        {
+          "level": "6",
+          "count": 8
+        },
+        {
+          "level": "7",
+          "count": 5
+        },
+        {
+          "level": "9",
+          "count": 8
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add object stat/damageability bucket fields.",
+          "count": 5
+        },
+        {
+          "text": "Add a separated-state bucket for mirrored forms whose damage/effects do not cross-apply.",
+          "count": 1
+        },
+        {
+          "text": "Add a threshold outcome bucket for hit-point-threshold instant death versus fallback damage.",
+          "count": 1
+        },
+        {
+          "text": "Add a transformation bucket for replacement and retained-stat lists.",
+          "count": 1
+        },
+        {
+          "text": "Add a transformation bucket for stat replacement, retained traits, form eligibility, and equipment melding.",
+          "count": 1
+        },
+        {
+          "text": "Add AC penalty under defensive/stat modifier fields, not object stats.",
+          "count": 1
+        },
+        {
+          "text": "Add animated object lifecycle and damage carryover fields.",
+          "count": 1
+        },
+        {
+          "text": "Add animated object stat-block, durability, and reversion fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current spatial/utility fields until propagation.",
+          "count": 5
+        },
+        {
+          "text": "Add runtime AC penalty -2 in a debuff/stat modifier model.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedObject.statBlock, hp, damageCarryover, and reversion data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bodyPartRestoration data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conditionalDamage data for undamaged target d8 versus damaged target d12, including tier scaling for both dice.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime copiedEntityStats and destructionOutcome data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime createdEntity.physicality and invulnerable data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime damage flag cannotBeReduced and caster self-damage target binding.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "chill-touch",
+          "level": 0,
+          "issue": "Actionable open: Object or hit-point state needs object/stat fields that are not yet available on every affected low-level spell."
+        },
+        {
+          "spellId": "spare-the-dying",
+          "level": 0,
+          "issue": "Spare the Dying targets a creature with exactly 0 Hit Points that is not dead; current structured markdown and JSON only say creatures/allies."
+        },
+        {
+          "spellId": "toll-the-dead",
+          "level": 0,
+          "issue": "Toll the Dead switches from d8 to d12 damage when the target is missing any Hit Points; JSON only preserves this in scaling prose while damage.dice remains 1d8."
+        },
+        {
+          "spellId": "cure-wounds",
+          "level": 1,
+          "issue": "Cure Wounds heals 2d8 plus the caster's spellcasting ability modifier, but runtime healing only stores dice 2d8."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "The familiar uses the chosen form's statistics, disappears at 0 Hit Points, and leaves worn or carried objects behind when it disappears."
+        }
+      ]
+    },
+    {
+      "bucketId": "conditional_ending",
+      "findings": 54,
+      "distinctSpells": 53,
+      "levels": [
+        {
+          "level": "1",
+          "count": 2
+        },
+        {
+          "level": "2",
+          "count": 4
+        },
+        {
+          "level": "3",
+          "count": 10
+        },
+        {
+          "level": "4",
+          "count": 6
+        },
+        {
+          "level": "5",
+          "count": 15
+        },
+        {
+          "level": "6",
+          "count": 11
+        },
+        {
+          "level": "7",
+          "count": 6
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add animated creature lifecycle ending fields.",
+          "count": 1
+        },
+        {
+          "text": "Add aura early-ending fields tied to caster movement forcing blocked creatures through the barrier.",
+          "count": 1
+        },
+        {
+          "text": "Add bound-service completion and linked-spell duration-extension fields.",
+          "count": 1
+        },
+        {
+          "text": "Add branch-ending and sustain-ending fields for save success, action use, range loss, and total cover.",
+          "count": 1
+        },
+        {
+          "text": "Add castFailureCondition fields for area encapsulation requirements.",
+          "count": 1
+        },
+        {
+          "text": "Add conditional ending fields for delayed cumulative chance, recast ending, and linked-object destruction.",
+          "count": 1
+        },
+        {
+          "text": "Add conditional ending fields for no-return-on-full-duration with creature-type filters.",
+          "count": 1
+        },
+        {
+          "text": "Add conditional spell-ending and soul-return outcome fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime ammunitionPool data for 12 pieces, +2 per slot above 3, and per-piece magic ending on hit or miss.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedUndead.lifecycle data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime cancellationRules data instead of relying only on statusCondition.aftermath/controlOptions.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime castFailure data for not fully encapsulating all creatures in area.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime castFailure if targetedWithinPastDays 10 and maxQuestions 5.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime cleanupOnEnd data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime cleanupOnEnd sequence data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conditionalEnding and conditionRemovalResistance data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "hex",
+          "level": 1,
+          "issue": "If the cursed target drops to 0 Hit Points before the spell ends, the caster can move the curse to a new creature with a later Bonus Action; this transfer rule is prose-only."
+        },
+        {
+          "spellId": "hunters-mark",
+          "level": 1,
+          "issue": "If the marked target drops to 0 Hit Points before the spell ends, the caster can move the mark to a new visible creature with a Bonus Action; duration also scales at higher slots."
+        },
+        {
+          "spellId": "animal-messenger",
+          "level": 2,
+          "issue": "If the Beast does not reach the destination before the spell ends, the message is lost and the Beast returns to the casting location; duration also scales by slot."
+        },
+        {
+          "spellId": "detect-thoughts",
+          "level": 2,
+          "issue": "Detect Thoughts can end on successful Wisdom save against deeper probe or on a target's action Intelligence (Arcana) check while attention remains shifted; only prose carries the Arcana escape and attention condition."
+        },
+        {
+          "spellId": "knock",
+          "level": 2,
+          "issue": "Arcane Lock suppression lasts 10 minutes while the spell itself is instantaneous; that temporary suppression duration is not modeled."
+        }
+      ]
+    },
+    {
+      "bucketId": "message_or_communication",
+      "findings": 49,
+      "distinctSpells": 46,
+      "levels": [
+        {
+          "level": "0",
+          "count": 2
+        },
+        {
+          "level": "1",
+          "count": 5
+        },
+        {
+          "level": "2",
+          "count": 8
+        },
+        {
+          "level": "3",
+          "count": 10
+        },
+        {
+          "level": "4",
+          "count": 5
+        },
+        {
+          "level": "5",
+          "count": 11
+        },
+        {
+          "level": "6",
+          "count": 6
+        },
+        {
+          "level": "7",
+          "count": 1
+        },
+        {
+          "level": "8",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add communication bucket fields.",
+          "count": 5
+        },
+        {
+          "text": "Add ward password immunity fields.",
+          "count": 2
+        },
+        {
+          "text": "Add area communication mode fields for universal in-area communication.",
+          "count": 1
+        },
+        {
+          "text": "Add bound-entity command and report fields.",
+          "count": 1
+        },
+        {
+          "text": "Add command communication fields for verbal command content and target understanding requirement.",
+          "count": 1
+        },
+        {
+          "text": "Add command/communication fields for spoken one-word delivery and any language-understanding requirements or exclusions discovered across command-like spells.",
+          "count": 1
+        },
+        {
+          "text": "Add communication fields for creature type, verbal communication, and comprehension.",
+          "count": 1
+        },
+        {
+          "text": "Add communication fields for private target-only delivery and one-reply permission.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use existing Utility Options as interim data.",
+          "count": 5
+        },
+        {
+          "text": "Add runtime telepathyLink data.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime alarmTrigger data for password-gated barking.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedObject.languages and commandChannel data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bargainCommunication data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime boundEntityCommand data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime commandCommunication data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime commandDelivery data rather than leaving spoken one-word command only in prose.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "message",
+          "level": 0,
+          "issue": "Message supports one-target private whisper plus target reply, but JSON only records a prose utility description."
+        },
+        {
+          "spellId": "mold-earth",
+          "level": 0,
+          "issue": "Mold Earth can spell out words on dirt or stone, which is a world-state communication/marking effect."
+        },
+        {
+          "spellId": "command",
+          "level": 1,
+          "issue": "Command requires the caster to speak a one-word command, but runtime JSON does not make the spoken-word delivery or language/understanding assumptions explicit."
+        },
+        {
+          "spellId": "comprehend-languages",
+          "level": 1,
+          "issue": "Comprehend Languages grants literal meaning only, reads about one page per minute, and does not decode symbols or secret messages; these communication limitations are prose-only."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "Find Familiar grants telepathic communication with the familiar within 100 feet, but telepathy is only a summon subfield and not connected to communication mechanics."
+        }
+      ]
+    },
+    {
+      "bucketId": "created_object_or_structure",
+      "findings": 44,
+      "distinctSpells": 40,
+      "levels": [
+        {
+          "level": "0",
+          "count": 2
+        },
+        {
+          "level": "1",
+          "count": 2
+        },
+        {
+          "level": "2",
+          "count": 6
+        },
+        {
+          "level": "3",
+          "count": 10
+        },
+        {
+          "level": "4",
+          "count": 6
+        },
+        {
+          "level": "5",
+          "count": 5
+        },
+        {
+          "level": "6",
+          "count": 5
+        },
+        {
+          "level": "7",
+          "count": 2
+        },
+        {
+          "level": "8",
+          "count": 2
+        },
+        {
+          "level": "9",
+          "count": 4
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add created object/structure/entity bucket fields.",
+          "count": 3
+        },
+        {
+          "text": "Add a created containment/prison bucket for durable prisons with mode-specific boundaries and dispel targets.",
+          "count": 1
+        },
+        {
+          "text": "Add a created effect-origin or hazard-entity bucket for movable spell-created attackers.",
+          "count": 1
+        },
+        {
+          "text": "Add a layered object/barrier bucket for ordered layer destruction.",
+          "count": 1
+        },
+        {
+          "text": "Add a linked form/body state bucket that can model an astral form, a suspended physical body, copied stats/equipment, and lethal cord linkage.",
+          "count": 1
+        },
+        {
+          "text": "Add area width and height fields for cuboid/volume effects.",
+          "count": 1
+        },
+        {
+          "text": "Add barrier/enclosure fields for pass-through blocking, damage immunity, breathing exception, inside/outside damage prevention, and object/creature containment.",
+          "count": 1
+        },
+        {
+          "text": "Add conjured weapon/object fields for hand requirement, object shape, duration, and lifecycle.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current summon/utility/terrain data as interim representation.",
+          "count": 3
+        },
+        {
+          "text": "Add a runtime createdEntity/lifecycle object with growth duration, activation trigger, soul-transfer prerequisites, and equipment/remains consequences.",
+          "count": 1
+        },
+        {
+          "text": "Add a structured linkedEntities or formSplit runtime object; current JSON keeps the facts in Utility Options and Unconscious status.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime accessControl data for object categories, one mechanism affected, and Arcane Lock suppression 10 minutes.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime area dimensions length 30, width 10, height 10.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime barrierEnclosure data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bladeWallStructureProperties data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conjuredWeapon data for fiery blade in free hand.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "elementalism",
+          "level": 0,
+          "issue": "Actionable open: Created objects/forms need object-state fields for durability, placement, dimensions, and disappearance."
+        },
+        {
+          "spellId": "shape-water",
+          "level": 0,
+          "issue": "Shape Water can form and animate simple water shapes for 1 hour, but the created/animated form is not represented structurally."
+        },
+        {
+          "spellId": "goodberry",
+          "level": 1,
+          "issue": "Goodberry creates a fixed count of ten magic berries, but count, item identity, and duration are not first-class created-object data."
+        },
+        {
+          "spellId": "unseen-servant",
+          "level": 1,
+          "issue": "The servant can interact with objects and perform simple tasks including fetching, cleaning, mending, folding, lighting fires, serving food, and pouring drinks, but allowed task categories are prose-only."
+        },
+        {
+          "spellId": "flame-blade",
+          "level": 2,
+          "issue": "Flame Blade creates a persistent conjured weapon-like object, but the created object is not modeled."
+        }
+      ]
+    },
+    {
+      "bucketId": "summon_or_controlled_entity",
+      "findings": 44,
+      "distinctSpells": 38,
+      "levels": [
+        {
+          "level": "0",
+          "count": 2
+        },
+        {
+          "level": "1",
+          "count": 2
+        },
+        {
+          "level": "2",
+          "count": 3
+        },
+        {
+          "level": "3",
+          "count": 14
+        },
+        {
+          "level": "4",
+          "count": 6
+        },
+        {
+          "level": "5",
+          "count": 10
+        },
+        {
+          "level": "6",
+          "count": 3
+        },
+        {
+          "level": "7",
+          "count": 2
+        },
+        {
+          "level": "9",
+          "count": 2
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add summon/controlled-entity bucket fields.",
+          "count": 6
+        },
+        {
+          "text": "Add aura-spirit manifestation fields for non-commanded conjured spirits.",
+          "count": 2
+        },
+        {
+          "text": "Add a transformed controlled entity bucket with command, initiative, friendliness, and control-expiry fields.",
+          "count": 1
+        },
+        {
+          "text": "Add animated controlled-entity fields for entity type, control, initiative, command economy, default behavior, stat block, allegiance, and lifecycle.",
+          "count": 1
+        },
+        {
+          "text": "Add animated object summon fields for stat block, control, command behavior, default defend behavior, and persistent order.",
+          "count": 1
+        },
+        {
+          "text": "Add animated tree guardian entity and command fields.",
+          "count": 1
+        },
+        {
+          "text": "Add animated undead fields for corpse eligibility, count, size, form choice, stat block reference, command economy, default behavior, task persistence, and slot scaling.",
+          "count": 1
+        },
+        {
+          "text": "Add animated-environment source fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use existing SUMMONING/Utility Options as interim data.",
+          "count": 6
+        },
+        {
+          "text": "Add runtime animatedEntity data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedEnvironmentSources data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedUndead data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime animatedUndeadControl data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime auraManifestation data for Elemental spirits.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime auraManifestation data for nature spirits.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bondedMount summon data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "druidcraft",
+          "level": 0,
+          "issue": "Actionable open: Created sensory effects or minor entities need summon/created-entity fields if they become independently addressable."
+        },
+        {
+          "spellId": "mage-hand",
+          "level": 0,
+          "issue": "Mage Hand creates a persistent controllable entity, but the entity is not modeled with actions, movement, or limits."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "The summon is represented, but independent initiative, ally status, no-attack restriction, allowed normal actions, chosen-form statistics, disappearance at 0 HP, item drop, pocket dimension, and active-instance limit are not first-class data."
+        },
+        {
+          "spellId": "unseen-servant",
+          "level": 1,
+          "issue": "Unseen Servant is represented as a summon, but size, invisibility, mindless/shapeless force traits, AC, HP, Strength, no-attack rule, task completion/wait behavior, command range ending, and 0-HP ending are not first-class fields."
+        },
+        {
+          "spellId": "find-steed",
+          "level": 2,
+          "issue": "Find Steed has persistent summon lifecycle, replacement on recast, controlled mount behavior while ridden, independent behavior if caster is Incapacitated, and leave-behind carried gear; runtime summon data is too shallow."
+        }
+      ]
+    },
+    {
+      "bucketId": "travel_or_planar_movement",
+      "findings": 36,
+      "distinctSpells": 35,
+      "levels": [
+        {
+          "level": "1",
+          "count": 1
+        },
+        {
+          "level": "2",
+          "count": 7
+        },
+        {
+          "level": "3",
+          "count": 4
+        },
+        {
+          "level": "4",
+          "count": 3
+        },
+        {
+          "level": "5",
+          "count": 6
+        },
+        {
+          "level": "6",
+          "count": 9
+        },
+        {
+          "level": "7",
+          "count": 3
+        },
+        {
+          "level": "8",
+          "count": 2
+        },
+        {
+          "level": "9",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add a portal/travel topology bucket for two-ended portals, one-way sides, ruler/domain vetoes, and nearest-space placement.",
+          "count": 1
+        },
+        {
+          "text": "Add area travel-block fields for teleportation and interplanar travel.",
+          "count": 1
+        },
+        {
+          "text": "Add banishment destination, escape action/check/DC, and return-space fields.",
+          "count": 1
+        },
+        {
+          "text": "Add bidirectional linked portal travel fields with open-side entry restrictions.",
+          "count": 1
+        },
+        {
+          "text": "Add blocked travel mode fields with save outcomes.",
+          "count": 1
+        },
+        {
+          "text": "Add completion travel/report fields with same-plane branching.",
+          "count": 1
+        },
+        {
+          "text": "Add created-object follow fields for follow threshold, desired distance, immobile-near-caster rule, and obstacle limitations.",
+          "count": 1
+        },
+        {
+          "text": "Add cross-planar communication and failure chance fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime planarTravelBlock data.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime banishment/escapeCheck/returnLocation objects.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime banishmentTransport and returnPlacement data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime blockedTravel data for teleportation, interplanar travel, and ethereal travel.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime blockedTravel data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime boundEntityCompletionTravel data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime deliveryRange anyDistance, crossPlaneAllowed true, crossPlaneFailureChance 5 percent.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime demiplane/location object with id/owner/known-contents/connect mode and contents persistence.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "tensers-floating-disk",
+          "level": 1,
+          "issue": "The disk follows the caster when the caster moves more than 20 feet away and remains within 20 feet, but follow movement behavior is only summarized in objectDescription and spatial notes."
+        },
+        {
+          "spellId": "animal-messenger",
+          "level": 2,
+          "issue": "The Beast travels toward the specified location at about 25 miles per 24 hours, or 50 miles if it can fly, but runtime JSON only stores this in description text."
+        },
+        {
+          "spellId": "cloud-of-daggers",
+          "level": 2,
+          "issue": "Cloud of Daggers lets the caster use a later-turn Magic action to teleport the Cube up to 30 feet, and creatures take damage if the Cube moves into their space; runtime now has initial/enter/end-turn damage but lacks movable-area data and an area-moves-into-target trigger."
+        },
+        {
+          "spellId": "find-steed",
+          "level": 2,
+          "issue": "Fey Step teleports the steed and rider up to 60 feet to an unoccupied space and recharges after Long Rest, but type-gated teleport action data is not represented."
+        },
+        {
+          "spellId": "mind-spike",
+          "level": 2,
+          "issue": "The location tracking works only while caster and target are on the same plane of existence, but same-plane gating is not first-class."
+        }
+      ]
+    },
+    {
+      "bucketId": "sustain_or_recast_action",
+      "findings": 34,
+      "distinctSpells": 32,
+      "levels": [
+        {
+          "level": "0",
+          "count": 3
+        },
+        {
+          "level": "1",
+          "count": 4
+        },
+        {
+          "level": "2",
+          "count": 5
+        },
+        {
+          "level": "3",
+          "count": 8
+        },
+        {
+          "level": "4",
+          "count": 5
+        },
+        {
+          "level": "5",
+          "count": 8
+        },
+        {
+          "level": "6",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add sustain/recast action bucket fields.",
+          "count": 2
+        },
+        {
+          "text": "Add active effect cap and dismiss action fields.",
+          "count": 1
+        },
+        {
+          "text": "Add bonded summon lifecycle fields for dismiss, release, recast restore, and temporary/permanent disappearance.",
+          "count": 1
+        },
+        {
+          "text": "Add conjured-object persistence fields for disappears_on_release and reevoke action cost.",
+          "count": 1
+        },
+        {
+          "text": "Add controlled entity command fields for frequency, action cost, mental command, movement distance, and object interaction.",
+          "count": 1
+        },
+        {
+          "text": "Add controlled-creature command fields for bonus action, mental command, same-command multi-control, and range.",
+          "count": 1
+        },
+        {
+          "text": "Add controlled-summon command action and recast-to-maintain-control fields.",
+          "count": 1
+        },
+        {
+          "text": "Add follow-up action fields for conditional retargeting after target_drops_to_0_hp.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use Utility Options/grantedActions as interim representation.",
+          "count": 2
+        },
+        {
+          "text": "Add grantedActions entry for changing portal facing.",
+          "count": 1
+        },
+        {
+          "text": "Add grantedActions entry for the rock launch action.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime activeAreaUpdate action cost bonus_action for direction change.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime activeEffectLimit and dismissAction data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime activeEffectLimit=2 for non-instantaneous modes and dismissAction=action.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime bondedSummon lifecycle data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime commandAction and reassertControl data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "dancing-lights",
+          "level": 0,
+          "issue": "Actionable open: Repeat action and sustain behavior needs a stronger granted-action/sustain schema for low-level utility cantrips."
+        },
+        {
+          "spellId": "mold-earth",
+          "level": 0,
+          "issue": "Mold Earth limits non-instantaneous active effects to two and allows dismissing one as an action."
+        },
+        {
+          "spellId": "shape-water",
+          "level": 0,
+          "issue": "Shape Water limits non-instantaneous effects to two active instances and lets the caster dismiss one as an action; this is not structured."
+        },
+        {
+          "spellId": "expeditious-retreat",
+          "level": 1,
+          "issue": "Expeditious Retreat immediately grants Dash and then grants Dash again as a Bonus Action until the spell ends, but runtime JSON keeps this in a generic utility description with grantedActions empty."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "Find Familiar uses a Bonus Action for shared senses, Magic actions for dismiss/reappear, and recasting changes the familiar's form."
+        }
+      ]
+    },
+    {
+      "bucketId": "healing_or_restoration",
+      "findings": 33,
+      "distinctSpells": 29,
+      "levels": [
+        {
+          "level": "0",
+          "count": 1
+        },
+        {
+          "level": "1",
+          "count": 4
+        },
+        {
+          "level": "2",
+          "count": 2
+        },
+        {
+          "level": "3",
+          "count": 11
+        },
+        {
+          "level": "4",
+          "count": 1
+        },
+        {
+          "level": "5",
+          "count": 6
+        },
+        {
+          "level": "6",
+          "count": 1
+        },
+        {
+          "level": "9",
+          "count": 7
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add restoration/condition-removal/healing-transfer bucket fields.",
+          "count": 4
+        },
+        {
+          "text": "Add restoration, condition-removal, and healing-prevention buckets.",
+          "count": 3
+        },
+        {
+          "text": "Add a condition-removal/restoration bucket for ending named conditions without applying a new condition.",
+          "count": 1
+        },
+        {
+          "text": "Add a condition-removal/restoration bucket for named condition endings.",
+          "count": 1
+        },
+        {
+          "text": "Add a form-derived temporary hit point bucket with replacement restrictions.",
+          "count": 1
+        },
+        {
+          "text": "Add a form-derived temporary hit point bucket.",
+          "count": 1
+        },
+        {
+          "text": "Add condition removal override fields keyed to ending spells.",
+          "count": 1
+        },
+        {
+          "text": "Add condition removal-source fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current HEALING/UTILITY effects until propagation.",
+          "count": 4
+        },
+        {
+          "text": "Use existing healing/status/utility effects until those buckets are propagated.",
+          "count": 3
+        },
+        {
+          "text": "Add runtime environmentalChange extinguishExposedFlamesInArea.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime environmentalChange heavilyObscured in area.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime healing data for each berry restoring 1 HP on bonus-action consumption.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime HEALING effect with formula twice actual self-damage taken.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime healingModifier data for maximum healing received.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime Life Bond healing mirror and Healing Touch action data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "chill-touch",
+          "level": 0,
+          "issue": "Actionable open: Healing prevention, stabilization, or condition/restoration removal needs explicit restoration/prevention schema beyond generic utility text."
+        },
+        {
+          "spellId": "armor-of-agathys",
+          "level": 1,
+          "issue": "Actionable open: Healing prevention, stabilization, or condition/restoration removal needs explicit restoration/prevention schema beyond generic utility text."
+        },
+        {
+          "spellId": "fog-cloud",
+          "level": 1,
+          "issue": "Actionable open: Healing prevention, stabilization, or condition/restoration removal needs explicit restoration/prevention schema beyond generic utility text."
+        },
+        {
+          "spellId": "goodberry",
+          "level": 1,
+          "issue": "Each Goodberry restores 1 Hit Point when eaten, but the runtime JSON has no healing effect tied to berry consumption."
+        },
+        {
+          "spellId": "heroism",
+          "level": 1,
+          "issue": "Heroism grants recurring Temporary Hit Points, but runtime JSON does not represent them as healing or temporary HP data."
+        }
+      ]
+    },
+    {
+      "bucketId": "ward_alarm_or_trigger",
+      "findings": 30,
+      "distinctSpells": 26,
+      "levels": [
+        {
+          "level": "1",
+          "count": 5
+        },
+        {
+          "level": "2",
+          "count": 3
+        },
+        {
+          "level": "3",
+          "count": 11
+        },
+        {
+          "level": "4",
+          "count": 1
+        },
+        {
+          "level": "5",
+          "count": 1
+        },
+        {
+          "level": "6",
+          "count": 7
+        },
+        {
+          "level": "7",
+          "count": 2
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add ward/trigger bucket fields.",
+          "count": 4
+        },
+        {
+          "text": "Add answerTruthfulness condition fields.",
+          "count": 1
+        },
+        {
+          "text": "Add barrier fields for initial occupants/objects, barred entrants, blocked spell levels, and blocked spell effects.",
+          "count": 1
+        },
+        {
+          "text": "Add blocked-by-spell/effect fields for possession and similar mechanics.",
+          "count": 1
+        },
+        {
+          "text": "Add configurable ward trigger, trigger refinement, and exclusion fields.",
+          "count": 1
+        },
+        {
+          "text": "Add contingent trigger, firing, replacement, self-targeting, and component-dependency fields.",
+          "count": 1
+        },
+        {
+          "text": "Add damage-trigger filters for reaction defenses.",
+          "count": 1
+        },
+        {
+          "text": "Add death-triggered rider timing fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current Utility Options as interim data.",
+          "count": 4
+        },
+        {
+          "text": "Add runtime alarm/ward data instead of prose-only utility.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime answerBehavior data for no truth compulsion when antagonistic or enemy-recognized.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime apparentState data for indistinguishable from death.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime areaTrigger enters_first_time_on_turn or turn_start.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime barrier data for initial allowed creatures/objects, outside barred creatures/objects, and level <=3 spell/effect blocking.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime blockedBySpellEffects data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime contingencyTrigger data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "alarm",
+          "level": 1,
+          "issue": "Alarm's core ward trigger, intrusion conditions, exempt creatures, audible/mental delivery, mental one-mile range, and sleep wake-up are flattened into one utility description."
+        },
+        {
+          "spellId": "sanctuary",
+          "level": 1,
+          "issue": "Sanctuary is a ward with incoming targeting triggers and area-effect bypass; current utility effects preserve some behavior but flatten trigger scope and failed-save options."
+        },
+        {
+          "spellId": "shield",
+          "level": 1,
+          "issue": "Shield's reaction trigger includes being hit by an attack or being targeted by Magic Missile; runtime represents both effects, but the +5 AC effect's reactionTrigger only records when_hit and does not explicitly model 'including against the triggering attack'."
+        },
+        {
+          "spellId": "snare",
+          "level": 1,
+          "issue": "Snare triggers only when a Small, Medium, or Large creature moves onto the ground or floor in the radius. Runtime now filters sizes and records the no-restrained cleanup ending, but the ground/floor movement trigger is not fully first-class."
+        },
+        {
+          "spellId": "witch-bolt",
+          "level": 1,
+          "issue": "The sustained lightning arc is a maintained link between caster and target, but runtime JSON represents it only as concentration plus a later action damage effect."
+        }
+      ]
+    },
+    {
+      "bucketId": "resource_or_consumption",
+      "findings": 27,
+      "distinctSpells": 23,
+      "levels": [
+        {
+          "level": "0",
+          "count": 3
+        },
+        {
+          "level": "1",
+          "count": 1
+        },
+        {
+          "level": "2",
+          "count": 3
+        },
+        {
+          "level": "3",
+          "count": 11
+        },
+        {
+          "level": "4",
+          "count": 1
+        },
+        {
+          "level": "6",
+          "count": 4
+        },
+        {
+          "level": "7",
+          "count": 3
+        },
+        {
+          "level": "9",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add resource/cost/spell-storage bucket fields.",
+          "count": 4
+        },
+        {
+          "text": "Add resource/prevention fields where this is not ordinary spell components.",
+          "count": 2
+        },
+        {
+          "text": "Add component usage fields for must_be_worn_by_caster_and_target.",
+          "count": 1
+        },
+        {
+          "text": "Add component-gated spell failure chance fields.",
+          "count": 1
+        },
+        {
+          "text": "Add conditional material consumption fields tied to optional sub-effects.",
+          "count": 1
+        },
+        {
+          "text": "Add conditional material consumption fields.",
+          "count": 1
+        },
+        {
+          "text": "Add consumable resource fields for nourishment, hydration, quantities, and spoilage.",
+          "count": 1
+        },
+        {
+          "text": "Add created provisions/capacity fields.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Use current component/utility fields as interim data.",
+          "count": 4
+        },
+        {
+          "text": "Keep existing component fields or Utility Options as interim representation.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime componentConsumption conditional on bloodCircleUsed at spell end.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime componentRequirement data for paired rings worn during the effect.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conditionalComponentConsumption data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime conditionalConsumption data for using the blood to form the circle.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime consumableResource data for food/water and spoilage.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime contingentSpellResourceCost data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "chill-touch",
+          "level": 0,
+          "issue": "Actionable open: This row identifies resource-like prevention or component behavior that is not fully represented as a runtime resource rule."
+        },
+        {
+          "spellId": "elementalism",
+          "level": 0,
+          "issue": "Actionable open: This row identifies resource-like prevention or component behavior that is not fully represented as a runtime resource rule."
+        },
+        {
+          "spellId": "prestidigitation",
+          "level": 0,
+          "issue": "The created trinket can deal no damage and has no monetary worth, which is a created-object restriction."
+        },
+        {
+          "spellId": "purify-food-and-drink",
+          "level": 1,
+          "issue": "Purify Food and Drink removes poison and rot from nonmagical food and drink in an area, but runtime JSON only stores a generic creation utility description."
+        },
+        {
+          "spellId": "augury",
+          "level": 2,
+          "issue": "Augury has a repeated-casting risk that accumulates until Long Rest, but it is prose-only."
+        }
+      ]
+    },
+    {
+      "bucketId": "sensor_or_remote_perception",
+      "findings": 25,
+      "distinctSpells": 23,
+      "levels": [
+        {
+          "level": "0",
+          "count": 1
+        },
+        {
+          "level": "1",
+          "count": 3
+        },
+        {
+          "level": "2",
+          "count": 6
+        },
+        {
+          "level": "3",
+          "count": 6
+        },
+        {
+          "level": "5",
+          "count": 2
+        },
+        {
+          "level": "6",
+          "count": 2
+        },
+        {
+          "level": "7",
+          "count": 5
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add sensor/remote perception bucket fields.",
+          "count": 2
+        },
+        {
+          "text": "Add attacker perception exception fields for attack modifiers bypassed by specific senses.",
+          "count": 1
+        },
+        {
+          "text": "Add detection fields for detected creature types, detected spell/effect names, location payload, radius, and blocker materials.",
+          "count": 1
+        },
+        {
+          "text": "Add detection fields for poisons, poisonous/venomous creatures, magical contagions, location payload, radius, and blocker materials.",
+          "count": 1
+        },
+        {
+          "text": "Add divination sensor and targeting block fields.",
+          "count": 1
+        },
+        {
+          "text": "Add divinationProtection and scryingSensorBlock fields.",
+          "count": 1
+        },
+        {
+          "text": "Add illusionDisbelief perception-result fields.",
+          "count": 1
+        },
+        {
+          "text": "Add one-way portal perception fields for inside-to-outside sight.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime remoteSensor data.",
+          "count": 3
+        },
+        {
+          "text": "Use existing Utility Options as interim data.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime alternatePerceptionOrigin data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime antiDivination data for cannotBeTargetedByDivination and cannotBePerceivedByMagicalScryingSensors.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime attackerSenseException data for Blindsight and Truesight bypassing Blur's disadvantage.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime detection data for creature-type and Hallow sensing instead of prose-only utility.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime detection data for poison, poisonous/venomous creature, and magical contagion sensing.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime divinationProtection data.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "druidcraft",
+          "level": 0,
+          "issue": "Actionable open: Sensory prediction/detection effects need a sensor/information schema when they are more than plain description."
+        },
+        {
+          "spellId": "detect-evil-and-good",
+          "level": 1,
+          "issue": "The spell's detected creature types, Hallow detection, location payload, and blocker materials are not represented as first-class detection fields."
+        },
+        {
+          "spellId": "detect-poison-and-disease",
+          "level": 1,
+          "issue": "The spell detects several poison/disease categories and their locations, but the categories and location payload are prose-only."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "The caster can remotely see and hear through the familiar and gains its special senses, but the runtime only stores sharedSenses as a coarse boolean."
+        },
+        {
+          "spellId": "beast-sense",
+          "level": 2,
+          "issue": "Beast Sense's canonical shared perception and special-senses benefit are now reflected in runtime description, but there is still no first-class shared-senses mechanic."
+        }
+      ]
+    },
+    {
+      "bucketId": "illusion_or_disguise",
+      "findings": 24,
+      "distinctSpells": 24,
+      "levels": [
+        {
+          "level": "0",
+          "count": 3
+        },
+        {
+          "level": "1",
+          "count": 3
+        },
+        {
+          "level": "2",
+          "count": 4
+        },
+        {
+          "level": "3",
+          "count": 2
+        },
+        {
+          "level": "4",
+          "count": 2
+        },
+        {
+          "level": "5",
+          "count": 3
+        },
+        {
+          "level": "6",
+          "count": 3
+        },
+        {
+          "level": "7",
+          "count": 3
+        },
+        {
+          "level": "8",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add appearance-change utility fields for altered body feature, duration, and cosmetic-only scope.",
+          "count": 1
+        },
+        {
+          "text": "Add disguise/appearance fields for species appearance, no stat change, same size, and same basic shape restrictions.",
+          "count": 1
+        },
+        {
+          "text": "Add door illusion/disguise fields.",
+          "count": 1
+        },
+        {
+          "text": "Add dream environment shaping fields.",
+          "count": 1
+        },
+        {
+          "text": "Add hostile illusion fields for visible-to-target-only, fear manifestation, and linked damage/rider effects.",
+          "count": 1
+        },
+        {
+          "text": "Add illusion duplicate fields for count, location, follows caster, mimics actions, and indistinguishable behavior.",
+          "count": 1
+        },
+        {
+          "text": "Add illusion enclosure and breach-trigger fields.",
+          "count": 1
+        },
+        {
+          "text": "Add illusion fields for image kind, max cube size, movement action, appearance adjustment, physical interaction reveal, Study/Investigation reveal, and discerned-state behavior.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime appearanceChange data for Altered Eyes.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime disguise data for the Change Appearance option.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime disguise/illusion reveal data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime doorIllusion data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime dreamEnvironment data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime hostileIllusion data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime illusion data for creation, movement, reveal rules, and post-reveal transparency.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime illusion data with max 20-foot cube, Magic action move/update, physical interaction reveal, and Study Intelligence (Investigation) vs spell DC.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "mold-earth",
+          "level": 0,
+          "issue": "Mold Earth can create shapes, colors, words, images, and patterns on dirt or stone for 1 hour."
+        },
+        {
+          "spellId": "prestidigitation",
+          "level": 0,
+          "issue": "Minor Creation can create a nonmagical trinket or illusory image that fits in the caster's hand and lasts until the end of the next turn."
+        },
+        {
+          "spellId": "thaumaturgy",
+          "level": 0,
+          "issue": "Altered Eyes changes the caster's eye appearance for 1 minute, which is a visible body/appearance change not represented structurally."
+        },
+        {
+          "spellId": "disguise-self",
+          "level": 1,
+          "issue": "Disguise Self has physical-inspection failure and Study action Intelligence (Investigation) reveal rules, but these reveal mechanics are only prose."
+        },
+        {
+          "spellId": "illusory-script",
+          "level": 1,
+          "issue": "Illusory Script creates an illusion over writing with designated viewers, alternate meaning/handwriting/language, dispel cleanup, and Truesight bypass rules, but JSON keeps all of that in description text."
+        }
+      ]
+    },
+    {
+      "bucketId": "aftermath_or_memory",
+      "findings": 23,
+      "distinctSpells": 21,
+      "levels": [
+        {
+          "level": "0",
+          "count": 3
+        },
+        {
+          "level": "1",
+          "count": 1
+        },
+        {
+          "level": "2",
+          "count": 2
+        },
+        {
+          "level": "3",
+          "count": 5
+        },
+        {
+          "level": "4",
+          "count": 3
+        },
+        {
+          "level": "5",
+          "count": 6
+        },
+        {
+          "level": "6",
+          "count": 2
+        },
+        {
+          "level": "8",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add aftermath/memory fields for post-spell knowledge and delayed consequences.",
+          "count": 3
+        },
+        {
+          "text": "Add aftermath/memory bucket fields.",
+          "count": 2
+        },
+        {
+          "text": "Add aftermath awareness fields for knows_charmed_by_caster.",
+          "count": 1
+        },
+        {
+          "text": "Add aftermath awareness fields for target knowledge after spell end.",
+          "count": 1
+        },
+        {
+          "text": "Add aftermath behavior fields for movement effects.",
+          "count": 1
+        },
+        {
+          "text": "Add aftermath fields for spell-end effects, status, movement override, and end timing.",
+          "count": 1
+        },
+        {
+          "text": "Add aftermath fields for spell-end prone placement and extinguished normal flames.",
+          "count": 1
+        },
+        {
+          "text": "Add aftermath placement fields for post-banishment return.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Keep aftermath text in Utility Options/description until schema propagation.",
+          "count": 3
+        },
+        {
+          "text": "Use Utility Options/description as interim representation.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime aftermath data matching the conditional-ending finding.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime aftermath data recording that the target knows it was Charmed by the caster.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime aftermath fadeOut with riderDismountWindow 1 minute.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime aftermath/spellEndEffect data instead of immediate status.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime aftermathAwareness data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime deathAftermath data for ash transformation.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "druidcraft",
+          "level": 0,
+          "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema."
+        },
+        {
+          "spellId": "elementalism",
+          "level": 0,
+          "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema."
+        },
+        {
+          "spellId": "friends",
+          "level": 0,
+          "issue": "Actionable open: Aftermath knowledge or later memory effects need a follow-up/aftermath schema."
+        },
+        {
+          "spellId": "charm-person",
+          "level": 1,
+          "issue": "When Charm Person ends, the target knows it was Charmed by the caster; this aftermath knowledge is not structured."
+        },
+        {
+          "spellId": "calm-emotions",
+          "level": 2,
+          "issue": "When Calm Emotions ends, the creature's attitude returns to normal, but the restoration/aftermath state is not represented."
+        }
+      ]
+    },
+    {
+      "bucketId": "reaction_or_opportunity_restriction",
+      "findings": 18,
+      "distinctSpells": 17,
+      "levels": [
+        {
+          "level": "0",
+          "count": 1
+        },
+        {
+          "level": "1",
+          "count": 3
+        },
+        {
+          "level": "2",
+          "count": 2
+        },
+        {
+          "level": "3",
+          "count": 6
+        },
+        {
+          "level": "4",
+          "count": 3
+        },
+        {
+          "level": "5",
+          "count": 2
+        },
+        {
+          "level": "6",
+          "count": 1
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add casting trigger fields for after-hit smite-style spells, including allowed attack sources and target binding.",
+          "count": 2
+        },
+        {
+          "text": "Add action restriction fields for no Bonus Actions and no Reactions.",
+          "count": 1
+        },
+        {
+          "text": "Add action/reaction restriction fields with allowed action exceptions.",
+          "count": 1
+        },
+        {
+          "text": "Add controlled-target reaction command fields with caster reaction cost.",
+          "count": 1
+        },
+        {
+          "text": "Add controlled-target reaction command fields with controller reaction cost.",
+          "count": 1
+        },
+        {
+          "text": "Add pending attack-trigger fields for next attack hit_or_miss.",
+          "count": 1
+        },
+        {
+          "text": "Add reaction availability and safest-route forced movement fields.",
+          "count": 1
+        },
+        {
+          "text": "Add reaction behavior fields for must_take_opportunity_attack_if_able.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime commandReaction data.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime actionRestrictions data to Confused.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime actionRestrictions data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime castingTrigger data for immediately after hitting a creature with a melee weapon or Unarmed Strike.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime castingTrigger data for immediately after hitting a creature with a weapon or Unarmed Strike.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime forcedMovement routeConstraint=safest_route and reactionRequiredIfAvailable data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime opportunityAttackBehavior data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime opportunityAttackSuppression data or narrow status condition metadata; clear inappropriate repeatSave/escapeCheck defaults once not-applicable sentinels exist.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "shocking-grasp",
+          "level": 0,
+          "issue": "The core mechanic is specifically Opportunity Attack suppression until the start of the target's next turn; the current status condition name is broader than the prose and carries inappropriate default escape/repeat-save data."
+        },
+        {
+          "spellId": "arms-of-hadar",
+          "level": 1,
+          "issue": "Arms of Hadar suppresses all reactions until the start of the target's next turn on a failed Strength save; the status rider now uses negates_condition, but still relies on a broad Reactions Suppressed status with inappropriate default repeat-save/escape sentinels."
+        },
+        {
+          "spellId": "dissonant-whispers",
+          "level": 1,
+          "issue": "Dissonant Whispers represents reaction-using forced movement away from the caster, but 'if available' and 'safest route' are only stored in prose/custom formula."
+        },
+        {
+          "spellId": "find-familiar",
+          "level": 1,
+          "issue": "A familiar can deliver a touch spell only by taking its Reaction while within 100 feet, but this is only partly represented as a named special action."
+        },
+        {
+          "spellId": "shining-smite",
+          "level": 2,
+          "issue": "Shining Smite is cast after a triggering weapon or unarmed hit, but runtime timing does not preserve that trigger."
+        }
+      ]
+    },
+    {
+      "bucketId": "forced_movement",
+      "findings": 17,
+      "distinctSpells": 16,
+      "levels": [
+        {
+          "level": "0",
+          "count": 2
+        },
+        {
+          "level": "1",
+          "count": 1
+        },
+        {
+          "level": "2",
+          "count": 3
+        },
+        {
+          "level": "4",
+          "count": 3
+        },
+        {
+          "level": "5",
+          "count": 6
+        },
+        {
+          "level": "6",
+          "count": 2
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add wall-creation displacement fields.",
+          "count": 2
+        },
+        {
+          "text": "Add a post-movement damage gate field for distance-from-caster checks.",
+          "count": 1
+        },
+        {
+          "text": "Add enclosed-object movement fields for internal push action, half-speed cap, and external pickup/move.",
+          "count": 1
+        },
+        {
+          "text": "Add environmental forced movement fields for pull distance, radius, medium requirement, and escape action/check.",
+          "count": 1
+        },
+        {
+          "text": "Add failed-save forced movement fields for creatures and unsecured object push fields.",
+          "count": 1
+        },
+        {
+          "text": "Add flying-target failed-save Prone fields.",
+          "count": 1
+        },
+        {
+          "text": "Add forced movement direction qualifiers for along_line/away_from_caster and trigger timing.",
+          "count": 1
+        },
+        {
+          "text": "Add forced placement/ejection fields for success ejection, overflow ejection, carried movement, and spell-end prone placement.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime wallDisplacement data.",
+          "count": 2
+        },
+        {
+          "text": "Add runtime condition data that gates the damage effect on target distance after forced movement.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime downdraftProne data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime forcedMovement.origin=center_of_area and direction=away_from_origin.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime forcedPlacement and ejectionProne data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime forcefulHand movement data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime invalidEndPositionRelocation data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime MOVEMENT effect for failed-save creature push and objectMovement data for unsecured objects entirely within the cube.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "lightning-lure",
+          "level": 0,
+          "issue": "The pull is represented, but the damage only applies if the target is within 5 feet after the pull; that post-movement gate is prose-only."
+        },
+        {
+          "spellId": "thorn-whip",
+          "level": 0,
+          "issue": "Thorn Whip's size-gated pull is partially represented, and the runtime direction was corrected to toward_caster, but the optional 'can pull' choice remains flattened."
+        },
+        {
+          "spellId": "thunderwave",
+          "level": 1,
+          "issue": "Thunderwave pushes failed-save creatures and unsecured objects 10 feet away, but runtime JSON keeps both pushes in a generic utility description instead of MOVEMENT/object movement data."
+        },
+        {
+          "spellId": "gust-of-wind",
+          "level": 2,
+          "issue": "The 15-foot push away following the Line is partially represented, but trigger timing and line-following direction need more precise data."
+        },
+        {
+          "spellId": "gust-of-wind",
+          "level": 2,
+          "issue": "Gust of Wind changes movement cost directionally, but the cost is prose-only."
+        }
+      ]
+    },
+    {
+      "bucketId": "movement_or_repositioning",
+      "findings": 16,
+      "distinctSpells": 15,
+      "levels": [
+        {
+          "level": "0",
+          "count": 1
+        },
+        {
+          "level": "1",
+          "count": 3
+        },
+        {
+          "level": "2",
+          "count": 2
+        },
+        {
+          "level": "3",
+          "count": 5
+        },
+        {
+          "level": "4",
+          "count": 2
+        },
+        {
+          "level": "5",
+          "count": 1
+        },
+        {
+          "level": "6",
+          "count": 2
+        }
+      ],
+      "commonTemplateChanges": [
+        {
+          "text": "Add controlled entity movement fields for commanded movement distance.",
+          "count": 1
+        },
+        {
+          "text": "Add created-area movement/hover fields for height cap, drop-off descent, carried occupants, and spell-end fall.",
+          "count": 1
+        },
+        {
+          "text": "Add movable created-effect fields for distance, leash, and action cost.",
+          "count": 1
+        },
+        {
+          "text": "Add movement grant fields for fly speed and hover.",
+          "count": 1
+        },
+        {
+          "text": "Add movement mode fields for walking/flying/swimming/climbing/burrowing speed grants.",
+          "count": 1
+        },
+        {
+          "text": "Add movement mode, hover, transformation duration, safe descent, and fall aftermath fields.",
+          "count": 1
+        },
+        {
+          "text": "Add movement option fields for jump distance, movement cost, frequency, and duration.",
+          "count": 1
+        },
+        {
+          "text": "Add movement outcome fields linked to enclosure saves.",
+          "count": 1
+        }
+      ],
+      "commonJsonChanges": [
+        {
+          "text": "Add runtime controlledMovement data with maxDistance 15 feet per command.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime enclosureEscapeMovement data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime levitation data for vertical rise 20 feet, suspended duration, altitude adjustment 20 feet, and 500-pound object limit.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime movementGrant data for flySpeed 60 and hover true.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime movementModeSpeed data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime movementModeSpeed, hover, transformationState, and onEndDescent data.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime movementModifier speed x2 and extraAction allowedActions Attack/Dash/Disengage/Hide/Utilize with oneAttackOnly.",
+          "count": 1
+        },
+        {
+          "text": "Add runtime movementOption data for jump up to 30 feet by spending 10 feet of movement once per turn.",
+          "count": 1
+        }
+      ],
+      "examples": [
+        {
+          "spellId": "dancing-lights",
+          "level": 0,
+          "issue": "Actionable open: Moving created lights/forms needs an owned movable effect schema rather than simple target movement."
+        },
+        {
+          "spellId": "jump",
+          "level": 1,
+          "issue": "Jump grants a specific once-per-turn movement option with a fixed jump distance and movement cost, but this is not modeled as movement data."
+        },
+        {
+          "spellId": "longstrider",
+          "level": 1,
+          "issue": "Longstrider increases the target's Speed by 10 feet, but runtime JSON stores this as generic utility prose instead of a movement/speed modifier."
+        },
+        {
+          "spellId": "unseen-servant",
+          "level": 1,
+          "issue": "The servant can be commanded to move up to 15 feet, but movement is only in objectDescription prose."
+        },
+        {
+          "spellId": "levitate",
+          "level": 2,
+          "issue": "Levitate raises and suspends a creature or loose object and later changes altitude by up to 20 feet, but the current movement model has no vertical suspension/altitude-change type and is forced to use teleport."
+        }
+      ]
+    }
+  ]
+}

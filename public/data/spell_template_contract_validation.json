@@ -1,0 +1,468 @@
+{
+  "generatedAt": "2026-05-14T11:40:43.895Z",
+  "issueCount": 46,
+  "errorCount": 44,
+  "warningCount": 2,
+  "issues": [
+    {
+      "severity": "warning",
+      "source": "template-parity",
+      "code": "structured-json-path-unregistered",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-structured-template.json",
+      "field": "Save Auto Outcome",
+      "message": "Structured template field maps to a JSON path that is not explicitly registered in the JSON template yet.",
+      "actualValue": "effects[].condition.saveOutcomeOverrides[].outcome",
+      "expectedValue": "Matching path in spell-json-template.json"
+    },
+    {
+      "severity": "warning",
+      "source": "template-parity",
+      "code": "structured-json-path-unregistered",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-structured-template.json",
+      "field": "Save Auto Outcome Condition",
+      "message": "Structured template field maps to a JSON path that is not explicitly registered in the JSON template yet.",
+      "actualValue": "effects[].condition.saveOutcomeOverrides[].condition",
+      "expectedValue": "Matching path in spell-json-template.json"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Damage Mitigation Bypass",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Prevention Immunities",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Defense Damage Type Source",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Damage Reduction Applies To",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Damage Reduction Frequency",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Resistance Suppression Damage Types",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Resistance Suppression Damage Type Source",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Damage Interaction Modes",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Damage Interaction Damage Type Source",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Damage Interaction Duration Scope",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Defense Source Categories",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Barrier Damage Block Directions",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Barrier Damage Block Source Categories",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Spell Effect Prevention Source Side",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Spell Effect Prevention Affected Subjects",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Linked Damage Trigger",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Linked Damage Recipient",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Linked Damage Amount",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Linked Damage Amount Basis",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Linked Damage Type Source",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "template-parity",
+      "code": "template-accepted-values-diverge",
+      "filePath": "F:\\Repos\\Aralia\\docs\\tasks\\spells\\templates\\spell-json-template.json",
+      "field": "Linked Damage Recipient Mitigation",
+      "message": "Mapped structured and runtime template fields disagree about their accepted non-prose values.",
+      "actualValue": "structured-only: not_applicable",
+      "expectedValue": "runtime-only: (none)"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-0\\thunderclap.md",
+      "field": "Sound Audible Radius",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "100",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-0\\toll-the-dead.md",
+      "field": "Sound Audible Radius",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "10",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-implicit-not-applicable",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-1\\ice-knife.md",
+      "field": "Secondary Save Outcome",
+      "message": "Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.",
+      "actualValue": "none",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-1\\protection-from-evil-and-good.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "disadvantage_on_attacks, immunity",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-1\\thunderous-smite.md",
+      "field": "Sound Audible Radius",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "300",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-1\\thunderwave.md",
+      "field": "Sound Audible Radius",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "300",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-implicit-not-applicable",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-2\\cordon-of-arrows.md",
+      "field": "Save Outcome",
+      "message": "Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.",
+      "actualValue": "none",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-2\\knock.md",
+      "field": "Sound Audible Radius",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "300",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-2\\warding-bond.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "ac_bonus, resistance",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-3\\feign-death.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "resistance, immunity",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-3\\gaseous-form.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "resistance, immunity",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-implicit-not-applicable",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-3\\hunger-of-hadar.md",
+      "field": "Save Outcome",
+      "message": "Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.",
+      "actualValue": "none",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-3\\thunder-step.md",
+      "field": "Sound Audible Radius",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "300",
+      "expectedValue": "not_applicable"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\aura-of-life.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "resistance, immunity",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\aura-of-purity.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "resistance, advantage_on_saves",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-5\\holy-weapon.md",
+      "field": "Save Outcome",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "half, negates_condition",
+      "expectedValue": "none, half, negates_condition, negates, half damage; negates movement, negates_repeat, negates_effect"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-6\\heroes-feast.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "resistance, immunity",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-6\\investiture-of-ice.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "immunity, resistance",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-6\\primordial-ward.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "resistance, immunity",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-6\\wind-walk.md",
+      "field": "Defense Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "resistance, immunity",
+      "expectedValue": "ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-8\\glibness.md",
+      "field": "Utility Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "social",
+      "expectedValue": "light, communication, creation, information, control, sensory, other, scouting, environmental_control, defensive, movement, summoning, illusion, storage, warding, transformation, teleportation, healing"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-value-outside-template",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-8\\power-word-stun.md",
+      "field": "Movement Type",
+      "message": "Structured markdown value is not accepted by the structured template.",
+      "actualValue": "stop",
+      "expectedValue": "push, pull, teleport, forced"
+    },
+    {
+      "severity": "error",
+      "source": "structured-markdown",
+      "code": "structured-implicit-not-applicable",
+      "filePath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-9\\storm-of-vengeance.md",
+      "field": "Save Outcome",
+      "message": "Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.",
+      "actualValue": "none",
+      "expectedValue": "not_applicable"
+    }
+  ]
+}

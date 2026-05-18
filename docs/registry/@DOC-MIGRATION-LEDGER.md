@@ -25,8 +25,8 @@ Anti-drift enforcement rule:
 ## Canonical Entry Set
 
 The current canonical root entry docs are:
-- [`../@PROJECT-OVERVIEW.README.md`](../@PROJECT-OVERVIEW.README.md)
-- [`../ARCHITECTURE.md`](../ARCHITECTURE.md)
+- [`../PROJECT_PROJECT_ARCHITECTURE.md`](../PROJECT_PROJECT_ARCHITECTURE.md)
+- [`../PROJECT_ARCHITECTURE.md`](../PROJECT_ARCHITECTURE.md)
 - [`../DEVELOPMENT_GUIDE.md`](../DEVELOPMENT_GUIDE.md)
 - [`../@DOCUMENTATION-GUIDE.md`](../@DOCUMENTATION-GUIDE.md)
 - [`../@README-INDEX.md`](../@README-INDEX.md)
@@ -36,16 +36,16 @@ The current canonical root entry docs are:
 ### Registry layer rewritten around actual scope
 
 These registry and governance files were manually re-audited and rewritten on 2026-03-11 so they stop overclaiming precision while mixed task trees still exist:
-- [`../@ACTIVE-DOCS.md`](../@ACTIVE-DOCS.md)
-- [`../@DOC-NAMING-CONVENTIONS.md`](../@DOC-NAMING-CONVENTIONS.md)
+- [`../@README-INDEX.md`](../@README-INDEX.md)
 - [`../@DOC-REGISTRY.md`](../@DOC-REGISTRY.md)
-- [`../@RETIRED-DOCS.md`](../@RETIRED-DOCS.md)
+- [`../@DOC-REGISTRY.md`](../@DOC-REGISTRY.md)
+- [`../@DOC-REGISTRY.md`](../@DOC-REGISTRY.md)
 
 The new policy is:
-- `@ACTIVE-DOCS.md` is a curated work-entry surface, not an exhaustive status dashboard
-- `@DOC-NAMING-CONVENTIONS.md` governs legacy numbered work-doc systems honestly rather than pretending all docs follow one uniform scheme
+- `@README-INDEX.md` is a curated work-entry surface, not an exhaustive status dashboard
+- `@DOC-REGISTRY.md` governs legacy numbered work-doc systems honestly rather than pretending all docs follow one uniform scheme
 - `@DOC-REGISTRY.md` tracks in-scope numbered work-doc families only and flags known irregularities instead of inventing false certainty
-- `@RETIRED-DOCS.md` is kept in sync with explicitly logged retired numbered docs
+- `@DOC-REGISTRY.md` is kept in sync with explicitly logged retired numbered docs
 
 ### Root-hub pressure reduced
 
@@ -97,7 +97,7 @@ The old mixed-purpose `docs/AGENT.md` doc was renamed into [`../DEVELOPMENT_GUID
 
 ### Canonical overview rewritten against the repo
 
-[`../@PROJECT-OVERVIEW.README.md`](../@PROJECT-OVERVIEW.README.md) was rewritten on 2026-03-10 after claim-by-claim verification against the current repository.
+[`../PROJECT_PROJECT_ARCHITECTURE.md`](../PROJECT_PROJECT_ARCHITECTURE.md) was rewritten on 2026-03-10 after claim-by-claim verification against the current repository.
 
 The rewrite removed stale assumptions about:
 - the repo being a static import-map-only app
@@ -108,13 +108,13 @@ The rewrite removed stale assumptions about:
 ### Registry and governance layer refreshed
 
 These root registry surfaces were rewritten on 2026-03-11 after manual verification against the current docs tree:
-- [`../@ACTIVE-DOCS.md`](../@ACTIVE-DOCS.md)
-- [`../@DOC-NAMING-CONVENTIONS.md`](../@DOC-NAMING-CONVENTIONS.md)
+- [`../@README-INDEX.md`](../@README-INDEX.md)
+- [`../@DOC-REGISTRY.md`](../@DOC-REGISTRY.md)
 - [`../@DOC-REGISTRY.md`](../@DOC-REGISTRY.md)
 
 Key decisions in that refresh:
-- `@ACTIVE-DOCS.md` is now a narrow work-entry surface, not a stale global status dashboard
-- `@DOC-NAMING-CONVENTIONS.md` now governs legacy numbered work-doc families rather than pretending to define every naming rule in the repository
+- `@README-INDEX.md` is now a narrow work-entry surface, not a stale global status dashboard
+- `@DOC-REGISTRY.md` now governs legacy numbered work-doc families rather than pretending to define every naming rule in the repository
 - `@DOC-REGISTRY.md` now tracks the numbered families that still rely on registry guidance and explicitly records numbering exceptions instead of hiding them
 - roadmap-tooling docs remain excluded from the maintained first-wave system even if they still exist on disk
 
@@ -248,14 +248,14 @@ Key decisions:
 ### Spell-system architecture / implementation-spec slice refreshed
 
 The next spell-overhaul architecture/spec docs were processed on 2026-03-11:
-- `00-PARALLEL-ARCHITECTURE.md`
+- `00-PARALLEL-PROJECT_ARCHITECTURE.md`
 - `0-PRIORITY-SCHEMA-EVOLUTION.md`
 - `01-typescript-interfaces.md`
 - `03-command-pattern-base.md`
 
 Key decisions:
-- `00-PARALLEL-ARCHITECTURE.md` was moved into `docs/archive/spell-system/` because it had become a historical five-agent delivery plan with a broken research reference and a module map that no longer matches the live repo
-- the original `00-PARALLEL-ARCHITECTURE.md` path was preserved as a compatibility pointer
+- `00-PARALLEL-PROJECT_ARCHITECTURE.md` was moved into `docs/archive/spell-system/` because it had become a historical five-agent delivery plan with a broken research reference and a module map that no longer matches the live repo
+- the original `00-PARALLEL-PROJECT_ARCHITECTURE.md` path was preserved as a compatibility pointer
 - `0-PRIORITY-SCHEMA-EVOLUTION.md` stayed live, but was rebased into a current gap-audit note after verifying that many of the older "missing schema" claims are now partly or fully implemented
 - `01-typescript-interfaces.md` stayed live as preserved task context with a current-status note because the requested type layer and tests now exist under `src/types`
 - `03-command-pattern-base.md` stayed live as preserved task context with a current-status note because the command foundation now exists under `src/commands`, even though the older planned module map no longer matches the repo
@@ -545,7 +545,7 @@ The architecture/reference pass has now started. VISIBILITY_SYSTEM.md was rewrit
 ### Architecture reference slice A refreshed
 
 The first architecture reference slice was re-audited on 2026-03-11.
-README.md, SPELL_SYSTEM_ARCHITECTURE.md, and VISIBILITY_SYSTEM.md stayed in place as live reference docs, but each was rebased against the current repo to remove stale paths, stale APIs, and stale status claims.
+README.md, SPELL_SYSTEM_PROJECT_ARCHITECTURE.md, and VISIBILITY_SYSTEM.md stayed in place as live reference docs, but each was rebased against the current repo to remove stale paths, stale APIs, and stale status claims.
 The slice now distinguishes generator-maintenance guidance from true ownership decisions, corrects the spell factory path and spell-count drift, and updates the visibility guide to the current calculateVisibility plus useVisibility flow.
 
 ### Architecture domain slice A refreshed
@@ -714,7 +714,7 @@ This slice established the top-level archive lane as historical context only and
 ### Spell archive slice AB refreshed
 
 The next docs/archive/spell-system coordination slice was re-audited on 2026-03-12.
-00-AGENT-COORDINATION.md, 00-DATA-VALIDATION-STRATEGY.md, 00-PARALLEL-ARCHITECTURE.md, AGENT-ALPHA-TYPES.md, AGENT-BETA-TARGETING.md, and AGENT-GAMMA-COMMANDS.md all stayed in place, but each was rewritten to preserve late-2025 spell-delivery intent without pretending to be the live workflow or module contract.
+00-AGENT-COORDINATION.md, 00-DATA-VALIDATION-STRATEGY.md, 00-PARALLEL-PROJECT_ARCHITECTURE.md, AGENT-ALPHA-TYPES.md, AGENT-BETA-TARGETING.md, and AGENT-GAMMA-COMMANDS.md all stayed in place, but each was rewritten to preserve late-2025 spell-delivery intent without pretending to be the live workflow or module contract.
 
 This slice verified a mixed outcome: several real spell foundations landed, but not always in the exact module map or ownership pattern these historical briefs prescribed.
 

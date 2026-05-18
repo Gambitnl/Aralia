@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:35:06
- * Dependents: visualUtils.ts, visuals/index.ts
+ * Last Sync: 17/05/2026, 00:13:14
+ * Dependents: utils/visualUtils.ts, utils/visuals/index.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -22,6 +22,39 @@
 
 import { NPC, Race, Item } from '../../types';
 import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../../types/visuals';
+
+const GENERAL_ARMOR_ICON_PATH = 'assets/icons/general/armor/';
+
+const ARMOR_ICON_BY_ITEM_ID: Record<string, string> = {
+  leather_cap: 'leather_cap.svg',
+  chainmail_coif: 'chainmail_coif.svg',
+  steel_helmet: 'steel_helmet.svg',
+  leather_gloves: 'leather_gloves.svg',
+  chainmail_gauntlets: 'chainmail_gauntlets.svg',
+  plate_gauntlets: 'plate_gauntlets.svg',
+  cloth_pants: 'cloth_pants.svg',
+  leather_greaves: 'leather_greaves.svg',
+  plate_greaves: 'plate_greaves.svg',
+  soft_boots: 'soft_boots.svg',
+  studded_boots: 'studded_boots.svg',
+  steel_boots: 'steel_boots.svg',
+  leather_bracers: 'leather_bracers.svg',
+  reinforced_bracers: 'reinforced_bracers.svg',
+  padded_armor: 'padded_armor.svg',
+  leather_armor: 'leather_armor.svg',
+  studded_leather_armor: 'studded_leather_armor.svg',
+  hide_armor: 'hide_armor.svg',
+  chain_shirt: 'chain_shirt.svg',
+  scale_mail: 'scale_mail.svg',
+  breastplate: 'breastplate.svg',
+  half_plate_armor: 'half_plate_armor.svg',
+  ring_mail: 'ring_mail.svg',
+  chain_mail: 'chain_mail.svg',
+  splint_armor: 'splint_armor.svg',
+  plate_armor: 'plate_armor.svg',
+  shield_std: 'shield_std.svg',
+  shield_plus_one: 'shield_plus_one.svg',
+};
 
 /**
  * Resolves the visual representation for an NPC, handling fallbacks.
@@ -94,7 +127,20 @@ export function resolveItemVisual(item: Item): VisualAsset {
     };
   }
 
-  // 3. Use legacy icon as fallback content (emoji/text) if not a path
+  // 3. Already-loaded saves and test-party inventories can contain older
+  // emoji-only armor records. If the item id now has a general armor SVG, prefer
+  // that image while keeping the original emoji/text as fallback content.
+  const armorIconFileName = ARMOR_ICON_BY_ITEM_ID[item.id];
+  if (armorIconFileName) {
+    return {
+      src: `${GENERAL_ARMOR_ICON_PATH}${armorIconFileName}`,
+      fallbackContent: item.icon || 'box',
+      primaryColor: '#9ca3af',
+      label: item.name
+    };
+  }
+
+  // 4. Use legacy icon as fallback content (emoji/text) if not a path
   // If no icon at all, default to box
   return {
     fallbackContent: item.icon || '📦',

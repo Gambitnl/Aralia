@@ -1,6 +1,6 @@
-﻿# Spell Integration Status
+# Spell Integration Status
 
-Last Updated: 2026-03-12
+$12026-05-17
 
 Purpose: Give a high-level status view of the spell-system integration surface while pointing detailed implementation work to the spell-specific docs that now carry most of the operational detail.
 
@@ -32,7 +32,7 @@ The following spell-support surfaces were rechecked during the 2026-03-12 spell-
 - ./spells/SPELL_INTEGRATION_CHECKLIST.md
 - ./spells/SPELL_PROPERTIES_REFERENCE.md
 - ./spells/SPELL_JSON_EXAMPLES.md
-- ./architecture/SPELL_SYSTEM_ARCHITECTURE.md
+- ./architecture/SPELL_SYSTEM_PROJECT_ARCHITECTURE.md
 - ./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md
 
 ## Verified Current Manifest Fact
@@ -68,7 +68,7 @@ For actual spell implementation or verification work, continue into:
 1. ./spells/SPELL_INTEGRATION_CHECKLIST.md
 2. ./spells/SPELL_JSON_EXAMPLES.md
 3. ./spells/STATUS_LEVEL_0.md through ./spells/STATUS_LEVEL_9.md and STATUS_LEVEL_3_PLUS.md
-4. ./architecture/SPELL_SYSTEM_ARCHITECTURE.md
+4. ./architecture/SPELL_SYSTEM_PROJECT_ARCHITECTURE.md
 5. ./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md
 
 ## Caution

@@ -1,6 +1,6 @@
 # Aralia Changelog
 
-**Last Updated**: 2026-03-11  
+**Last Updated**: 2026-05-17
 **Purpose**: Preserve a high-level historical timeline of notable Aralia milestones without relying on the older broken split-changelog links.
 
 ## Status Of This File
@@ -58,6 +58,6 @@ Where possible, use the current root docs, architecture docs, task trees, and ar
 
 ## Related Docs
 
-- [`@PROJECT-OVERVIEW.README.md`](./@PROJECT-OVERVIEW.README.md) for the current high-level project summary
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md) for current subsystem orientation
+- [`PROJECT_PROJECT_ARCHITECTURE.md`](./PROJECT_PROJECT_ARCHITECTURE.md) for the current high-level project summary
+- [`PROJECT_ARCHITECTURE.md`](./PROJECT_ARCHITECTURE.md) for current subsystem orientation
 - [`archive/`](./archive/) for preserved historical material

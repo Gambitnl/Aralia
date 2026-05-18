@@ -1,6 +1,6 @@
 # Aralia Documentation System Guide
 
-**Last Updated**: 2026-03-10  
+**Last Updated**: 2026-05-17
 **Purpose**: Define the current documentation structure, scope, and maintenance rules for the Aralia repository.
 
 ## What This File Governs
@@ -145,13 +145,13 @@ These are the steady-state rules. Some transitional exceptions still exist while
 The root doc surface should stay small.
 
 These are the main stable docs people should start from:
-- [`@PROJECT-OVERVIEW.README.md`](./@PROJECT-OVERVIEW.README.md)
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- [`PROJECT_PROJECT_ARCHITECTURE.md`](./PROJECT_PROJECT_ARCHITECTURE.md)
+- [`PROJECT_ARCHITECTURE.md`](./PROJECT_ARCHITECTURE.md)
 - [`DEVELOPMENT_GUIDE.md`](./DEVELOPMENT_GUIDE.md)
 - [`@README-INDEX.md`](./@README-INDEX.md)
 - this guide
 
-For active project execution, [`@ACTIVE-DOCS.md`](./@ACTIVE-DOCS.md) remains the main work-entry surface.
+For active project execution, [`@README-INDEX.md`](./@README-INDEX.md) remains the main work-entry surface.
 
 Important rule:
 - audit reports, inventories, and completion summaries are not canonical entry points
@@ -167,7 +167,7 @@ Use these rules going forward:
 - Keep source-adjacent implementation docs close to the code, using either `README.md` for directory overviews or `[Name].README.md` for file-specific docs.
 - Do not create new docs with `AGENT` in the filename unless they are intentionally about agent operation. Use names like `DEVELOPMENT_GUIDE`, `TECHNICAL_SPEC`, `WORKFLOW`, or `PROJECT_INDEX` instead.
 
-Detailed numbering rules for existing numbered work-doc systems remain in [`@DOC-NAMING-CONVENTIONS.md`](./@DOC-NAMING-CONVENTIONS.md). That file governs the legacy-active numbered task surface, not every documentation class described here.
+Detailed numbering rules for existing numbered work-doc systems remain in [`@DOC-REGISTRY.md`](./@DOC-REGISTRY.md). That file governs the legacy-active numbered task surface, not every documentation class described here.
 
 ## Source-Adjacent README Guidance
 

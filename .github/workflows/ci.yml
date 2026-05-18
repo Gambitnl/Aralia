@@ -109,7 +109,41 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-  # Job 4: Tests (can be slow, runs in parallel)
+  # Job 4: Advisory quality scan. It surfaces grouped quality-debt counts for
+  # Symphony/Codex/Jules review and does not block merges on the existing
+  # backlog. The JSON artifact gives foreman tools a stable parse target.
+  quality-scan:
+    name: Quality Scan (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run advisory quality scan
+        run: npm run scan
+
+      - name: Write quality scan JSON artifact
+        run: npm --silent run scan -- --json > quality-scan.json
+
+      - name: Summarize advisory quality scan
+        run: |
+          node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync('quality-scan.json', 'utf8')); console.log('### Quality scan advisory'); console.log(''); console.log('Total findings: ' + data.total); console.log(''); console.log('| Pattern | Count |'); console.log('|---|---:|'); for (const [pattern, group] of Object.entries(data.groups)) console.log('| ' + pattern + ' | ' + group.count + ' |'); console.log(''); console.log('Quality scan JSON artifact: quality-scan-json');" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload quality scan JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-scan-json
+          path: quality-scan.json
+
+  # Job 5: Tests (can be slow, runs in parallel)
   test:
     name: 🧪 Tests
     runs-on: ubuntu-latest

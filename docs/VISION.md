@@ -905,10 +905,10 @@ Every session, the world should feel different because:
 
 ## Related Documentation
 
-- **[Architecture Compendium](./ARCHITECTURE.md)**: Technical breakdown of the codebase into domains, subcomponents, file ownership, and dependency graphs.
+- **[Architecture Compendium](./PROJECT_ARCHITECTURE.md)**: Technical breakdown of the codebase into domains, subcomponents, file ownership, and dependency graphs.
 
 ---
 
 *This document is a living vision. It will evolve as the game develops.*
 
-*Last updated: 2026-02-16*
+$12026-05-17
