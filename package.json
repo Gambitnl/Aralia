@@ -42,7 +42,11 @@
     "roadmap:crosscheck": "tsx devtools/roadmap/scripts/roadmap-feature-crosscheck.ts",
     "roadmap:evidence-audit": "tsx devtools/roadmap/scripts/roadmap-evidence-audit.ts",
     "roadmap:audit-all": "npm run roadmap:crosscheck && npm run roadmap:evidence-audit",
-    "dev:roadmap": "vite --mode roadmap --host 0.0.0.0 --port 3010"
+    "dev:roadmap": "vite --mode roadmap --host 0.0.0.0 --port 3010",
+    "docs:dev": "vitepress dev docs-site --port 3020",
+    "docs:build": "npm run docs:api && vitepress build docs-site",
+    "docs:preview": "vitepress preview docs-site --port 3021",
+    "docs:api": "typedoc"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",

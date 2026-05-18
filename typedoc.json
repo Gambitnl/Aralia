@@ -1,0 +1,27 @@
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "out": "docs-site/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "exclude": [
+    "src/**/__tests__/**",
+    "src/**/*.test.*",
+    "src/**/*.spec.*",
+    "src/**/*.test-d.*",
+    "src/types/vendor-bestiary.d.ts"
+  ],
+  "categorizeByGroup": true,
+  "groupOrder": ["hooks", "utils", "services", "state", "types", "components", "*"],
+  "name": "Aralia API Reference",
+  "titleLink": "/",
+
+  "outputFileStrategy": "modules",
+  "flattenOutputFiles": true,
+  "indexFormat": "table",
+  "useCodeBlocks": true,
+  "sanitizeComments": true
+}

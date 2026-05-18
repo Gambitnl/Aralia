@@ -79,6 +79,13 @@ test-results/
 test_output.log
 verification/
 
+# Generated documentation output
+docs/api/
+docs-site/api/
+docs-site/api-test/
+docs-site/api-types-test/
+docs-site-dist/
+
 # Temp files
 *_temp.json
 server_log.txt
