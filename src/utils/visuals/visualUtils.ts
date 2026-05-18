@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 17/05/2026, 00:13:14
- * Dependents: utils/visualUtils.ts, utils/visuals/index.ts
+ * Last Sync: 18/05/2026, 14:49:10
+ * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, utils/visualUtils.ts, utils/visuals/index.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -24,6 +24,12 @@ import { NPC, Race, Item } from '../../types';
 import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../../types/visuals';
 
 const GENERAL_ARMOR_ICON_PATH = 'assets/icons/general/armor/';
+const GENERAL_WEAPON_ICON_PATH = 'assets/icons/general/weapons/';
+const LEGACY_WEAPON_ICON_PATHS = [
+  'assets/icons/figma-weapons/512-2-color/',
+  'assets/icons/figma-weapons/512-2-color-svg/',
+  'assets/icons/figma-weapons/custom-svg/',
+];
 
 const ARMOR_ICON_BY_ITEM_ID: Record<string, string> = {
   leather_cap: 'leather_cap.svg',
@@ -55,6 +61,35 @@ const ARMOR_ICON_BY_ITEM_ID: Record<string, string> = {
   shield_std: 'shield_std.svg',
   shield_plus_one: 'shield_plus_one.svg',
 };
+
+const WEAPON_ICON_BY_ITEM_ID: Record<string, string> = {
+  dart: 'dart.svg',
+  light_crossbow: 'light-crossbow.svg',
+  sling: 'sling.svg',
+  trident: 'trident.svg',
+  war_pick: 'war-pick.svg',
+  whip: 'whip.svg',
+  blowgun: 'blowgun.svg',
+  hand_crossbow: 'hand-crossbow.svg',
+  heavy_crossbow: 'heavy-crossbow.svg',
+};
+
+/**
+ * Saved games can keep full item objects from older sessions. When those item
+ * records still point at an older weapon icon folder, upgrade only that known
+ * path family at display time and leave future/custom asset paths untouched.
+ */
+function normalizeItemIconPath(iconPath: string): string {
+  for (const legacyPath of LEGACY_WEAPON_ICON_PATHS) {
+    if (iconPath.includes(legacyPath)) {
+      return iconPath
+        .replace(legacyPath, GENERAL_WEAPON_ICON_PATH)
+        .replace(/\.png$/i, '.svg');
+    }
+  }
+
+  return iconPath;
+}
 
 /**
  * Resolves the visual representation for an NPC, handling fallbacks.
@@ -109,8 +144,10 @@ export function resolveNPCVisual(
 export function resolveItemVisual(item: Item): VisualAsset {
   // 1. Try to use explicit visual spec if present
   if (item.visual?.iconPath) {
+    const iconPath = normalizeItemIconPath(item.visual.iconPath);
+
     return {
-      src: item.visual.iconPath,
+      src: iconPath,
       fallbackContent: item.visual.fallbackIcon || item.icon || '📦',
       primaryColor: getItemRarityColor(item.visual.rarity),
       label: item.name
@@ -140,7 +177,19 @@ export function resolveItemVisual(item: Item): VisualAsset {
     };
   }
 
-  // 4. Use legacy icon as fallback content (emoji/text) if not a path
+  // 4. Already-loaded saves and test-party inventories can also contain older
+  // emoji-only weapon records. Prefer the curated weapon image where available.
+  const weaponIconFileName = WEAPON_ICON_BY_ITEM_ID[item.id];
+  if (weaponIconFileName) {
+    return {
+      src: `${GENERAL_WEAPON_ICON_PATH}${weaponIconFileName}`,
+      fallbackContent: item.icon || 'box',
+      primaryColor: '#9ca3af',
+      label: item.name
+    };
+  }
+
+  // 5. Use legacy icon as fallback content (emoji/text) if not a path
   // If no icon at all, default to box
   return {
     fallbackContent: item.icon || '📦',

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:27:26
- * Dependents: Overview/index.ts
- * Imports: 4 files
+ * Last Sync: 15/05/2026, 16:59:40
+ * Dependents: components/CharacterSheet/Overview/index.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,6 +29,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType, ItemType as _ItemType } from '../../../types';
 import { canEquipItem, calculatePotentialAcChange } from '../../../utils/characterUtils';
+import { resolveItemVisual } from '../../../utils/visuals/visualUtils';
 import Tooltip from '../../ui/Tooltip';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
 
@@ -131,6 +132,17 @@ const ITEM_TYPE_FILTERS: { id: ItemTypeFilter; label: string; icon: string; type
   { id: 'accessories', label: 'Accessories', icon: 'diamond', types: ['accessory', 'clothing'] },
   { id: 'other', label: 'Other', icon: 'category', types: ['note', 'book', 'map', 'key', 'spell_component', 'crafting_material', 'treasure', 'reagent', 'ammunition', 'trap'] },
 ];
+
+/**
+ * Inventory item visuals may come from Vite-served public assets or from
+ * absolute/external URLs. Relative public paths need the app base URL so
+ * `/Aralia/` preview builds and localhost roots both resolve correctly.
+ */
+const resolveInventoryAssetSrc = (src?: string): string | undefined => {
+  if (!src) return undefined;
+  if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
+  return `${import.meta.env.BASE_URL}${src}`;
+};
 
 const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction, filterBySlot, onClearFilter }) => {
   /**
@@ -379,12 +391,29 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
 
               // Calculate potential AC change for armor items
               const acChange = child.type === 'armor' ? calculatePotentialAcChange(character, child) : 0;
+              const childVisual = resolveItemVisual(child);
+              const childIconSrc = resolveInventoryAssetSrc(childVisual.src);
+              const childFallbackIcon = childVisual.fallbackContent;
 
               return (
                 <React.Fragment key={key}>
                   <li className={`p-2 rounded-md border flex items-center justify-between transition-colors ${rowStyle}`}>
                     <div className="flex items-center gap-2 min-w-0">
-                      {child.icon && <span className="text-xl w-6 text-center flex-shrink-0 filter drop-shadow-sm">{child.icon}</span>}
+                      {(childIconSrc || childFallbackIcon) && (
+                        <span className="w-6 h-6 text-xl text-center flex items-center justify-center flex-shrink-0 filter drop-shadow-sm">
+                          {childIconSrc ? (
+                            <img
+                              src={childIconSrc}
+                              alt=""
+                              className="w-5 h-5 object-contain"
+                              loading="lazy"
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            childFallbackIcon
+                          )}
+                        </span>
+                      )}
                       <Tooltip content={getItemTooltipContent(child, cantEquipReason)}>
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1">

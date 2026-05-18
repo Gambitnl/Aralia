@@ -1,0 +1,60 @@
+<svg width="512" height="512" viewBox="5376 2816 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs xmlns="http://www.w3.org/2000/svg">
+<clipPath id="clip0_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(256 256)"/>
+</clipPath>
+<clipPath id="clip1_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(896 256)"/>
+</clipPath>
+<clipPath id="clip2_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(1536 256)"/>
+</clipPath>
+<clipPath id="clip3_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(2176 256)"/>
+</clipPath>
+<clipPath id="clip4_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(2816 256)"/>
+</clipPath>
+<clipPath id="clip5_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(3456 256)"/>
+</clipPath>
+<clipPath id="clip6_268_10729">
+<rect width="592.227" height="238.456" fill="white" transform="translate(3418.64 638.171) rotate(-45)"/>
+</clipPath>
+<clipPath id="clip7_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(4096 256)"/>
+</clipPath>
+<clipPath id="clip8_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(4736 256)"/>
+</clipPath>
+<clipPath id="clip9_268_10729">
+<rect width="116.168" height="650.538" fill="white" transform="translate(4802 782) rotate(-135)"/>
+</clipPath>
+<clipPath id="clip10_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(5376 256)"/>
+</clipPath>
+<clipPath id="clip11_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(6016 256)"/>
+</clipPath>
+<clipPath id="clip12_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(4736 2816)"/>
+</clipPath>
+</defs>
+<g xmlns="http://www.w3.org/2000/svg" id="512/Baton">
+<g id="512/Baton_2">
+<g id="512/Handle_52">
+<path id="512/Vector_572" d="M5457.37 3118.16C5460.53 3121.72 5464.53 3125.36 5469.57 3128.84L5495.13 3102.4C5491.75 3098.22 5487.51 3094.54 5483.19 3091.44L5457.37 3118.16Z" fill="#878787"/>
+<path id="512/Vector_573" d="M5512.05 3160.08L5529.63 3141.9C5525.51 3139.68 5520.89 3136.86 5516.57 3133.5L5501.81 3148.78C5506.27 3152.72 5509.61 3156.62 5512.05 3160.08Z" fill="#878787"/>
+<path id="512/Vector_574" d="M5514.99 3132.24C5511.09 3129.04 5507.51 3125.4 5504.87 3121.36L5487.89 3138.94C5492.73 3141.68 5496.83 3144.56 5500.29 3147.46L5515.01 3132.24H5514.99Z" fill="#878787"/>
+<path id="512/Vector_575" d="M5481.55 3090.28C5474.75 3085.64 5468.01 3082.42 5464.39 3080.82L5446.51 3099.32C5447.59 3102.94 5450.17 3109.5 5456.07 3116.62L5481.55 3090.26V3090.28Z" fill="#878787"/>
+<path id="512/Vector_576" d="M5486.07 3137.94L5503.79 3119.6C5502.71 3117.7 5501.83 3115.72 5501.25 3113.66C5500.25 3110.2 5498.53 3106.98 5496.37 3104L5471.27 3129.96C5474.25 3131.88 5477.53 3133.74 5481.23 3135.48C5482.93 3136.28 5484.53 3137.1 5486.07 3137.94Z" fill="#878787"/>
+<path id="512/Vector_577" d="M5630.55 3102.7H5630.57L5614.69 3087.02C5606.51 3080.02 5588.61 3100.14 5588.61 3100.14L5542.47 3147.86C5542.47 3147.86 5537.75 3146.12 5531.47 3142.86L5513.19 3161.76C5517.43 3168.24 5518.53 3172.9 5518.53 3172.9L5512.11 3179.54C5508.97 3182.8 5509.05 3187.98 5512.31 3191.12L5512.83 3191.62L5512.75 3191.7L5529.47 3207.26L5529.51 3207.22L5530.21 3207.9C5533.15 3210.74 5537.83 3210.66 5540.67 3207.72L5617.31 3128.44C5637.39 3107.66 5630.51 3102.72 5630.51 3102.72L5630.55 3102.7Z" fill="#878787"/>
+<path id="512/Vector_578" d="M5438.93 3103.48L5445.79 3096.38C5445.79 3096.38 5445.83 3096.62 5445.91 3097.04L5462.41 3079.98C5461.93 3079.78 5461.67 3079.68 5461.67 3079.68L5468.27 3072.86L5467.53 3072.14C5459.49 3064.36 5446.67 3064.58 5438.89 3072.62L5437.77 3073.78C5429.89 3081.92 5430.11 3094.92 5438.27 3102.78L5438.97 3103.46L5438.93 3103.48Z" fill="#878787"/>
+</g>
+<g id="512/Body_5">
+<path id="512/Vector_579" d="M5837.59 2873.6L5836.85 2872.88C5832.77 2868.94 5826.29 2869.06 5822.35 2873.12L5617.93 3084.58L5633.37 3099.8L5837.87 2888.1C5841.81 2884.02 5841.69 2877.54 5837.63 2873.6H5837.59Z" fill="white"/>
+<path id="512/Vector_580" d="M5509.97 3194.58L5450.13 3256.48C5446.21 3260.54 5446.31 3267.02 5450.37 3270.94L5452.25 3272.76C5456.23 3276.6 5462.55 3276.5 5466.39 3272.52L5526.69 3210.14L5509.97 3194.58Z" fill="white"/>
+</g>
+</g>
+</g>
+</svg>

@@ -1,0 +1,57 @@
+<svg width="512" height="512" viewBox="4736 896 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs xmlns="http://www.w3.org/2000/svg">
+<clipPath id="clip0_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(256 256)"/>
+</clipPath>
+<clipPath id="clip1_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(896 256)"/>
+</clipPath>
+<clipPath id="clip2_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(1536 256)"/>
+</clipPath>
+<clipPath id="clip3_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(2176 256)"/>
+</clipPath>
+<clipPath id="clip4_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(2816 256)"/>
+</clipPath>
+<clipPath id="clip5_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(3456 256)"/>
+</clipPath>
+<clipPath id="clip6_268_10729">
+<rect width="592.227" height="238.456" fill="white" transform="translate(3418.64 638.171) rotate(-45)"/>
+</clipPath>
+<clipPath id="clip7_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(4096 256)"/>
+</clipPath>
+<clipPath id="clip8_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(4736 256)"/>
+</clipPath>
+<clipPath id="clip9_268_10729">
+<rect width="116.168" height="650.538" fill="white" transform="translate(4802 782) rotate(-135)"/>
+</clipPath>
+<clipPath id="clip10_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(5376 256)"/>
+</clipPath>
+<clipPath id="clip11_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(6016 256)"/>
+</clipPath>
+<clipPath id="clip12_268_10729">
+<rect width="512" height="512" fill="white" transform="translate(4736 2816)"/>
+</clipPath>
+</defs>
+<g xmlns="http://www.w3.org/2000/svg" id="512/Heavy">
+<g id="512/Heavy_2">
+<g id="512/Handle_20">
+<g id="512/Group_9">
+<path id="512/Vector_124" d="M4838.04 1263.98L4782.18 1329.08C4778.88 1332.92 4779.32 1338.7 4783.16 1342L4799.94 1356.4L4801.08 1373.08C4801.6 1378.14 4807.2 1384.24 4812.2 1383.26C4819.42 1381.84 4824.84 1374.76 4823.82 1367.9C4822.8 1361.04 4819.04 1359.58 4818.62 1354.54C4818.2 1349.5 4821.78 1343.18 4821.78 1343.18C4821.78 1343.18 4829.84 1335.16 4841.24 1323.04C4849.2 1314.58 4866.38 1294.82 4870.66 1282.98C4871.64 1280.24 4872.82 1277.8 4874.08 1275.64C4867.26 1274.66 4851.12 1271.68 4838.02 1263.96L4838.04 1263.98ZM4814.76 1373.3C4813.42 1374.88 4811.04 1375.06 4809.48 1373.7C4807.9 1372.36 4807.72 1369.98 4809.08 1368.42C4810.42 1366.84 4812.8 1366.66 4814.36 1368.02C4815.94 1369.36 4816.12 1371.74 4814.76 1373.3Z" fill="#878787"/>
+<path id="512/Vector_125" d="M4847.92 1252.46L4839.36 1262.44C4852.72 1270.2 4869.24 1273 4875.24 1273.8C4878.3 1269.1 4881.62 1265.92 4883.82 1264.12C4876.92 1263.12 4860.92 1260.12 4847.92 1252.46Z" fill="#878787"/>
+<path id="512/Vector_126" d="M4870.06 1226.68L4849.26 1250.92C4863.46 1259.18 4886.34 1262.28 4886.34 1262.28C4900.28 1263.22 4906.34 1261.68 4908.84 1260.52C4909.72 1260.12 4909.86 1258.94 4909.14 1258.32L4872.58 1226.48C4871.84 1225.84 4870.7 1225.92 4870.06 1226.66V1226.68Z" fill="#878787"/>
+</g>
+</g>
+<g id="512/Blade_23">
+<path id="512/Vector_127" d="M5217.64 991.02C5217.64 991.02 5166.42 1090.52 5047.92 1158.12L4934.3 1235.74C4933.34 1224.2 4939.46 1213.16 4946.04 1204.08C4968.1 1174.84 5002.04 1159.02 5032.92 1141.04C5093.48 1102.48 5143.38 1049.2 5186.7 992.18L5184.26 990.1C5170.26 1008.96 5155.32 1027.14 5139.76 1044.7C5102.48 1086.3 5060.92 1123.9 5011.3 1150.36C4986.96 1164 4962.72 1181.28 4945.76 1203.88C4939.24 1213.04 4933.2 1224.2 4934.28 1235.76L4909.36 1252.78L4875.5 1223.74L5135.6 920.62L5196.62 972.98V973L5199.3 975.28L5200.12 975.98L5208.62 983.28L5217.66 991.02H5217.64Z" fill="white"/>
+</g>
+</g>
+</g>
+</svg>
