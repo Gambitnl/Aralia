@@ -1,4 +1,4 @@
-﻿# Naval & Underdark
+# Naval & Underdark
 
 ## Purpose
 

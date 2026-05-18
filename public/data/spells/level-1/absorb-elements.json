@@ -13,7 +13,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -55,18 +54,33 @@
     "range": 0,
     "maxTargets": 1,
     "lineOfSight": true,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -88,18 +102,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "defenseType": "resistance",
       "damageType": [
@@ -109,6 +142,7 @@
         "Lightning",
         "Thunder"
       ],
+      "damageTypeSource": "triggering_damage_type",
       "duration": {
         "type": "rounds",
         "value": 1
@@ -128,7 +162,27 @@
         "sizes": [],
         "alignments": [],
         "hasCondition": [],
-        "isNativeToPlane": false
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable"
       },
       "reactionTrigger": {
         "event": "when_hit",
@@ -139,7 +193,8 @@
         "noShield": false,
         "targetSelf": false
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
     },
     {
       "type": "DAMAGE",
@@ -159,29 +214,55 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "1d6",
-        "type": "Acid/Cold/Fire/Lightning/Thunder"
+        "type": "triggering_damage_type"
       },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": [
+        {
+          "trigger": "on_attack_hit",
+          "scope": "spell",
+          "description": "The spell ends after the first melee attack hit on the caster's next turn spends the stored energy."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -189,7 +270,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You gain resistance to the triggering damage type until the start of your next turn. The first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.",
+  "description": "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.",
   "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.",
   "tags": [
     "reaction",

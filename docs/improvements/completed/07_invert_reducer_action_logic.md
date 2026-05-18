@@ -1,4 +1,4 @@
-﻿# Improvement Note: Invert Logic For Complex Reducer Actions
+# Improvement Note: Invert Logic For Complex Reducer Actions
 
 ## Status
 

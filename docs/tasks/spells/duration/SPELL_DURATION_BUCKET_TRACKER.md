@@ -263,7 +263,7 @@ Remaining work:
 - added a dedicated `Structured -> JSON` subsection inside `Duration Review`
 - strengthened the duration wording so the bucket now says what is wrong, how
   severe it is, whether it is semantically equivalent, and what should happen next
-- updated the shared spell-truth docs to reflect the bucket’s current two-phase state
+- updated the shared spell-truth docs to reflect the bucket's current two-phase state
 
 - split the runtime duration lane into explicit subbuckets so the gate checker can
   distinguish flattened concentration wording from plain wording residue and from

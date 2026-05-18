@@ -10,8 +10,8 @@
 
 - **Bucket name**: `School`
 - **Kind**: `parity`
-- **Phase 1 gate**: `todo` (canonical → structured parity script not yet authored)
-- **Phase 2 gate**: `todo` (structured → runtime JSON parity script not yet authored)
+- **Phase 1 gate**: `todo` (canonical -> structured parity script not yet authored)
+- **Phase 2 gate**: `todo` (structured -> runtime JSON parity script not yet authored)
 - **Tracker**: `docs/tasks/spells/school/SPELL_SCHOOL_BUCKET_TRACKER.md` (stub)
 - **Live `lastUpdated`**: `2026-04-30T12:00Z` (orchestrator-seeded)
 - **Atlas deep link**: `/Aralia/misc/spell_pipeline_atlas.html?bucket=School`
@@ -74,7 +74,7 @@ is a developer dashboard surfacing every bucket. Data is **fully
 hand-authored TypeScript** - no database. The author IS the source
 of truth.
 
-The dispatch loop ran V1 → V2 → V3 from 2026-04-25 to 2026-04-29.
+The dispatch loop ran V1 -> V2 -> V3 from 2026-04-25 to 2026-04-29.
 **V3 closed: the Atlas model has converged.** Gaps 01-08, 10-16
 are all resolved. Only Gap 09 (no automated drift check) is open.
 
@@ -88,7 +88,7 @@ report rather than a re-verification.
 The migration of the **School field** (one of the eight standard
 schools: abjuration / conjuration / divination / enchantment /
 evocation / illusion / necromancy / transmutation) from canonical
-extract → structured framework token → runtime JSON `school` field.
+extract -> structured framework token -> runtime JSON `school` field.
 
 Per `public/data/spell_audit_coverage.json`, the School field
 appears in **412 structured-md files**. Both canonical-side and
@@ -130,7 +130,7 @@ Both steps carry a `count: null` "pending recount" history snapshot
 
 ### 2. Establish the bucket
 
-- **Land the canonical → structured parity script** for the School
+- **Land the canonical -> structured parity script** for the School
   field. Look at the existing scripts in the gate-checker pipeline
   (search the codebase for examples of other bucket parity scripts
   - Components, Sub-Classes, Casting Time all have authored
@@ -242,7 +242,7 @@ loop and joins the passive work-tracking dashboard.
 
 1. Read the Onboarding panel + template + gap registry +
    `_LOOP_CLOSED.md` + your stub tracker.
-2. Land the canonical → structured parity script for the School
+2. Land the canonical -> structured parity script for the School
    field. Run the inventory. Classify. Replace placeholder steps
    in the Atlas with real subbuckets. Update the tracker.
 3. Verify Dashboard / Matrix / Map read honestly. Confirm Phase 2

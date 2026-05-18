@@ -52,7 +52,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
     };
 
     return (
-        <div className={`fixed inset-0 pointer-events-none z-[${Z_INDEX.WINDOW_FRAME}]`}>
+        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: Z_INDEX.WINDOW_FRAME }}>
             {/* Window Container */}
             <div
                 ref={windowRef}

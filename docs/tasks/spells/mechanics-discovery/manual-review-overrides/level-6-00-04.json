@@ -1,0 +1,160 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 0-4 in generated discovery row order.",
+    "This shard keeps formatting drift separate from mechanics findings and records validator-shape workarounds only where they affect review safety."
+  ],
+  "findings": {
+    "arcane-gate::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Two portal spaces and the one-sided open-facing choice are flattened into prose; runtime lacks paired portal endpoints and facing-choice fields.",
+      "recommendedTemplateChange": "Add linked portal endpoint and one-sided facing fields.",
+      "recommendedJsonChange": "Add runtime linkedPortalEndpoints and portalFacing data."
+    },
+    "arcane-gate::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Bonus Action text for changing portal facing; this is an action-sustain mechanic, not an attack or save modifier.",
+      "recommendedTemplateChange": "Track under sustain_or_recast_action.",
+      "recommendedJsonChange": "No attack/save runtime data required."
+    },
+    "arcane-gate::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each portal requires a Large unoccupied ground space, with one endpoint within range and one within 10 feet of the caster; runtime only has generic point targeting.",
+      "recommendedTemplateChange": "Add paired endpoint eligibility, size, occupancy, and range fields.",
+      "recommendedJsonChange": "Add runtime portalEndpointEligibility data."
+    },
+    "arcane-gate::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can use a Bonus Action to change the open-side facing; runtime lacks a granted bonus action or portal-facing update operation.",
+      "recommendedTemplateChange": "Add sustained portal-facing action fields.",
+      "recommendedJsonChange": "Add grantedActions entry for changing portal facing."
+    },
+    "arcane-gate::movement_or_repositioning": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the portals hovering inches from the ground; that is portal placement/orientation, not creature or object movement.",
+      "recommendedTemplateChange": "Track under terrain_or_surface and travel_or_planar_movement.",
+      "recommendedJsonChange": "No movement effect required."
+    },
+    "arcane-gate::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Portal placement requires Large unoccupied ground spaces, hovering inches from the ground, perpendicular orientation, and one-sided open direction; runtime lacks typed surface/orientation data.",
+      "recommendedTemplateChange": "Add portal surface, hover height, orientation, and one-sided opening fields.",
+      "recommendedJsonChange": "Add runtime portalPlacement data."
+    },
+    "arcane-gate::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The portals glow and their mist blocks sight, but runtime only preserves those properties in prose.",
+      "recommendedTemplateChange": "Add portal visibility and sight-blocking fields.",
+      "recommendedJsonChange": "Add runtime portalVisionProperties data."
+    },
+    "arcane-gate::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Open-side entry teleports creatures or objects out of the other portal as if adjacent, while the nonportal side has no effect; this linked travel rule is not typed.",
+      "recommendedTemplateChange": "Add bidirectional linked portal travel fields with open-side entry restrictions.",
+      "recommendedJsonChange": "Add runtime linkedPortalTravel data."
+    },
+    "blade-barrier::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Initial, enter-area, and end-turn Dexterity saves now all use half-damage outcomes with once-per-turn recurring triggers.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE effects for immediate, on_enter_area, and on_end_turn_in_area triggers."
+    },
+    "blade-barrier::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Difficult Terrain is represented, but Three-Quarters Cover is only preserved in utility prose and the terrain effect uses a validator-safe Square workaround because terrain effects do not accept Wall shapes.",
+      "recommendedTemplateChange": "Add typed cover fields and align terrain area shapes with wall-shaped areas.",
+      "recommendedJsonChange": "Add runtime cover data and extend terrain effect area support for Wall shapes."
+    },
+    "blade-barrier::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The created blade wall is now marked as a creation utility, but cover/barrier properties are still not first-class runtime fields.",
+      "recommendedTemplateChange": "Add created-wall cover and barrier property fields.",
+      "recommendedJsonChange": "Add runtime bladeWallStructureProperties data."
+    },
+    "blade-barrier::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The wall's Difficult Terrain behavior is represented as a TERRAIN effect; the remaining cover detail is tracked under terrain_or_surface and created_object_or_structure.",
+      "recommendedTemplateChange": "No separate environmental-change field required.",
+      "recommendedJsonChange": "Closed by TERRAIN difficult effect."
+    },
+    "bones-of-the-earth::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target can choose to fail the lift save, and a restrained creature can choose Strength or Dexterity for escape; runtime lacks voluntary save failure and escape-ability choice fields.",
+      "recommendedTemplateChange": "Add voluntary save-failure and escape-check choice fields.",
+      "recommendedJsonChange": "Add runtime pillarSaveChoice and pillarEscapeChoice data."
+    },
+    "bones-of-the-earth::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The lift save, optional failure, ceiling/obstacle damage branch, and escape check are all distinct branches but runtime only has one generic damage save.",
+      "recommendedTemplateChange": "Add pillar lift, crush, and escape save/check branches.",
+      "recommendedJsonChange": "Add runtime pillarBranch data."
+    },
+    "bones-of-the-earth::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Pillar count, dimensions, and rubble measurements are represented, but ground width eligibility, Medium-or-smaller creature targeting, rubble difficult terrain lifecycle, and clearing requirements are not typed.",
+      "recommendedTemplateChange": "Add pillar placement and rubble terrain lifecycle fields.",
+      "recommendedJsonChange": "Add runtime pillarPlacement and rubbleTerrain data."
+    },
+    "bones-of-the-earth::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible ground targeting, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "bones-of-the-earth::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each pillar's AC 5, 30 hit points, crumble-to-rubble behavior, and clearing time are not represented as object stats and aftermath data.",
+      "recommendedTemplateChange": "Add created-object stats, destruction, and rubble cleanup fields.",
+      "recommendedJsonChange": "Add runtime pillarObjectStats data."
+    },
+    "bones-of-the-earth::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Restrained-by-obstacle, Strength-or-Dexterity action escape, and move-or-fall outcome after escape are not represented as status and movement outcomes.",
+      "recommendedTemplateChange": "Add obstacle restraint, escape choice, and post-escape outcome fields.",
+      "recommendedJsonChange": "Add runtime pillarRestraint data."
+    },
+    "bones-of-the-earth::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Stone pillars bursting from the ground, obstacle-limited height, and rubble difficult terrain after destruction are not fully represented as environmental state changes.",
+      "recommendedTemplateChange": "Add pillar creation, obstacle interaction, and rubble state fields.",
+      "recommendedJsonChange": "Add runtime pillarEnvironmentChange data."
+    },
+    "chain-lightning::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now allows four total targets, but it does not distinguish the first target from up to three secondary targets within 30 feet, nor enforce one bolt per target.",
+      "recommendedTemplateChange": "Add chained secondary-target topology fields.",
+      "recommendedJsonChange": "Add runtime chainTargeting data."
+    },
+    "chain-lightning::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save, half-damage outcome, 10d8 Lightning damage, and four-target maximum are represented for this pass.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE save effect and maxTargets 4."
+    },
+    "chain-lightning::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible first-target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "chain-lightning::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the word 'launch' in the damage prose; this is not a ward, alarm, or trigger mechanic.",
+      "recommendedTemplateChange": "No ward/alarm field required.",
+      "recommendedJsonChange": "No ward/alarm runtime data required."
+    },
+    "circle-of-death::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The only choice is the point that anchors the 60-foot sphere, already represented by area targeting.",
+      "recommendedTemplateChange": "No separate choice field required.",
+      "recommendedJsonChange": "Closed by area targeting."
+    },
+    "circle-of-death::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save, half-damage outcome, 8d8 Necrotic damage, and +2d8 slot scaling are now represented.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by corrected DAMAGE effect and scaling."
+    }
+  },
+  "manualFindings": {}
+}

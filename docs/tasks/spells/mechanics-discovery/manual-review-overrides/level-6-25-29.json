@@ -1,0 +1,233 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 25-29 in generated discovery row order.",
+    "This shard closes mechanics encoded in the structured Markdown/runtime JSON edits and keeps genuinely missing first-class runtime fields actionable-open."
+  ],
+  "findings": {
+    "magic-jar::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The possession save and host-death self-save are present in structured prose/options, but runtime lacks a possession attempt effect and self-save consequence model.",
+      "recommendedTemplateChange": "Add possession attempt/save fields and self-save aftermath fields.",
+      "recommendedJsonChange": "Add runtime possessionAttempt and hostDeathSelfSave data."
+    },
+    "magic-jar::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster cannot take Reactions while in the container; runtime records this in MOVEMENT description but lacks a first-class reaction suppression field.",
+      "recommendedTemplateChange": "Add action/reaction restriction fields with allowed action exceptions.",
+      "recommendedJsonChange": "Add runtime actionRestrictions data."
+    },
+    "magic-jar::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Possession requires a visible Humanoid within 100 feet and excludes creatures warded by Protection from Evil and Good or Magic Circle; runtime only records this as utility option prose.",
+      "recommendedTemplateChange": "Add secondary action target filters and ward-exclusion fields.",
+      "recommendedJsonChange": "Add runtime possessionTargetFilter data."
+    },
+    "magic-jar::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The visible-Humanoid requirement is recorded in the Possess Humanoid utility option.",
+      "recommendedTemplateChange": "No separate vision field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "magic-jar::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The possessed creature's soul perceives from the container using its own senses; runtime records this in utility/status prose but lacks a first-class perception-origin field.",
+      "recommendedTemplateChange": "Add soul/perception-origin fields.",
+      "recommendedJsonChange": "Add runtime alternatePerceptionOrigin data."
+    },
+    "magic-jar::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Protection from Evil and Good and Magic Circle prevent possession, but runtime lacks ward-prevention integration.",
+      "recommendedTemplateChange": "Add blocked-by-spell/effect fields for possession and similar mechanics.",
+      "recommendedJsonChange": "Add runtime blockedBySpellEffects data."
+    },
+    "magic-jar::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The container stores souls, can be destroyed, is destroyed when the spell ends, and possession replaces several caster statistics with host values; runtime lacks object lifecycle and stat-replacement fields.",
+      "recommendedTemplateChange": "Add soul-container lifecycle and host-stat replacement fields.",
+      "recommendedJsonChange": "Add runtime soulContainer and hostStatReplacement data."
+    },
+    "magic-jar::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The possessed soul's Incapacitated state is represented as a STATUS_CONDITION effect; death/body-state consequences remain tracked in object/ending buckets.",
+      "recommendedTemplateChange": "No additional status field required for Incapacitated.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Incapacitated."
+    },
+    "magic-jar::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Soul return, caster death, host death, body distance, body dead, and container destruction outcomes are too specific for current duration fields.",
+      "recommendedTemplateChange": "Add conditional spell-ending and soul-return outcome fields.",
+      "recommendedJsonChange": "Add runtime magicJarEndConditions data."
+    },
+    "magic-jar::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The container is destroyed when the spell ends; runtime lacks on-spell-end object destruction data.",
+      "recommendedTemplateChange": "Add on-spell-end object aftermath fields.",
+      "recommendedJsonChange": "Add runtime onSpellEndObjectDestruction data.",
+      "closedReason": "Closed by the created-object cleanup batch: structured markdown and runtime JSON now use effects[].endCleanup[] with spell_material_container, spell_component, all_remaining, and destroy on spell end."
+    },
+    "mass-suggestion::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save and negated Charmed condition are represented by STATUS_CONDITION condition.saveType/saveEffect.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Charmed."
+    },
+    "mass-suggestion::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Mass Suggestion's target hearing and understanding prerequisites are represented by Target Can Hear/Understand Caster and runtime communicationPrerequisites; prompt word-count details remain open under message_or_communication.",
+      "recommendedTemplateChange": "No new template field needed; existing target communication prerequisite fields now cover this eligibility mechanic.",
+      "recommendedJsonChange": "Runtime targeting/effect communicationPrerequisites now require the target to hear and understand the caster."
+    },
+    "mass-suggestion::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 25-word suggestion is represented as a communication utility option, but runtime lacks a prompt/input field for the actual suggested phrase and a word-count cap.",
+      "recommendedTemplateChange": "Add prompt text and word-limit fields for spoken/written command mechanics.",
+      "recommendedJsonChange": "Add runtime suggestionPrompt data."
+    },
+    "mass-suggestion::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Achievable and non-obviously-damaging suggestion constraints are represented as utility options, but runtime lacks validation fields for social instruction constraints.",
+      "recommendedTemplateChange": "Add social command constraint fields.",
+      "recommendedJsonChange": "Add runtime suggestionConstraints data."
+    },
+    "mass-suggestion::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Charmed condition is represented as a STATUS_CONDITION effect with duration details.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Charmed."
+    },
+    "mass-suggestion::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The spell can end per target when the activity is completed, or when the caster/allies damage that target; runtime lacks per-target conditional ending data.",
+      "recommendedTemplateChange": "Add per-target conditional ending fields.",
+      "recommendedJsonChange": "Add runtime perTargetEndConditions data.",
+      "closedReason": "Reused existing caster_or_ally_damages_target and suggested_activity_completed conditional-ending triggers, recorded them in structured markdown, and mapped both runtime effects with effect scope for per-target endings."
+    },
+    "mental-prison::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Intelligence save, half-like initial damage behavior, failed-save Restrained condition, and escape-trigger damage are represented.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by DAMAGE, STATUS_CONDITION, and trigger damage effects."
+    },
+    "mental-prison::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The target's inability to see or hear beyond the illusion is represented as sensory utility data.",
+      "recommendedTemplateChange": "No additional vision/light/sound field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY sensory controlOptions."
+    },
+    "mental-prison::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The illusory cell, target-only perception, and breach triggers are represented as utility and damage effects, but runtime lacks a first-class illusion enclosure and breach-trigger model.",
+      "recommendedTemplateChange": "Add illusion enclosure and breach-trigger fields.",
+      "recommendedJsonChange": "Add runtime illusionCell and illusionBreachTriggers data."
+    },
+    "mental-prison::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "The target-only perception of the illusory cell is represented as sensory utility.",
+      "recommendedTemplateChange": "No separate sensor field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY sensory data."
+    },
+    "mental-prison::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Mental Prison's immunity-to-Charmed automatic success rule is now encoded as a save auto-outcome override; the remaining illusion prison behavior stays in its other open buckets.",
+      "recommendedTemplateChange": "Closed for this auto-success social/knowledge finding by Save Auto Outcome auto_success with condition immune_to_charmed.",
+      "recommendedJsonChange": "Closed by runtime condition.saveOutcomeOverrides carrying immune_to_charmed -> auto_success."
+    },
+    "mental-prison::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Restrained is represented as a STATUS_CONDITION effect; Charmed immunity auto-success is tracked separately as a schema gap.",
+      "recommendedTemplateChange": "No additional status field required for Restrained.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Restrained."
+    },
+    "mental-prison::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The dangerous perceived environment is target-only illusion prose; the mechanical restriction and damage triggers are represented.",
+      "recommendedTemplateChange": "No separate environmental field required beyond the illusion gap.",
+      "recommendedJsonChange": "Closed by UTILITY sensory and DAMAGE trigger effects for this pass."
+    },
+    "mental-prison::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell ends on successful initial save and after breach-trigger damage; runtime records the damage but lacks first-class conditional spell-ending triggers.",
+      "recommendedTemplateChange": "Add conditional spell-ending triggers for save success and breach events.",
+      "recommendedJsonChange": "Add runtime conditionalSpellEnd data."
+    },
+    "move-earth::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Terrain shaping modes and the option to choose a new area every 10 minutes are represented as utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "move-earth::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 40-foot terrain area, half-dimension transformation cap, 10-minute completion time, repeated area choice, and terrain material restrictions are represented, but runtime lacks first-class terrain-shaping mode/cap/timing fields.",
+      "recommendedTemplateChange": "Add terrain-shaping mode, material, cap, and transformation-time fields.",
+      "recommendedJsonChange": "Add runtime terrainManipulation data."
+    },
+    "move-earth::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Walls, trenches, pillars, accommodating rocks/structures, and possible collapse are represented as utility options, but runtime lacks created terrain feature and structural instability fields.",
+      "recommendedTemplateChange": "Add terrain feature creation and structure instability fields.",
+      "recommendedJsonChange": "Add runtime terrainFeatureCreation and structureInstability data."
+    },
+    "move-earth::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched 'unstable' in the collapse sentence; there is no healing or restoration mechanic.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No runtime healing/restoration data required."
+    },
+    "move-earth::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched possible structure collapse; this is structure/environment risk, not a creature status condition.",
+      "recommendedTemplateChange": "Track under created_object_or_structure/environmental_change.",
+      "recommendedJsonChange": "No STATUS_CONDITION effect required."
+    },
+    "move-earth::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Slow terrain transformation, plant carry-along, rock/structure accommodation, and possible collapse are represented in utility options, but runtime lacks first-class environmental transformation fields.",
+      "recommendedTemplateChange": "Add environmental transformation fields for slow reshape, carried vegetation, and structure accommodation/collapse.",
+      "recommendedJsonChange": "Add runtime environmentalTransformation data."
+    },
+    "otilukes-freezing-sphere::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing the explosion point and choosing to store, throw, sling, set down, or delay the globe are represented by targeting, spatial details, and utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting and UTILITY controlOptions/grantedActions."
+    },
+    "otilukes-freezing-sphere::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save and half-damage outcome are represented by the DAMAGE effect.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE condition.saveType/saveEffect."
+    },
+    "otilukes-freezing-sphere::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The frozen-water surface trapping creatures is represented by TERRAIN and STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "No additional terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by TERRAIN frozen-water effect and STATUS_CONDITION Restrained."
+    },
+    "otilukes-freezing-sphere::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Frozen water and a stored globe are represented, but runtime lacks first-class created object/storage lifecycle fields for the globe and ice object stats.",
+      "recommendedTemplateChange": "Add created object lifecycle and ice object/stat fields.",
+      "recommendedJsonChange": "Add runtime storedProjectile and createdIceObject data."
+    },
+    "otilukes-freezing-sphere::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The stored globe can be handed off, thrown, slung, set down, shatter on impact, or explode after 1 minute; runtime stores utility actions but lacks first-class stored projectile state/ownership/expiration fields.",
+      "recommendedTemplateChange": "Add stored spell projectile resource/lifecycle fields.",
+      "recommendedJsonChange": "Add runtime storedSpellProjectile data."
+    },
+    "otilukes-freezing-sphere::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Restrained for creatures trapped in frozen water is represented as a STATUS_CONDITION effect with break-free details in description.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Restrained."
+    },
+    "otilukes-freezing-sphere::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Water freezing, trapped swimmers, stored globe handling, and delayed explosion are represented in terrain/status/utility effects, with remaining first-class object lifecycle gaps tracked separately.",
+      "recommendedTemplateChange": "No separate environmental field required beyond created-object/resource gaps.",
+      "recommendedJsonChange": "Closed by TERRAIN, STATUS_CONDITION, and UTILITY effects for this pass."
+    }
+  }
+}

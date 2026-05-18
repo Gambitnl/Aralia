@@ -1,0 +1,121 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "magic-circle": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "magic-circle::choice_or_mode",
+        "canonicalEvidence": "Choose one or more of the following types of creatures: Celestials, Elementals, Fey, Fiends, or Undead. Each time you cast this spell, you can cause its magic to operate in the reverse direction.",
+        "structuredState": "No creature-type choice or reverse-direction mode fields.",
+        "jsonState": "Runtime JSON stores creature type choices and reverse mode only in utility prose.",
+        "issue": "Magic Circle has caster-selected affected creature types and normal/reverse direction modes that are not typed.",
+        "recommendedTemplateChange": "Add creatureTypeChoice and barrierDirectionMode fields.",
+        "recommendedJsonChange": "Add runtime choice data for affected creature types and normal/reversed circle direction.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "magic-circle::terrain_or_surface",
+        "canonicalEvidence": "You create a 10-foot-radius, 20-foot-tall Cylinder of magical energy centered on a point on the ground that you can see within range. Glowing runes appear wherever the Cylinder intersects with the floor or other surface.",
+        "structuredState": "Area Shape/Size/Height now preserve the 10-foot-radius, 20-foot-tall Cylinder.",
+        "jsonState": "Runtime areaOfEffect now has Cylinder size 10 and height 20 feet.",
+        "issue": "The core cylinder geometry is represented; floor/surface rune presentation is descriptive unless later used for detection or interaction.",
+        "recommendedTemplateChange": "No area geometry change required for this row.",
+        "recommendedJsonChange": "Closed by adding Area Height 20 feet to structured markdown and runtime JSON.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "magic-circle::vision_light_sound",
+        "canonicalEvidence": "Centered on a point on the ground that you can see within range.",
+        "structuredState": "Line of Sight: true.",
+        "jsonState": "Runtime targeting lineOfSight is true.",
+        "issue": "The caster sight requirement is represented.",
+        "recommendedTemplateChange": "No line-of-sight change required.",
+        "recommendedJsonChange": "No line-of-sight runtime change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "magic-circle::status_or_state_change",
+        "canonicalEvidence": "The creature can't willingly enter the Cylinder by nonmagical means. If the creature tries to use teleportation or interplanar travel to do so, it must succeed on a Charisma saving throw; otherwise it fails, and the attempt is wasted. The creature has Disadvantage on attack rolls against targets within the Cylinder. Targets within the Cylinder can't be Charmed, Frightened, or Possessed by the creature.",
+        "structuredState": "Effect Type: UTILITY; Save Stat: Charisma; no entry barrier, teleport/travel save, attack disadvantage, or protection immunity fields.",
+        "jsonState": "Runtime JSON has only prose utility for the barrier and protections.",
+        "issue": "Magic Circle's entry restrictions, teleport/interplanar save, attack disadvantage, and charm/frighten/possess protection are not represented.",
+        "recommendedTemplateChange": "Add creatureType-gated barrier, travel blocking, attack disadvantage, and condition/source protection fields.",
+        "recommendedJsonChange": "Add runtime magicCircleBarrier data for entry/exit mode, Charisma save for teleport/interplanar travel, disadvantage on attacks, and protection from Charmed/Frightened/Possessed by affected creature types.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "magic-circle::manual_slot_duration_scaling",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. The duration increases by 1 hour for each spell slot level above 3.",
+        "structuredState": "Scaling Rule 1 records special_text duration scaling.",
+        "jsonState": "Runtime scaling has no typed duration-per-slot increase.",
+        "issue": "Closed: Magic Circle's +1 hour per higher slot duration scaling is now structured and runtime-mapped.",
+        "recommendedTemplateChange": "Closed by changing Scaling Rule 1 to slot_level_bonus for duration.value.",
+        "recommendedJsonChange": "Closed by runtime higherLevelScaling slot_level_bonus with +1 hour duration per slot above 3.",
+        "resolutionStatus": "closed",
+        "closedReason": "Magic Circle now records its higher-slot duration increase in structured markdown and runtime JSON. The separate Magic Circle barrier/protection mechanics remain open in their own finding."
+      }
+    ],
+    "major-image": [
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "major-image::vision_light_sound",
+        "canonicalEvidence": "It seems real, including sounds, smells, and temperature appropriate to the thing depicted. Similarly, you can cause the illusion to make different sounds at different times, even making it carry on a conversation.",
+        "structuredState": "Effect Type: UTILITY; no sensory modality or mutable sound fields.",
+        "jsonState": "Runtime JSON stores the illusion only in prose utility.",
+        "issue": "Major Image's visual, sound, smell, temperature, mutable sound, and conversation capabilities are not typed.",
+        "recommendedTemplateChange": "Add illusion sensory modality fields and mutable sound/conversation controls.",
+        "recommendedJsonChange": "Add runtime illusion data for visual/sound/smell/temperature, mutable sounds, and conversation-capable audio.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "illusion_or_disguise",
+        "findingId": "major-image::illusion_or_disguise",
+        "canonicalEvidence": "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 20-foot Cube. If you are within range of the illusion, you can take a Magic action to cause the image to move to any other spot within range. Physical interaction with the image reveals it to be an illusion. A creature that takes a Study action can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC.",
+        "structuredState": "Area and Intelligence save/check are partially represented, but no illusion type, movement action, physical interaction reveal, or Study Investigation check fields exist.",
+        "jsonState": "Runtime JSON has one prose utility effect.",
+        "issue": "Major Image's core illusion object, movement/update action, physical interaction reveal, and Study/Investigation discovery are prose-only.",
+        "recommendedTemplateChange": "Add illusion fields for image kind, max size, movement action, reveal triggers, and investigation check.",
+        "recommendedJsonChange": "Add runtime illusion data with max 20-foot cube, Magic action move/update, physical interaction reveal, and Study Intelligence (Investigation) vs spell DC.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "sensor_or_remote_perception",
+        "findingId": "major-image::sensor_or_remote_perception",
+        "canonicalEvidence": "If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature.",
+        "structuredState": "No per-observer discerned-illusion perception state fields.",
+        "jsonState": "Runtime JSON has no per-observer illusion-disbelief perception state.",
+        "issue": "Major Image changes perception for creatures that discern the illusion, but that per-observer state is not represented.",
+        "recommendedTemplateChange": "Add illusionDisbelief perception-result fields.",
+        "recommendedJsonChange": "Add runtime perObserverIllusionState for see-through image and faint sensory qualities after discernment.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "major-image::environmental_change",
+        "canonicalEvidence": "It seems real, including sounds, smells, and temperature appropriate to the thing depicted, but it can't deal damage or cause conditions.",
+        "structuredState": "No apparent sensory environment fields.",
+        "jsonState": "Runtime JSON has no typed apparent temperature/smell/sound environment.",
+        "issue": "Major Image creates apparent environmental sensory qualities without mechanical damage or conditions.",
+        "recommendedTemplateChange": "Add apparentEnvironment fields for sensory-only smell/sound/temperature and explicit no-damage/no-condition limits.",
+        "recommendedJsonChange": "Add runtime illusionSensoryEnvironment data with cannotDealDamage and cannotCauseConditions flags.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "deferred_descriptive_flavor",
+        "findingId": "major-image::deferred_descriptive_flavor",
+        "canonicalEvidence": "If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature.",
+        "structuredState": "The mechanical discernment effect is tracked separately.",
+        "jsonState": "Runtime does not preserve the word choice of faint sensory qualities.",
+        "issue": "The exact descriptive phrasing of faint sensory qualities is deferred; the perception-state mechanic remains actionable in sensor/illusion buckets.",
+        "recommendedTemplateChange": "No descriptive prose-only field required for this row.",
+        "recommendedJsonChange": "No runtime change required for descriptive phrasing alone.",
+        "resolutionStatus": "deferred_flavor"
+      }
+    ]
+  }
+}

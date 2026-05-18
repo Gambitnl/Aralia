@@ -1,0 +1,220 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 7 manual review override shard for spell indexes 10-14 in generated discovery row order.",
+    "This packet added explicit utility options and runtime effects for Forcecage, Mirage Arcane, Mordenkainen's Magnificent Mansion, Plane Shift, and Power Word Pain."
+  ],
+  "findings": {
+    "forcecage::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The cage-versus-solid-box choice is represented by spatial forms and utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails and UTILITY controlOptions."
+    },
+    "forcecage::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Charisma save is only required when a trapped creature tries teleportation or interplanar travel; runtime has utility options but lacks conditional escape-save fields keyed to travel attempts.",
+      "recommendedTemplateChange": "Add conditional escape-save fields for blocked travel effects.",
+      "recommendedJsonChange": "Add runtime escapeSave or blockedTravelSave data."
+    },
+    "forcecage::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Partial or too-large creatures being pushed out of the area is represented as a MOVEMENT push effect.",
+      "recommendedTemplateChange": "No additional forced-movement field required.",
+      "recommendedJsonChange": "Closed by MOVEMENT forcedMovement data."
+    },
+    "forcecage::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The prison is invisible; runtime preserves this in utility options, but lacks first-class invisibility/visibility fields for created force objects.",
+      "recommendedTemplateChange": "Add created-object visibility fields.",
+      "recommendedJsonChange": "Add runtime createdObjectVisibility data."
+    },
+    "forcecage::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Teleportation, interplanar travel, and ethereal travel blocking are preserved in utility options, but runtime lacks first-class travel-blocking fields with save and wasted-effect outcomes.",
+      "recommendedTemplateChange": "Add blocked travel mode fields with save outcomes.",
+      "recommendedJsonChange": "Add runtime blockedTravel data for teleportation, interplanar travel, and ethereal travel."
+    },
+    "forcecage::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Completely enclosed creatures are trapped, but runtime lacks a first-class trapped/passability state separate from generic utility options.",
+      "recommendedTemplateChange": "Add trapped/passability state fields for prisons and barriers.",
+      "recommendedJsonChange": "Add runtime containmentState data."
+    },
+    "mirage-arcane::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Difficult Terrain conversion and movement impedance are represented by TERRAIN and utility options.",
+      "recommendedTemplateChange": "No additional terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by TERRAIN effect and UTILITY controlOptions."
+    },
+    "mirage-arcane::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Visual, audible, tactile, and olfactory illusion channels are preserved in utility options, but runtime lacks first-class multisensory illusion channel fields.",
+      "recommendedTemplateChange": "Add illusion sensory channel fields.",
+      "recommendedJsonChange": "Add runtime illusionSensoryChannels data."
+    },
+    "mirage-arcane::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The terrain illusion, Truesight exception, and continued physical interaction are preserved in utility options, but runtime lacks typed illusion reveal/interaction fields.",
+      "recommendedTemplateChange": "Add illusion reveal and physical-interaction fields.",
+      "recommendedJsonChange": "Add runtime illusionReveal and illusionPhysicalInteraction data."
+    },
+    "mirage-arcane::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Truesight revealing the terrain's true form is preserved in utility options, but runtime lacks a typed sense-gated reveal field.",
+      "recommendedTemplateChange": "Add sense-gated reveal fields.",
+      "recommendedJsonChange": "Add runtime senseReveal data keyed to Truesight."
+    },
+    "mirage-arcane::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Altered or added structures are preserved in utility options, but runtime lacks first-class illusory structure creation fields and creature exclusion fields.",
+      "recommendedTemplateChange": "Add illusory structure creation and creature exclusion fields.",
+      "recommendedJsonChange": "Add runtime illusoryStructure data."
+    },
+    "mirage-arcane::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell can make terrain physically impede movement and remove illusory pieces when taken away; runtime lacks first-class terrain-state and removed-piece dissipation fields.",
+      "recommendedTemplateChange": "Add physical illusion environmental state fields.",
+      "recommendedJsonChange": "Add runtime physicalIllusionTerrain data."
+    },
+    "mordenkainens-magnificent-mansion::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Door operation, floor plan choice, furnishing choice, and servant appearance are represented as utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "mordenkainens-magnificent-mansion::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Only the caster and creatures designated when the spell is cast can enter; runtime preserves this in utility options but lacks first-class entry eligibility fields.",
+      "recommendedTemplateChange": "Add designated entrant/portal eligibility fields.",
+      "recommendedJsonChange": "Add runtime portalEntryEligibility data."
+    },
+    "mordenkainens-magnificent-mansion::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The 50 contiguous 10-foot Cube floor-plan limit is represented by targeting.maxTargets and spatial form data.",
+      "recommendedTemplateChange": "No additional terrain/surface field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.areaOfEffect/spatialDetails."
+    },
+    "mordenkainens-magnificent-mansion::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The closed door is imperceptible and servants are near-transparent; runtime preserves these in utility options but lacks first-class visibility fields.",
+      "recommendedTemplateChange": "Add visibility state fields for portals and created attendants.",
+      "recommendedJsonChange": "Add runtime visibilityState data."
+    },
+    "mordenkainens-magnificent-mansion::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The extradimensional dwelling, floor-plan limit, furnishings, food, and door are represented by spatial details and utility options.",
+      "recommendedTemplateChange": "No additional creation field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails and UTILITY controlOptions."
+    },
+    "mordenkainens-magnificent-mansion::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The 100 invulnerable servants are represented as SUMMONING plus utility options, but runtime lacks first-class noncombat-servant capability limits, invulnerability, and cannot-harm rules.",
+      "recommendedTemplateChange": "Add noncombat servant capability and restriction fields.",
+      "recommendedJsonChange": "Add runtime servantCapabilityRules data."
+    },
+    "mordenkainens-magnificent-mansion::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Entry into and expulsion from the extradimensional dwelling are represented by utility options and a MOVEMENT effect.",
+      "recommendedTemplateChange": "No additional travel field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT and UTILITY effects."
+    },
+    "mordenkainens-magnificent-mansion::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Food sufficient for a nine-course banquet for up to 100 people is preserved in utility options, but runtime lacks first-class created-food service capacity fields.",
+      "recommendedTemplateChange": "Add created provisions/capacity fields.",
+      "recommendedJsonChange": "Add runtime createdProvisionCapacity data."
+    },
+    "mordenkainens-magnificent-mansion::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Clean, fresh, warm atmosphere plus furnished/decorated dwelling are represented by utility options.",
+      "recommendedTemplateChange": "No additional environmental field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    },
+    "mordenkainens-magnificent-mansion::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Expulsion of creatures and objects when the spell ends is represented by a MOVEMENT effect and utility option.",
+      "recommendedTemplateChange": "No additional conditional-ending field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT effect."
+    },
+    "mordenkainens-magnificent-mansion::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Removed furnishings dissipating into smoke and end-of-spell expulsion are represented by utility options and movement; no separate aftermath/memory mechanic remains hidden.",
+      "recommendedTemplateChange": "No aftermath field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY and MOVEMENT effects."
+    },
+    "plane-shift::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Up to eight willing creatures linking hands with the caster is represented by targeting.maxTargets and utility options.",
+      "recommendedTemplateChange": "No additional target field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.maxTargets and UTILITY controlOptions."
+    },
+    "plane-shift::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Transport to another plane, general destination, and teleportation circle destination are represented by MOVEMENT and utility options.",
+      "recommendedTemplateChange": "No additional travel field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT and UTILITY effects."
+    },
+    "plane-shift::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Knowing a sigil sequence for a teleportation circle is preserved in utility options, but runtime lacks first-class destination-knowledge prerequisite fields.",
+      "recommendedTemplateChange": "Add destination knowledge prerequisite fields.",
+      "recommendedJsonChange": "Add runtime destinationKnowledgeRequirement data."
+    },
+    "plane-shift::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The too-small teleportation circle spillover is represented as a utility option and covered by the movement destination description.",
+      "recommendedTemplateChange": "No environmental field required.",
+      "recommendedJsonChange": "Closed by MOVEMENT description and UTILITY controlOptions."
+    },
+    "power-word-pain::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Disadvantage on attack rolls is represented by ATTACK_ROLL_MODIFIER and utility options.",
+      "recommendedTemplateChange": "No additional attack-roll field required for this pass.",
+      "recommendedJsonChange": "Closed by ATTACK_ROLL_MODIFIER effect."
+    },
+    "power-word-pain::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Power Word Pain now records the end-turn Constitution repeat save and the pre-cast Constitution gate as structured fields plus runtime repeatSave/recurringMechanics data.",
+      "issue": "End-of-turn Constitution saves and pre-spellcasting Constitution saves are preserved in utility/status text, but runtime lacks first-class recurring save and pre-cast save gates.",
+      "recommendedTemplateChange": "Add recurring save and pre-cast save gate fields.",
+      "recommendedJsonChange": "Add runtime recurringSave and spellcastingGateSave data."
+    },
+    "power-word-pain::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible-target wording; line-of-sight targeting is already represented.",
+      "recommendedTemplateChange": "No vision/light/sound field required.",
+      "recommendedJsonChange": "Closed by targeting.lineOfSight."
+    },
+    "power-word-pain::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "The spoken word of power is spellcasting flavor plus verbal component, not a message delivery mechanic.",
+      "recommendedTemplateChange": "No message field required.",
+      "recommendedJsonChange": "No runtime communication data required."
+    },
+    "power-word-pain::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Charm immunity excludes targets from the spell, but runtime lacks a first-class immunity-based eligibility field for this effect.",
+      "recommendedTemplateChange": "Add immunity-based target exclusion fields.",
+      "recommendedJsonChange": "Add runtime targetImmunityExclusion data."
+    },
+    "power-word-pain::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell affects only targets with 100 hit points or fewer; runtime preserves this in utility options but lacks first-class HP-threshold eligibility fields.",
+      "recommendedTemplateChange": "Add HP-threshold target eligibility fields.",
+      "recommendedJsonChange": "Add runtime hpThresholdEligibility data."
+    },
+    "power-word-pain::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Crippling pain is represented as a STATUS_CONDITION effect plus movement and attack-roll modifier effects.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION, MOVEMENT, ATTACK_ROLL_MODIFIER, and UTILITY effects."
+    },
+    "power-word-pain::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The pain ends on a successful end-of-turn Constitution save, but runtime currently stores that in status aftermath/utility options rather than a typed recurring end condition.",
+      "recommendedTemplateChange": "Add recurring save end-condition fields.",
+      "recommendedJsonChange": "Add runtime recurringSaveEndCondition data."
+    }
+  }
+}

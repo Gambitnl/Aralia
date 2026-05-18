@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/05/2026, 17:10:41
+ * Last Sync: 07/05/2026, 00:03:38
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, hooks/useBattleMap.ts
  * Imports: 13 files
  *
@@ -52,6 +52,7 @@ interface UseAbilitySystemProps {
   onCharacterUpdate: (character: CombatCharacter) => void;
   onAbilityEffect?: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
   onLogEntry?: (entry: CombatLogEntry) => void;
+  onNotification?: (message: string, type: 'info' | 'error' | 'warning' | 'success') => void;
   onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void;
   reactiveTriggers?: ReactiveTrigger[];
   onReactiveTriggerUpdate?: (triggers: ReactiveTrigger[]) => void;
@@ -115,6 +116,7 @@ export const useAbilitySystem = ({
   onCharacterUpdate,
   onAbilityEffect: _onAbilityEffect,
   onLogEntry,
+  onNotification,
   onRequestInput,
   reactiveTriggers,
   onReactiveTriggerUpdate,
@@ -282,6 +284,7 @@ export const useAbilitySystem = ({
         }
       } catch (error) {
         console.error("SpellCommandFactory error:", error);
+        if (onNotification) onNotification(`The spell fizzles before it can be cast. (${error instanceof Error ? error.message : 'Unknown error'})`, 'error');
         if (onLogEntry) {
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
           onLogEntry({
@@ -294,8 +297,9 @@ export const useAbilitySystem = ({
         }
       }
     },
-    [onCharacterUpdate, onLogEntry, onRequestInput, onReactiveTriggerUpdate, onMapUpdate]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onMapUpdate]
   );
+
 
 
   // Legacy applyAbilityEffects removed - Logic moved to WeaponAttackCommand in AbilityCommandFactory
@@ -424,6 +428,31 @@ export const useAbilitySystem = ({
           )
         };
         onCharacterUpdate(newCaster);
+      } else if (ability.recharge?.threshold) {
+        const updatedCaster = result.finalState.characters.find(c => c.id === caster.id) || caster;
+        const newCaster = {
+          ...applyResourceSnapshotToCaster(updatedCaster, casterAfterCost),
+          abilities: updatedCaster.abilities.map(a =>
+            a.id === ability.id ? { ...a, isRecharging: true } : a
+          )
+        };
+        onCharacterUpdate(newCaster);
+      }
+
+      // Decrement limited-use abilities (e.g. 1/Day, 3/Day from 5eTools N/Day annotations).
+      // usesRemaining bottoms out at 0; the ability stays on the character so the name
+      // is still visible in the inspect panel even when depleted.
+      if (ability.maxUses !== undefined) {
+        const updatedCaster = result.finalState.characters.find(c => c.id === caster.id) || caster;
+        const newCaster = {
+          ...applyResourceSnapshotToCaster(updatedCaster, casterAfterCost),
+          abilities: updatedCaster.abilities.map(a =>
+            a.id === ability.id
+              ? { ...a, usesRemaining: Math.max(0, (a.usesRemaining ?? a.maxUses ?? 1) - 1) }
+              : a
+          )
+        };
+        onCharacterUpdate(newCaster);
       }
     } else {
       console.error("Ability execution failed:", result.error);
@@ -469,6 +498,7 @@ export const useAbilitySystem = ({
     // pick a legal target without reselecting the ability.
     const validation = getTargetValidation(selectedAbility, caster, targetPosition);
     if (!validation.isValid) {
+      if (onNotification) onNotification(validation.reason ?? `${caster.name} cannot use ${selectedAbility.name} there.`, 'error');
       if (onLogEntry) {
         onLogEntry({
           id: generateId(),

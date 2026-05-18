@@ -1,4 +1,4 @@
-﻿# Character Sheet
+# Character Sheet
 
 ## Purpose
 

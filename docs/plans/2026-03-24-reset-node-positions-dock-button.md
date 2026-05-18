@@ -4,7 +4,7 @@
 
 **Goal:** Move the "Reset Node Positions" button from the collapsible toolbar menu into the permanent bottom dock, placed after "Reset View" and separated by a visual divider.
 
-**Architecture:** Pure DOM restructuring in `RoadmapVisualizer.tsx` — remove one `<button>` from the menu, add a divider + new `<button>` to the bottom dock. No new state, props, or functions.
+**Architecture:** Pure DOM restructuring in `RoadmapVisualizer.tsx` - remove one `<button>` from the menu, add a divider + new `<button>` to the bottom dock. No new state, props, or functions.
 
 **Tech Stack:** React, Tailwind CSS
 
@@ -40,11 +40,11 @@ git commit -m "refactor(roadmap): remove Reset Node Positions from toolbar menu"
 ### Task 2: Add divider + Reset Node Positions button to bottom dock
 
 **Files:**
-- Modify: `devtools/roadmap/src/components/debug/roadmap/RoadmapVisualizer.tsx:3557–3569`
+- Modify: `devtools/roadmap/src/components/debug/roadmap/RoadmapVisualizer.tsx:3557-3569`
 
 **Step 1: Insert divider and new button after the "Reset View" button**
 
-Find this block (lines ~3557–3569):
+Find this block (lines ~3557-3569):
 
 ```tsx
           {/* Shrink the reset button copy on compact screens so the dock stays narrow

@@ -24,7 +24,7 @@
  * - Action Execution logic extracted to `useActionExecutor`.
  * - Remains the "Combat Coordinator" handling AI and orchestrating actions.
  */
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { CombatCharacter, CombatLogEntry, BattleMapData } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId } from '../../utils/combatUtils';
@@ -36,6 +36,7 @@ import { useTurnOrder } from './useTurnOrder';
 import { useCombatEngine } from './engine/useCombatEngine';
 import { useActionExecutor } from './useActionExecutor';
 import { ROUND_DURATION_SECONDS } from '../../utils/core/spellTimeUtils';
+import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 
 interface UseTurnManagerProps {
   difficulty?: keyof typeof AI_THINKING_DELAY_MS;
@@ -66,17 +67,16 @@ export const useTurnManager = ({
     advanceTurn: advanceTurnOrder,
     joinTurnOrder,
     isCharacterTurn: checkIsCharacterTurn,
-    // TODO(lint-intent): 'setCurrentCharacter' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    // TODO(Cleanup): Remove unused `setCurrentCharacter`
-    // This function is returned by `useTurnOrder` but never used. If it's not part of the public API needed by the UI, remove it to reduce clutter.
-    setCurrentCharacter: _setCurrentCharacter,
+    setCurrentCharacter,
     recordAction
   } = useTurnOrder({ characters });
 
   const { damageNumbers, animations, addDamageNumber, queueAnimation } = useCombatVisuals();
   const { canAfford, consumeAction } = useActionEconomy();
+
+  // Ref to executeAction — set after useActionExecutor initializes.
+  // Allows endTurn to trigger legendary actions without a circular useCallback dependency.
+  const executeActionRef = useRef<((action: import('../../types/combat').CombatAction) => boolean) | null>(null);
 
   const {
     spellZones,
@@ -120,10 +120,19 @@ export const useTurnManager = ({
     updatedChar = {
       ...updatedChar,
       statusEffects: character.statusEffects.map(effect => ({ ...effect, duration: effect.duration - 1 })).filter(effect => effect.duration > 0),
-      abilities: character.abilities.map(ability => ({
-        ...ability,
-        currentCooldown: Math.max(0, (ability.currentCooldown || 0) - 1)
-      })),
+      abilities: character.abilities.map(ability => {
+        if (ability.recharge?.threshold && ability.isRecharging) {
+          const roll = Math.floor(Math.random() * 6) + 1;
+          if (roll >= ability.recharge.threshold) {
+            return { ...ability, isRecharging: false, currentCooldown: 0 };
+          }
+          return { ...ability };
+        }
+        return {
+          ...ability,
+          currentCooldown: Math.max(0, (ability.currentCooldown || 0) - 1)
+        };
+      }),
       concentratingOn: character.concentratingOn ? {
         ...character.concentratingOn,
         sustainedThisTurn: false
@@ -231,7 +240,38 @@ export const useTurnManager = ({
       });
     }
 
-    // 4. Start turn for the next character
+    // 4. Legendary Action Opportunity
+    // After each creature's turn ends, enemy legendary monsters with remaining
+    // budget take one legendary action (D&D 5e: "at the end of each other creature's turn").
+    // Uses executeActionRef to avoid a circular useCallback dependency with useActionExecutor.
+    if (executeActionRef.current && mapData) {
+      const endedId = currentCharacter.id;
+      const livingEnemies = characters.filter(c => c.team === 'enemy' && c.currentHP > 0 && c.id !== endedId);
+      for (const legendary of livingEnemies) {
+        const budget = legendary.actionEconomy?.legendary;
+        if (!budget || budget.total === 0 || budget.used >= budget.total) continue;
+
+        // Ask the AI for its best play, then filter to legendary-cost abilities only.
+        const fullPlan = evaluateCombatTurn(legendary, characters, mapData);
+        if (fullPlan.type === 'end_turn') continue;
+
+        // Only proceed if the chosen action is a legendary ability.
+        if (fullPlan.type === 'ability' && fullPlan.abilityId) {
+          const ability = legendary.abilities.find(a => a.id === fullPlan.abilityId);
+          if (ability?.cost.type !== 'legendary') continue;
+          executeActionRef.current(fullPlan);
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message: `${legendary.name} uses a legendary action: ${ability.name}.`,
+            characterId: legendary.id,
+          });
+        }
+      }
+    }
+
+    // 5. Start turn for the next character
     if (nextCharacterId) {
       let nextCharacter = characters.find(c => c.id === nextCharacterId);
 
@@ -257,8 +297,15 @@ export const useTurnManager = ({
       }
     }
 
-  }, [turnState, characters, processEndOfTurnEffects, expireSavePenaltiesForCaster, onLogEntry, onRoundElapsed, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
+  }, [turnState, characters, mapData, processEndOfTurnEffects, expireSavePenaltiesForCaster, onLogEntry, onRoundElapsed, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
 
+
+  const skipToCharacter = useCallback((characterId: string) => {
+    const target = characters.find(c => c.id === characterId);
+    if (!target) return;
+    setCurrentCharacter(characterId);
+    startTurnFor(target);
+  }, [characters, setCurrentCharacter, startTurnFor]);
 
   const { executeAction } = useActionExecutor({
     characters,
@@ -281,6 +328,9 @@ export const useTurnManager = ({
     setMovementDebuffs
   });
 
+  // Keep the ref in sync so endTurn can invoke executeAction without a circular dependency.
+  executeActionRef.current = executeAction;
+
   const currentCharacter = useMemo(() => {
     return characters.find(c => c.id === turnState.currentCharacterId);
   }, [characters, turnState.currentCharacterId]);
@@ -297,6 +347,7 @@ export const useTurnManager = ({
     // Create a dedicated helper `processReactiveTriggers(type, context, state)` to centralize this logic, ensuring consistent logging, damage application, and error handling.
     executeAction,
     endTurn,
+    skipToCharacter,
     getCurrentCharacter,
     isCharacterTurn: checkIsCharacterTurn,
     canAffordAction: canAfford,

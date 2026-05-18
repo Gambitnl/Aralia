@@ -31,6 +31,13 @@
                 </p>
             </div>
             <div class="spellval-hero-actions">
+                <!--
+                    These links keep the three spell-project surfaces connected:
+                    Atlas owns bucket progress, Roadmap owns broader project context,
+                    and this page owns live JSON field inventory.
+                -->
+                <a class="spellval-link-btn" href="./spell_pipeline_atlas.html">Open Atlas</a>
+                <a class="spellval-link-btn" href="../devtools/roadmap/roadmap.html">Open Roadmap</a>
                 <a class="spellval-link-btn" href="./dev_hub.html">Back To Dev Hub</a>
                 <button class="action-btn" id="spellInventoryRefreshBtn" onclick="refreshSpellInventory(true)">Refresh</button>
             </div>
@@ -101,6 +108,17 @@
                         This page is the structural inventory surface for the spell validation plan.
                         It is not trying to judge PHB semantics on its own. It is showing what the
                         live spell JSON dataset currently contains.
+                    </p>
+                </article>
+                <article class="spellval-summary-card">
+                    <h3>Where The Contract Lives</h3>
+                    <p>
+                        The template contract defines which structured markdown labels and runtime
+                        JSON paths are accepted. Use this inventory page to find live field shapes,
+                        then use the Atlas to decide which bucket owns the migration work.
+                    </p>
+                    <p>
+                        <a href="../data/spell_template_contract_validation.json">Template report JSON</a>
                     </p>
                 </article>
             </div>

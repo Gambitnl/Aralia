@@ -6,7 +6,7 @@
 > 47 stubs reopening) rather than modeling. The Atlas now exits
 > iteration mode and resumes its passive role: a dashboard that
 > records work-status and progression as bucket agents do the actual
-> canonical → structured → JSON migration toward the single JSON
+> canonical -> structured -> JSON migration toward the single JSON
 > template end state.
 >
 > **Do not file `v4.md` reports unless a new dispatch round is
@@ -35,7 +35,7 @@
 
 > **The V3 round closed; your bucket is `ready` (or `not ready` for
 > Structured Markdown).** The Atlas modeling iteration is done.
-> Switch back to actual bucket work — the canonical → structured →
+> Switch back to actual bucket work - the canonical -> structured ->
 > JSON migration described in your tracker doc.
 >
 > Atlas use going forward is **passive dashboard, not iteration**:
@@ -48,7 +48,7 @@
 >   comparisons as you locate the lines (or just leave them
 >   chip-only if the lines aren't worth pinpointing yet).
 > - If something genuinely doesn't fit the model, append a new gap
->   to `ATLAS_GAPS_REGISTRY.md` and ping the orchestrator — the
+>   to `ATLAS_GAPS_REGISTRY.md` and ping the orchestrator - the
 >   loop can re-open if needed.
 >
 > **Do not file a `v4.md`.** The `atlas-reports/<bucket>/` folder is
@@ -72,7 +72,7 @@ Attach the relevant block to the agent dispatch.
 
 > Your active subbucket is `Sub-Classes:missing_structured_subclasses`.
 > Resume there. Your V3 fix to the seeded `incomplete_structured_subclasses`
-> roster is appreciated — that 24-spell list now matches the tracker.
+> roster is appreciated - that 24-spell list now matches the tracker.
 
 ### Range/Area
 
@@ -102,7 +102,7 @@ Attach the relevant block to the agent dispatch.
 
 A 14th bucket was added to `BUCKET_META` after the V3 loop closed:
 **School**, tracking School-field consistency across the
-canonical → structured → JSON migration. The field appears in 412
+canonical -> structured -> JSON migration. The field appears in 412
 structured-md files per `spell_audit_coverage.json`; canonical and
 structured-JSON audit lanes already exist, but the parity script
 itself does not yet (`parityScript: false`).
@@ -137,8 +137,8 @@ all buckets:
   rose `blocked: phase 1 incomplete` chip on the phase header
   whenever any Phase 1 step in that bucket is still `queued` or
   `active`.
-- The rule is sequential by design - the canonical → structured →
-  JSON migration cannot meaningfully run a structured → JSON parity
+- The rule is sequential by design - the canonical -> structured ->
+  JSON migration cannot meaningfully run a structured -> JSON parity
   check while structured itself is still being shaped from canonical.
 - **Don't set Phase 2/3 steps to `status: 'active'` while their
   Phase 1 is incomplete.** Authoring queued Phase 2/3 steps is fine

@@ -1,4 +1,4 @@
-﻿# Spell System Architecture
+# Spell System Architecture
 
 ## Status
 

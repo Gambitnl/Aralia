@@ -20,8 +20,9 @@ export class LoreService {
       const termsToMatch = [entry.title.toLowerCase(), ...(entry.aliases?.map(a => a.toLowerCase()) || [])];
       
       const isMatch = termsToMatch.some(term => {
-        // Use word boundary regex for precise matching
-        const regex = new RegExp(`\b${this.escapeRegExp(term)}\b`, 'i');
+        // Use escaped word-boundary tokens for precise matching. A single "\b"
+        // inside a string is a backspace character, not a regex word boundary.
+        const regex = new RegExp(`\\b${this.escapeRegExp(term)}\\b`, 'i');
         return regex.test(lowerText);
       });
 
@@ -39,10 +40,10 @@ export class LoreService {
   static getTermsRegex(terms: string[]): RegExp {
     if (terms.length === 0) return /$^/; // Matches nothing
     const escapedTerms = terms.map(t => this.escapeRegExp(t));
-    return new RegExp(`\b(${escapedTerms.join('|')})\b`, 'gi');
+    return new RegExp(`\\b(${escapedTerms.join('|')})\\b`, 'gi');
   }
 
   private static escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\\]/g, '\\$&');
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 }

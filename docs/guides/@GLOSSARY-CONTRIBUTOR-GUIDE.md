@@ -1,4 +1,4 @@
-﻿# Aralia Glossary: Contributor Guide
+# Aralia Glossary: Contributor Guide
 
 This guide documents the current JSON-driven glossary contribution flow.
 The important current-state correction is that the glossary is already JSON-based and that spell-related glossary content is no longer well-described by the older  spell markdown file worldview.

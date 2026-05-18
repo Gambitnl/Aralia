@@ -1,0 +1,160 @@
+{
+  "id": "premade_brynna_ashward",
+  "name": "Brynna Ashward",
+  "age": 31,
+  "background": "outlander",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "human",
+    "name": "Human",
+    "description": "Found throughout the multiverse, humans are as varied as they are numerous, and they endeavor to achieve as much as they can in the years they are given. Their ambition and resourcefulness are commended, respected, and feared on many worlds.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+      "Speed: 30 feet",
+      "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+      "Skillful: You gain proficiency in one skill of your choice (chosen during character creation).",
+      "Versatile: You gain an Origin feat of your choice."
+    ],
+    "visual": {
+      "id": "human",
+      "color": "#D2B48C",
+      "maleIllustrationPath": "assets/images/races/Human_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Human_Female.png"
+    }
+  },
+  "class": {
+    "id": "barbarian",
+    "name": "Barbarian",
+    "description": "A fierce warrior who can enter a battle rage.",
+    "hitDie": 12,
+    "primaryAbility": [
+      "Strength"
+    ],
+    "savingThrowProficiencies": [
+      "Strength",
+      "Constitution"
+    ],
+    "skillProficienciesAvailable": [
+      "animal_handling",
+      "athletics",
+      "intimidation",
+      "nature",
+      "perception",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Martial weapons"
+    ],
+    "features": [
+      {
+        "id": "rage",
+        "name": "Rage",
+        "description": "Enter a rage as a bonus action.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "unarmored_defense_barbarian",
+        "name": "Unarmored Defense",
+        "description": "While not wearing armor, your AC equals 10 + your Dexterity modifier + your Constitution modifier.",
+        "levelAvailable": 1
+      }
+    ],
+    "weaponMasterySlots": 2,
+    "statRecommendationFocus": [
+      "Strength",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Strength fuels your rage and attacks. Constitution makes you tougher and boosts your AC without armor.",
+    "recommendedPointBuyPriorities": [
+      "Strength",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Intelligence",
+      "Charisma"
+    ]
+  },
+  "classLevels": {
+    "barbarian": 1
+  },
+  "abilityScores": {
+    "Strength": 16,
+    "Dexterity": 14,
+    "Constitution": 15,
+    "Intelligence": 8,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 16,
+    "Dexterity": 14,
+    "Constitution": 15,
+    "Intelligence": 8,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "ability": "Strength",
+      "description": "Covers difficult situations while climbing, jumping, or swimming."
+    },
+    {
+      "id": "survival",
+      "name": "Survival",
+      "ability": "Wisdom",
+      "description": "Tracks creatures, guides travel, and reads wilderness signs."
+    }
+  ],
+  "savingThrowProficiencies": [
+    "Strength",
+    "Constitution"
+  ],
+  "feats": [],
+  "hp": 14,
+  "maxHp": 14,
+  "hitPointDice": [
+    {
+      "die": 12,
+      "current": 1,
+      "max": 1
+    }
+  ],
+  "armorClass": 14,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "selectedWeaponMasteries": [
+    "greataxe",
+    "handaxe"
+  ],
+  "transportMode": "foot",
+  "equippedItems": {},
+  "activeEffects": [],
+  "statusEffects": [],
+  "limitedUses": {
+    "rage": {
+      "name": "Rage",
+      "current": 2,
+      "max": 2,
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1
+  },
+  "visualDescription": "A broad-shouldered human barbarian with ash-braided hair, weathered leathers, and a greataxe kept close at hand."
+}

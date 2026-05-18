@@ -21,7 +21,7 @@
  * @file combatAI.ts
  */
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
-import { computeAoETiles, getDistance, generateId, resolveAreaDefinition } from '../../utils/combatUtils';
+import { computeAoETiles, getDistance, generateId, resolveAreaDefinition, getOccupiedTiles, getCharacterDistance } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 import { logger } from '../logger';
 
@@ -123,12 +123,22 @@ export function evaluateCombatTurn(
   // Pre-compute reachability once so scoring can reuse it.
   const reachableTiles = buildReachableTileMap(character, mapData, occupiedTileIds);
 
+  // Turn-scoped AoE geometry cache: keyed by (shape, size, centerX, centerY, castTileId).
+  // Shared across all AoE ability evaluations this turn so tile computations for
+  // overlapping areas are not repeated when multiple spells target the same center.
+  const turnAoECache = new Map<string, Position[]>();
+  // Turn-scoped cast-position cache: keyed by (abilityRange, centerX, centerY).
+  // Avoids rerunning findCastPosition for abilities with identical range to the same center.
+  const castPositionCache = new Map<string, BattleMapTile | null>();
+
   // 2. Evaluate Possible Actions
   const possiblePlans: AIPlan[] = [];
 
   // Consider all abilities with simple action-economy checks.
   for (const ability of character.abilities) {
     if (ability.currentCooldown && ability.currentCooldown > 0) continue;
+    if (ability.isRecharging) continue;
+    if (ability.maxUses !== undefined && (ability.usesRemaining ?? ability.maxUses) <= 0) continue;
     if (!canAffordIdeally(character, ability)) continue;
 
     // Identify targets based on ability type
@@ -143,17 +153,28 @@ export function evaluateCombatTurn(
         description: `Use ${ability.name} on self`,
       });
     } else if (ability.targeting === 'single_enemy') {
-      for (const target of enemies) {
+      // Filter by creature-type constraint (e.g. Hold Person: Humanoid only)
+      const validTargets = ability.validCreatureTypes?.length
+        ? enemies.filter(e => ability.validCreatureTypes!.some(t =>
+            e.stats.creatureTypes?.some(ct => ct.toLowerCase() === t.toLowerCase())
+          ))
+        : enemies;
+      for (const target of validTargets) {
         const plan = evaluateAttackPlan(character, target, ability, mapData, reachableTiles);
         if (plan) possiblePlans.push(plan);
       }
     } else if (ability.targeting === 'single_ally') {
-      for (const target of allies) {
+      const validTargets = ability.validCreatureTypes?.length
+        ? allies.filter(a => ability.validCreatureTypes!.some(t =>
+            a.stats.creatureTypes?.some(ct => ct.toLowerCase() === t.toLowerCase())
+          ))
+        : allies;
+      for (const target of validTargets) {
         const plan = evaluateSupportPlan(character, target, ability, mapData, reachableTiles);
         if (plan) possiblePlans.push(plan);
       }
     } else if (ability.targeting === 'area' || resolveAreaDefinition(ability)) {
-      const plan = evaluateAoEPlan(character, ability, enemies, allies, mapData, reachableTiles);
+      const plan = evaluateAoEPlan(character, ability, enemies, allies, mapData, reachableTiles, turnAoECache, castPositionCache);
       if (plan) possiblePlans.push(plan);
     }
   }
@@ -249,8 +270,12 @@ function canAffordIdeally(character: CombatCharacter, ability: Ability): boolean
   // Check Action Type availability
   if (cost.type === 'action' && eco.action.used) return false;
   if (cost.type === 'bonus' && eco.bonusAction.used) return false;
+  if (cost.type === 'reaction' && eco.reaction.used) return false;
+  if (cost.type === 'legendary') {
+    return (eco.legendary.total - eco.legendary.used) >= (cost.quantity || 1);
+  }
   if (cost.type === 'movement-only' && eco.movement.used >= eco.movement.total) return false;
-  // ... other checks
+
   return true;
 }
 
@@ -442,7 +467,11 @@ function evaluateAoEPlan(
   enemies: CombatCharacter[],
   allies: CombatCharacter[],
   mapData: BattleMapData,
-  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
+  /** Cross-ability tile cache: keyed by (shape, size, cx, cy, castTileId). Passed from decideTurn. */
+  sharedAoECache?: Map<string, Position[]>,
+  /** Cross-ability cast-position cache: keyed by (range, cx, cy). Passed from decideTurn. */
+  sharedCastPosCache?: Map<string, BattleMapTile | null>
 ): AIPlan | null {
   const area = resolveAreaDefinition(ability);
   if (!area) return null;
@@ -499,43 +528,53 @@ function evaluateAoEPlan(
   }
 
   let bestPlan: AIPlan | null = null;
-  // Cache computed AoE tile sets to avoid redundant calculations for the same
-  // ability cast from the same tile at the same center. The key combines ability,
-  // target center, and the chosen cast position.
-  // TODO(FEATURES): Persist AoE reachability/impact caches across evaluations per turn to reduce repeated sampling costs (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
-// TODO(FEATURES): Add AI model optionality to combat AI system to allow players to choose between local (Ollama) or cloud (Gemini) models for tactical decision-making, with graceful fallback between models based on availability and preference.
-  const aoeCache = new Map<string, Position[]>();
+  // Use the shared cross-ability caches from evaluateCombatTurn when available;
+  // fall back to local maps for standalone / test calls.
+  const aoeCache: Map<string, Position[]> = sharedAoECache ?? new Map();
+  const castPosCache: Map<string, BattleMapTile | null> = sharedCastPosCache ?? new Map();
 
   for (const center of candidateCenters) {
     // Ignore centers we cannot possibly reach within this turn when considering movement + cast range.
     if (getDistance(caster.position, center) > ability.range + moveRange) continue;
 
-    // Find an actual tile we can cast from that respects LoS. If none is reachable,
-    // fall back to the current tile only when it is legitimately in range and has
-    // line of sight. This prevents us from "planning" casts we cannot execute,
-    // which previously happened when pathing failed but the start tile was far
-    // outside the ability's range.
-    const castTile =
-      findCastPosition(reachableTiles, center, ability, mapData) ||
-      (getDistance(startTile.coordinates, center) <= ability.range &&
-      hasClearShot(startTile.coordinates, center, mapData)
-        ? startTile
-        : null);
+    // Cast-position cache: (range, cx, cy) → tile.
+    // Abilities with the same range to the same center resolve identically.
+    const castPosCacheKey = `${ability.range}:${center.x},${center.y}`;
+    let castTile: BattleMapTile | null;
+    if (castPosCache.has(castPosCacheKey)) {
+      castTile = castPosCache.get(castPosCacheKey)!;
+    } else {
+      castTile =
+        findCastPosition(reachableTiles, center, ability, mapData) ||
+        (getDistance(startTile.coordinates, center) <= ability.range &&
+        hasClearShot(startTile.coordinates, center, mapData)
+          ? startTile
+          : null);
+      castPosCache.set(castPosCacheKey, castTile);
+    }
 
     if (!castTile) continue;
 
-    const cacheKey = `${ability.id}:${center.x},${center.y}:${castTile.id}`;
+    // AoE tile cache: keyed by geometry (shape, size, center, castTile) rather than
+    // ability.id so that two abilities with identical footprints share the result.
+    const cacheKey = `${area.shape}:${area.size}:${center.x},${center.y}:${castTile.id}`;
     let aoeTiles = aoeCache.get(cacheKey);
     if (!aoeTiles) {
       aoeTiles = computeAoETiles(area, center, mapData, castTile.coordinates);
       aoeCache.set(cacheKey, aoeTiles);
     }
-    const impactedEnemies = enemies.filter(e =>
-      aoeTiles.some(tile => tile.x === e.position.x && tile.y === e.position.y)
-    );
-    const impactedAllies = allies.filter(a =>
-      aoeTiles.some(tile => tile.x === a.position.x && tile.y === a.position.y)
-    );
+    const impactedEnemies = enemies.filter(e => {
+      const occupied = getOccupiedTiles(e);
+      return aoeTiles.some(tile => 
+        occupied.some(ot => ot.x === tile.x && ot.y === tile.y)
+      );
+    });
+    const impactedAllies = allies.filter(a => {
+      const occupied = getOccupiedTiles(a);
+      return aoeTiles.some(tile => 
+        occupied.some(ot => ot.x === tile.x && ot.y === tile.y)
+      );
+    });
 
     const healEffect = ability.effects.find(e => e.type === 'heal');
     const damageEffect = ability.effects.find(e => e.type === 'damage');
@@ -631,7 +670,7 @@ function getNearestEnemy(character: CombatCharacter, enemies: CombatCharacter[])
   let minDist = Infinity;
 
   for (const enemy of enemies) {
-    const dist = getDistance(character.position, enemy.position);
+    const dist = getCharacterDistance(character, enemy);
     if (dist < minDist) {
       minDist = dist;
       nearest = enemy;
@@ -650,7 +689,10 @@ function buildOccupiedTileSet(characters: CombatCharacter[], movingCharacterId: 
 
   characters.forEach(character => {
     if (character.id !== movingCharacterId && character.currentHP > 0) {
-      occupied.add(`${character.position.x}-${character.position.y}`);
+      const tiles = getOccupiedTiles(character);
+      tiles.forEach(tile => {
+        occupied.add(`${tile.x}-${tile.y}`);
+      });
     }
   });
 

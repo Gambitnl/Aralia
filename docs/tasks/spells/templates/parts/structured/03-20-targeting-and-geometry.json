@@ -1,0 +1,563 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 28,
+  "fields": [
+    {
+      "label": "Range Type",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "self",
+        "touch",
+        "ranged",
+        "sight",
+        "unlimited",
+        "special"
+      ],
+      "jsonPath": "range.type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Self, touch, sight, ranged, unlimited, and special ranges imply different targeting behavior."
+        }
+      ],
+      "comment": "Self, touch, sight, ranged, unlimited, and special ranges imply different targeting behavior. It maps to `range.type`. Purpose: Range Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `range.type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "self": "Use when the canonical spell centers this Range Type mechanic on the caster rather than a separate target.",
+        "touch": "Allowed value for Range Type; use only when the canonical spell text supports this exact mechanic.",
+        "ranged": "Allowed value for Range Type; use only when the canonical spell text supports this exact mechanic.",
+        "sight": "Allowed value for Range Type; use only when the canonical spell text supports this exact mechanic.",
+        "unlimited": "Allowed value for Range Type; use only when the canonical spell text supports this exact mechanic.",
+        "special": "Allowed value for Range Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Range Distance",
+      "required": false,
+      "valueType": "number-or-zero",
+      "jsonPath": "range.distance",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Measured range needs a number even when the range type carries the main meaning."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "Range distance is conditional on measured ranges; self, touch, sight, special, and unlimited ranges carry their meaning in Range Type."
+        }
+      ],
+      "comment": "Range distance is conditional on measured ranges; self, touch, sight, special, and unlimited ranges carry their meaning in Range Type. It maps to `range.distance`. Purpose: Range Distance exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `range.distance`. The value type is `number-or-zero`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Range Distance Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "jsonPath": "range.distanceUnit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Distance units stop the runtime from assuming every number means feet."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Singular mile is a display-normalization variant of miles."
+        }
+      ],
+      "comment": "Singular mile is a display-normalization variant of miles. It maps to `range.distanceUnit`. Purpose: Range Distance Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `range.distanceUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when Range Distance Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Range Distance Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Range Distance Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Targeting Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "self",
+        "single",
+        "multi",
+        "area",
+        "melee",
+        "ranged",
+        "point",
+        "creature",
+        "object",
+        "creature_or_object",
+        "touch",
+        "creature or object",
+        "creatures"
+      ],
+      "jsonPath": "targeting.type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Targeting type is the runtime's first branching point for target selection."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "Targeting type is still incomplete on older structured rows and should not be required until the targeting bucket closes."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "The current structured targeting lane includes direct target-kind tokens in addition to broad targeting modes."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Targeting rows still include display-form target categories that should remain visible until normalized."
+        }
+      ],
+      "comment": "Targeting rows still include display-form target categories that should remain visible until normalized. It maps to `targeting.type`. Purpose: Targeting Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.type`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "self": "Use when the canonical spell centers this Targeting Type mechanic on the caster rather than a separate target.",
+        "single": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "multi": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "area": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "melee": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "ranged": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "point": "Use `point` for Targeting Type only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "creature": "Use when the canonical spell limits this Targeting Type mechanic to creature; do not use for objects unless the prose also permits objects.",
+        "object": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "creature_or_object": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "touch": "Allowed value for Targeting Type; use only when the canonical spell text supports this exact mechanic.",
+        "creatures": "Use when the canonical spell limits this Targeting Type mechanic to creatures; do not use for objects unless the prose also permits objects.",
+        "creature or object": "Use when the canonical target clause explicitly allows either a creature or an object and the runtime must preserve that combined eligibility."
+      }
+    },
+    {
+      "label": "Targeting Range",
+      "required": false,
+      "valueType": "number",
+      "jsonPath": "targeting.range",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Targeting range can differ from spell range for reach, emanation, and self-origin spells."
+        }
+      ],
+      "comment": "Targeting range can differ from spell range for reach, emanation, and self-origin spells. It maps to `targeting.range`. Purpose: Targeting Range exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.range`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Targeting Range Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "jsonPath": "targeting.rangeUnit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Targeting range has its own unit because it can differ from base spell range."
+        }
+      ],
+      "comment": "Targeting range has its own unit because it can differ from base spell range. It maps to `targeting.rangeUnit`. Purpose: Targeting Range Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.rangeUnit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "feet": "Use when Targeting Range Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Targeting Range Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Targeting Range Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Targeting Max",
+      "required": false,
+      "valueType": "number-scalable-or-unlimited",
+      "jsonPath": "targeting.maxTargets",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Many spells have explicit target counts, and some scale those counts."
+        }
+      ],
+      "comment": "Many spells have explicit target counts, some scale those counts, and a small number say any number of targets. It maps to `targeting.maxTargets`. Purpose: Targeting Max exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. Use a finite number for fixed caps, a scalable object when slot or character level changes the cap, and `unlimited` only when the canonical prose truly has no numeric cap. It maps to runtime JSON path `targeting.maxTargets`. The value type is `number-scalable-or-unlimited`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "number": "Use a finite number when the spell gives an exact target cap.",
+        "scalable": "Use a scalable object when character level or slot level changes the target cap.",
+        "unlimited": "Use `unlimited` only when the canonical spell prose allows any number of valid targets; do not use a fake high number such as 999."
+      }
+    },
+    {
+      "label": "Target Participation Requires Full Casting Range",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "targeting.targetParticipation.requiresWithinRangeForFullCasting",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Prayer of Healing chooses targets for a long casting, but those targets only qualify if they stay within range until the casting finishes."
+        }
+      ],
+      "comment": "Target Participation Requires Full Casting Range records whether selected targets must remain inside the spell's range for the whole casting time. Use `true` for Prayer of Healing-style wording, where the chosen creatures must stay within range for the entire ten-minute casting before they receive the effect. Use `not_applicable` when the spell has no long-casting target-participation rule."
+    },
+    {
+      "label": "Target Participation Notes",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "targeting.targetParticipation.notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The typed participation flag sometimes needs a short reminder of the exact casting-time wording."
+        }
+      ],
+      "comment": "Target Participation Notes preserves a short canonical reminder for long-casting target participation. It should clarify the typed field rather than replace it; for example, that selected targets must remain within 30 feet for the entire casting."
+    },
+    {
+      "label": "Target Cluster Requirement",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "required",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.targetCluster.requirement",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some higher-slot multi-target spells require all chosen targets to be within a shared distance of each other."
+        }
+      ],
+      "comment": "Target Cluster Requirement records whether selected targets must satisfy a mutual-distance rule. Use `required` when canonical prose says the chosen targets must be within a distance of each other; use `not_applicable` only when this field is carried as an explicit sentinel. It maps to runtime JSON path `targeting.targetCluster.requirement`.",
+      "acceptedValueNotes": {
+        "required": "Use when all chosen targets must be close enough to each other for the cast to be legal.",
+        "not_applicable": "Use only when the spell has no mutual-distance target cluster rule."
+      }
+    },
+    {
+      "label": "Target Cluster Max Distance",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "jsonPath": "targeting.targetCluster.maxDistance",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Mutual-distance target cluster rules need a numeric distance instead of prose-only scaling notes."
+        }
+      ],
+      "comment": "Target Cluster Max Distance stores the maximum allowed separation between selected targets for spells with a target-cluster rule. It maps to runtime JSON path `targeting.targetCluster.maxDistance`. Use the numeric canonical distance, such as 30, or `not_applicable` when there is no target-cluster mechanic."
+    },
+    {
+      "label": "Target Cluster Distance Unit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.targetCluster.distanceUnit",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Target-cluster distance needs its unit recorded alongside the number."
+        }
+      ],
+      "comment": "Target Cluster Distance Unit stores the unit for Target Cluster Max Distance. It maps to runtime JSON path `targeting.targetCluster.distanceUnit`. Use `feet` for rules such as within 30 feet of each other, and `not_applicable` when there is no target-cluster mechanic."
+    },
+    {
+      "label": "Target Cluster Scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "all_targets",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.targetCluster.scope",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The template needs to say whether the cluster rule applies to all chosen targets or another future subset."
+        }
+      ],
+      "comment": "Target Cluster Scope records which selected targets must satisfy the cluster rule. The current supported value `all_targets` means every chosen target must be within the recorded distance relationship. It maps to runtime JSON path `targeting.targetCluster.scope`.",
+      "acceptedValueNotes": {
+        "all_targets": "Use when every selected target must satisfy the mutual-distance rule.",
+        "not_applicable": "Use only when the spell has no target-cluster mechanic."
+      }
+    },
+    {
+      "label": "Target Cluster Notes",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "targeting.targetCluster.notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Short prose notes preserve exact canonical wording while the typed target-cluster fields carry runtime behavior."
+        }
+      ],
+      "comment": "Target Cluster Notes stores a short clarification for the target-cluster rule. It should quote or paraphrase only the relevant mechanic, not replace the typed requirement, distance, unit, and scope fields."
+    },
+    {
+      "label": "Area Target Selection Mode",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "all_valid_targets",
+        "caster_choice",
+        "random",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.areaTargetSelection.mode",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some area spells affect only creatures the caster chooses inside the footprint rather than every valid creature in the area."
+        }
+      ],
+      "comment": "Area Target Selection Mode records whether an area affects every valid target, caster-chosen targets, random targets, or no area-selection mechanic. It maps to `targeting.areaTargetSelection.mode`. Use `caster_choice` for phrases such as 'each creature of your choice in the area'. Use `not_applicable` when the spell has no area-target-selection mechanic.",
+      "acceptedValueNotes": {
+        "all_valid_targets": "Use when every valid target in the area is affected.",
+        "caster_choice": "Use when the caster selects which valid creatures inside the area are affected.",
+        "random": "Use only when canonical prose randomizes affected targets inside an area.",
+        "not_applicable": "Use when the spell does not have an area-target-selection mechanic."
+      }
+    },
+    {
+      "label": "Area Target Selection Scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "creatures_in_area",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.areaTargetSelection.scope",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Selected-area targeting needs to say what population is being selected from."
+        }
+      ],
+      "comment": "Area Target Selection Scope names the population the selection is drawn from. This first pass supports `creatures_in_area`; use `not_applicable` for spells without area target selection.",
+      "acceptedValueNotes": {
+        "creatures_in_area": "Use when the caster chooses affected creatures that are already inside the spell area.",
+        "not_applicable": "Use when the spell does not have an area-target-selection mechanic."
+      }
+    },
+    {
+      "label": "Area Target Selection Count",
+      "required": false,
+      "valueType": "number-or-enum",
+      "acceptedValues": [
+        "all_chosen",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.areaTargetSelection.count",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Phrases like 'each creature of your choice' need a schema-safe value that does not invent a numeric cap."
+        }
+      ],
+      "comment": "Area Target Selection Count records whether the chosen area targets are uncapped (`all_chosen`), numerically capped, or not applicable. Use `all_chosen` when the prose says each chosen creature and gives no maximum count.",
+      "acceptedValueNotes": {
+        "all_chosen": "Use when the caster may choose any number of valid creatures in the area.",
+        "not_applicable": "Use when the spell does not have an area-target-selection mechanic."
+      }
+    },
+    {
+      "label": "Area Target Selection Excludes Unchosen",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "targeting.areaTargetSelection.excludesUnchosen",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Caster-selected area spells need to distinguish unchosen valid creatures from affected targets."
+        }
+      ],
+      "comment": "Area Target Selection Excludes Unchosen is true when valid creatures inside the area are unaffected unless the caster selected them. Use `not_applicable` when the spell has no area-target-selection mechanic."
+    },
+    {
+      "label": "Area Target Selection Requires Line Of Sight",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "targeting.areaTargetSelection.requiresLineOfSight",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some selected-area spells require the caster to see the chosen creatures inside the area."
+        }
+      ],
+      "comment": "Area Target Selection Requires Line Of Sight is true when the caster can only select creatures they can see inside the area. Use `not_applicable` when the selected-area mechanic does not add a sight gate or when the spell has no area-target-selection mechanic."
+    },
+    {
+      "label": "Area Target Selection Notes",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "targeting.areaTargetSelection.notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Selected-area targeting sometimes needs a short prose note while the runtime fields remain narrow."
+        }
+      ],
+      "comment": "Area Target Selection Notes preserves short clarifying text for selected-area targeting without replacing the typed mode, scope, count, and exclusion fields."
+    },
+    {
+      "label": "Target Instance Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "dart",
+        "beam",
+        "ray",
+        "projectile",
+        "light",
+        "animated_tree",
+        "controlled_undead",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.instanceAllocation.instanceType",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some spells create multiple assignable units, such as Magic Missile darts, that are not the same as max target count."
+        }
+      ],
+      "comment": "Target Instance Type names the repeated unit the caster assigns among targets or positions. Use `dart` for Magic Missile, `beam` for Eldritch Blast, `ray` for Scorching Ray, `projectile` for planted ammunition, `light` for Dancing Lights-style light instances, `animated_tree` for Druid Grove-style awakened-tree guardians, and `controlled_undead` for Animate Dead-style reasserted undead targets. Use `not_applicable` when the spell does not create assignable target instances."
+    },
+    {
+      "label": "Target Instance Base Count",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "jsonPath": "targeting.instanceAllocation.baseCount",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Assignable target instances need a base count before scaling."
+        }
+      ],
+      "comment": "Target Instance Base Count records how many assignable units the base spell creates before scaling. Use `not_applicable` when the spell has no target instance allocation."
+    },
+    {
+      "label": "Per Target Choice Type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "ability",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.perTargetChoice.choiceType",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Some multi-target spells let each selected target receive a separate choice."
+        }
+      ],
+      "comment": "Per Target Choice Type records what kind of choice can be assigned separately to each target. Use `ability` for Enhance Ability's ability-check advantage choice, and `not_applicable` when the spell has no per-target choice mechanic."
+    },
+    {
+      "label": "Per Target Choice Scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "each_target",
+        "not_applicable"
+      ],
+      "jsonPath": "targeting.perTargetChoice.scope",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether the choice is per target or shared."
+        }
+      ],
+      "comment": "Per Target Choice Scope records who receives an independent choice. Use `each_target` when every selected target can receive its own choice, and `not_applicable` when there is no per-target choice mechanic."
+    },
+    {
+      "label": "Per Target Choice Options",
+      "required": false,
+      "valueType": "csv-string-or-not-applicable",
+      "jsonPath": "targeting.perTargetChoice.options[]",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Per-target choices need their allowed option list recorded beside the target rule."
+        }
+      ],
+      "comment": "Per Target Choice Options lists the allowed values for the per-target choice. Use comma-separated option names from canonical prose, or `not_applicable` when there is no per-target choice mechanic."
+    },
+    {
+      "label": "Per Target Choice Different Choices Allowed",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "targeting.perTargetChoice.differentChoicesAllowed",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Enhance Ability explicitly allows different choices for different selected targets."
+        }
+      ],
+      "comment": "Per Target Choice Different Choices Allowed is true when selected targets can receive different choices from one another. Use `not_applicable` when there is no per-target choice mechanic."
+    },
+    {
+      "label": "Per Target Choice Required",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "jsonPath": "targeting.perTargetChoice.required",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Some spells cannot resolve without making the target-specific choice."
+        }
+      ],
+      "comment": "Per Target Choice Required is true when the caster must make the choice for the spell's effect to resolve. Use `not_applicable` when there is no per-target choice mechanic."
+    },
+    {
+      "label": "Per Target Choice Notes",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "targeting.perTargetChoice.notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Short notes preserve the canonical per-target choice wording."
+        }
+      ],
+      "comment": "Per Target Choice Notes stores a short clarification for the per-target choice rule without replacing the typed choice type, scope, options, and boolean fields."
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "fear::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "closedReason": "Fear now records the line-of-sight gate on its repeat Wisdom save through Repeat Save Prerequisites and runtime repeatSave.prerequisites = no_line_of_sight_to_caster.",
+      "issue": "The initial Wisdom save and turn-end repeat save are represented, but the repeat save is only allowed when the creature ends its turn out of line of sight of the caster; runtime has no line-of-sight-gated repeat save.",
+      "recommendedTemplateChange": "Add repeat save prerequisite fields for no line of sight to caster.",
+      "recommendedJsonChange": "Add runtime repeatSave condition for lacksLineOfSightToCaster."
+    },
+    "fear::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Frightened is represented and the fake escape check was removed, but dropping held items and forced Dash-away behavior are not typed.",
+      "recommendedTemplateChange": "Add item-drop and forced behavior fields for drop held objects and Dash away by safest route.",
+      "recommendedJsonChange": "Add runtime forcedDrop and forcedAction/movementBehavior data."
+    },
+    "fear::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Fear now records the successful repeat-save ending together with the no-line-of-sight prerequisite, so the spell ending on that creature is no longer modeled as an always-available turn-end save.",
+      "issue": "The spell ends on a creature after a successful Wisdom save only if it ended its turn out of line of sight; runtime repeat-save data lacks that prerequisite.",
+      "recommendedTemplateChange": "Add line-of-sight prerequisite to conditional repeat-save ending.",
+      "recommendedJsonChange": "Add repeatSave.requiresNoLineOfSightToCaster or equivalent."
+    },
+    "feign-death::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Blinded is represented as a STATUS_CONDITION effect; the speed-zero part is tracked under status/state.",
+      "recommendedTemplateChange": "No separate vision/light/sound field required.",
+      "recommendedJsonChange": "No separate vision/light/sound JSON change required."
+    },
+    "feign-death::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target appears dead to outward inspection and status-determining spells; runtime has no false-death/deception state.",
+      "recommendedTemplateChange": "Add false-death appearance fields for outward inspection and status-detection spells.",
+      "recommendedJsonChange": "Add runtime apparentState data for indistinguishable from death."
+    },
+    "feign-death::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Blinded and Incapacitated are represented and fake escape/repeat saves were removed, but cataleptic false-death state and Speed 0 are not typed.",
+      "recommendedTemplateChange": "Add state fields for cataleptic/apparent death and speed set to 0.",
+      "recommendedJsonChange": "Add runtime stateChange data for apparent death and speedOverride 0."
+    },
+    "feign-death::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance to all damage except Psychic and Immunity to the Poisoned condition are prose-only; current defensive schema cannot express exception-based resistance or condition immunity cleanly.",
+      "recommendedTemplateChange": "Add defensive fields for all-damage resistance with excluded damage types and condition immunity.",
+      "recommendedJsonChange": "Add runtime defensive data for resistance except Psychic and conditionImmunity Poisoned.",
+      "reviewerNote": "Closed by adding Damage Type Exclusions -> effects[].excludedDamageType[] for the Psychic carve-out and Condition Immunities -> effects[].conditionImmunity[] for Poisoned. False-death appearance and Speed 0 remain open under the separate Feign Death state/ward buckets."
+    },
+    "fireball::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing the explosion point is ordinary area-origin targeting.",
+      "recommendedTemplateChange": "No choice/mode field required beyond area targeting.",
+      "recommendedJsonChange": "No choice/mode JSON change required."
+    },
+    "fireball::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Dexterity save for half Fire damage is represented.",
+      "recommendedTemplateChange": "No attack/save field change required.",
+      "recommendedJsonChange": "No attack/save JSON change required."
+    },
+    "fireball::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now includes objects as affected targets, but flammable objects not worn or carried are not first-class.",
+      "recommendedTemplateChange": "Add object eligibility fields for flammable and not worn/carried.",
+      "recommendedJsonChange": "Add runtime objectEligibility data for flammable unattended objects."
+    }
+  },
+  "manualFindings": {
+    "feign-death": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "feign-death::manual_willing_creature_target",
+        "canonicalEvidence": "You touch a willing creature",
+        "structuredState": "Valid Targets: willing_creature.",
+        "jsonState": "Runtime targeting uses allies and has no first-class willing target filter.",
+        "issue": "Feign Death requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      }
+    ],
+    "flame-arrows": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "flame-arrows::manual_quiver_ammunition_target",
+        "canonicalEvidence": "You touch a quiver containing arrows or bolts.",
+        "structuredState": "Valid Targets: quiver_of_arrows.",
+        "jsonState": "Runtime now targets objects, but has no quiver containing arrows/bolts object subtype filter.",
+        "issue": "Flame Arrows targets a quiver containing arrows or bolts, not any object.",
+        "recommendedTemplateChange": "Add object subtype/container-content target fields.",
+        "recommendedJsonChange": "Add runtime objectFilter for quiver containing arrows or bolts.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "fly": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "fly::manual_willing_creature_target",
+        "canonicalEvidence": "You touch a willing creature.",
+        "structuredState": "Valid Targets: willing_creature.",
+        "jsonState": "Runtime targeting uses allies and has no first-class willing target filter.",
+        "issue": "Fly requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "fly::manual_slot_target_scaling",
+        "canonicalEvidence": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 3.",
+        "structuredState": "Scaling Rule 1 records special_text target scaling.",
+        "jsonState": "Runtime targeting maxTargets is 1 with no target-count scaling data.",
+        "issue": "Fly's higher-level target count scaling is not represented in runtime data.",
+        "recommendedTemplateChange": "Add target-count scaling fields.",
+        "recommendedJsonChange": "Add runtime targetScaling data for +1 target per slot above 3.",
+        "resolutionStatus": "closed",
+        "closedReason": "Fly now records higher-slot target-count scaling with structured targeting.maxTargets scaling notes and runtime targeting.maxTargets slot-level thresholds."
+      }
+    ],
+    "galders-tower": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "galders-tower::choice_or_mode",
+        "canonicalEvidence": "You can choose any interior configuration you like, though the space can't contain anything magical or anything worth more than 100 GP.",
+        "structuredState": "The structured block stores the spell as prose-heavy UTILITY with special_text scaling.",
+        "jsonState": "Runtime JSON stores a generic utility effect and does not type the tower configuration choices.",
+        "issue": "Galder's Tower exposes player-selected configuration choices for the tower that are not runtime-addressable.",
+        "recommendedTemplateChange": "Add created-structure choice fields for shape, materials, floor layout, furnishings, and repeat-cast configuration identity.",
+        "recommendedJsonChange": "Add runtime structureConfiguration choices for tower shape, material, furnishings, and same-configuration permanence tracking.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding DEFENSIVE resistance in structured markdown and runtime JSON with Damage Type Psychic. Save advantage and targeting/scaling gaps remain tracked in their separate buckets."
+      },
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "galders-tower::created_object_or_structure",
+        "canonicalEvidence": "A two-story tower made from stone, wood, or similar suitably sturdy materials rises from the ground. The tower can be round or square. Each level is 10 feet tall and has an area of up to 100 square feet.",
+        "structuredState": "Effect Type: UTILITY; no created-structure dimensions, materials, levels, access, doors, or windows fields.",
+        "jsonState": "Runtime JSON has a prose utility effect with no typed created-structure data.",
+        "issue": "The created tower's geometry, material, access, doors, windows, and level count are not represented.",
+        "recommendedTemplateChange": "Add createdObject/createdStructure fields for structure type, material options, stories, per-story height, area, access, doors, windows, and interior barriers.",
+        "recommendedJsonChange": "Add runtime createdStructure data for the tower and its scaling story count.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "galders-tower::environmental_change",
+        "canonicalEvidence": "The interior of the tower is warm and dry, regardless of conditions outside.",
+        "structuredState": "The environmental protection is only present in the prose Description.",
+        "jsonState": "Runtime JSON has no typed weather or shelter protection effect.",
+        "issue": "The tower creates an interior environmental state that protects occupants from outside weather.",
+        "recommendedTemplateChange": "Add created-environment fields for interior warmth/dryness and weather isolation.",
+        "recommendedJsonChange": "Add runtime environmentalChange data for warm, dry interior independent of outside conditions.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "galders-tower::manual_recast_maintenance_and_permanent_tower",
+        "canonicalEvidence": "Casting this spell again while the tower exists maintains the tower for another 24 hours. You can create a permanent tower by casting this spell in the same location and with the same configuration every day for 1 year.",
+        "structuredState": "Duration fields record 24 hours, but no recast-maintenance or permanence condition fields exist.",
+        "jsonState": "Runtime JSON has no recast extension or permanence tracking.",
+        "issue": "Galder's Tower has recast maintenance and a same-location/same-configuration permanence rule that are prose-only.",
+        "recommendedTemplateChange": "Add recastMaintenance and permanenceCondition fields.",
+        "recommendedJsonChange": "Add runtime persistence data for +24 hour recasts and daily same-location/same-configuration one-year permanence.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "galders-tower::manual_slot_extra_stories",
+        "canonicalEvidence": "When you cast this spell using a spell slot of 4th level or higher, the tower can have one additional story for each slot level beyond 3rd.",
+        "structuredState": "Scaling Rule 1 records special_text extra-story scaling.",
+        "jsonState": "Runtime scaling has no typed story-count scaling.",
+        "issue": "The higher-slot extra-story scaling is not represented as structure scaling data.",
+        "recommendedTemplateChange": "Add created-structure slot scaling fields for story count.",
+        "recommendedJsonChange": "Add runtime structureScaling data for +1 story per slot above 3.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "gaseous-form": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "gaseous-form::attack_or_save_modifier",
+        "canonicalEvidence": "The target has Advantage on Strength, Dexterity, and Constitution saving throws.",
+        "structuredState": "Effect Type: UTILITY; no saving-throw advantage fields.",
+        "jsonState": "Runtime JSON has only a prose utility effect.",
+        "issue": "Gaseous Form grants saving throw advantage for three abilities, but that modifier is not typed.",
+        "recommendedTemplateChange": "Add savingThrowAdvantage fields for ability lists.",
+        "recommendedJsonChange": "Add runtime saveModifier data for Strength, Dexterity, and Constitution advantage.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

@@ -25,10 +25,9 @@ import { z } from 'zod';
 // resolve correctly without suppression. Removing the directives 
 // restores full type checking for these imports within the script.
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator';
-import { ACTIVE_RACES } from '../src/data/races/index';
 import type { Race } from '../src/types';
-import { checkFile, TARGET_DIRECTORIES } from './check-non-ascii.js';
-import { globSync } from 'glob';
+import { checkFile, getCharsetTargetFiles } from './check-non-ascii.js';
+import { loadActiveRacesForValidation } from './load-race-data.js';
 
 /**
  * Validates all spell data against the Zod schema.
@@ -143,7 +142,7 @@ const validateRaces = (races: readonly Race[]): void => {
  * Only fails on 'strict' issues (JSON/data files). 'soft' issues (docs) are warnings only.
  */
 const validateCharset = (): void => {
-  const files = TARGET_DIRECTORIES.flatMap((pattern: string) => globSync(pattern));
+  const files = getCharsetTargetFiles();
   console.log(`[Data Validation] Validating character sets for ${files.length} files...`);
 
   let strictErrorCount = 0;
@@ -200,12 +199,13 @@ const validateCharset = (): void => {
 // Why: This main function serves as the entry point for all data validation.
 // As we add more validation checks (e.g., for items, spells, or classes),
 // we can simply add them to this function to ensure they are all executed.
-const main = () => {
+const main = async () => {
   try {
     validateCharset();
     console.log('[Data Validation] All character sets validated successfully.');
 
-    validateRaces(ACTIVE_RACES);
+    const activeRaces = await loadActiveRacesForValidation();
+    validateRaces(activeRaces);
     console.log('[Data Validation] All race data validated successfully.');
 
     validateSpells();
@@ -217,4 +217,4 @@ const main = () => {
   }
 };
 
-main();
+void main();

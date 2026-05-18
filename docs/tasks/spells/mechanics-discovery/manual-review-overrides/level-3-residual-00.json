@@ -1,0 +1,129 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "galders-tower::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "galders-tower::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Created structures, wards, huts, mounts, or servants need durable object/entity fields.",
+      "recommendedTemplateChange": "Add created object/structure/entity bucket fields.",
+      "recommendedJsonChange": "Use current summon/utility/terrain data as interim representation."
+    },
+    "galders-tower::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Environmental changes need reusable world-state fields for weather, obscurement, growth, gas, liquids, and hazards.",
+      "recommendedTemplateChange": "Add environment/world-state bucket fields.",
+      "recommendedJsonChange": "Use current terrain/damage/utility fields as interim data."
+    },
+    "gaseous-form::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "gaseous-form::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Movement/repositioning rules need actor/effect movement fields when the moved thing is not just the target.",
+      "recommendedTemplateChange": "Add movement/repositioning bucket fields.",
+      "recommendedJsonChange": "Use current MOVEMENT or Utility Options until propagation."
+    },
+    "gaseous-form::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Terrain/surface rules need stronger terrain, surface, passability, and environmental-state fields when not already covered by TERRAIN.",
+      "recommendedTemplateChange": "Add terrain/surface bucket fields.",
+      "recommendedJsonChange": "Use current terrain/utility representation as interim data."
+    },
+    "gaseous-form::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "gaseous-form::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Some state changes are not simple D&D conditions and need state-change fields.",
+      "recommendedTemplateChange": "Add state-change bucket fields for non-condition states.",
+      "recommendedJsonChange": "Use STATUS_CONDITION where possible and Utility Options elsewhere."
+    },
+    "gaseous-form::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Damage prevention/reduction needs explicit reducibility and prevention fields.",
+      "recommendedTemplateChange": "Add damage prevention/reduction bucket fields.",
+      "recommendedJsonChange": "Use defensive/utility effects as interim representation.",
+      "reviewerNote": "Closed because Gaseous Form now has structured and runtime DEFENSIVE resistance for Bludgeoning, Piercing, and Slashing damage, plus conditionImmunity for Prone. Movement/form-state and ending details remain open in their separate buckets."
+    },
+    "gaseous-form::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: the detailed Gaseous Form row now records target 0-HP and target Magic-action self-ending in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "No additional template change required from this residual duplicate.",
+      "recommendedJsonChange": "No additional JSON change required from this residual duplicate.",
+      "closedReason": "The detailed manual row closes this mechanic by adding target_drops_to_0_hp and target_uses_magic_action_to_end_effect conditional endings to Gaseous Form."
+    },
+    "glyph-of-warding::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "glyph-of-warding::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "glyph-of-warding::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Terrain/surface rules need stronger terrain, surface, passability, and environmental-state fields when not already covered by TERRAIN.",
+      "recommendedTemplateChange": "Add terrain/surface bucket fields.",
+      "recommendedJsonChange": "Use current terrain/utility representation as interim data."
+    },
+    "glyph-of-warding::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Vision, sound, obscurement, or sensory fields need a stronger sensory schema when not just line of sight.",
+      "recommendedTemplateChange": "Add sensory/vision/light/sound bucket fields.",
+      "recommendedJsonChange": "Use current light/terrain/utility representation as interim data."
+    },
+    "glyph-of-warding::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Summoned/controlled entities need command, initiative, stat, duration, and ownership fields.",
+      "recommendedTemplateChange": "Add summon/controlled-entity bucket fields.",
+      "recommendedJsonChange": "Use existing SUMMONING/Utility Options as interim data."
+    },
+    "glyph-of-warding::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Wards, glyph triggers, and delayed triggered effects need trigger-condition and stored-effect fields.",
+      "recommendedTemplateChange": "Add ward/trigger bucket fields.",
+      "recommendedJsonChange": "Use current Utility Options as interim data."
+    },
+    "glyph-of-warding::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "glyph-of-warding::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: Glyph of Warding's movement-break and trigger-consumption ending rules are now represented by the focused glyph placement/trigger lifetime batch.",
+      "recommendedTemplateChange": "No additional template change required from this residual duplicate.",
+      "recommendedJsonChange": "No additional JSON change required from this residual duplicate.",
+      "closedReason": "The canonical mechanics are represented in the primary Glyph of Warding spell files with conditional endings for inscribed_ward_moved_beyond_distance and ward_triggered."
+    },
+    "haste::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "haste::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    }
+  },
+  "manualFindings": {}
+}

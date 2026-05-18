@@ -1,0 +1,55 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 3,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Target Excluded Creature Types",
+      "valueType": "csv-string",
+      "jsonPath": "targeting.filter.excludeCreatureTypes[]",
+      "why": "Some spells exclude creature types from the affected target set.",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Abi-Dalzim's Horrid Wilting excludes Constructs and Undead rather than merely targeting all creatures."
+        }
+      ],
+      "comment": "Some spells exclude creature types from the affected target set. It maps to `targeting.filter.excludeCreatureTypes[]`. Purpose: Target Excluded Creature Types exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.filter.excludeCreatureTypes[]`. The value type is `csv-string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Target Filter Sizes",
+      "valueType": "csv-string",
+      "jsonPath": "targeting.filter.sizes[]",
+      "why": "Size restrictions such as Huge or smaller need a structured target filter.",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Antipathy/Sympathy targets one creature or object that is Huge or smaller."
+        }
+      ],
+      "comment": "Size restrictions such as Huge or smaller need a structured target filter. It maps to `targeting.filter.sizes[]`. Purpose: Target Filter Sizes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.filter.sizes[]`. The value type is `csv-string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Target Filter Notes",
+      "valueType": "string",
+      "jsonPath": "targeting.filter.notes",
+      "why": "Open-ended creature-kind filters need a temporary structured note until a richer taxonomy exists.",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Antipathy/Sympathy asks the caster to specify a kind of creature, such as red dragons, goblins, or vampires."
+        }
+      ],
+      "comment": "Open-ended creature-kind filters need a temporary structured note until a richer taxonomy exists. It maps to `targeting.filter.notes`. Purpose: Target Filter Notes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `targeting.filter.notes`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-﻿# Spell JSON Examples
+# Spell JSON Examples
 
 Last Updated: 2026-04-09
 

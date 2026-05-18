@@ -1,4 +1,4 @@
-﻿# URL And History State Synchronization
+# URL And History State Synchronization
 
 This capability note tracks synchronization between application state and browser history. The baseline hook already exists and handles initial mount behavior, deep-link restoration, state-to-URL syncing, and back-forward restoration through popstate handling.
 

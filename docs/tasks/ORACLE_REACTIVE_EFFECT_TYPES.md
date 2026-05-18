@@ -7,7 +7,7 @@ Current reality:
 - `src/utils/factories.ts` now exists, so the old blocker language must be read as time-bound session history rather than current guaranteed blockage
 
 
-## ðŸ”® Overview
+## ðŸ"® Overview
 
 I have replaced `any` usage in `src/commands/effects/ReactiveEffectCommand.ts` with specific event types:
 - `MovementEvent`
@@ -122,7 +122,7 @@ describe('ReactiveEffectCommand', () => {
 });
 ```
 
-## âœ… Action Items
+## âœ... Action Items
 
 1.  **Vanguard:** Implement `createMockCommandContext` in `src/utils/factories.ts`.
 2.  **Vanguard:** Add the test suite above.

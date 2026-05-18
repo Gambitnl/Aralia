@@ -1,4 +1,4 @@
-﻿# Guide: Adding a New Character Race to Aralia RPG
+# Guide: Adding a New Character Race to Aralia RPG
 
 Last Updated: 2026-03-11
 Purpose: Describe the current end-to-end race-addition workflow across race data, NPC support, and glossary coverage.

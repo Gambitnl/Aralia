@@ -146,6 +146,7 @@ export class SummoningCommand extends BaseEffectCommand {
                 action: { used: false, remaining: 1 },
                 bonusAction: { used: false, remaining: 1 },
                 reaction: { used: false, remaining: 1 },
+                legendary: { used: 0, total: 0 },
                 movement: { used: 0, total: stats.speed },
                 freeActions: 1,
             },

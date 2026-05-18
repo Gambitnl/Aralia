@@ -1,0 +1,226 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 9 packet 00-04 reviewed manually against canonical prose, structured markdown, and runtime JSON.",
+    "Closed findings preserve mechanics through current fields where possible; open findings name schema gaps instead of hiding them in prose."
+  ],
+  "findings": {
+    "astral-projection::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Astral body/body split, replicated statistics/possessions, and silver-cord death linkage need a dedicated linked-entity or dual-body schema to avoid remaining as utility prose.",
+      "recommendedTemplateChange": "Add a linked form/body state bucket that can model an astral form, a suspended physical body, copied stats/equipment, and lethal cord linkage.",
+      "recommendedJsonChange": "Add a structured linkedEntities or formSplit runtime object; current JSON keeps the facts in Utility Options and Unconscious status."
+    },
+    "astral-projection::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Planar projection, Astral Plane travel, plane-exit re-entry, and caster dismissal are now split into Utility Options and a granted dismissal action.",
+      "recommendedTemplateChange": "No new template field required for this pass beyond Utility Options and granted actions.",
+      "recommendedJsonChange": "Runtime JSON now has target count 9 plus Utility Options for planar travel and re-entry."
+    },
+    "astral-projection::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The per-target consumed jacinth and silver bar requirement was already present in Components materialDescription, materialCost, and isConsumed.",
+      "recommendedTemplateChange": "No template change required in this packet.",
+      "recommendedJsonChange": "Runtime JSON already records materialCost 1100 and isConsumed true."
+    },
+    "astral-projection::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Damage/effect isolation between astral form and body needs a state-link schema; Utility Options can name the rule but cannot enforce separate health/effect pools.",
+      "recommendedTemplateChange": "Add a separated-state bucket for mirrored forms whose damage/effects do not cross-apply.",
+      "recommendedJsonChange": "Current JSON records Damage separation in Utility Options only."
+    },
+    "astral-projection::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The suspended physical body state is now represented by a STATUS_CONDITION Unconscious effect and matching structured Conditions Applied value.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON now includes a STATUS_CONDITION effect for Unconscious."
+    },
+    "astral-projection::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The no food, no air, and no aging suspended-animation facts are now split into the Suspended body Utility Option.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the suspended-body upkeep rule."
+    },
+    "astral-projection::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The 0 HP, cord cut, plane already occupied, and Magic-action dismissal endings are now represented in Utility Options and a granted dismissal action.",
+      "recommendedTemplateChange": "A future linked-state schema could enforce these endings more directly, but the actionable extraction is no longer hidden.",
+      "recommendedJsonChange": "Runtime JSON records dismissal as a granted action and the other endings in controlOptions."
+    },
+    "astral-projection::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The return to body and exit from suspended animation when the spell ends are now named in the Magic-action dismissal and Planar re-entry options.",
+      "recommendedTemplateChange": "No new template field required in this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve return aftermath."
+    },
+    "blade-of-disaster::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: The current runtime schema can record hit damage and attack prose, but cannot machine-express two attacks per activation or an 18+ critical threshold.",
+      "recommendedTemplateChange": "Add an attack-sequence bucket with attack count, attack origin, attack reach, and critical threshold fields.",
+      "recommendedJsonChange": "Runtime JSON now records base and critical damage plus Utility Options for two attacks and the 18+ critical threshold."
+    },
+    "blade-of-disaster::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Initial targeting now points at an unoccupied space, and Utility Options identify secondary attack targets as creatures, loose objects, or structures within 5 feet of the blade.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON targeting is point-based with creatures and objects in validTargets, plus spatial details for attack reach."
+    },
+    "blade-of-disaster::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The bonus-action move-and-attack loop is now represented as a granted bonus action, movement effect, and Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON now includes grantedActions and MOVEMENT for the bonus-action blade movement."
+    },
+    "blade-of-disaster::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The unoccupied-space placement and barrier-passage rule are now split into targeting, spatial details, and Utility Options.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON records point targeting and Barrier passage as a control option."
+    },
+    "blade-of-disaster::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The visible unoccupied space requirement is already carried by lineOfSight and now named in the Planar blade and movement options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps lineOfSight true and the visible-space wording in controlOptions."
+    },
+    "blade-of-disaster::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: A created planar rift that attacks from its own location needs a created hazard/entity schema; current fields preserve its length, movement, and attack facts but not as an owned entity.",
+      "recommendedTemplateChange": "Add a created effect-origin or hazard-entity bucket for movable spell-created attackers.",
+      "recommendedJsonChange": "Runtime JSON records spatial details, movement, granted action, and Utility Options as an interim representation."
+    },
+    "blade-of-disaster::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The planar-rift nature and harmless passage through barriers are now explicit Utility Options rather than being hidden in description.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve planar rift and barrier passage."
+    },
+    "foresight::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Foresight grants Advantage on all D20 Tests; runtime can express attack and saving throw pieces, but ability-check advantage still lacks a dedicated field.",
+      "recommendedTemplateChange": "Add a D20 test modifier bucket covering attacks, saves, and ability checks together.",
+      "recommendedJsonChange": "Runtime JSON now records saving throw advantage, outgoing attack advantage, incoming attack disadvantage, and a Utility Option for full D20 Test advantage."
+    },
+    "foresight::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The future-sight wording is descriptive explanation for the mechanical Advantage/Disadvantage package, now represented by defensive, attack-roll, and Utility Option entries.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON preserves the mechanics without adding a flavor-only bucket entry."
+    },
+    "foresight::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The recast-ending rule is now a dedicated Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Recast ending."
+    },
+    "gate::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Portal destination, orientation/diameter choice, and named-creature option are now separated through Utility Options and an AI prompt.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON now has playerInputRequired true and a prompt for destination, orientation, diameter, and named creature."
+    },
+    "gate::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The unoccupied visible-space portal anchor and named true creature restriction are now named in targeting/spatial fields and Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps point targeting and controlOptions for named creature restrictions."
+    },
+    "gate::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Destination visibility through the portal is now split into a dedicated Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Destination visibility."
+    },
+    "gate::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The spoken specific creature name requirement is now captured as the Named creature pull option and in the AI prompt.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON prompt asks for any specific true creature name spoken."
+    },
+    "gate::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Gate is a persistent two-sided planar portal with one-way front traversal and ruler vetoes; current movement fields can only approximate transport, not portal topology.",
+      "recommendedTemplateChange": "Add a portal/travel topology bucket for two-ended portals, one-way sides, ruler/domain vetoes, and nearest-space placement.",
+      "recommendedJsonChange": "Runtime JSON now records a MOVEMENT teleport effect and detailed Utility Options for portal topology."
+    },
+    "imprisonment::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The five imprisonment modes are now split into named Utility Options, and the AI prompt asks the caster to choose one.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions list Burial, Chaining, Hedged Prison, Minimus Containment, and Slumber."
+    },
+    "imprisonment::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The Wisdom saving throw is already represented by Save Stat and is now used on status/movement runtime effects.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON status and movement effects use a Wisdom save condition."
+    },
+    "imprisonment::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Burial, Chaining, Hedged Prison, and Minimus Containment are now separated as Utility Options instead of being hidden in the paragraph.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the terrain, force-globe, chains, demiplane, and gemstone containment facts."
+    },
+    "imprisonment::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Minimus Containment light-passage and visibility facts are now captured in its Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the light-passage rule."
+    },
+    "imprisonment::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The anti-divination clause is now split into the Divination and teleport block Utility Option.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the anti-divination rule."
+    },
+    "imprisonment::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: The prison/globe/chains/demiplane/gemstone created containment forms need a durable created-prison schema with containment, passability, and dispel targets.",
+      "recommendedTemplateChange": "Add a created containment/prison bucket for durable prisons with mode-specific boundaries and dispel targets.",
+      "recommendedJsonChange": "Runtime JSON records each form in Utility Options and spatial measured details but not as created prison objects."
+    },
+    "imprisonment::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The observable ending trigger and 9th-level Dispel Magic ending are now separated into Utility Options and the AI prompt.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Ending trigger and Ninth-level dispel."
+    },
+    "imprisonment::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Teleport prevention and Hedged Prison planar-travel warding are now explicit in a Utility Option and MOVEMENT stop effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes MOVEMENT stop for teleport/planar travel prevention."
+    },
+    "imprisonment::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The DM-approved observable ending trigger is now captured in Utility Options and player prompt instead of only prose.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON prompt asks for the ending trigger."
+    },
+    "imprisonment::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Imprisoned, Restrained, and Unconscious are now structured Conditions Applied with matching STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes STATUS_CONDITION effects for Imprisoned, Restrained, and Unconscious."
+    },
+    "imprisonment::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: No breathing, eating, drinking, aging, passability, and size-change facts are now preserved in Utility Options and existing spatial details.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions and measuredDetails preserve these facts."
+    },
+    "imprisonment::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Save immunity, observable ending trigger, and 9th-level Dispel Magic ending are now separated into Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the conditional endings."
+    },
+    "imprisonment::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: This finding resolved into upkeep/ending mechanics rather than a separate aftermath mechanic; the relevant pieces are now in Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON has no separate aftermath field because no distinct post-effect memory/aftermath rule exists after review."
+    }
+  },
+  "manualFindings": {}
+}

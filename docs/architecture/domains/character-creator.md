@@ -1,4 +1,4 @@
-﻿# Character Creator
+# Character Creator
 
 ## Purpose
 

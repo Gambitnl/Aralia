@@ -14,13 +14,8 @@
     "Wizard"
   ],
   "subClasses": [
-    "Paladin - Oath of Castigation",
-    "Paladin - Oath of Conquest (XGtE)",
-    "Paladin - Oath of Redemption (XGtE)",
-    "Paladin - Oath of Vengeance",
-    "Ranger - Grim Harbinger"
+    "Paladin - Oath of Vengeance"
   ],
-  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -71,14 +66,29 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     },
-    "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    }
+    "maxTargets": 1
   },
   "effects": [
     {
@@ -107,10 +117,31 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "statusCondition": {
         "name": "Paralyzed",
@@ -124,18 +155,15 @@
           "successEnds": true,
           "useOriginalDC": true
         },
-        "level": 0,
-        "escapeCheck": {
-          "dc": 0,
-          "actionCost": "action"
-        }
+        "level": 0
       },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "+1 target",
         "customFormula": ""
       },
-      "description": "On failed save, target is paralyzed for the duration. The save repeats at the end of each turn."
+      "description": "On failed save, target is paralyzed for the duration. The save repeats at the end of each turn.",
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

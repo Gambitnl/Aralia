@@ -1,4 +1,4 @@
-﻿# Spell Integration Status: Cantrips (Level 0)
+# Spell Integration Status: Cantrips (Level 0)
 
 Last Updated: 2026-03-12
 

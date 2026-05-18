@@ -39,10 +39,11 @@ import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { rollDice, generateId, calculateCover, resolveAttack } from '@/utils/combatUtils';
+import { rollDice, generateId, calculateCover, resolveAttack, getDistance } from '@/utils/combatUtils';
 import { SpellEffect, isDamageEffect, isHealingEffect, isStatusConditionEffect } from '@/types/spells';
 import { SpellCommandFactory } from './SpellCommandFactory';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
+import { VisibilitySystem } from '@/systems/visibility';
 
 /**
  * Command for executing a weapon attack.
@@ -91,32 +92,129 @@ export class WeaponAttackCommand implements SpellCommand {
 
       // 2. Roll Attack
       // Check for Disadvantage from target's active effects (e.g., Slasher Grievous Wound)
-      const hasDisadvantage = currentTarget.activeEffects?.some(e => {
+      let hasDisadvantage = currentTarget.activeEffects?.some(e => {
         // Check if this effect imposes disadvantage on attacks
         if (e.mechanics?.disadvantageOnAttacks !== true) return false;
         // If there's an attacker filter, check if it matches
         const attackerFilter = e.mechanics?.attackerFilter;
         return !attackerFilter || SpellCommandFactory.matchesFilter(this.caster, attackerFilter);
-      });
+      }) || false;
+
+      let hasAdvantage = false;
+
+      // ================================================================
+      // PRONE ATTACK MODIFIERS (2024 PHB Rules)
+      // ================================================================
+      // The Prone condition affects attack rolls in two ways, depending
+      // on who is prone and how close the combatants are:
+      //
+      // Rule 1: If the ATTACKER is Prone, they have Disadvantage on all
+      //         attack rolls. You can't swing a sword well from the ground.
+      //
+      // Rule 2: If the TARGET is Prone, the roll modifier depends on distance:
+      //   - Within 5 feet (1 tile): Advantage — it's easy to hit someone
+      //     lying at your feet.
+      //   - Beyond 5 feet: Disadvantage — a prone creature presents a
+      //     smaller target at range.
+      //
+      // If both Advantage and Disadvantage apply simultaneously, they
+      // cancel out and the roll is made normally (handled downstream
+      // in the dice resolution logic, not here).
+      // ================================================================
+
+      // Rule 1: Attacker is Prone → Disadvantage on their attack rolls
+      if (this.caster.conditions?.some(c => c.name === 'Prone')) {
+        hasDisadvantage = true;
+      }
+      
+      // Rule 2: Target is Prone → Advantage if close, Disadvantage if far
+      if (currentTarget.conditions?.some(c => c.name === 'Prone')) {
+         // getDistance returns grid distance in tiles (1 tile = 5 feet).
+         // A distance of 1 or less means the attacker is adjacent (melee range).
+         const distance = getDistance(this.caster.position, currentTarget.position);
+         if (distance <= 1) {
+            hasAdvantage = true;
+         } else {
+            hasDisadvantage = true;
+         }
+      }
+
+      // ================================================================
+      // SENSE ENFORCEMENT (Darkvision / Blindsight / Blinded / Invisible)
+      // ================================================================
+      // Per 5e rules:
+      //   Blinded attacker → Disadvantage on all attack rolls.
+      //   Blinded target   → Advantage for attacker (target can't dodge).
+      //   Invisible target → Disadvantage (attacker can't see where to aim).
+      //   Invisible/unseen attacker → Advantage (target can't anticipate).
+      //   Darkness + no Darkvision → effectively can't see → Disadvantage.
+      // ================================================================
+
+      // --- Condition-based ---
+      if (this.caster.conditions?.some(c => c.name === 'Blinded')) {
+        hasDisadvantage = true;
+      }
+      if (currentTarget.conditions?.some(c => c.name === 'Blinded')) {
+        hasAdvantage = true;
+      }
+      if (currentTarget.conditions?.some(c => c.name === 'Invisible')) {
+        hasDisadvantage = true;
+      }
+      if (this.caster.conditions?.some(c => c.name === 'Invisible')) {
+        hasAdvantage = true;
+      }
+
+      // --- Lighting-based (dark maps only) ---
+      // Skip on bright-ambient maps to avoid the tile-scan cost.
+      if (state.mapData && (state.mapData.theme === 'cave' || state.mapData.theme === 'dungeon')) {
+        const lightLevels = VisibilitySystem.calculateLightLevels(
+          state.mapData,
+          state.activeLightSources ?? []
+        );
+        const targetTileId = `${currentTarget.position.x}-${currentTarget.position.y}`;
+        const lightAtTarget = lightLevels.get(targetTileId) ?? 'darkness';
+
+        if (lightAtTarget === 'darkness' || lightAtTarget === 'magical_darkness') {
+          // Need darkvision or blindsight ≥ distance (feet) to see the target.
+          const distFeet = getDistance(this.caster.position, currentTarget.position) * 5;
+          const darkvision = this.caster.stats.senses?.darkvision ?? 0;
+          const blindsight = this.caster.stats.senses?.blindsight ?? 0;
+          if (darkvision < distFeet && blindsight < distFeet) {
+            hasDisadvantage = true;
+          }
+        }
+      }
 
       let d20 = rollDice('1d20');
       let rollStr = `Rolled ${d20}`;
 
-      if (hasDisadvantage) {
+      if (hasAdvantage && !hasDisadvantage) {
+        const d20_second = rollDice('1d20');
+        rollStr += ` (Advantage: ${d20}, ${d20_second})`;
+        d20 = Math.max(d20, d20_second);
+      } else if (hasDisadvantage && !hasAdvantage) {
         const d20_second = rollDice('1d20');
         rollStr += ` (Disadvantage: ${d20}, ${d20_second})`;
         d20 = Math.min(d20, d20_second);
+      } else if (hasAdvantage && hasDisadvantage) {
+        rollStr += ` (Advantage and Disadvantage cancel out)`;
       }
 
-      const strMod = Math.floor((this.caster.stats.strength - 10) / 2);
-      const dexMod = Math.floor((this.caster.stats.dexterity - 10) / 2);
-      const isRanged = this.ability.range > 1 || this.ability.weapon?.properties?.includes('range');
-      const abilityMod = isRanged ? dexMod : strMod;
-
-      // Proficiency
-      const pb = Math.ceil((this.caster.level || 1) / 4) + 1;
-      const proficiencyBonus = this.ability.isProficient ? pb : 0;
-      const modifiers = abilityMod + proficiencyBonus;
+      // Use the explicit attackBonus from 5eTools ({@hit N}) when present.
+      // This preserves accuracy for monsters with atypical bonuses (e.g. Wisdom-based attacks,
+      // racial traits, or abilities that don't follow the STR/DEX + proficiency formula).
+      let modifiers: number;
+      if (this.ability.attackBonus !== undefined) {
+        modifiers = this.ability.attackBonus;
+      } else {
+        const strMod = Math.floor((this.caster.stats.strength - 10) / 2);
+        const dexMod = Math.floor((this.caster.stats.dexterity - 10) / 2);
+        const isRanged = this.ability.range > 1 || this.ability.weapon?.properties?.includes('range');
+        const abilityMod = isRanged ? dexMod : strMod;
+        const pb = Math.ceil((this.caster.level || 1) / 4) + 1;
+        const proficiencyBonus = this.ability.isProficient ? pb : 0;
+        modifiers = abilityMod + proficiencyBonus;
+      }
 
       // Calculate Cover
       const coverBonus = state.mapData
@@ -161,6 +259,7 @@ export class WeaponAttackCommand implements SpellCommand {
           // DamageCommand to remain weapon-agnostic while still supporting 
           // trait-specific mechanics (e.g., Heavy weapon bonuses).
           weaponProperties: this.ability.weapon?.properties,
+          isMagical: this.ability.isMagical,
         };
 
         let command: SpellCommand | null = null;

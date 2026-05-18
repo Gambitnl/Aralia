@@ -1,0 +1,133 @@
+{
+  "templateKind": "runtime-json",
+  "part": "32-effects-sustain-requirements",
+  "fieldCount": 5,
+  "fields": [
+    {
+      "path": "effects[].sustainRequirement.timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "later_turns",
+        "not_applicable"
+      ],
+      "structuredLabel": "Sustain Requirement Timing",
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Some spells require a later upkeep action after initial casting."
+        }
+      ],
+      "comment": "Mapped from structured Sustain Requirement Timing. Purpose: Sustain Requirement Timing exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about action-based upkeep. Populate it from the structured markdown field `Sustain Requirement Timing`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].sustainRequirement.timing`. Use `not_applicable` only when the spell genuinely has no sustain requirement.",
+      "acceptedValueNotes": {
+        "later_turns": "Use when the upkeep action applies on turns after the initial casting turn.",
+        "not_applicable": "Use when canonical prose has no action-based sustain requirement."
+      }
+    },
+    {
+      "path": "effects[].sustainRequirement.actor",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "caster",
+        "target",
+        "affected_creature",
+        "not_applicable"
+      ],
+      "structuredLabel": "Sustain Requirement Actor",
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know who must pay an upkeep cost."
+        }
+      ],
+      "comment": "Mapped from structured Sustain Requirement Actor. Purpose: Sustain Requirement Actor exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about who maintains a spell. Populate it from the structured markdown field `Sustain Requirement Actor`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].sustainRequirement.actor`. Use `not_applicable` only when the spell genuinely has no sustain requirement.",
+      "acceptedValueNotes": {
+        "caster": "Use when the spellcaster must spend the sustain action.",
+        "target": "Use when the original spell target must spend the sustain action.",
+        "affected_creature": "Use when any currently affected creature may be the sustain actor.",
+        "not_applicable": "Use when no sustain actor applies."
+      }
+    },
+    {
+      "path": "effects[].sustainRequirement.actionKind",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "magic_action",
+        "standard_action",
+        "bonus_action",
+        "reaction",
+        "not_applicable"
+      ],
+      "structuredLabel": "Sustain Requirement Action Type",
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Canonical action category must not be flattened into action cost alone."
+        }
+      ],
+      "comment": "Mapped from structured Sustain Requirement Action Type. Purpose: Sustain Requirement Action Type exists so runtime JSON preserves canonical wording such as Magic action. Populate it from the structured markdown field `Sustain Requirement Action Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].sustainRequirement.actionKind`. Use `not_applicable` only when no sustain action category applies.",
+      "acceptedValueNotes": {
+        "magic_action": "Use when canonical prose specifically requires the Magic action.",
+        "standard_action": "Use when canonical prose requires an ordinary action without the Magic-action tag.",
+        "bonus_action": "Use when canonical prose requires a Bonus Action.",
+        "reaction": "Use when canonical prose requires a Reaction.",
+        "not_applicable": "Use when no sustain action category applies."
+      }
+    },
+    {
+      "path": "effects[].sustainRequirement.actionCost",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "reaction",
+        "not_applicable"
+      ],
+      "structuredLabel": "Sustain Requirement Action Cost",
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "Action-budget checks need the concrete cost separate from canonical action category."
+        }
+      ],
+      "comment": "Mapped from structured Sustain Requirement Action Cost. Purpose: Sustain Requirement Action Cost exists so action-economy validation can read the upkeep cost directly. Populate it from the structured markdown field `Sustain Requirement Action Cost`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].sustainRequirement.actionCost`. Use `not_applicable` only when no action-economy sustain cost applies.",
+      "acceptedValueNotes": {
+        "action": "Use when the sustain requirement consumes the actor's action.",
+        "bonus_action": "Use when the sustain requirement consumes the actor's Bonus Action.",
+        "reaction": "Use when the sustain requirement consumes the actor's Reaction.",
+        "not_applicable": "Use when no action-economy sustain cost applies."
+      }
+    },
+    {
+      "path": "effects[].sustainRequirement.failureOutcome",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "spell_ends",
+        "effect_ends",
+        "not_applicable"
+      ],
+      "structuredLabel": "Sustain Requirement Failure Outcome",
+      "log": [
+        {
+          "at": "2026-05-14T07:45:00+02:00",
+          "action": "created",
+          "why": "The runtime needs the consequence when the required upkeep action is not paid."
+        }
+      ],
+      "comment": "Mapped from structured Sustain Requirement Failure Outcome. Purpose: Sustain Requirement Failure Outcome exists so upkeep failure does not remain hidden in description text. Populate it from the structured markdown field `Sustain Requirement Failure Outcome`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].sustainRequirement.failureOutcome`. Use `not_applicable` only when the spell genuinely has no sustain requirement.",
+      "acceptedValueNotes": {
+        "spell_ends": "Use when failure to pay the upkeep action ends the whole spell.",
+        "effect_ends": "Use when failure to pay the upkeep action ends only one effect packet.",
+        "not_applicable": "Use when no sustain failure consequence applies."
+      }
+    }
+  ]
+}

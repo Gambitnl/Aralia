@@ -1,0 +1,37 @@
+{
+  "templateKind": "runtime-json",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "required": false,
+      "path": "targeting.filter.excludeCreatureTypes[]",
+      "structuredLabel": "Target Excluded Creature Types",
+      "valueType": "string-array",
+      "why": "Runtime targeting already has the exclusion array; the template now names its structured source.",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Creature-type exclusions are a reusable target-filter mechanic."
+        }
+      ],
+      "comment": "Runtime targeting already has the exclusion array; the template now names its structured source. It maps to `targeting.filter.excludeCreatureTypes[]`. It is populated from the structured markdown label `Target Excluded Creature Types`. Purpose: targeting.filter.excludeCreatureTypes[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Excluded Creature Types`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.excludeCreatureTypes[]`. The value type is `string-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "path": "targeting.filter.sizes[]",
+      "structuredLabel": "Target Filter Sizes",
+      "valueType": "string-array",
+      "why": "Runtime targeting already has the size array; the template now names its structured source.",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Size filters are a reusable target eligibility mechanic."
+        }
+      ],
+      "comment": "Runtime targeting already has the size array; the template now names its structured source. It maps to `targeting.filter.sizes[]`. It is populated from the structured markdown label `Target Filter Sizes`. Purpose: targeting.filter.sizes[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Target Filter Sizes`, after that field has been checked against canonical prose. It maps to runtime JSON path `targeting.filter.sizes[]`. The value type is `string-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

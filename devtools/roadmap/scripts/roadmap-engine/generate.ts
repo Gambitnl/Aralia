@@ -2283,7 +2283,7 @@ const toCapabilityFirstRoadmapLabel = (subfeatureName: string): string | null =>
     return applyRoadmapCapabilityRename(`Roadmap Tool > Strategic Opportunity Mapping > ${capabilityParent} > ${moduleName}`);
   }
 
-  return applyRoadmapCapabilityRename(subfeatureName.replace(/^Roadmap Tool(?=$| >)/, 'Roadmap Tool'));
+  return applyRoadmapCapabilityRename(subfeatureName);
 };
 
 // Technical: synthetic docs for capability-first roadmap clone.
@@ -2456,7 +2456,7 @@ const toLegacyRoadmapLabelFromCapabilityFirst = (subfeatureName: string): string
     return 'Roadmap Tool > Strategic Opportunity Mapping';
   }
 
-  const base = normalized.replace(/^Roadmap Tool(?=$| >)/, 'Roadmap Tool');
+  const base = normalized;
   const prefix = 'Roadmap Tool > Strategic Opportunity Mapping > ';
   for (const [moduleName, capabilityParent] of Object.entries(CAPABILITY_FIRST_MODULE_PARENT_BY_NAME)) {
     const capabilityScoped = `${prefix}${capabilityParent} > ${moduleName}`;

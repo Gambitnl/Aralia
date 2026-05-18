@@ -1,0 +1,194 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 15-19 in generated discovery row order.",
+    "This shard includes a manual finding for Globe of Invulnerability because the detector only found flavor text and missed the core spell-blocking mechanic."
+  ],
+  "findings": {
+    "forbiddance::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses one or more affected creature types, chooses Radiant or Necrotic damage, and can designate a password; runtime lacks typed choice fields for these ward options.",
+      "recommendedTemplateChange": "Add ward damage-type, affected-creature-type, and password choice fields.",
+      "recommendedJsonChange": "Add runtime forbiddanceChoices data."
+    },
+    "forbiddance::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The protected area is up to 40,000 square feet of floor space to a height of 30 feet and cannot overlap another Forbiddance; runtime only has a square area size.",
+      "recommendedTemplateChange": "Add floor-area height and no-overlap fields.",
+      "recommendedJsonChange": "Add runtime wardArea3d and overlapExclusion data."
+    },
+    "forbiddance::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A spoken password as a creature enters the area prevents spell damage, but runtime lacks password immunity data.",
+      "recommendedTemplateChange": "Add ward password immunity fields.",
+      "recommendedJsonChange": "Add runtime wardPassword data."
+    },
+    "forbiddance::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ward blocks magical travel, damages chosen creature types on enter/end-turn triggers, uses password immunity, and can become permanent after 30 daily castings; runtime lacks ward lifecycle fields.",
+      "recommendedTemplateChange": "Add ward trigger, immunity, overlap, and permanence fields.",
+      "recommendedJsonChange": "Add runtime forbiddanceWard data."
+    },
+    "forbiddance::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Teleportation, portals, Astral/Ethereal/Feywild/Shadowfell access, and Plane Shift entry are all blocked, but runtime has no typed magical-travel prevention data.",
+      "recommendedTemplateChange": "Add magical travel blocking fields.",
+      "recommendedJsonChange": "Add runtime planarTravelBlock data."
+    },
+    "forbiddance::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The material component is only consumed on the thirtieth daily casting that makes the ward last until dispelled; runtime has no conditional component consumption data.",
+      "recommendedTemplateChange": "Add repeated-casting material-consumption fields.",
+      "recommendedJsonChange": "Add runtime conditionalComponentConsumption data."
+    },
+    "forbiddance::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched chosen creature types; this is a target/ward choice, not a status change on a creature.",
+      "recommendedTemplateChange": "Track under choice_or_mode and target/ward fields.",
+      "recommendedJsonChange": "No status runtime data required."
+    },
+    "forbiddance::deferred_descriptive_flavor": {
+      "resolutionStatus": "closed",
+      "issue": "The planar-travel prose is mechanical travel blocking, not deferred flavor; it is tracked under travel_or_planar_movement.",
+      "recommendedTemplateChange": "No flavor deferral for this sentence.",
+      "recommendedJsonChange": "Track as planar travel blocking."
+    },
+    "globe-of-invulnerability::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The shimmering appearance of the barrier is visual description only; the spell-blocking mechanics are recorded separately as a manual finding.",
+      "recommendedTemplateChange": "No template change for visual shimmer.",
+      "recommendedJsonChange": "No runtime change for visual shimmer."
+    },
+    "guards-and-wards::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ward shape, unaffected individuals, password, dispellable subeffects, corridor/door/stair modes, and optional extra spell effect choices are flattened into prose.",
+      "recommendedTemplateChange": "Add multi-effect ward mode and immunity/password choice fields.",
+      "recommendedJsonChange": "Add runtime guardsAndWardsModes data."
+    },
+    "guards-and-wards::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Area can be one 50-foot square, one hundred contiguous 5-foot squares, or twenty-five contiguous 10-foot squares up to 20 feet tall; runtime only has a coarse 2,500-square-foot area.",
+      "recommendedTemplateChange": "Add ward shape partition and height fields.",
+      "recommendedJsonChange": "Add runtime wardAreaPartition data."
+    },
+    "guards-and-wards::illusion_or_disguise": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Up to ten doors can be covered by an illusion that makes them appear as plain wall sections, but runtime lacks door illusion data.",
+      "recommendedTemplateChange": "Add door illusion/disguise fields.",
+      "recommendedJsonChange": "Add runtime doorIllusion data."
+    },
+    "guards-and-wards::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A spoken password within 5 feet of the warded area grants immunity, but runtime lacks password immunity data.",
+      "recommendedTemplateChange": "Add ward password immunity fields.",
+      "recommendedJsonChange": "Add runtime guardsAndWardsPassword data."
+    },
+    "guards-and-wards::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched illusory wall appearances on doors; this is illusion/disguise, not actual created structure.",
+      "recommendedTemplateChange": "Track under illusion_or_disguise.",
+      "recommendedJsonChange": "No created-object runtime data required."
+    },
+    "guards-and-wards::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ward has multiple independently dispellable effects, no direct Dispel Magic effect on the parent spell, all-effects-dispelled ending, password immunity, and a 365-day permanence rule; runtime lacks ward lifecycle data.",
+      "recommendedTemplateChange": "Add multi-subeffect ward lifecycle fields.",
+      "recommendedJsonChange": "Add runtime guardsAndWardsWard data."
+    },
+    "guards-and-wards::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Corridor intersections can make creatures believe they are going the opposite direction on a 50 percent chance, but runtime lacks confusion/misdirection fields.",
+      "recommendedTemplateChange": "Add route misdirection probability fields.",
+      "recommendedJsonChange": "Add runtime routeMisdirection data."
+    },
+    "guards-and-wards::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Heavily Obscured glossary text; there is no healing or restoration mechanic.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration runtime data required."
+    },
+    "guards-and-wards::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Web strands on stairs regrow in 10 minutes if destroyed while the spell lasts; runtime lacks destroyed-object regrowth timing.",
+      "recommendedTemplateChange": "Add created hazard destruction/regrowth fields.",
+      "recommendedJsonChange": "Add runtime webRegrowth data."
+    },
+    "guards-and-wards::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fog in corridors, direction misdirection, locked/illusory doors, webbed stairs, and optional placed effects alter the warded environment but are not typed.",
+      "recommendedTemplateChange": "Add ward environmental subeffect fields.",
+      "recommendedJsonChange": "Add runtime guardsAndWardsEnvironment data."
+    },
+    "harm::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save, half-damage success outcome, Necrotic damage, and hit point maximum reduction on failed save are represented.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE and STATUS_CONDITION effects."
+    },
+    "harm::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "heal::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The only choice is selecting the target creature, already represented by single-target creature targeting.",
+      "recommendedTemplateChange": "No separate choice field required.",
+      "recommendedJsonChange": "Closed by targeting."
+    },
+    "heal::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "heal::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The 70 Hit Point healing, +10 per slot level scaling, and condition-ending utility option are now represented.",
+      "recommendedTemplateChange": "No additional healing/restoration field required for this pass.",
+      "recommendedJsonChange": "Closed by HEALING and UTILITY effects."
+    },
+    "heal::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points restored; this is healing, not object stats or damageability.",
+      "recommendedTemplateChange": "Track under healing_or_restoration.",
+      "recommendedJsonChange": "No object-stats runtime data required."
+    },
+    "heal::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Ending Blinded, Deafened, and Poisoned is now represented as a utility option.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by UTILITY controlOptions."
+    }
+  },
+  "manualFindings": {
+    "globe-of-invulnerability": [
+      {
+        "bucketId": "damage_reduction_or_prevention",
+        "findingId": "globe-of-invulnerability::manual_spell_effect_prevention",
+        "canonicalEvidence": "Any spell of level 5 or lower cast from outside the barrier can't affect anything within it. Such a spell can target creatures and objects within the barrier, but the spell has no effect on them. Similarly, the area within the barrier is excluded from areas of effect created by such spells. Using a Higher-Level Spell Slot. The barrier blocks spells of 1 level higher for each spell slot level above 6.",
+        "structuredState": "Effect Type: DEFENSIVE, UTILITY; scaling prose records slot-level blocking increase.",
+        "jsonState": "Runtime now includes a DEFENSIVE immunity effect plus utility prose, but lacks typed spell-level/source/area-exclusion filters.",
+        "issue": "Globe of Invulnerability prevents outside spells at or below a scaling spell level from affecting anything inside the barrier and excludes the area from those spells' areas of effect; the detector missed this core mechanical bucket.",
+        "recommendedTemplateChange": "Add spell-effect prevention fields for source side, blocked spell level, affected creatures/objects/areas, and slot-scaled spell-level threshold.",
+        "recommendedJsonChange": "Add runtime spellEffectPrevention data with outside-source and area-exclusion filters.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed by adding Spell Effect Prevention Source Side, Max Spell Level, Affected Subjects, and Excludes Area Of Effect to structured markdown, and effects[].spellEffectPrevention with outside source, maxSpellLevel 5, protected subjects, area exclusion, and slot-level threshold scaling in runtime JSON."
+      }
+    ],
+    "harm": [
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "harm::manual_hit_point_maximum_reduction",
+        "canonicalEvidence": "On a failed save, it takes 14d6 Necrotic damage, and its Hit Point maximum is reduced by an amount equal to the Necrotic damage it took. This spell can't reduce a target's Hit Point maximum below 1.",
+        "structuredState": "Effect Type: DAMAGE, STATUS_CONDITION; Conditions Applied: Hit Point Maximum Reduced.",
+        "jsonState": "Runtime now includes a STATUS_CONDITION effect for Hit Point Maximum Reduced with floor details in description.",
+        "issue": "The detector missed Harm's hit point maximum reduction; it is now represented as a status/state change but still needs a first-class amount-equals-damage and minimum-1 floor field.",
+        "recommendedTemplateChange": "Add hit-point-maximum reduction amount and floor fields.",
+        "recommendedJsonChange": "Add runtime hpMaximumReduction data.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

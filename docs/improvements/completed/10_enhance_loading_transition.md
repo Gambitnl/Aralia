@@ -1,4 +1,4 @@
-﻿# Improvement Note: Enhance Game Loading Transition
+# Improvement Note: Enhance Game Loading Transition
 
 ## Status
 

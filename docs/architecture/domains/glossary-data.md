@@ -1,4 +1,4 @@
-﻿# Glossary Data Domain
+# Glossary Data Domain
 
 ## Purpose
 

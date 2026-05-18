@@ -1,0 +1,107 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "10-casting-components-duration",
+  "fieldCount": 4,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Exploration Time Value",
+      "valueType": "integer",
+      "jsonPath": "castingTime.explorationCost.value",
+      "why": "Older structured rows used Time naming for exploration casting cost.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Older structured rows used Time naming for exploration casting cost."
+        }
+      ],
+      "comment": "Older structured rows used Time naming for exploration casting cost. It maps to `castingTime.explorationCost.value`. Purpose: Exploration Time Value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.explorationCost.value`. The value type is `integer`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Exploration Time Unit",
+      "valueType": "enum",
+      "jsonPath": "castingTime.explorationCost.unit",
+      "why": "Older structured rows used Time naming for exploration casting cost units.",
+      "acceptedValues": [
+        "round",
+        "minute",
+        "hour",
+        "day",
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Older structured rows used Time naming for exploration casting cost units."
+        }
+      ],
+      "comment": "Older structured rows used Time naming for exploration casting cost units. It maps to `castingTime.explorationCost.unit`. Purpose: Exploration Time Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.explorationCost.unit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "round": "Use when Exploration Time Unit is measured in rounds; keep the numeric duration or casting amount in the paired value field.",
+        "minute": "Use when Exploration Time Unit is measured in minutes; keep the numeric duration or casting amount in the paired value field.",
+        "hour": "Use when Exploration Time Unit is measured in hours; keep the numeric duration or casting amount in the paired value field.",
+        "day": "Allowed value for Exploration Time Unit; use only when the canonical spell text supports this exact mechanic.",
+        "feet": "Use when Exploration Time Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Exploration Time Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Exploration Time Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Exploration Cost Value",
+      "valueType": "integer",
+      "jsonPath": "castingTime.explorationCost.value",
+      "why": "Long-form noncombat casting costs map to runtime explorationCost.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Long-form noncombat casting costs map to runtime explorationCost."
+        }
+      ],
+      "comment": "Long-form noncombat casting costs map to runtime explorationCost. It maps to `castingTime.explorationCost.value`. Purpose: Exploration Cost Value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.explorationCost.value`. The value type is `integer`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Exploration Cost Unit",
+      "valueType": "enum",
+      "jsonPath": "castingTime.explorationCost.unit",
+      "why": "Long-form noncombat casting cost units map to runtime explorationCost.",
+      "acceptedValues": [
+        "round",
+        "minute",
+        "hour",
+        "day",
+        "feet",
+        "miles",
+        "inches"
+      ],
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Long-form noncombat casting cost units map to runtime explorationCost."
+        }
+      ],
+      "comment": "Long-form noncombat casting cost units map to runtime explorationCost. It maps to `castingTime.explorationCost.unit`. Purpose: Exploration Cost Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.explorationCost.unit`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "round": "Use when Exploration Cost Unit is measured in rounds; keep the numeric duration or casting amount in the paired value field.",
+        "minute": "Use when Exploration Cost Unit is measured in minutes; keep the numeric duration or casting amount in the paired value field.",
+        "hour": "Use when Exploration Cost Unit is measured in hours; keep the numeric duration or casting amount in the paired value field.",
+        "day": "Allowed value for Exploration Cost Unit; use only when the canonical spell text supports this exact mechanic.",
+        "feet": "Use when Exploration Cost Unit is measured in feet; keep the numeric distance in the paired value field.",
+        "miles": "Use when Exploration Cost Unit is measured in miles; keep the numeric distance in the paired value field.",
+        "inches": "Allowed value for Exploration Cost Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    }
+  ]
+}

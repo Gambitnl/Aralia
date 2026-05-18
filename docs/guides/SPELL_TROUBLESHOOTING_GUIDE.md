@@ -1,4 +1,4 @@
-﻿# Spell System Troubleshooting Guide
+# Spell System Troubleshooting Guide
 
 Last Updated: 2026-03-11
 Purpose: Quick current-state troubleshooting guide for spell data, manifest, and integration failures.

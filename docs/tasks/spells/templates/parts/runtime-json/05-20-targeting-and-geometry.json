@@ -1,0 +1,444 @@
+{
+  "templateKind": "runtime-json",
+  "part": "20-targeting-and-geometry",
+  "fieldCount": 26,
+  "fields": [
+    {
+      "path": "targeting.targetCluster",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": null,
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some multi-target spells require all selected targets to be within a shared distance of each other."
+        }
+      ],
+      "comment": "targeting.targetCluster stores mutual-distance rules for selected targets. It is populated from the Target Cluster structured fields. Omit it only when the spell has no rule such as targets being within 30 feet of each other."
+    },
+    {
+      "path": "targeting.targetCluster.requirement",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "required",
+        "not_applicable"
+      ],
+      "structuredLabel": "Target Cluster Requirement",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether a mutual-distance target rule is active."
+        }
+      ],
+      "comment": "targeting.targetCluster.requirement maps from Target Cluster Requirement. Use `required` when the spell's selected targets must satisfy the cluster distance; use `not_applicable` only as a sentinel."
+    },
+    {
+      "path": "targeting.targetCluster.maxDistance",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "structuredLabel": "Target Cluster Max Distance",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The runtime needs the numeric target-cluster distance."
+        }
+      ],
+      "comment": "targeting.targetCluster.maxDistance maps from Target Cluster Max Distance. Use the canonical distance number, or `not_applicable` only when carrying a sentinel object."
+    },
+    {
+      "path": "targeting.targetCluster.distanceUnit",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "feet",
+        "miles",
+        "inches",
+        "not_applicable"
+      ],
+      "structuredLabel": "Target Cluster Distance Unit",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The runtime needs a unit for the target-cluster distance."
+        }
+      ],
+      "comment": "targeting.targetCluster.distanceUnit maps from Target Cluster Distance Unit. Use `feet` for within-30-feet rules unless canonical prose uses a different unit."
+    },
+    {
+      "path": "targeting.targetCluster.scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "all_targets",
+        "not_applicable"
+      ],
+      "structuredLabel": "Target Cluster Scope",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know which chosen targets the cluster rule covers."
+        }
+      ],
+      "comment": "targeting.targetCluster.scope maps from Target Cluster Scope. `all_targets` means every selected target must satisfy the mutual-distance rule."
+    },
+    {
+      "path": "targeting.targetCluster.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Target Cluster Notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Short notes preserve the exact target-cluster wording next to the typed fields."
+        }
+      ],
+      "comment": "targeting.targetCluster.notes maps from Target Cluster Notes. Keep this short and do not use it as a substitute for the typed requirement, maxDistance, distanceUnit, and scope fields."
+    },
+    {
+      "path": "targeting.areaTargetSelection",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": null,
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Selected-area targeting needs a runtime object rather than overloading maxTargets or prose."
+        }
+      ],
+      "comment": "targeting.areaTargetSelection records caster-selected or otherwise filtered targets inside an area footprint. It is populated from the structured Area Target Selection fields. Omit it only when the spell has no selected-area targeting mechanic."
+    },
+    {
+      "path": "targeting.areaTargetSelection.mode",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "all_valid_targets",
+        "caster_choice",
+        "random",
+        "not_applicable"
+      ],
+      "structuredLabel": "Area Target Selection Mode",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Area targeting must distinguish all-target areas from caster-selected targets inside the same footprint."
+        }
+      ],
+      "comment": "targeting.areaTargetSelection.mode maps from Area Target Selection Mode. Use `caster_choice` when the caster selects affected creatures inside the area, and `not_applicable` only when the object is carried as a sentinel."
+    },
+    {
+      "path": "targeting.areaTargetSelection.scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "creatures_in_area",
+        "not_applicable"
+      ],
+      "structuredLabel": "Area Target Selection Scope",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The selected target population needs to be explicit for runtime targeting prompts."
+        }
+      ],
+      "comment": "targeting.areaTargetSelection.scope maps from Area Target Selection Scope. The current selected-area batch uses `creatures_in_area`."
+    },
+    {
+      "path": "targeting.areaTargetSelection.count",
+      "required": false,
+      "valueType": "number-or-enum",
+      "acceptedValues": [
+        "all_chosen",
+        "not_applicable"
+      ],
+      "structuredLabel": "Area Target Selection Count",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Uncapped selected-area spells need a value that does not invent a target maximum."
+        }
+      ],
+      "comment": "targeting.areaTargetSelection.count maps from Area Target Selection Count. Use `all_chosen` for 'each creature of your choice' with no numeric cap, or a number when the canonical prose gives a cap."
+    },
+    {
+      "path": "targeting.areaTargetSelection.excludesUnchosen",
+      "required": false,
+      "valueType": "boolean",
+      "structuredLabel": "Area Target Selection Excludes Unchosen",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Runtime targeting must know whether unchosen valid creatures inside the area are unaffected."
+        }
+      ],
+      "comment": "targeting.areaTargetSelection.excludesUnchosen maps from Area Target Selection Excludes Unchosen. Set true when valid creatures inside the area are ignored unless selected by the caster."
+    },
+    {
+      "path": "targeting.areaTargetSelection.requiresLineOfSight",
+      "required": false,
+      "valueType": "boolean",
+      "structuredLabel": "Area Target Selection Requires Line Of Sight",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some selected-area spells only let the caster choose creatures they can see."
+        }
+      ],
+      "comment": "targeting.areaTargetSelection.requiresLineOfSight maps from Area Target Selection Requires Line Of Sight. Use it when the selection itself carries a sight gate."
+    },
+    {
+      "path": "targeting.areaTargetSelection.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Area Target Selection Notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "A short note can preserve local selection wording while the typed fields stay narrow."
+        }
+      ],
+      "comment": "targeting.areaTargetSelection.notes maps from Area Target Selection Notes and should stay short; it is not a replacement for the typed selected-area fields."
+    },
+    {
+      "path": "targeting.instanceAllocation",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": null,
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Repeated spell units assigned among targets need their own runtime object."
+        }
+      ],
+      "comment": "targeting.instanceAllocation records repeated spell-created units such as Magic Missile darts. It is populated from Target Instance structured fields. Omit it only when the spell has no assignable target instances."
+    },
+    {
+      "path": "targeting.instanceAllocation.instanceType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "dart",
+        "beam",
+        "ray",
+        "projectile",
+        "light",
+        "animated_tree",
+        "controlled_undead",
+        "not_applicable"
+      ],
+      "structuredLabel": "Target Instance Type",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know what repeated spell unit is being assigned."
+        }
+      ],
+      "comment": "targeting.instanceAllocation.instanceType maps from Target Instance Type. Use `dart` for Magic Missile, `beam` for Eldritch Blast, `ray` for Scorching Ray, `projectile` for planted ammunition, `light` for Dancing Lights-style light instances, `animated_tree` for Druid Grove-style awakened-tree guardians, and `controlled_undead` for Animate Dead-style reasserted undead targets."
+    },
+    {
+      "path": "targeting.instanceAllocation.baseCount",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "structuredLabel": "Target Instance Base Count",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Assignable target instances need a base count before scaling."
+        }
+      ],
+      "comment": "targeting.instanceAllocation.baseCount maps from Target Instance Base Count and records how many assignable units the base spell creates."
+    },
+    {
+      "path": "targeting.instanceAllocation.scalingRule",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Target Instance Scaling Rule",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Extra assignable units may scale differently from ordinary target count."
+        }
+      ],
+      "comment": "targeting.instanceAllocation.scalingRule maps from Target Instance Scaling Rule. Use a concise machine-readable phrase such as `slot_level_plus_one_per_level`."
+    },
+    {
+      "path": "targeting.instanceAllocation.assignment",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "same_or_different_targets",
+        "unique_targets",
+        "single_target_only",
+        "independent_positions",
+        "not_applicable"
+      ],
+      "structuredLabel": "Target Instance Assignment",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether repeated spell units can stack on one target or must be split."
+        }
+      ],
+      "comment": "targeting.instanceAllocation.assignment maps from Target Instance Assignment. Use `same_or_different_targets` when units can all hit one creature or be split among several. Use `independent_positions` when instances are placed or moved as separate points."
+    },
+    {
+      "path": "targeting.instanceAllocation.resolution",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "simultaneous",
+        "sequential",
+        "persistent",
+        "not_applicable"
+      ],
+      "structuredLabel": "Target Instance Resolution",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Simultaneous instance resolution can matter for downstream damage and trigger timing."
+        }
+      ],
+      "comment": "targeting.instanceAllocation.resolution maps from Target Instance Resolution. Use `simultaneous` when all assigned units strike at the same time and `persistent` when the instances remain for the duration."
+    },
+    {
+      "path": "targeting.instanceAllocation.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Target Instance Notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Short allocation notes preserve wording without replacing typed allocation fields."
+        }
+      ],
+      "comment": "targeting.instanceAllocation.notes maps from Target Instance Notes and should stay short."
+    },
+    {
+      "path": "targeting.perTargetChoice",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": null,
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Targeting needs a place for choices assigned independently to each selected target."
+        }
+      ],
+      "comment": "targeting.perTargetChoice records choices that can be made separately for every selected target. It is populated from the Per Target Choice structured fields. Omit it only when the spell has no per-target choice mechanic."
+    },
+    {
+      "path": "targeting.perTargetChoice.choiceType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "ability",
+        "not_applicable"
+      ],
+      "structuredLabel": "Per Target Choice Type",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know which choice family is assigned per target."
+        }
+      ],
+      "comment": "targeting.perTargetChoice.choiceType maps from Per Target Choice Type. Use `ability` for Enhance Ability-style ability choices."
+    },
+    {
+      "path": "targeting.perTargetChoice.scope",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "each_target",
+        "not_applicable"
+      ],
+      "structuredLabel": "Per Target Choice Scope",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether each target receives its own choice."
+        }
+      ],
+      "comment": "targeting.perTargetChoice.scope maps from Per Target Choice Scope. Use `each_target` when every selected target can receive an independent choice."
+    },
+    {
+      "path": "targeting.perTargetChoice.options[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Per Target Choice Options",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Runtime prompts need the allowed per-target options."
+        }
+      ],
+      "comment": "targeting.perTargetChoice.options[] maps from Per Target Choice Options and lists the allowed canonical choices for each target."
+    },
+    {
+      "path": "targeting.perTargetChoice.differentChoicesAllowed",
+      "required": false,
+      "valueType": "boolean",
+      "structuredLabel": "Per Target Choice Different Choices Allowed",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "Enhance Ability allows different selected targets to receive different ability choices."
+        }
+      ],
+      "comment": "targeting.perTargetChoice.differentChoicesAllowed maps from Per Target Choice Different Choices Allowed. Set true when targets can receive different choices."
+    },
+    {
+      "path": "targeting.perTargetChoice.required",
+      "required": false,
+      "valueType": "boolean",
+      "structuredLabel": "Per Target Choice Required",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether the per-target choice is mandatory."
+        }
+      ],
+      "comment": "targeting.perTargetChoice.required maps from Per Target Choice Required. Set true when the spell cannot resolve without assigning the choice."
+    },
+    {
+      "path": "targeting.perTargetChoice.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Per Target Choice Notes",
+      "log": [
+        {
+          "at": "2026-05-14T00:20:00+02:00",
+          "action": "created",
+          "why": "A short note preserves the exact per-target choice wording."
+        }
+      ],
+      "comment": "targeting.perTargetChoice.notes maps from Per Target Choice Notes and should stay short."
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-illusion-and-sensory",
+  "fieldCount": 11,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sensory Manifestation Mode Source",
+      "valueType": "enum",
+      "jsonPath": "effects[].sensoryManifestation.modeSource",
+      "acceptedValues": ["modeChoice.options", "effect", "not_applicable"],
+      "acceptedValueNotes": {
+        "modeChoice.options": "Use when the sensory variants correspond to top-level modeChoice options.",
+        "effect": "Use when the spell has one sensory manifestation directly on the effect rather than a separate mode menu.",
+        "not_applicable": "Use only when the spell has no mechanically constrained sensory manifestation."
+      },
+      "why": "The runtime needs to know whether sensory variants are driven by a mode menu or by a single effect.",
+      "comment": "Records where the sensory variant list comes from. Purpose: Sensory Manifestation Mode Source exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about whether a sound/image/etc. limit belongs to a selected spell mode or to the whole effect. Populate it from the canonical markdown prose and the structured mode data. It maps to runtime JSON path `effects[].sensoryManifestation.modeSource`. The value type is `enum`. Use `not_applicable` when the spell genuinely has no such mechanic."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Sensory Manifestation Variant Count",
+      "valueType": "integer-or-not-applicable",
+      "jsonPath": "effects[].sensoryManifestation.variants.length",
+      "why": "Mode-based sensory spells need an explicit count so missing variants do not hide inside prose.",
+      "comment": "Records how many sensory manifestation variants the spell has. Purpose: Sensory Manifestation Variant Count exists so a spell with Sound and Image style branches can be checked against the runtime variant list. It maps to runtime JSON path `effects[].sensoryManifestation.variants.length`. The value type is `integer-or-not-applicable`. Use `not_applicable` when the spell genuinely has no such mechanic."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "pattern": "^Sensory Manifestation Variant \\d+ (Label|Allowed Senses|Excluded Senses|Volume Range|Timing|Max Shape|Max Size|Max Size Unit)$",
+      "valueType": "numbered-field-family",
+      "jsonPath": "effects[].sensoryManifestation.variants[]",
+      "acceptedValuesBySuffix": {
+        "Allowed Senses": ["sight", "sound", "light", "smell", "other_sensory_effect", "not_applicable"],
+        "Excluded Senses": ["sight", "sound", "light", "smell", "other_sensory_effect", "sound, light, smell, other_sensory_effect", "not_applicable"],
+        "Volume Range": ["whisper_to_scream", "not_applicable"],
+        "Timing": ["continuous", "discrete_before_spell_end", "continuous_or_discrete_before_spell_end", "not_applicable"],
+        "Max Shape": ["Cube", "Sphere", "Line", "Cone", "Cylinder", "not_applicable"],
+        "Max Size Unit": ["feet", "not_applicable"]
+      },
+      "why": "Each sensory variant needs the same repeated field set so option-specific sound, sight, light, smell, timing, and size rules can be audited.",
+      "comment": "Numbered Sensory Manifestation Variant fields record one spell-created sensory branch at a time. Use Label for the canonical option name; Allowed Senses for what it can create; Excluded Senses for explicit negative limits; Volume Range and Timing for sound-specific rules; and Max Shape/Max Size/Max Size Unit for image or area limits. Purpose: this numbered family keeps mode-specific sensory mechanics machine-readable without creating a new top-level field for every possible option count. Runtime mapping: `effects[].sensoryManifestation.variants[]`."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Reveal Scope",
+      "valueType": "enum",
+      "jsonPath": "effects[].illusion.revealScope",
+      "acceptedValues": ["per_creature", "global", "not_applicable"],
+      "acceptedValueNotes": {
+        "per_creature": "Use when the reveal changes the illusion only for the creature that discerns it.",
+        "global": "Use when the reveal changes or ends the illusion for everyone.",
+        "not_applicable": "Use when the spell has no reveal/discernment mechanic."
+      },
+      "why": "Discerning an illusion may affect only the observer rather than ending the spell globally.",
+      "comment": "Records whether reveal is tracked per creature or globally. Purpose: Illusion Reveal Scope exists so Minor Illusion's faint-to-that-creature behavior is not confused with the spell ending. It maps to runtime JSON path `effects[].illusion.revealScope`. The value type is `enum`. Use `not_applicable` when the spell has no such mechanic."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Reveal Methods",
+      "valueType": "csv-enum",
+      "jsonPath": "effects[].illusion.revealRules[].method",
+      "acceptedValues": ["study_action", "physical_interaction", "not_applicable"],
+      "acceptedValueNotes": {
+        "study_action": "Use when a creature can examine the illusion with a Study action.",
+        "physical_interaction": "Use when touching or passing through the illusion reveals it.",
+        "not_applicable": "Use when the spell has no reveal method."
+      },
+      "why": "Different reveal methods have different runtime triggers and costs.",
+      "comment": "Records the methods that can reveal or discern an illusion. Purpose: Illusion Reveal Methods exists so Study checks and physical interaction are not collapsed into a generic escape check. It maps to runtime JSON path `effects[].illusion.revealRules[].method`. The value type is `csv-enum`. Use `not_applicable` when this does not apply."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Reveal Action Cost",
+      "valueType": "enum",
+      "jsonPath": "effects[].illusion.revealRules[].actionCost",
+      "acceptedValues": ["action", "not_applicable"],
+      "acceptedValueNotes": {
+        "action": "Use when the reveal attempt requires an action.",
+        "not_applicable": "Use when the reveal method has no action cost."
+      },
+      "why": "Study-based reveal uses an action, while physical interaction may be triggered by contact.",
+      "comment": "Records the action cost for intentional illusion examination. Purpose: Illusion Reveal Action Cost exists so Study action reveal stays tied to turn economy. It maps to runtime JSON path `effects[].illusion.revealRules[].actionCost`. The value type is `enum`. Use `not_applicable` when this does not apply."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Reveal Ability",
+      "valueType": "enum",
+      "jsonPath": "effects[].illusion.revealRules[].ability",
+      "acceptedValues": ["Intelligence", "not_applicable"],
+      "acceptedValueNotes": {
+        "Intelligence": "Use when the reveal check is an Intelligence check.",
+        "not_applicable": "Use when no ability check is involved."
+      },
+      "why": "Reveal checks need the correct ability so they do not drift from canonical prose.",
+      "comment": "Records the ability used for a reveal check. Purpose: Illusion Reveal Ability exists so Intelligence (Investigation) reveal checks stay machine-readable. It maps to runtime JSON path `effects[].illusion.revealRules[].ability`. The value type is `enum`. Use `not_applicable` when this does not apply."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Reveal Skill",
+      "valueType": "enum",
+      "jsonPath": "effects[].illusion.revealRules[].skill",
+      "acceptedValues": ["Investigation", "not_applicable"],
+      "acceptedValueNotes": {
+        "Investigation": "Use when the reveal check uses Investigation.",
+        "not_applicable": "Use when no skill check is involved."
+      },
+      "why": "Reveal checks need the correct skill so generic ability checks do not hide the mechanic.",
+      "comment": "Records the skill used for a reveal check. Purpose: Illusion Reveal Skill exists so Intelligence (Investigation) reveal checks stay machine-readable. It maps to runtime JSON path `effects[].illusion.revealRules[].skill`. The value type is `enum`. Use `not_applicable` when this does not apply."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Reveal DC",
+      "valueType": "enum",
+      "jsonPath": "effects[].illusion.revealRules[].dc",
+      "acceptedValues": ["spell_save_dc", "not_applicable"],
+      "acceptedValueNotes": {
+        "spell_save_dc": "Use when the reveal check is made against the caster's spell save DC.",
+        "not_applicable": "Use when no DC applies."
+      },
+      "why": "Reveal checks need a DC source, not just prose saying the creature can identify the illusion.",
+      "comment": "Records the DC source for a reveal check. Purpose: Illusion Reveal DC exists so Study-based reveal checks can use the same spell save DC as canonical prose. It maps to runtime JSON path `effects[].illusion.revealRules[].dc`. The value type is `enum`. Use `not_applicable` when this does not apply."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Reveal Applies To",
+      "valueType": "csv-string",
+      "jsonPath": "effects[].illusion.revealRules[].appliesTo",
+      "why": "Reveal methods can apply to some variants and not others.",
+      "comment": "Records which illusion or sensory variants a reveal method applies to. Purpose: Illusion Reveal Applies To exists so Study can apply to both Sound and Image while physical interaction applies only to Image. It maps to runtime JSON path `effects[].illusion.revealRules[].appliesTo`. The value type is `csv-string`. Use `not_applicable` only when there is no reveal method."
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Illusion Discerned State",
+      "valueType": "enum",
+      "jsonPath": "effects[].illusion.discernedState",
+      "acceptedValues": ["faint_to_discerning_creature", "transparent_to_discerning_creature", "not_applicable"],
+      "acceptedValueNotes": {
+        "faint_to_discerning_creature": "Use when a discerned illusion becomes faint only to the creature that discerned it.",
+        "transparent_to_discerning_creature": "Use when a discerned illusion becomes transparent only to the creature that discerned it.",
+        "not_applicable": "Use when there is no post-discernment state."
+      },
+      "why": "Post-reveal state can change perception without ending the illusion.",
+      "comment": "Records what the illusion becomes to a creature that discerns it. Purpose: Illusion Discerned State exists so faint/transparent post-reveal behavior is not treated as flavor or as a spell-ending condition. It maps to runtime JSON path `effects[].illusion.discernedState`. The value type is `enum`. Use `not_applicable` when this does not apply."
+    }
+  ]
+}

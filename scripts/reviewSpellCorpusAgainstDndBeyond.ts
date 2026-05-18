@@ -31,6 +31,7 @@ const SCRIPT_DIR = path.dirname(SCRIPT_FILE);
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..');
 const SPELL_JSON_ROOT = path.resolve(REPO_ROOT, 'public', 'data', 'spells');
 const SPELL_MARKDOWN_ROOT = path.resolve(REPO_ROOT, 'docs', 'spells', 'reference');
+const SUB_CLASSES_ROSTER_PATH = path.resolve(REPO_ROOT, 'docs', 'tasks', 'spells', 'sub-classes', 'SPELL_SUPPORTED_SUBCLASS_ROSTERS.md');
 const JSON_OUT = path.resolve(REPO_ROOT, '.agent', 'roadmap-local', 'spell-validation', 'spell-corpus-dndbeyond-report.json');
 const MD_OUT = path.resolve(REPO_ROOT, 'docs', 'tasks', 'spells', 'SPELL_CORPUS_DNDBEYOND_REPORT.md');
 const DND_BEYOND_ROOT = 'https://www.dndbeyond.com';
@@ -126,8 +127,7 @@ type CanonicalMismatchField =
   | 'components'
   | 'duration'
   | 'classes'
-  | 'subClasses'
-  | 'subClassesVerification';
+  | 'subClasses';
 
 interface CanonicalMismatch {
   spellId: string;
@@ -172,9 +172,10 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
     .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
 
+  // Decode ampersand last. Otherwise text like "&amp;lt;" would be unescaped
+  // twice and become tag-shaped text instead of staying visibly escaped.
   return numericDecoded
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&rsquo;/g, "'")
@@ -183,13 +184,51 @@ function decodeHtmlEntities(value: string): string {
     .replace(/&mdash;/g, '-')
     .replace(/&bull;/g, '*')
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+function removeRawElementBlocks(html: string, tagName: string): string {
+  // This review script only needs readable rules text, so script/style blocks
+  // can be removed with a small scanner instead of a fragile HTML-tag regex.
+  // The scanner accepts tolerant browser endings like "</script >".
+  const lowerHtml = html.toLowerCase();
+  const lowerTag = tagName.toLowerCase();
+  let result = '';
+  let cursor = 0;
+
+  while (cursor < html.length) {
+    const openStart = lowerHtml.indexOf(`<${lowerTag}`, cursor);
+    if (openStart === -1) {
+      result += html.slice(cursor);
+      break;
+    }
+
+    result += html.slice(cursor, openStart);
+    const openEnd = lowerHtml.indexOf('>', openStart);
+    if (openEnd === -1) {
+      break;
+    }
+
+    const closeStart = lowerHtml.indexOf(`</${lowerTag}`, openEnd + 1);
+    if (closeStart === -1) {
+      cursor = openEnd + 1;
+      continue;
+    }
+
+    const closeEnd = lowerHtml.indexOf('>', closeStart);
+    cursor = closeEnd === -1 ? html.length : closeEnd + 1;
+    result += ' ';
+  }
+
+  return result;
 }
 
 function stripHtml(html: string): string {
-  return decodeHtmlEntities(html)
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+  const withoutScript = removeRawElementBlocks(html, 'script');
+  const withoutStyle = removeRawElementBlocks(withoutScript, 'style');
+
+  return decodeHtmlEntities(withoutStyle)
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -431,6 +470,75 @@ function parseCanonicalClassAccess(availableFor: string[]): CanonicalClassAccess
 
 function normalizeLocalClasses(value: unknown): string[] {
   return Array.isArray(value) ? value.map((entry) => String(entry)).filter(Boolean).sort() : [];
+}
+
+// ============================================================================
+// Supported-subclasses roster (Decision 6 / Decision 2 enforcement)
+// ============================================================================
+// This section enforces the project policy that only repo-supported subclass
+// labels move into normalized spell data (Decision 6), and that repeated-base
+// entries already covered by `classes` are stripped from `subClasses`
+// (Decision 2). Without this filter, `--apply` writes the full canonical
+// `Available For` set verbatim, which re-introduces unsupported labels into
+// the data layer - the regression we cleaned up on 2026-05-10.
+
+let SUPPORTED_SUBCLASS_ROSTER: Map<string, Set<string>> | null = null;
+
+function loadSupportedSubClassesRoster(): Map<string, Set<string>> {
+  if (SUPPORTED_SUBCLASS_ROSTER) return SUPPORTED_SUBCLASS_ROSTER;
+  const md = fs.readFileSync(SUB_CLASSES_ROSTER_PATH, 'utf8');
+  const lines = md.split(/\r?\n/);
+  const roster = new Map<string, Set<string>>();
+  let currentClass: string | null = null;
+  let inSupportedSection = false;
+  for (const line of lines) {
+    const sectionMatch = line.match(/^##\s+(.+?)\s*$/);
+    if (sectionMatch) {
+      inSupportedSection = sectionMatch[1].trim() === 'Supported Rosters';
+      currentClass = null;
+      continue;
+    }
+    const classMatch = line.match(/^###\s+(.+?)\s*$/);
+    if (classMatch) {
+      currentClass = inSupportedSection ? classMatch[1].trim() : null;
+      if (currentClass) roster.set(currentClass, new Set());
+      continue;
+    }
+    if (!currentClass) continue;
+    const bulletMatch = line.match(/^-\s+`([^`]+)`\s*$/);
+    if (bulletMatch) {
+      roster.get(currentClass)!.add(bulletMatch[1].trim());
+    }
+  }
+  SUPPORTED_SUBCLASS_ROSTER = roster;
+  return roster;
+}
+
+/**
+ * Apply Decision 6 (roster-only) + Decision 2 (strip repeated-base) to a
+ * raw canonical `Class - Subclass` list. Returns the policy-filtered subset
+ * that should actually be written into normalized spell data.
+ */
+function applySubClassesPolicyFilter(
+  rawSubClasses: string[],
+  classes: string[],
+): string[] {
+  const roster = loadSupportedSubClassesRoster();
+  const classesSet = new Set(classes);
+  const out: string[] = [];
+  for (const raw of rawSubClasses) {
+    const idx = raw.indexOf(' - ');
+    if (idx < 0) continue;
+    const className = raw.slice(0, idx).trim();
+    const subclass = raw.slice(idx + 3).trim();
+    // Decision 2: strip if base class already in `Classes`
+    if (classesSet.has(className)) continue;
+    // Decision 6: keep only roster-supported labels
+    const supported = roster.get(className);
+    if (!supported || !supported.has(subclass)) continue;
+    out.push(`${className} - ${subclass}`);
+  }
+  return out.sort();
 }
 
 function buildLocalComponentSummary(spell: Record<string, unknown>): string {
@@ -790,9 +898,6 @@ function compareSpellToCanonical(
 
   const localClasses = normalizeLocalClasses(spell.data.classes);
   const localSubClasses = normalizeLocalClasses(spell.data.subClasses);
-  const localSubClassesVerification = typeof spell.data.subClassesVerification === 'string'
-    ? String(spell.data.subClassesVerification)
-    : 'missing';
   const localSchool = typeof spell.data.school === 'string' ? spell.data.school : '';
   const localCastingTime = buildLocalCastingTimeSummary(spell.data);
   const localRange = buildLocalRangeSummary(spell.data);
@@ -817,12 +922,16 @@ function compareSpellToCanonical(
   if (detail.availableFor.length > 0 && JSON.stringify(localClasses) !== JSON.stringify(canonicalClassAccess.classes)) {
     mismatches.push(buildMismatch(spell, 'classes', localClasses.join(', ') || 'None', canonicalClassAccess.classes.join(', ') || 'None', `${spell.name} stores base class access as "${localClasses.join(', ') || 'None'}" locally but D&D Beyond exposes "${canonicalClassAccess.classes.join(', ') || 'None'}".`));
   }
-  if (detail.availableFor.length > 0 && JSON.stringify(localSubClasses) !== JSON.stringify(canonicalClassAccess.subClasses)) {
-    mismatches.push(buildMismatch(spell, 'subClasses', localSubClasses.join(', ') || 'None', canonicalClassAccess.subClasses.join(', ') || 'None', `${spell.name} stores subclass/domain access as "${localSubClasses.join(', ') || 'None'}" locally but D&D Beyond exposes "${canonicalClassAccess.subClasses.join(', ') || 'None'}".`));
+  // Mismatch detection runs against the POLICY-FILTERED canonical set
+  // (Decision 6 + Decision 2), not the raw canonical set. This matches
+  // what `--apply` will actually write, so the report doesn't surface drift
+  // on every spell whose local data is roster-clean but whose canonical
+  // surface still includes unsupported labels.
+  const filteredCanonicalSubClasses = applySubClassesPolicyFilter(canonicalClassAccess.subClasses, canonicalClassAccess.classes);
+  if (detail.availableFor.length > 0 && JSON.stringify(localSubClasses) !== JSON.stringify(filteredCanonicalSubClasses)) {
+    mismatches.push(buildMismatch(spell, 'subClasses', localSubClasses.join(', ') || 'None', filteredCanonicalSubClasses.join(', ') || 'None', `${spell.name} stores subclass/domain access as "${localSubClasses.join(', ') || 'None'}" locally but the roster-filtered canonical set is "${filteredCanonicalSubClasses.join(', ') || 'None'}".`));
   }
-  if (detail.availableFor.length > 0 && localSubClassesVerification !== 'verified') {
-    mismatches.push(buildMismatch(spell, 'subClassesVerification', localSubClassesVerification, 'verified', `${spell.name} still marks subclass/domain access as "${localSubClassesVerification}" locally even though this D&D Beyond pass verified the visible class-access surface.`));
-  }
+  // subClassesVerification mismatch check retired 2026-05-11 with the field.
 
   return mismatches;
 }
@@ -842,8 +951,13 @@ function applyCanonicalFixes(
   }
   if (detail.availableFor.length > 0) {
     local.classes = canonicalClassAccess.classes;
-    local.subClasses = canonicalClassAccess.subClasses;
-    local.subClassesVerification = 'verified';
+    // Apply Decision 6 (roster-only) + Decision 2 (strip repeated-base) before
+    // writing into the local data layer. Without this filter, the raw canonical
+    // set leaks unsupported labels into normalized spell data - the regression
+    // we cleaned up on 2026-05-10.
+    local.subClasses = applySubClassesPolicyFilter(canonicalClassAccess.subClasses, canonicalClassAccess.classes);
+    // subClassesVerification retired 2026-05-11 with Sub-Classes bucket closure.
+    // No longer written.
   }
 
   const components = (local.components ?? {}) as Record<string, unknown>;

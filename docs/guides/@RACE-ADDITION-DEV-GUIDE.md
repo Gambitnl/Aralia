@@ -1,4 +1,4 @@
-﻿# Race Addition Guide (Developer)
+# Race Addition Guide (Developer)
 
 Last Updated: 2026-03-11
 Purpose: Describe the current race-addition workflow based on the repo as it exists now.

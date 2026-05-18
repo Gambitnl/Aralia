@@ -1,4 +1,4 @@
-﻿# Spell System Contributor Onboarding Guide
+# Spell System Contributor Onboarding Guide
 
 Last Updated: 2026-03-11
 Purpose: Orient contributors to the current spell-data workflow, the live verification surface, and the docs that still matter during the first-wave doc pass.

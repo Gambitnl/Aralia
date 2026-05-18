@@ -11,7 +11,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -53,23 +52,38 @@
     "lineOfSight": false,
     "range": 0,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
       "creatureTypes": [],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "HEALING",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -86,49 +100,49 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-      "description": "You channel magic into your own body to heal wounds. You can expend one or two of your Hit Dice to regain Hit Points. Roll the dice, add your spellcasting ability modifier to the total, and regain that many Hit Points.",
+      "healing": {
+        "dice": "1_or_2_hit_dice+spellcasting_ability_modifier",
+        "isTemporaryHp": false
+      },
+      "description": "You expend one or two unexpended Hit Point Dice, roll them, add your spellcasting ability modifier, and regain that many Hit Points. The rolled dice are expended.",
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "",
+        "bonusPerLevel": "+1 hit die rolled",
         "customFormula": ""
       },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": ""
-      }
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

@@ -1,0 +1,11 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Keys are finding ids in the form spell-id::bucket_id.",
+    "Use resolutionStatus=closed when structured markdown and JSON already preserve the canonical mechanic.",
+    "Use resolutionStatus=actionable_open when a template or data change is needed.",
+    "Use resolutionStatus=deferred_flavor for descriptive-only prose intentionally outside this goal.",
+    "Use resolutionStatus=special_question only when user judgment is needed before encoding the mechanic.",
+    "Manual review overrides are split by spell level, and large levels may be split again by spell index range, so each file stays reviewable while the audit script merges them into the original shape."
+  ]
+}

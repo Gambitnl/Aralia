@@ -1,0 +1,22 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "required": false,
+      "path": "effects[].damage.flat",
+      "structuredLabel": "Damage Flat",
+      "valueType": "number",
+      "why": "Flat damage bonuses are a stable damage rider field.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Flat damage bonuses are a stable damage rider field."
+        }
+      ],
+      "comment": "Flat damage bonuses are a stable damage rider field. It maps to `effects[].damage.flat`. It is populated from the structured markdown label `Damage Flat`. Purpose: effects[].damage.flat exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Damage Flat`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].damage.flat`. The value type is `number`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

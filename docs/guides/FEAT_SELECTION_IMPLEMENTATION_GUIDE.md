@@ -1,4 +1,4 @@
-﻿# Feat Selection Implementation Guide
+# Feat Selection Implementation Guide
 
 Last Updated: 2026-03-11
 Purpose: Reframe the feat-selection guide around the current repo, where the core feat-choice UI and assembly lane already exist.

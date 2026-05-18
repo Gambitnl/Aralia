@@ -3,16 +3,31 @@
 - **School**: Abjuration
 - **Ritual**: false
 - **Classes**: Bard, Cleric, Druid, Wizard
-- **Sub-Classes**: 
+- **Sub-Classes**: not_applicable
+No Subclass Entries
 - **Casting Time Value**: 1
 - **Casting Time Unit**: hour
 - **Combat Cost**: long_cast
 - **Range Type**: ranged
 - **Range Distance**: 60
 - **Targeting Type**: creature
-- **Area Shape**: N/A
-- **Area Size**: N/A
+- **Area Shape**: not_applicable
+- **Area Size**: not_applicable
 - **Valid Targets**: creatures
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 - **Verbal**: true
 - **Somatic**: true
@@ -20,18 +35,38 @@
 - **Material Description**: a jewel worth at least 1,000 gp, which the spell consumes
 - **Material Cost GP**: 1000
 - **Consumed**: true
-- **Duration Type**: duration
+- **Duration Type**: timed
 - **Duration Unit**: hour
 - **Duration Value**: 24
 - **Concentration**: false
-- **Effect Type**: UTILITY
-- **Utility Type**: other
+- **Effect Type**: STATUS_CONDITION, UTILITY
+- **Utility Type**: control
 - **Save Stat**: Charisma
-- **Save Outcome**: negates
-- **Damage Dice**:
-- **Damage Type**:
+- **Save Outcome**: negates_condition
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
+- **Damage Dice**: not_applicable
+- **Damage Type**: not_applicable
+- **Conditions Applied**: Bound
 - **Description**: With this spell, you attempt to bind a celestial, an elemental, a fey, or a fiend to your service. The creature must be within range for the entire casting of the spell. (Typically, the creature is first summoned into the center of an inverted magic circle in order to keep it trapped while this spell is cast.) At the completion of the casting, the target must make a Charisma saving throw. On a failed save, it is bound to serve you for the duration. If the creature was summoned or created by another spell, that spell's duration is extended to match the duration of this spell. A bound creature must follow your instructions to the best of its ability. You might command the creature to accompany you on an adventure, to guard a location, or to deliver a message. The creature obeys the letter of your instructions, but if the creature is hostile to you, it strives to twist your words to achieve its own objectives. If the creature carries out your instructions completely before the spell ends, it travels to you to report this fact if you are on the same plane of existence. If you are on a different plane of existence, it returns to the place where you bound it and remains there until the spell ends.
-- **Higher Levels**: When you cast this spell using a spell slot of a higher level, the duration increases to 10 days with a 6th-level slot, to 30 days with a 7th-level slot, to 180 days with an 8th-level slot, and to a year and a day with a 9th-level spell slot.
+- **Higher Levels**: When you cast this spell using a spell slot of a higher level, the duration increases to 10 days with a 6th-level slot, to 30 days with a 7th- level slot, to 180 days with an 8th-level slot, and to a year and a day with a 9th-level spell slot.
+- **Scaling Rule 1 Type**: special_text
+- **Scaling Rule 1 Applies To**: canonical higher-level prose
+- **Scaling Rule 1 Notes**: When you cast this spell using a spell slot of a higher level, the duration increases to 10 days with a 6th-level slot, to 30 days with a 7th- level slot, to 180 days with an 8th-level slot, and to a year and a day with a 9th-level spell slot.
 ## Canonical D&D Beyond Snapshot
 This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.
 <!--

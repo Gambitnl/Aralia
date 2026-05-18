@@ -10,8 +10,9 @@
     "Ranger",
     "Sorcerer"
   ],
-  "subClasses": [],
-  "subClassesVerification": "unverified",
+  "subClasses": [
+    "Warlock - Archfey Patron"
+  ],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -55,18 +56,35 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
-    },
     "filter": {
-      "creatureTypes": [],
+      "creatureTypes": [
+        "Beast"
+      ],
       "excludeCreatureTypes": [],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -91,15 +109,43 @@
         "saveType": "Wisdom",
         "saveEffect": "negates_condition",
         "targetFilter": {
-          "creatureTypes": [],
+          "creatureTypes": [
+            "Beast"
+          ],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [
+          {
+            "type": "advantage",
+            "reason": "The target has Advantage on the Wisdom saving throw if the caster or the caster's allies are fighting it."
+          }
+        ],
+        "saveOutcomeOverrides": []
       },
       "statusCondition": {
         "name": "Charmed",
@@ -108,12 +154,8 @@
           "value": 1
         },
         "level": 0,
-        "escapeCheck": {
-          "dc": 0,
-          "actionCost": "action"
-        },
         "repeatSave": {
-          "timing": "turn_end",
+          "timing": "on_damage",
           "saveType": "Wisdom",
           "successEnds": true,
           "useOriginalDC": true
@@ -124,7 +166,8 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

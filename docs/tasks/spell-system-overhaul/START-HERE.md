@@ -100,7 +100,7 @@ import { ScalingEngine } from '@/systems/spells/mechanics'
 const scaled = ScalingEngine.scaleEffect(dice, formula, level, casterLevel)
 ```
 
-If you change export names → you break other agents. **Communication is critical.**
+If you change export names -> you break other agents. **Communication is critical.**
 
 ### Data Validation (Four Layers)
 
@@ -120,12 +120,12 @@ Spell JSON files are validated at **four different stages**:
 ### Step 1: Read Your Task File
 
 Each agent task file contains:
-- ✅ Exact files you'll create
-- ✅ Complete code examples
-- ✅ API contract you must follow
-- ✅ Testing requirements
-- ✅ Acceptance criteria
-- ✅ Integration points
+- PASSED Exact files you'll create
+- PASSED Complete code examples
+- PASSED API contract you must follow
+- PASSED Testing requirements
+- PASSED Acceptance criteria
+- PASSED Integration points
 
 **Example:** If you're Agent Beta, read [AGENT-BETA-TARGETING.md](AGENT-BETA-TARGETING.md) thoroughly.
 
@@ -151,7 +151,7 @@ Look at **"Dependencies"** in your task file:
 - **Agent Delta:** Alpha (types only)
 - **Agent Epsilon:** Alpha (types only)
 
-**Gamma depends on everyone** → Gamma starts after others have `index.ts` exports ready.
+**Gamma depends on everyone** -> Gamma starts after others have `index.ts` exports ready.
 
 ### Step 4: Reserve Your Files
 
@@ -365,15 +365,15 @@ git push origin task/spell-system-[module]
 
 ## What Happens After Week 2?
 
-### Phase 1 Complete ✅
+### Phase 1 Complete PASSED
 
 You've built:
-- ✅ Type-safe spell system
-- ✅ Working AoE calculations
-- ✅ Command pattern execution
-- ✅ Game mechanics (saves, resistances, scaling)
-- ✅ AI arbitration foundation
-- ✅ 5 working spells
+- PASSED Type-safe spell system
+- PASSED Working AoE calculations
+- PASSED Command pattern execution
+- PASSED Game mechanics (saves, resistances, scaling)
+- PASSED AI arbitration foundation
+- PASSED 5 working spells
 
 ### Phase 2: Core Mechanics (Weeks 3-4)
 

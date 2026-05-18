@@ -1,4 +1,4 @@
-﻿# Guide: Designing Glossary Entries
+# Guide: Designing Glossary Entries
 
 Last Updated: 2026-03-11
 Purpose: Describe the current glossary-entry design rules without carrying forward stale assumptions about file format or spell entry storage.

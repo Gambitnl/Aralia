@@ -1,0 +1,163 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "fireball::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Flammable unattended objects in the area start Burning; runtime has no environmental ignition/status data.",
+      "recommendedTemplateChange": "Add environmental ignition fields for Burning objects.",
+      "recommendedJsonChange": "Add runtime environmentalChange or objectState data for igniting flammable unattended objects."
+    },
+    "flame-arrows::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Fire damage wording, but Flame Arrows does not create a persistent environmental change.",
+      "recommendedTemplateChange": "No environmental-change field required for ordinary extra Fire damage.",
+      "recommendedJsonChange": "No environmental-change JSON change required."
+    },
+    "flame-arrows::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The extra damage is now hit-triggered, but per-ammunition magic ending on hit or miss, the twelve-piece draw limit, and +2 ammunition per higher slot remain prose-only.",
+      "recommendedTemplateChange": "Add empowered ammunition fields for count, hit-or-miss consumption, draw limit, and slot scaling.",
+      "recommendedJsonChange": "Add runtime ammunitionPool data for 12 pieces, +2 per slot above 3, and per-piece magic ending on hit or miss."
+    },
+    "fly::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fly grants a Fly Speed of 60 feet and hover, but runtime stores this only in utility prose.",
+      "recommendedTemplateChange": "Add movement grant fields for fly speed and hover.",
+      "recommendedJsonChange": "Add runtime movementGrant data for flySpeed 60 and hover true."
+    },
+    "fly::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by end-cleanup consequence batch 01: Fly now has structured End Cleanup fields and runtime effects[].endCleanup[] data for removing spell-granted flying speed, causing fall_if_aloft, and allowing can_prevent_fall.",
+      "issue": "When the spell ends, an aloft target falls unless it can stop the fall; runtime has no ending/fall consequence.",
+      "recommendedTemplateChange": "Add conditional-ending aftermath fields for fall_if_aloft_unless_can_stop_fall.",
+      "recommendedJsonChange": "Add runtime endingConsequence data for falling when aloft."
+    },
+    "fly::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by end-cleanup consequence batch 01: the spell-end falling aftermath is represented as effects[].endCleanup[].consequence = fall_if_aloft with preventedBy = can_prevent_fall.",
+      "issue": "The target falling after the spell ends if still aloft is a mechanical aftermath not represented in runtime data.",
+      "recommendedTemplateChange": "Add spell-end aftermath fields for fall if aloft.",
+      "recommendedJsonChange": "Add runtime aftermath data for falling unless fall can be stopped."
+    }
+  },
+  "manualFindings": {
+    "gaseous-form": [
+      {
+        "bucketId": "movement_or_repositioning",
+        "findingId": "gaseous-form::movement_or_repositioning",
+        "canonicalEvidence": "Its only movement is a Fly Speed of 10 feet, and it can hover. The target can enter and occupy the space of another creature.",
+        "structuredState": "No movement speed replacement, hover, or space-occupancy fields.",
+        "jsonState": "Runtime JSON has no typed movement change.",
+        "issue": "Gaseous Form replaces movement with limited flying, hover, and overlapping creature-space movement.",
+        "recommendedTemplateChange": "Add movementOverride fields for fly speed, hover, only-movement restriction, and space-occupancy permission.",
+        "recommendedJsonChange": "Add runtime movementOverride data for fly 10, hover, only movement, and mayOccupyCreatureSpace.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "gaseous-form::terrain_or_surface",
+        "canonicalEvidence": "The target can pass through narrow openings, but it treats liquids as though they were solid surfaces.",
+        "structuredState": "No passage or surface interaction fields.",
+        "jsonState": "Runtime JSON has no typed terrain/surface interaction.",
+        "issue": "Gaseous Form changes passage through openings and liquid surface interaction.",
+        "recommendedTemplateChange": "Add movementSurfaceInteraction fields for narrow openings and liquids-as-solid.",
+        "recommendedJsonChange": "Add runtime terrainInteraction data for passThroughNarrowOpenings and treatsLiquidsAsSolid.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "object_stats_or_damageability",
+        "findingId": "gaseous-form::object_stats_or_damageability",
+        "canonicalEvidence": "The spell ends on a target if it drops to 0 Hit Points.",
+        "structuredState": "The 0 HP ending is present only in prose.",
+        "jsonState": "Runtime JSON has no conditional ending data.",
+        "issue": "This detector row is not an object-stat mechanic; the real issue is tracked separately as a conditional ending.",
+        "recommendedTemplateChange": "No object-stat field required for this row.",
+        "recommendedJsonChange": "No object-stat runtime change required for this row.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "status_or_state_change",
+        "findingId": "gaseous-form::status_or_state_change",
+        "canonicalEvidence": "A willing creature you touch shape-shifts, along with everything it's wearing and carrying, into a misty cloud. The target can't talk or manipulate objects, and any objects it was carrying or holding can't be dropped, used, or otherwise interacted with by it. The target can't attack or cast spells.",
+        "structuredState": "Effect Type: UTILITY; no shapechange, carried-object lock, speech, object manipulation, attack, or spellcasting restriction fields.",
+        "jsonState": "Runtime JSON has only a prose utility effect.",
+        "issue": "The mist form and its action/object restrictions are not represented as state data.",
+        "recommendedTemplateChange": "Add transformationState and restrictedCapabilities fields.",
+        "recommendedJsonChange": "Add runtime transformation data for misty cloud state, carried gear included, no speech, no object manipulation, no attacks, and no spellcasting.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "damage_reduction_or_prevention",
+        "findingId": "gaseous-form::damage_reduction_or_prevention",
+        "canonicalEvidence": "The target has Resistance to Bludgeoning, Piercing, and Slashing damage; it has Immunity to the Prone condition.",
+        "structuredState": "No resistance or condition-immunity fields in the structured block.",
+        "jsonState": "Runtime JSON has no defensive effect.",
+        "issue": "Gaseous Form's physical damage resistances and Prone immunity are not represented.",
+        "recommendedTemplateChange": "Closed by using existing DEFENSIVE resistance fields plus the new Condition Immunities field.",
+        "recommendedJsonChange": "Closed by adding DEFENSIVE resistance for Bludgeoning/Piercing/Slashing and DEFENSIVE immunity with conditionImmunity Prone.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed only for physical resistance and Prone immunity. Mist-form state restrictions, movement-mode details, and conditional endings remain open in their own findings."
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "gaseous-form::conditional_ending",
+        "canonicalEvidence": "The spell ends on a target if it drops to 0 Hit Points or if it takes a Magic action to end the spell on itself.",
+        "structuredState": "Conditional Ending Triggers records target_drops_to_0_hp and target_uses_magic_action_to_end_effect with effect scope.",
+        "jsonState": "Runtime JSON records both triggers in conditionalEndings on the defensive and utility effects that make up the target's gaseous form.",
+        "issue": "Closed: Gaseous Form's per-target 0-HP and self-ended Magic action termination rules are now represented.",
+        "recommendedTemplateChange": "Closed by adding target_drops_to_0_hp and target_uses_magic_action_to_end_effect trigger values and using them on Gaseous Form.",
+        "recommendedJsonChange": "Closed by runtime conditionalEndings on the Gaseous Form effects for target 0 HP and target Magic-action self-ending.",
+        "resolutionStatus": "closed",
+        "closedReason": "Gaseous Form now records both canonical per-target endings in structured markdown and runtime JSON. The new trigger values keep ordinary target 0-HP ending and target self-ending Magic action separate from created-entity disappearance and caster actions."
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "gaseous-form::manual_willing_target",
+        "canonicalEvidence": "A willing creature you touch",
+        "structuredState": "Valid Targets: willing_creature.",
+        "jsonState": "Runtime targeting uses allies and has no first-class willing target filter.",
+        "issue": "Gaseous Form requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+        "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness for every spell and required for this direct willing-target spell.",
+        "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because the new structured/runtime willingness field fully covers this direct willing-target mechanic."
+      },
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "gaseous-form::manual_slot_target_scaling",
+        "canonicalEvidence": "When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd.",
+        "structuredState": "Scaling Rule 1 records special_text target scaling.",
+        "jsonState": "Runtime targeting maxTargets is 1 with no target-count scaling data.",
+        "issue": "Gaseous Form's higher-level target count scaling is not represented in runtime data.",
+        "recommendedTemplateChange": "Add target-count scaling fields.",
+        "recommendedJsonChange": "Add runtime targetScaling data for +1 target per slot above 3.",
+        "resolutionStatus": "closed",
+        "closedReason": "Gaseous Form now records higher-slot target-count scaling with structured targeting.maxTargets scaling notes and runtime targeting.maxTargets slot-level thresholds."
+      }
+    ],
+    "glyph-of-warding": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "glyph-of-warding::choice_or_mode",
+        "canonicalEvidence": "When you cast this spell, you inscribe a glyph that later unleashes a magical effect. You choose whether the glyph is an explosive rune or a spell glyph. When the glyph is triggered, it erupts with magical energy in a 20-foot-radius Sphere centered on the glyph, or the stored spell is cast.",
+        "structuredState": "Effect Type: DAMAGE, UTILITY; damage type is flattened as multiple options and spell-glyph mode is prose-only.",
+        "jsonState": "Runtime JSON has one immediate DAMAGE effect and no mode or delayed trigger choice.",
+        "issue": "Glyph of Warding has explosive-rune and spell-glyph modes with different payloads, but runtime flattens it into immediate damage.",
+        "recommendedTemplateChange": "Add ward mode fields for explosive rune versus stored spell, including damage type choices and stored-spell constraints.",
+        "recommendedJsonChange": "Add runtime wardModes data for explosive rune and spell glyph rather than one immediate damage effect.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "glyph-of-warding::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature in the area makes a Dexterity saving throw, taking damage on a failed save or half as much damage on a successful one.",
+        "structuredState": "Save Stat: Dexterity; Save Outcome: half.",
+        "jsonState": "Runtime DAMAGE effect has a Dexterity save with saveEffect half.",
+        "issue": "The explosive rune's Dexterity save for half damage is represented; the remaining mode and trigger problems are tracked in other rows.",
+        "recommendedTemplateChange": "No save-field change required for this row.",
+        "recommendedJsonChange": "No save-condition runtime change required for this row.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}

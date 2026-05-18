@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:35:16
- * Dependents: encounterUtils.ts, world/index.ts
+ * Last Sync: 07/05/2026, 00:03:52
+ * Dependents: utils/encounterUtils.ts, utils/world/index.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -134,14 +134,16 @@ export function processAndValidateEncounter(
         }
 
         const monsterCounts: Record<string, number> = {};
+        const shuffledReplacements = [...potentialReplacements].sort(() => Math.random() - 0.5);
+        
         while(remainingXp > 10 && Object.values(monsterCounts).reduce((s, c) => s + c, 0) < MAX_MONSTER_COUNT) {
-            const monsterToAdd = potentialReplacements.find(m => (XP_BY_CR[m.baseStats.cr] || 0) <= remainingXp);
-            if (monsterToAdd) {
-                monsterCounts[monsterToAdd.id] = (monsterCounts[monsterToAdd.id] || 0) + 1;
-                remainingXp -= (XP_BY_CR[monsterToAdd.baseStats.cr] || 0);
-            } else {
-                break;
-            }
+            // Find all that fit and pick a random one
+            const affordable = shuffledReplacements.filter(m => (XP_BY_CR[m.baseStats.cr] || 0) <= remainingXp);
+            if (affordable.length === 0) break;
+
+            const monsterToAdd = affordable[Math.floor(Math.random() * affordable.length)];
+            monsterCounts[monsterToAdd.id] = (monsterCounts[monsterToAdd.id] || 0) + 1;
+            remainingXp -= (XP_BY_CR[monsterToAdd.baseStats.cr] || 0);
         }
 
         for (const id in monsterCounts) {
@@ -166,10 +168,17 @@ export function processAndValidateEncounter(
                 finalEncounter.push(suggestion);
             } else {
                 const suggestedXP = XP_BY_CR[suggestion.cr] || 0;
-                const substitute = Object.values(MONSTERS_DATA)
-                    .sort((a, b) => Math.abs((XP_BY_CR[a.baseStats.cr] || 0) - suggestedXP) - Math.abs((XP_BY_CR[b.baseStats.cr] || 0) - suggestedXP))[0];
                 
-                if (substitute) {
+                // Find all monsters with the closest XP and pick one randomly
+                const sortedByXpDiff = Object.values(MONSTERS_DATA)
+                    .map(m => ({ monster: m, diff: Math.abs((XP_BY_CR[m.baseStats.cr] || 0) - suggestedXP) }))
+                    .sort((a, b) => a.diff - b.diff);
+                
+                if (sortedByXpDiff.length > 0) {
+                    const minDiff = sortedByXpDiff[0].diff;
+                    const bestMatches = sortedByXpDiff.filter(m => m.diff === minDiff);
+                    const substitute = bestMatches[Math.floor(Math.random() * bestMatches.length)].monster;
+                    
                     console.warn(`Substitution: AI suggested unknown monster "${suggestion.name}". Replacing with "${substitute.name}".`);
                     finalEncounter.push({
                         ...suggestion,

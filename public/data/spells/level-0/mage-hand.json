@@ -12,8 +12,9 @@
     "Warlock",
     "Wizard"
   ],
-  "subClasses": [],
-  "subClassesVerification": "unverified",
+  "subClasses": [
+    "Rogue - Arcane Trickster"
+  ],
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -69,7 +70,27 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -91,21 +112,67 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "other",
       "description": "Creates a spectral hand to manipulate objects. Control as an Action.",
+      "controlledEntity": {
+        "entityType": "spectral_hand",
+        "count": 1,
+        "appearsAt": "chosen_point",
+        "durationScope": "spell_duration",
+        "controlActionType": "magic_action",
+        "initialUseOnCast": true,
+        "laterControlTiming": "later_turns",
+        "movementDistance": 30,
+        "movementUnit": "feet",
+        "maxDistanceFromCaster": 30,
+        "canAttack": false,
+        "canActivateMagicItems": false,
+        "carryCapacityPounds": 10,
+        "allowedInteractions": [
+          "manipulate_object",
+          "open_unlocked_door_or_container",
+          "stow_item_in_open_container",
+          "retrieve_item_from_open_container",
+          "pour_vial_contents"
+        ],
+        "endingTriggers": [
+          "caster_recasts",
+          "beyond_max_distance"
+        ],
+        "notes": "The hand appears at a point within range, can be used when the spell is cast, can be controlled again on later turns as a Magic action, and can move up to 30 feet as part of that action."
+      },
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -132,8 +199,27 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "end_on_recast",
+          "scope": "spell",
+          "description": "The hand vanishes if the caster casts Mage Hand again."
+        },
+        {
+          "trigger": "beyond_max_distance",
+          "scope": "spell",
+          "description": "The hand vanishes if it is ever more than 30 feet away from the caster."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",

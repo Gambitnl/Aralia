@@ -1,0 +1,122 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "spirit-guardians": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "spirit-guardians::attack_or_save_modifier",
+        "canonicalEvidence": "Speed is halved in the Emanation, and whenever the Emanation enters a creature space and whenever a creature enters the Emanation or ends its turn there, the creature must make a Wisdom saving throw. A creature makes this save only once per turn.",
+        "structuredState": "Save/damage are represented; no speed-halving or once-per-turn area trigger fields.",
+        "jsonState": "Runtime has immediate Wisdom save half damage but no speed halving or once-per-turn area triggers.",
+        "issue": "Spirit Guardians damage is partially represented, but movement slowing and recurring once-per-turn triggers are not.",
+        "recommendedTemplateChange": "Add emanation speed modifier and once-per-turn area trigger fields.",
+        "recommendedJsonChange": "Add runtime speedMultiplier 0.5 in emanation and area triggers for emanation enters, creature enters, or creature ends turn, once per turn.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "spirit-guardians::summon_or_controlled_entity",
+        "canonicalEvidence": "Protective spirits flit around you in a 15-foot Emanation for the duration.",
+        "structuredState": "No summoned spirit/persistent emanation entity fields.",
+        "jsonState": "Runtime has area damage only.",
+        "issue": "The protective spirits are a persistent emanation presentation; the mechanical gaps are tracked as area trigger, damage type, and target exclusion rows.",
+        "recommendedTemplateChange": "No separate summon field required unless visual/entity presentation becomes runtime-significant.",
+        "recommendedJsonChange": "No separate summon runtime change required for this row.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "spirit-guardians::manual_designated_unaffected_creatures",
+        "canonicalEvidence": "When you cast this spell, you can designate creatures to be unaffected by it. Any other creature...",
+        "structuredState": "No designated unaffected creature fields.",
+        "jsonState": "Runtime target filter has no exclusion list chosen at cast time.",
+        "issue": "Spirit Guardians lets the caster designate unaffected creatures at cast time.",
+        "recommendedTemplateChange": "Add cast-time excluded targets fields.",
+        "recommendedJsonChange": "Add runtime excludedTargets chosenOnCast for unaffected creatures.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "deferred_descriptive_flavor",
+        "findingId": "spirit-guardians::deferred_descriptive_flavor",
+        "canonicalEvidence": "Their spectral form appears angelic or fey, or fiendish if evil.",
+        "structuredState": "No descriptive form field.",
+        "jsonState": "Runtime does not type descriptive spectral form.",
+        "issue": "The exact spectral appearance is deferred as presentation; alignment-linked damage/form choice remains actionable in choice rows.",
+        "recommendedTemplateChange": "No presentation-only field required for this goal.",
+        "recommendedJsonChange": "No runtime presentation-only change required.",
+        "resolutionStatus": "deferred_flavor"
+      }
+    ],
+    "stinking-cloud": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "stinking-cloud::attack_or_save_modifier",
+        "canonicalEvidence": "Each creature that starts its turn in the Sphere must succeed on a Constitution saving throw or have the Poisoned condition until the end of the current turn. While Poisoned in this way, the creature cannot take an action or a Bonus Action.",
+        "structuredState": "Save Stat: Constitution; Conditions Applied: Poisoned; no action/bonus action lockout field.",
+        "jsonState": "Runtime now uses turn_start Constitution save to Poisoned without fake escape/repeat, but no action/bonus action lockout or end-current-turn duration.",
+        "issue": "The save and Poisoned condition are partially represented; action/bonus action lockout and exact duration remain unmodeled.",
+        "recommendedTemplateChange": "Add short condition duration and action/bonus action restriction fields.",
+        "recommendedJsonChange": "Add runtime poisoned rider cannotTakeActionOrBonusAction and duration until end of current turn.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "healing_or_restoration",
+        "findingId": "stinking-cloud::healing_or_restoration",
+        "canonicalEvidence": "The cloud is Heavily Obscured.",
+        "structuredState": "No heavily obscured field.",
+        "jsonState": "Runtime JSON has no visibility effect.",
+        "issue": "This detector row is not healing; the real issue is heavily obscured area visibility.",
+        "recommendedTemplateChange": "Add heavilyObscured environmental/vision fields.",
+        "recommendedJsonChange": "Add runtime environmentalChange heavilyObscured in area.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "stinking-cloud::environmental_change",
+        "canonicalEvidence": "The cloud lingers in the air for the duration or until a strong wind disperses it.",
+        "structuredState": "No wind-dispersal ending field.",
+        "jsonState": "Runtime JSON has no wind dispersal condition.",
+        "issue": "Stinking Cloud can be dispersed by strong wind, but that environmental ending condition is not represented.",
+        "recommendedTemplateChange": "Add environmental dispersal fields for gas/cloud effects.",
+        "recommendedJsonChange": "Add runtime conditionalEnding dispersedByStrongWind.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "aftermath_or_memory",
+        "findingId": "stinking-cloud::aftermath_or_memory",
+        "canonicalEvidence": "The cloud lingers in the air for the duration or until a strong wind disperses it.",
+        "structuredState": "Duration is represented; wind dispersal is tracked separately.",
+        "jsonState": "Runtime duration is represented; wind dispersal is not.",
+        "issue": "The lingering cloud duration is ordinary duration data; this row is closed in favor of the environmental wind-dispersal row.",
+        "recommendedTemplateChange": "No aftermath field required for this row.",
+        "recommendedJsonChange": "No aftermath runtime change required.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "summon-lesser-demons": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "summon-lesser-demons::choice_or_mode",
+        "canonicalEvidence": "Roll on the table to determine what appears. The DM chooses the demons, and you choose the unoccupied spaces you can see within range where they appear.",
+        "structuredState": "Effect Type: SUMMON; no random table, DM choice, or placement choice fields.",
+        "jsonState": "Runtime JSON has one prose utility effect.",
+        "issue": "Summon Lesser Demons uses a random summon-count/CR table, DM monster selection, and caster placement choices that are not typed.",
+        "recommendedTemplateChange": "Add random summon table, DM choice, and chosen placement fields.",
+        "recommendedJsonChange": "Add runtime summonTable d6 outcomes, dmChoosesCreature, and casterChosenUnoccupiedSpaces.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "summon-lesser-demons::target_filter_or_eligibility",
+        "canonicalEvidence": "You choose the unoccupied spaces you can see within range where they appear.",
+        "structuredState": "Valid Targets: location; no unoccupied/visible multi-space placement fields.",
+        "jsonState": "Runtime targeting ground with maxTargets 1 cannot represent multiple unoccupied visible spaces.",
+        "issue": "The placement targets are multiple unoccupied visible spaces, but runtime has one ground target.",
+        "recommendedTemplateChange": "Add multi-placement target fields for summons.",
+        "recommendedJsonChange": "Add runtime placementTargets unoccupied visible spaces within 60 feet with count from summon table.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

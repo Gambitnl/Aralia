@@ -97,7 +97,7 @@
 ### armor-of-agathys-conditional-trigger
 **Issue**: Armor of Agathys retaliation damage uses `on_target_attack` trigger but per D&D 5e rules, cold damage only occurs on melee hits while temp HP remains active.
 
-**Current State**: ✅ Has DAMAGE effect with `on_target_attack` trigger and slot-level scaling.
+**Current State**: PASSED Has DAMAGE effect with `on_target_attack` trigger and slot-level scaling.
 
 **Enhancement Needed**: Add condition to verify:
 1. Attack was melee (not ranged)

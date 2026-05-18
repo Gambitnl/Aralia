@@ -63,7 +63,7 @@
 | Line | Snippet |
 |---|---|
 | 223 | `/** Unique ID for the condition (e.g., 'blinded', 'charmed'). */` |
-| 460 | `blinded: { id: 'blinded', label: 'Blinded', icon: '👁️', color: '#9CA3AF', description: 'Can’t see and automatically fails any ability check that requ...` |
+| 460 | `blinded: { id: 'blinded', label: 'Blinded', icon: '👁️', color: '#9CA3AF', description: 'Can't see and automatically fails any ability check that requ...` |
 
 ## Documentation & Markdown (.md)
 
@@ -212,7 +212,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ### `docs/tasks/spell-system-overhaul/gaps/GAP-CHOICE-SPELLS.md`
 

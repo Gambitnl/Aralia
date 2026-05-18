@@ -1,0 +1,159 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 35-39 in generated discovery row order.",
+    "True Seeing had no detector findings in this packet, but its runtime utility prose was corrected to match the current canonical Truesight-only description."
+  ],
+  "findings": {
+    "soul-cage::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Steal Life healing and Borrow Experience advantage are represented, but runtime lacks a generic next-roll advantage token for attack/check/save use.",
+      "recommendedTemplateChange": "Add next-roll advantage token fields.",
+      "recommendedJsonChange": "Add runtime nextRollAdvantage data."
+    },
+    "soul-cage::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell triggers when a visible Humanoid within 60 feet dies, and Eyes of the Dead requires a place the humanoid saw in life on the current plane; runtime records this in options but lacks death-trigger and memory-place eligibility fields.",
+      "recommendedTemplateChange": "Add death-trigger, creature type, and remembered-place eligibility fields.",
+      "recommendedJsonChange": "Add runtime deathTriggerSoulCapture and rememberedPlaceEligibility data."
+    },
+    "soul-cage::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "Bonus-action Steal Life/Borrow Experience and action Eyes of the Dead are represented as utility options; Steal Life also has a HEALING effect.",
+      "recommendedTemplateChange": "No additional action field required for this pass.",
+      "recommendedJsonChange": "Closed by HEALING trigger and UTILITY controlOptions."
+    },
+    "soul-cage::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The visible death trigger, sensor visibility, and visual/auditory sensor feed are represented as targeting and utility options.",
+      "recommendedTemplateChange": "No separate vision/light/sound field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.lineOfSight and UTILITY controlOptions."
+    },
+    "soul-cage::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "The translucent image visible to creatures that can see the sensor is a sensor presentation detail, not an illusion/disguise mechanic.",
+      "recommendedTemplateChange": "Track under sensor_or_remote_perception if needed.",
+      "recommendedJsonChange": "No illusion runtime data required."
+    },
+    "soul-cage::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Eyes of the Dead creates an invisible sensor at a remembered place on the current plane for concentration up to 10 minutes and provides visual/auditory information; runtime records this as an option but lacks first-class remote sensor fields.",
+      "recommendedTemplateChange": "Add remote sensor placement, visibility, plane, concentration, and feed fields.",
+      "recommendedJsonChange": "Add runtime remoteSensor data."
+    },
+    "soul-cage::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Query Soul provides a no-action telepathic truthful answer regardless of language with length/knowledge limits; runtime records this as an option but lacks first-class query/answer fields.",
+      "recommendedTemplateChange": "Add telepathic query fields with answer truthfulness, knowledge, and length limits.",
+      "recommendedJsonChange": "Add runtime soulQuery data."
+    },
+    "soul-cage::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Eyes of the Dead requires the named place to be on the caster's current plane; runtime lacks first-class same-plane remote-sensor eligibility fields.",
+      "recommendedTemplateChange": "Add plane eligibility fields for remote sensors.",
+      "recommendedJsonChange": "Add runtime sensorPlaneRestriction data."
+    },
+    "soul-cage::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The soul only knows what it knew in life and must answer truthfully to the best of its ability; runtime lacks knowledge-source and truthfulness fields.",
+      "recommendedTemplateChange": "Add knowledge-source/truthfulness answer fields.",
+      "recommendedJsonChange": "Add runtime knowledgeAnswerConstraint data."
+    },
+    "soul-cage::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The material cage stores the soul and can be destroyed to end the spell, but runtime lacks object lifecycle/destroy-to-end fields.",
+      "recommendedTemplateChange": "Add soul-container object lifecycle fields.",
+      "recommendedJsonChange": "Add runtime soulContainer data."
+    },
+    "soul-cage::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The dead humanoid cannot be revived while the soul is trapped; runtime records this as an option but lacks first-class revival prevention.",
+      "recommendedTemplateChange": "Add revival prevention fields.",
+      "recommendedJsonChange": "Add runtime revivalPrevention data."
+    },
+    "soul-cage::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Steal Life healing text; this is healing/resource use, not environmental change.",
+      "recommendedTemplateChange": "Track under healing/utility.",
+      "recommendedJsonChange": "No environmental runtime data required."
+    },
+    "soul-cage::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell ends when the cage is destroyed or after the sixth exploit releases the soul; runtime records this as options but lacks first-class use-count and object-destruction end triggers.",
+      "recommendedTemplateChange": "Add use-count and object-destruction ending fields.",
+      "recommendedJsonChange": "Add runtime useCountEndCondition and objectDestroyedEndCondition data."
+    },
+    "sunbeam::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save and half-damage outcome are represented by the DAMAGE effect.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE condition.saveType/saveEffect."
+    },
+    "sunbeam::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Blinded, Bright Light, Dim Light, and sunlight are represented as STATUS_CONDITION and UTILITY light data.",
+      "recommendedTemplateChange": "No additional vision/light field required.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Blinded and UTILITY light."
+    },
+    "sunbeam::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Blinded until the start of the caster's next turn is represented as a STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No additional status field required.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Blinded."
+    },
+    "sunbeam::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The repeat Magic action to create a new line is represented as an on_caster_action DAMAGE trigger and a granted action.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by DAMAGE trigger and UTILITY grantedActions."
+    },
+    "tensers-transformation::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Weapon attack advantage, Strength/Constitution save proficiency, and end DC 15 Constitution save are represented as options/status effect, but runtime lacks proficiency-grant and fixed-DC end-save fields.",
+      "recommendedTemplateChange": "Add proficiency grant and fixed-DC end-save fields.",
+      "recommendedJsonChange": "Add runtime proficiencyGrants and fixedDcEndSave data."
+    },
+    "tensers-transformation::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The 50 temporary Hit Points are represented as a HEALING effect with isTemporaryHp true.",
+      "recommendedTemplateChange": "No additional healing field required.",
+      "recommendedJsonChange": "Closed by HEALING temporary HP."
+    },
+    "tensers-transformation::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched temporary Hit Points; this is temporary healing, not object stats.",
+      "recommendedTemplateChange": "Track under healing_or_restoration.",
+      "recommendedJsonChange": "No object-stats runtime data required."
+    },
+    "tensers-transformation::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Cannot cast spells during the spell, temporary HP loss at end, and the exhaustion save immediately after ending are represented as options/status, but runtime lacks first-class spellcasting restriction and end-trigger aftermath fields.",
+      "recommendedTemplateChange": "Add spellcasting restriction, temporary-HP cleanup, and on-spell-end save fields.",
+      "recommendedJsonChange": "Add runtime spellcastingRestriction and onSpellEndSave data."
+    },
+    "tensers-transformation::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Temporary HP loss and possible Exhaustion after the spell ends are represented, but runtime lacks first-class aftermath trigger data.",
+      "recommendedTemplateChange": "Add on-spell-end aftermath fields.",
+      "recommendedJsonChange": "Add runtime onSpellEndAftermath data."
+    },
+    "transport-via-plants::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The destination plant must have been seen or touched before; runtime records this as an option but lacks first-class prior familiarity fields.",
+      "recommendedTemplateChange": "Add destination familiarity fields.",
+      "recommendedJsonChange": "Add runtime destinationFamiliarity data."
+    },
+    "transport-via-plants::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The plant link allows same-plane travel at any distance using 5 feet of movement; runtime represents teleport movement but lacks first-class linked portal/plant endpoint fields.",
+      "recommendedTemplateChange": "Add linked endpoint travel fields for portals/plants.",
+      "recommendedJsonChange": "Add runtime linkedPlantTravel data."
+    },
+    "transport-via-plants::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The magical plant link is represented as movement plus utility options; it does not otherwise alter the environment.",
+      "recommendedTemplateChange": "No environmental field required for this pass.",
+      "recommendedJsonChange": "Closed by MOVEMENT teleport and UTILITY options."
+    }
+  }
+}

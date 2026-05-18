@@ -1,4 +1,4 @@
-﻿# Spell Integration Checklist
+# Spell Integration Checklist
 
 Last Updated: 2026-03-12
 

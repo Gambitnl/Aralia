@@ -1,4 +1,4 @@
-﻿# Mason: Plan for Breaking Circular Dependencies in src/types
+# Mason: Plan for Breaking Circular Dependencies in src/types
 
 Last Reviewed: 2026-03-12
 Status: Preserved refactor plan / partially landed modularization note

@@ -1,0 +1,170 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 40-44 in generated discovery row order."
+  ],
+  "findings": {
+    "planar-binding::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Charisma save, eligible creature types, and failed-save Bound state are now represented.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Bound with Charisma save."
+    },
+    "planar-binding::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Commands may include message delivery and completion reporting, with hostile literalism, but runtime lacks typed command/report fields.",
+      "recommendedTemplateChange": "Add bound-entity command and report fields.",
+      "recommendedJsonChange": "Add runtime boundEntityCommand data."
+    },
+    "planar-binding::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now has the Bound state, but the service obligation, extension of another summon spell's duration, hostile literalism, and instruction completion behavior remain prose-only.",
+      "recommendedTemplateChange": "Add bound-entity service fields distinct from generic status conditions.",
+      "recommendedJsonChange": "Add runtime planarBindingControl data."
+    },
+    "planar-binding::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The bound creature travels to report completion on the same plane or returns to the binding place if on another plane; runtime lacks typed travel/report behavior.",
+      "recommendedTemplateChange": "Add completion travel/report fields with same-plane branching.",
+      "recommendedJsonChange": "Add runtime boundEntityCompletionTravel data."
+    },
+    "planar-binding::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Completion before spell end changes the creature's behavior, and another summon/creation spell's duration can be extended to match Planar Binding; runtime lacks those conditional duration/ending branches.",
+      "recommendedTemplateChange": "Add bound-service completion and linked-spell duration-extension fields.",
+      "recommendedJsonChange": "Add runtime planarBindingDurationLink data."
+    },
+    "raise-dead::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The revived target takes a -4 penalty to attacks, saves, and ability checks that decreases by 1 after each long rest; runtime has no typed decaying penalty fields.",
+      "recommendedTemplateChange": "Add decaying resurrection penalty fields.",
+      "recommendedJsonChange": "Add runtime resurrectionPenalty data."
+    },
+    "raise-dead::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Dead no longer than 10 days, willing/free soul, non-Undead target, and intact vital body parts are all eligibility requirements not represented in runtime targeting.",
+      "recommendedTemplateChange": "Add resurrection eligibility fields for death age, soul willingness/liberty, creature type exclusions, and missing vital parts.",
+      "recommendedJsonChange": "Add runtime resurrectionEligibility data."
+    },
+    "raise-dead::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell restores life at 1 HP, neutralizes poison, cures nonmagical disease, closes mortal wounds, and does not remove magical disease/curses; runtime keeps this as prose.",
+      "recommendedTemplateChange": "Add resurrection restoration fields.",
+      "recommendedJsonChange": "Add runtime raiseDeadRestoration data."
+    },
+    "raise-dead::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Dead-to-alive resurrection, Undead exclusion, and the post-resurrection ordeal penalty are not typed in runtime.",
+      "recommendedTemplateChange": "Add resurrection state-change fields.",
+      "recommendedJsonChange": "Add runtime resurrectionState data."
+    },
+    "rarys-telepathic-bond::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The up-to-eight target choice is now represented by multi targeting and maxTargets 8.",
+      "recommendedTemplateChange": "No new choice field required for this pass.",
+      "recommendedJsonChange": "Closed by targeting.type multi and maxTargets 8."
+    },
+    "rarys-telepathic-bond::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime now marks the spell as communication, but the all-to-all telepathic bond, no shared language requirement, any-distance range, and no-other-planes limit remain prose-only.",
+      "recommendedTemplateChange": "Add telepathic bond fields for all-to-all targets, language independence, distance, and plane limit.",
+      "recommendedJsonChange": "Add runtime telepathicBond data."
+    },
+    "rarys-telepathic-bond::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the no-other-planes communication limit, which is a communication range constraint rather than travel or planar movement.",
+      "recommendedTemplateChange": "Track under telepathic communication fields.",
+      "recommendedJsonChange": "No travel/planar movement runtime data required."
+    },
+    "rarys-telepathic-bond::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The bond ends by normal duration and has no special conditional ending beyond the recorded duration.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration."
+    },
+    "reincarnate::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The new body's form is determined by GM choice or a d100 table; runtime has only prose/table text.",
+      "recommendedTemplateChange": "Add reincarnation form-choice/roll-table fields.",
+      "recommendedJsonChange": "Add runtime reincarnationFormTable data."
+    },
+    "reincarnate::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target must be a dead humanoid or piece of one, dead no longer than 10 days, with a free and willing soul; runtime targeting only says creatures.",
+      "recommendedTemplateChange": "Add reincarnation eligibility fields for dead humanoid/piece, death age, and soul willingness/liberty.",
+      "recommendedJsonChange": "Add runtime reincarnationEligibility data."
+    },
+    "reincarnate::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell forms a new adult body, restores life, changes race/species traits, and preserves former memories/capabilities; runtime lacks typed reincarnation state fields.",
+      "recommendedTemplateChange": "Add reincarnation state-change fields.",
+      "recommendedJsonChange": "Add runtime reincarnationState data."
+    },
+    "reincarnate::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell fails if the soul is not free or willing; runtime lacks this failure condition.",
+      "recommendedTemplateChange": "Add soul availability failure fields.",
+      "recommendedJsonChange": "Add runtime resurrectionFailure data."
+    },
+    "scrying::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can target either a same-plane creature or a previously seen location; runtime has only creature targeting.",
+      "recommendedTemplateChange": "Add scrying target-mode fields for creature and location modes.",
+      "recommendedJsonChange": "Add runtime scryingTargetModes data."
+    },
+    "scrying::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Wisdom save is modified by knowledge and physical connection, and a knowing target can voluntarily fail; runtime lacks these save modifier tables and voluntary-fail handling.",
+      "recommendedTemplateChange": "Add scrying save modifier and voluntary-fail fields.",
+      "recommendedJsonChange": "Add runtime scryingSaveModifiers data."
+    },
+    "scrying::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Scrying creates invisible remote sight/hearing, with a visible luminous-orb appearance to creatures that can see invisible objects; runtime keeps this in prose.",
+      "recommendedTemplateChange": "Add remote sensor visibility and perception fields.",
+      "recommendedJsonChange": "Add runtime scryingSensor data."
+    },
+    "scrying::sensor_or_remote_perception": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The invisible sensor appears within 10 feet of a failed-save target, follows it, or appears at a chosen seen location and remains stationary; runtime lacks sensor placement/movement fields.",
+      "recommendedTemplateChange": "Add remote sensor placement and follow/stationary mode fields.",
+      "recommendedJsonChange": "Add runtime remoteSensor data."
+    },
+    "scrying::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The same-plane phrase limits target eligibility and does not move a creature or object between planes.",
+      "recommendedTemplateChange": "Track under scrying target eligibility.",
+      "recommendedJsonChange": "No travel/planar movement runtime data required."
+    },
+    "scrying::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Knowledge of the target and physical connection modify the save, and a known casting can be voluntarily failed; runtime lacks these knowledge/social consent mechanics.",
+      "recommendedTemplateChange": "Add knowledge/connection/consent fields.",
+      "recommendedJsonChange": "Add runtime scryingKnowledgeModifiers data."
+    },
+    "scrying::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The invisible sensor and its luminous-orb appearance to creatures that see invisible objects are state changes not represented as data.",
+      "recommendedTemplateChange": "Add sensor visibility-state fields.",
+      "recommendedJsonChange": "Add runtime sensorVisibility data."
+    }
+  },
+  "manualFindings": {
+    "rarys-telepathic-bond": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "title": "Target Filters And Eligibility",
+        "spellId": "rarys-telepathic-bond",
+        "findingId": "rarys-telepathic-bond::target_filter_or_eligibility",
+        "canonicalEvidence": "Creatures with Intelligence scores of 2 or less aren't affected by this spell.",
+        "structuredState": "Valid Targets: creatures",
+        "jsonState": "Runtime has no Intelligence threshold target filter.",
+        "issue": "The spell excludes creatures with Intelligence 2 or less, but runtime targeting lacks ability-score eligibility filters.",
+        "recommendedTemplateChange": "Closed by ability-threshold propagation: structured markdown now records the target ability, operator, and threshold value.",
+        "recommendedJsonChange": "Closed by ability-threshold propagation: targeting.filter.abilityThreshold now carries the matching runtime facts.",
+        "resolutionStatus": "closed",
+        "reviewerNote": "Closed because this target-filter finding is fully represented by the new abilityThreshold fields."
+      }
+    ]
+  }
+}

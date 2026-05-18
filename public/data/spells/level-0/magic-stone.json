@@ -11,7 +11,6 @@
     "Warlock"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -54,10 +53,13 @@
     "range": 5,
     "rangeUnit": "feet",
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+    "instanceAllocation": {
+      "instanceType": "projectile",
+      "baseCount": 3,
+      "scalingRule": "not_applicable",
+      "assignment": "independent_positions",
+      "resolution": "sequential",
+      "notes": "The caster imbues one to three pebbles. Each empowered pebble can be thrown or slung once and then its spell effect ends whether the attack hits or misses."
     },
     "filter": {
       "creatureTypes": [],
@@ -65,7 +67,27 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -87,18 +109,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
       "description": "Imbues up to 3 pebbles. They can be thrown (60ft) or slung (normal range) for 1d6 + Mod Bludgeoning damage using Spell Attack Roll.",
@@ -108,7 +149,34 @@
         "customFormula": ""
       },
       "grantedActions": [],
-      "attackAugments": [],
+      "attackAugments": [
+        {
+          "attackType": "ranged_weapon",
+          "weaponRequirement": {
+            "weaponTypes": [
+              "pebble",
+              "sling"
+            ],
+            "notes": "Each empowered pebble can be thrown by hand or hurled with a sling."
+          },
+          "grantedAttack": {
+            "timing": "while_active",
+            "count": 1,
+            "usesCastingWeapon": false,
+            "notes": "The spell does not grant an extra action; it modifies attacks made with one of the empowered pebbles before the spell ends."
+          },
+          "abilitySubstitution": {
+            "attackRoll": "spellcasting_ability",
+            "damageRoll": "spellcasting_ability"
+          },
+          "additionalDamage": {
+            "dice": "1d6",
+            "type": "Bludgeoning"
+          },
+          "appliesOn": "hit",
+          "notes": "If another creature attacks with the pebble, that attacker still adds the caster's spellcasting ability modifier, not the attacker's, to the attack roll. Damage is 1d6 plus the caster's spellcasting ability modifier."
+        }
+      ],
       "controlOptions": [],
       "taunt": {
         "disadvantageAgainstOthers": false,
@@ -128,14 +196,33 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "on_attack_hit_or_miss",
+          "scope": "item",
+          "description": "Hit or miss, the spell ends on the individual empowered pebble used for the attack."
+        },
+        {
+          "trigger": "end_on_recast",
+          "scope": "item",
+          "description": "If the caster casts Magic Stone again, the spell ends early on any pebbles still affected by the earlier casting."
+        }
+      ]
     },
     {
       "type": "DAMAGE",
       "trigger": {
         "type": "on_attack_hit",
-        "consumption": "unlimited",
+        "consumption": "per_instance_hit_or_miss",
         "attackFilter": {
           "attackType": "spell",
           "weaponType": "ranged"
@@ -149,18 +236,37 @@
       },
       "condition": {
         "type": "hit",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "1d6",
@@ -171,7 +277,14 @@
         "customFormula": "1d6 + Spellcasting Ability Modifier",
         "bonusPerLevel": ""
       },
-      "description": ""
+      "description": "An empowered pebble deals 1d6 Bludgeoning damage plus the caster's spellcasting ability modifier on a hit. Hit or miss, that pebble's magic then ends.",
+      "conditionalEndings": [
+        {
+          "trigger": "on_attack_hit_or_miss",
+          "scope": "item",
+          "description": "Hit or miss, the spell ends on the individual empowered pebble used for the attack."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -179,7 +292,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You touch one to three pebbles and imbue them with magic. You or someone else can make a ranged spell attack with one of the pebbles by throwing it or hurling it with a sling. If thrown, a pebble has a range of 60 feet. If hurled with a sling, it has the sling's normal range. On a hit, the target takes bludgeoning damage equal to 1d6 + your spellcasting ability modifier. Whether the attack hits or misses, the spell then ends on the stone. If you cast this spell again, the spell ends early on any pebbles still affected by it.",
+  "description": "You touch one to three pebbles and imbue them with magic. You or someone else can make a ranged spell attack with one of the pebbles by throwing it or hurling it with a sling. If thrown, it has a range of 60 feet. If someone else attacks with the pebble, that attacker adds your spellcasting ability modifier, not the attacker's, to the attack roll. On a hit, the target takes bludgeoning damage equal to 1d6 + your spellcasting ability modifier. Hit or miss, the spell then ends on the stone. If you cast this spell again, the spell ends early on any pebbles still affected by it.",
   "higherLevels": "",
   "tags": [
     "damage",

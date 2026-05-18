@@ -1,0 +1,50 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-illusion-and-sensory",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "required": false,
+      "path": "effects[].sensoryManifestation",
+      "structuredLabels": [
+        "Sensory Manifestation Mode Source",
+        "Sensory Manifestation Variant Count"
+      ],
+      "structuredPattern": "^Sensory Manifestation Variant \\d+",
+      "valueType": "object",
+      "why": "Illusion and sensory spells need runtime data for what their manifestations can and cannot create, especially when the prose separates sound, image, smell, light, and other sensory limits by mode.",
+      "comment": "Stores spell-created sensory manifestations and their option-specific limits. Purpose: effects[].sensoryManifestation exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about sensory mechanics hidden inside illusion descriptions. Populate it from structured markdown labels matching `Sensory Manifestation ...` after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].sensoryManifestation`. The value type is `object`. Omit only when the spell does not create a mechanically constrained sensory manifestation; otherwise use explicit `not_applicable` values inside the object for option fields that do not apply.",
+      "log": [
+        {
+          "at": "2026-05-14T02:00:00+02:00",
+          "action": "created",
+          "why": "Minor Illusion's Sound and Image modes have different allowed senses, excluded senses, sound timing, and image size limits that were previously flattened into prose."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "path": "effects[].illusion",
+      "structuredLabels": [
+        "Illusion Reveal Scope",
+        "Illusion Reveal Methods",
+        "Illusion Reveal Action Cost",
+        "Illusion Reveal Ability",
+        "Illusion Reveal Skill",
+        "Illusion Reveal DC",
+        "Illusion Reveal Applies To",
+        "Illusion Discerned State"
+      ],
+      "valueType": "object",
+      "why": "Illusion reveal mechanics need a runtime home separate from escape checks because discerning an illusion can change only one creature's perception without ending the spell.",
+      "comment": "Stores how an illusion can be examined or physically revealed and what happens for creatures that discern it. Purpose: effects[].illusion exists so Study checks, physical-interaction reveal rules, and post-reveal states are not mistaken for ordinary escape checks or flavor. Populate it from structured markdown labels matching `Illusion ...` after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].illusion`. The value type is `object`. Omit only when the spell has no mechanically relevant illusion reveal/discernment rule; otherwise use explicit `not_applicable` values inside the object for parts that do not apply.",
+      "log": [
+        {
+          "at": "2026-05-14T02:00:00+02:00",
+          "action": "created",
+          "why": "Minor Illusion lets creatures Study the sound or image, reveals image mode through physical interaction, and makes the illusion faint only to discerning creatures."
+        }
+      ]
+    }
+  ]
+}

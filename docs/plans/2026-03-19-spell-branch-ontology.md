@@ -1,16 +1,16 @@
 # 1E Spell Branch Implementation Plan
 
-> **IMPLEMENTED** — 2026-03-20. The SpellBranchNavigator, axis engine, spell profile generator, and all types were built as specified. The graph overlay described in `docs/plans/2026-03-19-spells-graph-overlay.md` was subsequently implemented on top of this foundation. `SpellBranchNavigator` gained an `initialChoices?: AxisChoice[]` prop to accept a pre-seeded filter state from the graph overlay's "Open in Spell Branch →" action.
+> **IMPLEMENTED** - 2026-03-20. The SpellBranchNavigator, axis engine, spell profile generator, and all types were built as specified. The graph overlay described in `docs/plans/2026-03-19-spells-graph-overlay.md` was subsequently implemented on top of this foundation. `SpellBranchNavigator` gained an `initialChoices?: AxisChoice[]` prop to accept a pre-seeded filter state from the graph overlay's "Open in Spell Branch ->" action.
 
 > **For Claude:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task.
 
 **Goal:** Build a dynamic faceted spell navigator in the roadmap devtools that lets the project owner browse all 469 spells by any combination of canonical axes (Class, Level, School, Effect Type, Concentration, etc.) with the full system built once and new axes added by data alone.
 
-**Architecture:** A build-time script reads all spell JSON files and outputs a single `spell-profiles.json`. A pure TypeScript axis engine (no React) takes a profile array and a list of prior choices, then returns the filtered spell set and the next available axes with their live-computed values. A React component wraps the engine into a tree navigator. Binary axes (Concentration, Ritual, AI Arbitration) expose a three-state Yes/No/Either with a count split. The V/S/M requirements axis maps to seven named component combinations. Spell nodes are always terminal leaves — they never appear mid-path.
+**Architecture:** A build-time script reads all spell JSON files and outputs a single `spell-profiles.json`. A pure TypeScript axis engine (no React) takes a profile array and a list of prior choices, then returns the filtered spell set and the next available axes with their live-computed values. A React component wraps the engine into a tree navigator. Binary axes (Concentration, Ritual, AI Arbitration) expose a three-state Yes/No/Either with a count split. The V/S/M requirements axis maps to seven named component combinations. Spell nodes are always terminal leaves - they never appear mid-path.
 
 **Tech Stack:** TypeScript, React, Vitest (colocated `.test.ts` files), existing devtools Vite server at `devtools/roadmap/`, existing roadmap API pattern (`/Aralia/api/roadmap/*`).
 
-**Design source:** `docs/tasks/roadmap/1E-SPELL-ROADMAP-ONTOLOGY-QUESTIONS.md` — all decisions are resolved there. Read it before touching any task.
+**Design source:** `docs/tasks/roadmap/1E-SPELL-ROADMAP-ONTOLOGY-QUESTIONS.md` - all decisions are resolved there. Read it before touching any task.
 
 **Note:** Ideally run in a git worktree. Use `superpowers:using-git-worktrees` if starting fresh.
 
@@ -37,7 +37,7 @@ The canonical profile is the single normalized record the axis engine reads. It 
 export interface SpellCanonicalProfile {
   id: string;                    // slug, e.g. "magic-missile"
   name: string;                  // display name, e.g. "Magic Missile"
-  level: number;                 // 0–9 (0 = cantrip)
+  level: number;                 // 0-9 (0 = cantrip)
   school: string;                // e.g. "Evocation"
   classes: string[];             // e.g. ["Wizard", "Sorcerer"]
   castingTimeUnit: CastingTimeUnit;
@@ -102,7 +102,7 @@ export interface AxisChoice {
 
 /**
  * A computed axis shown to the user at the current navigation step.
- * Values are derived from the live filtered spell set — nothing is hardcoded.
+ * Values are derived from the live filtered spell set - nothing is hardcoded.
  */
 export interface AxisState {
   axisId: AxisId;
@@ -132,7 +132,7 @@ export interface AxisEngineResult {
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx tsc --noEmit --project devtools/roadmap/tsconfig.json 2>&1 | Select-Object -First 30"
 ```
 
-Expected: no errors related to `spell-branch/types.ts` (there may be pre-existing errors elsewhere — ignore those).
+Expected: no errors related to `spell-branch/types.ts` (there may be pre-existing errors elsewhere - ignore those).
 
 **Step 3: Commit**
 
@@ -230,7 +230,7 @@ describe('buildSpellProfile', () => {
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx vitest run devtools/roadmap/scripts/generate-spell-profiles.test.ts 2>&1 | tail -20"
 ```
 
-Expected: FAIL — `buildSpellProfile` not defined.
+Expected: FAIL - `buildSpellProfile` not defined.
 
 **Step 3: Write the implementation**
 
@@ -301,13 +301,13 @@ function readAllSpellFiles(): any[] {
   return spells;
 }
 
-// Only run as a script — not during tests
+// Only run as a script - not during tests
 if (require.main === module) {
   const rawSpells = readAllSpellFiles();
   const profiles = rawSpells.map(buildSpellProfile);
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(profiles, null, 2), 'utf-8');
-  console.log(`Generated ${profiles.length} spell profiles → ${OUTPUT_PATH}`);
+  console.log(`Generated ${profiles.length} spell profiles -> ${OUTPUT_PATH}`);
 }
 ```
 
@@ -317,7 +317,7 @@ if (require.main === module) {
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx vitest run devtools/roadmap/scripts/generate-spell-profiles.test.ts 2>&1 | tail -20"
 ```
 
-Expected: PASS — all 5 tests green.
+Expected: PASS - all 5 tests green.
 
 **Step 5: Run the generator script**
 
@@ -325,7 +325,7 @@ Expected: PASS — all 5 tests green.
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx tsx devtools/roadmap/scripts/generate-spell-profiles.ts"
 ```
 
-Expected: `Generated 469 spell profiles → .agent/roadmap/spell-profiles.json`
+Expected: `Generated 469 spell profiles -> .agent/roadmap/spell-profiles.json`
 
 **Step 6: Spot-check the output**
 
@@ -339,18 +339,18 @@ Expected: Magic Missile profile with `castingTimeUnit: "action"`, `effectTypes: 
 
 ```bash
 git add devtools/roadmap/scripts/generate-spell-profiles.ts devtools/roadmap/scripts/generate-spell-profiles.test.ts .agent/roadmap/spell-profiles.json
-git commit -m "feat(spell-branch): add spell profile generator — 469 profiles"
+git commit -m "feat(spell-branch): add spell profile generator - 469 profiles"
 ```
 
 ---
 
-## Task 3: Axis engine — core filter logic
+## Task 3: Axis engine - core filter logic
 
 **Files:**
 - Create: `devtools/roadmap/src/spell-branch/axis-engine.ts`
 - Create: `devtools/roadmap/src/spell-branch/axis-engine.test.ts`
 
-The axis engine is a pure function (no React, no side effects). Given a full profile array and the choices made so far, it returns the filtered spell set and the available axes with their live-computed values. Nothing is hardcoded — axis values are derived entirely from the live filtered set.
+The axis engine is a pure function (no React, no side effects). Given a full profile array and the choices made so far, it returns the filtered spell set and the available axes with their live-computed values. Nothing is hardcoded - axis values are derived entirely from the live filtered set.
 
 **Step 1: Write the failing tests**
 
@@ -412,7 +412,7 @@ const PROFILES: SpellCanonicalProfile[] = [
   },
 ];
 
-describe('computeAxisEngine — no choices', () => {
+describe('computeAxisEngine - no choices', () => {
   it('returns all spells when no choices made', () => {
     const result = computeAxisEngine(PROFILES, []);
     expect(result.filteredSpells).toHaveLength(3);
@@ -435,7 +435,7 @@ describe('computeAxisEngine — no choices', () => {
   });
 });
 
-describe('computeAxisEngine — with choices', () => {
+describe('computeAxisEngine - with choices', () => {
   it('filters spell set by class choice', () => {
     const result = computeAxisEngine(PROFILES, [
       { axisId: 'class', value: 'Cleric' },
@@ -472,7 +472,7 @@ describe('computeAxisEngine — with choices', () => {
   });
 });
 
-describe('computeAxisEngine — effectType axis (multi-value spells)', () => {
+describe('computeAxisEngine - effectType axis (multi-value spells)', () => {
   it('counts spells correctly when a spell has multiple effect types', () => {
     const multiEffect: SpellCanonicalProfile = {
       id: 'grease',
@@ -504,7 +504,7 @@ describe('computeAxisEngine — effectType axis (multi-value spells)', () => {
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx vitest run devtools/roadmap/src/spell-branch/axis-engine.test.ts 2>&1 | tail -20"
 ```
 
-Expected: FAIL — `computeAxisEngine` not defined.
+Expected: FAIL - `computeAxisEngine` not defined.
 
 **Step 3: Write the implementation**
 
@@ -521,7 +521,7 @@ import type {
 import { resolveComponentCombination } from './vsm-tree';
 
 // Ordered list of all supported axes.
-// Add new axes here when data is ready — no other changes needed.
+// Add new axes here when data is ready - no other changes needed.
 const ALL_AXES: AxisId[] = [
   'class',
   'level',
@@ -550,7 +550,7 @@ const AXIS_LABELS: Record<AxisId, string> = {
   attackType: 'Attack Type',
 };
 
-// Binary axes use Yes / No / Either — not raw field values.
+// Binary axes use Yes / No / Either - not raw field values.
 const BINARY_AXES = new Set<AxisId>([
   'concentration',
   'ritual',
@@ -560,7 +560,7 @@ const BINARY_AXES = new Set<AxisId>([
 /**
  * Extracts all values a given spell contributes to a given axis.
  * Returns an array because some axes (class, effectType) are multi-value.
- * Returns null if this axis is binary — handled separately.
+ * Returns null if this axis is binary - handled separately.
  */
 function extractValues(
   spell: SpellCanonicalProfile,
@@ -672,7 +672,7 @@ function buildMultiValueAxisState(
 }
 
 /**
- * Core engine. Pure function — no side effects.
+ * Core engine. Pure function - no side effects.
  *
  * Given the full profile set and all choices made so far:
  * - Filters the spell set by applying all choices in order
@@ -724,7 +724,7 @@ export function computeAxisEngine(
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx vitest run devtools/roadmap/src/spell-branch/axis-engine.test.ts 2>&1 | tail -20"
 ```
 
-Expected: FAIL — `resolveComponentCombination` not defined yet (Task 5 dependency). This is expected — proceed to Task 5 before re-running.
+Expected: FAIL - `resolveComponentCombination` not defined yet (Task 5 dependency). This is expected - proceed to Task 5 before re-running.
 
 **Step 5: Commit what's written**
 
@@ -741,7 +741,7 @@ git commit -m "feat(spell-branch): add axis engine core logic (pending vsm-tree 
 - Create: `devtools/roadmap/src/spell-branch/vsm-tree.ts`
 - Create: `devtools/roadmap/src/spell-branch/vsm-tree.test.ts`
 
-The seven component combinations are the leaves of the Requirements axis. `resolveComponentCombination` maps the three booleans to a named combination used as the axis value. The tree structure (Verbal → Somatic → Material) is a UI concern — the data model just uses the seven names.
+The seven component combinations are the leaves of the Requirements axis. `resolveComponentCombination` maps the three booleans to a named combination used as the axis value. The tree structure (Verbal -> Somatic -> Material) is a UI concern - the data model just uses the seven names.
 
 **Step 1: Write the failing tests**
 
@@ -818,7 +818,7 @@ describe('VSM_COMBINATION_LABELS', () => {
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx vitest run devtools/roadmap/src/spell-branch/vsm-tree.test.ts 2>&1 | tail -20"
 ```
 
-Expected: FAIL — `resolveComponentCombination` not defined.
+Expected: FAIL - `resolveComponentCombination` not defined.
 
 **Step 3: Write the implementation**
 
@@ -830,7 +830,7 @@ import type { SpellComponents, ComponentCombination } from './types';
  * Maps the three component booleans to a named combination.
  * This is the value stored in the Requirements axis.
  *
- * Tree navigation in the UI (Verbal → Somatic → Material) is purely visual —
+ * Tree navigation in the UI (Verbal -> Somatic -> Material) is purely visual -
  * the underlying data uses these seven flat names.
  */
 export function resolveComponentCombination(
@@ -863,7 +863,7 @@ export const VSM_COMBINATION_LABELS: Record<ComponentCombination, string> = {
  * The V/S/M tree structure used by the UI navigator.
  * Each node in the tree maps to a component combination at its leaves.
  * Dead-end paths (combinations not present in the current spell set)
- * are pruned at render time — not here.
+ * are pruned at render time - not here.
  */
 export const VSM_TREE = [
   {
@@ -937,7 +937,7 @@ const BINARY_AXES = new Set<AxisId>([
   'aiArbitration',
 ]);
 
-// Level display: 0 = Cantrip, 1–9 = Level N
+// Level display: 0 = Cantrip, 1-9 = Level N
 function levelLabel(value: string): string {
   return value === '0' ? 'Cantrip' : `Level ${value}`;
 }
@@ -970,7 +970,7 @@ export function SpellBranchNavigator() {
       });
   }, []);
 
-  if (loading) return <div style={{ padding: 24 }}>Loading spell profiles…</div>;
+  if (loading) return <div style={{ padding: 24 }}>Loading spell profiles...</div>;
   if (error) return <div style={{ padding: 24, color: 'red' }}>Error: {error}</div>;
 
   const { filteredSpells, availableAxes, spellCount } =
@@ -1241,8 +1241,8 @@ git commit -m "feat(spell-branch): add SpellBranchNavigator React component"
 ## Task 6: API endpoint + wire into roadmap
 
 **Files:**
-- Modify: the Vite dev server config or API handler (find the existing `/api/roadmap/data` handler — match that pattern exactly)
-- Modify: `devtools/roadmap/src/roadmap-entry.tsx` OR wherever the roadmap UI mounts — add a route/tab for the Spell Branch
+- Modify: the Vite dev server config or API handler (find the existing `/api/roadmap/data` handler - match that pattern exactly)
+- Modify: `devtools/roadmap/src/roadmap-entry.tsx` OR wherever the roadmap UI mounts - add a route/tab for the Spell Branch
 
 **Step 1: Find the existing API handler pattern**
 
@@ -1254,7 +1254,7 @@ Read the handler file to understand the exact pattern, then mirror it to add:
 
 ```
 GET /Aralia/api/spell-profiles
-→ serves .agent/roadmap/spell-profiles.json
+-> serves .agent/roadmap/spell-profiles.json
 ```
 
 **Step 2: Add the endpoint** following the exact same pattern as the existing `/api/roadmap/data` handler.
@@ -1265,7 +1265,7 @@ GET /Aralia/api/spell-profiles
 powershell -NoLogo -Command "cd F:\Repos\Aralia; Get-ChildItem -Recurse -Path devtools/roadmap/src -Filter '*.tsx' | Select-String -Pattern 'RoadmapVisualizer' | Select-Object Path, Line -First 10"
 ```
 
-Add a tab or toggle in the roadmap UI that renders `<SpellBranchNavigator />` alongside the existing roadmap canvas. Minimal integration — a single tab button is sufficient.
+Add a tab or toggle in the roadmap UI that renders `<SpellBranchNavigator />` alongside the existing roadmap canvas. Minimal integration - a single tab button is sufficient.
 
 **Step 4: Start the roadmap dev server and verify it loads**
 
@@ -1282,7 +1282,7 @@ Then start the dev server per the existing pattern and confirm:
 
 ```bash
 git add -A
-git commit -m "feat(spell-branch): wire SpellBranchNavigator into roadmap — API + UI tab"
+git commit -m "feat(spell-branch): wire SpellBranchNavigator into roadmap - API + UI tab"
 ```
 
 ---
@@ -1317,60 +1317,60 @@ beforeAll(() => {
 });
 
 // === WITNESS SPELLS ===
-// Magic Missile — level 1, Wizard, DAMAGE, action, V+S, no concentration, no ritual
-// Detect Magic   — level 0, Wizard/Cleric/Druid, UTILITY, action, V+S, concentration=true, ritual=true
-// Shield         — level 1, Wizard, DEFENSIVE, reaction, V+S, no concentration
-// Cure Wounds    — level 1, many, HEALING, action, V+S, no concentration
-// Fireball       — level 3, Wizard/Sorcerer, DAMAGE, action, V+S+M, no concentration
-// Find Familiar  — level 2, Wizard, SUMMONING, special, V+S+M, ritual=true
-// Misty Step     — level 2, many, MOVEMENT, bonus_action, V-only, no concentration
-// Sleep          — level 1, many, STATUS_CONDITION, action, V+S+M, no concentration
-// Grease         — level 1, Wizard, TERRAIN+STATUS_CONDITION, action, V+S+M
+// Magic Missile - level 1, Wizard, DAMAGE, action, V+S, no concentration, no ritual
+// Detect Magic   - level 0, Wizard/Cleric/Druid, UTILITY, action, V+S, concentration=true, ritual=true
+// Shield         - level 1, Wizard, DEFENSIVE, reaction, V+S, no concentration
+// Cure Wounds    - level 1, many, HEALING, action, V+S, no concentration
+// Fireball       - level 3, Wizard/Sorcerer, DAMAGE, action, V+S+M, no concentration
+// Find Familiar  - level 2, Wizard, SUMMONING, special, V+S+M, ritual=true
+// Misty Step     - level 2, many, MOVEMENT, bonus_action, V-only, no concentration
+// Sleep          - level 1, many, STATUS_CONDITION, action, V+S+M, no concentration
+// Grease         - level 1, Wizard, TERRAIN+STATUS_CONDITION, action, V+S+M
 
-describe('Acceptance — Criterion 1: witness spells appear under every axis they belong to', () => {
-  it('Magic Missile appears under Class→Wizard', () => {
+describe('Acceptance - Criterion 1: witness spells appear under every axis they belong to', () => {
+  it('Magic Missile appears under Class->Wizard', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'class', value: 'Wizard' },
     ]);
     expect(filteredSpells.some((s) => s.id === 'magic-missile')).toBe(true);
   });
 
-  it('Magic Missile appears under Level→1', () => {
+  it('Magic Missile appears under Level->1', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'level', value: '1' },
     ]);
     expect(filteredSpells.some((s) => s.id === 'magic-missile')).toBe(true);
   });
 
-  it('Magic Missile appears under EffectType→DAMAGE', () => {
+  it('Magic Missile appears under EffectType->DAMAGE', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'effectType', value: 'DAMAGE' },
     ]);
     expect(filteredSpells.some((s) => s.id === 'magic-missile')).toBe(true);
   });
 
-  it('Magic Missile appears under CastingTime→action', () => {
+  it('Magic Missile appears under CastingTime->action', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'castingTime', value: 'action' },
     ]);
     expect(filteredSpells.some((s) => s.id === 'magic-missile')).toBe(true);
   });
 
-  it('Shield appears under CastingTime→reaction', () => {
+  it('Shield appears under CastingTime->reaction', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'castingTime', value: 'reaction' },
     ]);
     expect(filteredSpells.some((s) => s.id === 'shield')).toBe(true);
   });
 
-  it('Find Familiar appears under CastingTime→special (extended cast)', () => {
+  it('Find Familiar appears under CastingTime->special (extended cast)', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'castingTime', value: 'special' },
     ]);
     expect(filteredSpells.some((s) => s.id === 'find-familiar')).toBe(true);
   });
 
-  it('Misty Step appears under CastingTime→bonus_action', () => {
+  it('Misty Step appears under CastingTime->bonus_action', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'castingTime', value: 'bonus_action' },
     ]);
@@ -1378,15 +1378,15 @@ describe('Acceptance — Criterion 1: witness spells appear under every axis the
   });
 });
 
-describe('Acceptance — Criterion 2: Grease appears under both TERRAIN and STATUS_CONDITION', () => {
-  it('Grease appears under EffectType→TERRAIN', () => {
+describe('Acceptance - Criterion 2: Grease appears under both TERRAIN and STATUS_CONDITION', () => {
+  it('Grease appears under EffectType->TERRAIN', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'effectType', value: 'TERRAIN' },
     ]);
     expect(filteredSpells.some((s) => s.id === 'grease')).toBe(true);
   });
 
-  it('Grease appears under EffectType→STATUS_CONDITION', () => {
+  it('Grease appears under EffectType->STATUS_CONDITION', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'effectType', value: 'STATUS_CONDITION' },
     ]);
@@ -1394,7 +1394,7 @@ describe('Acceptance — Criterion 2: Grease appears under both TERRAIN and STAT
   });
 });
 
-describe('Acceptance — Criterion 3: Misty Step appears under Requirements→verbal-only', () => {
+describe('Acceptance - Criterion 3: Misty Step appears under Requirements->verbal-only', () => {
   it('Misty Step is in the verbal-only combination', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'requirements', value: 'verbal-only' },
@@ -1410,7 +1410,7 @@ describe('Acceptance — Criterion 3: Misty Step appears under Requirements→ve
   });
 });
 
-describe('Acceptance — Criterion 4: no phantom axis values', () => {
+describe('Acceptance - Criterion 4: no phantom axis values', () => {
   it('After filtering to Wizard, school axis contains only Wizard schools', () => {
     const wizardSchools = PROFILES.filter((p) =>
       p.classes.includes('Wizard')
@@ -1440,7 +1440,7 @@ describe('Acceptance — Criterion 4: no phantom axis values', () => {
   });
 });
 
-describe('Acceptance — Criterion 5: binary axes expose Yes/No/Either with correct counts', () => {
+describe('Acceptance - Criterion 5: binary axes expose Yes/No/Either with correct counts', () => {
   it('Concentration axis has yes, no, either values', () => {
     const { availableAxes } = computeAxisEngine(PROFILES, []);
     const concAxis = availableAxes.find((a) => a.axisId === 'concentration')!;
@@ -1458,21 +1458,21 @@ describe('Acceptance — Criterion 5: binary axes expose Yes/No/Either with corr
     expect(yes + no).toBe(spellCount);
   });
 
-  it('Choosing Concentration→yes filters to concentration-only spells', () => {
+  it('Choosing Concentration->yes filters to concentration-only spells', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'concentration', value: 'yes' },
     ]);
     expect(filteredSpells.every((s) => s.concentration)).toBe(true);
   });
 
-  it('Choosing Concentration→no filters to non-concentration spells', () => {
+  it('Choosing Concentration->no filters to non-concentration spells', () => {
     const { filteredSpells } = computeAxisEngine(PROFILES, [
       { axisId: 'concentration', value: 'no' },
     ]);
     expect(filteredSpells.every((s) => !s.concentration)).toBe(true);
   });
 
-  it('Choosing Concentration→either does not narrow the set', () => {
+  it('Choosing Concentration->either does not narrow the set', () => {
     const full = computeAxisEngine(PROFILES, []);
     const either = computeAxisEngine(PROFILES, [
       { axisId: 'concentration', value: 'either' },
@@ -1481,7 +1481,7 @@ describe('Acceptance — Criterion 5: binary axes expose Yes/No/Either with corr
   });
 });
 
-describe('Acceptance — Criterion 6: no hardcoded values', () => {
+describe('Acceptance - Criterion 6: no hardcoded values', () => {
   it('Removing a spell from the set removes it from all axes', () => {
     // Simulate removing Magic Missile from the data
     const withoutMm = PROFILES.filter((s) => s.id !== 'magic-missile');
@@ -1491,8 +1491,8 @@ describe('Acceptance — Criterion 6: no hardcoded values', () => {
   });
 });
 
-describe('Acceptance — Criterion 7: each step derives values only from filtered set', () => {
-  it('After Class→Cleric, Level axis shows only levels Clerics have', () => {
+describe('Acceptance - Criterion 7: each step derives values only from filtered set', () => {
+  it('After Class->Cleric, Level axis shows only levels Clerics have', () => {
     const clericLevels = new Set(
       PROFILES.filter((p) => p.classes.includes('Cleric')).map((p) =>
         String(p.level)
@@ -1515,7 +1515,7 @@ describe('Acceptance — Criterion 7: each step derives values only from filtere
 powershell -NoLogo -Command "cd F:\Repos\Aralia; npx vitest run devtools/roadmap/src/spell-branch/acceptance.test.ts 2>&1 | tail -40"
 ```
 
-Expected: All tests pass. If any fail, investigate whether the spell JSON data matches expectations (e.g. Grease may need both TERRAIN and STATUS_CONDITION in its `effects[]` array — check `public/data/spells/level-1/grease.json` and fix data if needed, not code).
+Expected: All tests pass. If any fail, investigate whether the spell JSON data matches expectations (e.g. Grease may need both TERRAIN and STATUS_CONDITION in its `effects[]` array - check `public/data/spells/level-1/grease.json` and fix data if needed, not code).
 
 **Step 3: Run the full spell-branch test suite**
 
@@ -1529,7 +1529,7 @@ Expected: All tests pass.
 
 ```bash
 git add devtools/roadmap/src/spell-branch/acceptance.test.ts
-git commit -m "feat(spell-branch): add witness spell acceptance suite — 9 spells × 7 criteria"
+git commit -m "feat(spell-branch): add witness spell acceptance suite - 9 spells x 7 criteria"
 ```
 
 ---
@@ -1538,10 +1538,10 @@ git commit -m "feat(spell-branch): add witness spell acceptance suite — 9 spel
 
 The spell branch is complete when:
 
-1. `npx vitest run devtools/roadmap/src/spell-branch/` — all pass
-2. `npx tsx devtools/roadmap/scripts/generate-spell-profiles.ts` — reports 469 profiles
+1. `npx vitest run devtools/roadmap/src/spell-branch/` - all pass
+2. `npx tsx devtools/roadmap/scripts/generate-spell-profiles.ts` - reports 469 profiles
 3. The Spell Branch tab loads in the roadmap devtools
 4. Clicking any axis shows only values that actually exist
 5. All 9 witness spells surface under the correct branches
 
-Cross-links from spell nodes to feature/capability nodes are **not in scope here** — that is a future task once the broader cross-link model is designed. `arbitrationType` deep-dive (the `ai_dm` planning work) is also deferred — tracked in `1E-SPELL-ROADMAP-ONTOLOGY-QUESTIONS.md`.
+Cross-links from spell nodes to feature/capability nodes are **not in scope here** - that is a future task once the broader cross-link model is designed. `arbitrationType` deep-dive (the `ai_dm` planning work) is also deferred - tracked in `1E-SPELL-ROADMAP-ONTOLOGY-QUESTIONS.md`.

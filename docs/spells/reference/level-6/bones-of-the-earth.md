@@ -3,6 +3,7 @@
 - **School**: Transmutation
 - **Ritual**: false
 - **Classes**: Druid
+- **Sub-Classes**: No Subclass Entries
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
@@ -18,12 +19,26 @@
 - **Area Size Unit**: feet
 - **Area Height**: 30
 - **Area Height Unit**: feet
-- **Valid Targets**: none
+- **Valid Targets**: not_applicable
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: false
-- **Material Description**: 
+- **Material Description**: not_applicable
 - **Material Cost GP**: 0
 - **Consumed**: false
 - **Duration Type**: instantaneous
@@ -31,10 +46,29 @@
 - **Effect Type**: DAMAGE
 - **Save Stat**: Dexterity
 - **Save Outcome**: negates
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Damage Dice**: 6d6
 - **Damage Type**: Bludgeoning
 - **Description**: You cause up to six pillars of stone to burst from places on the ground that you can see within range. Each pillar is a cylinder that has a diameter of 5 feet and a height of up to 30 feet. The ground where a pillar appears must be wide enough for its diameter, and you can target the ground under a creature if that creature is Medium or smaller. Each pillar has AC 5 and 30 hit points. When reduced to 0 hit points, a pillar crumbles into rubble, which creates an area of difficult terrain with a 10-foot radius that lasts until the rubble is cleared. Each 5-foot-diameter portion of the area requires at least 1 minute to clear by hand. If a pillar is created under a creature, that creature must succeed on a Dexterity saving throw or be lifted by the pillar. A creature can choose to fail the save. If a pillar is prevented from reaching its full height because of a ceiling or other obstacle, a creature on the pillar takes 6d6 bludgeoning damage and is restrained, pinched between the pillar and the obstacle. The restrained creature can use an action to make a Strength or Dexterity check (the creature's choice) against the spell's save DC. On a success, the creature is no longer restrained and must either move off the pillar or fall off it.
-- **Higher Levels**: Using a Higher-Level Spell Slot. When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each spell slot level above 6.
+- **Higher Levels**: When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th.
+- **Scaling Rule 1 Type**: special_text
+- **Scaling Rule 1 Applies To**: canonical higher-level prose
+- **Scaling Rule 1 Notes**: When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th.
 - **Spatial Form 1 Label**: Stone Pillar
 - **Spatial Form 1 Shape**: Cylinder
 - **Spatial Form 1 Size Value**: 5
@@ -79,7 +113,7 @@ Damage/Effect: Bludgeoning
 Rules Text:
 You cause up to six pillars of stone to burst from places on the ground that you can see within range. Each pillar is a cylinder that has a diameter of 5 feet and a height of up to 30 feet. The ground where a pillar appears must be wide enough for its diameter, and you can target the ground under a creature if that creature is Medium or smaller. Each pillar has AC 5 and 30 hit points. When reduced to 0 hit points, a pillar crumbles into rubble, which creates an area of difficult terrain with a 10-foot radius that lasts until the rubble is cleared. Each 5-foot-diameter portion of the area requires at least 1 minute to clear by hand.
 If a pillar is created under a creature, that creature must succeed on a Dexterity saving throw or be lifted by the pillar. A creature can choose to fail the save.
-If a pillar is prevented from reaching its full height because of a ceiling or other obstacle, a creature on the pillar takes 6d6 bludgeoning damage and is restrained, pinched between the pillar and the obstacle. The restrained creature can use an action to make a Strength or Dexterity check (the creature’s choice) against the spell’s save DC. On a success, the creature is no longer restrained and must either move off the pillar or fall off it.
+If a pillar is prevented from reaching its full height because of a ceiling or other obstacle, a creature on the pillar takes 6d6 bludgeoning damage and is restrained, pinched between the pillar and the obstacle. The restrained creature can use an action to make a Strength or Dexterity check (the creature's choice) against the spell's save DC. On a success, the creature is no longer restrained and must either move off the pillar or fall off it.
 At Higher Levels. When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th.
 
 Spell Tags:
@@ -91,3 +125,4 @@ Druid
 Capture Method: http
 Legacy Page: false
 -->
+

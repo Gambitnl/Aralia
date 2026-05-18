@@ -1,0 +1,108 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Action-phase closure shard for the target_filter_or_eligibility willingness sub-bucket.",
+    "Only direct willing-target findings are closed here; mixed object, passenger, self/other, or resurrection eligibility findings remain open."
+  ],
+  "findings": {
+    "heroism::manual_willing_target": {
+      "resolutionStatus": "closed",
+      "issue": "Heroism requires a willing creature, but willingness is not represented as target eligibility data.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "jump::manual_willing_target": {
+      "resolutionStatus": "closed",
+      "issue": "Jump requires a willing creature, but willingness is not represented as target eligibility data.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "mage-armor::manual_willing_unarmored_target": {
+      "resolutionStatus": "closed",
+      "issue": "Mage Armor requires a willing unarmored creature; unarmored is represented as a defensive restriction, but willing target eligibility is not first-class.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "barkskin::manual_willing_creature_target": {
+      "resolutionStatus": "closed",
+      "issue": "Barkskin requires a willing creature target, but target willingness is flattened into prose/target category.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "beast-sense::manual_willing_beast_target": {
+      "resolutionStatus": "closed",
+      "issue": "Beast Sense requires a willing Beast target, but target willingness is flattened into prose.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "darkvision::manual_willing_creature_target": {
+      "resolutionStatus": "closed",
+      "issue": "Darkvision requires a willing creature target, but runtime target willingness is flattened into target category/prose.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "dragons-breath::manual_willing_creature_target": {
+      "resolutionStatus": "closed",
+      "issue": "Dragon's Breath requires a willing creature target, but runtime target willingness is flattened into allies/prose.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "spider-climb::manual_willing_creature_target": {
+      "resolutionStatus": "closed",
+      "issue": "Spider Climb requires a willing creature target, but runtime target willingness is flattened into target category/prose.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "catnap::manual_willing_creature_targets": {
+      "resolutionStatus": "closed",
+      "issue": "Catnap requires willing creature targets; willingness is not first-class in runtime targeting.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "feign-death::manual_willing_creature_target": {
+      "resolutionStatus": "closed",
+      "issue": "Feign Death requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "fly::manual_willing_creature_target": {
+      "resolutionStatus": "closed",
+      "issue": "Fly requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "gaseous-form::manual_willing_target": {
+      "resolutionStatus": "closed",
+      "issue": "Gaseous Form requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "haste::manual_willing_target": {
+      "resolutionStatus": "closed",
+      "issue": "Haste requires a willing creature target, but runtime target willingness is flattened into ally targeting.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    },
+    "protection-from-energy::manual_willing_target": {
+      "resolutionStatus": "closed",
+      "issue": "The spell requires a willing creature target, but runtime flattens willingness into ally targeting.",
+      "recommendedTemplateChange": "Closed by Target Willingness propagation: structured markdown now records Target Willingness and the runtime target filter records willing=required for this spell.",
+      "recommendedJsonChange": "Closed by Target Willingness propagation: targeting.filter.willing is required for this spell and not_applicable elsewhere.",
+      "reviewerNote": "Closed because this finding was limited to direct willing-target eligibility; mixed target-filter findings remain actionable_open in their original shards."
+    }
+  },
+  "manualFindings": {}
+}

@@ -1,0 +1,106 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "10-casting-components-duration",
+  "fieldCount": 4,
+  "fields": [
+    {
+      "label": "Casting Time Value",
+      "required": true,
+      "valueType": "number",
+      "jsonPath": "castingTime.value",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Casting time is split into value and unit so minutes, hours, actions, and reactions are comparable."
+        }
+      ],
+      "comment": "Casting time is split into value and unit so minutes, hours, actions, and reactions are comparable. It maps to `castingTime.value`. Purpose: Casting Time Value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.value`. The value type is `number`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "label": "Casting Time Unit",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "reaction",
+        "minute",
+        "hour",
+        "special"
+      ],
+      "jsonPath": "castingTime.unit",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "The runtime needs an enum, not display text, for action economy."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Some structured rows still carry display-form casting units; the template accepts them until casting-time normalization closes."
+        }
+      ],
+      "comment": "Some structured rows still carry display-form casting units; the template accepts them until casting-time normalization closes. It maps to `castingTime.unit`. Purpose: Casting Time Unit exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.unit`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "action": "Use `action` for Casting Time Unit only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "bonus_action": "Use `bonus_action` for Casting Time Unit only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "reaction": "Use `reaction` for Casting Time Unit only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "minute": "Use when Casting Time Unit is measured in minutes; keep the numeric duration or casting amount in the paired value field.",
+        "hour": "Use when Casting Time Unit is measured in hours; keep the numeric duration or casting amount in the paired value field.",
+        "special": "Allowed value for Casting Time Unit; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Combat Cost",
+      "required": true,
+      "valueType": "enum",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "reaction",
+        "long_cast"
+      ],
+      "jsonPath": "castingTime.combatCost.type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Combat action cost is separate from exploration casting time."
+        },
+        {
+          "at": "2026-05-06T15:30:00+02:00",
+          "action": "changed",
+          "why": "Long casting and non-combat spells need explicit non-action combat-cost values rather than placeholder action costs."
+        },
+        {
+          "at": "2026-05-06T15:45:00+02:00",
+          "action": "changed",
+          "why": "Combat cost still has display-form bonus action rows that need later normalization to bonus_action."
+        }
+      ],
+      "comment": "Combat cost still has display-form bonus action rows that need later normalization to bonus_action. It maps to `castingTime.combatCost.type`. Purpose: Combat Cost exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.combatCost.type`. The value type is `enum`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence.",
+      "acceptedValueNotes": {
+        "action": "Use `action` for Combat Cost only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "bonus_action": "Use `bonus_action` for Combat Cost only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "reaction": "Use `reaction` for Combat Cost only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "long_cast": "Allowed value for Combat Cost; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Reaction Trigger",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "castingTime.combatCost.condition",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Reaction spells need their trigger captured without appending footnotes to casting-time text."
+        }
+      ],
+      "comment": "Reaction spells need their trigger captured without appending footnotes to casting-time text. It maps to `castingTime.combatCost.condition`. Purpose: Reaction Trigger exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `castingTime.combatCost.condition`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

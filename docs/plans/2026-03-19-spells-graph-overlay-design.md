@@ -1,9 +1,9 @@
-# Spells Dynamic Graph Overlay — Design
+# Spells Dynamic Graph Overlay - Design
 
 **Date:** 2026-03-19
 **Status:** Approved
 
-> **IMPLEMENTED** — 2026-03-20. All items below were built as specified with one notable deviation: the `virtualNodes` derivation was originally a hardcoded 3-tier loop (depth 1→2→3→4→5). It was refactored to a **recursive `buildChildren(parentId, choices, depth)` inner function** inside a `useMemo`, guarded by `MAX_DEPTH = 14`, enabling unlimited axis drill-down. The `SpellBranchNavigator` was updated to accept `initialChoices?: AxisChoice[]` so the graph overlay can seed it when the user clicks "Open in Spell Branch →".
+> **IMPLEMENTED** - 2026-03-20. All items below were built as specified with one notable deviation: the `virtualNodes` derivation was originally a hardcoded 3-tier loop (depth 1->2->3->4->5). It was refactored to a **recursive `buildChildren(parentId, choices, depth)` inner function** inside a `useMemo`, guarded by `MAX_DEPTH = 14`, enabling unlimited axis drill-down. The `SpellBranchNavigator` was updated to accept `initialChoices?: AxisChoice[]` so the graph overlay can seed it when the user clicks "Open in Spell Branch ->".
 
 ---
 
@@ -32,10 +32,10 @@ Spells (project node)
 ```
 
 - Axis nodes expand to show value nodes derived live from the axis engine.
-- After picking a value, remaining **discriminating** axes appear as children (same VSM logic as SpellBranchNavigator — axes with only one remaining value are hidden).
+- After picking a value, remaining **discriminating** axes appear as children (same VSM logic as SpellBranchNavigator - axes with only one remaining value are hidden).
 - **Show Spells** is available at every value node, regardless of depth.
 - Show Spells expands to show **all** matching spell entries as leaf nodes.
-- Multiple branches can be open simultaneously (e.g. Class→Wizard and School→Evocation are independent open paths).
+- Multiple branches can be open simultaneously (e.g. Class->Wizard and School->Evocation are independent open paths).
 
 ---
 
@@ -66,15 +66,15 @@ The `spellTree: true` flag is the signal the Visualizer uses to activate the ove
 Lives inside the existing canvas pan/zoom wrapper in `RoadmapVisualizer.tsx`, as a sibling of the existing node/edge layers. Shares the same CSS transform so its nodes are native to the graph.
 
 **Props:**
-- `spellsProjectNode: RenderNode` — position and dimensions of the Spells project node
-- `spells: SpellCanonicalProfile[]` — the full 469-profile array (loaded once)
-- `side: 1 | -1` — which side of the trunk the project node sits on
+- `spellsProjectNode: RenderNode` - position and dimensions of the Spells project node
+- `spells: SpellCanonicalProfile[]` - the full 469-profile array (loaded once)
+- `side: 1 | -1` - which side of the trunk the project node sits on
 - `isDark: boolean`
 - `selectedVirtualId: string | null`
 - `onVirtualNodeSelect: (id: string, detail: VirtualNodeDetail) => void`
 
 **State:**
-- `expandedVirtualIds: Set<string>` — which virtual nodes are currently open
+- `expandedVirtualIds: Set<string>` - which virtual nodes are currently open
 
 ### Virtual Node ID Scheme
 
@@ -93,9 +93,9 @@ Path segments are **sorted** (`class=Wizard:level=3` ≡ `level=3:class=Wizard`)
 ### Axis Engine Integration
 
 `SpellGraphOverlay` calls `computeAxisEngineResult(spells, choicesFromPath)` to derive:
-- `availableAxes` — the discriminating axes to show as children of a value node
-- `filteredSpells` — the spell list for a Show Spells expansion or count badges
-- `spellCount` — shown on value nodes as `[42]`
+- `availableAxes` - the discriminating axes to show as children of a value node
+- `filteredSpells` - the spell list for a Show Spells expansion or count badges
+- `spellCount` - shown on value nodes as `[42]`
 
 `choicesFromPath(virtualNodeId)` parses the `k=v` pairs out of the node ID to reconstruct the `AxisChoice[]` array.
 
@@ -111,10 +111,10 @@ Uses the same constants as the existing branch layout (`BRANCH_WIDTH`, `BRANCH_C
 |---|---|
 | Axis | Axis label + total spell count reachable through this axis |
 | Value | Value label + filtered spell count + active selection path |
-| Show Spells | Filtered spell count + **"Open in Spell Branch →"** button |
+| Show Spells | Filtered spell count + **"Open in Spell Branch ->"** button |
 | Spell entry | Spell name, level, school, components, casting time, concentration, ritual |
 
-The "Open in Spell Branch →" button switches the roadmap to the Spell Branch tab with the current path pre-applied as `AxisChoice[]`.
+The "Open in Spell Branch ->" button switches the roadmap to the Spell Branch tab with the current path pre-applied as `AxisChoice[]`.
 
 ---
 
@@ -122,8 +122,8 @@ The "Open in Spell Branch →" button switches the roadmap to the Spell Branch t
 
 | File | Change |
 |---|---|
-| `devtools/roadmap/src/spell-branch/SpellGraphOverlay.tsx` | **New** — the overlay component |
-| `devtools/roadmap/src/spell-branch/virtual-node-id.ts` | **New** — ID encode/decode helpers |
+| `devtools/roadmap/src/spell-branch/SpellGraphOverlay.tsx` | **New** - the overlay component |
+| `devtools/roadmap/src/spell-branch/virtual-node-id.ts` | **New** - ID encode/decode helpers |
 | `devtools/roadmap/src/components/debug/roadmap/RoadmapVisualizer.tsx` | Mount overlay, wire virtual node selection into info panel |
 | `.agent/roadmap/` (registry data) | Add `pillar_spells` project node |
 | `devtools/roadmap/src/spell-branch/types.ts` | Add `VirtualNodeDetail` type |

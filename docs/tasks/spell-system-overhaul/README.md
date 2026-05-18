@@ -95,7 +95,7 @@ Each task file follows a standard format:
 The critical path (longest chain of dependent tasks) is:
 
 ```
-01 → 03 → 04 → 05 → 07 → 14 → 19 → 23 → 27
+01 -> 03 -> 04 -> 05 -> 07 -> 14 -> 19 -> 23 -> 27
 ```
 
 **Total Critical Path Time:** ~22 days
@@ -105,16 +105,16 @@ The critical path (longest chain of dependent tasks) is:
 Tasks can be worked in parallel if dependencies allow:
 
 **Week 1-2 (Phase 1):**
-- Alpha: Task 01 → 03
+- Alpha: Task 01 -> 03
 - Beta: Task 02 (parallel with 01)
 
 **Week 3-4 (Phase 2):**
-- Alpha: Task 04 → 05 → 06 → 07
+- Alpha: Task 04 -> 05 -> 06 -> 07
 - Beta: Task 08 (parallel with 06-07)
 
 **Week 5-6 (Phase 3):**
-- Alpha: Task 14 → 16 → 17
-- Beta: Task 10 → 11 → 12 → 13
+- Alpha: Task 14 -> 16 -> 17
+- Beta: Task 10 -> 11 -> 12 -> 13
 - Gamma: Task 15 (parallel with 10-13)
 
 ---

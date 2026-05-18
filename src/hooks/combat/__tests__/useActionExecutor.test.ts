@@ -211,7 +211,7 @@ describe('useActionExecutor', () => {
         expect(success).toBe(false);
         expect(mockConsumeAction).not.toHaveBeenCalled();
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
-            message: expect.stringContaining('Blocker is already there')
+            message: expect.stringContaining('Blocker is in the way')
         }));
     });
 

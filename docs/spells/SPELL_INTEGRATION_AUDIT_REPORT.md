@@ -1,4 +1,4 @@
-﻿# Spell Integration Status Audit Report
+# Spell Integration Status Audit Report
 
 Last Updated: 2026-03-11
 Purpose: Preserve this file as a historical audit surface while redirecting current readers to the live spell-status docs.

@@ -30,10 +30,10 @@ Move the UI components into a dedicated folder.
 **Target Structure:**
 ```text
 src/components/Town/
-â”œâ”€â”€ TownCanvas.tsx
-â”œâ”€â”€ TownNavigationControls.tsx
-â”œâ”€â”€ VillageScene.tsx
-â””â”€â”€ VillageScene.README.md
+â"œâ"€â"€ TownCanvas.tsx
+â"œâ"€â"€ TownNavigationControls.tsx
+â"œâ"€â"€ VillageScene.tsx
+â""â"€â"€ VillageScene.README.md
 ```
 
 **Steps:**
@@ -49,11 +49,11 @@ Move the services into a `services` subdirectory within the component folder, or
 
 ```text
 src/components/Town/
-â”œâ”€â”€ services/
-â”‚   â”œâ”€â”€ RealmSmithTownGenerator.ts
-â”‚   â””â”€â”€ RealmSmithAssetPainter.ts
-â”œâ”€â”€ TownCanvas.tsx
-â””â”€â”€ ...
+â"œâ"€â"€ services/
+â"‚   â"œâ"€â"€ RealmSmithTownGenerator.ts
+â"‚   â""â"€â"€ RealmSmithAssetPainter.ts
+â"œâ"€â"€ TownCanvas.tsx
+â""â"€â"€ ...
 ```
 
 **Option B: Promotion to `src/features/`**
@@ -61,15 +61,15 @@ If the "Town" is considered a major game mode (like Combat), it might belong in 
 
 ```text
 src/features/Town/
-â”œâ”€â”€ components/
-â”‚   â”œâ”€â”€ TownCanvas.tsx
-â”‚   â””â”€â”€ TownNavigationControls.tsx
-â”œâ”€â”€ services/
-â”‚   â”œâ”€â”€ RealmSmithTownGenerator.ts
-â”‚   â””â”€â”€ RealmSmithAssetPainter.ts
-â”œâ”€â”€ hooks/
-â”‚   â””â”€â”€ useTownNavigation.ts (extract logic from Canvas)
-â””â”€â”€ index.ts (public API)
+â"œâ"€â"€ components/
+â"‚   â"œâ"€â"€ TownCanvas.tsx
+â"‚   â""â"€â"€ TownNavigationControls.tsx
+â"œâ"€â"€ services/
+â"‚   â"œâ"€â"€ RealmSmithTownGenerator.ts
+â"‚   â""â"€â"€ RealmSmithAssetPainter.ts
+â"œâ"€â"€ hooks/
+â"‚   â""â"€â"€ useTownNavigation.ts (extract logic from Canvas)
+â""â"€â"€ index.ts (public API)
 ```
 
 ## 3. Detailed Execution Plan (Phase 1)

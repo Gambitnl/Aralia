@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 07/05/2026, 00:02:48
+ * Dependents: components/Combat/CombatView.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/hooks/combat/useCombatAI.ts
  * 
@@ -83,11 +99,10 @@ export const useCombatAI = ({
         if (isAiControlled) {
             // It is an AI turn. 
             // We introduce a delay to allow the UI to update and creating a natural pacing.
-            // This transitions the state to 'thinking'.
-            // The delay is determined by the difficulty setting (easy/normal/hard).
+            // This transitions the state to 'thinking' only if we are idle (turn just started).
             const delay = AI_THINKING_DELAY_MS[difficulty];
             const timer = setTimeout(() => {
-                setAiState('thinking');
+                setAiState(prev => prev === 'idle' ? 'thinking' : prev);
             }, delay);
 
             return () => clearTimeout(timer);
@@ -111,6 +126,14 @@ export const useCombatAI = ({
         const character = characters.find(c => c.id === currentCharacterId);
         if (!character) {
             // If character disappeared (e.g. died mid-turn?), abort to idle
+            setTimeout(() => setAiState('idle'), 0);
+            return;
+        }
+
+        // Strict validation: Ensure we don't accidentally evaluate a player turn 
+        // due to an untracked setTimeout carrying over from the previous enemy turn.
+        const isAiControlled = character.team === 'enemy' || autoCharacters.has(character.id);
+        if (!isAiControlled) {
             setTimeout(() => setAiState('idle'), 0);
             return;
         }
@@ -200,7 +223,8 @@ export const useCombatAI = ({
         executeAction,
         executeAbility,
         endTurn,
-        difficulty
+        difficulty,
+        autoCharacters
     ]);
 
     // Return the state mostly for debug/visualization purposes if needed

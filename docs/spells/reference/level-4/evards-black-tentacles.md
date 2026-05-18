@@ -3,6 +3,7 @@
 - **School**: Conjuration
 - **Ritual**: false
 - **Classes**: Wizard
+- **Sub-Classes**: Unsupported Entries
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -14,6 +15,20 @@
 - **Area Shape**: square
 - **Area Size**: 20
 - **Valid Targets**: point
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -28,16 +43,31 @@
 - **Duration Unit**: minute
 - **Concentration**: true
 
-- **Effect Type**: DAMAGE
+- **Effect Type**: DAMAGE, STATUS_CONDITION, TERRAIN
 - **Save Stat**: Strength
 - **Save Outcome**: negates
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Damage Dice**: 3d6
 - **Damage Type**: Bludgeoning
 - **Conditions Applied**: Restrained
 
 - **Description**: Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in that area into Difficult Terrain. Each creature in that area makes a Strength saving throw. On a failed save, it takes 3d6 Bludgeoning damage, and it has the Restrained condition until the spell ends. A creature also makes that save if it enters the area or ends it turn there. A creature makes that save only once per turn. A Restrained creature can take an action to make a Strength (Athletics) check against your spell save DC, ending the condition on itself on a success.
-- **Higher Levels**: None
-
+- **Higher Levels**: not_applicable
 ## Canonical D&D Beyond Snapshot
 
 This section stores the raw canonical spell content in an HTML comment so the structured Aralia field block, when present, remains the only validator-facing markdown surface.

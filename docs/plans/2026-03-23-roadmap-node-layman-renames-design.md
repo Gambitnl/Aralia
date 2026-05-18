@@ -1,4 +1,4 @@
-# Roadmap Node Layman Renames — Design
+# Roadmap Node Layman Renames - Design
 
 **Date:** 2026-03-23
 **Status:** Approved
@@ -13,7 +13,7 @@ Every node name should be readable and understood by someone with no coding or r
 
 ## Approach
 
-Use `ROADMAP_CAPABILITY_RENAME_RULES` in `generate.ts` — the existing rename table that maps old display names to new ones while keeping underlying node IDs stable (no layout breakage, no test history loss).
+Use `ROADMAP_CAPABILITY_RENAME_RULES` in `generate.ts` - the existing rename table that maps old display names to new ones while keeping underlying node IDs stable (no layout breakage, no test history loss).
 
 The rename rule format is:
 ```ts
@@ -22,9 +22,9 @@ The rename rule format is:
 
 ## Rename Table
 
-All renames listed as `from → to`. Unmarked entries are kept as-is.
+All renames listed as `from -> to`. Unmarked entries are kept as-is.
 
-### Roadmap Tool — Sub-branch Parents
+### Roadmap Tool - Sub-branch Parents
 
 | From | To |
 |------|-----|
@@ -207,6 +207,6 @@ All renames listed as `from → to`. Unmarked entries are kept as-is.
 
 - All renames go into `ROADMAP_CAPABILITY_RENAME_RULES` array in `generate.ts`
 - Child renames must also update their parent path segment to match the parent's new name
-- The rename rules system handles ID stability — no layout positions will break
+- The rename rules system handles ID stability - no layout positions will break
 - After adding rules, verify in browser that nodes show new names and tree structure is intact
-- The `CURATED_SUBFEATURES` allowlist and `CURATED_SUBFEATURE_DETAILS` descriptions do NOT need updating — they use the original names as keys and the rename rules apply on top
+- The `CURATED_SUBFEATURES` allowlist and `CURATED_SUBFEATURE_DETAILS` descriptions do NOT need updating - they use the original names as keys and the rename rules apply on top

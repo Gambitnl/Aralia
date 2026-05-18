@@ -1,0 +1,114 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 8 packet 20-21 manual review decisions. Closed entries include reasons; open entries are schema work."
+  ],
+  "findings": {
+    "telepathy::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: words, images, sounds, and sensory messages are now explicit communication utility options.",
+      "recommendedTemplateChange": "Added Shared sensory messages utility option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "telepathy::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched images/sensory messages; the spell creates no illusion or disguise.",
+      "recommendedTemplateChange": "No illusion template change needed.",
+      "recommendedJsonChange": "No illusion JSON needed."
+    },
+    "telepathy::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: sensory-message sharing is communication payload, not a remote sensor; it is now captured under communication utility options.",
+      "recommendedTemplateChange": "Added Shared sensory messages option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "telepathy::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: willing familiar target, same-plane limit, sensory-message payload, recognition, and meaning comprehension are now utility/control options.",
+      "recommendedTemplateChange": "Added communication utility options and Target Filter Notes.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "telepathy::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: same-plane requirement and plane-change ending are now represented by Same-plane limit option.",
+      "recommendedTemplateChange": "Added Same-plane limit option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "telepathy::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: plane separation ending is now represented by Same-plane limit option.",
+      "recommendedTemplateChange": "Added Same-plane limit option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "tsunami::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: wall dimension choice is now a Water wall dimensions utility option.",
+      "recommendedTemplateChange": "Added Water wall dimensions option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "tsunami::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: initial and ongoing Strength saves are now separate runtime damage effects, with Huge-or-smaller filter for ongoing damage.",
+      "recommendedTemplateChange": "Added Triggered Applications, Damage Trigger, and Target Filter Sizes rows.",
+      "recommendedJsonChange": "Added immediate and turn_start DAMAGE effects."
+    },
+    "tsunami::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: water wall dimensions, movement, swim restriction, and falling out are now utility/movement effects.",
+      "recommendedTemplateChange": "Added wall/movement/swim utility options.",
+      "recommendedJsonChange": "Added controlOptions and MOVEMENT effect."
+    },
+    "tsunami::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: created wall of water dimensions and duration are now explicit area geometry and utility options.",
+      "recommendedTemplateChange": "Added Water wall dimensions option.",
+      "recommendedJsonChange": "Runtime area geometry already carries Wall length/height/thickness; added controlOption."
+    },
+    "tsunami::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched damage reduction by 1d10 each round, not a resource/consumption mechanic; decay is now in Round decay option.",
+      "recommendedTemplateChange": "Added Round decay option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    },
+    "tsunami::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: moving wall, height reduction, damage decay, swim restriction, and ground fall are now utility/movement effects.",
+      "recommendedTemplateChange": "Added environmental/movement utility options.",
+      "recommendedJsonChange": "Added controlOptions and MOVEMENT effect."
+    },
+    "tsunami::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: height reaching 0 feet ending the spell is now a Height ending utility option.",
+      "recommendedTemplateChange": "Added Height ending option.",
+      "recommendedJsonChange": "Added matching controlOption."
+    }
+  },
+  "manualFindings": {
+    "telepathy": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Telepathy needs communication-channel fields for target familiarity, same-plane range, message payload types, recognition, comprehension, and plane-separation ending.",
+        "recommendedTemplateChange": "Add telepathicLink fields with target familiarity, plane limit, payload types, recognition, comprehension, and break conditions.",
+        "recommendedJsonChange": "Add runtime communicationLink object with those fields and not_applicable sentinels for noncommunication spells.",
+        "bucketId": "message_or_communication",
+        "findingId": "telepathy::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "tsunami": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Tsunami needs a moving-wall hazard schema with per-round height decay, damage dice decay, once-per-round damage gate, size-filtered ongoing damage, swim escape check, and height-zero ending.",
+        "recommendedTemplateChange": "Add moving-wall hazard, per-round decay, size filter, once-per-round gate, swim check, and height-ending fields.",
+        "recommendedJsonChange": "Add runtime movingWallHazard object with current height/damage dice/position and decay rules.",
+        "bucketId": "environmental_change",
+        "findingId": "tsunami::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ]
+  }
+}

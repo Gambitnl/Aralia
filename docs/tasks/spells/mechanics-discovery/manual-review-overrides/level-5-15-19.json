@@ -1,0 +1,141 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 15-19 in generated discovery row order."
+  ],
+  "findings": {
+    "creation::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched pulling shadow material from the Shadowfell, but no creature or object is moved by force in the scene.",
+      "recommendedTemplateChange": "Track as object creation/source flavor rather than forced movement.",
+      "recommendedJsonChange": "No MOVEMENT runtime data required."
+    },
+    "creation::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The created object's form and material must be something the caster has seen, but runtime lacks seen-before eligibility fields for object creation.",
+      "recommendedTemplateChange": "Add creation eligibility fields for seen form and seen material.",
+      "recommendedJsonChange": "Add runtime objectCreation.seenPrerequisite data."
+    },
+    "creation::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a vegetable or mineral object up to a 5-foot cube, with material-dependent duration, shortest duration for mixed materials, material-component failure if reused in other spells, and +5 feet cube scaling; runtime stores this only in prose.",
+      "recommendedTemplateChange": "Add object creation fields for material classes, size cap, material duration table, mixed-material shortest duration, material-component failure, and slot scaling.",
+      "recommendedJsonChange": "Add runtime objectCreation data."
+    },
+    "danse-macabre::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animated corpses gain a bonus to attack and damage rolls equal to the caster's spellcasting ability modifier; runtime lacks controlled-undead stat modifier fields.",
+      "recommendedTemplateChange": "Add summoned/animated creature attack and damage bonus fields sourced from spellcasting ability modifier.",
+      "recommendedJsonChange": "Add runtime animatedUndead.attackDamageBonus data."
+    },
+    "danse-macabre::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can use a bonus action to mentally command all created undead within 60 feet with the same command; runtime lacks command action economy and command range fields.",
+      "recommendedTemplateChange": "Add controlled-creature command fields for bonus action, mental command, same-command multi-control, and range.",
+      "recommendedJsonChange": "Add runtime undeadCommand data."
+    },
+    "danse-macabre::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched corpses the caster can see within range, which is ordinary targeting visibility rather than a vision/light/sound effect.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "danse-macabre::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell animates up to five Small or Medium corpses as zombies or skeletons, controls them with bonus-action mental commands, gives default defensive behavior, persists orders until task completion, and scales by two corpses per higher slot; runtime is generic utility prose.",
+      "recommendedTemplateChange": "Add animated undead fields for corpse eligibility, count, size, form choice, stat block reference, command economy, default behavior, task persistence, and slot scaling.",
+      "recommendedJsonChange": "Add runtime animatedUndead data."
+    },
+    "danse-macabre::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each corpse becomes undead and later becomes inanimate again when the spell ends; runtime lacks typed corpse-to-undead and undead-to-inanimate state transitions.",
+      "recommendedTemplateChange": "Add object/corpse state transition fields for animation and reversion.",
+      "recommendedJsonChange": "Add runtime corpseAnimationLifecycle data."
+    },
+    "danse-macabre::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The created undead remain under control until the spell ends, then become inanimate; runtime lacks spell-end reversion/lifecycle data.",
+      "recommendedTemplateChange": "Add animated creature lifecycle ending fields.",
+      "recommendedJsonChange": "Add runtime animatedUndead.lifecycle data."
+    },
+    "dawn::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Constitution save and end-turn Constitution save are now represented as DAMAGE effects with half-damage success outcomes.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by adding an on_end_turn_in_area DAMAGE effect."
+    },
+    "dawn::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If the caster is within 60 feet of the cylinder, they can move it up to 60 feet as a bonus action; runtime lacks created-area reposition action fields.",
+      "recommendedTemplateChange": "Add sustained area movement fields for controller range, action cost, and movement distance.",
+      "recommendedJsonChange": "Add runtime movableAreaAction data."
+    },
+    "dawn::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The cylinder's bright light and sunlight are now represented as a light UTILITY effect.",
+      "recommendedTemplateChange": "No new light field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a UTILITY light effect."
+    },
+    "dawn::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The cylinder lasts until the normal spell duration ends; there is no special conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration and concentration."
+    },
+    "destructive-wave::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses affected creatures in the Emanation and chooses Radiant or Necrotic for the second damage component; runtime has the second damage as Radiant/Necrotic text but lacks typed target-choice and damage-type choice fields.",
+      "recommendedTemplateChange": "Add chosen-creatures-in-area targeting and linked damage-type choice fields.",
+      "recommendedJsonChange": "Add runtime targetChoice and damageTypeChoice data."
+    },
+    "destructive-wave::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save and half-damage outcome now apply to both the Thunder damage and the Radiant/Necrotic damage component.",
+      "recommendedTemplateChange": "No new attack/save field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a second DAMAGE effect."
+    },
+    "destructive-wave::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Emanation area; the spell is an instantaneous damage/status effect, not a ward or alarm.",
+      "recommendedTemplateChange": "No ward/alarm field required.",
+      "recommendedJsonChange": "No ward/alarm runtime data required."
+    },
+    "destructive-wave::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The failed-save Prone condition is now represented as a STATUS_CONDITION effect gated by the Constitution save.",
+      "recommendedTemplateChange": "No new status field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a Prone STATUS_CONDITION effect."
+    },
+    "dispel-evil-and-good::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The incoming attack disadvantage from Celestials, Elementals, Fey, Fiends, and Undead is now represented, but Dismissal's Charisma save and planar send-home branch remain prose-only.",
+      "recommendedTemplateChange": "Add special-function action fields for Dismissal with Charisma save and planar movement outcome.",
+      "recommendedJsonChange": "Add runtime dismissalAction data."
+    },
+    "dispel-evil-and-good::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Dismissal function's visible target within 5 feet, which is action target eligibility rather than a vision/light/sound effect.",
+      "recommendedTemplateChange": "Track under special action target fields.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "dispel-evil-and-good::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Dismissal can send a qualifying creature back to its home plane, or Undead to the Shadowfell and Fey to the Feywild if not on their home plane; runtime lacks typed planar return/destination fields.",
+      "recommendedTemplateChange": "Add planar dismissal fields for qualifying creature types, home-plane return, and type-specific fallback destinations.",
+      "recommendedJsonChange": "Add runtime planarDismissal data."
+    },
+    "dispel-evil-and-good::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Break Enchantment removes possession, Charmed, or Frightened caused by qualifying creature types; runtime lacks typed source-filtered condition/possession removal fields.",
+      "recommendedTemplateChange": "Add source-filtered removal fields for possession and conditions caused by specific creature types.",
+      "recommendedJsonChange": "Add runtime breakEnchantment data."
+    },
+    "dispel-evil-and-good::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Break Enchantment and Dismissal can remove possessed, Charmed, Frightened, or relocate a creature; only the attack-roll disadvantage is typed.",
+      "recommendedTemplateChange": "Add special-function status removal and dismissal fields.",
+      "recommendedJsonChange": "Add runtime specialFunctions data for Break Enchantment and Dismissal."
+    }
+  },
+  "manualFindings": {}
+}

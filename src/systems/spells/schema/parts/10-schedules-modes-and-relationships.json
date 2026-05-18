@@ -1,0 +1,398 @@
+{
+  "schemaKind": "spell-json-schema",
+  "part": "10-schedules-modes-and-relationships",
+  "definitionCount": 7,
+  "definitions": {
+    "RecurringMechanic": {
+      "type": "object",
+      "properties": {
+        "timing": {
+          "type": "string",
+          "enum": [
+            "turn_start",
+            "turn_end",
+            "on_damage",
+            "on_entity_proximity",
+            "on_target_cast"
+          ]
+        },
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "every_time",
+            "first_per_turn",
+            "once_per_creature"
+          ]
+        },
+        "saveType": {
+          "type": "string"
+        },
+        "saveEffect": {
+          "type": "string",
+          "enum": [
+            "none",
+            "half",
+            "negates_condition"
+          ]
+        },
+        "damage": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        },
+        "healing": {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
+            },
+            "isTemporaryHp": {
+              "type": "boolean"
+            }
+          }
+        },
+        "successOutcome": {
+          "type": "string"
+        },
+        "failureOutcome": {
+          "type": "string"
+        },
+        "restriction": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "timing"
+      ]
+    },
+    "ModeChoice": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "choose_one"
+          ]
+        },
+        "timing": {
+          "type": "string",
+          "enum": [
+            "on_cast",
+            "on_cast_or_later_action"
+          ]
+        },
+        "optionCount": {
+          "type": "number"
+        },
+        "optionsSource": {
+          "type": "string",
+          "enum": [
+            "modeChoice.options",
+            "effects",
+            "controlOptions",
+            "mixed"
+          ]
+        },
+        "maxActiveNonInstantaneous": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "not_applicable"
+              ]
+            }
+          ]
+        },
+        "canDismissActive": {
+          "oneOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "not_applicable"
+              ]
+            }
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModeChoiceOption"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "timing",
+        "optionCount",
+        "optionsSource",
+        "options"
+      ]
+    },
+    "ModeChoiceOption": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "effectIndices": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "controlOptionIndices": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "effectTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "duration": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "summary"
+      ]
+    },
+    "EffectSchedule": {
+      "type": "object",
+      "properties": {
+        "timing": {
+          "type": "string",
+          "enum": [
+            "caster_later_turn_start"
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EffectScheduleEntry"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "timing",
+        "entries"
+      ]
+    },
+    "EffectScheduleEntry": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "timing": {
+          "type": "string",
+          "enum": [
+            "caster_turn_start"
+          ]
+        },
+        "turnStart": {
+          "type": "number"
+        },
+        "turnEnd": {
+          "type": "number"
+        },
+        "effectIndices": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "effectTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "targeting": {
+          "$ref": "#/definitions/EffectScheduleTargeting"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "timing",
+        "turnStart",
+        "effectTypes",
+        "summary"
+      ]
+    },
+    "EffectScheduleTargeting": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "all"
+              ]
+            }
+          ]
+        },
+        "validTargets": {
+          "type": "string",
+          "enum": [
+            "creatures",
+            "objects",
+            "creature_or_object"
+          ]
+        },
+        "selection": {
+          "type": "string",
+          "enum": [
+            "caster_choice",
+            "all_valid_targets"
+          ]
+        },
+        "mustBeDifferent": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "count",
+        "validTargets",
+        "selection"
+      ]
+    },
+    "SecondaryTargeting": {
+      "type": "object",
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "primary_hit",
+            "duplicate_damage_die"
+          ]
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "primary_target",
+            "previous_target"
+          ]
+        },
+        "range": {
+          "type": "number"
+        },
+        "rangeUnit": {
+          "type": "string",
+          "enum": [
+            "feet",
+            "miles",
+            "inches"
+          ]
+        },
+        "validTargets": {
+          "type": "string",
+          "enum": [
+            "creature",
+            "creature_or_object"
+          ]
+        },
+        "selection": {
+          "type": "string",
+          "enum": [
+            "caster_choice"
+          ]
+        },
+        "mustBeDifferent": {
+          "type": "boolean"
+        },
+        "requiresLineOfSight": {
+          "type": "boolean"
+        },
+        "requiresAttackRoll": {
+          "type": "boolean"
+        },
+        "requiresDamageRoll": {
+          "type": "boolean"
+        },
+        "repeatRule": {
+          "type": "string",
+          "enum": [
+            "none",
+            "slot_level_max_leaps"
+          ]
+        },
+        "maxLeaps": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "slot_level"
+              ]
+            }
+          ]
+        },
+        "uniquePerCasting": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "trigger",
+        "origin",
+        "range",
+        "rangeUnit",
+        "validTargets",
+        "selection",
+        "mustBeDifferent",
+        "requiresLineOfSight",
+        "requiresAttackRoll",
+        "requiresDamageRoll"
+      ]
+    }
+  }
+}

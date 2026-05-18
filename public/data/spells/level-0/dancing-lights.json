@@ -12,7 +12,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -56,10 +55,13 @@
     ],
     "lineOfSight": true,
     "maxTargets": 1,
-    "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+    "instanceAllocation": {
+      "instanceType": "light",
+      "baseCount": 4,
+      "scalingRule": "not_applicable",
+      "assignment": "independent_positions",
+      "resolution": "persistent",
+      "notes": "The caster creates up to four torch-size lights as separate hovering instances, or combines the four instances into one glowing Medium humanoid-like form. Movement, range-leash, and vanishing behavior remain tracked by the separate movement/sustain findings."
     },
     "filter": {
       "creatureTypes": [],
@@ -67,8 +69,65 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "modeChoice.options",
+    "maxActiveNonInstantaneous": "not_applicable",
+    "canDismissActive": "not_applicable",
+    "options": [
+      {
+        "label": "Separate Lights",
+        "summary": "Create up to four torch-size hovering lights that appear as torches, lanterns, or glowing orbs.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "light",
+          "visual_form"
+        ],
+        "duration": "1 minute",
+        "notes": "Uses the four independent light instances already tracked by targeting.instanceAllocation."
+      },
+      {
+        "label": "Humanoid Form",
+        "summary": "Combine the four lights into one glowing Medium form that is vaguely humanlike.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "light",
+          "visual_form"
+        ],
+        "duration": "1 minute",
+        "notes": "Uses the same four-light payload but presents the instances as one combined Medium form."
+      }
+    ],
+    "notes": "The selected form changes presentation and instance arrangement; the dim-light radius, movement, leash, and vanishing rules are shared."
   },
   "effects": [
     {
@@ -89,18 +148,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "light",
       "description": "Creates up to four lights that shed dim light in a 10-foot radius.",
@@ -130,8 +208,16 @@
         "brightRadius": 0,
         "dimRadius": 10,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",
@@ -139,7 +225,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration. You can also combine the four lights into one glowing vaguely humanoid form of Medium size. Whichever form you choose, each light sheds dim light in a 10-foot radius.",
+  "description": "You create up to four torch-size lights within range, making them appear as torches, lanterns, or glowing orbs that hover for the duration. Alternatively, you combine the four lights into one glowing Medium form that is vaguely humanlike. Whichever form you choose, each light sheds Dim Light in a 10-foot radius. As a Bonus Action, you can move the lights up to 60 feet to a space within range. A light must be within 20 feet of another light created by this spell, and a light vanishes if it exceeds the spell's range.",
   "higherLevels": "",
   "tags": [
     "utility",

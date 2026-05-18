@@ -1,0 +1,234 @@
+{
+  "id": "premade_cassian_blackreed",
+  "name": "Cassian Blackreed",
+  "age": 33,
+  "background": "charlatan",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "human",
+    "name": "Human",
+    "description": "Found throughout the multiverse, humans are as varied as they are numerous, and they endeavor to achieve as much as they can in the years they are given. Their ambition and resourcefulness are commended, respected, and feared on many worlds.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+      "Speed: 30 feet",
+      "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+      "Skillful: You gain proficiency in one skill of your choice (chosen during character creation).",
+      "Versatile: You gain an Origin feat of your choice."
+    ],
+    "visual": {
+      "id": "human",
+      "color": "#D2B48C",
+      "maleIllustrationPath": "assets/images/races/Human_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Human_Female.png"
+    }
+  },
+  "class": {
+    "id": "warlock",
+    "name": "Warlock",
+    "description": "A wielder of magic derived from a bargain with an extraplanar entity.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Charisma"
+    ],
+    "savingThrowProficiencies": [
+      "Wisdom",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "arcana",
+      "deception",
+      "history",
+      "intimidation",
+      "investigation",
+      "nature",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons"
+    ],
+    "warlockPatrons": [],
+    "features": [
+      {
+        "id": "pact_magic",
+        "name": "Pact Magic",
+        "description": "Your arcane research and the magic bestowed on you by your patron have given you facility with spells.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Charisma",
+      "knownCantrips": 2,
+      "knownSpellsL1": 2,
+      "spellList": [
+        "blade-ward",
+        "chill-touch",
+        "eldritch-blast",
+        "friends",
+        "frostbite",
+        "mage-hand",
+        "magic-stone",
+        "mind-sliver",
+        "minor-illusion",
+        "poison-spray",
+        "prestidigitation",
+        "sword-burst",
+        "thunderclap",
+        "toll-the-dead",
+        "true-strike",
+        "armor-of-agathys",
+        "arms-of-hadar",
+        "bane",
+        "charm-person",
+        "comprehend-languages",
+        "detect-magic",
+        "expeditious-retreat",
+        "hellish-rebuke",
+        "hex",
+        "illusory-script",
+        "protection-from-evil-and-good",
+        "speak-with-animals",
+        "tashas-hideous-laughter",
+        "unseen-servant",
+        "witch-bolt",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Charisma",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Charisma fuels your powerful pact magic. Constitution is vital for maintaining concentration on your spells. Dexterity provides a bonus to AC.",
+    "recommendedPointBuyPriorities": [
+      "Charisma",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Intelligence",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "warlock": 1
+  },
+  "abilityScores": {
+    "Strength": 8,
+    "Dexterity": 14,
+    "Constitution": 14,
+    "Intelligence": 12,
+    "Wisdom": 10,
+    "Charisma": 16
+  },
+  "finalAbilityScores": {
+    "Strength": 8,
+    "Dexterity": 14,
+    "Constitution": 14,
+    "Intelligence": 12,
+    "Wisdom": 10,
+    "Charisma": 16
+  },
+  "skills": [
+    {
+      "id": "arcana",
+      "name": "Arcana",
+      "ability": "Intelligence",
+      "description": "Recalls lore about spells, magical traditions, and planes."
+    },
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "Charisma",
+      "description": "Convincingly hides the truth."
+    }
+  ],
+  "savingThrowProficiencies": [
+    "Wisdom",
+    "Charisma"
+  ],
+  "feats": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "current": 1,
+      "max": 1
+    }
+  ],
+  "armorClass": 13,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "selectedWeaponMasteries": [],
+  "transportMode": "foot",
+  "equippedItems": {},
+  "activeEffects": [],
+  "statusEffects": [],
+  "limitedUses": {},
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1
+  },
+  "spellcastingAbility": "charisma",
+  "spellbook": {
+    "cantrips": [
+      "eldritch-blast",
+      "minor-illusion"
+    ],
+    "knownSpells": [
+      "hex",
+      "armor-of-agathys"
+    ],
+    "preparedSpells": [
+      "hex",
+      "armor-of-agathys"
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 1,
+      "max": 1
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "visualDescription": "A neatly dressed human warlock with ink-dark eyes, a black reed cane, and a voice that seems to arrive a moment late."
+}

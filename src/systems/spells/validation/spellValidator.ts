@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 29/04/2026, 17:39:30
+ * Last Sync: 14/05/2026, 10:30:02
  * Dependents: components/Glossary/spellGateChecker/spellGateBucketDetails.ts, components/Glossary/spellGateChecker/spellGateSelectedRefresh.ts, components/Glossary/spellGateChecker/useSpellGateChecks.ts, data/summonTemplates.ts, utils/validation/spellAuditor.ts
- * Imports: None
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,6 +33,26 @@
  */
 import { z } from 'zod';
 import { CLASSES_DATA } from '../../../data/classes/index.js';
+import { TargetConditionFilter, Targeting } from './targetingSchemas';
+import { SecondaryTargeting } from './effectRelationshipSchemas';
+import { EffectSchedule } from './effectScheduleSchemas';
+import { DurationProgression } from './durationProgressionSchemas';
+import { ModeChoice } from './modeChoiceSchemas';
+import { AttackAugment } from './attackAugmentSchemas';
+import { AbilityCheckModifier } from './abilityCheckModifierSchemas';
+import { ControlledEntity } from './controlledEntitySchemas';
+import { IllusionMetadata, SensoryManifestation } from './illusionSchemas';
+import { FallControl } from './fallControlSchemas';
+import { ConditionBreakTrigger } from './statusConditionSchemas';
+import { ConditionalEnding, EffectEndCleanup, SustainRequirement } from './effectLifecycleSchemas';
+import {
+  BarrierDamagePrevention,
+  DamageInteraction,
+  DeathPrevention,
+  LinkedDamage,
+  ResistanceSuppression,
+  SpellEffectPrevention,
+} from './effectProtectionSchemas';
 
 const BASE_CLASS_NAMES = Object.values(CLASSES_DATA).map((cls: any) => cls.name);
 // Legacy spell data may include subclass-specific entries; keep them whitelisted in Title Case.
@@ -95,7 +115,27 @@ const SubClassesVerificationStatus = z.enum(["unverified", "verified"]);
 const SpellClassAccess = z.object({
   classes: z.array(BaseClassNameEnum),
   subClasses: z.array(z.string()),
-  subClassesVerification: SubClassesVerificationStatus,
+  // Retired 2026-05-11 after the Sub-Classes bucket closed. The flag was
+  // needed while the lane was still being filled out (to distinguish
+  // examined-empty from never-looked-at). With the bucket closed, every
+  // spell's subClasses state is either a roster-clean entry list or a
+  // marker in the structured .md layer, so the verification flag is
+  // redundant. Kept as optional for backward compatibility with JSON
+  // files that still carry it; new files should omit it.
+  subClassesVerification: SubClassesVerificationStatus.optional(),
+});
+
+// Feature-granted spell access is intentionally separate from spell-list class
+// access. Mending is the pilot case: Artificers receive it from Tinker's Magic,
+// but that should not make Mending behave like a selectable Artificer cantrip.
+const SpellAccessGrant = z.object({
+  sourceType: z.enum(["class_feature", "subclass_feature", "species_trait", "feat", "item", "background", "other"]),
+  className: BaseClassNameEnum.optional(),
+  sourceName: z.string(),
+  accessType: z.enum(["known", "prepared", "always_prepared", "cast"]),
+  automatic: z.boolean(),
+  consumesSelection: z.boolean().optional(),
+  notes: z.string().optional(),
 });
 
 const SavingThrowAbility = z.enum(["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]);
@@ -125,8 +165,6 @@ const CastingTime = z.object({
 // fields still mean "legacy feet" for now.
 // ============================================================================
 const DistanceUnit = z.enum(["feet", "miles", "inches"]);
-const SpatialMeasuredUnit = z.enum(["feet", "miles", "inches", "gallons", "minutes"]);
-const GeometrySizeType = z.enum(["radius", "diameter", "length", "edge", "side"]);
 
 const Range = z.object({
   type: z.enum(["self", "touch", "ranged", "special", "sight", "unlimited"]),
@@ -150,148 +188,6 @@ const Duration = z.object({
   concentration: z.boolean(),
 });
 
-// Targeting Schema
-const ScalableNumber = z.union([
-  z.number(),
-  z.object({
-    base: z.number(),
-    scaling: z.object({
-      type: z.enum(["character_level", "slot_level"]),
-      thresholds: z.record(z.string(), z.number()) // e.g. {"5": 2, "11": 3, "17": 4}
-    })
-  })
-]);
-
-const TargetingAreaOfEffect = z.object({
-  // Extended shape enum includes Circle because some spells affect a flat ground
-  // footprint rather than a full sphere. Earthquake is the current Range/Area
-  // driver: its rules text says "100-foot-radius circle", so the runtime JSON
-  // needs a truthful shape instead of pretending the effect is spherical.
-  shape: z.enum([
-    "Cone", "Cube", "Cylinder", "Line", "Sphere", "Square",
-    "Circle", "Emanation", "Wall", "Hemisphere", "Ring"
-  ]),
-  size: z.number(),
-  sizeType: GeometrySizeType.optional(),
-  sizeUnit: DistanceUnit.optional(),
-  height: z.number().optional(),
-  heightUnit: DistanceUnit.optional(),
-
-  // Extended semantics (optional, shape-dependent)
-  followsCaster: z.boolean().optional(),
-  thickness: z.number().optional(),
-  thicknessUnit: DistanceUnit.optional(),
-  width: z.number().optional(),
-  widthUnit: DistanceUnit.optional(),
-
-  shapeVariant: z.object({
-    options: z.array(z.enum(["Line", "Ring", "Hemisphere", "Sphere"])),
-    default: z.string()
-  }).optional(),
-
-  wallStats: z.object({
-    ac: z.number(),
-    hpPerSection: z.number(),
-    sectionSize: z.number()
-  }).optional(),
-
-  triggerZone: z.object({
-    triggerDistance: z.number().optional(),
-    triggerSide: z.enum(["one", "both", "inside"]).optional()
-  }).optional()
-});
-
-// ============================================================================
-// Explicit Spatial Details
-// ============================================================================
-// These additive schemas give risky spells a place to store alternate forms and
-// measured spatial rules without flattening them back into one ambiguous prose
-// string. The older range/area fields still remain the primary runtime shape;
-// this section only fills the gaps for edge-case geometry.
-// ============================================================================
-const SpatialForm = z.object({
-  label: z.string().optional(),
-  shape: z.string(),
-  size: z.number().optional(),
-  sizeType: GeometrySizeType.optional(),
-  sizeUnit: DistanceUnit.optional(),
-  height: z.number().optional(),
-  heightUnit: DistanceUnit.optional(),
-  width: z.number().optional(),
-  widthUnit: DistanceUnit.optional(),
-  thickness: z.number().optional(),
-  thicknessUnit: DistanceUnit.optional(),
-  segmentCount: z.number().optional(),
-  segmentWidth: z.number().optional(),
-  segmentWidthUnit: DistanceUnit.optional(),
-  segmentHeight: z.number().optional(),
-  segmentHeightUnit: DistanceUnit.optional(),
-  notes: z.string().optional(),
-});
-
-const SpatialMeasuredDetail = z.object({
-  label: z.string(),
-  kind: z.enum([
-    "blocker",
-    "opening",
-    "diameter",
-    "thickness",
-    "depth",
-    "size_change",
-    "distance",
-    "count",
-    "volume",
-    "time",
-    "special",
-  ]),
-  subject: z.string().optional(),
-  value: z.number().optional(),
-  // Some pulled-apart spatial facts are not pure distances. Risky spells like
-  // Create or Destroy Water and Bones of the Earth need gallons and minutes to
-  // stay explicit instead of getting pushed back into prose-only notes.
-  unit: SpatialMeasuredUnit.optional(),
-  qualifier: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-const SpatialDetails = z.object({
-  forms: z.array(SpatialForm).optional(),
-  measuredDetails: z.array(SpatialMeasuredDetail).optional(),
-});
-
-const ValidTargetType = z.enum([
-  "self", "creatures", "allies", "enemies", "objects", "point", "ground"
-]);
-
-const TargetConditionFilter = z.object({
-  creatureTypes: z.array(z.string()),
-  excludeCreatureTypes: z.array(z.string()),
-  sizes: z.array(z.string()),
-  alignments: z.array(z.string()),
-  hasCondition: z.array(z.string()),
-  isNativeToPlane: z.boolean(),
-});
-
-/**
- * TARGETING SYSTEM
- * Defines where a spell can be aimed and what it can hit.
- * Used by BattleMap to calculate valid tiles and target highlights.
- */
-const Targeting = z.object({
-  type: z.enum(["self", "single", "multi", "area", "melee", "ranged", "point"]),
-  range: z.number(),
-  rangeUnit: DistanceUnit.optional(),
-  maxTargets: ScalableNumber,
-  validTargets: z.array(ValidTargetType),
-  lineOfSight: z.boolean(),
-  areaOfEffect: TargetingAreaOfEffect,
-  filter: TargetConditionFilter,
-  spatialDetails: SpatialDetails.optional(),
-  // Legacy fields (deprecated, use areaOfEffect instead - keeping optional for backwards compat during migration if needed, but script backfilled them)
-  shape: z.enum(["sphere", "cone", "cube", "line", "cylinder"]).optional(),
-  radius: z.number().optional()
-});
-
 const EffectDuration = z.object({
   type: z.enum(["rounds", "minutes", "special"]),
   value: z.number().optional()
@@ -302,6 +198,10 @@ const EscapeCheck = z.object({
   skill: z.string().optional(),
   dc: z.union([z.number(), z.literal("spell_save_dc")]),
   actionCost: z.enum(["action", "bonus_action"]),
+  eligibleActors: z.array(z.enum([
+    "affected_creature",
+    "creature_that_can_reach_affected_creature"
+  ])).optional(),
 });
 
 // TODO: The trigger type 'on_move_in_area' is implemented in `AreaEffectTracker.processMovementWithin`
@@ -318,13 +218,16 @@ const EffectTrigger = z.object({
     "on_exit_area",
     "on_end_turn_in_area",
     "on_target_move",
+    "on_target_takes_damage",
     "on_attack_hit",
     "on_target_attack",
     "on_target_cast",
-    "on_caster_action"
+    "on_entity_proximity",
+    "on_caster_action",
+    "on_granted_action"
   ]),
   frequency: z.enum(["every_time", "first_per_turn", "once", "once_per_creature"]).optional(),
-  consumption: z.enum(["unlimited", "first_hit", "per_turn"]).optional(),
+  consumption: z.enum(["unlimited", "first_hit", "per_turn", "per_instance_hit_or_miss"]).optional(),
   attackFilter: z.object({
     weaponType: z.enum(["melee", "ranged", "any"]).optional(),
     attackType: z.enum(["weapon", "spell", "any"]).optional()
@@ -337,19 +240,101 @@ const EffectTrigger = z.object({
 });
 
 const SaveModifier = z.object({
-  type: z.enum(["advantage", "disadvantage", "bonus", "penalty"]),
+  type: z.enum(["advantage", "disadvantage", "bonus", "penalty", "cover_bypass"]),
   value: z.number().optional(),
   appliesTo: TargetConditionFilter.optional(),
   reason: z.string().optional(),
   advantageOnDamage: z.boolean().optional(),
   sizeAdvantage: z.array(z.string()).optional(),
-  sizeDisadvantage: z.array(z.string()).optional()
+  sizeDisadvantage: z.array(z.string()).optional(),
+  // Some saving throws, such as Sacred Flame, explicitly deny normal cover
+  // bonuses. This keeps those exceptions attached to the save that uses them
+  // instead of hiding them in prose where the runtime cannot apply them.
+  ignoredCover: z.array(z.enum(["half", "three_quarters", "total"])).optional()
+});
+
+const SaveOutcomeOverride = z.object({
+  outcome: z.enum(["auto_success", "auto_failure"]),
+  condition: z.enum([
+    "challenge_rating_not_zero",
+    "fighting_caster_or_allies",
+    "cannot_understand_caster",
+    "immune_to_charmed",
+    "immune_to_frightened",
+    "is_shapechanger",
+    "is_plant_creature",
+    "not_humanoid",
+    "recently_affected_by_spell"
+  ]),
+  reason: z.string().optional()
 });
 
 const RepeatSaveModifiers = z.object({
   advantageOnDamage: z.boolean().optional(),
   sizeAdvantage: z.array(z.string()).optional(),
   sizeDisadvantage: z.array(z.string()).optional()
+});
+
+const RepeatSaveTiming = z.enum([
+  "turn_end",           // End of target's turn
+  "turn_start",         // Start of target's turn
+  "on_damage",          // When target takes damage
+  "on_action",          // Target must use action to attempt
+  "after_forced_movement" // Target saves after completing spell-forced movement
+]);
+
+const RepeatSaveProgression = z.object({
+  // Some repeat saves count successes and failures instead of ending on the
+  // first success. The optional thresholds keep Contagion/Flesh to Stone data
+  // machine-readable without changing simple repeat-save spells.
+  successThreshold: z.number().optional(),
+  failureThreshold: z.number().optional(),
+  consecutiveRequired: z.boolean().optional(),
+  successOutcome: z.string().optional(),
+  failureOutcome: z.string().optional()
+});
+
+const RepeatSavePrerequisite = z.enum([
+  "no_line_of_sight_to_caster"
+]);
+
+const RepeatSave = z.object({
+  timing: RepeatSaveTiming,
+  additionalTimings: z.array(RepeatSaveTiming).optional(),
+  saveType: z.enum([
+    "Strength", "Dexterity", "Constitution",
+    "Intelligence", "Wisdom", "Charisma",
+    "strength_check",
+    "wisdom_check"
+  ]),
+  successEnds: z.boolean(),
+  useOriginalDC: z.boolean(),
+  prerequisites: z.array(RepeatSavePrerequisite).optional(),
+  modifiers: RepeatSaveModifiers.optional(),
+  progression: RepeatSaveProgression.optional()
+});
+
+const RecurringMechanic = z.object({
+  // Recurring mechanics capture turn-by-turn or trigger-by-trigger rules that
+  // are not always status repeat saves, such as Heroism temp HP, Elemental Bane
+  // first-per-turn damage, and Tree Stride end-turn positioning.
+  timing: z.enum(["turn_start", "turn_end", "on_damage", "on_entity_proximity", "on_target_cast"]),
+  frequency: z.enum(["every_time", "first_per_turn", "once_per_creature"]).optional(),
+  saveType: SavingThrowAbility.optional(),
+  saveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  damage: z.object({
+    dice: z.string(),
+    type: z.string(),
+    mitigationBypass: z.array(z.enum(["resistance", "immunity", "damage_reduction", "damage_prevention"])).optional(),
+  }).optional(),
+  healing: z.object({
+    dice: z.string(),
+    isTemporaryHp: z.boolean().optional(),
+  }).optional(),
+  successOutcome: z.string().optional(),
+  failureOutcome: z.string().optional(),
+  restriction: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 const EffectCondition = z.object({
@@ -359,6 +344,10 @@ const EffectCondition = z.object({
   targetFilter: TargetConditionFilter.optional(),
   requiresStatus: z.array(z.string()).optional(),
   saveModifiers: z.array(SaveModifier).optional(),
+  // Some spells skip the normal save result entirely for specific targets.
+  // This records automatic success/failure rules beside the save they modify,
+  // while broader target filters continue to handle ordinary eligibility.
+  saveOutcomeOverrides: z.array(SaveOutcomeOverride).optional(),
 });
 
 const ScalingFormula = z.object({
@@ -447,16 +436,90 @@ const HigherLevelScaling = z.discriminatedUnion("type", [
   SpecialTextOnlyHigherLevelScaling,
 ]);
 
+const SoundEmission = z.object({
+  audibleRadius: z.union([z.number(), z.literal("not_applicable")]),
+  radiusUnit: z.enum(["feet", "miles", "not_applicable"]),
+  source: z.enum(["caster", "target", "target_object", "origin_space", "spell_area", "not_applicable"]),
+  trigger: z.enum(["on_cast", "on_hit", "after_teleport", "on_trigger", "not_applicable"]),
+  description: z.string().optional(),
+});
+
 const BaseEffect = z.object({
   trigger: EffectTrigger,
   condition: EffectCondition,
   scaling: ScalingFormula.optional(),
+  // Secondary targeting is effect-local because the relationship belongs to a
+  // follow-up damage or effect packet, not to the spell's initial target list.
+  secondaryTargeting: SecondaryTargeting.optional(),
+  // Sound is a sensory mechanic when it has gameplay-facing radius, source, or
+  // timing. Keeping it on the base effect lets damage, utility, teleport, and
+  // triggered spells all expose audibility without inventing parallel effect
+  // types for the same sound rule.
+  soundEmission: SoundEmission.optional(),
+  // Conditional endings are early-stop rules that are neither normal duration
+  // expiry nor concentration loss. They stay on effects so a spell can later
+  // have one mode end early without forcing every other mode to do the same.
+  conditionalEndings: z.array(ConditionalEnding).optional(),
+  // Fall control keeps descent rate and landing damage rules machine-readable.
+  // It is separate from ordinary speed or forced movement because falling uses
+  // its own timing and damage rules in the runtime engine.
+  fallControl: FallControl.optional(),
+  // Condition removal is an immediate restorative mechanic: the spell ends a
+  // named condition that is already present. It is intentionally separate from
+  // condition immunity, suppression, and normal status application.
+  conditionRemoval: z.array(z.string()).optional(),
+  // Barrier damage prevention is not ordinary resistance. It blocks damage
+  // based on crossing a barrier boundary, so the runtime needs origin-side data.
+  barrierDamagePrevention: BarrierDamagePrevention.optional(),
+  // Spell-effect prevention stops qualifying spells from affecting protected
+  // subjects. It is separate from damage prevention because it also blocks
+  // targeting effects and area inclusion before damage is considered.
+  spellEffectPrevention: SpellEffectPrevention.optional(),
+  // Death prevention records last-moment safeguards that intercept death rather
+  // than reducing damage. It stays distinct from resistance and healing so the
+  // runtime can consume the ward after the first qualifying death event.
+  deathPrevention: DeathPrevention.optional(),
+  // End cleanup removes spell-created state when an already-modeled ending
+  // happens. It is not itself an early-ending trigger.
+  endCleanup: z.array(EffectEndCleanup).optional(),
+  // Sustain requirements record upkeep actions that must be paid on later turns
+  // to keep a spell or effect active. Failure is modeled separately as a
+  // conditional ending so the runtime can see both the cost and the consequence.
+  sustainRequirement: SustainRequirement.optional(),
+  // Linked damage records damage sharing or mirroring between connected
+  // creatures. It is neither resistance nor a new damage roll; it follows an
+  // existing damage event.
+  linkedDamage: LinkedDamage.optional(),
+  // Resistance suppression is the inverse of granting resistance: it temporarily
+  // disables the target's resistance to a specified damage type while leaving
+  // other defenses intact.
+  resistanceSuppression: ResistanceSuppression.optional(),
+  // Damage interaction is neutral between helpful and harmful modes. Hallow can
+  // bind either resistance or vulnerability to an area, so this avoids treating
+  // vulnerability as a defensive effect.
+  damageInteraction: DamageInteraction.optional(),
+  // Some repeat mechanics are not just status repeat saves. This array keeps
+  // recurring damage, healing, restrictions, and pre-cast gates visible without
+  // forcing them into prose-only descriptions.
+  recurringMechanics: z.array(RecurringMechanic).optional(),
+  // Sensory manifestations record what a spell-created sound, image, smell, or
+  // similar presentation can and cannot produce. This is where Minor Illusion's
+  // sound/image restrictions live instead of hiding inside description text.
+  sensoryManifestation: SensoryManifestation.optional(),
+  // Illusion reveal data records how creatures can discern an illusion and what
+  // changes for that creature afterward. It is separate from escape checks
+  // because discerning an illusion does not necessarily end the spell.
+  illusion: IllusionMetadata.optional(),
   description: z.string(),
 });
 
 const DamageData = z.object({
   dice: z.string(),
   type: z.string(),
+  // Some self-cost damage explicitly cannot be reduced or prevented. Keeping
+  // the bypass list on the damage packet lets the runtime skip only the named
+  // mitigation families instead of hard-coding spell names.
+  mitigationBypass: z.array(z.enum(["resistance", "immunity", "damage_reduction", "damage_prevention"])).optional(),
 });
 
 const DamageEffect = BaseEffect.extend({
@@ -479,23 +542,8 @@ const StatusCondition = z.object({
   duration: EffectDuration,
   level: z.number().optional(),
   escapeCheck: EscapeCheck.optional(),
-  repeatSave: z.object({
-    timing: z.enum([
-      "turn_end",           // End of target's turn
-      "turn_start",         // Start of target's turn
-      "on_damage",          // When target takes damage
-      "on_action"           // Target must use action to attempt
-    ]),
-    saveType: z.enum([
-      "Strength", "Dexterity", "Constitution",
-      "Intelligence", "Wisdom", "Charisma",
-      "strength_check",
-      "wisdom_check"
-    ]),
-    successEnds: z.boolean(),
-    useOriginalDC: z.boolean(),
-    modifiers: RepeatSaveModifiers.optional()
-  }).optional()
+  repeatSave: RepeatSave.optional(),
+  breakTriggers: z.array(ConditionBreakTrigger).optional()
 });
 
 const StatusConditionEffect = BaseEffect.extend({
@@ -549,14 +597,17 @@ const GrantedAction = z.object({
   type: z.enum(["action", "bonus_action", "reaction"]),
   action: z.string(),
   frequency: z.enum(["once", "each_turn", "while_active"]),
+  // Actor and action kind distinguish a caster sustaining a spell from a spell
+  // granting a target a new Magic action, such as Dragon's Breath.
+  actor: z.enum(["caster", "target", "summoned_entity", "affected_creature"]).optional(),
+  actionKind: z.enum(["magic_action", "standard_action", "bonus_action", "reaction", "not_applicable"]).optional(),
+  areaShape: z.enum(["Cone", "Line", "Sphere", "Cube", "Cylinder", "not_applicable"]).optional(),
+  areaSize: z.union([z.number(), z.literal("not_applicable")]).optional(),
+  areaSizeUnit: z.enum(["feet", "miles", "not_applicable"]).optional(),
+  effectIndices: z.array(z.number()).optional(),
+  prerequisites: z.array(z.enum(["target_object_within_spell_range", "target_within_spell_range", "not_applicable"])).optional(),
   rangeLimit: z.number().optional(),
   notes: z.string().optional(),
-});
-
-const AttackAugment = z.object({
-  attackType: z.enum(["weapon", "melee_weapon", "ranged_weapon"]),
-  additionalDamage: DamageData.optional(),
-  appliesOn: z.enum(["hit"]).optional(),
 });
 
 const ControlOption = z.object({
@@ -693,6 +744,8 @@ const UtilityEffect = BaseEffect.extend({
   description: z.string(),
   grantedActions: z.array(GrantedAction).optional(),
   attackAugments: z.array(AttackAugment).optional(),
+  abilityCheckModifier: AbilityCheckModifier.optional(),
+  controlledEntity: ControlledEntity.optional(),
   controlOptions: z.array(ControlOption).optional(),
   taunt: TauntEffect.optional(),
   savePenalty: SavePenaltyData.optional(), // For effects like Mind Sliver that impose save penalties
@@ -701,7 +754,32 @@ const UtilityEffect = BaseEffect.extend({
     dimRadius: z.number().optional(),
     attachedTo: z.enum(["caster", "target", "point"]).optional(),
     color: z.string().optional(),
+    colorChoice: z.enum(["caster_choice", "fixed", "not_applicable"]).optional(),
+    opaqueCoverBlocks: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+    emitsHeat: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+    ignitesObjects: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+    consumesFuel: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+    canBeCoveredOrHidden: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
+    canBeSmotheredOrQuenched: z.union([z.boolean(), z.literal("not_applicable")]).optional(),
   }).optional(),
+});
+
+const DamageReduction = z.object({
+  // Reduction is different from resistance: it subtracts an explicit amount
+  // from qualifying damage instead of halving damage through the resistance
+  // rules. Resistance the cantrip is the first closed corpus case.
+  dice: z.string(),
+  flat: z.number().optional(),
+  appliesTo: z.enum(["damage_taken"]),
+  frequency: z.enum(["once_per_turn", "every_time"]).optional(),
+});
+
+const DefenseSourceFilter = z.object({
+  // Defensive source filters describe the incoming harm the defense responds
+  // to. This is separate from target eligibility: Investiture of Stone targets
+  // the caster, but only resists damage from nonmagical attacks.
+  sourceCategories: z.array(z.enum(["attack", "spell", "effect", "environment"])).optional(),
+  attackMagicalStatus: z.enum(["any", "magical", "nonmagical", "not_applicable"]).optional(),
 });
 
 const DefensiveEffect = BaseEffect.extend({
@@ -712,17 +790,40 @@ const DefensiveEffect = BaseEffect.extend({
     "ac_minimum",
     "resistance",
     "immunity",
+    "damage_reduction",
     "temporary_hp",
-    "advantage_on_saves"
+    "advantage_on_saves",
+    // Some protection spells defend by making filtered attackers roll worse.
+    // The core spell type already allowed this value; the validator now accepts
+    // it so runtime data can preserve that defensive mechanic directly.
+    "disadvantage_on_attacks"
   ]),
   value: z.number().optional(), // Used for AC bonus value or Temp HP amount
   baseACFormula: z.string().optional(), // For set_base_ac
   acMinimum: z.number().optional(), // For ac_minimum
 
   damageType: z.array(z.string()).optional(),
+  // Dynamic resistances name an eligible set but choose the actual protected
+  // damage type from play context, such as Absorb Elements using the incoming
+  // triggering damage type.
+  damageTypeSource: z.enum(["listed", "triggering_damage_type", "chosen_damage_type"]).optional(),
+  // Some defensive prose names a broad damage set and then carves out explicit
+  // exceptions, such as Feign Death resisting all damage except Psychic.
+  excludedDamageType: z.array(z.string()).optional(),
+  damageReduction: DamageReduction.optional(),
+  // Prevention immunity covers non-condition mechanics that a defense blocks,
+  // such as Aura of Life preventing hit point maximum reduction.
+  preventionImmunity: z.array(z.enum(["hit_point_maximum_reduction"])).optional(),
+  // Condition immunity is separate from damage immunity. Heroism, for example,
+  // prevents Frightened without implying immunity to any damage type.
+  conditionImmunity: z.array(z.string()).optional(),
+  // Condition suppression is also distinct: Calm Emotions can pause an existing
+  // Charmed or Frightened condition without permanently removing it.
+  conditionSuppression: z.array(z.string()).optional(),
   savingThrow: z.array(SavingThrowAbility).optional(),
   duration: EffectDuration,
   attackerFilter: TargetConditionFilter.optional(),
+  defenseSourceFilter: DefenseSourceFilter.optional(),
 
   // Reaction trigger (for shield)
   reactionTrigger: z.object({
@@ -784,6 +885,7 @@ export const SpellValidator = z.object({
   // Spread the dedicated class-access schema into the main spell shape so the
   // validator can enforce the explicit split everywhere, not only in new data.
   ...SpellClassAccess.shape,
+  accessGrants: z.array(SpellAccessGrant).optional(),
   ritual: z.boolean(), // Validation Rule: Must be false for Level 0 (enforce via .refine or subclass)
   rarity: SpellRarity,
   attackType: z.string(),
@@ -792,12 +894,20 @@ export const SpellValidator = z.object({
   components: Components,
   duration: Duration,
   targeting: Targeting,
+  // Mode choice records spell menus such as "choose one of the following
+  // effects." The actual payload still lives in effects/controlOptions.
+  modeChoice: ModeChoice.optional(),
+  // Effect schedules describe when already-modeled effects become active for
+  // spells with turn-numbered stages. The field is optional so ordinary spells
+  // do not have to carry an empty schedule object.
+  effectSchedule: EffectSchedule.optional(),
   effects: z.array(SpellEffect),
   arbitrationType: ArbitrationType,
   aiContext: AIContext,
   description: z.string(),
   higherLevels: z.string(),
   higherLevelScaling: HigherLevelScaling.optional(),
+  durationProgression: z.array(DurationProgression).optional(),
   tags: z.array(z.string()),
 }).superRefine((spell, ctx) => {
   /**
@@ -878,14 +988,6 @@ export const SpellValidator = z.object({
     }
   }
 
-  // Subclass verification status must match content: a non-empty subClasses
-  // list cannot still carry the "unverified" marker — once the lane has
-  // entries, the lane has been examined.
-  if (spell.subClasses.length > 0 && spell.subClassesVerification === 'unverified') {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `subClassesVerification cannot be "unverified" when subClasses contains entries.`,
-      path: ['subClassesVerification'],
-    });
-  }
+  // Subclass verification refinement retired 2026-05-11 with the field.
+  // See SpellClassAccess above for context.
 });

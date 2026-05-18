@@ -1,0 +1,23 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "pattern": "^Save Modifier \\d+ (Type|Target Creature Types|Reason)$",
+      "valueType": "structured-numbered-group",
+      "jsonPath": "effects[].condition.saveModifiers[]",
+      "why": "Conditional advantage or disadvantage on saves should not be flattened into description prose.",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Abi-Dalzim's Horrid Wilting gives plants and water elementals disadvantage on the saving throw."
+        }
+      ],
+      "comment": "Conditional advantage or disadvantage on saves should not be flattened into description prose. It maps to `effects[].condition.saveModifiers[]`. Purpose: Unnamed field exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].condition.saveModifiers[]`. The value type is `structured-numbered-group`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

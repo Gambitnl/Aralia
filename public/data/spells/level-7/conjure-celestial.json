@@ -9,7 +9,6 @@
     "Cleric"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -67,14 +66,34 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate",
+        "type": "on_caster_action",
         "frequency": "every_time",
         "consumption": "unlimited",
         "attackFilter": {
@@ -97,10 +116,31 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "6d12",
@@ -111,10 +151,112 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": ""
+      "description": "Searing Light: the chosen target makes a Dexterity save, taking 6d12 Radiant damage on a failed save or half as much on a success.",
+      "conditionalEndings": []
     },
     {
       "type": "HEALING",
+      "trigger": {
+        "type": "on_caster_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "healing": {
+        "dice": "4d12 + spellcasting_modifier",
+        "isTemporaryHp": false
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "Healing Light: the chosen target regains Hit Points equal to 4d12 plus the caster's spellcasting ability modifier.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "MOVEMENT",
+      "trigger": {
+        "type": "on_caster_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveOutcomeOverrides": []
+      },
+      "movementType": "teleport",
+      "distance": 30,
+      "duration": {
+        "type": "minutes",
+        "value": 10
+      },
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      },
+      "forcedMovement": {
+        "usesReaction": false,
+        "direction": "caster_choice",
+        "maxDistance": "30 ft"
+      },
+      "description": "When the caster moves on their turn, the caster can also move the bright Cylinder up to 30 feet.",
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -131,29 +273,67 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
-        "targetFilter": {
-          "creatureTypes": [],
-          "excludeCreatureTypes": [],
-          "sizes": [],
-          "alignments": [],
-          "hasCondition": [],
-          "isNativeToPlane": false
-        },
-        "requiresStatus": [],
-        "saveModifiers": []
+        "saveOutcomeOverrides": []
       },
-      "healing": {
-        "dice": "4d12 + spellcasting_modifier",
-        "isTemporaryHp": false
-      },
+      "utilityType": "light",
+      "description": "A spirit from the Upper Planes manifests as a bright 10-foot-radius, 40-foot-high Cylinder. The caster chooses Healing Light or Searing Light for each visible creature affected, and each creature can be affected only once per turn.",
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "",
+        "bonusPerLevel": "+1d12",
         "customFormula": ""
       },
-      "description": ""
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [
+        {
+          "name": "Healing Light",
+          "effect": "The chosen target regains Hit Points equal to 4d12 plus the caster's spellcasting ability modifier."
+        },
+        {
+          "name": "Searing Light",
+          "effect": "The chosen target makes a Dexterity save, taking 6d12 Radiant damage on a failed save or half as much on a success."
+        },
+        {
+          "name": "Bright Light Cylinder",
+          "effect": "Bright Light fills the Cylinder until the spell ends."
+        },
+        {
+          "name": "Move Cylinder",
+          "effect": "When the caster moves on their turn, the caster can also move the Cylinder up to 30 feet."
+        },
+        {
+          "name": "Once Per Turn",
+          "effect": "A creature can be affected by this spell only once per turn."
+        }
+      ],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 10,
+        "dimRadius": 0,
+        "attachedTo": "point",
+        "color": "radiant",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

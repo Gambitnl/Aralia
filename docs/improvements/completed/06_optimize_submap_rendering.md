@@ -1,4 +1,4 @@
-﻿# Improvement Note: Optimize Submap Rendering
+# Improvement Note: Optimize Submap Rendering
 
 ## Status
 

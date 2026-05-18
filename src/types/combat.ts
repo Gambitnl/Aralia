@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 29/04/2026, 17:39:30
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/monsters.ts, data/religion/blessings.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/visibility/VisibilitySystem.ts, types/index.ts, types/infernal.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
+ * Last Sync: 14/05/2026, 03:25:09
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/visibility/VisibilitySystem.ts, types/index.ts, types/infernal.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -156,6 +156,7 @@ export interface ActionEconomyState {
   action: { used: boolean; remaining: number };
   bonusAction: { used: boolean; remaining: number };
   reaction: { used: boolean; remaining: number };
+  legendary: { used: number; total: number }; // Tracks legendary actions per round
   movement: { used: number; total: number }; // in feet
   freeActions: number;
 }
@@ -227,6 +228,11 @@ export interface CombatCharacter {
   resistances?: DamageType[];
   vulnerabilities?: DamageType[]; // Added for full 5e mechanics support
   immunities?: DamageType[];
+  /** Damage types resisted only against nonmagical attacks (e.g. lycanthropes). */
+  nonMagicalResistances?: string[];
+  /** Damage types that grant immunity only against nonmagical attacks. */
+  nonMagicalImmunities?: string[];
+  conditionImmunities?: ConditionName[];
   tempHP?: number;          // Temporary hit points
   activeEffects?: ActiveEffect[];  // Active spell effects
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
@@ -243,7 +249,7 @@ export interface CombatCharacter {
 
 export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';
 export type TargetingType = 'single_enemy' | 'single_ally' | 'single_any' | 'area' | 'self' | 'all_enemies' | 'all_allies';
-export type ActionCostType = 'action' | 'bonus' | 'reaction' | 'free' | 'movement-only';
+export type ActionCostType = 'action' | 'bonus' | 'reaction' | 'legendary' | 'lair' | 'free' | 'movement-only';
 
 export interface AbilityCost {
   type: ActionCostType;
@@ -268,7 +274,7 @@ export interface AbilityEffect {
   type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport';
   value?: number;
   dice?: string; // Dice formula (e.g. "1d8+2") to be rolled at execution time
-  damageType?: 'physical' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
+  damageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
   statusEffect?: StatusEffect;
   duration?: number;
 }
@@ -302,11 +308,50 @@ export interface Ability {
   effects: AbilityEffect[];
   cooldown?: number;
   currentCooldown?: number;
+  saveDC?: number;
+  saveAbility?: AbilityScoreName;
+  /**
+   * Explicit attack bonus extracted from 5eTools `{@hit N}` markup (e.g. +14 for an Adult Red Dragon Rend).
+   * When present, `AbilityCommandFactory` uses this instead of recomputing from STR/DEX + proficiency.
+   * Ensures that monsters with atypical attack bonuses (finesse, multi-stat, racial bonuses) roll correctly.
+   */
+  attackBonus?: number;
+  recharge?: {
+    /** Recharge threshold (e.g. 5 = must roll 5+ to recharge) */
+    threshold: number;
+    /** Description shown in UI (e.g. "Recharge 5-6") */
+    description: string;
+  };
+  /** When true, the ability is in d6-recharge mode instead of standard countdown */
+  isRecharging?: boolean;
+  /** Maximum number of uses (e.g. 3 for 3/Day) */
+  maxUses?: number;
+  /** Current remaining uses */
+  usesRemaining?: number;
   icon?: string;
-  spell?: Spell; // Reference to the original spell data for AI arbitration
+  spell?: any; // Reference to the original spell data for AI arbitration
   weapon?: Item; // Reference to the source weapon for proficiency checks
   isProficient?: boolean; // Whether caster is proficient with this ability/weapon
   mastery?: string; // Active weapon mastery property (e.g., 'Topple', 'Sap') if unlocked and proficient
+  /** True when the ability is magical (spell attack, innate magic, etc.).
+   *  Used by ResistanceCalculator to bypass "resistance to nonmagical attacks". */
+  isMagical?: boolean;
+  /**
+   * Number of sub-attacks this Multiattack resolves into (e.g. 3 for "makes three Rend attacks").
+   * Present only on abilities whose name is "Multiattack".
+   * The ability's `effects[]` are pre-multiplied to represent the full N-hit damage for AI scoring.
+   */
+  multiattackCount?: number;
+  /**
+   * IDs of the sub-attack abilities that Multiattack resolves into.
+   * Used by the execution engine to chain individual attack rolls instead of a lump hit.
+   */
+  subAttackIds?: string[];
+  /**
+   * Creature types this ability can target (e.g. `["Humanoid"]` for Hold Person).
+   * Empty/absent means no type restriction. Used by AI target filtering and validator.
+   */
+  validCreatureTypes?: string[];
 }
 
 export interface TurnState {
@@ -365,7 +410,7 @@ export interface ActiveRider {
   sourceName: string;
   targetId?: string;
   effect: SpellEffect; // Changed to SpellEffect to be more generic, though usually DamageEffect
-  consumption: "unlimited" | "first_hit" | "per_turn";
+  consumption: "unlimited" | "first_hit" | "per_turn" | "per_instance_hit_or_miss";
   attackFilter: {
     weaponType?: "melee" | "ranged" | "any";
     attackType?: "weapon" | "spell" | "any";

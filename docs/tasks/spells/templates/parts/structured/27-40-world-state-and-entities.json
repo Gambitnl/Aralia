@@ -1,0 +1,51 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "40-world-state-and-entities",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Movement Type",
+      "valueType": "enum",
+      "jsonPath": "effects[].movement.type",
+      "why": "Forced movement spells need explicit movement semantics.",
+      "acceptedValues": [
+        "push",
+        "pull",
+        "teleport",
+        "forced"
+      ],
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Forced movement spells need explicit movement semantics."
+        }
+      ],
+      "comment": "Forced movement spells need explicit movement semantics. It maps to `effects[].movement.type`. Purpose: Movement Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].movement.type`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "push": "Allowed value for Movement Type; use only when the canonical spell text supports this exact mechanic.",
+        "pull": "Allowed value for Movement Type; use only when the canonical spell text supports this exact mechanic.",
+        "teleport": "Allowed value for Movement Type; use only when the canonical spell text supports this exact mechanic.",
+        "forced": "Allowed value for Movement Type; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "required": false,
+      "status": "proposed",
+      "label": "Forced Movement",
+      "valueType": "string",
+      "jsonPath": "effects[].movement",
+      "why": "Forced movement details are intentionally not flattened into description prose.",
+      "log": [
+        {
+          "at": "2026-05-06T22:45:00+02:00",
+          "action": "registered",
+          "why": "Forced movement details are intentionally not flattened into description prose."
+        }
+      ],
+      "comment": "Forced movement details are intentionally not flattened into description prose. It maps to `effects[].movement`. Purpose: Forced Movement exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].movement`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

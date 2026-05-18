@@ -1,4 +1,4 @@
-﻿# 1I - Migrate Cantrips (Batch 1)
+# 1I - Migrate Cantrips (Batch 1)
 
 **Status:** Compatibility pointer
 **Last Reviewed:** 2026-03-12

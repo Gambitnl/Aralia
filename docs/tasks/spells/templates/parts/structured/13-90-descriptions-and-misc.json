@@ -1,0 +1,70 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "90-descriptions-and-misc",
+  "fieldCount": 3,
+  "fields": [
+    {
+      "label": "Condition Eligibility",
+      "required": false,
+      "valueType": "text-policy",
+      "jsonPath": "effects[].condition.eligibility",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Friends showed that a condition spell can auto-succeed based on creature type, combat state, or recent casting history."
+        }
+      ],
+      "comment": "Friends showed that a condition spell can auto-succeed based on creature type, combat state, or recent casting history. It maps to `effects[].condition.eligibility`. Purpose: Condition Eligibility exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].condition.eligibility`. The value type is `text-policy`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "label": "Condition Break Triggers",
+      "required": false,
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "target_takes_damage",
+        "adjacent_creature_action_shakes_awake",
+        "caster_makes_attack_roll",
+        "caster_deals_damage",
+        "caster_forces_save",
+        "concentration_ends",
+        "duration_expires"
+      ],
+      "jsonPath": "effects[].statusCondition.breakTriggers[]",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Friends needs early-ending conditions that are neither normal duration nor repeat-save rules."
+        }
+      ],
+      "comment": "Friends needs early-ending conditions that are neither normal duration nor repeat-save rules. It maps to `effects[].statusCondition.breakTriggers[]`. Purpose: Condition Break Triggers exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.breakTriggers[]`. The value type is `csv-enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "target_takes_damage": "Allowed value for Condition Break Triggers; use only when the canonical spell text supports this exact mechanic.",
+        "adjacent_creature_action_shakes_awake": "Use when the condition or spell effect ends because another creature within the stated distance spends an action to wake, shake, slap, or otherwise rouse the target out of the effect.",
+        "caster_makes_attack_roll": "Allowed value for Condition Break Triggers; use only when the canonical spell text supports this exact mechanic.",
+        "caster_deals_damage": "Allowed value for Condition Break Triggers; use only when the canonical spell text supports this exact mechanic.",
+        "caster_forces_save": "Allowed value for Condition Break Triggers; use only when the canonical spell text supports this exact mechanic.",
+        "concentration_ends": "Allowed value for Condition Break Triggers; use only when the canonical spell text supports this exact mechanic.",
+        "duration_expires": "Allowed value for Condition Break Triggers; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "label": "Condition Aftermath",
+      "required": false,
+      "valueType": "string",
+      "jsonPath": "effects[].statusCondition.aftermath",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Friends needs to record that the target knows it was Charmed after the spell ends."
+        }
+      ],
+      "comment": "Friends needs to record that the target knows it was Charmed after the spell ends. It maps to `effects[].statusCondition.aftermath`. Purpose: Condition Aftermath exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].statusCondition.aftermath`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

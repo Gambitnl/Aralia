@@ -18,8 +18,8 @@
 
 | Line | Snippet |
 |---|---|
-| 118 | `// Invisible div at the bottom of the log — scrollIntoView is called on this element` |
-| 179 | `{/* Invisible scroll anchor — scrollIntoView targets this element to auto-scroll` |
+| 118 | `// Invisible div at the bottom of the log - scrollIntoView is called on this element` |
+| 179 | `{/* Invisible scroll anchor - scrollIntoView targets this element to auto-scroll` |
 
 ### `src/components/Submap/submapData.ts`
 
@@ -64,7 +64,7 @@
 
 | Line | Snippet |
 |---|---|
-| 446 | `description: 'You are a shadow given purpose — patient, invisible, lethal. Gain Dexterity +1 and Blindsight 10 feet; lightly obscured terrain does not...` |
+| 446 | `description: 'You are a shadow given purpose - patient, invisible, lethal. Gain Dexterity +1 and Blindsight 10 feet; lightly obscured terrain does not...` |
 | 490 | `description: 'Your will extends outward, nudging the world with invisible fingers no one can trace. Gain a mental ability +1; cast Mage Hand at will (...` |
 | 496 | `{ spellId: 'mage-hand', castingMethod: 'at_will', specialNotes: 'Range 60 ft, invisible hand' },` |
 
@@ -153,8 +153,8 @@
 
 | Line | Snippet |
 |---|---|
-| 120 | `- Blocked by wall → Invisible` |
-| 121 | `- Darkness + no Darkvision → Invisible` |
+| 120 | `- Blocked by wall -> Invisible` |
+| 121 | `- Darkness + no Darkvision -> Invisible` |
 
 ### `.jules/personas/06_palette.md`
 
@@ -166,7 +166,7 @@
 
 | Line | Snippet |
 |---|---|
-| 139 | `❌ Crew as invisible numbers` |
+| 139 | `FAILED Crew as invisible numbers` |
 
 ### `docs/VISION.md`
 
@@ -318,7 +318,7 @@
 
 | Line | Snippet |
 |---|---|
-| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
+| 60 | `- **STATUS_CONDITION names**: Must be valid D&D 5e conditions -> `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitat...` |
 
 ### `docs/tasks/spells/CHARACTER_POLICY.md`
 

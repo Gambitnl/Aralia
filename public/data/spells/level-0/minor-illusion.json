@@ -12,7 +12,6 @@
     "Wizard"
   ],
   "subClasses": [],
-  "subClassesVerification": "unverified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -68,8 +67,67 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
+  },
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "modeChoice.options",
+    "maxActiveNonInstantaneous": "not_applicable",
+    "canDismissActive": "not_applicable",
+    "options": [
+      {
+        "label": "Sound",
+        "summary": "Create a sound whose volume can range from a whisper to a scream and that can continue unabated or occur discretely at different times.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "sensory",
+          "illusion",
+          "sound"
+        ],
+        "duration": "1 minute",
+        "notes": "Sound-mode volume, timing, and reveal details are represented by sensoryManifestation and illusion metadata."
+      },
+      {
+        "label": "Image",
+        "summary": "Create an image of an object no larger than a 5-foot Cube.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "sensory",
+          "illusion",
+          "image"
+        ],
+        "duration": "1 minute",
+        "notes": "Image-mode sensory exclusions, physical interaction reveal, and faint-on-discern behavior are represented by sensoryManifestation and illusion metadata."
+      }
+    ],
+    "notes": "This captures the two canonical creation modes; detailed sensory restrictions, reveal rules, and recast ending are represented by sensoryManifestation, illusion, and conditionalEndings metadata."
   },
   "effects": [
     {
@@ -90,18 +148,37 @@
       },
       "condition": {
         "type": "always",
-        "saveType": "Strength",
-        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
         "requiresStatus": [],
-        "saveModifiers": []
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
       },
       "utilityType": "sensory",
       "description": "Create a sound or an image of an object (max 5ft cube) that lasts for the duration. Intelligence (Investigation) check vs Spell Save DC reveals it as illusion.",
@@ -137,8 +214,88 @@
         "brightRadius": 0,
         "dimRadius": 0,
         "attachedTo": "caster",
-        "color": ""
-      }
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "sensoryManifestation": {
+        "modeSource": "modeChoice.options",
+        "variants": [
+          {
+            "label": "Sound",
+            "allowedSenses": [
+              "sound"
+            ],
+            "excludedSenses": [],
+            "volumeRange": "whisper_to_scream",
+            "timing": "continuous_or_discrete_before_spell_end",
+            "notes": "The caster chooses the sound, from a whisper to a scream, and can keep it unabated or make discrete sounds before the spell ends."
+          },
+          {
+            "label": "Image",
+            "allowedSenses": [
+              "sight"
+            ],
+            "excludedSenses": [
+              "sound",
+              "light",
+              "smell",
+              "other_sensory_effect"
+            ],
+            "volumeRange": "not_applicable",
+            "timing": "not_applicable",
+            "maxSize": {
+              "shape": "Cube",
+              "size": 5,
+              "unit": "feet"
+            },
+            "notes": "The image is an object image only; it cannot create sound, light, smell, or any other sensory effect."
+          }
+        ],
+        "notes": "These variants refine the top-level modeChoice menu rather than adding extra spell modes."
+      },
+      "illusion": {
+        "revealScope": "per_creature",
+        "revealRules": [
+          {
+            "method": "study_action",
+            "actionCost": "action",
+            "ability": "Intelligence",
+            "skill": "Investigation",
+            "dc": "spell_save_dc",
+            "appliesTo": [
+              "Sound",
+              "Image"
+            ],
+            "notes": "A creature that takes the Study action can identify either mode as an illusion on a successful Intelligence (Investigation) check."
+          },
+          {
+            "method": "physical_interaction",
+            "actionCost": "not_applicable",
+            "ability": "not_applicable",
+            "skill": "not_applicable",
+            "dc": "not_applicable",
+            "appliesTo": [
+              "Image"
+            ],
+            "notes": "Physical interaction reveals image mode because things pass through it."
+          }
+        ],
+        "discernedState": "faint_to_discerning_creature",
+        "notes": "Discerning the illusion changes that creature's perception; it does not end the spell for everyone."
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "end_on_recast",
+          "scope": "spell",
+          "description": "The illusion ends if the caster casts Minor Illusion again."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -146,7 +303,7 @@
     "prompt": "",
     "playerInputRequired": false
   },
-  "description": "You create a sound or an image of an object within range that lasts for the duration. The illusion also ends if you dismiss it as an action or cast this spell again. If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends. If you create an image of an object-such as a chair, muddy footprints, or a small chest-it must be no larger than a 5-foot cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, because things can pass through it. If a creature uses its action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature.",
+  "description": "You create a sound or an image of an object within range that lasts for the duration. See the descriptions below for the effects of each. The illusion ends if you cast this spell again. If a creature takes a Study action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature. Sound. If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends. Image. If you create an image of an object-such as a chair, muddy footprints, or a small chest-it must be no larger than a 5-foot Cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, since things can pass through it.",
   "higherLevels": "",
   "tags": [
     "illusion",

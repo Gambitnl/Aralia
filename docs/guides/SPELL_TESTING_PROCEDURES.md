@@ -1,4 +1,4 @@
-﻿# Spell Testing Procedures and Validation Workflows
+# Spell Testing Procedures and Validation Workflows
 
 This guide documents the current spell-validation and spell-testing workflow.
 The important current-state correction is that the repo's real validation commands are npm run validate, npm run typecheck, and npm run build, supported by spell-specific scripts under scripts/ rather than by the older nonexistent validate:spells command.

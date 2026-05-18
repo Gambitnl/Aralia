@@ -11,10 +11,8 @@
     "Wizard"
   ],
   "subClasses": [
-    "Cleric - Tempest Domain (PHB)",
     "Druid - Circle of the Sea"
   ],
-  "subClassesVerification": "verified",
   "ritual": false,
   "rarity": "common",
   "attackType": "",
@@ -54,7 +52,8 @@
     "range": 60,
     "rangeUnit": "feet",
     "validTargets": [
-      "creatures"
+      "creatures",
+      "objects"
     ],
     "areaOfEffect": {
       "shape": "Sphere",
@@ -70,7 +69,27 @@
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
-      "isNativeToPlane": false
+      "isNativeToPlane": false,
+      "willing": "not_applicable",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
     }
   },
   "effects": [
@@ -99,18 +118,35 @@
             "type": "disadvantage",
             "appliesTo": {
               "creatureTypes": [
-                "Construct",
-                "Stone",
-                "Metal",
-                "Crystal"
+                "Construct"
               ],
               "excludeCreatureTypes": [],
               "sizes": [],
               "alignments": [],
               "hasCondition": [],
-              "isNativeToPlane": false
+              "isNativeToPlane": false,
+              "willing": "not_applicable",
+              "objectEligibility": {
+                "wornOrCarried": "not_applicable",
+                "magicalStatus": "not_applicable",
+                "fixedToSurface": "not_applicable",
+                "maxSize": "not_applicable",
+                "maxWeightPounds": "not_applicable",
+                "maxWeightScaling": "not_applicable"
+              },
+              "communicationPrerequisites": {
+                "canHearCaster": "not_applicable",
+                "canUnderstandCaster": "not_applicable",
+                "canSeeCaster": "not_applicable"
+              },
+              "abilityThreshold": {
+                "ability": "not_applicable",
+                "operator": "not_applicable",
+                "value": "not_applicable"
+              },
+              "selfRelation": "not_applicable"
             },
-            "reason": "Inorganic materials have disadvantage",
+            "reason": "Constructs have disadvantage on the saving throw.",
             "value": 0,
             "advantageOnDamage": false,
             "sizeAdvantage": [],
@@ -123,9 +159,30 @@
           "sizes": [],
           "alignments": [],
           "hasCondition": [],
-          "isNativeToPlane": false
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
         },
-        "requiresStatus": []
+        "requiresStatus": [],
+        "saveOutcomeOverrides": []
       },
       "damage": {
         "dice": "3d8",
@@ -136,7 +193,8 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": ""
+      "description": "",
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

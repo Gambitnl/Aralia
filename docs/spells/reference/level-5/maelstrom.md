@@ -3,6 +3,7 @@
 - **School**: Evocation
 - **Ritual**: false
 - **Classes**: Druid
+- **Sub-Classes**: No Subclass Entries
 
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
@@ -14,6 +15,20 @@
 - **Area Shape**: cylinder
 - **Area Size**: 30
 - **Valid Targets**: point
+- **Target Willingness**: not_applicable
+- **Target Object Worn Or Carried**: not_applicable
+- **Target Object Magical Status**: not_applicable
+- **Target Object Fixed To Surface**: not_applicable
+- **Target Object Max Size**: not_applicable
+- **Target Object Max Weight Pounds**: not_applicable
+- **Target Object Max Weight Scaling**: not_applicable
+- **Target Can Hear Caster**: not_applicable
+- **Target Can Understand Caster**: not_applicable
+- **Target Can See Caster**: not_applicable
+- **Target Ability Threshold Ability**: not_applicable
+- **Target Ability Threshold Operator**: not_applicable
+- **Target Ability Threshold Value**: not_applicable
+- **Target Self Relation**: not_applicable
 - **Line of Sight**: true
 
 - **Verbal**: true
@@ -25,16 +40,33 @@
 
 - **Duration Type**: timed
 - **Duration Value**: 1
-- **Duration Unit**: minutes
+- **Duration Unit**: minute
 - **Concentration**: true
 
-- **Effect Type**: CONTROL
+- **Effect Type**: DAMAGE, MOVEMENT, TERRAIN, UTILITY
+- **Utility Type**: creation
 - **Save Stat**: Strength
 - **Save Outcome**: negates
+- **Save Cover Ignored**: not_applicable
+- **Save Auto Outcome**: not_applicable
+- **Save Auto Outcome Condition**: not_applicable
+- **Sound Audible Radius**: not_applicable
+- **Sound Audible Radius Unit**: not_applicable
+- **Sound Source**: not_applicable
+- **Sound Trigger**: not_applicable
+- **Conditional Ending Triggers**: not_applicable
+- **Conditional Ending Scope**: not_applicable
+- **Light Color Choice**: not_applicable
+- **Light Opaque Cover Blocks**: not_applicable
+- **Light Emits Heat**: not_applicable
+- **Light Ignites Objects**: not_applicable
+- **Light Consumes Fuel**: not_applicable
+- **Light Can Be Covered Or Hidden**: not_applicable
+- **Light Can Be Smothered Or Quenched**: not_applicable
 - **Damage Dice**: 6d6
 - **Damage Type**: Bludgeoning
 
-- **Description**: A mass of 5-foot-deep water appears and swirls in a 30-foot radius centered on a point you can see within range. The point must be on ground or in a body of water. Until the spell ends, that area is difficult terrain, and any creature that starts its turn there must succeed on a Strength saving throw or take 6d6 bludgeoning damage and be pulled 10 feet toward the center.
+- **Description**: A swirling mass of 5-foot-deep water appears in a 30-foot radius centered on a point you can see within range. The point must be on the ground or in a body of water. Until the spell ends, that area is difficult terrain, and any creature that starts its turn there must succeed on a Strength saving throw or take 6d6 bludgeoning damage and be pulled 10 feet toward the center.
 
 ## Canonical D&D Beyond Snapshot
 

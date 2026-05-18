@@ -1,0 +1,123 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 40-43 in generated discovery row order.",
+    "Terrain wall effects use schema-safe Square area shapes where TerrainEffect does not accept Wall; wall geometry remains preserved in targeting/spatialDetails and descriptions."
+  ],
+  "findings": {
+    "wall-of-ice::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses wall form and which side displaced creatures are pushed to; runtime represents form options and caster_choice push but lacks first-class wall-form choice and side-selection fields.",
+      "recommendedTemplateChange": "Add wall form and displacement side choice fields.",
+      "recommendedJsonChange": "Add runtime wallFormChoice and displacementSideChoice data."
+    },
+    "wall-of-ice::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Dexterity save and later Constitution save through frigid air are represented as DAMAGE effects.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE effects."
+    },
+    "wall-of-ice::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The creature pushed to one side of the wall is represented as MOVEMENT push with caster_choice direction.",
+      "recommendedTemplateChange": "No additional movement field required for this pass; first-class side choice is tracked under choice_or_mode.",
+      "recommendedJsonChange": "Closed by MOVEMENT push."
+    },
+    "wall-of-ice::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Wall placement on a solid surface and alternate hemisphere/globe/panel geometry are represented, but TerrainEffect cannot encode Wall/Hemisphere forms directly and uses schema-safe Square for terrain effect geometry.",
+      "recommendedTemplateChange": "Add first-class wall/hemisphere/globe terrain effect shapes and solid-surface placement fields.",
+      "recommendedJsonChange": "Add runtime terrainWallGeometry data."
+    },
+    "wall-of-ice::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ice wall, destructible sections, and frigid-air remains are represented, but runtime lacks first-class section destruction replacement fields.",
+      "recommendedTemplateChange": "Add destructible section replacement/remnant fields.",
+      "recommendedJsonChange": "Add runtime destroyedSectionReplacement data."
+    },
+    "wall-of-ice::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Wall section AC and HP are represented in wallProperties, but damage immunities and vulnerability are still prose because terrain wallProperties lacks immunity/vulnerability fields.",
+      "recommendedTemplateChange": "Add object/terrain damage immunity and vulnerability fields.",
+      "recommendedJsonChange": "Add runtime wallDamageProfile data."
+    },
+    "wall-of-ice::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The frigid air left behind by destroyed wall sections is represented as a recurring Cold DAMAGE effect.",
+      "recommendedTemplateChange": "No separate environmental field required for this pass.",
+      "recommendedJsonChange": "Closed by frigid-air DAMAGE effect."
+    },
+    "wall-of-thorns::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Straight and circular wall forms are represented in spatialDetails and utility options.",
+      "recommendedTemplateChange": "No additional choice field required for this pass.",
+      "recommendedJsonChange": "Closed by spatialDetails and UTILITY controlOptions."
+    },
+    "wall-of-thorns::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Piercing save and recurring Slashing save are represented as DAMAGE effects.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by DAMAGE effects."
+    },
+    "wall-of-thorns::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The thorn wall, line-of-sight blocking, straight/circular forms, and slow movement are represented, but TerrainEffect cannot encode Wall/Ring forms directly and uses a schema-safe Square terrain shape.",
+      "recommendedTemplateChange": "Add first-class wall/ring terrain effect shapes and line-of-sight-blocking terrain fields.",
+      "recommendedJsonChange": "Add runtime terrainWallGeometry and blocksLineOfSight data."
+    },
+    "wall-of-thorns::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The created thorn wall is represented as TERRAIN plus utility options; it has no separate object HP/damage profile in canonical prose.",
+      "recommendedTemplateChange": "No additional created-object field required for this pass.",
+      "recommendedJsonChange": "Closed by TERRAIN and UTILITY effects."
+    },
+    "wind-walk::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Choosing up to ten willing creatures plus the caster is represented by maxTargets 11 and utility options.",
+      "recommendedTemplateChange": "No additional choice field required.",
+      "recommendedJsonChange": "Closed by targeting.maxTargets and UTILITY controlOptions."
+    },
+    "wind-walk::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fly Speed 300 feet, hover, reverting forms, safe descent, and later fall are represented, but runtime lacks first-class movement mode, hover, transformation timing, and descent/fall aftermath fields.",
+      "recommendedTemplateChange": "Add movement mode, hover, transformation duration, safe descent, and fall aftermath fields.",
+      "recommendedJsonChange": "Add runtime movementModeSpeed, hover, transformationState, and onEndDescent data."
+    },
+    "wind-walk::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Stunned during reversion is represented as STATUS_CONDITION; Prone immunity is encoded as DEFENSIVE immunity with a condition string because runtime lacks first-class condition immunity fields.",
+      "recommendedTemplateChange": "Closed by the Condition Immunities field, which separates Prone immunity from damage immunity.",
+      "recommendedJsonChange": "Closed by moving Prone out of damageType and into conditionImmunity on the existing DEFENSIVE immunity effect."
+    },
+    "wind-walk::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance to Bludgeoning, Piercing, and Slashing damage is represented as a DEFENSIVE resistance effect.",
+      "recommendedTemplateChange": "No additional damage-prevention field required.",
+      "recommendedJsonChange": "Closed by DEFENSIVE resistance."
+    },
+    "wind-walk::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Reverting to cloud form and the end-of-effect safe descent/fall sequence are represented as utility options but need first-class transformation and on-end movement consequence fields.",
+      "recommendedTemplateChange": "Add transformation state and on-spell-end descent/fall fields.",
+      "recommendedJsonChange": "Add runtime transformationState and onSpellEndMovementConsequence data."
+    },
+    "word-of-recall::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creatures appear in nearest unoccupied spaces near a prepared sanctuary; runtime represents teleport movement and options but lacks first-class sanctuary preparation and nearest-unoccupied placement fields.",
+      "recommendedTemplateChange": "Add prepared sanctuary and nearest-unoccupied destination fields.",
+      "recommendedJsonChange": "Add runtime preparedSanctuaryDestination data."
+    },
+    "word-of-recall::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched destination placement prose; there is no vision/light/sound mechanic beyond the teleport destination.",
+      "recommendedTemplateChange": "Track under target_filter_or_eligibility/travel_or_planar_movement.",
+      "recommendedJsonChange": "No vision/light/sound runtime data required."
+    },
+    "word-of-recall::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Teleport to a previously designated sanctuary is represented as MOVEMENT teleport, but runtime lacks first-class prepared-sanctuary state and no-effect-if-unprepared behavior.",
+      "recommendedTemplateChange": "Add prepared destination and no-effect-if-missing-prerequisite fields.",
+      "recommendedJsonChange": "Add runtime preparedSanctuaryTeleport data."
+    }
+  }
+}

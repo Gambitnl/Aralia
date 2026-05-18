@@ -1,0 +1,232 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 8 packet 10-14 manual review decisions.",
+    "Closed entries include a reason in issue. Actionable-open entries name schema work that remains after supported mechanics were encoded."
+  ],
+  "findings": {
+    "glibness::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Charisma check floor and truth-magic override are now structured/runtime utility options.",
+      "recommendedTemplateChange": "Added social utility options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "glibness::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched duration wording only; the spell has no special early ending beyond normal duration.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "holy-aura::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: caster choice of affected creatures is now represented by Chosen creatures utility option and defensive effects.",
+      "recommendedTemplateChange": "Added Chosen creatures utility option.",
+      "recommendedJsonChange": "Added controlOption plus defensive/attack modifier effects."
+    },
+    "holy-aura::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: save advantage, incoming attack disadvantage, and Fiend/Undead Constitution save are now represented as runtime effects.",
+      "recommendedTemplateChange": "Added Defense, Attack Roll Modifier, Save Modifier, and condition rows.",
+      "recommendedJsonChange": "Added DEFENSIVE, ATTACK_ROLL_MODIFIER, and Blinded STATUS_CONDITION effects."
+    },
+    "holy-aura::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: aura/emanation geometry is already represented; no separate light or sound mechanic exists.",
+      "recommendedTemplateChange": "No light/sound field needed.",
+      "recommendedJsonChange": "No light/sound JSON needed."
+    },
+    "holy-aura::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Blinded is now an explicit structured condition and runtime STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "Added Conditions Applied: Blinded.",
+      "recommendedJsonChange": "Added Blinded STATUS_CONDITION effect."
+    },
+    "illusory-dragon::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: breath damage type choice, movement timing, and illusion study option are now utility options and runtime prompt/control options.",
+      "recommendedTemplateChange": "Added utility options and damage-type choice text.",
+      "recommendedJsonChange": "Added aiContext prompt and controlOptions."
+    },
+    "illusory-dragon::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Wisdom fear save, Intelligence breath save, and advantage against breath after discernment are now represented.",
+      "recommendedTemplateChange": "Added Save Modifier and condition rows.",
+      "recommendedJsonChange": "Added Frightened STATUS_CONDITION, breath DAMAGE effect, and saveModifier."
+    },
+    "illusory-dragon::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: target is now point/unoccupied space rather than not_applicable.",
+      "recommendedTemplateChange": "Changed Targeting Type to point and Valid Targets to unoccupied space.",
+      "recommendedJsonChange": "Changed runtime targeting.type to point and validTargets to point."
+    },
+    "illusory-dragon::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: frightened repeat save when no line of sight is now represented by repeatSave metadata and option text.",
+      "recommendedTemplateChange": "Added Fear appearance utility option.",
+      "recommendedJsonChange": "Added Frightened repeatSave metadata."
+    },
+    "illusory-dragon::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: bonus-action movement and breath timing are now represented by grantedActions, movement effect, and utility options.",
+      "recommendedTemplateChange": "Added Bonus-action movement option and Forced Movement row.",
+      "recommendedJsonChange": "Added grantedActions and MOVEMENT effect."
+    },
+    "illusory-dragon::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched the illusion movement; it is now represented as caster-controlled bonus-action movement, not unwilling forced movement of a creature.",
+      "recommendedTemplateChange": "Added Forced Movement explanatory row.",
+      "recommendedJsonChange": "Added MOVEMENT effect for illusion movement."
+    },
+    "illusory-dragon::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: sight, seeing-through, and discernment are now represented by line-of-sight targeting, utility options, and save advantage after discernment.",
+      "recommendedTemplateChange": "Added Study to discern and save modifier rows.",
+      "recommendedJsonChange": "Added controlOptions and saveModifier."
+    },
+    "illusory-dragon::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: dragon illusion occupancy, tangible defenses, and study-to-discern mechanics are now utility/control options.",
+      "recommendedTemplateChange": "Added Dragon illusion, Tangible illusion defenses, and Study to discern options.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "illusory-dragon::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched see/line-of-sight language; no remote sensor is created.",
+      "recommendedTemplateChange": "No sensor template change needed.",
+      "recommendedJsonChange": "No sensor JSON needed."
+    },
+    "illusory-dragon::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Frightened is now explicit structured condition and runtime STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "Added Conditions Applied: Frightened.",
+      "recommendedJsonChange": "Added Frightened STATUS_CONDITION effect."
+    },
+    "illusory-dragon::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Shadowfell/shadow material is creation/illusion description, not a persistent environmental world-state change.",
+      "recommendedTemplateChange": "No environmental template change needed.",
+      "recommendedJsonChange": "No environmental JSON needed."
+    },
+    "incendiary-cloud::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: caster-chosen movement direction is now represented in Start-turn cloud movement utility option and MOVEMENT effect.",
+      "recommendedTemplateChange": "Added Start-turn cloud movement option.",
+      "recommendedJsonChange": "Added MOVEMENT effect."
+    },
+    "incendiary-cloud::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: initial, entry, end-turn, and movement-into-space Dexterity saves are now separate runtime damage triggers.",
+      "recommendedTemplateChange": "Added Triggered Applications and Damage Trigger rows.",
+      "recommendedJsonChange": "Added immediate, on_enter_area, and on_end_turn_in_area DAMAGE effects."
+    },
+    "incendiary-cloud::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector false positive from \"until\"; no healing or restoration mechanic exists.",
+      "recommendedTemplateChange": "No healing template change needed.",
+      "recommendedJsonChange": "No healing JSON needed."
+    },
+    "incendiary-cloud::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: heavily obscured smoke, strong-wind dispersal, once-per-turn damage, and cloud movement are now utility options.",
+      "recommendedTemplateChange": "Added cloud utility options plus terrain/movement rows.",
+      "recommendedJsonChange": "Added controlOptions and MOVEMENT effect."
+    },
+    "maddening-darkness::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: point choice is ordinary area targeting already represented by ranged area geometry.",
+      "recommendedTemplateChange": "No additional choice template field needed.",
+      "recommendedJsonChange": "No additional JSON field needed."
+    },
+    "maddening-darkness::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: start-turn Wisdom save is now represented by a turn_start damage effect.",
+      "recommendedTemplateChange": "Added Triggered Applications and Damage Trigger rows.",
+      "recommendedJsonChange": "Added turn_start DAMAGE effect."
+    },
+    "maddening-darkness::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: darkness, darkvision blocking, light suppression, around-corners spread, and audible madness are now utility options.",
+      "recommendedTemplateChange": "Added light/sound/darkness utility option rows.",
+      "recommendedJsonChange": "Added matching controlOptions."
+    },
+    "maddening-darkness::sensor_or_remote_perception": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched darkvision/see-through wording; no remote sensor is created.",
+      "recommendedTemplateChange": "No sensor template change needed.",
+      "recommendedJsonChange": "No sensor JSON needed."
+    },
+    "maddening-darkness::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched \"until the spell ends\"; there is no special early-ending mechanic beyond duration/concentration.",
+      "recommendedTemplateChange": "No conditional-ending template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    }
+  },
+  "manualFindings": {
+    "glibness": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Glibness needs explicit ability-check floor/minimum-result and truth-detection override fields; current runtime preserves both as utility options only.",
+        "recommendedTemplateChange": "Add abilityCheckOverride fields for ability, minimum roll/result, and optional use choice; add truthDetectionOverride field.",
+        "recommendedJsonChange": "Add runtime socialCheckOverride/truthDetectionOverride objects with not_applicable sentinels for other spells.",
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "glibness::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "holy-aura": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Holy Aura needs aura beneficiary selection and attacker-filtered retaliation triggers that are more precise than current effect filters.",
+        "recommendedTemplateChange": "Add aura beneficiary selection and attacker creature-type trigger fields.",
+        "recommendedJsonChange": "Add runtime auraEffect/retaliationTrigger objects with chosen-beneficiary and attacker-type filters.",
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "holy-aura::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "illusory-dragon": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Illusory Dragon needs a richer tangible-illusion entity schema for automatic attack misses, automatic save success, immunity to all damage/conditions, study checks, and discerned-state effects.",
+        "recommendedTemplateChange": "Add tangible illusion entity fields for immunity, auto-miss, auto-save, study DC/action, and discerned-state consequences.",
+        "recommendedJsonChange": "Add runtime illusionEntity/discernment objects.",
+        "bucketId": "illusion_or_disguise",
+        "findingId": "illusory-dragon::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "incendiary-cloud": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Incendiary Cloud needs a moving area hazard schema that can encode cloud movement, once-per-turn damage gating, and strong-wind dispersal as data rather than only options.",
+        "recommendedTemplateChange": "Add moving-area hazard fields for start-turn movement, direction choice, once-per-turn gating, and dispersal condition.",
+        "recommendedJsonChange": "Add runtime movingAreaHazard object.",
+        "bucketId": "environmental_change",
+        "findingId": "incendiary-cloud::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ],
+    "maddening-darkness": [
+      {
+        "resolutionStatus": "actionable_open",
+        "issue": "Actionable open: Maddening Darkness needs darkness/light-suppression fields for around-corners spread, darkvision blocking, spell-level light limits, and audible contents.",
+        "recommendedTemplateChange": "Add darkness/light suppression fields with spell-level threshold and sound payload.",
+        "recommendedJsonChange": "Add runtime darkness/lightSuppression/sound fields.",
+        "bucketId": "vision_light_sound",
+        "findingId": "maddening-darkness::manual_level8_actionable_schema_gap",
+        "canonicalEvidence": "Manual level-8 review identified this mechanic from the canonical prose.",
+        "structuredState": "Structured markdown preserves this mainly as utility/options/prose pending a richer schema bucket.",
+        "jsonState": "Runtime JSON preserves this mainly as utility/options/prose pending a richer schema bucket."
+      }
+    ]
+  }
+}

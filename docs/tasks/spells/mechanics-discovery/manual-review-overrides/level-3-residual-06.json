@@ -1,0 +1,127 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "slow::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "slow::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "slow::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Reaction/opportunity restrictions need explicit action-permission fields.",
+      "recommendedTemplateChange": "Add reaction/opportunity restriction bucket fields.",
+      "recommendedJsonChange": "Use Utility Options as interim data."
+    },
+    "slow::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Closed residual duplicate after the concrete Slow repeat-save row was resolved with structured Recurring Mechanics and runtime recurringMechanics data.",
+      "issue": "Actionable open: Recurring checks sometimes need timing, action cost, and repeated damage/status branches beyond repeatSave.",
+      "recommendedTemplateChange": "Add recurring-check bucket fields.",
+      "recommendedJsonChange": "Use repeatSave where possible and Utility Options otherwise."
+    },
+    "slow::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object stats, structure durability, or object transformations need explicit AC/HP/passability/damageability fields.",
+      "recommendedTemplateChange": "Add object stat/damageability bucket fields.",
+      "recommendedJsonChange": "Use current spatial/utility fields until propagation."
+    },
+    "speak-with-dead::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "speak-with-dead::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Communication rules need sender/recipient, language, plane, and message-shape fields.",
+      "recommendedTemplateChange": "Add communication bucket fields.",
+      "recommendedJsonChange": "Use existing Utility Options as interim data."
+    },
+    "speak-with-dead::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Summoned/controlled entities need command, initiative, stat, duration, and ownership fields.",
+      "recommendedTemplateChange": "Add summon/controlled-entity bucket fields.",
+      "recommendedJsonChange": "Use existing SUMMONING/Utility Options as interim data."
+    },
+    "speak-with-dead::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Wards, glyph triggers, and delayed triggered effects need trigger-condition and stored-effect fields.",
+      "recommendedTemplateChange": "Add ward/trigger bucket fields.",
+      "recommendedJsonChange": "Use current Utility Options as interim data."
+    },
+    "speak-with-dead::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Knowledge, attitude, speech, or memory effects need explicit social/knowledge fields.",
+      "recommendedTemplateChange": "Add social/knowledge bucket fields.",
+      "recommendedJsonChange": "Use current status/utility text as interim representation."
+    },
+    "speak-with-dead::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Some state changes are not simple D&D conditions and need state-change fields.",
+      "recommendedTemplateChange": "Add state-change bucket fields for non-condition states.",
+      "recommendedJsonChange": "Use STATUS_CONDITION where possible and Utility Options elsewhere."
+    },
+    "speak-with-dead::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' scopes the question window and is not an early-ending trigger. The manual Speak with Dead row remains open for question-count and 10-day lockout fields.",
+      "recommendedTemplateChange": "No conditional-ending field needed for this residual row; preserve the manual question-limit/cooldown row.",
+      "recommendedJsonChange": "No conditionalEndings JSON entry needed for this residual row."
+    },
+    "speak-with-plants::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Terrain/surface rules need stronger terrain, surface, passability, and environmental-state fields when not already covered by TERRAIN.",
+      "recommendedTemplateChange": "Add terrain/surface bucket fields.",
+      "recommendedJsonChange": "Use current terrain/utility representation as interim data."
+    },
+    "speak-with-plants::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Communication rules need sender/recipient, language, plane, and message-shape fields.",
+      "recommendedTemplateChange": "Add communication bucket fields.",
+      "recommendedJsonChange": "Use existing Utility Options as interim data."
+    },
+    "speak-with-plants::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Summoned/controlled entities need command, initiative, stat, duration, and ownership fields.",
+      "recommendedTemplateChange": "Add summon/controlled-entity bucket fields.",
+      "recommendedJsonChange": "Use existing SUMMONING/Utility Options as interim data."
+    },
+    "speak-with-plants::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Environmental changes need reusable world-state fields for weather, obscurement, growth, gas, liquids, and hazards.",
+      "recommendedTemplateChange": "Add environment/world-state bucket fields.",
+      "recommendedJsonChange": "Use current terrain/damage/utility fields as interim data."
+    },
+    "spirit-guardians::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "spirit-guardians::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "spirit-guardians::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "stinking-cloud::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    }
+  },
+  "manualFindings": {}
+}

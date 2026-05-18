@@ -1,4 +1,4 @@
-﻿# World Map
+# World Map
 
 ## Purpose
 

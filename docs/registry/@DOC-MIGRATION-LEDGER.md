@@ -205,7 +205,7 @@ Key corrections:
 - removed false assumptions about a spell-glossary markdown lane under `public/data/glossary/entries/spells/...`
 - kept the level-migration guide active because other docs route into it, but narrowed it to the current repo shape
 - reframed `LEVEL-1-BATCHES.md` as a preserved rollup summary rather than a fresh proof of global green status
-- turned `SPELL_MIGRATION_PROMPT.md` into a reusable current template instead of a partially outdated â€œLevel 3+â€ prompt
+- turned `SPELL_MIGRATION_PROMPT.md` into a reusable current template instead of a partially outdated â€œLevel 3+â€ prompt
 
 ### Spell-system coordination / backlog slice refreshed
 
@@ -355,7 +355,7 @@ Key outcomes:
 - `11A` now contributes capability nodes around light-producing spell effects, the light-source model, and remaining lifecycle / renderer follow-through instead of generic `Problem` / `Proposed Approach` pseudo-nodes
 - `11B` now contributes save-rider capability nodes plus a Mind Sliver integration witness instead of generic doc-heading pseudo-nodes
 - `11C` now contributes terrain-manipulation capability nodes plus a Mold Earth integration witness instead of generic doc-heading pseudo-nodes
-- concentration and object-targeting roadmap entries were rebased to current capability names and state rather than old â€œmissing featureâ€ heading fragments
+- concentration and object-targeting roadmap entries were rebased to current capability names and state rather than old â€œmissing featureâ€ heading fragments
 
 ### Roadmap processing-state storage separated from feature branches
 

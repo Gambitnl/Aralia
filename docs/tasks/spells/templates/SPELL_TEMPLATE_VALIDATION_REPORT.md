@@ -1,0 +1,239 @@
+# Spell Template Contract Validation
+
+Generated: 2026-05-14T11:40:43.895Z
+Issues: 46
+Errors: 44
+Warnings: 2
+
+This report checks the structured markdown template, runtime JSON template, and their mappings.
+
+- WARNING template-parity / structured-json-path-unregistered / Save Auto Outcome
+  - File: `docs\tasks\spells\templates\spell-structured-template.json`
+  - Structured template field maps to a JSON path that is not explicitly registered in the JSON template yet.
+  - Actual: `effects[].condition.saveOutcomeOverrides[].outcome`
+  - Expected: `Matching path in spell-json-template.json`
+- WARNING template-parity / structured-json-path-unregistered / Save Auto Outcome Condition
+  - File: `docs\tasks\spells\templates\spell-structured-template.json`
+  - Structured template field maps to a JSON path that is not explicitly registered in the JSON template yet.
+  - Actual: `effects[].condition.saveOutcomeOverrides[].condition`
+  - Expected: `Matching path in spell-json-template.json`
+- ERROR template-parity / template-accepted-values-diverge / Damage Mitigation Bypass
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Prevention Immunities
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Defense Damage Type Source
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Damage Reduction Applies To
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Damage Reduction Frequency
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Resistance Suppression Damage Types
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Resistance Suppression Damage Type Source
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Damage Interaction Modes
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Damage Interaction Damage Type Source
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Damage Interaction Duration Scope
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Defense Source Categories
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Barrier Damage Block Directions
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Barrier Damage Block Source Categories
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Spell Effect Prevention Source Side
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Spell Effect Prevention Affected Subjects
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Linked Damage Trigger
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Linked Damage Recipient
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Linked Damage Amount
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Linked Damage Amount Basis
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Linked Damage Type Source
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR template-parity / template-accepted-values-diverge / Linked Damage Recipient Mitigation
+  - File: `docs\tasks\spells\templates\spell-json-template.json`
+  - Mapped structured and runtime template fields disagree about their accepted non-prose values.
+  - Actual: `structured-only: not_applicable`
+  - Expected: `runtime-only: (none)`
+- ERROR structured-markdown / structured-value-outside-template / Sound Audible Radius
+  - File: `docs\spells\reference\level-0\thunderclap.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `100`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-value-outside-template / Sound Audible Radius
+  - File: `docs\spells\reference\level-0\toll-the-dead.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `10`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-implicit-not-applicable / Secondary Save Outcome
+  - File: `docs\spells\reference\level-1\ice-knife.md`
+  - Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.
+  - Actual: `none`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-1\protection-from-evil-and-good.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `disadvantage_on_attacks, immunity`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Sound Audible Radius
+  - File: `docs\spells\reference\level-1\thunderous-smite.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `300`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-value-outside-template / Sound Audible Radius
+  - File: `docs\spells\reference\level-1\thunderwave.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `300`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-implicit-not-applicable / Save Outcome
+  - File: `docs\spells\reference\level-2\cordon-of-arrows.md`
+  - Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.
+  - Actual: `none`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-value-outside-template / Sound Audible Radius
+  - File: `docs\spells\reference\level-2\knock.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `300`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-2\warding-bond.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `ac_bonus, resistance`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-3\feign-death.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `resistance, immunity`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-3\gaseous-form.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `resistance, immunity`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-implicit-not-applicable / Save Outcome
+  - File: `docs\spells\reference\level-3\hunger-of-hadar.md`
+  - Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.
+  - Actual: `none`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-value-outside-template / Sound Audible Radius
+  - File: `docs\spells\reference\level-3\thunder-step.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `300`
+  - Expected: `not_applicable`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-4\aura-of-life.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `resistance, immunity`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-4\aura-of-purity.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `resistance, advantage_on_saves`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Save Outcome
+  - File: `docs\spells\reference\level-5\holy-weapon.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `half, negates_condition`
+  - Expected: `none, half, negates_condition, negates, half damage; negates movement, negates_repeat, negates_effect`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-6\heroes-feast.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `resistance, immunity`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-6\investiture-of-ice.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `immunity, resistance`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-6\primordial-ward.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `resistance, immunity`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Defense Type
+  - File: `docs\spells\reference\level-6\wind-walk.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `resistance, immunity`
+  - Expected: `ac_bonus, set_base_ac, ac_minimum, resistance, immunity, damage_reduction, temporary_hp, advantage_on_saves, disadvantage_on_attacks`
+- ERROR structured-markdown / structured-value-outside-template / Utility Type
+  - File: `docs\spells\reference\level-8\glibness.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `social`
+  - Expected: `light, communication, creation, information, control, sensory, other, scouting, environmental_control, defensive, movement, summoning, illusion, storage, warding, transformation, teleportation, healing`
+- ERROR structured-markdown / structured-value-outside-template / Movement Type
+  - File: `docs\spells\reference\level-8\power-word-stun.md`
+  - Structured markdown value is not accepted by the structured template.
+  - Actual: `stop`
+  - Expected: `push, pull, teleport, forced`
+- ERROR structured-markdown / structured-implicit-not-applicable / Save Outcome
+  - File: `docs\spells\reference\level-9\storm-of-vengeance.md`
+  - Structured markdown uses an implicit blank-like non-applicable value instead of the explicit not_applicable sentinel.
+  - Actual: `none`
+  - Expected: `not_applicable`

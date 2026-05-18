@@ -1,0 +1,262 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 9 packet 15-19 reviewed manually; Wish is intentionally represented as mode options plus open schema gaps rather than an over-flattened generic utility."
+  ],
+  "findings": {
+    "time-stop::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Taking 1d4+1 full turns while other creatures receive no time needs a turn-economy/time-stop schema, not an attack/save modifier.",
+      "recommendedTemplateChange": "Add a time/turn-economy bucket for extra turns and frozen non-caster actors.",
+      "recommendedJsonChange": "Runtime JSON records Extra turns and Stopped time in Utility Options and a granted action."
+    },
+    "time-stop::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The restriction on affecting other creatures or worn/carried objects is now split into a Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Affecting others ends spell."
+    },
+    "time-stop::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Both ending conditions, affecting others and moving more than 1,000 feet away, are now Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve both endings."
+    },
+    "true-polymorph::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Creature-into-creature, object-into-creature, creature-into-object, and mode choices are now Utility Options and prompt details.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions and prompt capture mode selection."
+    },
+    "true-polymorph::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Unwilling creature Wisdom save is already in structured Save Stat and now named in Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Unwilling save."
+    },
+    "true-polymorph::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The one-target creature/object split is now represented by creature_or_object structured targeting and mode Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps single target with creatures/objects valid targets."
+    },
+    "true-polymorph::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Visible target requirement is represented by lineOfSight true and targeting range.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps lineOfSight true."
+    },
+    "true-polymorph::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The cannot speak/cast limitation is now captured in Action and speech limits.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve the communication restriction."
+    },
+    "true-polymorph::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object-into-creature produces a controlled creature with initiative and later control loss; current schema lacks a transformation-created controlled entity model.",
+      "recommendedTemplateChange": "Add a transformed controlled entity bucket with command, initiative, friendliness, and control-expiry fields.",
+      "recommendedJsonChange": "Runtime JSON records Object creature control and Control after one hour as Utility Options."
+    },
+    "true-polymorph::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Friendly disposition, command obedience, later friendliness uncertainty, and no-memory object form are now Utility Options.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve those social/knowledge mechanics."
+    },
+    "true-polymorph::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Form-derived temporary hit points need a dedicated schema to calculate and expire them.",
+      "recommendedTemplateChange": "Add form-derived temporary hit point support.",
+      "recommendedJsonChange": "Runtime JSON includes DEFENSIVE temporary_hp and Utility Option."
+    },
+    "true-polymorph::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Stat replacement and object form statistics need a transformation/stat-replacement schema.",
+      "recommendedTemplateChange": "Add transformation stat replacement and object-stat buckets.",
+      "recommendedJsonChange": "Runtime JSON records stat replacement in Utility Options."
+    },
+    "true-polymorph::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Death/destroyed ending and full-hour until-dispelled behavior are now Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Permanent if sustained."
+    },
+    "true-polymorph::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: No-memory object form and post-hour loss of control/friendliness are now Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve aftermath."
+    },
+    "true-resurrection::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Original-body versus new-body branch is now captured by New body by name and New body placement options plus prompt.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions and prompt capture the branch."
+    },
+    "true-resurrection::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Death within 200 years and non-old-age eligibility are now Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve death eligibility."
+    },
+    "true-resurrection::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Speaking the creature name for a missing body is now a Utility Option and prompt requirement.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON prompt asks for the spoken name when needed."
+    },
+    "true-resurrection::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Full revival is represented, but poison/contagion/curse removal and body repair need condition/restoration effect support.",
+      "recommendedTemplateChange": "Add restoration/removal bucket for poison, contagion, curses, wounds, organs, limbs, and undead restoration.",
+      "recommendedJsonChange": "Runtime JSON includes HEALING all_hit_points plus restoration Utility Options."
+    },
+    "true-resurrection::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Replacing damaged/missing organs/limbs and creating a new body need body-restoration/new-body schema.",
+      "recommendedTemplateChange": "Add resurrection body restoration and body creation bucket.",
+      "recommendedJsonChange": "Runtime JSON records body restoration and new body placement as Utility Options and movement."
+    },
+    "true-resurrection::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Dead-to-living and Undead-to-non-Undead transitions need lifecycle/type-change schema.",
+      "recommendedTemplateChange": "Add lifecycle resurrection and creature-type restoration fields.",
+      "recommendedJsonChange": "Runtime JSON records the transitions in Utility Options."
+    },
+    "weird::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Chosen creatures in area are already represented by area targeting and utility options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps area targeting."
+    },
+    "weird::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Initial Wisdom save for half damage and repeat Wisdom save are now represented on damage/status effects.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON has Wisdom save damage and Frightened effects."
+    },
+    "weird::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: End-turn repeat save, repeat damage, and success ending are now represented by repeatSave and Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON statusCondition.repeatSave and 5d10 turn_end damage capture the loop."
+    },
+    "weird::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Illusory terrors are now captured as a Utility Option; no separate illusion object is created.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Illusory terrors."
+    },
+    "weird::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Frightened is now structured and has a STATUS_CONDITION runtime effect.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON includes Frightened."
+    },
+    "weird::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Successful repeat save ending the spell on that target is now captured by repeatSave successEnds true and Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON repeatSave preserves ending."
+    },
+    "wish::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: All listed Wish modes are now split into Utility Options and the prompt asks which mode is used.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions list all Wish modes."
+    },
+    "wish::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Roll Redo can force a reroll with Advantage or Disadvantage and choose original/reroll; this needs a reroll intervention schema.",
+      "recommendedTemplateChange": "Add reroll/roll-replacement bucket with timing, advantage state, and choose-original-or-reroll.",
+      "recommendedJsonChange": "Runtime JSON records Roll Redo in Utility Options only."
+    },
+    "wish::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Mode target limits are now captured in each Utility Option and prompt.",
+      "recommendedTemplateChange": "No new template field required for this pass.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve limits."
+    },
+    "wish::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Object Creation ground placement is now in its Utility Option.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include visible unoccupied ground space."
+    },
+    "wish::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Speaking aloud and visible target/object requirements are now captured by verbal component and Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON keeps verbal true and controlOptions."
+    },
+    "wish::illusion_or_disguise": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: The Lady of Pain image and reality-resha​​ping examples are adjudication consequences, now preserved in Reshape Reality utility text rather than modeled as a separate illusion.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Reshape Reality."
+    },
+    "wish::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Exact wish wording to the DM is now captured in the Reshape Reality option and AI prompt.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON prompt asks for exact wording."
+    },
+    "wish::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object Creation and broad reality reshaping can create entities or world changes beyond current creation/summon schemas.",
+      "recommendedTemplateChange": "Add broad wish adjudication/creation bucket with object/entity/world-state branches.",
+      "recommendedJsonChange": "Runtime JSON records options and uses aiContext for adjudication."
+    },
+    "wish::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Divine intervention, Lady of Pain failure, and powerful foes are part of Reshape Reality consequence handling, now in Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Reshape Reality."
+    },
+    "wish::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Wish examples that transport the caster are adjudication consequences inside Reshape Reality, now preserved in Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions include Reshape Reality."
+    },
+    "wish::resource_or_consumption": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Wish stress, 33 percent lockout, and costly-component bypass need resource/risk schema beyond ordinary components.",
+      "recommendedTemplateChange": "Add resource-risk bucket for casting lockout chance, component bypass, and stress state.",
+      "recommendedJsonChange": "Runtime JSON records stress and lockout in Utility Options plus Necrotic damage effect."
+    },
+    "wish::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Feat replacement, powerful foes, divine intervention, and exact wording are now named in Utility Options.",
+      "recommendedTemplateChange": "No new template field required.",
+      "recommendedJsonChange": "Runtime JSON controlOptions preserve social/knowledge outcomes."
+    },
+    "wish::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Instant Health full HP is represented, but Greater Restoration effect removal needs a condition/restoration effect schema.",
+      "recommendedTemplateChange": "Add restoration/removal bucket for Greater Restoration-listed effects.",
+      "recommendedJsonChange": "Runtime JSON includes HEALING all_hit_points and Instant Health Utility Option."
+    },
+    "wish::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object Creation needs object value/dimensions/placement schema rather than prose-only utility option.",
+      "recommendedTemplateChange": "Add created object constraints bucket with value, magic-item exclusion, dimensions, and placement.",
+      "recommendedJsonChange": "Runtime JSON records Object Creation in Utility Options."
+    },
+    "wish::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Strength becomes 3 for 2d4 days and feat replacement need ability-score/feature-change schemas.",
+      "recommendedTemplateChange": "Add temporary ability score set and feature replacement buckets.",
+      "recommendedJsonChange": "Runtime JSON records Strength reduction and Sudden Learning in Utility Options."
+    },
+    "wish::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Stress damage cannot be reduced or prevented; runtime DAMAGE has no prevention-bypass flag.",
+      "recommendedTemplateChange": "Add irreducible/prevention-bypass flag to damage effects.",
+      "recommendedJsonChange": "Runtime JSON records stress damage as Necrotic damage and Utility Option.",
+      "reviewerNote": "Closed by adding Damage Mitigation Bypass to the structured template and effects[].damage.mitigationBypass[] to runtime JSON. Wish stress damage now bypasses resistance, immunity, damage_reduction, and damage_prevention because the canonical prose says the damage can't be reduced or prevented in any way. The same repeat pattern was also propagated to Life Transference and Create Homunculus for their irreducible self-cost damage, using resistance and damage_reduction bypasses."
+    }
+  },
+  "manualFindings": {}
+}

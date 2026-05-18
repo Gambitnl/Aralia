@@ -1,4 +1,4 @@
-﻿# Architecture Documentation Maintenance Guide
+# Architecture Documentation Maintenance Guide
 
 This guide explains how to maintain the docs/architecture compendium as the codebase evolves.
 

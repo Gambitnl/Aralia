@@ -1,0 +1,121 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "glyph-of-warding": [
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "glyph-of-warding::terrain_or_surface",
+        "canonicalEvidence": "You inscribe the glyph on a surface or within an object that can be closed. If the surface or object is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered.",
+        "structuredState": "Spatial details preserve coverage and break distance, but no inscribed-surface/object attachment fields exist.",
+        "jsonState": "Runtime spatialDetails preserve some distances but not the surface/object attachment and movement break semantics.",
+        "issue": "The glyph's surface/object attachment and moved-more-than-10-feet break rule are not first-class runtime data.",
+        "recommendedTemplateChange": "Add wardAttachment fields for surface or closable object and movement break distance.",
+        "recommendedJsonChange": "Add runtime wardAttachment data with movedBreakDistance 10 feet.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "glyph-of-warding::vision_light_sound",
+        "canonicalEvidence": "The glyph is nearly imperceptible and requires a successful Wisdom (Perception) check against your spell save DC to notice.",
+        "structuredState": "No concealment or perception check fields.",
+        "jsonState": "Runtime JSON has no detection difficulty data.",
+        "issue": "Glyph concealment and its Perception-vs-spell-DC discovery check are not represented.",
+        "recommendedTemplateChange": "Add hiddenObject/hiddenWard detection fields for check type, ability/skill, and DC source.",
+        "recommendedJsonChange": "Add runtime detection data for nearly imperceptible glyph and Wisdom (Perception) vs spell save DC.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "summon_or_controlled_entity",
+        "findingId": "glyph-of-warding::summon_or_controlled_entity",
+        "canonicalEvidence": "If the stored spell summons hostile creatures or creates harmful objects or traps, they appear as close as possible to the intruder and attack it.",
+        "structuredState": "No stored-spell summon/object/trap behavior fields.",
+        "jsonState": "Runtime JSON has no stored-spell payload behavior.",
+        "issue": "Stored spell summon/object/trap placement and attack behavior are prose-only.",
+        "recommendedTemplateChange": "Add storedSpellPayload behavior fields for hostile summons, harmful objects, traps, placement, and target behavior.",
+        "recommendedJsonChange": "Add runtime storedSpellBehavior data for hostile summoned/created payloads.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "ward_alarm_or_trigger",
+        "findingId": "glyph-of-warding::ward_alarm_or_trigger",
+        "canonicalEvidence": "You decide what triggers the glyph when you cast the spell. Triggers can be as general or detailed as you like, such as opening the object or approaching within a certain distance. You can also set conditions for creatures that don't trigger the glyph, such as saying a password.",
+        "structuredState": "No trigger condition, exclusion, password, or custom ward trigger fields.",
+        "jsonState": "Runtime JSON has no ward trigger data and fires the damage immediately.",
+        "issue": "Glyph of Warding's configurable trigger and exclusion rules are not represented.",
+        "recommendedTemplateChange": "Add wardTrigger fields for trigger events, distance, creature filters, password, and custom prose fallback.",
+        "recommendedJsonChange": "Add runtime wardTrigger data and stop treating the payload as immediate.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "glyph-of-warding::environmental_change",
+        "canonicalEvidence": "The explosive rune erupts with magical energy in a 20-foot-radius Sphere centered on the glyph.",
+        "structuredState": "Area Shape and Area Size preserve the burst geometry.",
+        "jsonState": "Runtime targeting preserves the area shape/size for the damage effect.",
+        "issue": "The burst area is already represented as area targeting; the delayed ward trigger is tracked separately.",
+        "recommendedTemplateChange": "No environmental field change required for this row.",
+        "recommendedJsonChange": "No area-shape runtime change required for this row.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "glyph-of-warding::conditional_ending",
+        "canonicalEvidence": "If the surface or object is moved more than 10 feet from where you cast this spell, the glyph is broken, and the spell ends without being triggered. Once a glyph is triggered, this spell ends.",
+        "structuredState": "Spatial details preserve break distance, but no conditional ending field ties movement or trigger consumption to spell end.",
+        "jsonState": "Runtime JSON has no conditional ending data.",
+        "issue": "Glyph of Warding has movement-break and trigger-consumption ending rules that are not typed.",
+        "recommendedTemplateChange": "Add conditionalEnding fields for moved distance and one-shot trigger consumption.",
+        "recommendedJsonChange": "Add runtime conditionalEnding data for moved-more-than-10-feet break and ends-on-trigger.",
+        "resolutionStatus": "closed",
+        "closedReason": "Closed by the glyph placement/trigger lifetime batch: structured markdown now records inscribed_ward_moved_beyond_distance and ward_triggered, while runtime JSON has two effects[].conditionalEndings[] entries with the 10-foot break distance and immediate one-shot trigger consumption."
+      },
+      {
+        "bucketId": "resource_or_consumption",
+        "findingId": "glyph-of-warding::manual_consumed_diamond_component",
+        "canonicalEvidence": "Components: V, S, M (a diamond worth 200+ GP, which the spell consumes).",
+        "structuredState": "Material Cost GP: 200; Consumed: true.",
+        "jsonState": "Runtime components preserve materialCost 200 and isConsumed true.",
+        "issue": "The consumed 200 GP diamond component is already represented.",
+        "recommendedTemplateChange": "No material component change required.",
+        "recommendedJsonChange": "No runtime component change required.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "ward_alarm_or_trigger",
+        "findingId": "glyph-of-warding::manual_stored_spell_constraints",
+        "canonicalEvidence": "You can store a prepared spell of level 3 or lower in the glyph by casting it as part of creating the glyph. The spell must target a single creature or an area. If the spell requires Concentration, it lasts until the end of its full duration.",
+        "structuredState": "No stored-spell level, preparation, targeting, casting-as-part, or concentration override fields.",
+        "jsonState": "Runtime JSON has no stored-spell constraint data.",
+        "issue": "The spell-glyph stored spell constraints are not represented.",
+        "recommendedTemplateChange": "Add storedSpell fields for max spell level, prepared requirement, cast-as-part cost, target constraints, and concentration override.",
+        "recommendedJsonChange": "Add runtime storedSpell constraints for level <= slot, prepared, single-creature/area target, and concentration full-duration handling.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "haste": [
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "haste::attack_or_save_modifier",
+        "canonicalEvidence": "Until the spell ends, the target's Speed is doubled, it gains a +2 bonus to Armor Class, it has Advantage on Dexterity saving throws, and it gains an additional action on each of its turns.",
+        "structuredState": "Effect Type now includes DEFENSIVE; no speed, Dexterity save advantage, or limited extra-action fields.",
+        "jsonState": "Runtime JSON now has DEFENSIVE ac_bonus +2, but no speed, Dexterity save advantage, or extra-action data.",
+        "issue": "Haste's +2 AC is represented, but its speed, save advantage, and limited extra action remain prose-only.",
+        "recommendedTemplateChange": "Add movement multiplier, saving throw advantage, and limited extra-action fields.",
+        "recommendedJsonChange": "Add runtime movementModifier, saveModifier, and extraAction data.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "haste::vision_light_sound",
+        "canonicalEvidence": "Choose a willing creature that you can see within range.",
+        "structuredState": "Line of Sight: true.",
+        "jsonState": "Runtime targeting lineOfSight is true.",
+        "issue": "The sight requirement is represented; target willingness is tracked separately.",
+        "recommendedTemplateChange": "No line-of-sight change required.",
+        "recommendedJsonChange": "No line-of-sight runtime change required.",
+        "resolutionStatus": "closed"
+      }
+    ]
+  }
+}

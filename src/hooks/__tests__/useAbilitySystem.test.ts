@@ -45,6 +45,11 @@ vi.mock('../../commands', () => ({
 
 vi.mock('../../utils/combatUtils', () => ({
     getDistance: () => 5,
+    getCharacterDistance: () => 5,
+    // useTargetValidator asks for every occupied tile so large tokens and
+    // future multi-cell creatures stay blocked consistently. Tests use single
+    // tile characters, so the mock mirrors that smallest legal footprint.
+    getOccupiedTiles: (character: CombatCharacter) => [character.position],
     calculateDamage: () => 5,
     generateId: () => 'test-id',
     rollDice: () => 15, // Always roll high for testing hits

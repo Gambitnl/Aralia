@@ -142,9 +142,25 @@ export interface MonsterData {
   name: string;
   baseStats: CharacterStats;
   maxHP: number;
+  /** The HP dice formula from 5eTools (e.g., '3d8', '2d8 + 4'). Preserved for potential future hit dice mechanics. */
+  hpFormula?: string;
   abilities: CombatCharacter['abilities'];
   tags: string[];
+  /** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */
+  armorClass?: number;
+  /** Descriptive source of the AC value (e.g. 'Natural Armor', 'Mage Armor'). */
+  armorSource?: string;
   resistances?: DamageType[];
   vulnerabilities?: DamageType[];
   immunities?: DamageType[];
+  /** Damage types resisted only against nonmagical attacks (e.g. lycanthropes). */
+  nonMagicalResistances?: string[];
+  /** Damage types immune only against nonmagical attacks. */
+  nonMagicalImmunities?: string[];
+  /**
+   * Status conditions this creature is immune to, extracted directly from the
+   * 5eTools `conditionImmune` array (e.g. Zombie: ["exhaustion","poisoned"]).
+   * Merged with type-inferred immunities at spawn time.
+   */
+  conditionImmunities?: string[];
 }

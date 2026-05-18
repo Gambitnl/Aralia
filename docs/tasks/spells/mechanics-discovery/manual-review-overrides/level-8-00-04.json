@@ -1,0 +1,200 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 8 packet 00-04 manual review decisions.",
+    "Closed entries include a reason in issue. Actionable-open entries are true schema gaps or follow-up propagation buckets, not ignored mechanics."
+  ],
+  "findings": {
+    "abi-dalzims-horrid-wilting::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: the only caster choice is the ordinary point selected for the 30-foot cube, already represented by ranged area targeting.",
+      "recommendedTemplateChange": "No template change needed beyond existing area targeting.",
+      "recommendedJsonChange": "No JSON change needed beyond existing ranged Cube area targeting."
+    },
+    "abi-dalzims-horrid-wilting::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: plants and water elementals now have an explicit disadvantage save modifier in structured fields and runtime JSON.",
+      "recommendedTemplateChange": "Added numbered Save Modifier structured fields.",
+      "recommendedJsonChange": "Added effects[0].condition.saveModifiers with a filtered disadvantage rule."
+    },
+    "abi-dalzims-horrid-wilting::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector false positive from material sponge/moisture wording; the spell creates no object or structure.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "abi-dalzims-horrid-wilting::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: material component is non-costly and not consumed; existing component fields already preserve the resource facts.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "abi-dalzims-horrid-wilting::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Constructs and Undead are now excluded from the affected target set rather than hidden in description prose.",
+      "recommendedTemplateChange": "Added Target Excluded Creature Types.",
+      "recommendedJsonChange": "Added targeting.filter.excludeCreatureTypes and effect targetFilter exclusions."
+    },
+    "abi-dalzims-horrid-wilting::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: moisture-drawing wording is the damage narration, not a persistent environmental state change.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "animal-shapes::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Beast-form selection, per-target different forms, and stat replacement are now exposed as structured utility options and runtime control options.",
+      "recommendedTemplateChange": "Added Utility Option rows for Beast form, repeat transformation, stat replacement, and equipment merge.",
+      "recommendedJsonChange": "Added effects[0].controlOptions with the same mode details."
+    },
+    "animal-shapes::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector false positive from Challenge Rating text; no attack roll or saving throw modifier exists.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "animal-shapes::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: the later-turn Magic action to transform targets again is now a granted runtime action and structured utility option.",
+      "recommendedTemplateChange": "Added Utility Option 2 for repeat transformation.",
+      "recommendedJsonChange": "Added effects[0].grantedActions action with each_turn frequency."
+    },
+    "animal-shapes::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: \"can see within range\" is ordinary line-of-sight targeting, already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No template change needed.",
+      "recommendedJsonChange": "No JSON change needed."
+    },
+    "animal-shapes::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: communication is a retained statistic during transformation, now named in the stat replacement utility option.",
+      "recommendedTemplateChange": "Added retained-communication detail under Utility Option 3.",
+      "recommendedJsonChange": "Added retained-communication detail under the Stat replacement control option."
+    },
+    "animal-shapes::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: temporary hit points equal to the first Beast form HP are now represented with Temporary HP structured data and a HEALING temporary-HP runtime effect.",
+      "recommendedTemplateChange": "Added Temporary HP and Healing Dice structured rows.",
+      "recommendedJsonChange": "Added a HEALING effect with isTemporaryHp true and dice set to the chosen Beast Hit Points formula text."
+    },
+    "animal-shapes::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: equipment merging and unusability are now represented as a structured/runtime utility option; the spell does not create a damageable object stat block.",
+      "recommendedTemplateChange": "Added Equipment merge utility option.",
+      "recommendedJsonChange": "Added Equipment merge control option."
+    },
+    "animal-shapes::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: target-ended transformation as a Bonus Action remains in the canonical description; a richer per-target voluntary ending field is still a later schema bucket.",
+      "recommendedTemplateChange": "No immediate template change beyond existing description and utility options.",
+      "recommendedJsonChange": "No immediate JSON change beyond preserving the exact canonical description."
+    },
+    "animal-shapes::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: detector matched \"when the spell ends\"; there is no memory or aftermath mechanic beyond temporary HP expiration, now represented by the temporary-HP effect description.",
+      "recommendedTemplateChange": "No separate aftermath template field needed.",
+      "recommendedJsonChange": "No separate aftermath JSON field needed."
+    },
+    "antimagic-field::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: teleport, planar travel, portal suppression, area exclusion, spell suppression, and magic-item suppression are now split into structured utility options and runtime control options.",
+      "recommendedTemplateChange": "Added Antimagic Field utility-option rows for each suppression/blocking mode.",
+      "recommendedJsonChange": "Added effects[0].controlOptions and marked the emanation as following the caster."
+    },
+    "antipathy-sympathy::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Antipathy, Sympathy, and Ending the Effect are now explicit structured utility options and runtime control options; JSON prompts for the caster choice.",
+      "recommendedTemplateChange": "Added Utility Option rows and AI choice prompt coverage.",
+      "recommendedJsonChange": "Added aiContext prompt plus control options for both modes and ending logic."
+    },
+    "antipathy-sympathy::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: the initial and ending Wisdom saves are now represented by save-based STATUS_CONDITION effects and repeat-save metadata.",
+      "recommendedTemplateChange": "Changed Save Outcome to negates_condition.",
+      "recommendedJsonChange": "Added Frightened and Charmed STATUS_CONDITION effects with Wisdom saves and repeat-save metadata."
+    },
+    "antipathy-sympathy::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: safest-route movement away/toward the target is now represented by structured Forced Movement and a runtime MOVEMENT effect.",
+      "recommendedTemplateChange": "Added Movement Type and Forced Movement rows.",
+      "recommendedJsonChange": "Added MOVEMENT effect with forced safest-route semantics."
+    },
+    "antipathy-sympathy::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Charmed mode and the creature-kind choice are now surfaced through Conditions Applied, utility options, target filter notes, and the runtime choice prompt.",
+      "recommendedTemplateChange": "Added Conditions Applied and Target Filter Notes.",
+      "recommendedJsonChange": "Added Charmed STATUS_CONDITION effect and aiContext prompt."
+    },
+    "antipathy-sympathy::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Frightened and Charmed are now explicit structured conditions and runtime STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "Added Conditions Applied: Frightened, Charmed.",
+      "recommendedJsonChange": "Added separate Frightened and Charmed STATUS_CONDITION effects."
+    },
+    "antipathy-sympathy::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: distance-based ending save, damage-triggered Sympathy save, and 1-minute immunity are preserved in structured utility options and runtime control-option detail.",
+      "recommendedTemplateChange": "Added Ending the Effect utility option.",
+      "recommendedJsonChange": "Added Ending the Effect control option."
+    },
+    "clone::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: clone age choice, clone formation, soul transfer, and original-remains consequences are now split into structured utility options and runtime control options; JSON also prompts for lifecycle tracking.",
+      "recommendedTemplateChange": "Added Clone utility options and changed targeting to creature_or_object with objects included.",
+      "recommendedJsonChange": "Added control options, included objects in validTargets, and added aiContext prompt for delayed lifecycle tracking."
+    }
+  },
+  "manualFindings": {
+    "animal-shapes": [
+      {
+        "bucketId": "multi_instance_or_split_targeting",
+        "findingId": "animal-shapes::multi_instance_or_split_targeting",
+        "canonicalEvidence": "Choose any number of willing creatures that you can see within range.",
+        "structuredState": "Targeting Type: multi | Targeting Max: unlimited | Valid Targets: willing_creature",
+        "jsonState": "Runtime JSON uses targeting.type multi, but maxTargets is a temporary numeric stand-in because the schema lacks an unlimited sentinel.",
+        "issue": "Actionable open: Animal Shapes exposes a corpus-level unlimited-target mechanic that the runtime maxTargets schema cannot represent without a fake number.",
+        "recommendedTemplateChange": "Add a schema-safe unlimited/not_applicable sentinel for Targeting Max and propagate it across structured spell fields.",
+        "recommendedJsonChange": "Expand ScalableNumber or maxTargets to accept an explicit unlimited sentinel, then replace Animal Shapes maxTargets=999 with that value.",
+        "resolutionStatus": "closed",
+        "closedReason": "Closed by expanding the shared targeting.maxTargets contract to accept the explicit `unlimited` sentinel and replacing Animal Shapes' runtime 999 placeholder with `unlimited`; structured markdown already recorded Targeting Max as unlimited."
+      }
+    ],
+    "antipathy-sympathy": [
+      {
+        "bucketId": "target_filter_or_eligibility",
+        "findingId": "antipathy-sympathy::target_filter_or_eligibility",
+        "canonicalEvidence": "Then specify a kind of creature, such as red dragons, goblins, or vampires. A creature of the chosen kind makes a Wisdom saving throw when it comes within 120 feet of the target.",
+        "structuredState": "Target Filter Sizes: Huge or smaller | Target Filter Notes records the caster-specified creature kind.",
+        "jsonState": "Runtime targeting.filter.sizes records Huge or smaller, but there is no typed field for caster-specified creature kind or a 120-foot proximity trigger around the target.",
+        "issue": "Actionable open: caster-specified creature-kind filters and proximity-trigger saves are still richer than the current target filter and trigger schema.",
+        "recommendedTemplateChange": "Add structured fields for caster-specified creature kind and proximity-trigger radius around a spell target.",
+        "recommendedJsonChange": "Add runtime fields for open-ended creature-kind filters and a proximity trigger such as on_enter_target_radius with radius/duration/immunity metadata.",
+        "resolutionStatus": "actionable_open"
+      }
+    ],
+    "clone": [
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "clone::created_object_or_structure",
+        "canonicalEvidence": "An inert duplicate of that creature forms inside the vessel used in the spell's casting and finishes growing after 120 days.",
+        "structuredState": "Utility options now describe clone formation, but no durable created-entity lifecycle schema exists.",
+        "jsonState": "Runtime controlOptions and aiContext preserve the lifecycle, but there is no created-entity lifecycle object for delayed growth and vessel disturbance.",
+        "issue": "Actionable open: Clone needs a delayed created-entity/lifecycle schema rather than only utility option text.",
+        "recommendedTemplateChange": "Add created-entity lifecycle fields for formation delay, vessel dependency, inert state, activation trigger, and age choice.",
+        "recommendedJsonChange": "Add a runtime createdEntity/lifecycle object with growth duration, activation trigger, soul-transfer prerequisites, and equipment/remains consequences.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "aftermath_or_memory",
+        "findingId": "clone::aftermath_or_memory",
+        "canonicalEvidence": "The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original's equipment.",
+        "structuredState": "Utility options record same personality, memories, and abilities.",
+        "jsonState": "Runtime controlOptions preserve the same facts as text, but no identity/memory transfer fields exist.",
+        "issue": "Actionable open: Clone exposes identity, memories, soul location, and revival lockout mechanics that need a dedicated life-state schema.",
+        "recommendedTemplateChange": "Add life-state/identity transfer fields for soul transfer, memory/personality continuity, equipment exclusion, and revival lockout.",
+        "recommendedJsonChange": "Add runtime lifeStateTransition fields that can be ignored when not applicable and consumed by resurrection/death systems later.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

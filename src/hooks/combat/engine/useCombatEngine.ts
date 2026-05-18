@@ -212,7 +212,7 @@ export const useCombatEngine = ({
         if (env.effect.effect.type === 'damage_per_turn') {
             const damage = env.effect.effect.value || 0;
             if (damage > 0) {
-                updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'physical');
+                updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'bludgeoning');
             } else {
                 onLogEntry({
                     id: generateId(),

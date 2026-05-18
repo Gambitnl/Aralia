@@ -1,0 +1,556 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 30,
+  "fields": [
+    {
+      "path": "effects[].statusCondition.name",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Conditions Applied",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Conditions Applied."
+        }
+      ],
+      "comment": "Mapped from structured Conditions Applied. It maps to `effects[].statusCondition.name`. It is populated from the structured markdown label `Conditions Applied`. Purpose: effects[].statusCondition.name exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Conditions Applied`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.name`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].statusCondition.repeatSave.timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "turn_end",
+        "turn_start",
+        "on_damage",
+        "on_action",
+        "after_forced_movement",
+        "not_applicable"
+      ],
+      "structuredLabel": "Repeat Save Timing",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Repeat-save spells need the trigger timing as data instead of prose-only turn text."
+        }
+      ],
+      "comment": "Repeat-save spells need the trigger timing as data instead of prose-only turn text. It maps to `effects[].statusCondition.repeatSave.timing`. It is populated from the structured markdown label `Repeat Save Timing`. Purpose: effects[].statusCondition.repeatSave.timing exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Repeat Save Timing`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.repeatSave.timing`. The value type is `enum`. Use `not_applicable` in structured/template review when the spell has no repeat save; omit the runtime repeatSave object when not applicable.",
+      "acceptedValueNotes": {
+        "turn_end": "Repeat save or check happens at the end of the affected creature's turn.",
+        "turn_start": "Repeat save or check happens at the start of the affected creature's turn.",
+        "on_damage": "Repeat save or check happens when the affected creature takes damage.",
+        "on_action": "Repeat save or check requires an action or similar deliberate attempt.",
+        "after_forced_movement": "Repeat save or check happens after spell-forced movement has been resolved.",
+        "not_applicable": "Schema-safe sentinel for spells with no repeat save/check."
+      }
+    },
+    {
+      "path": "effects[].statusCondition.repeatSave.additionalTimings[]",
+      "required": false,
+      "valueType": "enum-array",
+      "acceptedValues": [
+        "turn_end",
+        "turn_start",
+        "on_damage",
+        "on_action",
+        "after_forced_movement",
+        "not_applicable"
+      ],
+      "structuredLabel": "Repeat Save Additional Timings",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Tasha's Hideous Laughter repeats both at turn end and on damage, so a single timing value can flatten mechanics."
+        }
+      ],
+      "comment": "Tasha's Hideous Laughter repeats both at turn end and on damage, so a single timing value can flatten mechanics. It maps to `effects[].statusCondition.repeatSave.additionalTimings[]`. It is populated from the structured markdown label `Repeat Save Additional Timings`. Purpose: effects[].statusCondition.repeatSave.additionalTimings[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Repeat Save Additional Timings`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.repeatSave.additionalTimings[]`. The value type is `enum-array`. Use `not_applicable` in structured/template review when there is no second timing; omit or use an empty array in runtime JSON when not applicable."
+    },
+    {
+      "path": "effects[].statusCondition.repeatSave.saveType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+        "strength_check",
+        "wisdom_check",
+        "not_applicable"
+      ],
+      "structuredLabel": "Repeat Save Type",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "The repeat attempt can use a different ability/check family than the spell's initial effect summary."
+        }
+      ],
+      "comment": "The repeat attempt can use a different ability/check family than the spell's initial effect summary. It maps to `effects[].statusCondition.repeatSave.saveType`. It is populated from the structured markdown label `Repeat Save Type`. Purpose: effects[].statusCondition.repeatSave.saveType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Repeat Save Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.repeatSave.saveType`. The value type is `enum`. Use `not_applicable` in structured/template review when the spell has no repeat save."
+    },
+    {
+      "path": "effects[].statusCondition.repeatSave.successEnds",
+      "required": false,
+      "valueType": "boolean-or-sentinel",
+      "structuredLabel": "Repeat Save Success Ends",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Most repeat saves end a condition on success, while counter-based spells need success tracked without ending immediately."
+        }
+      ],
+      "comment": "Most repeat saves end a condition on success, while counter-based spells need success tracked without ending immediately. It maps to `effects[].statusCondition.repeatSave.successEnds`. It is populated from the structured markdown label `Repeat Save Success Ends`. Purpose: effects[].statusCondition.repeatSave.successEnds exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Repeat Save Success Ends`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.repeatSave.successEnds`. The value type is `boolean-or-sentinel`. Use `not_applicable` in structured/template review when the spell has no repeat save."
+    },
+    {
+      "path": "effects[].statusCondition.repeatSave.prerequisites[]",
+      "required": false,
+      "valueType": "enum-array",
+      "acceptedValues": [
+        "no_line_of_sight_to_caster",
+        "not_applicable"
+      ],
+      "structuredLabel": "Repeat Save Prerequisites",
+      "log": [
+        {
+          "at": "2026-05-14T04:15:00+02:00",
+          "action": "created",
+          "why": "Fear's turn-end repeat save is available only when the affected creature lacks line of sight to the caster."
+        }
+      ],
+      "comment": "Repeat Save Prerequisites maps to `effects[].statusCondition.repeatSave.prerequisites[]`. It is populated from the structured markdown label `Repeat Save Prerequisites`. Purpose: effects[].statusCondition.repeatSave.prerequisites[] exists so gated repeat saves are not represented as always-available saves. Use `not_applicable` in structured/template review when there is no prerequisite; omit or use an empty array in runtime JSON when not applicable."
+    },
+    {
+      "path": "effects[].statusCondition.repeatSave.progression",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": "Repeat Save Progression",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Contagion and Flesh to Stone count repeat-save successes and failures before deciding the final outcome."
+        }
+      ],
+      "comment": "Contagion and Flesh to Stone count repeat-save successes and failures before deciding the final outcome. It maps to `effects[].statusCondition.repeatSave.progression`. It is populated from the structured markdown label `Repeat Save Progression`. Purpose: effects[].statusCondition.repeatSave.progression exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Repeat Save Progression`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.repeatSave.progression`. The value type is `object`. Use `not_applicable` in structured/template review when there is no success/failure counter; omit the runtime object when not applicable."
+    },
+    {
+      "path": "effects[].statusCondition.escapeCheck.ability",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "Strength",
+        "Dexterity",
+        "Constitution",
+        "Intelligence",
+        "Wisdom",
+        "Charisma",
+        "not_applicable"
+      ],
+      "structuredLabel": "Escape Check Ability",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Action-based escape checks need a runtime ability instead of prose-only text."
+        }
+      ],
+      "comment": "Escape Check Ability maps to `effects[].statusCondition.escapeCheck.ability`. It is populated from the structured markdown label `Escape Check Ability`. Purpose: effects[].statusCondition.escapeCheck.ability exists so action-based escape or release checks are not mistaken for repeat saves. Use `not_applicable` in structured/template review when no escape check exists; omit the runtime escapeCheck object when not applicable."
+    },
+    {
+      "path": "effects[].statusCondition.escapeCheck.skill",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Escape Check Skill",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Skill-specific escape checks such as Intelligence (Arcana) need to survive runtime conversion."
+        }
+      ],
+      "comment": "Escape Check Skill maps to `effects[].statusCondition.escapeCheck.skill`. It is populated from the structured markdown label `Escape Check Skill`. Purpose: effects[].statusCondition.escapeCheck.skill exists so a named skill such as Arcana is not flattened into a generic ability check. Use `not_applicable` in structured/template review when no named skill applies; omit the runtime property when not applicable."
+    },
+    {
+      "path": "effects[].statusCondition.escapeCheck.dc",
+      "required": false,
+      "valueType": "number-or-enum",
+      "structuredLabel": "Escape Check DC",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Escape checks need to preserve spell-save-DC versus fixed-DC behavior."
+        }
+      ],
+      "comment": "Escape Check DC maps to `effects[].statusCondition.escapeCheck.dc`. It is populated from the structured markdown label `Escape Check DC`. Purpose: effects[].statusCondition.escapeCheck.dc exists so the runtime can resolve fixed DCs and spell-save-DC checks correctly. Use `not_applicable` in structured/template review when no escape check exists; omit the runtime escapeCheck object when not applicable."
+    },
+    {
+      "path": "effects[].statusCondition.escapeCheck.actionCost",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "action",
+        "bonus_action",
+        "not_applicable"
+      ],
+      "structuredLabel": "Escape Check Action Cost",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Escape checks spend action economy and should not remain prose-only."
+        }
+      ],
+      "comment": "Escape Check Action Cost maps to `effects[].statusCondition.escapeCheck.actionCost`. It is populated from the structured markdown label `Escape Check Action Cost`. Purpose: effects[].statusCondition.escapeCheck.actionCost exists so the runtime can charge the correct action economy for escape or release checks. Use `not_applicable` in structured/template review when no escape check exists; omit the runtime escapeCheck object when not applicable."
+    },
+    {
+      "path": "effects[].statusCondition.escapeCheck.eligibleActors[]",
+      "required": false,
+      "valueType": "enum-array",
+      "acceptedValues": [
+        "affected_creature",
+        "creature_that_can_reach_affected_creature",
+        "not_applicable"
+      ],
+      "structuredLabel": "Escape Check Eligible Actors",
+      "log": [
+        {
+          "at": "2026-05-14T04:00:00+02:00",
+          "action": "created",
+          "why": "Some escape checks can be attempted by helpers rather than only the affected creature."
+        }
+      ],
+      "comment": "Escape Check Eligible Actors maps to `effects[].statusCondition.escapeCheck.eligibleActors[]`. It is populated from the structured markdown label `Escape Check Eligible Actors`. Purpose: effects[].statusCondition.escapeCheck.eligibleActors[] exists so helper-release checks are explicit and not collapsed into the affected creature's own turn mechanics. Use `not_applicable` in structured/template review when no escape check exists; omit or use an empty runtime array when not applicable."
+    },
+    {
+      "path": "effects[].recurringMechanics[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredLabel": "Recurring Mechanics",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Some recurring spell rules are not status repeat saves, such as Heroism temp HP, Elemental Bane rider damage, and Tree Stride end-turn positioning."
+        }
+      ],
+      "comment": "Some recurring spell rules are not status repeat saves, such as Heroism temp HP, Elemental Bane rider damage, and Tree Stride end-turn positioning. It maps to `effects[].recurringMechanics[]`. It is populated from the structured markdown label `Recurring Mechanics`. Purpose: effects[].recurringMechanics[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Recurring Mechanics`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].recurringMechanics[]`. The value type is `object-array`. Use `not_applicable` in structured/template review when a spell has no recurring non-save mechanic; omit or use an empty array in runtime JSON when not applicable."
+    },
+    {
+      "path": "effects[].recurringMechanics[].timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "turn_start",
+        "turn_end",
+        "on_damage",
+        "on_entity_proximity",
+        "on_target_cast",
+        "not_applicable"
+      ],
+      "structuredLabel": "Recurring Mechanic Timing",
+      "log": [
+        {
+          "at": "2026-05-14T00:00:00+02:00",
+          "action": "created",
+          "why": "Recurring mechanics need their trigger timing as data so first-per-turn and turn-bound rules are not hidden in prose."
+        }
+      ],
+      "comment": "Recurring mechanics need their trigger timing as data so first-per-turn and turn-bound rules are not hidden in prose. It maps to `effects[].recurringMechanics[].timing`. It is populated from the structured markdown label `Recurring Mechanic Timing`. Purpose: effects[].recurringMechanics[].timing exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Recurring Mechanic Timing`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].recurringMechanics[].timing`. The value type is `enum`. Use `not_applicable` in structured/template review when no recurring non-save mechanic applies.",
+      "acceptedValueNotes": {
+        "turn_start": "The recurring mechanic happens at the start of a turn.",
+        "turn_end": "The recurring mechanic happens at the end of a turn.",
+        "on_damage": "The recurring mechanic happens when qualifying damage is taken.",
+        "on_entity_proximity": "The recurring mechanic happens when a creature enters, moves near, or ends near a created entity.",
+        "on_target_cast": "The recurring mechanic happens when the affected target tries to cast a spell.",
+        "not_applicable": "Schema-safe sentinel for spells with no recurring non-save mechanic."
+      }
+    },
+    {
+      "path": "effects[].statusCondition.breakTriggers[]",
+      "required": false,
+      "valueType": "enum-array",
+      "acceptedValues": [
+        "target_takes_damage",
+        "adjacent_creature_action_shakes_awake",
+        "caster_makes_attack_roll",
+        "caster_deals_damage",
+        "caster_forces_save",
+        "concentration_ends",
+        "duration_expires"
+      ],
+      "structuredLabel": "Condition Break Triggers",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Proposed runtime shape for Friends-style early condition ending."
+        }
+      ],
+      "comment": "Proposed runtime shape for Friends-style early condition ending. It maps to `effects[].statusCondition.breakTriggers[]`. It is populated from the structured markdown label `Condition Break Triggers`. Purpose: effects[].statusCondition.breakTriggers[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Condition Break Triggers`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.breakTriggers[]`. The value type is `enum-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "target_takes_damage": "Allowed value for effects[].statusCondition.breakTriggers[]; use only when the canonical spell text supports this exact mechanic.",
+        "adjacent_creature_action_shakes_awake": "Use when the runtime condition ends because another creature within the stated distance spends an action to wake or shake the target out of the effect.",
+        "caster_makes_attack_roll": "Allowed value for effects[].statusCondition.breakTriggers[]; use only when the canonical spell text supports this exact mechanic.",
+        "caster_deals_damage": "Allowed value for effects[].statusCondition.breakTriggers[]; use only when the canonical spell text supports this exact mechanic.",
+        "caster_forces_save": "Allowed value for effects[].statusCondition.breakTriggers[]; use only when the canonical spell text supports this exact mechanic.",
+        "concentration_ends": "Allowed value for effects[].statusCondition.breakTriggers[]; use only when the canonical spell text supports this exact mechanic.",
+        "duration_expires": "Allowed value for effects[].statusCondition.breakTriggers[]; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].statusCondition.aftermath",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Condition Aftermath",
+      "status": "proposed",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Proposed runtime shape for Friends-style aftermath knowledge."
+        }
+      ],
+      "comment": "Proposed runtime shape for Friends-style aftermath knowledge. It maps to `effects[].statusCondition.aftermath`. It is populated from the structured markdown label `Condition Aftermath`. Purpose: effects[].statusCondition.aftermath exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Condition Aftermath`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].statusCondition.aftermath`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].utilityType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "light",
+        "communication",
+        "creation",
+        "information",
+        "control",
+        "sensory",
+        "other"
+      ],
+      "structuredLabel": "Utility Type",
+      "acceptedValueParity": "runtime_subset_ok",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Utility Type."
+        }
+      ],
+      "comment": "Mapped from structured Utility Type. It maps to `effects[].utilityType`. It is populated from the structured markdown label `Utility Type`. Purpose: effects[].utilityType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Utility Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].utilityType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "light": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
+        "communication": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
+        "creation": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
+        "information": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
+        "control": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
+        "sensory": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic.",
+        "other": "Allowed value for effects[].utilityType; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].controlOptions[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredPattern": "^Utility Option \\d+",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Utility options map from numbered Utility Option fields."
+        }
+      ],
+      "comment": "Utility options map from numbered Utility Option fields. It maps to `effects[].controlOptions[]`. It is populated from structured markdown labels matching `^Utility Option \\d+`. Purpose: effects[].controlOptions[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].controlOptions[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].attackAugments[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredPattern": "^Attack Augment \\d+",
+      "log": [
+        {
+          "at": "2026-05-14T04:05:00+02:00",
+          "action": "created",
+          "why": "Spell-modified weapon attacks need runtime metadata for ability substitution, weapon requirements, damage die changes, and damage-type choices."
+        }
+      ],
+      "comment": "Attack augments map from numbered Attack Augment structured fields. They record weapon prerequisites, spell-granted attacks, spellcasting ability substitution, damage die overrides, damage-type choices, and optional extra damage riders for weapon attacks modified by a spell. Runtime mapping: `effects[].attackAugments[]`."
+    },
+    {
+      "path": "effects[].abilityCheckModifier",
+      "required": false,
+      "valueType": "object",
+      "structuredPattern": "^Ability Check Modifier ",
+      "log": [
+        {
+          "at": "2026-05-14T04:15:00+02:00",
+          "action": "created",
+          "why": "Guidance-style chosen-skill check bonuses need runtime data instead of prose-only utility text."
+        }
+      ],
+      "comment": "Ability check modifiers map from Ability Check Modifier structured fields. They record the affected check family, bonus dice or flat value, chosen-skill gating, frequency, and duration relationship for spells such as Guidance. Runtime mapping: `effects[].abilityCheckModifier`."
+    },
+    {
+      "path": "effects[].controlledEntity",
+      "required": false,
+      "valueType": "object",
+      "structuredPattern": "^Controlled Entity ",
+      "log": [
+        {
+          "at": "2026-05-14T04:35:00+02:00",
+          "action": "created",
+          "why": "Mage Hand-style helper entities need runtime data instead of prose-only utility text."
+        }
+      ],
+      "comment": "Controlled entity data maps from Controlled Entity structured fields. It records the spell-created helper's type, count, control action, movement, leash distance, carry capacity, allowed interactions, prohibited actions, and ending triggers. Runtime mapping: `effects[].controlledEntity`."
+    },
+    {
+      "path": "modeChoice",
+      "required": false,
+      "valueType": "object",
+      "structuredLabel": null,
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Mode menus need first-class runtime metadata instead of being hidden in utility prose."
+        }
+      ],
+      "comment": "modeChoice records selectable spell operation menus. It does not replace `effects[]` or `controlOptions[]`; it points at them so the runtime can present and resolve the chosen operation."
+    },
+    {
+      "path": "modeChoice.type",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "choose_one",
+        "not_applicable"
+      ],
+      "structuredLabel": "Mode Choice Type",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know the menu selection rule."
+        }
+      ],
+      "comment": "Mode Choice Type maps to `modeChoice.type`. Use `choose_one` for current menu spells; `not_applicable` is a structured sentinel, and runtime JSON should omit `modeChoice` when no mode menu exists."
+    },
+    {
+      "path": "modeChoice.options[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredPattern": "^Mode Choice Option \\d+",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "The runtime needs each menu option as an indexed object with links to payload data."
+        }
+      ],
+      "comment": "modeChoice.options[] maps from numbered Mode Choice Option structured fields. Each option should name its canonical label and point at effect/control-option payload indexes when those payloads exist."
+    },
+    {
+      "path": "modeChoice.optionCount",
+      "required": false,
+      "valueType": "number",
+      "structuredLabel": "Mode Choice Option Count",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "The declared option count makes missing menu entries visible during review."
+        }
+      ],
+      "comment": "Mode Choice Option Count maps to `modeChoice.optionCount` and should match the number of `modeChoice.options[]` entries."
+    },
+    {
+      "path": "modeChoice.timing",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "on_cast",
+        "on_cast_or_later_action",
+        "not_applicable"
+      ],
+      "structuredLabel": "Mode Choice Timing",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know when a mode can be selected or changed."
+        }
+      ],
+      "comment": "Mode Choice Timing maps to `modeChoice.timing`. Runtime JSON omits `modeChoice` when no menu exists; `not_applicable` is for structured/template review."
+    },
+    {
+      "path": "modeChoice.optionsSource",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "modeChoice.options",
+        "effects",
+        "controlOptions",
+        "mixed",
+        "not_applicable"
+      ],
+      "structuredLabel": "Mode Choice Options Source",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Mode menus can be backed by effects, utility control options, or both."
+        }
+      ],
+      "comment": "Mode Choice Options Source maps to `modeChoice.optionsSource` and explains where the option payloads live."
+    },
+    {
+      "path": "modeChoice.maxActiveNonInstantaneous",
+      "required": false,
+      "valueType": "number-or-not-applicable",
+      "structuredLabel": "Mode Choice Max Active Noninstantaneous",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Some mode-menu spells limit active duration-based options."
+        }
+      ],
+      "comment": "Mode Choice Max Active Noninstantaneous maps to `modeChoice.maxActiveNonInstantaneous`."
+    },
+    {
+      "path": "modeChoice.canDismissActive",
+      "required": false,
+      "valueType": "boolean-or-not-applicable",
+      "structuredLabel": "Mode Choice Can Dismiss Active",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "The runtime needs to know whether active mode effects can be dismissed."
+        }
+      ],
+      "comment": "Mode Choice Can Dismiss Active maps to `modeChoice.canDismissActive`."
+    },
+    {
+      "path": "modeChoice.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Mode Choice Notes",
+      "log": [
+        {
+          "at": "2026-05-14T03:50:00+02:00",
+          "action": "created",
+          "why": "Short runtime notes preserve menu-level caveats."
+        }
+      ],
+      "comment": "Mode Choice Notes maps to `modeChoice.notes`."
+    }
+  ]
+}

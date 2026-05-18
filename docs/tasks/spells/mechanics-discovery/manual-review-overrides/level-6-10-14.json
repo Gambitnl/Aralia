@@ -1,0 +1,227 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 6 manual review override shard for spell indexes 10-14 in generated discovery row order."
+  ],
+  "findings": {
+    "drawmijs-instant-summons::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Invisible object mark and invisible sapphire inscription are not typed as object visibility/marking state.",
+      "recommendedTemplateChange": "Add invisible object mark and linked-token inscription fields.",
+      "recommendedJsonChange": "Add runtime objectMarking data."
+    },
+    "drawmijs-instant-summons::message_or_communication": {
+      "resolutionStatus": "closed",
+      "issue": "Speaking the object's name is an activation requirement for the stored summons link, not a message or communication mechanic.",
+      "recommendedTemplateChange": "Track under travel_or_planar_movement and conditional_ending.",
+      "recommendedJsonChange": "No message/communication runtime data required."
+    },
+    "drawmijs-instant-summons::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Crushing the sapphire can teleport the object to the caster's hand regardless of physical or planar distance, but fails if another creature holds or carries it; runtime lacks linked-object teleportation and blocked-transport fields.",
+      "recommendedTemplateChange": "Add linked object teleport, planar distance, and holder-blocked transport fields.",
+      "recommendedJsonChange": "Add runtime instantSummonsLink data."
+    },
+    "drawmijs-instant-summons::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If another creature holds or carries the object, the caster learns who that creature is and where it is currently located; runtime lacks holder identity/location knowledge fields.",
+      "recommendedTemplateChange": "Add linked-object holder identity/location knowledge fields.",
+      "recommendedJsonChange": "Add runtime instantSummonsHolderKnowledge data."
+    },
+    "drawmijs-instant-summons::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target object gains an Invisible mark and the sapphire gains an invisible inscription of the object's name; runtime lacks linked status/state data for either item.",
+      "recommendedTemplateChange": "Add linked item mark/inscription state fields.",
+      "recommendedJsonChange": "Add runtime instantSummonsState data."
+    },
+    "drawmijs-instant-summons::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell ends when the object is summoned, and the runtime prose also notes Dispel Magic or similar effects on the sapphire end the spell; these ending conditions are not typed.",
+      "recommendedTemplateChange": "Add linked-token destruction/use and dispel-on-token ending fields.",
+      "recommendedJsonChange": "Add runtime instantSummonsEnding data."
+    },
+    "druid-grove::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses warded effects, immune friends, a password, fog/undergrowth square placement, up to four tree guardians, and one of several extra magical effects; runtime lacks mode and per-effect choice fields.",
+      "recommendedTemplateChange": "Add multi-effect ward mode and immunity/password choice fields.",
+      "recommendedJsonChange": "Add runtime druidGroveModes data."
+    },
+    "druid-grove::multi_instance_or_split_targeting": {
+      "resolutionStatus": "closed",
+      "issue": "The spell can animate up to four trees and fill any number of 5-foot squares with different effects; runtime lacks split square/tree targeting fields.",
+      "recommendedTemplateChange": "Add split-square and multi-tree targeting fields.",
+      "recommendedJsonChange": "Add runtime druidGroveSplitTargets data.",
+      "closedReason": "Closed the multi-tree half by adding `animated_tree` to the target-instance vocabulary and recording Druid Grove as up to four persistent independently tracked tree guardians in structured markdown and runtime targeting.instanceAllocation. The split 5-foot square selection and ward/environment mechanics remain open under Druid Grove's terrain, choice/mode, environmental, ward, summon/control, message, and conditional-ending rows."
+    },
+    "druid-grove::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Outdoor/underground area eligibility, building/structure exclusion, fog squares, undergrowth squares, movement-cost fog, entangle-like undergrowth, spike-growth area, and wind are all prose-only.",
+      "recommendedTemplateChange": "Add ward terrain/surface subeffect fields.",
+      "recommendedJsonChange": "Add runtime druidGroveTerrain data."
+    },
+    "druid-grove::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spoken password grants immunity, and grove guardians obey spoken commands while in the area; runtime lacks password immunity and command surfaces.",
+      "recommendedTemplateChange": "Add password immunity and spoken guardian command fields.",
+      "recommendedJsonChange": "Add runtime druidGroveCommunication data."
+    },
+    "druid-grove::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "Buildings and other structures are excluded from the affected area; this is area eligibility/exclusion, not a created object or structure.",
+      "recommendedTemplateChange": "Track under terrain_or_surface or targeting eligibility.",
+      "recommendedJsonChange": "No created-object runtime data required."
+    },
+    "druid-grove::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Animated tree guardians use awakened tree statistics, have altered speech/bark properties, fight intruders, obey spoken commands, cannot leave the ward, and reroot if possible when the spell ends; runtime lacks animated guardian entity/control fields.",
+      "recommendedTemplateChange": "Add animated tree guardian entity and command fields.",
+      "recommendedJsonChange": "Add runtime groveGuardian data."
+    },
+    "druid-grove::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The warded area radiates magic, Dispel Magic removes one effect at a time, non-immune creature entry triggers guardian fighting, and repeated yearly casting makes the spell last until dispelled; runtime lacks ward lifecycle and trigger fields.",
+      "recommendedTemplateChange": "Add ward subeffect dispel, intruder trigger, and permanence fields.",
+      "recommendedJsonChange": "Add runtime druidGroveWard data."
+    },
+    "druid-grove::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched fog movement cost; this is terrain movement cost, not resource consumption.",
+      "recommendedTemplateChange": "Track under terrain_or_surface.",
+      "recommendedJsonChange": "No resource/consumption runtime data required."
+    },
+    "druid-grove::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched obscuring fog and immunity prose; no healing or restoration mechanic is present.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration runtime data required."
+    },
+    "druid-grove::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Fog, grasping undergrowth, animated trees, wind, spike growth, and harmless/soft variants for immune creatures alter the warded environment but are not typed.",
+      "recommendedTemplateChange": "Add ward environmental subeffect fields.",
+      "recommendedJsonChange": "Add runtime druidGroveEnvironment data."
+    },
+    "druid-grove::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Individual ward effects can be removed by Dispel Magic, the whole spell ends only when all effects are gone, and animated trees lose magic/reroot when the spell ends; runtime lacks these ending conditions.",
+      "recommendedTemplateChange": "Add per-subeffect dispel and guardian ending fields.",
+      "recommendedJsonChange": "Add runtime druidGroveEnding data."
+    },
+    "druid-grove::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When the spell ends, animated trees take root again if possible; runtime lacks this aftermath state.",
+      "recommendedTemplateChange": "Add guardian reroot aftermath fields.",
+      "recommendedJsonChange": "Add runtime guardianAftermath data."
+    },
+    "eyebite::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Asleep, Panicked, and Sickened are now represented as utility options and corresponding status effects.",
+      "recommendedTemplateChange": "No additional mode field required for this pass.",
+      "recommendedJsonChange": "Closed by controlOptions and STATUS_CONDITION effects."
+    },
+    "eyebite::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save and negates-condition outcome are now represented on each status option.",
+      "recommendedTemplateChange": "No additional save field required.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION save conditions."
+    },
+    "eyebite::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The each-turn Magic action to target another creature is represented as a granted action.",
+      "recommendedTemplateChange": "No additional sustain field required for this pass.",
+      "recommendedJsonChange": "Closed by grantedActions."
+    },
+    "eyebite::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Initial targeting and repeat targeting require a visible creature within 60 feet, and Panicked can end when the target is 60 feet away and cannot see the caster; runtime lacks per-option sight-gated ending data.",
+      "recommendedTemplateChange": "Add visibility-gated option ending fields.",
+      "recommendedJsonChange": "Add runtime eyebiteSightEnding data."
+    },
+    "eyebite::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Unconscious, Frightened, and Poisoned outcomes are now represented as status effects with option details.",
+      "recommendedTemplateChange": "No additional status field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION effects."
+    },
+    "eyebite::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Wake-on-damage/shake, Panicked distance-and-sight ending, and cannot-retarget-a-creature-that-succeeded-against-this-casting are preserved in descriptions but not first-class ending/state fields.",
+      "recommendedTemplateChange": "Add per-option ending and per-casting target-immunity fields.",
+      "recommendedJsonChange": "Add runtime eyebiteEnding data."
+    },
+    "find-the-path::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "Path-choice guidance is the spell's information output and is now classified as an information utility.",
+      "recommendedTemplateChange": "No separate choice field required for this pass.",
+      "recommendedJsonChange": "Closed by utilityType information."
+    },
+    "find-the-path::forced_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched moving destination in the failure criteria; the spell provides route knowledge and does not move a target.",
+      "recommendedTemplateChange": "No forced-movement field required.",
+      "recommendedJsonChange": "No forced-movement runtime data required."
+    },
+    "find-the-path::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Same-plane destination eligibility, failure for other-plane/moving/unspecific destinations, and same-plane duration condition are not first-class fields.",
+      "recommendedTemplateChange": "Add route destination eligibility and same-plane travel-knowledge fields.",
+      "recommendedJsonChange": "Add runtime routeKnowledgeEligibility data."
+    },
+    "find-the-path::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "Distance, direction, and most-direct-path knowledge are now classified under an information utility and preserved in the runtime description.",
+      "recommendedTemplateChange": "No additional social/knowledge field required for this pass.",
+      "recommendedJsonChange": "Closed by utilityType information."
+    },
+    "find-the-path::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched destination restrictions; the spell does not alter the environment.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "flesh-to-stone::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Constitution save and Restrained/Petrified save branches are now represented as status effects.",
+      "recommendedTemplateChange": "No additional save field required for this pass.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION save data."
+    },
+    "flesh-to-stone::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Flesh to Stone now records the nonconsecutive three-success/three-failure counters in structured Repeat Save Progression and runtime repeatSave.progression data.",
+      "issue": "The end-turn Constitution repeat save is represented, but the separate nonconsecutive three-success and three-failure counters remain description-only.",
+      "recommendedTemplateChange": "Add repeat-save success/failure counter fields.",
+      "recommendedJsonChange": "Add runtime saveCounter data."
+    },
+    "flesh-to-stone::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "flesh-to-stone::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Greater Restoration or similar magic can end the maintained Petrified condition, but runtime lacks removable-by-restoration fields.",
+      "recommendedTemplateChange": "Add condition removal-source fields.",
+      "recommendedJsonChange": "Add runtime restorationRemoval data."
+    },
+    "flesh-to-stone::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Restrained and Petrified are represented, but successful initial save setting Speed to 0 until the start of the caster's next turn and permanent Petrified after full concentration are not first-class.",
+      "recommendedTemplateChange": "Add success-outcome speed stop and concentration-completion permanence fields.",
+      "recommendedJsonChange": "Add runtime fleshToStoneState data."
+    },
+    "flesh-to-stone::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched body hardening/restraint prose; this is target status, not an environmental change.",
+      "recommendedTemplateChange": "Track under status_or_state_change.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "flesh-to-stone::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Three successful repeat saves end the spell, three failed saves convert the state to Petrified, and full-duration concentration changes the ending/removal behavior; runtime lacks those conditional ending fields.",
+      "recommendedTemplateChange": "Add save-count and concentration-completion ending fields.",
+      "recommendedJsonChange": "Add runtime fleshToStoneEnding data."
+    }
+  },
+  "manualFindings": {}
+}

@@ -1,0 +1,366 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 20,
+  "fields": [
+    {
+      "path": "effects[].terrainType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "difficult",
+        "obscuring",
+        "damaging",
+        "blocking",
+        "wall"
+      ],
+      "structuredLabel": "Terrain Type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Terrain Type."
+        }
+      ],
+      "comment": "Mapped from structured Terrain Type. It maps to `effects[].terrainType`. It is populated from the structured markdown label `Terrain Type`. Purpose: effects[].terrainType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Terrain Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].terrainType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "difficult": "Allowed value for effects[].terrainType; use only when the canonical spell text supports this exact mechanic.",
+        "obscuring": "Allowed value for effects[].terrainType; use only when the canonical spell text supports this exact mechanic.",
+        "damaging": "Allowed value for effects[].terrainType; use only when the canonical spell text supports this exact mechanic.",
+        "blocking": "Allowed value for effects[].terrainType; use only when the canonical spell text supports this exact mechanic.",
+        "wall": "Allowed value for effects[].terrainType; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].defenseType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "ac_bonus",
+        "set_base_ac",
+        "ac_minimum",
+        "resistance",
+        "immunity",
+        "damage_reduction",
+        "temporary_hp",
+        "advantage_on_saves",
+        "disadvantage_on_attacks"
+      ],
+      "structuredLabel": "Defense Type",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Defense Type."
+        }
+      ],
+      "comment": "Mapped from structured Defense Type. It maps to `effects[].defenseType`. It is populated from the structured markdown label `Defense Type`. Purpose: effects[].defenseType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Defense Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].defenseType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "ac_bonus": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic.",
+        "set_base_ac": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic.",
+        "ac_minimum": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic.",
+        "resistance": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic.",
+        "immunity": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic.",
+        "damage_reduction": "Allowed value for effects[].defenseType; use when canonical prose subtracts a fixed or rolled amount from qualifying damage instead of granting resistance or immunity.",
+        "temporary_hp": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic.",
+        "advantage_on_saves": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic.",
+        "disadvantage_on_attacks": "Allowed value for effects[].defenseType; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].value",
+      "required": false,
+      "valueType": "number-or-formula",
+      "structuredLabel": "Defense Value",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Defense Value when used by defensive effects."
+        }
+      ],
+      "comment": "Mapped from structured Defense Value when used by defensive effects. It maps to `effects[].value`. It is populated from the structured markdown label `Defense Value`. Purpose: effects[].value exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Defense Value`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].value`. The value type is `number-or-formula`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].conditionImmunity[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Condition Immunities",
+      "log": [
+        {
+          "at": "2026-05-13T23:15:00+02:00",
+          "action": "registered",
+          "why": "Condition immunity needs its own runtime field instead of overloading damageType or Utility description text."
+        }
+      ],
+      "comment": "Stores named status conditions that a defensive effect prevents for its target. It maps from the structured markdown label `Condition Immunities` after that label has been checked against canonical prose. Purpose: effects[].conditionImmunity[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about condition-immunity mechanics. Use `damageType[]` for damage resistance or immunity, and use this field for condition names such as Frightened. Omit or use an empty array only when the defensive effect has no condition-immunity mechanic."
+    },
+    {
+      "path": "effects[].preventionImmunity[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Prevention Immunities",
+      "acceptedValues": [
+        "hit_point_maximum_reduction"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:50:00+02:00",
+          "action": "registered",
+          "why": "Non-condition prevention needs runtime data separate from damage and condition immunity."
+        }
+      ],
+      "comment": "Stores non-condition mechanics that a defensive effect prevents. It maps from the structured markdown label `Prevention Immunities` after that label has been checked against canonical prose. Purpose: effects[].preventionImmunity[] preserves mechanics such as Aura of Life preventing hit point maximum reduction without flattening them into utility descriptions."
+    },
+    {
+      "path": "effects[].excludedDamageType[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Damage Type Exclusions",
+      "log": [
+        {
+          "at": "2026-05-14T00:10:00+02:00",
+          "action": "registered",
+          "why": "Exception-based resistance and immunity need a runtime path that keeps the broad damage set and its carve-outs machine-readable."
+        }
+      ],
+      "comment": "Stores damage types that are excluded from a broad defensive damage entry. It maps from the structured markdown label `Damage Type Exclusions` after that label has been checked against canonical prose. Purpose: effects[].excludedDamageType[] preserves mechanics such as `all damage except Psychic` without turning the exception into free text. Use this alongside effects[].damageType[]; omit or use an empty array only when the defensive effect has no damage-type exception mechanic."
+    },
+    {
+      "path": "effects[].damageTypeSource",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Defense Damage Type Source",
+      "acceptedValues": [
+        "listed",
+        "triggering_damage_type",
+        "chosen_damage_type"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T00:40:00+02:00",
+          "action": "registered",
+          "why": "Dynamic defensive damage types need runtime data that distinguishes eligible options from the one active type."
+        }
+      ],
+      "comment": "Stores how a defensive effect chooses the active damage type from effects[].damageType[]. It maps from the structured markdown label `Defense Damage Type Source` after that label has been checked against canonical prose. Purpose: effects[].damageTypeSource keeps spells such as Absorb Elements from looking like they grant all listed resistances at once when they actually copy the triggering damage type. Omit only when the defensive effect has no damage-type mechanic or every listed type applies directly."
+    },
+    {
+      "path": "effects[].damageReduction.dice",
+      "required": false,
+      "valueType": "dice-or-formula",
+      "structuredLabel": "Damage Reduction Dice",
+      "log": [
+        {
+          "at": "2026-05-14T01:00:00+02:00",
+          "action": "registered",
+          "why": "Rolled damage reduction needs runtime data separate from resistance, immunity, and outgoing damage."
+        }
+      ],
+      "comment": "Stores the rolled amount subtracted from qualifying damage. It maps from the structured markdown label `Damage Reduction Dice` after that label has been checked against canonical prose. Purpose: effects[].damageReduction.dice preserves mechanics such as Resistance reducing damage by 1d4 without misrepresenting them as normal resistance. Omit only when the defensive effect has no rolled damage-reduction mechanic."
+    },
+    {
+      "path": "effects[].damageReduction.appliesTo",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Damage Reduction Applies To",
+      "acceptedValues": [
+        "damage_taken"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:00:00+02:00",
+          "action": "registered",
+          "why": "The runtime needs to know whether a reduction modifies incoming damage or some later outgoing damage total."
+        }
+      ],
+      "comment": "Stores which damage total the reduction modifies. It maps from the structured markdown label `Damage Reduction Applies To` after that label has been checked against canonical prose. Purpose: effects[].damageReduction.appliesTo keeps defensive subtraction separate from attack augments and healing. Omit only when the effect has no damage-reduction mechanic."
+    },
+    {
+      "path": "effects[].damageReduction.frequency",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Damage Reduction Frequency",
+      "acceptedValues": [
+        "once_per_turn",
+        "every_time"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:00:00+02:00",
+          "action": "registered",
+          "why": "Once-per-turn reduction limits need runtime data rather than prose-only consumption text."
+        }
+      ],
+      "comment": "Stores how often the damage reduction can be used while the effect is active. It maps from the structured markdown label `Damage Reduction Frequency` after that label has been checked against canonical prose. Purpose: effects[].damageReduction.frequency makes limits such as `once per turn` enforceable and auditable. Omit only when the effect has no damage-reduction mechanic."
+    },
+    {
+      "path": "effects[].resistanceSuppression.damageType[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Resistance Suppression Damage Types",
+      "acceptedValues": [
+        "Acid",
+        "Bludgeoning",
+        "Cold",
+        "Fire",
+        "Force",
+        "Lightning",
+        "Necrotic",
+        "Piercing",
+        "Poison",
+        "Psychic",
+        "Radiant",
+        "Slashing",
+        "Thunder"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:10:00+02:00",
+          "action": "registered",
+          "why": "Runtime needs a resistance-suppression path for spells that remove a target's existing resistance instead of granting resistance."
+        }
+      ],
+      "comment": "Stores damage types whose existing resistance is suppressed on the affected target. It maps from the structured markdown label `Resistance Suppression Damage Types` after that label has been checked against canonical prose. Purpose: effects[].resistanceSuppression.damageType[] preserves mechanics such as Elemental Bane making the target lose resistance to the chosen type without confusing them with normal resistance, immunity, vulnerability, or damage subtraction. Omit or use an empty array only when the effect has no resistance-suppression mechanic."
+    },
+    {
+      "path": "effects[].resistanceSuppression.damageTypeSource",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Resistance Suppression Damage Type Source",
+      "acceptedValues": [
+        "listed",
+        "chosen_damage_type",
+        "triggering_damage_type"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:10:00+02:00",
+          "action": "registered",
+          "why": "The runtime needs to know whether resistance suppression applies to every listed type, a chosen type, or a triggering damage type."
+        }
+      ],
+      "comment": "Stores how the active resistance-suppression damage type is selected from effects[].resistanceSuppression.damageType[]. It maps from the structured markdown label `Resistance Suppression Damage Type Source` after that label has been checked against canonical prose. Purpose: effects[].resistanceSuppression.damageTypeSource keeps chosen-type suppression from looking like all eligible resistances are suppressed at once. Omit only when the effect has no resistance-suppression mechanic or every listed suppression type applies directly."
+    },
+    {
+      "path": "effects[].damageInteraction.modes[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Damage Interaction Modes",
+      "acceptedValues": [
+        "resistance",
+        "vulnerability"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:55:00+02:00",
+          "action": "registered",
+          "why": "Hallow's area extra effect can grant either resistance or vulnerability and needs a neutral runtime shape."
+        }
+      ],
+      "comment": "Stores area or mode-based damage interaction choices. It maps from the structured markdown label `Damage Interaction Modes` after that label has been checked against canonical prose. Purpose: effects[].damageInteraction.modes[] preserves Hallow-style resistance/vulnerability modes without treating vulnerability as a defense. Omit only when the effect has no damage-interaction mode."
+    },
+    {
+      "path": "effects[].damageInteraction.damageType[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Damage Interaction Damage Types",
+      "comment": "Stores eligible damage types for a damage-interaction mode. It maps from the structured markdown label `Damage Interaction Damage Types` after that label has been checked against canonical prose. Purpose: effects[].damageInteraction.damageType[] keeps chosen-type area resistance/vulnerability machine-readable. Omit only when the effect has no damage-interaction mode."
+    },
+    {
+      "path": "effects[].damageInteraction.damageTypeSource",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Damage Interaction Damage Type Source",
+      "acceptedValues": [
+        "listed",
+        "chosen_damage_type",
+        "triggering_damage_type"
+      ],
+      "comment": "Stores how the active damage-interaction type is selected from effects[].damageInteraction.damageType[]. It maps from the structured markdown label `Damage Interaction Damage Type Source` after that label has been checked against canonical prose. Purpose: effects[].damageInteraction.damageTypeSource prevents eligible choices from being mistaken for simultaneous interaction with every listed type. Omit only when the effect has no damage-interaction mode."
+    },
+    {
+      "path": "effects[].damageInteraction.subjectScope",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Damage Interaction Subject Scope",
+      "acceptedValues": [
+        "chosen_creature_types",
+        "all_targets",
+        "not_applicable"
+      ],
+      "comment": "Stores which subjects the damage-interaction mode can affect. It maps from the structured markdown label `Damage Interaction Subject Scope` after that label has been checked against canonical prose. Purpose: effects[].damageInteraction.subjectScope keeps area-mode eligibility separate from spell targeting. Omit only when the effect has no damage-interaction mode."
+    },
+    {
+      "path": "effects[].damageInteraction.durationScope",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Damage Interaction Duration Scope",
+      "acceptedValues": [
+        "while_in_area",
+        "while_active",
+        "permanent"
+      ],
+      "comment": "Stores when the damage-interaction mode applies. It maps from the structured markdown label `Damage Interaction Duration Scope` after that label has been checked against canonical prose. Purpose: effects[].damageInteraction.durationScope keeps area-bound interactions from becoming permanent creature changes. Omit only when the effect has no damage-interaction mode."
+    },
+    {
+      "path": "effects[].defenseSourceFilter.sourceCategories[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Defense Source Categories",
+      "acceptedValues": [
+        "attack",
+        "spell",
+        "effect",
+        "environment"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:20:00+02:00",
+          "action": "registered",
+          "why": "Source-limited defenses need runtime source categories so resistance/immunity does not become unconditional."
+        }
+      ],
+      "comment": "Stores incoming source categories that a defensive effect applies to. It maps from the structured markdown label `Defense Source Categories` after that label has been checked against canonical prose. Purpose: effects[].defenseSourceFilter.sourceCategories[] preserves source restrictions such as `from attacks` without confusing them with target filters. Omit only when the defensive effect has no source-category restriction."
+    },
+    {
+      "path": "effects[].defenseSourceFilter.attackMagicalStatus",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Defense Source Attack Magical Status",
+      "acceptedValues": [
+        "any",
+        "magical",
+        "nonmagical",
+        "not_applicable"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:20:00+02:00",
+          "action": "registered",
+          "why": "Nonmagical-attack-only defenses need runtime magical-status filtering."
+        }
+      ],
+      "comment": "Stores whether an attack-source defense applies to magical attacks, nonmagical attacks, or attacks of any magical status. It maps from the structured markdown label `Defense Source Attack Magical Status` after that label has been checked against canonical prose. Purpose: effects[].defenseSourceFilter.attackMagicalStatus keeps source-limited resistance, such as Investiture of Stone, from behaving like blanket damage resistance. Omit only when the defensive effect has no attack magical-status restriction."
+    },
+    {
+      "path": "effects[].barrierDamagePrevention.blockDirections[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Barrier Damage Block Directions",
+      "acceptedValues": [
+        "outside_to_inside",
+        "inside_to_outside",
+        "both"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:45:00+02:00",
+          "action": "registered",
+          "why": "Barrier damage prevention needs origin-side direction data instead of prose-only blocking."
+        }
+      ],
+      "comment": "Stores which cross-barrier damage directions are blocked. It maps from the structured markdown label `Barrier Damage Block Directions` after that label has been checked against canonical prose. Purpose: effects[].barrierDamagePrevention.blockDirections[] lets runtime distinguish outside-to-inside and inside-to-outside damage blocking from ordinary resistance. Omit only when the effect has no barrier damage-prevention mechanic."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-﻿# Spell Migration Strategy - Historical Pointer
+# Spell Migration Strategy - Historical Pointer
 
 **Last Reviewed:** 2026-03-12  
 **Status:** Historical pointer

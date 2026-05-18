@@ -1,0 +1,153 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 7,
+  "fields": [
+    {
+      "required": false,
+      "path": "effects[].condition.saveModifiers[]",
+      "structuredPattern": "^Save Modifier \\d+",
+      "valueType": "object-array",
+      "why": "Save-specific advantage and disadvantage need a machine-readable runtime home.",
+      "log": [
+        {
+          "at": "2026-05-13T00:00:00+02:00",
+          "action": "registered",
+          "why": "Save modifiers are already part of the validator and now need template coverage."
+        }
+      ],
+      "comment": "Save-specific advantage and disadvantage need a machine-readable runtime home. It maps to `effects[].condition.saveModifiers[]`. It is populated from structured markdown labels matching `^Save Modifier \\d+`. Purpose: effects[].condition.saveModifiers[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].condition.saveModifiers[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "path": "effects[].condition.saveModifiers[].ignoredCover",
+      "structuredLabel": "Save Cover Ignored",
+      "valueType": "csv-enum",
+      "acceptedValues": [
+        "half",
+        "three_quarters",
+        "total",
+        "not_applicable"
+      ],
+      "why": "Some saves override the normal cover bonus rules; this path keeps that exception attached to the save modifier instead of leaving it in description text.",
+      "log": [
+        {
+          "at": "2026-05-13T22:00:00+02:00",
+          "action": "registered",
+          "why": "Sacred Flame denies Half Cover and Three-Quarters Cover for its Dexterity save."
+        }
+      ],
+      "comment": "Some saves override the normal cover bonus rules; this path keeps that exception attached to the save modifier instead of leaving it in description text. It maps to `effects[].condition.saveModifiers[].ignoredCover`. It is populated from the structured markdown label `Save Cover Ignored`. Purpose: effects[].condition.saveModifiers[].ignoredCover exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Save Cover Ignored`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].condition.saveModifiers[].ignoredCover`. The value type is `csv-enum`. This is optional or conditional in the runtime shape. Use `not_applicable` when the spell genuinely has no such mechanic, not when the mechanic is unknown or has not been reviewed.",
+      "acceptedValueNotes": {
+        "half": "Use `half` for effects[].condition.saveModifiers[].ignoredCover only when the canonical spell prose supports that exact mechanic; otherwise use a more specific value or `not_applicable` if available.",
+        "three_quarters": "Use when the canonical save/cover rule explicitly bypasses three-quarters cover for this spell.",
+        "total": "Use when the canonical save/cover rule explicitly bypasses total cover for this spell.",
+        "not_applicable": "Use for effects[].condition.saveModifiers[].ignoredCover only when the canonical spell prose does not include this mechanic. This is a deliberate schema-safe sentinel, not an unknown or unreviewed value."
+      }
+    },
+    {
+      "required": false,
+      "path": "effects[].condition.saveOutcomeOverrides[]",
+      "structuredLabels": [
+        "Save Auto Outcome",
+        "Save Auto Outcome Condition"
+      ],
+      "valueType": "object-array",
+      "why": "Some spells replace the normal saving throw result with automatic success or failure when a named target condition is true.",
+      "log": [
+        {
+          "at": "2026-05-13T22:10:00+02:00",
+          "action": "registered",
+          "why": "Auto-success and auto-failure saves are a repeated corpus pattern across Animal Messenger, Enthrall, Geas, Enemies Abound, Mental Prison, Blight, and similar spells."
+        }
+      ],
+      "comment": "Some spells replace the normal saving throw result with automatic success or failure when a named target condition is true. It maps to `effects[].condition.saveOutcomeOverrides[]`. It is populated from structured markdown labels: `Save Auto Outcome`, `Save Auto Outcome Condition`. Purpose: effects[].condition.saveOutcomeOverrides[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].condition.saveOutcomeOverrides[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "required": false,
+      "path": "effects[].soundEmission",
+      "structuredLabels": [
+        "Sound Audible Radius",
+        "Sound Audible Radius Unit",
+        "Sound Source",
+        "Sound Trigger"
+      ],
+      "valueType": "object",
+      "why": "Gameplay-facing sound emissions need a runtime object with radius, unit, source, and timing.",
+      "comment": "Stores discrete audible spell events so runtime systems can know when a sound occurs, where it originates, and how far it carries. Purpose: effects[].soundEmission exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].soundEmission`. The value type is `object`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "log": [
+        {
+          "at": "2026-05-13T22:20:00+02:00",
+          "action": "registered",
+          "why": "Thunderous Smite, Thunderwave, Knock, and Thunder Step all expose audible radius mechanics that should not remain prose-only."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "path": "effects[].light",
+      "structuredLabels": [
+        "Light Bright Radius",
+        "Light Dim Radius",
+        "Light Color Choice",
+        "Light Opaque Cover Blocks",
+        "Light Emits Heat",
+        "Light Ignites Objects",
+        "Light Consumes Fuel",
+        "Light Can Be Covered Or Hidden",
+        "Light Can Be Smothered Or Quenched"
+      ],
+      "valueType": "object",
+      "why": "Light-producing spells need runtime data for radius plus explicit caveats such as color choice, heat, ignition, fuel, cover, smothering, and quenching.",
+      "comment": "Stores gameplay-facing light output and light-source caveats. Fields use `not_applicable` when canonical prose does not specify that caveat. Purpose: effects[].light exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].light`. The value type is `object`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "log": [
+        {
+          "at": "2026-05-13T22:40:00+02:00",
+          "action": "registered",
+          "why": "Light, Produce Flame, and Continual Flame all expose light caveats that were previously prose-only."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "path": "effects[].conditionalEndings[]",
+      "structuredLabels": [
+        "Conditional Ending Triggers",
+        "Conditional Ending Scope",
+        "Conditional Ending Distance Feet",
+        "Conditional Ending Duration Value",
+        "Conditional Ending Duration Unit"
+      ],
+      "valueType": "object-array",
+      "why": "Early-ending rules need runtime data separate from normal duration and concentration.",
+      "comment": "Stores spell or effect ending triggers such as recasting the spell, leaving a protected area, or releasing an affected item. Non-applicable effects use an empty array. Purpose: effects[].conditionalEndings[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].conditionalEndings[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "log": [
+        {
+          "at": "2026-05-13T22:30:00+02:00",
+          "action": "registered",
+          "why": "Simple recast-ending spells and item/area departure endings are a repeated conditional-ending pattern."
+        }
+      ]
+    },
+    {
+      "required": false,
+      "path": "effects[].fallControl",
+      "structuredLabels": [
+        "Fall Descent Rate",
+        "Fall Descent Rate Unit",
+        "Fall Damage On Landing",
+        "Fall Control Ends On Landing"
+      ],
+      "valueType": "object",
+      "why": "Falling-control spells need runtime data for descent rate, landing damage, and per-target landing endings.",
+      "comment": "Stores falling-control mechanics such as descent rate, fall-damage prevention, and whether landing ends the effect for that target. Purpose: effects[].fallControl exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about falling mechanics. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `effects[].fallControl`. The value type is `object`. This is optional or conditional in the runtime shape. Omit or leave empty only when the spell has no falling-control mechanic.",
+      "log": [
+        {
+          "at": "2026-05-14T02:15:00+02:00",
+          "action": "registered",
+          "why": "Feather Fall slows descent, prevents fall damage on landing, and ends per target when that target lands."
+        }
+      ]
+    }
+  ]
+}

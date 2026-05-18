@@ -16,7 +16,7 @@ AI models (including Claude) are notoriously bad at estimating:
 **Example**:
 - Model says: "This will take several hours"
 - Reality: Takes 10 minutes
-- Or vice versa: "Quick 30-minute task" → Actually 4 hours
+- Or vice versa: "Quick 30-minute task" -> Actually 4 hours
 
 ---
 
@@ -38,9 +38,9 @@ AI models (including Claude) are notoriously bad at estimating:
    ```
 
 3. **Agent considers**:
-   - **Breaking changes?** → Major bump
-   - **New features?** → Minor bump
-   - **Bug fixes only?** → Patch bump
+   - **Breaking changes?** -> Major bump
+   - **New features?** -> Minor bump
+   - **Bug fixes only?** -> Patch bump
    - **How many files affected?**
    - **Complexity of changes?**
    - **API/interface changes?**
@@ -50,7 +50,7 @@ AI models (including Claude) are notoriously bad at estimating:
    ```markdown
    ## Version Sizing Recommendation
 
-   **Recommended Bump**: Minor (0.4.0 → 0.5.0)
+   **Recommended Bump**: Minor (0.4.0 -> 0.5.0)
 
    **Reasoning**:
    - Adds new user-facing feature (version display)
@@ -84,9 +84,9 @@ Files changed: [list]
 Scope: [scope]
 
 Analyze and recommend:
-- Patch (0.4.0 → 0.4.1): Bug fix, no new features
-- Minor (0.4.0 → 0.5.0): New feature, backward compatible
-- Major (0.4.0 → 1.0.0): Breaking change, milestone
+- Patch (0.4.0 -> 0.4.1): Bug fix, no new features
+- Minor (0.4.0 -> 0.5.0): New feature, backward compatible
+- Major (0.4.0 -> 1.0.0): Breaking change, milestone
 
 Provide:
 1. Recommendation
@@ -100,15 +100,15 @@ Provide:
 Agent uses a decision tree:
 
 ```
-Breaking changes? → Yes → MAJOR
+Breaking changes? -> Yes -> MAJOR
   ↓ No
-New feature? → Yes → MINOR
+New feature? -> Yes -> MINOR
   ↓ No
-Bug fix? → Yes → PATCH
+Bug fix? -> Yes -> PATCH
   ↓ No
-Documentation only? → Yes → PATCH
+Documentation only? -> Yes -> PATCH
   ↓ No
-(unclear) → Ask for clarification
+(unclear) -> Ask for clarification
 ```
 
 ### Option C: Hybrid
@@ -134,7 +134,7 @@ Combine checklist with AI analysis:
 1. **AI models still not great at this** - might not be much better than humans
 2. **Adds complexity** to workflow
 3. **Could slow down** quick fixes if required for every change
-4. **Might disagree** with human judgment → creates debate
+4. **Might disagree** with human judgment -> creates debate
 
 ---
 
@@ -147,21 +147,21 @@ Instead of AI, create clear human-readable guidelines:
 ```markdown
 ## Version Bump Decision Guide
 
-### Patch (0.4.0 → 0.4.1)
+### Patch (0.4.0 -> 0.4.1)
 - Bug fixes
 - Typo corrections
 - Documentation updates
 - Performance improvements (no API changes)
 - Dependency updates (no breaking changes)
 
-### Minor (0.4.0 → 0.5.0)
+### Minor (0.4.0 -> 0.5.0)
 - New features
 - New UI components
 - New optional parameters
 - Completed project phases
 - Deprecations (but not removals)
 
-### Major (0.4.0 → 1.0.0)
+### Major (0.4.0 -> 1.0.0)
 - Breaking API changes
 - Removal of deprecated features
 - Major system overhauls
@@ -211,9 +211,9 @@ Don't over-engineer until we know it's actually a problem.
 Could create: `docs/VERSION-BUMP-GUIDELINES.md`
 
 With clear examples:
-- ✅ This is a patch
-- ✅ This is a minor
-- ✅ This is a major
+- PASSED This is a patch
+- PASSED This is a minor
+- PASSED This is a major
 
 Based on real examples from the project.
 
@@ -222,7 +222,7 @@ Based on real examples from the project.
 ## Next Steps
 
 **For now:**
-1. ✅ Add to roadmap (document exists)
+1. PASSED Add to roadmap (document exists)
 2. ⏸️ Wait and see if version sizing becomes problematic
 3. 📋 Track version decisions in CHANGELOG
 4. 📊 Review in 3 months: Are we consistent?

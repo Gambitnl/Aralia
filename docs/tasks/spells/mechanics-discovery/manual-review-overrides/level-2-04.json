@@ -1,0 +1,324 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "skywrite::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Skywrite creates visible cloud words in a sky location the caster can see; the visibility and sky placement are prose-only.",
+      "recommendedTemplateChange": "Add visible sky-writing fields for text count, sky placement, and cloud-made appearance.",
+      "recommendedJsonChange": "Add runtime skyWriting or environmentalMessage data with visible text placement."
+    },
+    "skywrite::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Skywrite creates up to ten words as a persistent public message, but runtime only stores this communication as a generic utility description.",
+      "recommendedTemplateChange": "Add public written-message fields for maximum word count, medium, placement, and duration.",
+      "recommendedJsonChange": "Add runtime communication/message data for up to ten cloud words."
+    },
+    "skywrite::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Skywrite's strong-wind early ending is now typed under conditionalEndings, but the spell still creates persistent cloud words in the sky and that environmental/message object remains prose-only.",
+      "recommendedTemplateChange": "Add environmental creation fields for cloud-based sky-writing effects. Do not duplicate the strong-wind ending here; it is covered by Conditional Ending fields.",
+      "recommendedJsonChange": "Add runtime environmentalChange or skyWriting data for cloud word creation while keeping strongWindDisperses represented by conditionalEndings."
+    },
+    "skywrite::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Skywrite now records strong_wind_disperses_effect in structured markdown and runtime conditionalEndings. The normal word disappearance at duration end is ordinary cleanup, and cloud-message creation remains open under message/environment buckets.",
+      "issue": "A strong wind can disperse the clouds and end the spell early, which is not modeled as a conditional ending.",
+      "recommendedTemplateChange": "Add conditional-ending fields for strong-wind dispersal.",
+      "recommendedJsonChange": "Add runtime ending condition for strong wind dispersing the cloud words."
+    },
+    "skywrite::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The words dissipating when the spell ends is normal cleanup of the created cloud message, while the actionable early-ending wind rule is tracked under conditional ending.",
+      "recommendedTemplateChange": "No separate aftermath field required for ordinary disappearance at duration end.",
+      "recommendedJsonChange": "No separate aftermath JSON field required beyond the created-message duration and wind ending."
+    },
+    "spider-climb::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Spider Climb grants movement across vertical surfaces and ceilings while leaving hands free, plus a Climb Speed equal to Speed; runtime stores this only in prose.",
+      "recommendedTemplateChange": "Add movement grant fields for vertical surfaces, ceilings, hands-free climbing, and climb speed equal to base Speed.",
+      "recommendedJsonChange": "Add runtime movementGrant data for surface traversal and climb speed."
+    },
+    "spider-climb::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for the movement benefit.",
+      "recommendedTemplateChange": "No conditional-ending field required beyond the timed concentration duration.",
+      "recommendedJsonChange": "No conditional-ending JSON change required."
+    },
+    "spike-growth::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Spike Growth creates difficult terrain, damaging spikes, and camouflaged hazardous ground with Search action recognition rules; runtime has a terrain effect but keeps camouflage and recognition details in prose.",
+      "recommendedTemplateChange": "Add terrain hazard fields for difficult terrain, per-distance damage, camouflage, and Search action recognition using Perception or Survival against spell save DC.",
+      "recommendedJsonChange": "Extend runtime TERRAIN data with camouflage and recognition-check fields."
+    },
+    "spike-growth::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creatures that cannot see the area when the spell is cast need a Search action and successful Wisdom check to recognize the hazard before entering.",
+      "recommendedTemplateChange": "Add visibility-gated hazard recognition fields.",
+      "recommendedJsonChange": "Add runtime hazardRecognition data keyed to whether the creature saw the area at casting."
+    },
+    "spike-growth::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Damage triggers when a creature moves into or within the area and is calculated for every 5 feet traveled, but runtime only states this in the terrain description.",
+      "recommendedTemplateChange": "Add movement-triggered terrain damage fields for entering/within-area movement and damage per distance.",
+      "recommendedJsonChange": "Add runtime terrainDamageTrigger data for 2d4 Piercing per 5 feet traveled."
+    },
+    "spike-growth::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched movement wording for damage measurement, but Spike Growth does not grant travel, teleportation, or planar movement.",
+      "recommendedTemplateChange": "Track the movement-distance damage under terrain hazard fields, not travel fields.",
+      "recommendedJsonChange": "Track the movement-distance damage under terrainDamageTrigger, not travel data."
+    },
+    "spike-growth::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell transforms the ground into camouflaged hazardous difficult terrain, which is a world-state terrain change not fully typed.",
+      "recommendedTemplateChange": "Add environmental/terrain transformation fields for ground sprouts, natural camouflage, and hazard recognition.",
+      "recommendedJsonChange": "Add runtime environmental terrain transformation details or extend the TERRAIN effect accordingly."
+    },
+    "spiritual-weapon::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Spiritual Weapon creates a floating force in a chosen space and lets the caster choose its weapon-like appearance; the chosen space and persistent force are not modeled as a created controlled effect.",
+      "recommendedTemplateChange": "Add created controlled force fields for chosen appearance, starting space, attack reach from the force, and duration.",
+      "recommendedJsonChange": "Add runtime controlledEntity or createdForce data for the weapon-like force."
+    },
+    "spiritual-weapon::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial and repeated melee spell attacks are represented as hit-gated DAMAGE effects; the later-turn bonus-action cost was corrected in runtime JSON.",
+      "recommendedTemplateChange": "No attack/save modifier field required for this reviewed row.",
+      "recommendedJsonChange": "Closed by preserving melee spell attack damage effects and correcting the repeated attack sustain cost to bonus_action."
+    },
+    "spiritual-weapon::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The later-turn Bonus Action can both move the force up to 20 feet and repeat the attack from the force's position; runtime now has the bonus-action sustain cost but still lacks controlled-force movement data.",
+      "recommendedTemplateChange": "Add sustain action fields that combine moving a persistent effect and making an attack from its new position.",
+      "recommendedJsonChange": "Add runtime controlledEntity movement data for moving the force up to 20 feet before the repeated attack."
+    },
+    "spiritual-weapon::deferred_descriptive_flavor": {
+      "resolutionStatus": "deferred_flavor",
+      "issue": "The exact spectral weapon appearance is descriptive choice unless and until the renderer needs a cosmetic asset selector.",
+      "recommendedTemplateChange": "No mechanical field required for the cosmetic weapon appearance in this goal.",
+      "recommendedJsonChange": "No runtime mechanical field required for the cosmetic weapon appearance in this goal."
+    },
+    "suggestion::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Suggestion's Wisdom save that negates the Charmed/control effect is represented in both utility and status-condition effects.",
+      "recommendedTemplateChange": "No attack/save field change required for this reviewed row.",
+      "recommendedJsonChange": "Closed by preserving the Wisdom save and removing stale Construct/Undead target exclusions that were not in canonical prose."
+    },
+    "suggestion::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Suggestion's target hearing and understanding prerequisites are represented by Target Can Hear/Understand Caster and runtime communicationPrerequisites; prompt word-count details remain open under message_or_communication.",
+      "recommendedTemplateChange": "No new template field needed; existing target communication prerequisite fields now cover this eligibility mechanic.",
+      "recommendedJsonChange": "Runtime targeting/effect communicationPrerequisites now require the target to hear and understand the caster."
+    },
+    "suggestion::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The suggested course of activity must be communicated in no more than 25 words; this word limit and communication payload are not typed.",
+      "recommendedTemplateChange": "Add spoken command/suggestion fields for maximum word count and language/hearing understanding prerequisites.",
+      "recommendedJsonChange": "Add runtime suggestionPayload data for maxWords 25 plus hearing/understanding requirements."
+    },
+    "suggestion::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target must pursue a reasonable, achievable, non-obviously-harmful suggestion to the best of its ability; runtime stores this social-control rule in prose only.",
+      "recommendedTemplateChange": "Add social-control fields for achievable command, non-obvious-harm restriction, and compelled pursuit behavior.",
+      "recommendedJsonChange": "Add runtime socialControl data while preserving ai_dm arbitration for open-ended command judgment."
+    },
+    "suggestion::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Charmed condition on failed Wisdom save is represented as a STATUS_CONDITION effect.",
+      "recommendedTemplateChange": "No additional status field required for the Charmed condition.",
+      "recommendedJsonChange": "No additional status JSON change required for the Charmed condition."
+    },
+    "suggestion::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Suggestion ends for the target if the caster or allies damage it, or when the suggested activity is completed early; these ending conditions are prose-only.",
+      "recommendedTemplateChange": "Add conditional-ending fields for damage by caster/allies and completion of the suggested activity.",
+      "recommendedJsonChange": "Add runtime ending conditions for caster/allies damage and task completion.",
+      "closedReason": "Closed by reusing caster_or_ally_damages_target, adding the suggested_activity_completed trigger value, and recording both ending conditions in Suggestion's structured markdown and runtime JSON."
+    },
+    "summon-beast::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Summon Beast requires choosing Air, Land, or Water, and that choice changes movement, traits, HP, and other stat-block details.",
+      "recommendedTemplateChange": "Add summon mode/stat-block variant fields for Air, Land, and Water.",
+      "recommendedJsonChange": "Add runtime summonOptions data keyed by chosen environment."
+    },
+    "summon-beast::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The summoned spirit's attack bonus uses the caster's spell attack modifier, and Pack Tactics can grant Advantage for Land/Water forms; runtime has no typed summon attack/stat-block data.",
+      "recommendedTemplateChange": "Add summon attack fields for attack bonus source, reach, damage formula, multiattack count, and Pack Tactics advantage condition.",
+      "recommendedJsonChange": "Add runtime summon stat block attack data instead of prose-only utility text."
+    },
+    "summon-beast::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Air form's Flyby trait prevents Opportunity Attacks when it flies out of enemy reach, but runtime has no typed summon trait data.",
+      "recommendedTemplateChange": "Add summon trait fields for Opportunity Attack avoidance by movement mode.",
+      "recommendedJsonChange": "Add runtime summon trait data for Air-only Flyby."
+    },
+    "summon-beast::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spirit must manifest in an unoccupied visible space within range, but runtime only targets a point.",
+      "recommendedTemplateChange": "Add unoccupied-space and visible-space eligibility fields for summons.",
+      "recommendedJsonChange": "Add runtime summon placement filters for unoccupied and visible space."
+    },
+    "summon-beast::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The summoned spirit has Darkvision 60 feet, but the runtime has no typed summoned-creature senses.",
+      "recommendedTemplateChange": "Add summon senses fields.",
+      "recommendedJsonChange": "Add runtime summon stat block senses with Darkvision 60 feet."
+    },
+    "summon-beast::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spirit understands the languages the caster knows and obeys verbal commands with no action required; language understanding and command channel are prose-only.",
+      "recommendedTemplateChange": "Add summon communication fields for understood languages and verbal command cost.",
+      "recommendedJsonChange": "Add runtime summon command/language data."
+    },
+    "summon-beast::created_object_or_structure": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched stat-block prose, but Summon Beast creates a creature spirit rather than an object or structure.",
+      "recommendedTemplateChange": "Track the mechanic under summon/stat-block fields.",
+      "recommendedJsonChange": "Track the mechanic under summonOptions/statBlock data."
+    },
+    "summon-beast::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The bestial spirit's placement, ally status, initiative, default Dodge behavior, verbal command obedience, disappearance rules, and stat-block variants are flattened into utility prose.",
+      "recommendedTemplateChange": "Add summon entity fields for stat block, initiative timing, ally relation, command behavior, default action, and disappearance conditions.",
+      "recommendedJsonChange": "Add runtime SUMMON/summonEntity data instead of a generic UTILITY effect."
+    },
+    "summon-beast::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The costly material component is already represented and not consumed; the detector's remaining matches are stat-block scaling text, not resource consumption.",
+      "recommendedTemplateChange": "No resource field change required for this reviewed row.",
+      "recommendedJsonChange": "No resource JSON change required."
+    },
+    "summon-beast::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Ally status, understood languages, and command obedience are summon-control mechanics currently stored as prose.",
+      "recommendedTemplateChange": "Add summon allegiance and command-understanding fields.",
+      "recommendedJsonChange": "Add runtime summon allegiance and command data."
+    },
+    "summon-beast::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The summoned spirit's AC, HP, speeds, senses, passive Perception, proficiency bonus, and attack/damage formulas are all stat-block values flattened into text.",
+      "recommendedTemplateChange": "Add summon stat-block fields with formulas by spell level and chosen environment.",
+      "recommendedJsonChange": "Add runtime summon stat block data for AC, HP, speeds, senses, PB, attacks, and damage."
+    },
+    "summon-beast::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Incapacitated text is a Pack Tactics prerequisite on an ally, not a condition the spell applies.",
+      "recommendedTemplateChange": "Track the condition prerequisite under summon attack trait fields.",
+      "recommendedJsonChange": "Track the condition prerequisite under Pack Tactics summon trait data."
+    },
+    "summon-beast::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "Air, Land, and Water are summon mode choices, not world environmental changes.",
+      "recommendedTemplateChange": "Track environment choice under summon mode/stat-block variants.",
+      "recommendedJsonChange": "Track environment choice under summonOptions."
+    },
+    "summon-beast::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Summon Beast now records created_entity_drops_to_0_hp in structured markdown and runtime conditionalEndings with effect scope. Other summon stat-block, command, mode, placement, and trait mechanics remain open in their own buckets.",
+      "issue": "The spirit disappears when it drops to 0 Hit Points or when the spell ends; runtime has no typed summon disappearance/end condition.",
+      "recommendedTemplateChange": "Add summon ending fields for disappears at 0 HP and spell end.",
+      "recommendedJsonChange": "Add runtime summon ending/disappearance data."
+    },
+    "summon-beast::aftermath_or_memory": {
+      "resolutionStatus": "closed",
+      "issue": "The disappearance text is an ending condition for the summon, not a separate aftermath or memory mechanic.",
+      "recommendedTemplateChange": "Track under summon conditional-ending fields.",
+      "recommendedJsonChange": "Track under summon ending/disappearance data."
+    },
+    "warding-bond::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The +1 AC bonus is represented, but the +1 saving throw bonus while within 60 feet is not first-class in runtime JSON.",
+      "recommendedTemplateChange": "Add saving throw bonus fields parallel to AC bonus fields.",
+      "recommendedJsonChange": "Add runtime save bonus data for +1 to all saving throws while linked and in range."
+    },
+    "warding-bond::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The 0 Hit Points text is a conditional ending for the caster, not object stats or damageability.",
+      "recommendedTemplateChange": "Track under conditional-ending fields.",
+      "recommendedJsonChange": "Track under conditional-ending data."
+    },
+    "warding-bond::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance to all damage is represented, but the caster taking the same amount of damage whenever the target takes damage is prose-only utility text.",
+      "recommendedTemplateChange": "Add linked damage transfer fields for mirroring damage from target to caster.",
+      "recommendedJsonChange": "Add runtime linkedDamage data for same-amount damage to caster.",
+      "reviewerNote": "Closed by adding Linked Damage Trigger/Recipient/Amount plus Amount Basis, Type Source, and Recipient Mitigation structured fields. Runtime effects[].linkedDamage records target_takes_damage -> caster -> same_amount, based on post_target_mitigation damage, using the triggering damage type, with recipientMitigation not_reapplied so the caster does not apply resistance/vulnerability a second time to the mirrored amount. The 0 HP, distance, and recast endings are now closed under conditional_ending."
+    },
+    "warding-bond::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Warding Bond now records all three spell-ending triggers in structured markdown and runtime conditionalEndings: caster_drops_to_0_hp, linked_creatures_separated_beyond_distance, and spell_cast_again_on_connected_creature. The saving throw bonus, ring-wearing requirement, and link-range gating for benefits remain open in their own rows.",
+      "issue": "Warding Bond ends if the caster drops to 0 HP, the pair separates by more than 60 feet, or the spell is cast again on either connected creature; these are prose-only.",
+      "recommendedTemplateChange": "Add conditional-ending fields for caster HP 0, distance break, and recast on either linked creature.",
+      "recommendedJsonChange": "Add runtime ending conditions for HP, range, and recast-on-linked-creature."
+    },
+    "web::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Dexterity save and Restrained effect are represented, but the trigger is incomplete because it must fire the first time a creature enters on a turn or starts its turn there.",
+      "recommendedTemplateChange": "Add area hazard trigger fields supporting enter-on-turn and starts-turn-there.",
+      "recommendedJsonChange": "Add runtime trigger data that combines first enter per turn and turn start."
+    },
+    "web::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Difficult terrain is represented, but Lightly Obscured, anchoring requirements, collapse timing, and 5-foot surface depth are not typed.",
+      "recommendedTemplateChange": "Add web terrain fields for lightly obscured, anchored/layered support, collapse timing, and depth.",
+      "recommendedJsonChange": "Add runtime terrain structure data for obscurity, anchoring, collapse, and depth."
+    },
+    "web::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The conjured webs have support/anchoring requirements and collapse if unsupported, but runtime does not model them as a created structure.",
+      "recommendedTemplateChange": "Add created web structure fields for anchor requirements and unsupported collapse.",
+      "recommendedJsonChange": "Add runtime createdStructure data for web anchoring and collapse."
+    },
+    "web::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Lightly Obscured wording, but Web has no healing or restoration mechanic.",
+      "recommendedTemplateChange": "No healing/restoration field required.",
+      "recommendedJsonChange": "No healing/restoration JSON change required."
+    },
+    "web::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Restrained and the Strength (Athletics) escape action are represented, and the incorrect repeat save was removed; the remaining gap is the status duration while in webs or until escape.",
+      "recommendedTemplateChange": "Add status duration fields for while_in_area_or_until_escape.",
+      "recommendedJsonChange": "Add runtime status duration metadata tying Restrained to remaining in the webs or breaking free."
+    },
+    "web::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The webs are flammable; exposed 5-foot cubes burn away in 1 round and deal fire damage to creatures starting in that fire. Damage is represented, but burn-away state is not.",
+      "recommendedTemplateChange": "Add flammable environmental object fields for cube size, burn duration, burn-away, and fire-start damage.",
+      "recommendedJsonChange": "Add runtime flammableStructure data for burning web cubes."
+    },
+    "web::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Unsupported webs collapse and the spell ends at the start of the caster's next turn; this conditional ending is prose-only.",
+      "recommendedTemplateChange": "Add conditional-ending fields for unsupported created area collapse at start of next turn.",
+      "recommendedJsonChange": "Add runtime ending condition for unsupported web collapse.",
+      "closedReason": "Closed by adding the unsupported_area_collapses_next_turn conditional-ending trigger and recording Web's unsupported-area collapse ending in structured markdown and runtime JSON."
+    },
+    "zone-of-truth::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Charisma save is represented and its frequency was corrected to every_time, but runtime still cannot express the combined first-enter-on-a-turn or starts-turn-there trigger.",
+      "recommendedTemplateChange": "Add area trigger fields supporting enter-first-time-on-turn and starts-turn-there.",
+      "recommendedJsonChange": "Add runtime trigger composition for Zone of Truth's save timing."
+    },
+    "zone-of-truth::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "On a failed save, a creature cannot speak a deliberate lie while in the radius, but runtime stores the speech restriction in prose.",
+      "recommendedTemplateChange": "Add truth/speech restriction fields for deliberate-lie blocking.",
+      "recommendedJsonChange": "Add runtime truthZone data for failed-save lie prevention."
+    },
+    "zone-of-truth::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster knows each save result, affected creatures are aware of the spell, and they may avoid answering while remaining truthful; these social/knowledge payloads are prose-only.",
+      "recommendedTemplateChange": "Add knowledge payload fields for save-result awareness and affected-target awareness/evasive-answer behavior.",
+      "recommendedJsonChange": "Add runtime knowledge/socialControl data for save-result disclosure, target awareness, and evasive-but-truthful answers."
+    },
+    "zone-of-truth::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The phrase 'until the spell ends' is ordinary duration scoping for the zone.",
+      "recommendedTemplateChange": "No conditional-ending field required beyond timed duration.",
+      "recommendedJsonChange": "No conditional-ending JSON change required."
+    }
+  },
+  "manualFindings": {}
+}

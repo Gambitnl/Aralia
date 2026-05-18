@@ -44,6 +44,7 @@ export function createDefaultActionEconomy(moveTotal: number): ActionEconomyStat
         action: { used: false, remaining: 1 },
         bonusAction: { used: false, remaining: 1 },
         reaction: { used: false, remaining: 1 },
+        legendary: { used: 0, total: 0 },
         movement: { used: 0, total: moveTotal },
         freeActions: 1,
     };
@@ -59,6 +60,10 @@ export function resetEconomy(character: CombatCharacter): CombatCharacter {
         action: { used: false, remaining: 1 },
         bonusAction: { used: false, remaining: 1 },
         reaction: { used: false, remaining: 1 }, // Reaction resets at start of own turn in 5e
+        legendary: { 
+            used: 0, 
+            total: character.stats.legendaryActionsPerRound || 0 
+        },
         movement: { used: 0, total: character.stats.speed },
         freeActions: 1, // Reset free actions
     };
@@ -110,6 +115,8 @@ export function canAffordActionCost(character: CombatCharacter | undefined, cost
             return !economy.bonusAction.used;
         case 'reaction':
             return !economy.reaction.used;
+        case 'legendary':
+            return (economy.legendary.total - economy.legendary.used) >= (cost.quantity || 1);
         case 'free':
             return economy.freeActions > 0;
         case 'movement-only':
@@ -130,6 +137,7 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
         action: { ...character.actionEconomy.action },
         bonusAction: { ...character.actionEconomy.bonusAction },
         reaction: { ...character.actionEconomy.reaction },
+        legendary: { ...character.actionEconomy.legendary },
         movement: {
             ...character.actionEconomy.movement,
             used: character.actionEconomy.movement.used + (cost.movementCost || 0)
@@ -147,6 +155,9 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
             break;
         case 'reaction':
             newEconomy.reaction = { ...newEconomy.reaction, used: true };
+            break;
+        case 'legendary':
+            newEconomy.legendary.used += (cost.quantity || 1);
             break;
         case 'free':
             newEconomy.freeActions = Math.max(0, newEconomy.freeActions - 1);

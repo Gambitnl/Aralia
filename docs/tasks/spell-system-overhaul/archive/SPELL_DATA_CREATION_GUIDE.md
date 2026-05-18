@@ -1,4 +1,4 @@
-﻿# Legacy Spell Data Creation Guide
+# Legacy Spell Data Creation Guide
 
 **Status:** Historical guide snapshot
 **Last Reviewed:** 2026-03-12

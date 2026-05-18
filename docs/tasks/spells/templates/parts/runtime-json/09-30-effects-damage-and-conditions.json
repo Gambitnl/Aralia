@@ -1,0 +1,371 @@
+{
+  "templateKind": "runtime-json",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 20,
+  "fields": [
+    {
+      "path": "effects[].barrierDamagePrevention.sourceCategories[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Barrier Damage Block Source Categories",
+      "acceptedValues": [
+        "attack",
+        "effect",
+        "spell",
+        "object",
+        "energy"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T01:45:00+02:00",
+          "action": "registered",
+          "why": "Barrier blocking needs typed source categories so attacks, effects, objects, energy, and spell effects are not collapsed into description prose."
+        }
+      ],
+      "comment": "Stores what source categories are blocked by a barrier damage-prevention rule. It maps from the structured markdown label `Barrier Damage Block Source Categories` after that label has been checked against canonical prose. Purpose: effects[].barrierDamagePrevention.sourceCategories[] records what kinds of harm cannot cross the barrier. Omit only when the effect has no barrier damage-prevention mechanic."
+    },
+    {
+      "path": "effects[].spellEffectPrevention.sourceSide",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Spell Effect Prevention Source Side",
+      "acceptedValues": [
+        "outside",
+        "inside",
+        "any"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "Source-side spell-effect prevention needs runtime data distinct from ordinary damage prevention."
+        }
+      ],
+      "comment": "Stores which side a blocked spell must originate from. It maps from the structured markdown label `Spell Effect Prevention Source Side` after that label has been checked against canonical prose. Purpose: effects[].spellEffectPrevention.sourceSide keeps Globe-style outside-spell blocking explicit."
+    },
+    {
+      "path": "effects[].spellEffectPrevention.maxSpellLevel",
+      "required": false,
+      "valueType": "number",
+      "structuredLabel": "Spell Effect Prevention Max Spell Level",
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "Level-gated spell blocking needs a base maximum spell level in runtime data."
+        }
+      ],
+      "comment": "Stores the highest spell level blocked at the base casting level. It maps from the structured markdown label `Spell Effect Prevention Max Spell Level` after that label has been checked against canonical prose. Purpose: effects[].spellEffectPrevention.maxSpellLevel makes level-gated spell negation machine-readable."
+    },
+    {
+      "path": "effects[].spellEffectPrevention.affectedSubjects[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Spell Effect Prevention Affected Subjects",
+      "acceptedValues": [
+        "creatures",
+        "objects",
+        "areas",
+        "anything_inside"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "The runtime needs to know what subjects a blocked spell cannot affect."
+        }
+      ],
+      "comment": "Stores what subjects qualifying spells cannot affect. It maps from the structured markdown label `Spell Effect Prevention Affected Subjects` after that label has been checked against canonical prose. Purpose: effects[].spellEffectPrevention.affectedSubjects[] keeps the protected scope explicit."
+    },
+    {
+      "path": "effects[].spellEffectPrevention.excludesAreaOfEffect",
+      "required": false,
+      "valueType": "boolean",
+      "structuredLabel": "Spell Effect Prevention Excludes Area Of Effect",
+      "log": [
+        {
+          "at": "2026-05-14T02:05:00+02:00",
+          "action": "registered",
+          "why": "Area exclusion is part of Globe of Invulnerability and should not be flattened into target immunity prose."
+        }
+      ],
+      "comment": "Stores whether qualifying spell areas exclude the protected area. It maps from the structured markdown label `Spell Effect Prevention Excludes Area Of Effect` after that label has been checked against canonical prose. Purpose: effects[].spellEffectPrevention.excludesAreaOfEffect preserves area-of-effect exclusion separately from target-effect blocking."
+    },
+    {
+      "path": "effects[].linkedDamage.trigger",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Linked Damage Trigger",
+      "acceptedValues": [
+        "target_takes_damage"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:30:00+02:00",
+          "action": "registered",
+          "why": "Damage mirroring needs a runtime trigger separate from ordinary damage effects."
+        }
+      ],
+      "comment": "Stores which linked damage event causes mirrored damage. It maps from the structured markdown label `Linked Damage Trigger` after that label has been checked against canonical prose. Purpose: effects[].linkedDamage.trigger keeps Warding Bond-style damage sharing machine-readable."
+    },
+    {
+      "path": "effects[].linkedDamage.recipient",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Linked Damage Recipient",
+      "acceptedValues": [
+        "caster",
+        "target",
+        "linked_creature"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:30:00+02:00",
+          "action": "registered",
+          "why": "Damage mirroring needs to name who receives the mirrored damage."
+        }
+      ],
+      "comment": "Stores who takes the mirrored damage. It maps from the structured markdown label `Linked Damage Recipient` after that label has been checked against canonical prose. Purpose: effects[].linkedDamage.recipient preserves the direction of linked damage sharing."
+    },
+    {
+      "path": "effects[].linkedDamage.amount",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Linked Damage Amount",
+      "acceptedValues": [
+        "same_amount"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T02:30:00+02:00",
+          "action": "registered",
+          "why": "Damage mirroring needs an explicit amount rule instead of prose-only same-amount wording."
+        }
+      ],
+      "comment": "Stores how much damage is mirrored. It maps from the structured markdown label `Linked Damage Amount` after that label has been checked against canonical prose. Purpose: effects[].linkedDamage.amount distinguishes mirrored damage from independent damage rolls or reductions."
+    },
+    {
+      "path": "effects[].linkedDamage.amountBasis",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Linked Damage Amount Basis",
+      "acceptedValues": [
+        "post_target_mitigation"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:25:00+02:00",
+          "action": "registered",
+          "why": "Linked damage needs a runtime policy for whether it mirrors pre-mitigation or post-mitigation damage."
+        }
+      ],
+      "comment": "Stores which damage total is mirrored by the linked damage effect. It maps from the structured markdown label `Linked Damage Amount Basis` after that label has been checked against canonical prose. Purpose: effects[].linkedDamage.amountBasis makes Warding Bond-style same-amount damage resolve from the final amount the protected target actually took instead of leaving resistance/vulnerability timing implicit. Omit only when the effect has no linked-damage mechanic."
+    },
+    {
+      "path": "effects[].linkedDamage.damageTypeSource",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Linked Damage Type Source",
+      "acceptedValues": [
+        "triggering_damage_type",
+        "untyped"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:25:00+02:00",
+          "action": "registered",
+          "why": "Linked damage needs an explicit damage-type source so runtime logs and later mechanics do not infer type from prose."
+        }
+      ],
+      "comment": "Stores where the linked damage's type comes from. It maps from the structured markdown label `Linked Damage Type Source` after that label has been checked against canonical prose. Purpose: effects[].linkedDamage.damageTypeSource preserves whether mirrored damage follows the triggering damage type or has no type. Omit only when the effect has no linked-damage mechanic."
+    },
+    {
+      "path": "effects[].linkedDamage.recipientMitigation",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Linked Damage Recipient Mitigation",
+      "acceptedValues": [
+        "not_reapplied",
+        "apply_recipient_mitigation"
+      ],
+      "log": [
+        {
+          "at": "2026-05-14T03:25:00+02:00",
+          "action": "registered",
+          "why": "Linked damage needs a runtime policy for whether the recipient's own resistance or vulnerability can modify the mirrored amount."
+        }
+      ],
+      "comment": "Stores whether the linked recipient applies their own resistance, vulnerability, or prevention after the mirrored amount is selected. It maps from the structured markdown label `Linked Damage Recipient Mitigation` after that label has been checked against canonical prose. Purpose: effects[].linkedDamage.recipientMitigation prevents Warding Bond-style same-amount damage from being accidentally halved, doubled, or prevented a second time. Omit only when the effect has no linked-damage mechanic."
+    },
+    {
+      "path": "effects[].conditionSuppression[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Condition Suppressions",
+      "log": [
+        {
+          "at": "2026-05-13T23:45:00+02:00",
+          "action": "registered",
+          "why": "Condition suppression needs a runtime field separate from condition immunity and status removal."
+        }
+      ],
+      "comment": "Stores named status conditions that a defensive effect temporarily suppresses without removing. It maps from the structured markdown label `Condition Suppressions` after that label has been checked against canonical prose. Purpose: effects[].conditionSuppression[] preserves pause-style condition mechanics such as Calm Emotions without flattening them into prose or pretending they are permanent immunity/removal. Omit or use an empty array only when the defensive effect has no condition-suppression mechanic."
+    },
+    {
+      "path": "effects[].conditionRemoval[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Conditions Removed",
+      "log": [
+        {
+          "at": "2026-05-14T00:25:00+02:00",
+          "action": "registered",
+          "why": "Immediate condition-ending effects need a runtime field separate from condition application, immunity, and suppression."
+        }
+      ],
+      "comment": "Stores named status conditions that an effect ends immediately. It maps from the structured markdown label `Conditions Removed` after that label has been checked against canonical prose. Purpose: effects[].conditionRemoval[] preserves restorative mechanics such as Protection from Poison ending Poisoned without flattening them into utility prose. Omit or use an empty array only when the effect has no condition-removal mechanic."
+    },
+    {
+      "path": "effects[].attackerFilter.creatureTypes[]",
+      "required": false,
+      "valueType": "string-array",
+      "structuredLabel": "Condition Immunity Source Creature Types",
+      "log": [
+        {
+          "at": "2026-05-13T23:30:00+02:00",
+          "action": "registered",
+          "why": "Source-limited condition immunity needs a runtime source filter attached to the defensive immunity effect."
+        }
+      ],
+      "comment": "Stores the creature-type source filter for condition-immunity effects. It maps from the structured markdown label `Condition Immunity Source Creature Types`; use it only when the canonical prose says the target is immune to conditions from a named source group. Purpose: effects[].attackerFilter.creatureTypes[] preserves source-limited immunity without inventing a separate filter object for the same defensive source concept already used by attack-disadvantage effects."
+    },
+    {
+      "path": "effects[].attackRollModifier.modifier",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "advantage",
+        "disadvantage",
+        "bonus",
+        "penalty"
+      ],
+      "structuredLabel": "Attack Roll Modifier",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Attack Roll Modifier."
+        }
+      ],
+      "comment": "Mapped from structured Attack Roll Modifier. It maps to `effects[].attackRollModifier.modifier`. It is populated from the structured markdown label `Attack Roll Modifier`. Purpose: effects[].attackRollModifier.modifier exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Attack Roll Modifier`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].attackRollModifier.modifier`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "advantage": "Allowed value for effects[].attackRollModifier.modifier; use only when the canonical spell text supports this exact mechanic.",
+        "disadvantage": "Allowed value for effects[].attackRollModifier.modifier; use only when the canonical spell text supports this exact mechanic.",
+        "bonus": "Allowed value for effects[].attackRollModifier.modifier; use only when the canonical spell text supports this exact mechanic.",
+        "penalty": "Allowed value for effects[].attackRollModifier.modifier; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].attackRollModifier.direction",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "incoming",
+        "outgoing"
+      ],
+      "structuredLabel": "Attack Roll Direction",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Attack Roll Direction."
+        }
+      ],
+      "comment": "Mapped from structured Attack Roll Direction. It maps to `effects[].attackRollModifier.direction`. It is populated from the structured markdown label `Attack Roll Direction`. Purpose: effects[].attackRollModifier.direction exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Attack Roll Direction`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].attackRollModifier.direction`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "incoming": "Allowed value for effects[].attackRollModifier.direction; use only when the canonical spell text supports this exact mechanic.",
+        "outgoing": "Allowed value for effects[].attackRollModifier.direction; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].attackRollModifier.attackKind",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "any",
+        "weapon",
+        "melee_weapon",
+        "ranged_weapon",
+        "spell"
+      ],
+      "structuredLabel": "Attack Roll Kind",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Attack Roll Kind."
+        }
+      ],
+      "comment": "Mapped from structured Attack Roll Kind. It maps to `effects[].attackRollModifier.attackKind`. It is populated from the structured markdown label `Attack Roll Kind`. Purpose: effects[].attackRollModifier.attackKind exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Attack Roll Kind`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].attackRollModifier.attackKind`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "any": "Allowed value for effects[].attackRollModifier.attackKind; use only when the canonical spell text supports this exact mechanic.",
+        "weapon": "Allowed value for effects[].attackRollModifier.attackKind; use only when the canonical spell text supports this exact mechanic.",
+        "melee_weapon": "Allowed value for effects[].attackRollModifier.attackKind; use only when the canonical spell text supports this exact mechanic.",
+        "ranged_weapon": "Allowed value for effects[].attackRollModifier.attackKind; use only when the canonical spell text supports this exact mechanic.",
+        "spell": "Allowed value for effects[].attackRollModifier.attackKind; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].attackRollModifier.consumption",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "next_attack",
+        "first_attack",
+        "while_active"
+      ],
+      "structuredLabel": "Attack Roll Consumption",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Attack Roll Consumption."
+        }
+      ],
+      "comment": "Mapped from structured Attack Roll Consumption. It maps to `effects[].attackRollModifier.consumption`. It is populated from the structured markdown label `Attack Roll Consumption`. Purpose: effects[].attackRollModifier.consumption exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Attack Roll Consumption`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].attackRollModifier.consumption`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "next_attack": "Allowed value for effects[].attackRollModifier.consumption; use only when the canonical spell text supports this exact mechanic.",
+        "first_attack": "Allowed value for effects[].attackRollModifier.consumption; use only when the canonical spell text supports this exact mechanic.",
+        "while_active": "Allowed value for effects[].attackRollModifier.consumption; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "effects[].attackRollModifier.duration",
+      "required": false,
+      "valueType": "duration-object",
+      "structuredLabel": "Attack Roll Duration",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Attack Roll Duration."
+        }
+      ],
+      "comment": "Mapped from structured Attack Roll Duration. It maps to `effects[].attackRollModifier.duration`. It is populated from the structured markdown label `Attack Roll Duration`. Purpose: effects[].attackRollModifier.duration exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Attack Roll Duration`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].attackRollModifier.duration`. The value type is `duration-object`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "effects[].attackRollModifier.notes",
+      "required": false,
+      "valueType": "string",
+      "structuredLabel": "Attack Roll Notes",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Attack Roll Notes."
+        }
+      ],
+      "comment": "Mapped from structured Attack Roll Notes. It maps to `effects[].attackRollModifier.notes`. It is populated from the structured markdown label `Attack Roll Notes`. Purpose: effects[].attackRollModifier.notes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Attack Roll Notes`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].attackRollModifier.notes`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

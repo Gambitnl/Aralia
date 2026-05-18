@@ -1,0 +1,225 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 5 manual review override shard for spell indexes 25-29 in generated discovery row order."
+  ],
+  "findings": {
+    "geas::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The command can be any service, restraint, or course of activity short of certain death; runtime preserves this only in prose and lacks typed command-choice constraints.",
+      "recommendedTemplateChange": "Add geas-style command fields for allowed command scope, forbidden certain-death commands, and suicidal-command ending.",
+      "recommendedJsonChange": "Add runtime commandConstraint data with forbidden-command and spell-ending behavior."
+    },
+    "geas::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The initial Wisdom save and failed-save Charmed condition are represented in structured fields and runtime STATUS_CONDITION. The command-violation damage remains tracked under status/control buckets.",
+      "recommendedTemplateChange": "No new initial-save field required for this pass.",
+      "recommendedJsonChange": "Closed by Wisdom save plus Charmed STATUS_CONDITION."
+    },
+    "geas::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Geas's cannot-understand-command automatic success rule is now encoded as a save auto-outcome override.",
+      "recommendedTemplateChange": "Closed by Save Auto Outcome auto_success with condition cannot_understand_caster.",
+      "recommendedJsonChange": "Closed by runtime condition.saveOutcomeOverrides carrying cannot_understand_caster -> auto_success."
+    },
+    "geas::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary visible target selection and verbal command delivery; visible targeting is represented by lineOfSight, and no separate light/sound effect is created.",
+      "recommendedTemplateChange": "No vision-light-sound field required for this pass.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting and verbal component."
+    },
+    "geas::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The command must be understood by the target, but runtime has no structured command-language or comprehension fields.",
+      "recommendedTemplateChange": "Add command communication fields for verbal command content and target understanding requirement.",
+      "recommendedJsonChange": "Add runtime commandCommunication data."
+    },
+    "geas::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target is not summoned, but it is behaviorally constrained by a command and penalized for acting counter to it; runtime lacks geas/control-obligation fields.",
+      "recommendedTemplateChange": "Track this under a control-obligation field family rather than summon fields.",
+      "recommendedJsonChange": "Add runtime geasObligation/controlCompliance data."
+    },
+    "geas::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Charmed target's behavior is constrained by a socially framed command, including service/refrain choices and understanding requirements; runtime lacks typed social-control semantics.",
+      "recommendedTemplateChange": "Add social-control command fields for compelled service or abstention.",
+      "recommendedJsonChange": "Add runtime socialCommandConstraint data."
+    },
+    "geas::healing_or_restoration": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Remove Curse, Greater Restoration, or Wish can end the spell; runtime lacks typed external-spell removal/ending fields.",
+      "recommendedTemplateChange": "Add removableBySpell fields listing spells that can end a spell effect.",
+      "recommendedJsonChange": "Add runtime removableBySpells data."
+    },
+    "geas::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Runtime represents the Charmed condition but not the once-per-day 5d10 Psychic damage when the Charmed target acts directly counter to the command.",
+      "recommendedTemplateChange": "Add command-violation damage fields with once-per-day frequency.",
+      "recommendedJsonChange": "Add runtime conditional violationDamage data keyed to command noncompliance."
+    },
+    "geas::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched prose about a course of activity, but Geas does not create or alter terrain, light, weather, or another environmental state.",
+      "recommendedTemplateChange": "No environmental-change field required.",
+      "recommendedJsonChange": "No environmental-change runtime data required."
+    },
+    "geas::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell ends on suicidal commands and can be ended by specific spells; runtime lacks typed conditional ending fields for both cases.",
+      "recommendedTemplateChange": "Add conditional-ending fields for forbidden command endings and external spell removal.",
+      "recommendedJsonChange": "Add runtime conditionalEnding data."
+    },
+    "hallow::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hallow has chosen creature types plus a chosen extra effect with many modes; runtime keeps the mode set as prose only.",
+      "recommendedTemplateChange": "Add area ward mode fields for creature-type choices and extra-effect options.",
+      "recommendedJsonChange": "Add runtime hallowModes data for ward type selection and extra effects."
+    },
+    "hallow::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Darkness, Daylight, and Silence are separate light/sound area modes; runtime has no typed light-blocking, bright-light, darkness-countering, or silence data.",
+      "recommendedTemplateChange": "Add area light/sound mode fields with magical-light level interactions and silence ingress/egress rules.",
+      "recommendedJsonChange": "Add runtime hallowLightSoundModes data."
+    },
+    "hallow::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Tongues lets selected creatures communicate with any other creature in the area despite language barriers; runtime lacks typed area communication fields.",
+      "recommendedTemplateChange": "Add area communication mode fields for universal in-area communication.",
+      "recommendedJsonChange": "Add runtime hallowCommunicationMode data."
+    },
+    "hallow::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hallowed Ward blocks chosen creature types from willingly entering and suppresses possession/Charmed/Frightened from those types; runtime lacks typed ward-entry and ward-suppression fields.",
+      "recommendedTemplateChange": "Add ward-entry restriction and ward-status-suppression fields.",
+      "recommendedJsonChange": "Add runtime hallowedWard data."
+    },
+    "hallow::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Extradimensional Interference blocks selected creatures from entering or exiting the area using teleportation or interplanar travel; runtime lacks typed travel-prevention fields.",
+      "recommendedTemplateChange": "Add area travel-block fields for teleportation and interplanar travel.",
+      "recommendedJsonChange": "Add runtime hallowTravelBlock data."
+    },
+    "hallow::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The ward and Tongues modes affect social control and communication in the area, but runtime lacks typed social/communication mode data.",
+      "recommendedTemplateChange": "Add social-area mode fields for warded creature types and universal communication.",
+      "recommendedJsonChange": "Add runtime hallowSocialModes data."
+    },
+    "hallow::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Hallow can prevent Frightened, impose Frightened, suppress Charmed/Frightened/possessed states from warded creatures, and prevent dead bodies from becoming Undead; runtime lacks typed status-prevention/status-application/body-state fields.",
+      "recommendedTemplateChange": "Add area status prevention, status application, possession suppression, and corpse-state protection fields.",
+      "recommendedJsonChange": "Add runtime hallowStatusModes data."
+    },
+    "hallow::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance and Vulnerability modes alter damage taken by selected creatures for a chosen damage type; runtime lacks typed area resistance/vulnerability mode data.",
+      "recommendedTemplateChange": "Add area resistance/vulnerability mode fields with chosen damage type.",
+      "recommendedJsonChange": "Add runtime hallowDamageModifierModes data.",
+      "reviewerNote": "Closed by adding neutral Damage Interaction fields and effects[].damageInteraction. Hallow now records resistance and vulnerability as area-bound chosen-type modes for chosen creature types while those creatures are in the area."
+    },
+    "hold-monster::choice_or_mode": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary target selection; one visible creature is already represented by targeting and lineOfSight.",
+      "recommendedTemplateChange": "No choice-or-mode field required.",
+      "recommendedJsonChange": "Closed by targeting.maxTargets and lineOfSight."
+    },
+    "hold-monster::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save and negates-condition outcome are now represented in structured fields and runtime STATUS_CONDITION.",
+      "recommendedTemplateChange": "No new attack/save field required.",
+      "recommendedJsonChange": "Closed by saveType Wisdom and saveEffect negates_condition."
+    },
+    "hold-monster::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The end-of-turn repeat Wisdom save is now represented in runtime repeatSave data.",
+      "recommendedTemplateChange": "No new repeat-save field required for this pass.",
+      "recommendedJsonChange": "Closed by statusCondition.repeatSave."
+    },
+    "hold-monster::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible target selection, already represented by lineOfSight targeting.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by lineOfSight targeting."
+    },
+    "hold-monster::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Paralyzed condition, duration, save gate, and repeat-save ending are now represented in runtime.",
+      "recommendedTemplateChange": "No new status field required.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION Paralyzed with repeatSave."
+    },
+    "holy-weapon::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The dismiss burst affects each creature of the caster's choice that the caster can see within 30 feet of the weapon; runtime now has burst effects but lacks a secondary chosen-creature targeting surface centered on the weapon.",
+      "recommendedTemplateChange": "Add secondary-effect targeting fields for chosen visible creatures around an affected object.",
+      "recommendedJsonChange": "Add runtime secondaryTargeting data for the dismiss burst."
+    },
+    "holy-weapon::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save, half-damage success result, and negated Blinded condition are now represented by separate runtime DAMAGE and STATUS_CONDITION effects.",
+      "recommendedTemplateChange": "No new attack/save field required.",
+      "recommendedJsonChange": "Closed by burst DAMAGE and Blinded STATUS_CONDITION effects."
+    },
+    "holy-weapon::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "issue": "The Blinded creature's end-of-turn Constitution repeat save is now represented in runtime repeatSave data.",
+      "recommendedTemplateChange": "No new repeat-save field required for this pass.",
+      "recommendedJsonChange": "Closed by statusCondition.repeatSave."
+    },
+    "holy-weapon::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The optional bonus-action dismissal is now represented as a granted action and as the trigger for the burst effects.",
+      "recommendedTemplateChange": "No new sustain-action field required for this pass.",
+      "recommendedJsonChange": "Closed by grantedActions plus on_caster_action effects."
+    },
+    "holy-weapon::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The weapon's bright and dim light are now represented as a typed light utility effect; the visibility requirement for burst target choice remains tracked under choice_or_mode.",
+      "recommendedTemplateChange": "No additional light field required for this pass.",
+      "recommendedJsonChange": "Closed by utilityType light and light radii."
+    },
+    "holy-weapon::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The Blinded condition, one-minute duration, save gate, and repeat-save ending are now represented in runtime.",
+      "recommendedTemplateChange": "No new status field required.",
+      "recommendedJsonChange": "Closed by Blinded STATUS_CONDITION with repeatSave."
+    },
+    "holy-weapon::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The spell lasts for its normal concentration duration unless the caster uses the one-time bonus-action dismissal now represented in runtime.",
+      "recommendedTemplateChange": "No new conditional-ending field required for this pass.",
+      "recommendedJsonChange": "Closed by duration/concentration plus dismiss grantedAction."
+    }
+  },
+  "manualFindings": {
+    "greater-restoration": [
+      {
+        "bucketId": "healing_or_restoration",
+        "title": "Healing And Restoration Mechanics",
+        "spellId": "greater-restoration",
+        "findingId": "greater-restoration::healing_or_restoration",
+        "canonicalEvidence": "You touch a creature and magically remove one of the following effects from it: 1 Exhaustion level / The Charmed or Petrified condition / A curse, including the target's Attunement to a cursed magic item / Any reduction to one of the target's ability scores / Any reduction to the target's Hit Point maximum.",
+        "structuredState": "Effect Type: HEALING; Utility Type: other",
+        "jsonState": "Runtime has one UTILITY other prose effect and no typed restoration/removal data.",
+        "issue": "Greater Restoration's restoration choices are flattened into prose; runtime cannot distinguish Exhaustion removal, condition removal, curse/attunement removal, ability-score restoration, or hit-point-maximum restoration.",
+        "recommendedTemplateChange": "Add restoration-removal fields for exhaustion levels, named conditions, curses including cursed-item attunement, ability-score reductions, and hit-point-maximum reductions.",
+        "recommendedJsonChange": "Add runtime restorationOptions data with one schema-safe option per removable effect family.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "choice_or_mode",
+        "title": "Choices And Modes",
+        "spellId": "greater-restoration",
+        "findingId": "greater-restoration::choice_or_mode",
+        "canonicalEvidence": "You touch a creature and magically remove one of the following effects from it.",
+        "structuredState": "No structured choice field; Description lists the options.",
+        "jsonState": "Runtime has one prose UTILITY effect with the option list.",
+        "issue": "The caster chooses one restoration option, but the structured and runtime layers do not expose the option set as data.",
+        "recommendedTemplateChange": "Add restoration option-choice fields.",
+        "recommendedJsonChange": "Add runtime restorationOptions choices and selected-option prompt support if needed.",
+        "resolutionStatus": "actionable_open"
+      }
+    ]
+  }
+}

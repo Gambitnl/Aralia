@@ -1,4 +1,4 @@
-﻿# Crafting & Economy
+# Crafting & Economy
 
 ## Purpose
 

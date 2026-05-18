@@ -1,0 +1,121 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {},
+  "manualFindings": {
+    "melfs-minute-meteors": [
+      {
+        "bucketId": "sustain_or_recast_action",
+        "findingId": "melfs-minute-meteors::sustain_or_recast_action",
+        "canonicalEvidence": "When you cast the spell - and as a bonus action on each of your turns thereafter - you can expend one or two of the meteors.",
+        "structuredState": "No initial spend plus later bonus action spend fields.",
+        "jsonState": "Runtime trigger is immediate only.",
+        "issue": "Melfs Minute Meteors has an initial spend and repeat bonus-action spend loop that is not represented.",
+        "recommendedTemplateChange": "Add initialAndSustainAction fields for expendable spell instances.",
+        "recommendedJsonChange": "Add runtime initialSpend plus bonus_action sustain spend 1-2 meteors.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "terrain_or_surface",
+        "findingId": "melfs-minute-meteors::terrain_or_surface",
+        "canonicalEvidence": "Once a meteor reaches its destination or impacts against a solid surface, the meteor explodes.",
+        "structuredState": "No solid surface impact trigger field.",
+        "jsonState": "Runtime has no impact trigger.",
+        "issue": "Meteors explode on destination arrival or solid-surface impact, but that trigger is not represented.",
+        "recommendedTemplateChange": "Add projectile impact trigger fields.",
+        "recommendedJsonChange": "Add runtime projectileTrigger for destination reached or solid surface impact.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "created_object_or_structure",
+        "findingId": "melfs-minute-meteors::manual_six_orbiting_meteors",
+        "canonicalEvidence": "You create six tiny meteors in your space. They float in the air and orbit you for the spell duration.",
+        "structuredState": "No created expendable object fields.",
+        "jsonState": "Runtime JSON has no orbiting meteor objects or charges.",
+        "issue": "The six created orbiting meteors are not represented as expendable created instances.",
+        "recommendedTemplateChange": "Add createdExpendableInstances fields.",
+        "recommendedJsonChange": "Add runtime createdInstances for six orbiting meteors in caster space.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "environmental_change",
+        "findingId": "melfs-minute-meteors::environmental_change",
+        "canonicalEvidence": "They float in the air and orbit you for the spell duration.",
+        "structuredState": "No orbiting visual state field.",
+        "jsonState": "Runtime JSON has no persistent orbiting state.",
+        "issue": "The orbiting meteors are a persistent created-object state, tracked in the created-object row rather than as a separate environmental mechanic.",
+        "recommendedTemplateChange": "No environmental field required for this row beyond created-instance support.",
+        "recommendedJsonChange": "No separate environmental runtime change required.",
+        "resolutionStatus": "closed"
+      }
+    ],
+    "motivational-speech": [
+      {
+        "bucketId": "choice_or_mode",
+        "findingId": "motivational-speech::choice_or_mode",
+        "canonicalEvidence": "Choose up to five creatures within range that can hear you.",
+        "structuredState": "Targeting Max now records 5.",
+        "jsonState": "Runtime targeting now has maxTargets 5.",
+        "issue": "The up-to-five target count is represented; the hearing requirement is tracked separately.",
+        "recommendedTemplateChange": "No target-count change required for this row.",
+        "recommendedJsonChange": "Closed by correcting Targeting Max and runtime maxTargets from 6 to 5.",
+        "resolutionStatus": "closed"
+      },
+      {
+        "bucketId": "attack_or_save_modifier",
+        "findingId": "motivational-speech::attack_or_save_modifier",
+        "canonicalEvidence": "Each affected creature gains 5 temporary hit points and has advantage on Wisdom saving throws. If an affected creature is hit by an attack, it has advantage on the next attack roll it makes.",
+        "structuredState": "Effect Type: BUFF; no save advantage or next attack advantage fields.",
+        "jsonState": "Runtime prose was corrected, but no typed save or attack-roll modifier exists.",
+        "issue": "Motivational Speech grants Wisdom save advantage and a conditional next attack-roll advantage after being hit, but both are prose-only.",
+        "recommendedTemplateChange": "Add save advantage and hit-triggered next attack advantage fields.",
+        "recommendedJsonChange": "Add runtime saveModifier Wisdom advantage and hit-triggered nextAttackAdvantage.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "vision_light_sound",
+        "findingId": "motivational-speech::vision_light_sound",
+        "canonicalEvidence": "Choose up to five creatures within range that can hear you.",
+        "structuredState": "No target-can-hear-caster field.",
+        "jsonState": "Runtime targeting does not require hearing.",
+        "issue": "The spell targets creatures that can hear the caster, which lineOfSight cannot represent.",
+        "recommendedTemplateChange": "Add targetCanHearCaster fields.",
+        "recommendedJsonChange": "Add runtime target condition canHearCaster.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "social_or_knowledge_effect",
+        "findingId": "motivational-speech::social_or_knowledge_effect",
+        "canonicalEvidence": "You address allies, staff, or innocent bystanders to exhort and inspire them to greatness.",
+        "structuredState": "No social payload field beyond BUFF.",
+        "jsonState": "Runtime JSON keeps this as prose only.",
+        "issue": "The exhortation presentation is mostly descriptive; the mechanical hearing requirement and buffs are tracked in other rows.",
+        "recommendedTemplateChange": "No separate social mechanic field required for this row.",
+        "recommendedJsonChange": "No separate social runtime change required.",
+        "resolutionStatus": "deferred_flavor"
+      },
+      {
+        "bucketId": "healing_or_restoration",
+        "findingId": "motivational-speech::healing_or_restoration",
+        "canonicalEvidence": "Each affected creature gains 5 temporary hit points. The temporary hit points increase by 5 for each slot level above 3.",
+        "structuredState": "Effect Type: BUFF; no Temporary Hit Points amount or scaling fields.",
+        "jsonState": "Runtime prose mentions Temporary Hit Points, but no typed temporary HP effect exists.",
+        "issue": "Motivational Speech grants and scales temporary hit points, but runtime has no typed temporary HP effect.",
+        "recommendedTemplateChange": "Add temporary hit point amount and scaling fields.",
+        "recommendedJsonChange": "Add runtime TEMPORARY_HIT_POINTS effect value 5 with +5 per slot above 3.",
+        "resolutionStatus": "actionable_open"
+      },
+      {
+        "bucketId": "conditional_ending",
+        "findingId": "motivational-speech::conditional_ending",
+        "canonicalEvidence": "Once an affected creature loses the temporary hit points granted by this spell, the spell ends for that creature.",
+        "structuredState": "No per-target ending tied to granted temp HP loss.",
+        "jsonState": "Runtime JSON has no conditional ending data.",
+        "issue": "The spell ends per target when its granted temporary HP are lost, but that ending rule is not represented.",
+        "recommendedTemplateChange": "Add per-target ending fields tied to granted temporary HP depletion.",
+        "recommendedJsonChange": "Add runtime conditionalEnding when grantedTempHpLost.",
+        "resolutionStatus": "closed",
+        "closedReason": "Reused the existing temporary_hit_points_depleted conditional-ending trigger, recorded it in the structured spell fields, and mapped it to the runtime utility effect with effect scope for each affected creature."
+      }
+    ]
+  }
+}

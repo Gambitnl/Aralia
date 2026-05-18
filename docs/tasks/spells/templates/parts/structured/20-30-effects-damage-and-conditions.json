@@ -1,0 +1,21 @@
+{
+  "templateKind": "structured-markdown",
+  "part": "30-effects-damage-and-conditions",
+  "fieldCount": 1,
+  "fields": [
+    {
+      "label": "Conditions Removed",
+      "required": false,
+      "valueType": "csv-string",
+      "jsonPath": "effects[].conditionRemoval[]",
+      "log": [
+        {
+          "at": "2026-05-14T00:25:00+02:00",
+          "action": "registered",
+          "why": "Protection from Poison ends the Poisoned condition immediately, which is neither status application nor future condition immunity."
+        }
+      ],
+      "comment": "Lists named status conditions the spell ends immediately on a target. Use this when canonical prose says an existing condition ends, such as `end the Poisoned condition`; do not use it for preventing future conditions or suppressing conditions temporarily. It maps to `effects[].conditionRemoval[]`. Purpose: Conditions Removed exists so restorative condition-ending mechanics are not hidden in utility descriptions. Use `not_applicable` when the spell has no condition-removal mechanic."
+    }
+  ]
+}

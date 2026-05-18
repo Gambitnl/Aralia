@@ -1,4 +1,4 @@
-﻿# Spell Integration Status: Level 5
+# Spell Integration Status: Level 5
 
 Last Updated: 2026-03-12
 

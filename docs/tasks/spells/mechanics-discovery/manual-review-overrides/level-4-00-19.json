@@ -1,0 +1,653 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "notes": [
+    "Level 4 manual review override shard for spell indexes 0-19 in generated discovery row order."
+  ],
+  "findings": {
+    "arcane-eye::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Bonus Action wording, but Arcane Eye does not modify attacks, saves, or checks.",
+      "recommendedTemplateChange": "Track the eye movement under sustained/granted action and sensory-scouting fields.",
+      "recommendedJsonChange": "Closed for this bucket by adding a granted Bonus Action movement entry."
+    },
+    "arcane-eye::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The caster can move the eye up to 30 feet as a Bonus Action; runtime now has a granted Bonus Action entry and spatial details already carry the movement distance and 1-inch opening allowance.",
+      "recommendedTemplateChange": "No new sustain-action field required for this pass.",
+      "recommendedJsonChange": "Closed by runtime grantedActions plus existing spatialDetails."
+    },
+    "arcane-eye::movement_or_repositioning": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The eye hovers, moves independently, is blocked by solid barriers, and can pass through 1-inch openings; runtime now has action and measured details but no first-class movable sensor/entity model.",
+      "recommendedTemplateChange": "Add remote sensor/entity movement fields for hover, independent movement, barrier blocking, and minimum opening size.",
+      "recommendedJsonChange": "Add runtime remoteSensor movement data instead of relying on grantedActions and spatial notes."
+    },
+    "arcane-eye::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster mentally receives visual information from the eye, which sees in every direction and has 30-foot Darkvision; runtime preserves this in utility prose and measured details but not typed sensory fields.",
+      "recommendedTemplateChange": "Add remote sensory fields for visual feed, omnidirectional sight, and Darkvision range.",
+      "recommendedJsonChange": "Add runtime remoteSensor senses data."
+    },
+    "arcane-eye::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The created eye is Invisible and invulnerable, but runtime has no typed created sensor/object state for invisibility or invulnerability.",
+      "recommendedTemplateChange": "Add remote sensor/object state fields for Invisible, invulnerable, hover, and duration.",
+      "recommendedJsonChange": "Add runtime remoteSensor state data."
+    },
+    "aura-of-life::healing_or_restoration": {
+      "resolutionStatus": "closed",
+      "issue": "A nonhostile living creature regains 1 Hit Point when it starts its turn in the aura with 0 Hit Points; runtime now has a typed HEALING effect.",
+      "recommendedTemplateChange": "No new healing field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a turn-start HEALING effect for 1 Hit Point."
+    },
+    "aura-of-life::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Point wording, but this is creature healing and Hit Point maximum protection rather than object stats or damageability.",
+      "recommendedTemplateChange": "Track under healing and defensive/prevention fields.",
+      "recommendedJsonChange": "Track under HEALING and DEFENSIVE/utility data."
+    },
+    "aura-of-life::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Necrotic resistance is now typed, but preventing Hit Point maximum reduction is still only described in utility prose.",
+      "recommendedTemplateChange": "Add defensive prevention fields for immunity to Hit Point maximum reduction.",
+      "recommendedJsonChange": "Add runtime defense/prevention data for Hit Point maximum reduction immunity.",
+      "reviewerNote": "Closed by adding Prevention Immunities -> effects[].preventionImmunity[] and a DEFENSIVE immunity effect with hit_point_maximum_reduction."
+    },
+    "aura-of-life::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The aura moving with the caster until the spell ends is already captured by areaFollowsCaster and normal duration/concentration.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by existing areaOfEffect.followsCaster and duration/concentration."
+    },
+    "aura-of-purity::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The aura grants Advantage on saving throws against effects that cause specific conditions; runtime now has a defensive advantage effect, but it cannot type the condition-causing filter.",
+      "recommendedTemplateChange": "Add save-advantage filter fields keyed to caused conditions.",
+      "recommendedJsonChange": "Add runtime saveAdvantage filters for effects causing Blinded, Charmed, Deafened, Frightened, Paralyzed, Poisoned, or Stunned."
+    },
+    "aura-of-purity::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Blinded/Deafened condition names, but the spell does not create light, vision, or sound area mechanics.",
+      "recommendedTemplateChange": "Track under save-advantage and condition-prevention fields.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "aura-of-purity::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Charmed/Frightened condition names, but the spell is protective and does not create a social or knowledge effect.",
+      "recommendedTemplateChange": "Track under save-advantage and condition-prevention fields.",
+      "recommendedJsonChange": "No social/knowledge runtime data required."
+    },
+    "aura-of-purity::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Creatures in the aura can't become diseased, but runtime has no typed disease-prevention or condition-prevention field.",
+      "recommendedTemplateChange": "Add prevention fields for disease immunity and condition-causing effect filters.",
+      "recommendedJsonChange": "Add runtime prevention data for disease and condition-causing effects."
+    },
+    "aura-of-purity::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Poison damage resistance is now typed as a DEFENSIVE effect.",
+      "recommendedTemplateChange": "No new poison resistance field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a DEFENSIVE resistance effect for Poison damage."
+    },
+    "aura-of-purity::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The aura moving with the caster until the spell ends is already captured by areaFollowsCaster and normal duration/concentration.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by existing areaOfEffect.followsCaster and duration/concentration."
+    },
+    "banishment::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "If an extraplanar target does not return, it is transported to a random location on a plane chosen by the DM and associated with its creature type; this destination choice is prose-only.",
+      "recommendedTemplateChange": "Add planar destination choice fields for random location, DM-chosen plane, and creature-type association.",
+      "recommendedJsonChange": "Add runtime planarDestination data."
+    },
+    "banishment::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Charisma save that negates the banishment is already typed in runtime status effects.",
+      "recommendedTemplateChange": "No attack/save modifier field required.",
+      "recommendedJsonChange": "Closed by existing Charisma save with negates_condition."
+    },
+    "banishment::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the return destination sentence, but this is destination placement after banishment rather than target eligibility.",
+      "recommendedTemplateChange": "Track under travel/return placement fields.",
+      "recommendedJsonChange": "No target-filter data required for this sentence."
+    },
+    "banishment::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting, which is already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "banishment::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Targets are transported to a harmless demiplane, may reappear at the original or nearest unoccupied space, and certain creature types can be sent permanently to an associated plane; runtime only stores Banished/Incapacitated statuses.",
+      "recommendedTemplateChange": "Add planar transport fields for temporary demiplane, return placement, permanent non-return, creature-type filter, and associated-plane destination.",
+      "recommendedJsonChange": "Add runtime planarMovement data."
+    },
+    "banishment::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "The target has Incapacitated while banished; runtime has typed Incapacitated and Banished statuses, and fake repeat/escape saves were removed.",
+      "recommendedTemplateChange": "No new status field required for this pass.",
+      "recommendedJsonChange": "Closed by existing STATUS_CONDITION effects after removing fake escape/repeat data."
+    },
+    "banishment::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Aberration, Celestial, Elemental, Fey, and Fiend targets do not return if the spell lasts for 1 minute; runtime has no typed duration-completion branch by creature type.",
+      "recommendedTemplateChange": "Add conditional ending fields for no-return-on-full-duration with creature-type filters.",
+      "recommendedJsonChange": "Add runtime conditionalEnding data for full-duration extraplanar banishment."
+    },
+    "banishment::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When the spell ends, the target reappears in its original space or nearest unoccupied space, unless the creature-type full-duration branch prevents return; runtime lacks return placement.",
+      "recommendedTemplateChange": "Add post-spell return placement fields for original space and nearest unoccupied fallback.",
+      "recommendedJsonChange": "Add runtime returnPlacement data."
+    },
+    "blight::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Constitution save for half Necrotic damage is already typed in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "No attack/save modifier field required for the standard creature damage branch.",
+      "recommendedJsonChange": "Closed by existing DAMAGE effect with Constitution save and saveEffect half."
+    },
+    "blight::target_filter_or_eligibility": {
+      "resolutionStatus": "closed",
+      "issue": "Blight's Plant-creature automatic failure rule is now encoded as a save auto-outcome override.",
+      "recommendedTemplateChange": "Closed by Save Auto Outcome auto_failure with condition is_plant_creature.",
+      "recommendedJsonChange": "Closed by runtime condition.saveOutcomeOverrides carrying is_plant_creature -> auto_failure."
+    },
+    "blight::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting, which is already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "blight::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "A nonmagical plant that is not a creature withers and dies without a save; runtime now preserves this as utility prose but not as typed plant/environment state.",
+      "recommendedTemplateChange": "Add environmental plant-object wither/death fields.",
+      "recommendedJsonChange": "Add runtime plantObjectEffect data for nonmagical plant withering and death."
+    },
+    "charm-monster::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save and the Advantage condition when the caster or allies are fighting the target are now typed in runtime saveModifiers.",
+      "recommendedTemplateChange": "No new save modifier field required for this pass.",
+      "recommendedJsonChange": "Closed by adding an advantage saveModifier and removing fake repeat/escape data."
+    },
+    "charm-monster::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting, which is already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "charm-monster::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Charmed creature is Friendly to the caster and later knows it was Charmed; runtime has Charmed but not Friendly attitude or post-spell awareness as typed social/memory data.",
+      "recommendedTemplateChange": "Add social attitude and post-effect awareness fields for charm spells.",
+      "recommendedJsonChange": "Add runtime attitudeChange and postEffectAwareness data."
+    },
+    "charm-monster::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Charmed is typed, but the Friendly attitude rider and damage-by-caster-or-allies ending condition are not first-class status metadata.",
+      "recommendedTemplateChange": "Add status rider fields for attitude and break-on-damage source filters.",
+      "recommendedJsonChange": "Add runtime status rider data for Friendly and breakOnDamageFrom caster/allies."
+    },
+    "charm-monster::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The Charmed condition ends early if the caster or the caster's allies damage the target; runtime no longer has fake repeat saves but still lacks break-on-damage source filters.",
+      "recommendedTemplateChange": "Add conditional ending fields for break on damage from caster or allies.",
+      "recommendedJsonChange": "Add runtime conditionalEnding data for breakOnDamageFrom caster/allies.",
+      "closedReason": "Reused the existing caster_or_ally_damages_target conditional-ending trigger in the structured spell fields and runtime conditionalEndings entry, scoped to the affected Charmed effect."
+    },
+    "charm-monster::aftermath_or_memory": {
+      "resolutionStatus": "actionable_open",
+      "issue": "When the spell ends, the target knows it was Charmed by the caster; runtime lacks post-spell awareness/memory data.",
+      "recommendedTemplateChange": "Add aftermath/memory fields for target awareness after enchantments.",
+      "recommendedJsonChange": "Add runtime postEffectAwareness data."
+    },
+    "compulsion::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each creature of the caster's choice can be affected, but runtime maxTargets remains 1 and cannot represent arbitrary chosen creatures in range.",
+      "recommendedTemplateChange": "Add chosen-creatures target count fields for any-number/multi target spells.",
+      "recommendedJsonChange": "Add runtime target count semantics for each creature of choice within range."
+    },
+    "compulsion::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched the Wisdom save and Bonus Action wording; the save is typed, and the movement rider is now represented as MOVEMENT rather than an attack/save modifier.",
+      "recommendedTemplateChange": "No attack/save modifier field required.",
+      "recommendedJsonChange": "Closed by existing Wisdom save plus added MOVEMENT effect."
+    },
+    "compulsion::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting, which is already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "compulsion::social_or_knowledge_effect": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Charmed and forced movement, but there is no separate social attitude or knowledge mechanic beyond the typed Charmed condition and MOVEMENT rider.",
+      "recommendedTemplateChange": "No social/knowledge field required for this spell.",
+      "recommendedJsonChange": "Closed by STATUS_CONDITION and MOVEMENT effects."
+    },
+    "compulsion::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "closedReason": "Compulsion now uses Repeat Save Timing after_forced_movement in structured markdown and runtime repeatSave data, so the Charmed target's save happens after resolving the compelled movement rather than at a generic turn end.",
+      "issue": "Charmed is typed, and forced movement is now typed, but the repeat save occurs after moving in the compelled way rather than at generic turn end.",
+      "recommendedTemplateChange": "Add repeat-save timing fields for after compelled movement/action resolution.",
+      "recommendedJsonChange": "Add runtime repeatSave timing for after_forced_movement."
+    },
+    "compulsion::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closedReason": "Compulsion now records the post-movement repeat Wisdom save with successEnds true, so the per-target ending on a successful save is explicit without a separate conditionalEndings entry.",
+      "issue": "A target repeats the save after moving in the compelled way, ending the spell on itself on success; current runtime can only approximate this with repeatSave timing.",
+      "recommendedTemplateChange": "Add per-target ending fields tied to after-movement repeat saves.",
+      "recommendedJsonChange": "Add runtime conditionalEnding/repeatSave timing for after compelled movement."
+    },
+    "confusion::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Affected targets must roll 1d10 at the start of each turn and consult a behavior table; runtime only stores a generic Confused condition.",
+      "recommendedTemplateChange": "Add random behavior table fields for die, timing, and result rows.",
+      "recommendedJsonChange": "Add runtime randomBehaviorTable data for Confusion."
+    },
+    "confusion::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save that negates Confusion is already typed in runtime JSON.",
+      "recommendedTemplateChange": "No attack/save modifier field required for the initial save.",
+      "recommendedJsonChange": "Closed by existing Wisdom save with negates_condition."
+    },
+    "confusion::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Affected targets can't take Bonus Actions or Reactions, but runtime has no typed action-lockout fields on the Confused condition.",
+      "recommendedTemplateChange": "Add action restriction fields for no Bonus Actions and no Reactions.",
+      "recommendedJsonChange": "Add runtime actionRestrictions data to Confused."
+    },
+    "confusion::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Confusion now records the start-turn 1d10 behavior roll as structured Recurring Mechanics and runtime recurringMechanics data, while its end-turn Wisdom repeat save remains typed.",
+      "issue": "The end-turn repeat save is typed, but the start-turn 1d10 recurring behavior roll and behavior table are missing.",
+      "recommendedTemplateChange": "Add recurring random-roll behavior fields alongside repeat save fields.",
+      "recommendedJsonChange": "Add runtime recurringCheck/randomBehaviorTable data."
+    },
+    "conjure-minor-elementals::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses Acid, Cold, Fire, or Lightning when making each attack; runtime stores the damage types as a combined string and does not type per-attack damage-type choice.",
+      "recommendedTemplateChange": "Add per-hit damage type choice fields.",
+      "recommendedJsonChange": "Add runtime damageTypeChoice data for Acid/Cold/Fire/Lightning chosen on each attack."
+    },
+    "conjure-minor-elementals::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The ground in the Emanation is Difficult Terrain for enemies; runtime now has a TERRAIN effect for difficult terrain.",
+      "recommendedTemplateChange": "No new terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a TERRAIN difficult effect, with enemy-only filtering still called out under environmental targeting if needed later."
+    },
+    "conjure-minor-elementals::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell conjures spirits from the Elemental Planes that flit around the caster, but runtime models only the damage and terrain outputs, not the spirit aura entity.",
+      "recommendedTemplateChange": "Add aura-spirit manifestation fields for non-commanded conjured spirits.",
+      "recommendedJsonChange": "Add runtime auraManifestation data for Elemental spirits."
+    },
+    "conjure-minor-elementals::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The mention of Elemental Planes identifies the spirits' origin but does not move a target between planes.",
+      "recommendedTemplateChange": "No travel/planar movement field required.",
+      "recommendedJsonChange": "No runtime planar movement data required."
+    },
+    "conjure-minor-elementals::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Enemy-only Difficult Terrain and per-attack elemental damage type choice are partly typed, but runtime lacks enemy-only terrain filtering and per-hit choice semantics.",
+      "recommendedTemplateChange": "Add enemy-only area effect filters and per-hit choice fields.",
+      "recommendedJsonChange": "Add runtime terrain target filters and damageTypeChoice data."
+    },
+    "conjure-minor-elementals::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The extra damage lasts until the normal spell duration ends; there is no special conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    },
+    "conjure-woodland-beings::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The damage save can trigger when the Emanation enters a creature's space, when a creature enters it, or when a creature ends its turn there, and only once per turn; runtime has a single damage effect and cannot express all trigger paths.",
+      "recommendedTemplateChange": "Add moving-area collision triggers, enter/end-turn triggers, optional force-save permission, and once-per-turn target gating.",
+      "recommendedJsonChange": "Add runtime areaDamageTriggers data for emanation movement, creature entry, end-turn, caster choice, and once-per-turn."
+    },
+    "conjure-woodland-beings::sustain_or_recast_action": {
+      "resolutionStatus": "closed",
+      "issue": "The caster can take Disengage as a Bonus Action for the spell's duration; runtime now has a granted Bonus Action Disengage utility effect.",
+      "recommendedTemplateChange": "No new sustain-action field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a grantedActions Bonus Action Disengage entry."
+    },
+    "conjure-woodland-beings::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched creatures the caster can see for damage-trigger eligibility; this is visibility filtering, not a light, vision, or sound area mechanic.",
+      "recommendedTemplateChange": "Track under area trigger target filters if needed.",
+      "recommendedJsonChange": "No vision-light-sound runtime data required."
+    },
+    "conjure-woodland-beings::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell conjures nature spirits that flit around the caster, but runtime models the damage and Disengage outputs rather than the spirit aura manifestation.",
+      "recommendedTemplateChange": "Add aura-spirit manifestation fields for non-commanded conjured spirits.",
+      "recommendedJsonChange": "Add runtime auraManifestation data for nature spirits."
+    },
+    "control-water::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Control Water has four named effect modes and lets the caster repeat the same effect or choose a different one as a later Magic action; runtime has only a generic control description and no typed option list.",
+      "recommendedTemplateChange": "Add environmental control option fields for Flood, Part Water, Redirect Flow, and Whirlpool, including repeat/change action semantics.",
+      "recommendedJsonChange": "Add runtime controlOptions/grantedActions data for the four water-control modes."
+    },
+    "control-water::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Whirlpool mode forces a Strength saving throw on enter/end-turn, with damage and restraint-like escape movement rules, but runtime has no typed Whirlpool damage/save effect.",
+      "recommendedTemplateChange": "Add option-scoped save/damage fields for environmental control modes.",
+      "recommendedJsonChange": "Add runtime Whirlpool damage/save data."
+    },
+    "control-water::forced_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Whirlpool pulls creatures in water within 25 feet 10 feet toward it, and swimming away requires an action plus Strength (Athletics) check; runtime has no typed pull or escape check for this mode.",
+      "recommendedTemplateChange": "Add environmental forced movement fields for pull distance, radius, medium requirement, and escape action/check.",
+      "recommendedJsonChange": "Add runtime Whirlpool forcedMovement and escapeCheck data."
+    },
+    "control-water::terrain_or_surface": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Part Water creates a trench and water walls, Redirect Flow changes water flow over obstacles and walls, and water returns to normal after leaving the area; runtime has none of these surface/flow states typed.",
+      "recommendedTemplateChange": "Add water terrain/state fields for trench, water walls, redirected flow, obstacle traversal, and flow normalization outside the area.",
+      "recommendedJsonChange": "Add runtime waterState/controlMode data."
+    },
+    "control-water::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Flood can create a 20-foot wave, Part Water creates a trench and side walls, and Whirlpool creates a shaped whirlpool with base/top width and height; runtime lacks typed created water-structure geometry.",
+      "recommendedTemplateChange": "Add mode-scoped created water structure fields for wave, trench/walls, and whirlpool geometry.",
+      "recommendedJsonChange": "Add runtime createdWaterStructure data."
+    },
+    "control-water::ward_alarm_or_trigger": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Whirlpool effects trigger when creatures are within 25 feet, enter for the first time on a turn, or end their turn there; runtime has no typed environmental trigger gating.",
+      "recommendedTemplateChange": "Add mode-scoped enter/end-turn/within-radius trigger fields.",
+      "recommendedJsonChange": "Add runtime Whirlpool trigger data."
+    },
+    "control-water::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The wave travels across the area, but it is environmental water movement rather than creature travel or planar movement.",
+      "recommendedTemplateChange": "Track under environmental water structure/movement fields.",
+      "recommendedJsonChange": "No travel/planar movement data required."
+    },
+    "control-water::resource_or_consumption": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched repeated water-control wording, but Control Water does not consume a resource or tracked quantity.",
+      "recommendedTemplateChange": "Track under environmental control modes.",
+      "recommendedJsonChange": "No runtime resource data required."
+    },
+    "control-water::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Every Control Water mode changes water state, flow, level, or shape; runtime only contains a generic control description.",
+      "recommendedTemplateChange": "Add comprehensive water-control environmental state fields for mode-specific effects.",
+      "recommendedJsonChange": "Add runtime environmentalControl modes for Flood, Part Water, Redirect Flow, and Whirlpool."
+    },
+    "control-water::conditional_ending": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Each active mode lasts until the spell ends or the caster chooses a different effect, and Part Water then fills back over the next round; runtime lacks mode replacement and restoration timing.",
+      "recommendedTemplateChange": "Add mode-duration/replacement fields and restoration-after-mode fields.",
+      "recommendedJsonChange": "Add runtime modeDuration and restorationTiming data."
+    },
+    "death-ward::object_stats_or_damageability": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched Hit Points wording, but Death Ward protects a creature from dropping to 0 HP or instant death rather than describing object stats or damageability.",
+      "recommendedTemplateChange": "Track under defensive death-prevention fields.",
+      "recommendedJsonChange": "No object-stats data required."
+    },
+    "death-ward::conditional_ending": {
+      "resolutionStatus": "closed",
+      "closureReason": "Added Death Ward deathPrevention runtime data, explicit spell-ending conditional triggers, structured markdown fields, and template/schema support for once-before-duration death prevention.",
+      "issue": "The spell ends the first time it converts a drop to 0 HP into 1 HP, or negates an instant-kill effect without damage; runtime stores this only as utility prose.",
+      "recommendedTemplateChange": "Add defensive trigger/consumption fields for once-before-duration death prevention and instant-kill negation.",
+      "recommendedJsonChange": "Add runtime deathPrevention data with triggers drop_to_0_hp and instant_death_no_damage."
+    },
+    "dimension-door::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched destination options involving seeing, visualizing, or describing a location; these are teleport destination selection rules, not a vision/light/sound effect.",
+      "recommendedTemplateChange": "Track under teleport destination fields.",
+      "recommendedJsonChange": "No vision-light-sound data required."
+    },
+    "dimension-door::ward_alarm_or_trigger": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched quoted destination examples, but Dimension Door has no ward/alarm/trigger mechanic.",
+      "recommendedTemplateChange": "Track destination selection under teleport fields.",
+      "recommendedJsonChange": "No ward/alarm data required."
+    },
+    "dimension-door::travel_or_planar_movement": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster teleports to a seen, visualized, or described location within 500 feet, can bring one willing creature within 5 feet, places that creature within 5 feet of the destination, and takes 4d6 Force damage with the passenger if the destination is occupied or filled; runtime stores this as utility prose only.",
+      "recommendedTemplateChange": "Add teleport fields for destination selection modes, optional willing passenger, passenger origin/destination distance, occupied-space failure, and failure damage.",
+      "recommendedJsonChange": "Add runtime teleport data for Dimension Door."
+    },
+    "divination::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "The spell contacts a god or servants but does not summon or control an entity into the scene.",
+      "recommendedTemplateChange": "Track under information/contact fields, not summon fields.",
+      "recommendedJsonChange": "No summon/control data required."
+    },
+    "divination::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster asks one question about a goal, event, or activity within 7 days; the DM gives a truthful phrase or cryptic rhyme; repeated castings before a Long Rest have cumulative 25 percent no-answer chance. Runtime stores this as prose only.",
+      "recommendedTemplateChange": "Add divination/information fields for question count, lookahead window, truthful reply, reply form, changed-circumstance caveat, repeat-before-rest chance, and cumulative chance step.",
+      "recommendedJsonChange": "Add runtime divinationQuery data."
+    },
+    "dominate-beast::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The Wisdom save, Beast target filter, Advantage if fighting, and on-damage repeat save are now typed in runtime JSON.",
+      "recommendedTemplateChange": "No new attack/save modifier field required for this pass.",
+      "recommendedJsonChange": "Closed by adding Beast filters, save Advantage modifier, and on_damage repeat save timing."
+    },
+    "dominate-beast::reaction_or_opportunity_restriction": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can command the Charmed Beast to take a Reaction, but must spend the caster's own Reaction; runtime lacks command reaction economy.",
+      "recommendedTemplateChange": "Add controlled-target reaction command fields with caster reaction cost.",
+      "recommendedJsonChange": "Add runtime commandReaction data."
+    },
+    "dominate-beast::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting, which is already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "dominate-beast::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster has a telepathic link with the Charmed Beast while both are on the same plane; runtime lacks typed telepathic communication data.",
+      "recommendedTemplateChange": "Add telepathic link fields for target status requirement and same-plane requirement.",
+      "recommendedJsonChange": "Add runtime telepathyLink data."
+    },
+    "dominate-beast::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster can issue no-action commands that the target obeys on its turn, including attack, movement, and object fetching, with fallback self-protection behavior; runtime only has Charmed.",
+      "recommendedTemplateChange": "Add dominated-target command fields for no-action commands, obedience, examples, idle behavior, and reaction command cost.",
+      "recommendedJsonChange": "Add runtime controlledTarget command data."
+    },
+    "dominate-beast::travel_or_planar_movement": {
+      "resolutionStatus": "closed",
+      "issue": "The same-plane wording limits telepathic link range but does not move a creature between planes.",
+      "recommendedTemplateChange": "Track as telepathic link constraint.",
+      "recommendedJsonChange": "No travel/planar movement data required."
+    },
+    "dominate-beast::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Charmed state is typed, but domination command obedience and telepathic command semantics are not modeled as social/control mechanics.",
+      "recommendedTemplateChange": "Add dominated attitude/control fields distinct from generic Charmed.",
+      "recommendedJsonChange": "Add runtime dominationControl data."
+    },
+    "dominate-beast::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Charmed is typed, but the status carries special domination riders: command obedience, same-plane telepathic link, self-protection fallback, and on-damage repeat save.",
+      "recommendedTemplateChange": "Add status rider fields for domination-specific control behavior.",
+      "recommendedJsonChange": "Add runtime status rider data for domination."
+    },
+    "elemental-bane::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses Acid, Cold, Fire, Lightning, or Thunder, and the chosen type controls both the first-per-turn extra damage and resistance loss; runtime only preserves the choice in utility prose.",
+      "recommendedTemplateChange": "Add linked damage-type choice fields that feed damage rider and resistance-removal effects.",
+      "recommendedJsonChange": "Add runtime linkedDamageTypeChoice data."
+    },
+    "elemental-bane::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The target must fail a Constitution save before the duration effects apply; runtime still stores this as utility prose rather than a typed save-gated ongoing effect.",
+      "recommendedTemplateChange": "Add save-gated ongoing debuff fields for effects that are not standard conditions.",
+      "recommendedJsonChange": "Add runtime save-gated Elemental Bane effect data."
+    },
+    "elemental-bane::repeat_save_or_recurring_check": {
+      "resolutionStatus": "closed",
+      "closedReason": "Elemental Bane now records the first-per-turn chosen-type rider damage as structured Recurring Mechanics and runtime recurringMechanics data.",
+      "issue": "The first time each turn the affected target takes damage of the chosen type, it takes 2d6 extra damage of that type; runtime lacks first-per-turn damage trigger semantics.",
+      "recommendedTemplateChange": "Add first-per-turn damage-received trigger fields keyed by chosen damage type.",
+      "recommendedJsonChange": "Add runtime damageTakenTrigger data with frequency first_per_turn."
+    },
+    "elemental-bane::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting, which is already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "elemental-bane::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "The affected target loses resistance to the chosen damage type until the spell ends; runtime lacks typed resistance-removal or resistance-suppression data.",
+      "recommendedTemplateChange": "Add defensive override fields for suppressing resistance to a chosen damage type.",
+      "recommendedJsonChange": "Add runtime resistanceSuppression data.",
+      "reviewerNote": "Closed by adding Resistance Suppression Damage Types and Resistance Suppression Damage Type Source to the structured template, plus effects[].resistanceSuppression.damageType[] and damageTypeSource in runtime JSON. Elemental Bane now records the eligible Acid/Cold/Fire/Lightning/Thunder set with chosen_damage_type source."
+    },
+    "elemental-bane::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched elemental damage type names, but the spell changes a target's damage interaction rather than the environment.",
+      "recommendedTemplateChange": "Track under damage type choice and resistance suppression fields.",
+      "recommendedJsonChange": "No environmental-change data required."
+    },
+    "elemental-bane::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Resistance suppression lasts until the normal spell duration ends; there is no special conditional ending.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by duration/concentration."
+    },
+    "evards-black-tentacles::attack_or_save_modifier": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The Strength save can occur on initial cast, enter-area, or end-turn, with once-per-turn gating; runtime has damage/status saves but not all trigger paths or once-per-turn gating.",
+      "recommendedTemplateChange": "Add area damage/status trigger fields for initial, enter-area, end-turn, and once-per-turn gating.",
+      "recommendedJsonChange": "Add runtime areaTrigger data for tentacles."
+    },
+    "evards-black-tentacles::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "The tentacles turn the 20-foot square into Difficult Terrain; runtime now has a TERRAIN difficult effect.",
+      "recommendedTemplateChange": "No new terrain field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a TERRAIN difficult effect."
+    },
+    "evards-black-tentacles::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched ordinary line-of-sight targeting to ground the caster can see.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "evards-black-tentacles::status_or_state_change": {
+      "resolutionStatus": "closed",
+      "issue": "Restrained is typed, and the previous fake repeat save was replaced with the canonical Strength (Athletics) action escape check against spell save DC.",
+      "recommendedTemplateChange": "No new status field required for this pass.",
+      "recommendedJsonChange": "Closed by corrected escapeCheck data."
+    },
+    "evards-black-tentacles::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The environmental ground change is Difficult Terrain and is now typed as a TERRAIN effect.",
+      "recommendedTemplateChange": "No new environmental field required for this pass.",
+      "recommendedJsonChange": "Closed by added TERRAIN difficult effect."
+    },
+    "evards-black-tentacles::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "The Restrained condition lasts until the spell ends unless the creature succeeds on the canonical action escape check; no separate conditional-ending bucket is needed beyond the corrected status escape data.",
+      "recommendedTemplateChange": "No conditional-ending field required.",
+      "recommendedJsonChange": "Closed by corrected statusCondition.escapeCheck and duration."
+    },
+    "fabricate::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses visible raw materials and converts them into products of the same material, with size/material limits and proficiency limits; runtime stores this as prose only.",
+      "recommendedTemplateChange": "Add fabrication fields for raw material selection, material continuity, sufficient quantity, size limits by material class, quality inheritance, and proficiency-gated products.",
+      "recommendedJsonChange": "Add runtime fabrication data."
+    },
+    "fabricate::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched visible raw materials, which is ordinary line-of-sight targeting already represented by Line of Sight true.",
+      "recommendedTemplateChange": "No vision-light-sound field required.",
+      "recommendedJsonChange": "Closed by existing lineOfSight targeting."
+    },
+    "fabricate::created_object_or_structure": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates objects from raw materials with Large/Medium size caps, cube containment rules, material-specific constraints, creature/magic-item exclusions, and tool proficiency gates; runtime does not type any of this creation logic.",
+      "recommendedTemplateChange": "Add object fabrication fields for created object size/volume, material constraints, exclusions, and tool proficiency requirements.",
+      "recommendedJsonChange": "Add runtime objectCreation/fabrication data."
+    },
+    "find-greater-steed::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spirit's form, Celestial/Fey/Fiend type, and language are all caster choices; runtime stores none of them as typed options.",
+      "recommendedTemplateChange": "Add summon choice fields for formOptions, creature type override options, Intelligence floor, and language choice.",
+      "recommendedJsonChange": "Add runtime summon choice data."
+    },
+    "find-greater-steed::target_filter_or_eligibility": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The mount appears in an unoccupied space within range, but runtime targets generic creatures and lacks placement-space eligibility.",
+      "recommendedTemplateChange": "Add summon placement fields for unoccupied space within range.",
+      "recommendedJsonChange": "Add runtime summon placement data and consider validTargets point/unoccupied_space rather than creatures."
+    },
+    "find-greater-steed::sustain_or_recast_action": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The mount can be dismissed temporarily as an action, released permanently as an action, and recast to re-summon the bonded mount with restored HP and removed conditions; runtime lacks these lifecycle actions.",
+      "recommendedTemplateChange": "Add bonded summon lifecycle fields for dismiss, release, recast restore, and temporary/permanent disappearance.",
+      "recommendedJsonChange": "Add runtime bondedSummon lifecycle data."
+    },
+    "find-greater-steed::message_or_communication": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The mount gains a language if needed and has 1-mile telepathy with the caster; runtime lacks typed language and telepathy fields.",
+      "recommendedTemplateChange": "Add summoned creature language and telepathy range fields.",
+      "recommendedJsonChange": "Add runtime summon communication data."
+    },
+    "find-greater-steed::summon_or_controlled_entity": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The spell creates a bonded controllable mount with form options, stat-block references, type overrides, combat control, telepathy, spell-sharing, disappearance/recast lifecycle, one-mount bond limit, and carried-object drop behavior; runtime is only a generic utility placeholder.",
+      "recommendedTemplateChange": "Add bonded mount summon fields covering form, stats, control, spell sharing, lifecycle, bond limit, and equipment handling.",
+      "recommendedJsonChange": "Add runtime bondedMount summon data."
+    },
+    "find-greater-steed::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The one-bond limit across Find Greater Steed and Find Steed is a persistent relationship constraint, not currently typed.",
+      "recommendedTemplateChange": "Add bonded summon exclusivity fields across spell families.",
+      "recommendedJsonChange": "Add runtime bondLimit data."
+    },
+    "find-greater-steed::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The mount disappears at 0 HP, recast restores all HP and removes conditions, and disappearing leaves behind worn/carried objects; runtime lacks typed HP/lifecycle/equipment handling.",
+      "recommendedTemplateChange": "Add bonded summon defeat/recast/equipment fields.",
+      "recommendedJsonChange": "Add runtime mountLifecycle and equipmentDrop data."
+    },
+    "fire-shield::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "The caster chooses warm shield or chill shield, which links resistance type and retaliation damage type; runtime now has both types present but not a linked mode choice.",
+      "recommendedTemplateChange": "Add linked mode fields for warm/chill shield resistance and retaliation damage.",
+      "recommendedJsonChange": "Add runtime modeChoice data linking warm to Cold resistance/Fire retaliation and chill to Fire resistance/Cold retaliation."
+    },
+    "fire-shield::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "The retaliation triggers when a creature within 5 feet hits the caster with a melee attack roll; runtime damage now uses on_attack_hit and describes the melee/5-foot condition.",
+      "recommendedTemplateChange": "No attack/save modifier field required for this pass; a future trigger filter can make the 5-foot melee condition first-class.",
+      "recommendedJsonChange": "Closed by changing the DAMAGE trigger to on_attack_hit and preserving the melee/5-foot condition in description."
+    },
+    "fire-shield::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "The Bright Light and Dim Light radii are now represented by a UTILITY light effect.",
+      "recommendedTemplateChange": "No new light field required for this pass.",
+      "recommendedJsonChange": "Closed by adding a light utility effect with brightRadius 10 and dimRadius 10."
+    },
+    "fire-shield::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Warm shield grants Cold resistance and chill shield grants Fire resistance; runtime now has a DEFENSIVE resistance effect.",
+      "recommendedTemplateChange": "No new defensive field required for this pass; linked mode choice remains open under choice_or_mode.",
+      "recommendedJsonChange": "Closed by adding a DEFENSIVE resistance effect for Cold/Fire."
+    },
+    "fire-shield::environmental_change": {
+      "resolutionStatus": "closed",
+      "issue": "The detector matched elemental damage type names, but the spell affects the caster and attackers rather than changing the environment.",
+      "recommendedTemplateChange": "Track under light, defensive resistance, retaliation damage, and mode choice fields.",
+      "recommendedJsonChange": "No environmental-change data required."
+    }
+  },
+  "manualFindings": {}
+}

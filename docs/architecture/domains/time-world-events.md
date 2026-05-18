@@ -1,4 +1,4 @@
-﻿# Time & World Events
+# Time & World Events
 
 ## Purpose
 

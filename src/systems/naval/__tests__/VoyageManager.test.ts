@@ -132,6 +132,10 @@ describe('VoyageManager', () => {
         // Set low supplies
         ship.cargo.supplies.food = 0;
         ship.cargo.supplies.water = 0;
+        // Crew traits can raise or lower the generated starting morale, so the
+        // starvation check compares against the actual crew state instead of a
+        // fixed baseline that only applies to trait-neutral crew.
+        const startingMorale = ship.crew.averageMorale;
         // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 500);
         const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
@@ -143,7 +147,7 @@ describe('VoyageManager', () => {
         expect(lastLog.type).toBe('Warning');
 
         // Check morale hit
-        expect(updatedShip.crew.averageMorale).toBeLessThan(80); // Started at 80
+        expect(updatedShip.crew.averageMorale).toBeLessThan(startingMorale);
     });
 
     it('should finish voyage when distance is reached', () => {

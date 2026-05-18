@@ -42,12 +42,12 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
 
   // Sort by XP descending, but filter out monsters that are too strong (XP > budget)
   const validCandidates = candidates
-    .filter(m => getXp(m) <= xpBudget)
-    .sort((a, b) => getXp(b) - getXp(a));
+    .filter(m => getXp(m) <= xpBudget);
 
   if (validCandidates.length === 0) {
       // If even the weakest monster is too strong, just give one of the weakest.
-      const weakest = candidates.sort((a, b) => getXp(a) - getXp(b))[0];
+      const sortedByWeakest = [...candidates].sort((a, b) => getXp(a) - getXp(b));
+      const weakest = sortedByWeakest[0];
       if (weakest) {
          return [{
              name: weakest.name,
@@ -59,44 +59,57 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
       return [];
   }
 
-  // 3. Fill the budget
-  // Simple greedy approach: take the strongest monster that fits, then repeat.
-  // Limit to max 6 monsters to avoid swarms of tiny things.
+  // 3. Fill the budget with randomized selection
+  // Shuffle candidates to ensure variety
+  const shuffledCandidates = [...validCandidates].sort(() => Math.random() - 0.5);
+  
   let monsterCount = 0;
   const MAX_MONSTERS = 6;
+  const targetXp = xpBudget;
+  
+  // Attempt to fill budget by picking random valid monsters
+  // We'll try several passes or just pick until we can't fit anything else
+  let attempts = 0;
+  const MAX_ATTEMPTS = 20;
 
-  while (currentXp < xpBudget && monsterCount < MAX_MONSTERS) {
-    const remainingBudget = xpBudget - currentXp;
+  while (currentXp < targetXp && monsterCount < MAX_MONSTERS && attempts < MAX_ATTEMPTS) {
+    attempts++;
+    const remainingBudget = targetXp - currentXp;
+    
+    // Filter candidates that still fit
+    const affordable = shuffledCandidates.filter(m => getXp(m) <= remainingBudget);
+    
+    if (affordable.length === 0) break;
 
-    // Find the strongest monster that fits in remaining budget
-    const nextMonster = validCandidates.find(m => getXp(m) <= remainingBudget);
+    // Pick a random affordable monster
+    const nextMonster = affordable[Math.floor(Math.random() * affordable.length)];
+    const xp = getXp(nextMonster);
 
-    if (nextMonster) {
-      const xp = getXp(nextMonster);
-
-      // Check if we already have this monster in the list
-      const existingEntry = encounter.find(e => e.name === nextMonster.name);
-      if (existingEntry) {
+    // Check if we already have this monster in the list
+    const existingEntry = encounter.find(e => e.name === nextMonster.name);
+    if (existingEntry) {
+      // Limit quantity of a single type to 4 to encourage variety
+      if (existingEntry.quantity < 4) {
         existingEntry.quantity += 1;
-      } else {
-        encounter.push({
-          name: nextMonster.name,
-          quantity: 1,
-          cr: nextMonster.baseStats.cr,
-          description: `A group of ${nextMonster.name}s.` // Simple description
-        });
+        currentXp += xp;
+        monsterCount++;
       }
+    } else {
+      encounter.push({
+        name: nextMonster.name,
+        quantity: 1,
+        cr: nextMonster.baseStats.cr,
+        description: `A group of ${nextMonster.name}s.` // Simple description
+      });
       currentXp += xp;
       monsterCount++;
-    } else {
-      // No monster fits the remaining budget
-      break;
     }
   }
 
   // If we didn't add anything (e.g. budget too small for any monster), force one weak monster
   if (encounter.length === 0 && validCandidates.length > 0) {
-       const weakest = validCandidates[validCandidates.length - 1]; // Sorted desc, so last is weakest
+       const sortedByWeakest = [...validCandidates].sort((a, b) => getXp(a) - getXp(b));
+       const weakest = sortedByWeakest[0];
        encounter.push({
           name: weakest.name,
           quantity: 1,

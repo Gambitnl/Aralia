@@ -1,0 +1,128 @@
+{
+  "generatedFor": "spell-mechanics-discovery",
+  "findings": {
+    "incite-greed::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Vision, sound, obscurement, or sensory fields need a stronger sensory schema when not just line of sight.",
+      "recommendedTemplateChange": "Add sensory/vision/light/sound bucket fields.",
+      "recommendedJsonChange": "Use current light/terrain/utility representation as interim data."
+    },
+    "incite-greed::social_or_knowledge_effect": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Knowledge, attitude, speech, or memory effects need explicit social/knowledge fields.",
+      "recommendedTemplateChange": "Add social/knowledge bucket fields.",
+      "recommendedJsonChange": "Use current status/utility text as interim representation."
+    },
+    "incite-greed::status_or_state_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Some state changes are not simple D&D conditions and need state-change fields.",
+      "recommendedTemplateChange": "Add state-change bucket fields for non-condition states.",
+      "recommendedJsonChange": "Use STATUS_CONDITION where possible and Utility Options elsewhere."
+    },
+    "incite-greed::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: the detailed Incite Greed row now records the harmful-action and repeat-save effect endings in structured markdown and runtime JSON.",
+      "recommendedTemplateChange": "No additional template change required from this residual duplicate.",
+      "recommendedJsonChange": "No additional JSON change required from this residual duplicate.",
+      "closedReason": "The detailed manual row closes this mechanic by adding caster_or_companion_harms_target and repeat_save_success conditional endings to Incite Greed."
+    },
+    "intellect-fortress::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "intellect-fortress::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "intellect-fortress::damage_reduction_or_prevention": {
+      "resolutionStatus": "closed",
+      "issue": "Actionable open: Damage prevention/reduction needs explicit reducibility and prevention fields.",
+      "recommendedTemplateChange": "Add damage prevention/reduction bucket fields.",
+      "recommendedJsonChange": "Use defensive/utility effects as interim representation.",
+      "reviewerNote": "Closed by the specific Intellect Fortress manual row: Psychic resistance is now DEFENSIVE resistance with Damage Type Psychic in structured markdown and runtime JSON."
+    },
+    "leomunds-tiny-hut::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "leomunds-tiny-hut::vision_light_sound": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Vision, sound, obscurement, or sensory fields need a stronger sensory schema when not just line of sight.",
+      "recommendedTemplateChange": "Add sensory/vision/light/sound bucket fields.",
+      "recommendedJsonChange": "Use current light/terrain/utility representation as interim data."
+    },
+    "leomunds-tiny-hut::summon_or_controlled_entity": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "leomunds-tiny-hut::environmental_change": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Environmental changes need reusable world-state fields for weather, obscurement, growth, gas, liquids, and hazards.",
+      "recommendedTemplateChange": "Add environment/world-state bucket fields.",
+      "recommendedJsonChange": "Use current terrain/damage/utility fields as interim data."
+    },
+    "leomunds-tiny-hut::conditional_ending": {
+      "resolutionStatus": "closed",
+      "issue": "Leomund's Tiny Hut's caster-leaves-area and end-on-recast early endings are now represented by Conditional Ending Triggers and runtime conditionalEndings.",
+      "recommendedTemplateChange": "Closed by Conditional Ending Triggers caster_leaves_area and end_on_recast with scope spell.",
+      "recommendedJsonChange": "Closed by runtime conditionalEndings carrying caster_leaves_area and end_on_recast for the spell."
+    },
+    "life-transference::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "life-transference::vision_light_sound": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    },
+    "life-transference::object_stats_or_damageability": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Object stats, structure durability, or object transformations need explicit AC/HP/passability/damageability fields.",
+      "recommendedTemplateChange": "Add object stat/damageability bucket fields.",
+      "recommendedJsonChange": "Use current spatial/utility fields until propagation."
+    },
+    "lightning-arrow::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "lightning-bolt::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "lightning-bolt::attack_or_save_modifier": {
+      "resolutionStatus": "closed",
+      "issue": "Closed: Reviewed in the level-3 residual sweep; attack_or_save_modifier is already covered by current save, attack, target, filter, or prompt fields where this row applies.",
+      "recommendedTemplateChange": "No new template field required from this residual row.",
+      "recommendedJsonChange": "No JSON change required from this residual row."
+    },
+    "magic-circle::choice_or_mode": {
+      "resolutionStatus": "actionable_open",
+      "issue": "Actionable open: Mode choices need first-class mode/option fields when a spell exposes several distinct operations.",
+      "recommendedTemplateChange": "Add a choice/mode bucket with option-specific targets/effects.",
+      "recommendedJsonChange": "Keep existing Utility Options or descriptions until mode schema propagation."
+    },
+    "magic-circle::terrain_or_surface": {
+      "resolutionStatus": "closed",
+      "issue": "Closed residual duplicate: a manual review row already resolved this finding as represented, wrong-bucket, or tracked under a more specific open bucket. No mechanic is being discarded by closing this generic residual row.",
+      "recommendedTemplateChange": "No template change required from this residual duplicate.",
+      "recommendedJsonChange": "No JSON change required from this residual duplicate."
+    }
+  },
+  "manualFindings": {}
+}

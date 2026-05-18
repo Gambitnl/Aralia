@@ -1,0 +1,150 @@
+{
+  "templateKind": "runtime-json",
+  "part": "95-misc-runtime",
+  "fieldCount": 8,
+  "fields": [
+    {
+      "path": "accessGrants[]",
+      "required": false,
+      "valueType": "object-array",
+      "structuredLabel": "Access Grants",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Feature-granted spell access maps from structured Access Grant fields."
+        }
+      ],
+      "comment": "Feature-granted spell access maps from structured Access Grant fields. It maps to `accessGrants[]`. It is populated from the structured markdown label `Access Grants`. Purpose: accessGrants[] exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Access Grants`, after that field has been checked against canonical prose. It maps to runtime JSON path `accessGrants[]`. The value type is `object-array`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "accessGrants[].sourceType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "class_feature",
+        "subclass_feature",
+        "species_trait",
+        "feat",
+        "item",
+        "background",
+        "other"
+      ],
+      "structuredPattern": "^Access Grant \\d+ Source Type$",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Typed grant source maps from numbered Access Grant fields."
+        }
+      ],
+      "comment": "Typed grant source maps from numbered Access Grant fields. It maps to `accessGrants[].sourceType`. It is populated from structured markdown labels matching `^Access Grant \\d+ Source Type$`. Purpose: accessGrants[].sourceType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `accessGrants[].sourceType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "class_feature": "Allowed value for accessGrants[].sourceType; use only when the canonical spell text supports this exact mechanic.",
+        "subclass_feature": "Allowed value for accessGrants[].sourceType; use only when the canonical spell text supports this exact mechanic.",
+        "species_trait": "Allowed value for accessGrants[].sourceType; use only when the canonical spell text supports this exact mechanic.",
+        "feat": "Allowed value for accessGrants[].sourceType; use only when the canonical spell text supports this exact mechanic.",
+        "item": "Allowed value for accessGrants[].sourceType; use only when the canonical spell text supports this exact mechanic.",
+        "background": "Allowed value for accessGrants[].sourceType; use only when the canonical spell text supports this exact mechanic.",
+        "other": "Allowed value for accessGrants[].sourceType; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "accessGrants[].className",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValuesFrom": "Classes",
+      "structuredPattern": "^Access Grant \\d+ Class$",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Grant class maps from numbered Access Grant fields."
+        }
+      ],
+      "comment": "Grant class maps from numbered Access Grant fields. It maps to `accessGrants[].className`. It is populated from structured markdown labels matching `^Access Grant \\d+ Class$`. Purpose: accessGrants[].className exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `accessGrants[].className`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "accessGrants[].sourceName",
+      "required": false,
+      "valueType": "string",
+      "structuredPattern": "^Access Grant \\d+ Feature$",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Grant feature name maps from numbered Access Grant fields."
+        }
+      ],
+      "comment": "Grant feature name maps from numbered Access Grant fields. It maps to `accessGrants[].sourceName`. It is populated from structured markdown labels matching `^Access Grant \\d+ Feature$`. Purpose: accessGrants[].sourceName exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `accessGrants[].sourceName`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "accessGrants[].accessType",
+      "required": false,
+      "valueType": "enum",
+      "acceptedValues": [
+        "known",
+        "prepared",
+        "always_prepared",
+        "cast"
+      ],
+      "structuredPattern": "^Access Grant \\d+ Access Type$",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Grant access type maps from numbered Access Grant fields."
+        }
+      ],
+      "comment": "Grant access type maps from numbered Access Grant fields. It maps to `accessGrants[].accessType`. It is populated from structured markdown labels matching `^Access Grant \\d+ Access Type$`. Purpose: accessGrants[].accessType exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `accessGrants[].accessType`. The value type is `enum`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional.",
+      "acceptedValueNotes": {
+        "known": "Allowed value for accessGrants[].accessType; use only when the canonical spell text supports this exact mechanic.",
+        "prepared": "Allowed value for accessGrants[].accessType; use only when the canonical spell text supports this exact mechanic.",
+        "always_prepared": "Allowed value for accessGrants[].accessType; use only when the canonical spell text supports this exact mechanic.",
+        "cast": "Allowed value for accessGrants[].accessType; use only when the canonical spell text supports this exact mechanic."
+      }
+    },
+    {
+      "path": "accessGrants[].automatic",
+      "required": false,
+      "valueType": "boolean",
+      "structuredPattern": "^Access Grant \\d+ Automatic$",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Automatic grant flag maps from numbered Access Grant fields."
+        }
+      ],
+      "comment": "Automatic grant flag maps from numbered Access Grant fields. It maps to `accessGrants[].automatic`. It is populated from structured markdown labels matching `^Access Grant \\d+ Automatic$`. Purpose: accessGrants[].automatic exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `accessGrants[].automatic`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "accessGrants[].consumesSelection",
+      "required": false,
+      "valueType": "boolean",
+      "structuredPattern": "^Access Grant \\d+ Consumes Selection$",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Selection-budget behavior maps from numbered Access Grant fields."
+        }
+      ],
+      "comment": "Selection-budget behavior maps from numbered Access Grant fields. It maps to `accessGrants[].consumesSelection`. It is populated from structured markdown labels matching `^Access Grant \\d+ Consumes Selection$`. Purpose: accessGrants[].consumesSelection exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `accessGrants[].consumesSelection`. The value type is `boolean`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    },
+    {
+      "path": "accessGrants[].notes",
+      "required": false,
+      "valueType": "string",
+      "structuredPattern": "^Access Grant \\d+ Notes$",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Grant notes map from numbered Access Grant fields."
+        }
+      ],
+      "comment": "Grant notes map from numbered Access Grant fields. It maps to `accessGrants[].notes`. It is populated from structured markdown labels matching `^Access Grant \\d+ Notes$`. Purpose: accessGrants[].notes exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured spell data after the canonical prose has been reviewed. It maps to runtime JSON path `accessGrants[].notes`. The value type is `string`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
+    }
+  ]
+}

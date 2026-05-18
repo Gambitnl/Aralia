@@ -1,0 +1,35 @@
+{
+  "templateKind": "runtime-json",
+  "part": "90-descriptions",
+  "fieldCount": 2,
+  "fields": [
+    {
+      "path": "description",
+      "required": true,
+      "valueType": "prose",
+      "structuredLabel": "Description",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Description."
+        }
+      ],
+      "comment": "Mapped from structured Description. It maps to `description`. It is populated from the structured markdown label `Description`. Purpose: description exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Description`, after that field has been checked against canonical prose. It maps to runtime JSON path `description`. The value type is `prose`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    },
+    {
+      "path": "higherLevels",
+      "required": true,
+      "valueType": "prose-or-empty",
+      "structuredLabel": "Higher Levels",
+      "log": [
+        {
+          "at": "2026-05-06T11:16:03+02:00",
+          "action": "created",
+          "why": "Mapped from structured Higher Levels."
+        }
+      ],
+      "comment": "Mapped from structured Higher Levels. It maps to `higherLevels`. It is populated from the structured markdown label `Higher Levels`. Purpose: higherLevels exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Higher Levels`, after that field has been checked against canonical prose. It maps to runtime JSON path `higherLevels`. The value type is `prose-or-empty`. This is expected on every spell/template instance. Because this field is required, every spell should carry a deliberate value rather than relying on absence."
+    }
+  ]
+}

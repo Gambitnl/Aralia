@@ -1,182 +1,324 @@
 {
-    "id":  "heroism",
-    "name":  "Heroism",
-    "aliases":  [
-
-                ],
-    "level":  1,
-    "school":  "Enchantment",
-    "legacy":  false,
-    "classes":  [
-                    "Bard",
-                    "Paladin"
-                ],
-    "subClasses":  [
-                       "Cleric - Community Domain (HCS)",
-                       "Cleric - Order Domain (TCoE)",
-                       "Cleric - Peace Domain (TCoE)"
-                   ],
-    "subClassesVerification":  "verified",
-    "ritual":  false,
-    "rarity":  "common",
-    "attackType":  "",
-    "castingTime":  {
-                        "value":  1,
-                        "unit":  "action",
-                        "combatCost":  {
-                                           "type":  "action",
-                                           "condition":  ""
-                                       },
-                        "explorationCost":  {
-                                                "value":  0,
-                                                "unit":  "minute"
-                                            }
-                    },
-    "range":  {
-                  "type":  "touch",
-                  "distance":  0
-              },
-    "components":  {
-                       "verbal":  true,
-                       "somatic":  true,
-                       "material":  false,
-                       "materialDescription":  "",
-                       "materialCost":  0,
-                       "isConsumed":  false
-                   },
-    "duration":  {
-                     "type":  "timed",
-                     "value":  1,
-                     "unit":  "minute",
-                     "concentration":  true
-                 },
-    "targeting":  {
-                      "type":  "single",
-                      "range":  0,
-                      "validTargets":  [
-                                           "creatures"
-                                       ],
-                      "lineOfSight":  true,
-                      "maxTargets":  1,
-                      "areaOfEffect":  {
-                                           "shape":  "Sphere",
-                                           "size":  0,
-                                           "height":  0
-                                       },
-                      "filter":  {
-                                     "creatureTypes":  [
-
-                                                       ],
-                                     "excludeCreatureTypes":  [
-
-                                                              ],
-                                     "sizes":  [
-
-                                               ],
-                                     "alignments":  [
-
-                                                    ],
-                                     "hasCondition":  [
-
-                                                      ],
-                                     "isNativeToPlane":  false
-                                 }
-                  },
-    "effects":  [
-                    {
-                        "type":  "UTILITY",
-                        "trigger":  {
-                                        "type":  "immediate",
-                                        "frequency":  "every_time",
-                                        "consumption":  "unlimited",
-                                        "attackFilter":  {
-                                                             "weaponType":  "any",
-                                                             "attackType":  "any"
-                                                         },
-                                        "movementType":  "any",
-                                        "sustainCost":  {
-                                                            "actionType":  "action",
-                                                            "optional":  false
-                                                        }
-                                    },
-                        "condition":  {
-                                          "type":  "always",
-                                          "saveType":  "Strength",
-                                          "saveEffect":  "none",
-                                          "targetFilter":  {
-                                                               "creatureTypes":  [
-
-                                                                                 ],
-                                                               "excludeCreatureTypes":  [
-
-                                                                                        ],
-                                                               "sizes":  [
-
-                                                                         ],
-                                                               "alignments":  [
-
-                                                                              ],
-                                                               "hasCondition":  [
-
-                                                                                ],
-                                                               "isNativeToPlane":  false
-                                                           },
-                                          "requiresStatus":  [
-
-                                                             ],
-                                          "saveModifiers":  [
-
-                                                            ]
-                                      },
-                        "utilityType":  "other",
-                        "description":  "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being Frightened and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns. When the spell ends, the target loses any remaining Temporary Hit Points from this spell.",
-                        "scaling":  {
-                                        "type":  "slot_level",
-                                        "bonusPerLevel":  "",
-                                        "customFormula":  ""
-                                    },
-                        "grantedActions":  [
-
-                                           ],
-                        "attackAugments":  [
-
-                                           ],
-                        "controlOptions":  [
-
-                                           ],
-                        "taunt":  {
-                                      "disadvantageAgainstOthers":  false,
-                                      "leashRangeFeet":  0,
-                                      "breakConditions":  [
-
-                                                          ]
-                                  },
-                        "savePenalty":  {
-                                            "dice":  "",
-                                            "flat":  0,
-                                            "applies":  "next_save",
-                                            "duration":  {
-                                                             "type":  "rounds",
-                                                             "value":  0
-                                                         }
-                                        },
-                        "light":  {
-                                      "brightRadius":  0,
-                                      "dimRadius":  0,
-                                      "attachedTo":  "caster",
-                                      "color":  ""
-                                  }
-                    }
-                ],
-    "arbitrationType":  "mechanical",
-    "aiContext":  {
-                      "prompt":  "",
-                      "playerInputRequired":  false
-                  },
-    "description":  "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to the Frightened condition and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns.",
-    "higherLevels":  "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 1.",
-    "tags":  [
-                 "buff",
-                 "concentration"
-             ]
+  "id": "heroism",
+  "name": "Heroism",
+  "aliases": [],
+  "level": 1,
+  "school": "Enchantment",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Paladin"
+  ],
+  "subClasses": [],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": {
+      "base": 1,
+      "scaling": {
+        "type": "slot_level",
+        "thresholds": {
+          "1": 1,
+          "2": 2,
+          "3": 3,
+          "4": 4,
+          "5": 5,
+          "6": 6,
+          "7": 7,
+          "8": 8,
+          "9": 9
+        }
+      }
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false,
+      "willing": "required",
+      "objectEligibility": {
+        "wornOrCarried": "not_applicable",
+        "magicalStatus": "not_applicable",
+        "fixedToSurface": "not_applicable",
+        "maxSize": "not_applicable",
+        "maxWeightPounds": "not_applicable",
+        "maxWeightScaling": "not_applicable"
+      },
+      "communicationPrerequisites": {
+        "canHearCaster": "not_applicable",
+        "canUnderstandCaster": "not_applicable",
+        "canSeeCaster": "not_applicable"
+      },
+      "abilityThreshold": {
+        "ability": "not_applicable",
+        "operator": "not_applicable",
+        "value": "not_applicable"
+      },
+      "selfRelation": "not_applicable"
+    }
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "defenseType": "immunity",
+      "duration": {
+        "type": "minutes",
+        "value": 1
+      },
+      "description": "The target is immune to the Frightened condition while Heroism remains active.",
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "damageType": [],
+      "conditionImmunity": [
+        "Frightened"
+      ],
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false,
+        "willing": "not_applicable",
+        "objectEligibility": {
+          "wornOrCarried": "not_applicable",
+          "magicalStatus": "not_applicable",
+          "fixedToSurface": "not_applicable",
+          "maxSize": "not_applicable",
+          "maxWeightPounds": "not_applicable",
+          "maxWeightScaling": "not_applicable"
+        },
+        "communicationPrerequisites": {
+          "canHearCaster": "not_applicable",
+          "canUnderstandCaster": "not_applicable",
+          "canSeeCaster": "not_applicable"
+        },
+        "abilityThreshold": {
+          "ability": "not_applicable",
+          "operator": "not_applicable",
+          "value": "not_applicable"
+        },
+        "selfRelation": "not_applicable"
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      },
+      "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "other",
+      "description": "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being Frightened and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns. When the spell ends, the target loses any remaining Temporary Hit Points from this spell.",
+      "recurringMechanics": [
+        {
+          "timing": "turn_start",
+          "frequency": "every_time",
+          "healing": {
+            "dice": "spellcasting_ability_modifier",
+            "isTemporaryHp": true
+          },
+          "notes": "The target gains Temporary Hit Points equal to the caster's spellcasting ability modifier at the start of each of the target's turns."
+        }
+      ],
+      "endCleanup": [
+        {
+          "trigger": "spell_ends",
+          "removes": "temporary_hit_points",
+          "source": "this_spell",
+          "scope": "target",
+          "amount": "all_remaining",
+          "notes": "When Heroism ends, the target loses any remaining Temporary Hit Points granted by Heroism."
+        }
+      ],
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to the Frightened condition and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns.",
+  "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 1.",
+  "tags": [
+    "buff",
+    "concentration"
+  ]
 }

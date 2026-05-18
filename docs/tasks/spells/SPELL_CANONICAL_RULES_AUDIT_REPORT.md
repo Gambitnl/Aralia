@@ -472,7 +472,7 @@ Truncated Against Structured Description: 0
 - File: F:\Repos\Aralia\docs\spells\reference\level-1\disguise-self.md
 - Structured Description Length: 731
 - Canonical Rules Length: 0
-- Structured Preview: You make yourself—including your clothing, armor, weapons, and other belongings on your person—look different until the spell ends. You c...
+- Structured Preview: You make yourself-including your clothing, armor, weapons, and other belongings on your person-look different until the spell ends. You c...
 
 ## dissonant-whispers
 
@@ -958,7 +958,7 @@ Truncated Against Structured Description: 0
 - File: F:\Repos\Aralia\docs\spells\reference\level-2\cordon-of-arrows.md
 - Structured Description Length: 645
 - Canonical Rules Length: 0
-- Structured Preview: You touch up to four nonmagical Arrows or Bolts and plant them in the ground in your space. Until the spell ends, the ammunition canâ€™t ...
+- Structured Preview: You touch up to four nonmagical Arrows or Bolts and plant them in the ground in your space. Until the spell ends, the ammunition can't ...
 
 ## crown-of-madness
 
@@ -974,7 +974,7 @@ Truncated Against Structured Description: 0
 - File: F:\Repos\Aralia\docs\spells\reference\level-2\darkness.md
 - Structured Description Length: 586
 - Canonical Rules Length: 0
-- Structured Preview: For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere . Darkvision canâ€™t see through i...
+- Structured Preview: For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere . Darkvision can't see through i...
 
 ## darkvision
 
@@ -1198,7 +1198,7 @@ Truncated Against Structured Description: 0
 - File: F:\Repos\Aralia\docs\spells\reference\level-2\nystuls-magic-aura.md
 - Structured Description Length: 821
 - Canonical Rules Length: 0
-- Structured Preview: With a touch, you place an illusion on a willing creature or an object that isnâ€™t being worn or carried. A creature gains the Mask effe...
+- Structured Preview: With a touch, you place an illusion on a willing creature or an object that isn't being worn or carried. A creature gains the Mask effe...
 
 ## pass-without-trace
 
