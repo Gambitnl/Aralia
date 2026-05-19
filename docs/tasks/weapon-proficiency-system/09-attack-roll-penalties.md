@@ -1,20 +1,28 @@
-# Task 09: Apply Non-Proficiency Penalties to Attack Rolls
+# Task 09: Prove Non-Proficiency Penalties on Attack Rolls
 
-Status: active gap note
-Last reviewed: 2026-03-12
+Status: implementation found; regression coverage still open
+Last reviewed: 2026-05-19
 
 ## Current reading
 
-This remains an active gap note.
+This is no longer best read as an unimplemented combat behavior. The current code path appears to already remove proficiency bonus from non-proficient weapon attacks.
+
+The remaining task is to add focused regression coverage and then mark the behavior as verified.
 
 ## Verified current state
 
-Manual repo verification on 2026-03-12 confirmed that src/utils/combat/combatUtils.ts already tags generated weapon abilities with isProficient, but this pass did not prove that the final attack-bonus pipeline strips proficiency bonus before calling resolveAttack().
+Manual repo verification on 2026-03-12 confirmed that src/utils/combat/combatUtils.ts already tags generated weapon abilities with isProficient.
+
+Follow-up repo verification on 2026-05-19 found the final attack modifier gate in src/commands/factory/AbilityCommandFactory.ts: when no explicit attackBonus override exists, WeaponAttackCommand computes proficiencyBonus from this.ability.isProficient ? pb : 0 before calling resolveAttack().
+
+The same 2026-05-19 pass also found the opportunity attack path in src/hooks/combat/useActionExecutor.ts using weaponAbility.isProficient ? proficiency bonus : 0.
 
 ## Concrete remaining question
 
-Wherever the final attack modifier is assembled, it should explicitly zero out proficiency bonus for non-proficient weapon attacks. Until that path is proven, this capability should remain open as Attack Roll Proficiency Penalty.
+Add a regression test that proves a non-proficient weapon attack omits proficiency bonus from the attack roll. The test should cover the command-side weapon attack path and, if practical, the opportunity attack path separately.
+
+After that test exists, this task can be closed or converted into a historical verification note.
 
 ## Scope
 
-This file should no longer be read as combat integration has not started at all. It is specifically about the unresolved final attack-roll modifier enforcement and any combat-log explanation that should accompany it.
+This file should no longer be read as combat integration has not started at all. It is specifically about turning the discovered implementation into protected behavior through targeted tests and keeping the combat-log explanation aligned with the permissive weapon-proficiency rule.
