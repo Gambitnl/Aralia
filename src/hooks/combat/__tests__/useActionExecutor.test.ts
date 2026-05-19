@@ -128,9 +128,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'action1',
             characterId: 'char1',
-            type: 'move',
+            type: 'move' as 'move',
             targetPosition: { x: 1, y: 1 },
-            cost: { type: 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -154,9 +154,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'action1',
             characterId: 'char1',
-            type: 'move',
+            type: 'move' as 'move',
             targetPosition: { x: 1, y: 1 },
-            cost: { type: 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -200,9 +200,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'blocked-move',
             characterId: mockCharacter.id,
-            type: 'move',
+            type: 'move' as 'move',
             targetPosition: blocker.position,
-            cost: { type: 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -221,7 +221,7 @@ describe('useActionExecutor', () => {
             name: 'Dash',
             description: 'Gain extra movement for the turn.',
             type: 'movement',
-            cost: { type: 'action' },
+            cost: { type: 'action' as 'action' },
             targeting: 'self',
             range: 0,
             effects: [{ type: 'movement', value: 30 }]
@@ -274,18 +274,18 @@ describe('useActionExecutor', () => {
             id: 'scimitar',
             name: 'Scimitar',
             description: 'A close melee attack.',
-            type: 'attack',
-            cost: { type: 'action' },
-            targeting: 'single_enemy',
+            type: 'attack' as 'attack',
+            cost: { type: 'action' as 'action' },
+            targeting: 'single_enemy' as 'single_enemy',
             range: 1,
-            effects: [{ type: 'damage', value: 4, damageType: 'physical' }]
+            effects: [{ type: 'damage' as 'damage', value: 4, damageType: 'physical' as 'physical' }]
         };
         const mover = { ...mockCharacter, position: { x: 0, y: 1 } };
         const attacker: CombatCharacter = {
             ...mockCharacter,
             id: 'orc',
             name: 'Orc',
-            team: 'enemy',
+            team: 'enemy' as 'enemy',
             position: { x: 0, y: 0 },
             abilities: [scimitar],
             actionEconomy: {
@@ -305,9 +305,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'leave-reach',
             characterId: mover.id,
-            type: 'move',
+            type: 'move' as 'move',
             targetPosition: { x: 0, y: 2 },
-            cost: { type: 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -322,6 +322,62 @@ describe('useActionExecutor', () => {
         }));
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
             message: expect.stringContaining('Opportunity Attack')
+        }));
+    });
+
+    it('should omit proficiency bonus from opportunity attacks with non-proficient weapons', () => {
+        const unproficientWeapon = {
+            id: 'unproficient_weapon',
+            name: 'Heavy Club',
+            description: 'A heavy melee attack.',
+            type: 'attack' as 'attack',
+            cost: { type: 'action' as 'action' },
+            targeting: 'single_enemy' as 'single_enemy',
+            range: 1,
+            isProficient: false,
+            effects: [{ type: 'damage' as 'damage', value: 4, damageType: 'physical' as 'physical' }]
+        };
+        const mover = { ...mockCharacter, position: { x: 0, y: 1 } };
+        const attacker = {
+            ...mockCharacter,
+            id: 'orc',
+            name: 'Orc',
+            level: 1,
+            stats: {
+                ...mockCharacter.stats,
+                strength: 14 // +2 mod
+            },
+            team: 'enemy' as 'enemy',
+            position: { x: 0, y: 0 },
+            abilities: [unproficientWeapon],
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        mockConsumeAction.mockReturnValue(mover);
+        mockProcessTileEffects.mockImplementation((char) => char);
+        mockHandleDamage.mockImplementation((char) => char);
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, attacker]
+        }));
+
+        const action = {
+            id: 'leave-reach',
+            characterId: mover.id,
+            type: 'move' as 'move',
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
+            timestamp: Date.now()
+        };
+
+        const success = result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringMatching(/\+\s*2\s*=\s*\d+ vs AC/)
         }));
     });
 });
